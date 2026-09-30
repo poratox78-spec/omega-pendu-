@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-09-30 (suite) — le gérondif « en + -ent » en milieu de phrase (catalogue des muets)
+
+- Recensé sur les 3 corpus : « en » + forme en -ent que le gold corrige en -ant (6 cas, gold et EcriScol). Le participe présent après
+  « en » (gerondifVig, orange) ne tirait qu'en tête de segment ou après « tout » : 3 prises, 2 muets, et 1 ROUGE faux — une règle
+  sujet-verbe (par la coordination) accordait le verbe au sujet de la proposition (« en disent » → dit).
+- Extension : en milieu de phrase, devant une 3e pluriel écrite exactement, quand la lecture clitique (« les voisins en parlent ») est
+  impossible — mot d'avant ni sujet possible (pronom, quantifieur, nombre, mot au pluriel, nom propre) ni conjonction, pas de pronom
+  sujet après (inversion), ni adjectif ni nom au tagger. Tous groupes, participe par le radical du « nous » (l'ancien calcul sur le
+  lemme désaccentué donnait « mangant », « commencant »). Garde centrale : aucune règle sujet-verbe ne corrige un verbe que « en »
+  précède quand le gérondif tient (correctTokens, rAccordSVnoun ; miroir Python : règles enveloppées dans RULES).
+- Réfuté en chemin : tous groupes AUSSI en tête de phrase — 20 fausses alertes UD, presque toutes « En fait, … » → faisant (locution),
+  « en conclut » (clitique après une virgule). Le 1er groupe seul reste la règle en tête de segment.
+- Mesuré (produit) : 4 marques devenues justes, 0 juste perdue sur les 3 corpus dys (gold 2 : un muet, le rouge faux ; frgec 2 :
+  négligeant, tapant — accent et -ge- rendus) ; UD 14 450 : aucune marque changée. Gold : muettes 638 → 637, mots faux 336 → 335
+  (rouges faux 38 → 37), bons mots orange 425 → 427.
+- Tests : parity_core (chantent → chantant, disent → disant, mangent → mangeant, commencent → commençant, plus d'accord sujet-verbe ;
+  6 témoins muets : clitique, inversion, nombre, adjectif, locution) ; batterie FP=0 Python.
+
 ## 2026-09-30 (suite) — le genre du déterminant contredit par l'orange du nom (mots justes touchés)
 
 - Dans les mots justes touchés du catalogue : « la foret » → orange « le », « le pole » → orange « la ». La règle du genre lit le nom
