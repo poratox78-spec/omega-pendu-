@@ -749,8 +749,10 @@ class Speller:
             if phx != phy:                                   # AUDIBILITÉ finale muette : garde de dominance (miroir pmatch/gmatch).
                 # phon_key strippe les finales muettes 'est' mais PAS 'd' → « accort »(0) phon-matche « accor », pas « accord »(975).
                 # Un rival ≫20× plus fréquent (accord) écrase le phon-match d'un junk rare (accort) → restaure la finale muette -d.
-                if phx > phy and py_ >= 1 and fy >= 20 * fx: return 1
-                if phy > phx and px_ >= 1 and fx >= 20 * fy: return -1
+                # ⭐ 30/09/2026 : un rival qui n'est que le mot écrit AMPUTÉ de sa première lettre n'écrase pas un homophone (« aprise » :
+                # « prise » écrasait « apprise ») ; la version large (garder l'initiale) coûtait evec → avec, gours → jours — miroir JS
+                if phx > phy and py_ >= 1 and fy >= 20 * fx and deacc(wy) != d[1:]: return 1
+                if phy > phx and px_ >= 1 and fx >= 20 * fy and deacc(wx) != d[1:]: return -1
                 return phy - phx
             nx, ny = nmatch(wx), nmatch(wy)
             if nx != ny: return ny - nx

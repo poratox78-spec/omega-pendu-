@@ -20,9 +20,14 @@
 - Essayé et écarté en chemin : admettre à l'initiale un homophone d'une autre lettre (« foto » → photo) — tel quel, 11 cassés ;
   restreint aux alternances f/ph, s/c, c/k/qu, g/j sans homophone de même initiale, 0 cassé mais +1 seulement (mesuré AVANT la
   correction de la clé : à remesurer, « séte » → cette en dépend).
-- Mesuré (produit) : 137 marques devenues justes, 22 cassées sur les 3 corpus dys (gold +11, EcriScol +4, frgec +100) ; UD 14 450 :
-  aucune marque nouvelle ni perdue, 86 suggestions changées sur des mots rares déjà signalés. Gold : 16 mots faux de moins (364 → 348),
-  12 bons mots orange de plus (401 → 413). Un mot « juste » touché en plus : « soiété », coquille laissée par le gold, désormais
+- Le banc Chrome a alors rougi sur un cas documenté : « Elle a aprise la leçon » ne donnait plus « appris ». La nouvelle clé sépare, à
+  raison, « aprise » (apris) d'« appris » (apri) ; le seul homophone restant (apprise) était écrasé par « prise », 26 fois plus
+  fréquent — qui ôte la PREMIÈRE lettre. Garde : un rival qui n'est que le mot écrit AMPUTÉ de sa première lettre n'écrase pas un
+  homophone. Une version large (« le rival doit garder l'initiale ») a été mesurée puis RÉFUTÉE par le census dys : elle gagnait sur
+  frgec (« polution » → pollution) mais coûtait des fautes dys typiques e/a, g/j (evec → avec, gours → jours) : net −4 oranges justes.
+- Mesuré (produit, lot complet) : 141 marques devenues justes, 23 cassées sur les 3 corpus dys (gold +12, EcriScol +5, frgec +101) ;
+  UD 14 450 : aucune marque nouvelle ni perdue, 90 suggestions changées sur des mots rares déjà signalés. Gold : 17 mots faux de moins
+  (364 → 347), 13 bons mots orange de plus (401 → 414). Un mot « juste » touché en plus : « soiété », coquille laissée par le gold, désormais
   proposée avec confiance.
 - Tests : test_speller (extension + app, dont les 6 cas d'omission), sonde de parité des clés (clés attendues : cette, fête, reste…),
   parité speller Python ↔ JS, garde de palier gold.
