@@ -1419,7 +1419,8 @@ def rule_ce_se(T, i):
     if lw not in ('ce', 'se'): return None
     if i+1 >= len(T): return None
     nd = deacc(T[i+1].lower())
-    if nd in ('qui', 'que', 'dont', 'qu', "qu'"): return _keepcase(T[i], 'ce')         # ce qui/que/dont (+ élidé « qu' » : ce qu'il/qu'aurait)
+    if nd in ('qui', 'que', 'dont', 'qu', "qu'") or re.match(r"qu['’]", nd): return _keepcase(T[i], 'ce')   # ce qui/que/dont (+ élidé « qu' » ; ⭐ 30/09/2026 : « se qu'elle » en UN jeton)
+    if lw == 'se' and nd in ('sont', 'est', 'etait', 'etaient') and i + 2 < len(T) and deacc(T[i + 2].lower()) in NUM_DET: return _keepcase(T[i], 'ce')   # ⭐ 30/09/2026 : « se sont nos voisins » — miroir JS
     if nd in AUX or nd in ('sont', 'est'):
         # ⭐ 12/09/2026 (audit des abstentions, cas de Rem) : « ce sont » vs « se sont » n'est plus une abstention — ce qui suit
         #    l'AUXILIAIRE tranche. Un PARTICIPE ne suit jamais « ce sont » (« ce sont des amis », « ce sont eux » : un groupe
@@ -4282,6 +4283,8 @@ def _tous_tout(T, i):
 
 
 # Mots après lesquels « tout » n'est PAS un déterminant (prépositions, « le tout » = nom, idiomes « avant/après/en tout »).
+_TOUT_EXTRA = {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'envers', 'durant', 'pendant', 'hormis', 'outre', 'moyennant',
+               'suivant', 'concernant'}   # ⭐ 30/09/2026 : mots après lesquels « tout » n'est jamais un déterminant (miroir JS TOUT_EXTRA)
 TOUT_LSTOP = PREP | set(NUM_DET) | {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'envers',
                                     'durant', 'pendant', 'hormis', 'outre', 'moyennant', 'suivant', 'concernant'}
 def rule_tout_det(T, i):
@@ -4303,7 +4306,9 @@ def rule_tout_det(T, i):
     num = NUM_DET.get(deacc(T[i+1].lower()))
     if num is None: return None                                    # le mot suivant doit être un DÉTERMINANT (sinon autre rôle)
     if _SEG is not None and i+1 < len(_SEG['bb']) and _SEG['bb'][i+1]: return None   # frontière « tout | déterminant » (« le tout, les… ») → abstention
-    if prev(T, i) in TOUT_LSTOP: return None                       # prép./dét./idiome avant « tout » → pronom/nom/adverbe, pas déterminant
+    _pv = prev(T, i)
+    if _pv in TOUT_LSTOP and not (num == 'pl' and _pv in PREP and _pv not in NUM_DET and _pv not in _TOUT_EXTRA):   # prép./dét./idiome avant « tout » → pronom/nom/adverbe…
+        return None                                                # … ⭐ 30/09/2026 : sauf préposition devant « tout les » (« à tout les enfants » → tous) — miroir JS
     if "'" in T[i+2].lower(): return None                          # nom-tête élidé (l'…) → genre caché → abstention
     nd = deacc(T[i+2].lower())
     pp = NOUN_POST.get(nd)
