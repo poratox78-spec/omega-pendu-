@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-09-30 (suite) — formes et expressions soudées : d'abord, d'accord, du coup, parce que (2e catalogue)
+
+- 2e catalogue : « dacor » → décor, « ducou » → un mot grossier (!), « dabor » → dabo, « dabord » → bâbord — le tri des candidats du
+  correcteur d'orthographe choisissait un mot à une édition ; hors corpus, « parceque » → parsecs, « ducoup » → découpé. La liste
+  fermée des expressions (_MWE : parce que, du coup, à travers…) n'était consultée que si RIEN d'autre n'était proposé.
+- Posé (orthographe, 3 moteurs + speller_probe) : « dabord », « daccord » rejoignent les formes figées soudées (rouge : aucune autre
+  lecture) ; formes TRONQUÉES en liste fermée, orange (« ducou » peut être « du cou ») ; un mot inconnu dont la clé phonétique est
+  EXACTEMENT celle d'une expression de _MWE reçoit l'expression, en orange, avant le tri (+ d'abord, d'habitude, d'ailleurs,
+  quelque part, à cause dans la liste).
+- Essayé et écarté : une édition sur la clé (comme le repli existant) — « desert » → d'ailleurs sur UD, 7 bons mots perdus sur frgec.
+- Mesuré (produit) : gold 7 mots faux → justes (d'accord ×2, du coup ×2, d'abord ×3) ; 0 ailleurs sur les 3 corpus ; UD 14 450 : une
+  même suggestion (« jeux vidéo ») change d'étiquette, rien d'autre.
+- Tests : test_speller (ext) et test_speller_app (6 formes) ; miroir Python _SOUDE_VIG, _mwe_exact.
+
 ## 2026-09-30 (suite) — marques et sigles écrits en minuscule → capitale (catalogue des muets, 2e catalogue)
 
 - 2e catalogue : des marques et sigles écrits en minuscule recevaient un mot faux (une marque à une lettre de « sont » en recevait

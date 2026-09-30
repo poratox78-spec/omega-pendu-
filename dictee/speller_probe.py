@@ -53,7 +53,8 @@ _DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'at
 _DAN_SUR = {'un', 'une', 'des', 'ce', 'cet', 'cette', 'ces', 'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'nos', 'votre', 'vos', 'leurs', 'quel', 'quelle', 'quels', 'quelles', 'tout', 'toute', 'tous', 'toutes'}   # ⭐ 13/09/2026 : « dan » + déterminant qui ne suit jamais un prénom sujet → dans (flag)
 _VACANCES_AV = {'en', 'de', "d'", 'des', 'les', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs', 'bonnes', 'grandes', 'petites'}   # ⭐ 13/09/2026 : « en vacance » → vacances
 _DAN_VIG = {'le', 'la', 'les', 'se'}   # « dan le regarde » peut être Dan → dans proposé (orange)
-_APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
+_APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il", "dabord": "d'abord", "daccord": "d'accord"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
+_SOUDE_VIG = {"dabor": "d'abord", "dacor": "d'accord", "dacord": "d'accord", "daccor": "d'accord", "ducou": "du coup"}   # ⭐ 30/09/2026 : formes soudées TRONQUÉES, orange (« ducou » : du cou ?) — miroir JS
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
 _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restauration d'accent du reste (m'/t'/n' EXCLUS : « metre »=mètre≠m'être, mesuré FP)
@@ -601,6 +602,12 @@ class Speller:
         # ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (plan ③ de l'audit, décalque de _APOS_FIX du produit) : liste CLOSE,
         # aucune soudure n'est un mot (speller, UD : 0), corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe seule.
         if low in _APOS_FIX: return ('auto', _APOS_FIX[low])
+        # ⭐ 30/09/2026 — FORMES ET EXPRESSIONS SOUDÉES (2e catalogue) : formes tronquées (liste fermée) → orange ; mot inconnu dont la clé
+        # phonétique est EXACTEMENT celle d'une expression de _MWE → l'expression, orange, avant le tri des candidats. Miroir JS.
+        if low in _SOUDE_VIG: return ('vigilance', _SOUDE_VIG[low])
+        if tok == low and len(low) >= 5 and low not in self.WORDS:
+            _mwx = self._mwe_exact(low)
+            if _mwx: return ('vigilance', _mwx)
         # ⭐ même geste que _AFIX_MIN, pour la consonne DOUBLÉE (cf. _DBL_MIN ci-dessus) : le mot EST au
         # lexique, donc la garde « mot valide » plus bas le rendrait intouchable — et la règle de genre
         # irait « corriger » le déterminant. MINUSCULES seulement.
@@ -960,7 +967,8 @@ class Speller:
     _MWE = ['bien sûr', 'rendez-vous', 'au revoir', 'quelque chose', 'par contre', 'tout à fait', 'peut-être', 'parce que', "c'est-à-dire", 'à partir',
             'à travers', 'grand-mère', 'grand-père', 'grands-parents', 'tout le monde', 'tout de suite', 'jeux vidéo', 'week-end', 'tant pis', 'plus tard',
             'tout à coup', 'en fait', "d'accord", "s'il te plaît", "s'il vous plaît", 'bien évidemment', 'petit-déjeuner', 'arc-en-ciel', 'après-midi',
-            'quand même', "tout à l'heure", 'pas du tout', 'du coup', 'en tout cas', 'de temps en temps', 'au moins', 'au lieu', 'à peu près', 'tout au long']
+            'quand même', "tout à l'heure", 'pas du tout', 'du coup', 'en tout cas', 'de temps en temps', 'au moins', 'au lieu', 'à peu près', 'tout au long',
+            "d'abord", "d'habitude", "d'ailleurs", 'quelque part', 'à cause']
     _MWEK = None
     _FWC = set('qui que la le les ma ta sa mon ton son mes tes ses un une des de du en et au aux lui leur ne se ce il elle on nous vous ils elles je tu '
                'par pour sur dans avec sans deux trois quatre cinq très bien pas plus'.split())
@@ -973,10 +981,17 @@ class Speller:
         c = low[:1].upper() + low[1:]
         return c if len(low) >= 3 and c in self.PRENOMS_C else None
 
-    def _su_mwe(self, low):
+    def _mwe_init(self):
         if self._MWEK is None:
             self._MWEK = {}
             for m in self._MWE: self._MWEK.setdefault(phon_key(re.sub(r"[ '\-]", '', m)), m)
+
+    def _mwe_exact(self, low):                                    # ⭐ 30/09/2026 : clé EXACTE seulement (correct_token, avant le tri) — miroir JS
+        self._mwe_init()
+        return self._MWEK.get(phon_key(low))
+
+    def _su_mwe(self, low):
+        self._mwe_init()
         pk = phon_key(low)
         if pk in self._MWEK: return self._MWEK[pk]
         if len(pk) < 5: return None

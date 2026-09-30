@@ -28642,7 +28642,14 @@ function spellTokenCore(tok,atStart,T,idx){
        que la réponse est fermée). Liste CLOSE recensée le 12/09 : aucune de ces soudures n'est un mot (speller, UD 14 450 : 0),
        corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe SEULE (pas d'espace : « parceque » relève de la segmentation).
        Exclus : entraide, quelquefois, prudhomme (mots). Miroir Python _APOS_FIX. */
-    var _APOS_FIX={"aujourdhui":"aujourd'hui","aujourdui":"aujourd'hui","quelquun":"quelqu'un","quelquune":"quelqu'une","jusqua":"jusqu'à","jusquau":"jusqu'au","jusquaux":"jusqu'aux","jusquen":"jusqu'en","jusquici":"jusqu'ici","jusquou":"jusqu'où","presquile":"presqu'île","lorsquil":"lorsqu'il","lorsquelle":"lorsqu'elle","puisquil":"puisqu'il"};if(_APOS_FIX[low])return["auto",_APOS_FIX[low]];if(tok===low&&_DBL_MIN[low])return["auto",_DBL_MIN[low]]   /* ⭐ consonne DOUBLÉE (miroir Python) : le mot EST au lexique, la garde « mot valide » le rendrait intouchable et la règle de genre irait corriger le déterminant. MINUSCULES seulement. */;
+    var _APOS_FIX={"aujourdhui":"aujourd'hui","aujourdui":"aujourd'hui","quelquun":"quelqu'un","quelquune":"quelqu'une","jusqua":"jusqu'à","jusquau":"jusqu'au","jusquaux":"jusqu'aux","jusquen":"jusqu'en","jusquici":"jusqu'ici","jusquou":"jusqu'où","presquile":"presqu'île","lorsquil":"lorsqu'il","lorsquelle":"lorsqu'elle","puisquil":"puisqu'il","dabord":"d'abord","daccord":"d'accord"};if(_APOS_FIX[low])return["auto",_APOS_FIX[low]];
+    /* ⭐ 30/09/2026 — FORMES ET EXPRESSIONS SOUDÉES (2e catalogue : « dacor » → décor, « ducou » → un mot grossier, « parceque » → parsecs,
+       « dabord » → bâbord). « dabord », « daccord » rejoignent la liste ci-dessus (rouge). Les formes TRONQUÉES, liste fermée, en orange :
+       « ducou » peut être « du cou ». Et un mot inconnu dont la clé phonétique est EXACTEMENT celle d'une expression de la liste fermée
+       _MWE (parceque, ducoup, atravers, dabitude…) reçoit l'expression en orange AVANT le tri des candidats. Mesuré : une édition sur la
+       clé (comme _suMwe) ferait « desert » → d'ailleurs sur UD et 7 bons mots perdus sur frgec — clé exacte seulement. Miroir Python. */
+    var _SOUDE_VIG={dabor:"d'abord",dacor:"d'accord",dacord:"d'accord",daccor:"d'accord",ducou:"du coup"};if(_SOUDE_VIG[low])return["vigilance",_SOUDE_VIG[low]];
+    if(tok===low&&low.length>=5&&!SP.WORDS.has(low)){var _mwx=_mweExact(low);if(_mwx)return["vigilance",_mwx];}if(tok===low&&_DBL_MIN[low])return["auto",_DBL_MIN[low]]   /* ⭐ consonne DOUBLÉE (miroir Python) : le mot EST au lexique, la garde « mot valide » le rendrait intouchable et la règle de genre irait corriger le déterminant. MINUSCULES seulement. */;
     /* LE « e » MUET DU FUTUR/CONDITIONNEL (audit rappel dys PR#505 : « je ne t'oublirais jamais » ×4) :
        non-mot en r+terminaison dont stem+er est un verbe des tables → réinsérer le e muet (oublirais→
        oublierais). AUDIBILITÉ : le scripteur a ENTENDU le R (/ubliʁɛ/) — « oubliais » (distance 1 aussi)
@@ -28863,9 +28870,11 @@ function spellTokenCore(tok,atStart,T,idx){
   // ① PRÉNOM en minuscule (« ludovic » → Ludovic) : la graphie d'origine de la table PRENOMS, déjà chargée pour l'accord.
   function _suPrenom(low){var c=low.charAt(0).toUpperCase()+low.slice(1);return (low.length>=3&&PRENOMS[c])?c:null;}
   // ② EXPRESSION FIGÉE collée : liste FERMÉE, clé phonétique de l'expression sans blancs ; à défaut, une édition sur la clé (longueur ≥ 5).
-  var _MWE=['bien sûr','rendez-vous','au revoir','quelque chose','par contre','tout à fait','peut-être','parce que',"c'est-à-dire",'à partir','à travers','grand-mère','grand-père','grands-parents','tout le monde','tout de suite','jeux vidéo','week-end','tant pis','plus tard','tout à coup','en fait',"d'accord","s'il te plaît","s'il vous plaît",'bien évidemment','petit-déjeuner','arc-en-ciel','après-midi','quand même',"tout à l'heure",'pas du tout','du coup','en tout cas','de temps en temps','au moins','au lieu','à peu près','tout au long'];
+  var _MWE=['bien sûr','rendez-vous','au revoir','quelque chose','par contre','tout à fait','peut-être','parce que',"c'est-à-dire",'à partir','à travers','grand-mère','grand-père','grands-parents','tout le monde','tout de suite','jeux vidéo','week-end','tant pis','plus tard','tout à coup','en fait',"d'accord","s'il te plaît","s'il vous plaît",'bien évidemment','petit-déjeuner','arc-en-ciel','après-midi','quand même',"tout à l'heure",'pas du tout','du coup','en tout cas','de temps en temps','au moins','au lieu','à peu près','tout au long',"d'abord","d'habitude","d'ailleurs",'quelque part','à cause'];
   var _MWEK=null;
-  function _suMwe(low){if(!_MWEK){_MWEK={};for(var i=0;i<_MWE.length;i++){var k0=phonKey(_MWE[i].replace(/[ '\-]/g,''));if(!_MWEK[k0])_MWEK[k0]=_MWE[i];}}
+  function _mweInit(){if(!_MWEK){_MWEK={};for(var i=0;i<_MWE.length;i++){var k0=phonKey(_MWE[i].replace(/[ '\-]/g,''));if(!_MWEK[k0])_MWEK[k0]=_MWE[i];}}}
+  function _mweExact(low){_mweInit();return _MWEK[phonKey(low)]||null;}   // ⭐ 30/09/2026 : clé EXACTE seulement (spellTokenCore, avant le tri)
+  function _suMwe(low){_mweInit();
     var pk=phonKey(low);if(_MWEK[pk])return _MWEK[pk];if(pk.length<5)return null;
     var e1=sEdits1(pk),best=null;for(var j=0;j<e1.length;j++){var m=_MWEK[e1[j]];if(m&&(best===null||m<best))best=m;}return best;}
   // ③ MOTS COLLÉS : deux mots connus ; l'un est un mot-outil (l'autre ≥ 3 lettres), ou tous deux courants (≥ 5/M) ; jamais un préfixe lié
