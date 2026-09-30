@@ -20,11 +20,11 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **590** (29,3 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **414** (20,6 %) |
-| mot FAUX proposé | 373 (18,5 %) | **347** (17,2 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **425** (21,1 %) |
+| mot FAUX proposé | 373 (18,5 %) | **336** (16,7 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
 | **muette** | **711** (35,3 %) | **638** (31,7 %) |
 | **total** | **2 012** | 2 012 |
@@ -121,8 +121,8 @@ Les fautes où le produit propose un **mot faux** : le second catalogue, ci-dess
 ## Le 2e catalogue : les mots FAUX proposés (29/09/2026)
 
 Même méthode. Le produit propose un mot, mais pas celui qu'attend le gold. Le pire cas est le **rouge** : la faute est remplacée
-d'office par une autre. Mesuré après les lots ci-dessus : **347**, dont **38 en rouge** (47 avant le premier lot), 41 « flag »,
-268 en orange.
+d'office par une autre. Mesuré après les lots ci-dessus : **336**, dont **38 en rouge** (47 avant le premier lot), 41 « flag »,
+257 en orange.
 
 | rouges faux, par règle (avant le premier lot) | n | cause | statut |
 |---|---|---|---|
@@ -137,5 +137,7 @@ d'office par une autre. Mesuré après les lots ci-dessus : **347**, dont **38 e
 Le plus gros gisement est **orange** : le correcteur d'orthographe propose un candidat, mais pas le bon (tri des candidats :
 « séte » → sais au lieu de cette, « eclairait » → éclair). ✅ 30/09, premier lot : la CLÉ phonétique rendait vides des mots comme
 « cette », « sais », « ai » (312 formes) — un e muet écrit garde maintenant sa consonne : 17 mots faux de moins sur le gold, 141 marques
-devenues justes sur les 3 corpus, UD sans marque nouvelle. Reste : l'initiale (« séte » → cette demande d'admettre s/c en tête de mot),
-et les formes longues accentuées battues par une forme courte (« eclairait » → éclair).
+devenues justes sur les 3 corpus, UD sans marque nouvelle. ✅ 30/09, deuxième lot : « ou » ≠ « u » dans la clé (« tou » → tout ×5, « cur » → cure) et finales audibles en /ɛ/ (« apré » → après,
+pas la coquille « aprés ») : 11 mots faux de moins sur le gold, 19 fausses devenues justes sur les 3 corpus, 0 juste perdue, UD sans
+marque nouvelle. Reste : l'initiale (« séte » → cette demande d'admettre s/c en tête de mot), et les formes longues accentuées
+battues par une forme courte (« eclairait » → éclair).

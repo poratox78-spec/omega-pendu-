@@ -27886,7 +27886,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     s=s.replace(/oin(?![aeiouy])/g,'w1').replace(/ien(?![aeiouy])/g,'j1').replace(/(?:ain|aim|ein|eim|in|im|yn|ym|un|um)(?![aeiouymn])/g,'1').replace(/(?:an|am|en|em)(?![aeiouymn])/g,'2').replace(/(?:on|om)(?![aeiouymn])/g,'3');   // NASALES → classe unique (in/ain/un→1 /ɛ̃/, an/en→2, on→3) ; +6 pts rappel nasal, FP=0 (MIROIR speller_probe.phon_key)
     s=s.replace(/ph/g,'f').replace(/sch/g,'ch').replace(/th/g,'t').replace(/ch(?=[bcdfgjklmnpqrstvwxz])/g,'k').replace(/ch/g,'§').replace(/gn/g,'¤');
     s=s.replace(/qu/g,'k').replace(/gu/g,'g').replace(/eau/g,'o').replace(/aux/g,'o').replace(/au/g,'o');
-    s=s.replace(/oeu/g,'ø').replace(/ou/g,'u').replace(/eu/g,'e').replace(/ai/g,'e').replace(/ei/g,'e').replace(/ay/g,'e').replace(/ey/g,'e').replace(/oi/g,'wa');
+    s=s.replace(/oeu/g,'ø').replace(/ou/g,'U').replace(/eu/g,'e').replace(/ai/g,'e').replace(/ei/g,'e').replace(/ay/g,'e').replace(/ey/g,'e').replace(/oi/g,'wa');   /* ⭐ 30/09/2026 : « ou » (/u/) a sa classe propre, U — confondu avec « u » (/y/), « tou » avait la clé de « tu » (le plus fréquent, proposé) et non celle de « tout » ; « cur » celle de « cours » et non de « cure ». Mesuré (produit, avec les finales audibles) : 19 fausses devenues justes, 0 juste perdue sur les 3 corpus dys ; UD 14 450 : aucune marque nouvelle ni perdue (23 suggestions changées sur des mots rares déjà signalés). Miroir speller_probe.phon_key */
     var res='';for(var j=0;j<s.length;j++){var ch=s[j],nx=s[j+1]||'';
       if(ch==='c')res+=('eiy§'.indexOf(nx)>=0?'s':'k');else if(ch==='g')res+=('eiy'.indexOf(nx)>=0?'j':'g');
       else if(ch==='h'){}else if(ch==='x')res+=(j===s.length-1?'':'ks');   /* -x FINAL MUET (noix/prix/voix/choix) ; interne = ks (taxi) */else if(ch==='z'||ch==='s')res+='s';else if(ch==='y')res+='i';else if(ch==='w')res+='v';else if(ch==='ø')res+='e';else res+=ch;}   /* ⭐ 28/09/2026 : « oeu » (cœur, sœur, vœu) prend la classe e APRÈS le choix dur/doux du c et du g — le c était écrit devant un o, il reste /k/ : cœur → ker (l'ancien oeu→e d'avant la boucle donnait « ser »). Miroir speller_probe.phon_key, gardé par phonkey_parity_probe.py */
@@ -28657,7 +28657,7 @@ function spellTokenCore(tok,atStart,T,idx){
     // INERTE sur le corpus dys réel (chiffres identiques avec et sans) — gardée parce que le raisonnement est
     // FAUX sans elle, pas parce qu'elle gagne. Gains du jour préservés : les/jours/petits/tiges… sont N ou A.
     function nm(x){if(!cn)return 0;var ps=SP.POS[x]||'';if(ps.indexOf('V')>=0&&ps.indexOf('N')<0&&ps.indexOf('A')<0)return 0;var p=nmP(x);return (p===null||((cn==='p')===p))?1:0;}
-    function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET
+    function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET — ⭐ 30/09/2026 : + -ès, -et, -êt, -aient (/ɛ/ : « succé » → succès, « foué » → fouet, plus sucré / joué), miroir Python fin_aud
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
         if(qx>qy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
@@ -28864,8 +28864,12 @@ function spellTokenCore(tok,atStart,T,idx){
     var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length;i++)arr.push(pa[i]);
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){a=SP.D2A[e1[i]];if(a)for(j=0;j<a.length;j++)arr.push(a[j]);}
     var _iaU=/é$/.test(low);                                               // AUDIBILITÉ (orange) : saisie à finale /e/ (é) → proposer l'audible (afolé→affolé), PAS le muet plus fréquent (affole). Orange = « à vérifier », jamais affirmé → hors FP=0.
+    /* ⭐ 30/09/2026 (2e catalogue) : les finales audibles comptent aussi -ès, -et, -êt, -aient (/ɛ/) — « apré » recevait « aprés »,
+       coquille du lexique (sous-titres) finie en -és, contre « après » 85 fois plus fréquent mais « muet » pour l'ancienne liste.
+       Mesuré : « apré » → après ×5 sur le gold (le juge désaccentué comptait « aprés » juste) ; UD inchangé.
+       Miroir Python spell_unknown. */
     var _pkU=phonKey(low),_bh=-1;                                          // AUDIBILITÉ (doctrine) : le dys écrit ce qu'il ENTEND. Un candidat HOMOPHONE passe avant un candidat seulement proche à l'œil — sinon « koi » se corrige en « ko » (fréquent, muet) au lieu de « quoi » (homophone). La garde de même première LETTRE écartait justement k/qu, c/qu, f/ph : on l'ouvre quand la clé phonétique est IDENTIQUE.
-    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}   // clé : audibilité d'abord (si saisie audible), puis fréquence
+    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}   // clé : audibilité d'abord (si saisie audible), puis fréquence
     if(best&&T&&idx!=null&&idx+1<T.length){                              // DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — même règle que le noyau, pour la voie best-effort
       var _dp2={un:'une',une:'un',le:'la',la:'le',ce:'cette',cette:'ce',cet:'cette'}[deaccS(best)];
       if(_dp2&&DET_G[deaccS(best)]){var _nw2=T[idx+1].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');

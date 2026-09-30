@@ -189,7 +189,10 @@ def phon_key(s):
     # « oeu » (cœur, sœur, vœu) : classe e, mais APRÈS le choix dur/doux du c et du g — le c écrit devant o reste /k/ (cœur → ker).
     # Avant le 28/09/2026 ce remplacement venait APRÈS « eu » et ne trouvait jamais rien (cœur → « koer ») ; le JS le faisait
     # avant la boucle (cœur → « ser », c doux). Repère ø, rendu « e » dans la boucle. Gardé par phonkey_parity_probe.py.
-    s = s.replace('oeu', 'ø').replace('ou', 'u').replace('eu', 'e')
+    # ⭐ 30/09/2026 : « ou » (/u/) a sa classe propre, U — confondu avec « u » (/y/), « tou » avait la clé de « tu » (proposé, le plus
+    # fréquent) et non celle de « tout ». Mesuré : 19 fausses devenues justes, 0 juste perdue (3 corpus dys) ; UD sans marque
+    # nouvelle ni perdue. Miroir JS phonKey.
+    s = s.replace('oeu', 'ø').replace('ou', 'U').replace('eu', 'e')
     s = s.replace('ai', 'e').replace('ei', 'e').replace('ay', 'e').replace('ey', 'e')
     s = s.replace('oi', 'wa')
     res = []
@@ -703,7 +706,7 @@ class Speller:
             ps = self.POS.get(w, ())
             return 1 if any(c in ps for c in exp_pos) else 0               # exp_pos peut être multi-POS ('VA')
         def fin_aud(w):                                                     # finale AUDIBLE /e/ (é/ée/és/er/ez/ai…) vs -e/-es MUET
-            return 1 if re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait)$', w) else 0
+            return 1 if re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$', w) else 0   # ⭐ 30/09/2026 : + /ɛ/ (succès, fouet) — miroir JS
         def gmatch(w):
             g = self._gender(w); return 1 if (cg and g and g == cg) else 0   # bonus seulement (pas de pénalité → ne casse pas fenêtre)
         def nmatch(w):
@@ -1076,7 +1079,8 @@ class Speller:
         for w in arr:
             hm = 1 if phon_key(w) == pk else 0
             if not hm and deacc(w)[:1] != d[:1]: continue
-            au = 1 if (iaU and re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait)$', w)) else 0
+            # ⭐ 30/09/2026 : finales audibles + -ès/-et/-êt/-aient (« apré » → après, pas la coquille « aprés ») — miroir JS spellUnknown
+            au = 1 if (iaU and re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$', w)) else 0
             fq = self.FREQ.get(w, 0)
             if hm > bh or (hm == bh and (au > ba or (au == ba and fq > bf))):
                 bh, ba, bf, best = hm, au, fq, w

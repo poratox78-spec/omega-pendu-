@@ -217,6 +217,16 @@ const SP = globalThis.__sp;
   // ⭐ 30/09/2026 — CLÉ PHONÉTIQUE : un e muet écrit garde la consonne qui le précède (« cette » avait une clé VIDE, partagée avec « sais »).
   { const f = SP.spell('le chat est vitte parti').find(x => x.word === 'vitte');
     if (!f || f.sugg !== 'vite') fail.push('« vitte » : attendu « vite » (la clé garde le t devant le e muet), eu ' + JSON.stringify(f && f.sugg)); }
+  // ⭐ 30/09/2026 — « ou » (/u/) ≠ « u » (/y/) dans la clé : « tou » → tout (et non « tu », plus fréquent).
+  { const f = SP.spell('il fait tou pour elle').find(x => x.word === 'tou');
+    if (!f || f.sugg !== 'tout') fail.push('« tou » : attendu « tout » (ou ≠ u dans la clé), eu ' + JSON.stringify(f && f.sugg)); }
+  // ⭐ 30/09/2026 — finales AUDIBLES : -ès, -et, -êt, -aient comptent comme la finale /e/ écrite « é ».
+  { const f = SP.spell('je viens apré le repas').find(x => x.word === 'apré');
+    if (!f || f.sugg !== 'après') fail.push('« apré » : attendu « après » (finale audible -ès, pas la coquille « aprés »), eu ' + JSON.stringify(f && f.sugg)); }
+  { const f = SP.spell('le spectacle est un grand succé').find(x => x.word === 'succé');
+    if (!f || f.sugg !== 'succès') fail.push('« succé » : attendu « succès » (finale audible -ès), eu ' + JSON.stringify(f && f.sugg)); }
+  { const f = SP.spell('le cheval a peur du foué').find(x => x.word === 'foué');
+    if (!f || f.sugg !== 'fouet') fail.push('« foué » : attendu « fouet » (finale audible -et), eu ' + JSON.stringify(f && f.sugg)); }
   const tr1 = SP.spell('la tres belle note').find(x => x.word.toLowerCase() === 'tres');
   if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
   const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');

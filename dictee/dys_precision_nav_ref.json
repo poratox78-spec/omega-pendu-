@@ -1,13 +1,13 @@
 {
  "paires": 1798,
  "planchers": {
-  "grammaire:orthographe|vigilance·pollué": 60.2,
-  "grammaire:mot inconnu|vigilance·pollué": 50.4,
+  "grammaire:orthographe|vigilance·pollué": 60.9,
+  "grammaire:mot inconnu|vigilance·pollué": 51.4,
   "grammaire:orthographe|auto·pollué": 94.9,
-  "grammaire:orthographe|flag·pollué": 83.3,
+  "grammaire:orthographe|flag·pollué": 83.1,
   "grammaire:orthographe|vigilance·propre": 63.5,
   "grammaire:orthographe|auto·propre": 93.3,
-  "grammaire:mot inconnu|vigilance·propre": 44.2,
+  "grammaire:mot inconnu|vigilance·propre": 45.7,
   "grammaire:orthographe|flag·propre": 84.6,
   "grammaire:accord pluriel nom|auto·pollué": 82.9,
   "grammaire:accord singulier nom|auto·pollué": 100.0,
