@@ -244,6 +244,14 @@ const SP = globalThis.__sp;
   { const f = SP.spell('je me appelle Paul').find(x => x.name === 'élision' && x.word === 'me appelle');
     if (!f || f.sugg !== 'm\'appelle') fail.push('élision manquante « me appelle » : attendu « m’appelle », eu ' + JSON.stringify(f && f.sugg)); }
   for (const s of ['prends-le avec toi', 'je crois que oui', 'rendez-vous le 12 avril']) { const f = SP.spell(s).find(x => x.name === 'élision'); if (f) fail.push('élision : témoin « ' + s + ' » marqué ' + JSON.stringify(f)); }
+  // ⭐ 30/09/2026 — « ma/ta/jais » + participe masculin → m’a / t’a / j’ai (orange) ; témoins : nom féminin, « de jais », nom-participe.
+  { const f = SP.spell('il ta donné un livre').find(x => x.name === 'élision' && x.word === 'ta donné');
+    if (!f || f.sugg !== 't\'a donné' || f.tier !== 'vigilance') fail.push('ma/ta/jais « ta donné » : attendu « t’a donné » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+  { const f = SP.spell('ma mère ma appelé hier').find(x => x.name === 'élision' && x.word === 'ma appelé');
+    if (!f || f.sugg !== 'm\'a appelé' || f.tier !== 'vigilance') fail.push('ma/ta/jais « ma appelé » : attendu « m’a appelé » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+  { const f = SP.spell('hier jais mangé une glace').find(x => x.name === 'élision' && x.word === 'jais mangé');
+    if (!f || f.sugg !== 'j\'ai mangé' || f.tier !== 'vigilance') fail.push('ma/ta/jais « jais mangé » : attendu « j’ai mangé » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+  for (const s of ['ma santé est bonne', 'ma pensée est libre', 'il a les cheveux noir de jais']) { const f = SP.spell(s).find(x => x.name === 'élision'); if (f) fail.push('ma/ta/jais : témoin « ' + s + ' » marqué ' + JSON.stringify(f)); }
   const tr1 = SP.spell('la tres belle note').find(x => x.word.toLowerCase() === 'tres');
   if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
   const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');

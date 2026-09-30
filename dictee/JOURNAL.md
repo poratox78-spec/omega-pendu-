@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-09-30 (suite) — « ma / ta / jais » + participe → m'a / t'a / j'ai (catalogue des muets)
+
+- Catalogue : ma → m'a ×2 muets (possessif devant un participe), jais → j'ai ×2 (dont les participes eux-mêmes mal écrits : non
+  couverts). Le possessif « ma/ta » (féminin) ne précède jamais un participe masculin ; « jais » (la pierre) jamais un participe.
+- Orange dans l'élision-espace de spellText (marque à deux mots, comme le reste de l'étape). Gardes : participe écrit au masculin
+  (« ma vue », « ma pensée » exclus), pas un nom féminin (« ma santé », « ma liberté »), pas un mot qui est aussi un nom — la première
+  version marquait « raconter ma mort » sur UD (P(NOM) de « mort » : 0,49) ; « jais » ni après de/du/le (« noir de jais »).
+- Mesuré (produit) : gold +2, 0 ailleurs sur les 3 corpus dys ; UD 14 450 : aucune marque. Catalogue : muettes 624 → 622 (ses « mots
+  faux » +2 et « justes touchés » +2 sont l'artefact de la marque à deux mots : « m'a raconté » comparé mot à mot à « m'a »).
+- Tests : test_speller extension + app (ta donné, ma appelé, jais mangé ; 3 témoins : nom féminin ×2, « de jais ») ; parity_core
+  (« raconter ma mort » muet : la garde du nom lit NOUN_POST, que les harnais du seul correcteur d'orthographe ne chargent pas).
+
 ## 2026-09-30 (suite) — « ces/ses » pour « c'est » (catalogue des muets)
 
 - Catalogue : ses → c'est ×3 et ces → c'est ×2 muets ou mal proposés (le modèle ces/ses ne propose que l'un ou l'autre). Structure : un

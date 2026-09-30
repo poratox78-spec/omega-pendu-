@@ -74,6 +74,14 @@ for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass med
 { const f = DC.spell('je me appelle Paul').find(x => x.name === 'élision' && x.word === 'me appelle');
   if (!f || f.sugg !== 'm\'appelle') fail.push('élision manquante « me appelle » : attendu « m’appelle », eu ' + JSON.stringify(f && f.sugg)); }
 for (const s of ['prends-le avec toi', 'je crois que oui', 'rendez-vous le 12 avril']) { const f = DC.spell(s).find(x => x.name === 'élision'); if (f) fail.push('élision : témoin « ' + s + ' » marqué ' + JSON.stringify(f)); }
+// ⭐ 30/09/2026 — « ma/ta/jais » + participe masculin → m’a / t’a / j’ai (orange) ; témoins : nom féminin, « de jais », nom-participe.
+{ const f = DC.spell('il ta donné un livre').find(x => x.name === 'élision' && x.word === 'ta donné');
+  if (!f || f.sugg !== 't\'a donné' || f.tier !== 'vigilance') fail.push('ma/ta/jais « ta donné » : attendu « t’a donné » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+{ const f = DC.spell('ma mère ma appelé hier').find(x => x.name === 'élision' && x.word === 'ma appelé');
+  if (!f || f.sugg !== 'm\'a appelé' || f.tier !== 'vigilance') fail.push('ma/ta/jais « ma appelé » : attendu « m’a appelé » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+{ const f = DC.spell('hier jais mangé une glace').find(x => x.name === 'élision' && x.word === 'jais mangé');
+  if (!f || f.sugg !== 'j\'ai mangé' || f.tier !== 'vigilance') fail.push('ma/ta/jais « jais mangé » : attendu « j’ai mangé » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+for (const s of ['ma santé est bonne', 'ma pensée est libre', 'il a les cheveux noir de jais']) { const f = DC.spell(s).find(x => x.name === 'élision'); if (f) fail.push('ma/ta/jais : témoin « ' + s + ' » marqué ' + JSON.stringify(f)); }
 if (DC.phonKey('tou') !== DC.phonKey('tout') || DC.phonKey('tu') === DC.phonKey('tout')) fail.push('clé phonétique : tou=' + DC.phonKey('tou') + ' tout=' + DC.phonKey('tout') + ' tu=' + DC.phonKey('tu'));
 if (DC.phonKey('cette') !== 'set' || DC.phonKey('fêtes') !== DC.phonKey('fête') || DC.phonKey('mangez') !== DC.phonKey('mangé')) fail.push('clé phonétique : cette=' + DC.phonKey('cette') + ' fêtes/fête=' + DC.phonKey('fêtes') + '/' + DC.phonKey('fête') + ' mangez/mangé=' + DC.phonKey('mangez') + '/' + DC.phonKey('mangé'));
 const sp = t => DC.spell(t);
