@@ -2470,6 +2470,7 @@ function estQuestion(t,maxMots){
     var w=T[i];if(!/^[A-Za-zÀ-ÿœŒæÆ]+$/.test(w)||w!==w.toLowerCase())return null;var pl=_ADJ_ANTE_PL[deacc(w)];if(!pl)return null;
     if(_SEG&&_SEG.hy&&(_SEG.hy[i]||_SEG.hy[i+1]))return null;   // trait d'union AVANT ou APRÈS (« grand-mères ») : hy[k] = trait dans l'espace qui précède le token k
     if(pd==='les'&&!(i+1<T.length&&/^[A-Za-zÀ-ÿœŒæÆ]/.test(T[i+1])))return null;
+    if(cesCestVig(T,i-1))return null;   // ⭐ 30/09/2026 : « Ces vrai que » — ce « ces » est « c'est » (miroir Python)
     return pl!==w?pl:null;}
   var _FEM_EE={"soiré": "soirée", "cheminé": "cheminée", "fumé": "fumée", "vu": "vue", "armé": "armée", "parti": "partie", "entré": "entrée", "arrivé": "arrivée", "journé": "journée", "anné": "année", "idé": "idée", "pensé": "pensée", "allé": "allée", "monté": "montée", "duré": "durée", "matiné": "matinée", "poupé": "poupée", "dicté": "dictée", "rentré": "rentrée", "sorti": "sortie", "tourné": "tournée", "randonné": "randonnée", "bouché": "bouchée", "poigné": "poignée", "vallé": "vallée", "rosé": "rosée", "plongé": "plongée", "traversé": "traversée", "levé": "levée", "gelé": "gelée", "fessé": "fessée", "coulé": "coulée", "percé": "percée", "mêlé": "mêlée", "croisé": "croisée"},_DET_FEM_SUR={une:1,la:1,cette:1,ma:1,ta:1,sa:1};
   /* ⭐ NOM FÉMININ EN -ée ÉCRIT -é APRÈS DÉTERMINANT FÉMININ (13/09/2026, plan ⑤-c B — miroir Python rule_fem_ee) : « la cheminé »,
@@ -4162,7 +4163,7 @@ function spellUnknown(tok,atStart,T,idx){
   function svTaisCarte(T,i){return _taisCarte(T,i,SV_TAIS);}
   var _CHIF_STOP={};('janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre vendemiaire brumaire frimaire nivose pluviose ventose germinal floreal prairial messidor thermidor fructidor '+
     'rue boulevard avenue quai place allee chemin impasse route cours square passage min sec bar km kg cm mm ml cl mg ha pt pts pourcent').split(' ').forEach(function(x){_CHIF_STOP[x]=1;});   // mois, voies, unités : après un nombre en chiffres, jamais un effectif à accorder
-  function pluralVig(T,tg,i){
+  function pluralVig(T,tg,i){if(i>0&&cesCestVig(T,i-1))return null;
     if(!tg||i>=tg.length)return null;
     var w=deaccS(T[i].toLowerCase());
     if(w.length<3||/[sxz]$/.test(w))return null;                       // déjà pluriel/invariable
@@ -4219,6 +4220,25 @@ function spellUnknown(tok,atStart,T,idx){
     var j=i+1;while(j<T.length&&j<=i+3&&PPMID[deacc(T[j].toLowerCase())])j++;
     if(j>=T.length||!(_isPpl(T[j])||_SAIS_PPU[deacc(T[j].toLowerCase())]))return null;   // -u fréquents (perdu/vu/connu…) : hors _isPpl strict (anti-noms), sûrs dans CE frame
     return "s'est";}
+  /* ⭐ 30/09/2026 (catalogue des muets) — « CES/SES » POUR « C'EST » : « le secret ces une recette », « mon idée ses dans la boîte »,
+     « ces cultiver » — un déterminant pluriel ne peut pas précéder un autre déterminant, une préposition, une conjonction, « que »,
+     un infinitif, ni un adjectif ou un participe seul suivi d'un non-nom (« ces vrai que ») : c'est « c'est », en ORANGE. Le modèle
+     ces/ses (cesVig) ne proposait que l'un ou l'autre. Gardes : ponctuation ou trait d'union après ces/ses (« ces après-midi »), nom
+     propre, mot surtout nom (P(NOM) ≥ 0,5), préposition + nom au pluriel (« ces sous groupes », composé sans trait d'union). Et
+     derrière ce « ces/ses », l'adjectif antéposé (rouge) et les oranges de pluriel se taisent. Mesuré : gold +6 « c'est » justes (4 muets, 2 où ces/ses proposait le mauvais mot),
+     1 orange fausse retirée, 0 perte sur les 3 corpus dys ; UD 14 450 : aucune marque changée. Miroir Python
+     rule_cest_ces_vig (_ces_cest). */
+  var _CEST_SUIV={le:1,la:1,les:1,un:1,une:1,des:1,du:1,au:1,aux:1,mon:1,ton:1,son:1,ma:1,ta:1,sa:1,mes:1,tes:1,ses:1,ce:1,cet:1,cette:1,ces:1,notre:1,votre:1,nos:1,vos:1,leur:1,leurs:1,que:1,qui:1,quand:1,car:1,parce:1,pourquoi:1,comme:1,si:1,mais:1,donc:1,ou:1,et:1,dans:1,pour:1,avec:1,sans:1,sur:1,sous:1,chez:1,par:1,entre:1,vers:1,contre:1,depuis:1,pendant:1,avant:1,apres:1,a:1,en:1,de:1,grace:1};
+  function cesCestVig(T,i){if(i<0)return null;var w=deacc(T[i].toLowerCase());if(w!=='ces'&&w!=='ses')return null;if(i+1>=T.length)return null;
+    if(_SEG&&((i+1<_SEG.bb.length&&_SEG.bb[i+1])||(i+1<_SEG.hy.length&&_SEG.hy[i+1])||(i+2<_SEG.hy.length&&_SEG.hy[i+2])))return null;
+    var nx=T[i+1];if(nx.charAt(0)!==nx.charAt(0).toLowerCase())return null;var nlw=nx.toLowerCase(),nl=deacc(nlw).split("'")[0];
+    if(_CEST_SUIV[nl]&&PREP[nl]&&i+2<T.length){var _n2=deacc(T[i+2].toLowerCase()),_p2=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(_n2):NOUN_POST[_n2]):null;if(/[sx]$/.test(_n2)&&_p2&&_p2[0]>=PL_TAU_M)return null;}
+    if(_CEST_SUIV[nl]||/^[ld]'/.test(nlw))return ckeepcase(T[i],"c'est");
+    var pp=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(nl):NOUN_POST[nl]):null;if(pp&&pp[0]>=PL_TAU_M)return null;
+    if(/(er|ir|re|oir)$/.test(nl)&&CONJ_C[nl])return ckeepcase(T[i],"c'est");
+    if(!/[sx]$/.test(nl)&&(_ADJ_ANTE_PL[nl]||_isPpl(nx))){var fin=(i+2>=T.length)||(_SEG&&i+2<_SEG.bb.length&&_SEG.bb[i+2]),n2=fin?'':deacc(T[i+2].toLowerCase()).split("'")[0];
+      if(fin||_CEST_SUIV[n2])return ckeepcase(T[i],"c'est");}
+    return null;}
   function cesVig(T,i){var w=T[i].toLowerCase();if(w!=='ces'&&w!=='ses')return null;var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());var s=_cesScore(F,i),pred=s>=0?'ces':'ses';return (Math.abs(s)>CESSES_MODEL.tau&&pred!==w)?pred:null;}
   function cesProbe(text){text=String(text).replace(/[’ʼ]/g,"'");var T=toks(text),out=[],i,r;for(i=0;i<T.length;i++){r=cesVig(T,i);if(r&&r!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:r});}return out;}
   function participeEtreVig(T,tg,i){
@@ -4504,7 +4524,7 @@ function spellUnknown(tok,atStart,T,idx){
     var sc=function(x){return (SP.FREQ[x]||0)+(SP.FREQ[x.slice(0,-1)]||0);};   // le pluriel ET son singulier : « murs » (mur) avant « mûres »
     out.sort(function(a,b){var na=(SP.POS[a]||'').indexOf('N')>=0?0:1,nb=(SP.POS[b]||'').indexOf('N')>=0?0:1;if(na!==nb)return na-nb;var d=sc(b)-sc(a);if(d)return d;return a<b?-1:(a>b?1:0);});
     return out;}
-  function plurielSonVig(T,i){if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
+  function plurielSonVig(T,i){if(i>0&&cesCestVig(T,i-1))return null;if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
     if(!_PSON_DPUR[pd]&&!_PSON_DAMB[pd])return null;
     var n=T[i];if(!/^[a-zà-ÿœæ]+$/i.test(n)||n.charAt(0)!==n.charAt(0).toLowerCase())return null;
     var low=n.toLowerCase(),dn=deaccS(low);if(dn.length<2||_PSON_GRAM[dn]||CARD[dn]||CARDSTOP[dn]||CONJ_C[dn])return null;
@@ -4537,6 +4557,7 @@ function spellUnknown(tok,atStart,T,idx){
     {var siv=semiInfVig(T,i);if(siv){return {i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'};}}   // « je vais mange » → manger ? (orange)
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // OS-sujet : accord de nombre, sujet arbitré par l'OS + LM (résiduel « de N »)
+    {var ccs=cesCestVig(T,i);if(ccs){return {i:i,word:T[i],sugg:ccs,name:"c'est/ces à vérifier",tier:'vigilance'};}}   // ⭐ 30/09/2026 : « ses dans », « ces une » → c'est ? (avant le modèle ces/ses)
     {var cv=cesVig(T,i);if(cv){return {i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'};}}
     {var sv2=saisVig(T,i);if(sv2){return {i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'};}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
     {var jiv=jInfVig(T,i);if(jiv){return {i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'};}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
