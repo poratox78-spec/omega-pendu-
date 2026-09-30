@@ -1175,10 +1175,44 @@ def _aa_locution(T, i):
     return False
 
 
+# ⭐ 30/09/2026 — VERBE + ADVERBE + « a » (catalogue des muets) : « il parle souvent a ses amis » — la branche « après un verbe » de la
+# logique mesurée ne lit que le mot collé à « a ». UD 14 450 : un seul emploi d'avoir dans cette configuration, suivi d'un participe
+# (« a longtemps été ») → gardes : adverbes sautés, pas de participe après « a » ; « ce qu'il fait souvent a des effets » : une relative
+# en « ce que / celui qui » est le SUJET de « a ». Voie nouvelle, ORANGE. Miroir JS _aaApresAdverbe.
+_AA_ADV2 = frozenset('bien deja toujours souvent aussi encore meme vraiment beaucoup trop tout ensuite parfois rarement jamais plus longtemps peu mal'.split())
+_AA_CE_REL = frozenset(('ce', 'celui', 'celle', 'ceux', 'celles'))
+
+
+def _aa_adv(w):
+    a = deacc(w.lower())
+    return a in _AA_ADV2 or (len(a) > 6 and a.endswith('ment'))
+
+
+def _aa_apres_adverbe(T, i):
+    if i < 2 or not _aa_adv(T[i - 1]): return False
+    if _SEG is not None and i - 1 < len(_SEG['bb']) and _SEG['bb'][i - 1]: return False
+    for r in range(i - 2, 0, -1):
+        if _SEG is not None and r < len(_SEG['bb']) and _SEG['bb'][r]: break
+        dr = deacc(T[r].lower())
+        if (dr in ('que', 'qui', 'dont') or re.match(u"^qu['’]", dr)) and deacc(T[r - 1].lower()) in _AA_CE_REL: return False   # relative en « ce que / celui qui » : sujet de « a »
+    if not vlike(T, i - 2): return False
+    pv = NOUN_POST.get(deacc(T[i - 2].lower())) if NOUN_POST else None
+    if pv and pv[0] >= PL_TAU_M and pv[1] < PL_EPS_M: return False       # nom confiant avant l'adverbe : sujet, « a » = avoir
+    k = i + 1
+    while k < len(T) and _aa_adv(T[k]): k += 1
+    if k >= len(T) or len(T[k]) < 2 or _is_ppl(T[k]): return False       # « a longtemps été » : participe → avoir ; « a b » : lettre
+    if T[k][:1] == T[k][:1].lower() and _noun_gate_n(T[k]) and not re.search(r'(er|ir|re|oir)$', deacc(T[k].lower())): return False    # devant un nom commun NU (homographe d'un verbe), c'est « au », pas « à »
+    return True
+
+
 def _rule_a_aa_nouveau(T, i):
     if deacc(T[i].lower()) != 'a' or T[i] != T[i].lower() or i < 1: return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
     if _aa_locution(T, i): return u'à'                                    # ⑤ locution prépositive (sans infinitif)
+    if _aa_apres_adverbe(T, i): return u'à'                                # ⑥ verbe + adverbe + « a »
+    if _SEG is not None and i + 1 < len(_SEG['dig']) and _SEG['dig'][i + 1]:   # ⑦ intervalle « de 10 hectares a 20 hectares » : un chiffre après « de », un autre après « a »
+        for _jd in range(i - 1, max(0, i - 2) - 1, -1):
+            if deacc(T[_jd].lower()) == 'de' and _jd + 1 < len(_SEG['dig']) and _SEG['dig'][_jd + 1]: return u'à'
     k = i + 1
     while k < len(T) and deacc(T[k].lower()) in CLITIC: k += 1
     if k >= len(T) or not re.search(r'(er|ir|re|oir)$', deacc(T[k].lower())): return None

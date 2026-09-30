@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-09-30 (suite) — a → à après verbe + adverbe, et dans l'intervalle « de 10 … a 20 » (catalogue des muets)
+
+- Suite du groupe a → à, deux structures de plus dans la voie nouvelle (orange) de rA / rule_a_aa :
+  · VERBE + ADVERBE + « a » (« il parle souvent a ses amis ») : la branche « après un verbe » de la logique mesurée ne lit que le mot
+    collé à « a ». UD 14 450 : un seul emploi d'avoir dans cette configuration, suivi d'un participe (« a longtemps été »). Gardes :
+    participe après « a » (adverbes sautés) ; nom confiant avant l'adverbe (sujet) ; relative en « ce que / celui qui » (« ce qu'il fait
+    souvent a des effets » : la relative est le sujet de « a » — trouvé sur phrase inventée, 0 dans les corpus) ; nom commun NU après
+    « a » (homographe d'un verbe) : c'est « au », pas « à » — la 1re version y proposait « à », mot faux, et la sonde de précision
+    l'a vu (a/à orange 100 → 93,8 %) ; les infinitifs restent (« il invite souvent a dîner ») ;
+  · INTERVALLE « de 10 hectares a 20 hectares » : le tokeniseur efface les chiffres et la garde « chiffre » (« il a 35 ans ») taisait
+    aussi l'intervalle. Le canal _SEG.dig (chiffre dans l'espace AVANT un mot) le lit : un chiffre après « de », un autre après « a ».
+    UD 14 450 : le seul « a » du motif est une faute du corpus (« de 1995 a 2008 »).
+- Mesuré (produit) : gold +5 « à » justes (3 adverbe, 2 intervalle), 0 fausse ; frgec +3 intervalles, justes mais absents du corrigé (qui
+  garde « a ») ; UD 14 450 : aucune marque changée.
+  Risque connu, construit : « un couple de 30 ans a 2 enfants » → à (orange) ; 0 dans les corpus.
+- Tests : parity_core (6 « à » orange, 5 témoins) ; miroirs Python _aa_apres_adverbe et intervalle.
+
 ## 2026-09-30 (suite) — peu → peut après « ça / cela » + deux rouges faux construits (catalogue des muets)
 
 - Catalogue : 3 « peu → peut » muets ; 2 sont « cela » mal écrit (l'orthographe le corrige en orange) + peu + infinitif. rPeu / rule_peu
