@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-09-30 (suite) — « cette » mal écrit : « séte » → cette (plus « été »), « set » → cette (catalogue, 2e catalogue)
+
+- 2e catalogue : « séte » recevait « été » en orange (4 mots faux dans le gold) — l'initiale s/c et la finale -te échappent au tri des
+  candidats ; catalogue des muets : « set » (mot anglais, accepté) pour « cette », muet.
+- Posé (orthographe en contexte, 3 moteurs + speller_probe) : « séte », « sete », « cète », « sétte » ne sont pas des mots → cette, ou cet
+  devant un nom masculin à voyelle (« séte oiseau » → cet) ; « Sète », la ville, garde sa capitale et « sète » en minuscule reste exclu ;
+  « set » (un set de table, jet set, le quatrième set) seulement après un mot-outil (qui, de, dans, car…) et devant un nom ou un mot
+  inconnu. ORANGE. « cete » avait déjà « cette » (proposé) : laissé à l'orthographe.
+- Mesuré (produit) : gold +7 (5 mots faux « séte » → cette / cet, 2 « set » muets → cette) ; 0 ailleurs sur les 3 corpus ; UD 14 450 :
+  aucune marque changée (« quatrième set », « Sète » intacts).
+- Tests : test_speller (ext) et test_speller_app (3 formes, 2 témoins anglais) ; miroir Python _CETTE_E.
+
 ## 2026-09-30 (suite) — déterminants écrits avec « é » : té → tes, dé → des / dès, mé → mes, lé → les (catalogue des muets)
 
 - Catalogue : « té » → tes ×2 et « dé » → des muets (même son) ; sondé sur phrases inventées : « je vois lé enfants » → enfant en ROUGE —

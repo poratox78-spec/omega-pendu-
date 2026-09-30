@@ -53,6 +53,8 @@ _DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'at
 _DAN_SUR = {'un', 'une', 'des', 'ce', 'cet', 'cette', 'ces', 'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'nos', 'votre', 'vos', 'leurs', 'quel', 'quelle', 'quels', 'quelles', 'tout', 'toute', 'tous', 'toutes'}   # ⭐ 13/09/2026 : « dan » + déterminant qui ne suit jamais un prénom sujet → dans (flag)
 _VACANCES_AV = {'en', 'de', "d'", 'des', 'les', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs', 'bonnes', 'grandes', 'petites'}   # ⭐ 13/09/2026 : « en vacance » → vacances
 _DAN_VIG = {'le', 'la', 'les', 'se'}   # « dan le regarde » peut être Dan → dans proposé (orange)
+_CETTE_E = {u'séte', u'sete', u'cète', u'sétte'}   # ⭐ 30/09/2026 : « cette » mal écrit — miroir JS _CETTE_E
+_CETTE_AV = set('qui que de dans a car et mais avec sur par en pour sans vers chez comme donc alors ou dit pas quoi moi'.split())
 _DET_E = {u'té': u'tes', u'dé': u'des', u'mé': u'mes', u'lé': u'les'}   # ⭐ 30/09/2026 : déterminants écrits avec « é » — miroir JS _DET_E
 _DET_E_PRON = set('je tu il elle on nous vous ils elles me te se ne y en qui que'.split())
 _DET_E_QU = set('beaucoup peu trop assez plus moins tant autant combien pas jamais point guere'.split())
@@ -618,6 +620,16 @@ class Speller:
                         if 'N' in _np and not _ninv: return ('vigilance', u'les' if _npl else u'le')   # « lé bois » : invariable
                     elif _npl or not _nk:
                         return ('vigilance', _DET_E[low])
+        # ⭐ 30/09/2026 — « CETTE » MAL ÉCRIT (« séte » → été, mot faux) : séte, sete, cète, sétte → cette (cet devant un nom masculin à
+        # voyelle) ; « set » (mot anglais) seulement après un mot-outil et devant un nom ou un mot inconnu. ORANGE. Miroir JS.
+        if (toks is not None and idx is not None and idx + 1 < len(toks) and (low in _CETTE_E or (low == 'set' and tok == low))
+                and (tok == low or (at_start and tok[:1] != low[:1] and tok[1:] == low[1:]))):
+            _cn = toks[idx + 1]; _cnl = _cn.lower(); _cp = deacc(toks[idx - 1].lower()) if idx > 0 else ''
+            if (re.match(u'^[a-zà-ÿœæ]+$', _cn) and deacc(_cnl) not in _DAN_SUR and deacc(_cnl) not in _DAN_VIG
+                    and (low != 'set' or ((idx == 0 or _cp in _CETTE_AV) and 'N' in (self.POS.get(_cnl) or 'N')))):
+                _ct = u'cet' if (re.match(u'^[aeiouyhàâéèêëîïôöùûü]', _cnl) and self._gender(_cnl) == 'm') else u'cette'
+                if tok != low: _ct = _ct[:1].upper() + _ct[1:]
+                return ('vigilance', _ct)
         if tok == low and low == 'vacance' and toks is not None and idx is not None and idx >= 1 and deacc(toks[idx - 1].lower()) in _VACANCES_AV:
             return ('flag', 'vacances')
         # ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (plan ③ de l'audit, décalque de _APOS_FIX du produit) : liste CLOSE,

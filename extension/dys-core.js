@@ -3733,6 +3733,7 @@ function estQuestion(t,maxMots){
     var s=la<lb?a:b,l=la<lb?b:a,i=0,j=0,sk=0;
     while(i<s.length&&j<l.length){if(s[i]===l[j]){i++;j++;}else{if(++sk>1)return false;j++;}}return true;}
   var _DET_E={'té':'tes','dé':'des','mé':'mes','lé':'les'},_DET_E_PRON={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,me:1,te:1,se:1,ne:1,y:1,en:1,qui:1,que:1},_DET_E_QU={beaucoup:1,peu:1,trop:1,assez:1,plus:1,moins:1,tant:1,autant:1,combien:1,pas:1,jamais:1,point:1,guere:1};   // ⭐ 30/09/2026 : déterminants écrits avec « é » (miroir Python)
+  var _CETTE_E={'séte':1,'sete':1,'cète':1,'sétte':1},_CETTE_AV={};'qui que de dans a car et mais avec sur par en pour sans vers chez comme donc alors ou dit pas quoi moi'.split(' ').forEach(function(w){_CETTE_AV[w]=1;});   // ⭐ 30/09/2026 : « cette » mal écrit (miroir Python)
   var _DAN_SUR={},_DAN_VIG={le:1,la:1,les:1,se:1};'un une des ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leurs quel quelle quels quelles tout toute tous toutes'.split(' ').forEach(function(w){_DAN_SUR[w]=1;});   // ⭐ 13/09/2026 : « dan » + déterminant → dans (miroir Python)
   var _VACANCES_AV={};"en de d' des les mes tes ses nos vos leurs bonnes grandes petites".split(' ').forEach(function(w){_VACANCES_AV[w]=1;});   // ⭐ 13/09/2026 : « en vacance » → vacances (miroir Python)
   /* ⭐ 29/09/2026 — MOTS ÉLIDÉS INCONNUS (catalogue des muets) : « l'aupital », « s'inkiète » ne recevaient RIEN alors que la forme nue
@@ -3819,6 +3820,14 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
           if(low==='dé'){if(_np.indexOf('A')>=0||(_nk&&!_npl))return["vigilance","de"];return["vigilance","des"];}
           if(low==='lé'){if(_np.indexOf('N')>=0&&!_ninv)return["vigilance",_npl?"les":"le"];}   // « lé bois » : invariable, le nombre ne se lit pas
           else if(_npl||!_nk)return["vigilance",_DET_E[low]];}}}
+    /* ⭐ 30/09/2026 — « CETTE » MAL ÉCRIT (catalogue : « séte » → été, 4 mots faux dans le gold ; « set » muet) : l'initiale s/c et la
+       finale -te échappent au tri des candidats. « séte », « sete », « cète », « sétte » ne sont pas des mots → cette (cet devant
+       un nom masculin à voyelle) ; « Sète », la ville, garde sa capitale et « sète » en minuscule reste exclu. « set » (un set de table,
+       jet set, le quatrième set) seulement après un mot-outil (qui, de, dans, car…) et devant un nom (ou un mot inconnu). ORANGE. Miroir Python _CETTE_E. */
+    if(T&&idx!=null&&idx+1<T.length&&(_CETTE_E[low]||(low==='set'&&tok===low))&&(tok===low||(atStart&&tok.charAt(0)!==low.charAt(0)&&tok.slice(1)===low.slice(1)))){
+      var _cn=T[idx+1],_cnl=_cn.toLowerCase(),_cp=idx>0?deaccS(T[idx-1].toLowerCase()):'';
+      if(/^[a-zà-ÿœæ]+$/.test(_cn)&&!_DAN_SUR[deaccS(_cnl)]&&!_DAN_VIG[deaccS(_cnl)]&&(low!=='set'||((idx===0||_CETTE_AV[_cp])&&/N/.test(SP.POS[_cnl]||'N')))){
+        var _ct=(/^[aeiouyhàâéèêëîïôöùûü]/.test(_cnl)&&sGender(_cnl)==='m')?'cet':'cette';if(tok!==low)_ct=_ct.charAt(0).toUpperCase()+_ct.slice(1);return["vigilance",_ct];}}
     if(tok===low&&low==='vacance'&&T&&idx!=null&&idx>=1&&_VACANCES_AV[deaccS(T[idx-1].toLowerCase())])return["flag","vacances"];   /* ⭐ 13/09/2026 : « en vacance » → vacances (miroir Python) */
     /* ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (audit 11/09/2026, plan ③ : « aujourdhui » restait un inconnu sans réponse alors
        que la réponse est fermée). Liste CLOSE recensée le 12/09 : aucune de ces soudures n'est un mot (speller, UD 14 450 : 0),
