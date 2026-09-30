@@ -20,11 +20,11 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit, initiale et dominance) |
 |---|---|---|
-| réparée en rouge | 554 (27,5 %) | **613** (30,5 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **470** (23,4 %) |
-| mot FAUX proposé | 373 (18,5 %) | **318** (15,8 %) |
+| réparée en rouge | 554 (27,5 %) | **614** (30,5 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **471** (23,4 %) |
+| mot FAUX proposé | 373 (18,5 %) | **316** (15,7 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
 | **muette** | **711** (35,3 %) | **588** (29,2 %) |
 | **total** | **2 012** | 2 012 |
@@ -126,8 +126,8 @@ Les fautes où le produit propose un **mot faux** : le second catalogue, ci-dess
 ## Le 2e catalogue : les mots FAUX proposés (29/09/2026)
 
 Même méthode. Le produit propose un mot, mais pas celui qu'attend le gold. Le pire cas est le **rouge** : la faute est remplacée
-d'office par une autre. Mesuré après les lots ci-dessus : **318**, dont **37 en rouge** (47 avant le premier lot), 38 « flag » (dont 2 artefacts
-d'alignement de l'élision à deux mots, 30/09), 243 en orange (dont 2 du même artefact, ma/ta/jais).
+d'office par une autre. Mesuré après les lots ci-dessus : **316**, dont **37 en rouge** (47 avant le premier lot), 38 « flag » (dont 2 artefacts
+d'alignement de l'élision à deux mots, 30/09), 241 en orange (dont 2 du même artefact, ma/ta/jais).
 
 | rouges faux, par règle (avant le premier lot) | n | cause | statut |
 |---|---|---|---|

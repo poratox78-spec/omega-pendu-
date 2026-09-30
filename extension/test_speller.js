@@ -62,6 +62,13 @@ for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass med
   if (!f || f.sugg !== 'éclairait') fail.push('« eclairait » : attendu « éclairait » (l’accent seul d’abord), eu ' + JSON.stringify(f && f.sugg)); }
 { const f = DC.spell('je viens apre le repas').find(x => x.word === 'apre');
   if (!f || f.sugg !== 'après') fail.push('« apre » : attendu « après » (rival à une édition 20 fois plus fréquent : pas « âpre »), eu ' + JSON.stringify(f && f.sugg)); }
+// ⭐ 30/09/2026 — dominance de fréquence seulement si l'initiale change pour une confusion connue : polution → pollution (plus solution) ; evec → avec, gours → jours gardés.
+{ const f = DC.spell('une polution énorme').find(x => x.word === 'polution');
+  if (!f || f.sugg !== 'pollution') fail.push('« polution » : attendu « pollution » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il vient evec lui').find(x => x.word === 'evec');
+  if (!f || f.sugg !== 'avec') fail.push('« evec » : attendu « avec » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('les gours passent vite').find(x => x.word === 'gours');
+  if (!f || f.sugg !== 'jours') fail.push('« gours » : attendu « jours » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
 // ⭐ 30/09/2026 — FORMES ET EXPRESSIONS SOUDÉES : formes tronquées (liste fermée) et clé phonétique EXACTE d'une expression de _MWE, avant le tri.
 { const f = DC.spell('il est venu ducou').find(x => x.word === 'ducou');
   if (!f || f.sugg !== 'du coup') fail.push('« ducou » : attendu « du coup » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }

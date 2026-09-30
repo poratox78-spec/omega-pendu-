@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-09-30 (suite) — tri des candidats : la dominance de fréquence seulement si l'initiale change pour une confusion connue (2e catalogue)
+
+- 2e catalogue : « polution » → solution (×2) — « pollution » a la même clé phonétique, mais un rival à une édition ≥ 20 fois plus
+  fréquent l'écrase (règle de dominance : « accort » → accord, « autent » → autant). Ici le rival change la PREMIÈRE lettre (p → s), ce
+  que les fautes dys font rarement (~11 %, Bodard 2020).
+- Déjà mesuré et écarté le même jour : exiger que le rival garde l'initiale — « evec » → avec, « gours » → jours perdus. Posé : la
+  dominance vaut si l'initiale est gardée OU change pour une CONFUSION connue (voyelles entre elles, b/d/p/q, c/s/k/q, g/j, f/v, m/n,
+  t/d), et seulement pour un candidat phonétique COURANT (≥ 1 par million) : la 1re version protégeait aussi « lès » (0,025) et le
+  comparateur, non transitif, se réordonnait — le census l'a vu (« less » devant des dates : les → le). 3 moteurs +
+  speller_probe (_initConf / _init_conf).
+- Mesuré (produit) : gold 2 mots faux → justes (pollution) ; frgec +4 justes, 1 perdue (« sussi » : aussi → sushi, faute de frappe
+  s/a hors des confusions) ; census inchangé ; UD 14 450 : un mot étranger change de suggestion (« hout »), aucune marque en plus.
+- Tests : test_speller (ext) et test_speller_app (polution → pollution ; evec → avec, gours → jours gardés).
+
 ## 2026-09-30 (suite) — « cette » mal écrit : « séte » → cette (plus « été »), « set » → cette (catalogue, 2e catalogue)
 
 - 2e catalogue : « séte » recevait « été » en orange (4 mots faux dans le gold) — l'initiale s/c et la finale -te échappent au tri des
