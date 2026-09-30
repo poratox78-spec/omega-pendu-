@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-09-30 (suite) — l'élision manquante (catalogue des muets)
+
+- En sondant les élisions du catalogue (« que il » → qu'il, muet ×3) : TOUTE élision manquante était muette — « je ai », « que il »,
+  « le arbre », « de eau », « ne a », « me appelle », « te aime », « si il ». La règle « élision » corrige le sens inverse (« j'mange »),
+  et l'élision-espace de spellText ne voyait que l'apostrophe remplacée par une espace (« c est », « qu il »).
+- Ajout dans l'élision-espace (flag) : la forme pleine d'un clitique (je, que, le, la, de, ce, ne, me, te, se, si) devant un mot connu à
+  initiale voyelle → élidée. Chaque garde vient d'une mesure : UD (écart blanc — « le 12 avril » ; trait d'union — « prends-le avec
+  toi » ; majuscule du clitique hors début de phrase — titres anglais « Make Me est » ; « se une » : me/te/se/je/ne devant un verbe
+  seulement ; « le ou les » : ni et/ou), gold (« la il » → l'il : « la » y est « là » — pas d'élision devant un pronom sujet sauf après
+  que/si ; « la avait » : le/la devant un verbe seulement après un sujet), frgec (« de a », mots étrangers rares, « le arts » : faute de
+  nombre), et le banc existant (« se étais » reste à la règle du « je » mal écrit → j'étais).
+- Mesuré (produit) : gold +9 élisions réparées ; EcriScol 3 et frgec 17 marques sur de vraies élisions que ces golds ne corrigent pas
+  (lues une par une : « que à partir », « dans la armée », « bien que après ») ; UD 14 450 : 12 marques, toutes sur du texte fautif —
+  5 vraies élisions manquantes du corpus (dont « je ne étais »), 7 phrases où UD a perdu un nombre ou un mot (« plus de
+  exemplaires »). Précision au produit : « élision · flag · pollué » 0 → 46,7 % (7 justes). Catalogue : muettes 637 → 627 (ses
+  « justes touchés » +1 et « mots faux » +2 sont des artefacts d'alignement : la marque à deux mots est recopiée sur le 2e mot).
+- Tests : test_speller extension + app (5 élisions : que il, je ai, de eau, ne a, me appelle ; 3 témoins : trait d'union, « que oui »,
+  chiffre).
+
 ## 2026-09-30 (suite) — le tri des candidats, 3 : « mot inconnu », l'accent seul d'abord
 
 - « eclairait » → éclair (2e catalogue). Tracé sur une copie instrumentée (chaque return null de spellTokenCore) : le tri principal

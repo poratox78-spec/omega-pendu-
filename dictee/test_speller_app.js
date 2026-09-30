@@ -232,6 +232,18 @@ const SP = globalThis.__sp;
     if (!f || f.sugg !== 'éclairait') fail.push('« eclairait » : attendu « éclairait » (l’accent seul d’abord), eu ' + JSON.stringify(f && f.sugg)); }
   { const f = SP.spell('je viens apre le repas').find(x => x.word === 'apre');
     if (!f || f.sugg !== 'après') fail.push('« apre » : attendu « après » (rival à une édition 20 fois plus fréquent : pas « âpre »), eu ' + JSON.stringify(f && f.sugg)); }
+  // ⭐ 30/09/2026 — ÉLISION MANQUANTE : la forme pleine devant voyelle (« que il », « je ai ») → élidée ; témoins : trait d’union, « que oui », chiffre.
+  { const f = SP.spell('je pense que il pleut').find(x => x.name === 'élision' && x.word === 'que il');
+    if (!f || f.sugg !== 'qu\'il') fail.push('élision manquante « que il » : attendu « qu’il », eu ' + JSON.stringify(f && f.sugg)); }
+  { const f = SP.spell('hier je ai mangé une pomme').find(x => x.name === 'élision' && x.word === 'je ai');
+    if (!f || f.sugg !== 'j\'ai') fail.push('élision manquante « je ai » : attendu « j’ai », eu ' + JSON.stringify(f && f.sugg)); }
+  { const f = SP.spell('je bois un verre de eau').find(x => x.name === 'élision' && x.word === 'de eau');
+    if (!f || f.sugg !== 'd\'eau') fail.push('élision manquante « de eau » : attendu « d’eau », eu ' + JSON.stringify(f && f.sugg)); }
+  { const f = SP.spell('il ne a pas faim').find(x => x.name === 'élision' && x.word === 'ne a');
+    if (!f || f.sugg !== 'n\'a') fail.push('élision manquante « ne a » : attendu « n’a », eu ' + JSON.stringify(f && f.sugg)); }
+  { const f = SP.spell('je me appelle Paul').find(x => x.name === 'élision' && x.word === 'me appelle');
+    if (!f || f.sugg !== 'm\'appelle') fail.push('élision manquante « me appelle » : attendu « m’appelle », eu ' + JSON.stringify(f && f.sugg)); }
+  for (const s of ['prends-le avec toi', 'je crois que oui', 'rendez-vous le 12 avril']) { const f = SP.spell(s).find(x => x.name === 'élision'); if (f) fail.push('élision : témoin « ' + s + ' » marqué ' + JSON.stringify(f)); }
   const tr1 = SP.spell('la tres belle note').find(x => x.word.toLowerCase() === 'tres');
   if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
   const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');
