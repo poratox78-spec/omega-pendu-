@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **613** (30,5 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **463** (23,0 %) |
-| mot FAUX proposé | 373 (18,5 %) | **323** (16,1 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **470** (23,4 %) |
+| mot FAUX proposé | 373 (18,5 %) | **318** (15,8 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
-| **muette** | **711** (35,3 %) | **590** (29,3 %) |
+| **muette** | **711** (35,3 %) | **588** (29,2 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **53** aujourd'hui (36 / 17 — le rouge de plus : « soiété », coquille laissée par le gold ; 4 oranges de genre du déterminant
@@ -126,8 +126,8 @@ Les fautes où le produit propose un **mot faux** : le second catalogue, ci-dess
 ## Le 2e catalogue : les mots FAUX proposés (29/09/2026)
 
 Même méthode. Le produit propose un mot, mais pas celui qu'attend le gold. Le pire cas est le **rouge** : la faute est remplacée
-d'office par une autre. Mesuré après les lots ci-dessus : **323**, dont **37 en rouge** (47 avant le premier lot), 38 « flag » (dont 2 artefacts
-d'alignement de l'élision à deux mots, 30/09), 248 en orange (dont 2 du même artefact, ma/ta/jais).
+d'office par une autre. Mesuré après les lots ci-dessus : **318**, dont **37 en rouge** (47 avant le premier lot), 38 « flag » (dont 2 artefacts
+d'alignement de l'élision à deux mots, 30/09), 243 en orange (dont 2 du même artefact, ma/ta/jais).
 
 | rouges faux, par règle (avant le premier lot) | n | cause | statut |
 |---|---|---|---|
@@ -146,4 +146,4 @@ devenues justes sur les 3 corpus, UD sans marque nouvelle. ✅ 30/09, deuxième 
 pas la coquille « aprés ») : 11 mots faux de moins sur le gold, 19 fausses devenues justes sur les 3 corpus, 0 juste perdue, UD sans
 marque nouvelle. ✅ 30/09, troisième lot : « mot inconnu » — l'accent seul d'abord quand le mot écrit n'a aucun accent (« eclairait »
 → éclairait, plus éclair ; un rival à une édition 20 fois plus fréquent garde la main : « apre » → après) : 44 suggestions deviennent
-le mot exact sur les 3 corpus, 1 perd, UD sans changement. Reste : l'initiale (« séte » → cette demande d'admettre s/c en tête de mot).
+le mot exact sur les 3 corpus, 1 perd, UD sans changement. ✅ 30/09 : « séte » → cette / cet et « set » → cette (orange, en contexte) : 7 de plus.

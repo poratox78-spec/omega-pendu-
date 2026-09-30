@@ -90,6 +90,17 @@ for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass med
   if (f) fail.push('« dé » dans « il a lancé un dé rouge » : aucune suggestion attendue (témoin), eu ' + JSON.stringify(f.sugg)); }
 { const f = DC.spell('elle lé perdu hier').find(x => x.word === 'lé');
   if (f) fail.push('« lé » dans « elle lé perdu hier » : aucune suggestion attendue (témoin), eu ' + JSON.stringify(f.sugg)); }
+// ⭐ 30/09/2026 — « CETTE » MAL ÉCRIT : séte → cette (cet devant un nom masculin à voyelle), set → cette après un mot-outil ; témoins anglais.
+{ const f = DC.spell('je trouve séte histoire drôle').find(x => x.word === 'séte');
+  if (!f || f.sugg !== 'cette') fail.push('« séte » dans « je trouve séte histoire drôle » : attendu « cette », eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il a vu séte oiseau').find(x => x.word === 'séte');
+  if (!f || f.sugg !== 'cet') fail.push('« séte » dans « il a vu séte oiseau » : attendu « cet », eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('je parle de set affaire').find(x => x.word === 'set');
+  if (!f || f.sugg !== 'cette') fail.push('« set » dans « je parle de set affaire » : attendu « cette », eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('un set de table').find(x => x.word === 'set');
+  if (f) fail.push('« set » dans « un set de table » : aucune suggestion attendue (témoin), eu ' + JSON.stringify(f.sugg)); }
+{ const f = DC.spell('il a gagné le quatrième set hier').find(x => x.word === 'set');
+  if (f) fail.push('« set » dans « il a gagné le quatrième set hier » : aucune suggestion attendue (témoin), eu ' + JSON.stringify(f.sugg)); }
 // ⭐ 30/09/2026 — le NOMBRE du mot suivant choisit : accent parasite sur « de » / « le » (« dé belles robes » → de), quantité (« beaucoup dé » → de), invariable (« lé bois ») : rien.
 { const f = DC.spell('elle porte dé belles robes').find(x => x.word === 'dé');
   if (!f || f.sugg !== 'de') fail.push('« dé » dans « elle porte dé belles robes » : attendu « de », eu ' + JSON.stringify(f && f.sugg)); }
