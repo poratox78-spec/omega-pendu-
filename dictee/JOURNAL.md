@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-09-30 (suite) — le tri des candidats, 2 : « ou » ≠ « u » dans la clé, et les finales audibles en /ɛ/
+
+- Relu après la clé : 244 oranges au mot faux restent dans le gold. Deux familles nettes. ① La clé confondait « ou » (/u/) et « u »
+  (/y/) : « tou » (×5 dans le gold) avait la clé de « tu », le plus fréquent, et recevait « tu » au lieu de « tout » ; « cur » →
+  cours au lieu de cure. « ou » a maintenant sa classe propre (U). Le dys qui confond vraiment les deux sons garde le candidat à une
+  édition, et la dominance de fréquence (≫ 20×) le ramène quand il écrase (census : « oune » → une ×2 et « mesoure » → mesure, gagnés).
+- ② Quand le mot écrit finit par « é », le tri préfère une finale AUDIBLE ; la liste ne connaissait que é, er, ez, ai, ais, ait : « apré »
+  recevait « aprés », coquille du lexique (sous-titres) finie en -és, 85 fois moins fréquente qu'« après », finie en -ès donc « muette »
+  pour l'ancienne liste. Ajout : -ès, -et, -êt, -aient (/ɛ/) — dans « mot inconnu » et dans le tri principal (« succé » → succès,
+  « foué » → fouet, au lieu de sucré, joué). Le juge officiel, désaccentué, comptait « aprés » JUSTE : la colonne stricte du
+  catalogue, elle, le voyait faux.
+- Mesuré (produit) : 19 fausses devenues justes, 0 juste perdue sur les 3 corpus dys (gold +7, frgec +12) ; UD 14 450 : aucune marque
+  nouvelle ni perdue (23 suggestions changées sur des mots rares déjà signalés) ; census des oranges justes 359 → 363 (5 gagnées, 1
+  perdue : « loui » → lui, le dys y a écrit « ou » pour /y/). Gold : mots faux 347 → 336, bons mots orange 414 → 425.
+- Tests : test_speller extension + app (« tou » → tout, « apré » → après, « succé » → succès, « foué » → fouet — l'ancien moteur les rate
+  tous), sonde de parité des clés (tou = tout ≠ tu, cur = cure ≠ cours), parité speller Python ↔ JS, garde de palier gold.
+
 ## 2026-09-30 — le tri des candidats : la CLÉ phonétique rendait « cette » vide (2e catalogue)
 
 - Inventaire des 260 oranges au mot faux (orthographe / mot inconnu) par la clé phonétique du produit : « séte » → sais, alors que

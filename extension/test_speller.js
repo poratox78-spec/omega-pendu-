@@ -47,6 +47,17 @@ for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass med
 // ⭐ 30/09/2026 — CLÉ PHONÉTIQUE : un e muet écrit garde la consonne qui le précède (« cette » avait une clé VIDE, partagée avec « sais »).
 { const f = DC.spell('le chat est vitte parti').find(x => x.word === 'vitte');
   if (!f || f.sugg !== 'vite') fail.push('« vitte » : attendu « vite » (la clé garde le t devant le e muet), eu ' + JSON.stringify(f && f.sugg)); }
+// ⭐ 30/09/2026 — « ou » (/u/) ≠ « u » (/y/) dans la clé : « tou » → tout (et non « tu », plus fréquent).
+{ const f = DC.spell('il fait tou pour elle').find(x => x.word === 'tou');
+  if (!f || f.sugg !== 'tout') fail.push('« tou » : attendu « tout » (ou ≠ u dans la clé), eu ' + JSON.stringify(f && f.sugg)); }
+// ⭐ 30/09/2026 — finales AUDIBLES : -ès, -et, -êt, -aient comptent comme la finale /e/ écrite « é ».
+{ const f = DC.spell('je viens apré le repas').find(x => x.word === 'apré');
+  if (!f || f.sugg !== 'après') fail.push('« apré » : attendu « après » (finale audible -ès, pas la coquille « aprés »), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('le spectacle est un grand succé').find(x => x.word === 'succé');
+  if (!f || f.sugg !== 'succès') fail.push('« succé » : attendu « succès » (finale audible -ès), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('le cheval a peur du foué').find(x => x.word === 'foué');
+  if (!f || f.sugg !== 'fouet') fail.push('« foué » : attendu « fouet » (finale audible -et), eu ' + JSON.stringify(f && f.sugg)); }
+if (DC.phonKey('tou') !== DC.phonKey('tout') || DC.phonKey('tu') === DC.phonKey('tout')) fail.push('clé phonétique : tou=' + DC.phonKey('tou') + ' tout=' + DC.phonKey('tout') + ' tu=' + DC.phonKey('tu'));
 if (DC.phonKey('cette') !== 'set' || DC.phonKey('fêtes') !== DC.phonKey('fête') || DC.phonKey('mangez') !== DC.phonKey('mangé')) fail.push('clé phonétique : cette=' + DC.phonKey('cette') + ' fêtes/fête=' + DC.phonKey('fêtes') + '/' + DC.phonKey('fête') + ' mangez/mangé=' + DC.phonKey('mangez') + '/' + DC.phonKey('mangé'));
 const sp = t => DC.spell(t);
 const find = (t, w) => sp(t).find(x => x.word.toLowerCase() === w);
