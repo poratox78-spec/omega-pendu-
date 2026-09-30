@@ -88,10 +88,13 @@ def pyramide(txt):
     signale = set()                                  # i -> souligné SANS suggestion (« mot inconnu »)
     starts = {m.start(): i for i, m in enumerate(TOK.finditer(txt))}
     Tc = T[:]
+    sp_strict = {}                                   # i -> orange de l'ORTHOGRAPHE, accents compris (garde du genre contredit, plus bas)
     for (st, w, sg, act) in SP.correct_text(txt, inconnu=True):
         i = starts.get(st)
         if i is None or i >= len(T) or DP.norm(T[i]) != DP.norm(w):
             continue
+        if act in ('vigilance', 'inconnu') and sg and _mot(sg) and sg.lower() != w.lower():
+            sp_strict[i] = sg
         if act == 'inconnu':
             # PALIER « MOT INCONNU » (porté du JS le 04/09/2026 — spell_unknown, décalque de spellUnknown).
             # ORANGE au clic si suggestion, simple soulignement sinon : jamais appliqué → le chiffre
@@ -121,6 +124,7 @@ def pyramide(txt):
     CP._SEG = CP._seg_info(txt.replace('’', "'").replace('ʼ', "'"))
     CP._SEG['pb'] = CP._pred_bounds(Tc, CP._SEG)   # bornes prédites (canal pb) : la sonde équipe la grammaire COMME LE PRODUIT (diagnoseAll pose pb sur les tokens nettoyés)
     out = Tc[:]
+    gd_or = {}                                       # i -> orange « genre déterminant » (garde de contradiction, plus bas)
     for i in range(len(Tc)):
         for nm, rule in CP.RULES:
             try:
@@ -145,6 +149,7 @@ def pyramide(txt):
                     _tr = 'auto'
                 if _tr == 'vigilance':
                     orange.setdefault(i, []).append(sg)
+                    if nm == u'genre déterminant': gd_or[i] = sg
                     continue                      # orange : on n'applique pas, on continue de chercher
                 out[i] = sg
                 break
@@ -154,6 +159,17 @@ def pyramide(txt):
     Tv = Tc[:]
     for i, sgs in sp_orange.items():
         if sgs and _mot(sgs[0]): Tv[i] = sgs[0]
+    # ⭐ 30/09/2026 — genre du déterminant CONTREDIT par l'orange du nom (« la foret » → le, alors que l'orthographe propose « forêt »,
+    # féminin) : relu avec la correction orange du nom, le déterminant est juste → sa marque orange se retire. Miroir JS diagnoseAll.
+    # Table STRICTE : l'orange d'accent seul (foret → forêt) n'entre pas dans sp_orange (DP.norm désaccentue), le produit la voit.
+    for i, sg in gd_or.items():
+        nw = sp_strict.get(i + 1)
+        if not nw or sg not in orange.get(i, []): continue
+        gn = CP.GENDER_ACC_COLL.get(nw.lower()) or CP.GENDER_PURE.get(CP.deacc(nw.lower()))
+        gd = CP.DET_GENDER.get(CP.deacc(Tc[i].lower()))
+        if gn and gd and gn == gd:
+            orange[i].remove(sg)
+            if not orange[i]: del orange[i]
     if Tv != Tc:
         for i in range(len(Tv)):
             if i in sp_orange or i in orange or i in signale or out[i] != Tc[i]: continue

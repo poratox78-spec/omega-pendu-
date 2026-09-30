@@ -29,7 +29,8 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 | **muette** | **711** (35,3 %) | **638** (31,7 %) |
 | **total** | **2 012** | 2 012 |
 
-Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **54** aujourd'hui (35 / 19 — le rouge de plus : « soiété », coquille laissée par le gold) — voir plus
+Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **50** aujourd'hui (35 / 15 — le rouge de plus : « soiété », coquille laissée par le gold ; 4 oranges de genre du déterminant
+retirées le 30/09, voir ci-dessous) — voir plus
 bas, à auditer un par un.
 
 ## Les 711 muettes, par remédiation
@@ -107,6 +108,10 @@ faux retirés ou ramenés en orange, 0 perte.
 l'orthographe, il n'ajoute pas le « ne » oublié), des **genres de déterminant** retournés (la → le ×3, le → la ×2), l'orange de
 pluriel sur un infinitif ou un adverbe (voir lot A), et quelques accords sujet-verbe. Chacun est à relire : un rouge sur un mot juste
 est la seule colonne qui viole la doctrine FP=0.
+
+✅ 30/09 : les genres de déterminant retournés par un nom MAL ÉCRIT (« la foret » → le, « le pole » → la) — l'orthographe proposait au
+même endroit « forêt » / « pôle », qui s'accordent avec le déterminant écrit : la marque du déterminant se retire (4 oranges, 0 ailleurs,
+UD sans changement). Reste « la » devant un verbe mal écrit, lu comme un nom.
 
 ## Ordre de travail
 

@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-09-30 (suite) — le genre du déterminant contredit par l'orange du nom (mots justes touchés)
+
+- Dans les mots justes touchés du catalogue : « la foret » → orange « le », « le pole » → orange « la ». La règle du genre lit le nom
+  tel qu'écrit (« foret », l'outil, est masculin) ; l'orthographe propose au même endroit, en orange, « forêt » (féminin) — qui
+  s'accorde avec le déterminant ÉCRIT. Deux oranges qui se contredisent : le dys ne peut pas suivre les deux.
+- Correctif dans l'étape du voisin orange (diagnoseAll / _computeCorrs, miroir pyramide) : relue avec la correction orange du nom, la
+  marque orange du déterminant se retire si le genre du nom corrigé est CONNU et ÉGAL à celui du déterminant. Un nom juste (« le
+  maison ») n'a pas d'orange d'orthographe : sa marque reste.
+- Mesuré (produit) : 4 marques retirées sur des déterminants justes du gold, 0 ailleurs sur les 3 corpus dys, 0 bonne marque perdue ;
+  UD 14 450 : aucune marque changée. Catalogue : mots justes touchés 54 → 50 (orange 19 → 15).
+- Test : parity_core (pas de marque du déterminant devant « foret » ni devant « pole », forêt / pôle proposés ; « le maison » → La gardé).
+
 ## 2026-09-30 (suite) — le tri des candidats, 2 : « ou » ≠ « u » dans la clé, et les finales audibles en /ɛ/
 
 - Relu après la clé : 244 oranges au mot faux restent dans le gold. Deux familles nettes. ① La clé confondait « ou » (/u/) et « u »
