@@ -527,6 +527,29 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   console.log('  ✓ gérondif : chantent → chantant, disent → disant, mangent → mangeant, commencent → commençant (orange, plus d’accord sujet-verbe) ; 6 témoins muets');
 }
 
+// ⭐ 30/09/2026 — « CES/SES » POUR « C'EST » : devant un déterminant, une préposition, un infinitif, ou un adjectif seul suivi d'un
+// non-nom → c'est (orange) ; derrière ce « ces », l'adjectif antéposé (rouge) et les oranges de pluriel se taisent. Témoins : groupe
+// nominal normal, trait d'union, composé sans trait d'union, adjectif devant un nom (rouge gardé). Miroir Python _ces_cest.
+{
+  const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _cc = 0;
+  for (const [s, w] of [['Le plus dur ces de commencer.', 'ces'], ['Mon idée ses dans la boîte.', 'ses'], ['Le secret ces une bonne recette.', 'ces'],
+                        ['Ces vrai que tu viens ?', 'Ces'], ['Ses fini pour aujourd’hui.', 'Ses']]) {
+    const f = fl(s), m = f.find(x => x.word === w);
+    if (!m || m.sugg.toLowerCase() !== "c'est" || m.tier !== 'vigilance') { _cc++; console.log('  ✗ c’est : « ' + s + ' » → « c’est » (orange) attendu, obtenu ' + JSON.stringify(m || null)); }
+    const pl = f.filter(x => x.i === (m ? m.i + 1 : -1) && /pluriel|antéposé/.test(x.name));
+    if (pl.length) { _cc++; console.log('  ✗ c’est : « ' + s + ' » garde un accord de pluriel contradictoire ' + JSON.stringify(pl)); }
+  }
+  for (const s of ['Ces enfants jouent.', 'Il range ses affaires.', 'Ses après-midi sont longs.', 'Il faut un nom pour ces sous groupes.']) {
+    const g = fl(s).filter(x => x.name === "c'est/ces à vérifier");
+    if (g.length) { _cc++; console.log('  ✗ c’est : témoin « ' + s + ' » marqué ' + JSON.stringify(g)); }
+  }
+  const r = fl('Ces vrai amis sont là.').find(x => x.word === 'vrai');
+  if (!r || r.sugg !== 'vrais' || r.tier !== 'auto') { _cc++; console.log('  ✗ c’est : « Ces vrai amis » doit garder le rouge « vrais », obtenu ' + JSON.stringify(r || null)); }
+  if (_cc) { console.log('PARITÉ KO — ces/ses → c’est : ' + _cc + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ c’est : 5 « ces/ses » → c’est (orange, sans accord de pluriel contradictoire) ; 4 témoins muets ; « Ces vrai amis » garde « vrais »');
+}
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

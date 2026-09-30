@@ -1472,10 +1472,42 @@ def rule_cest_sest(T, i):
     return None
 
 
+# ⭐ 30/09/2026 — « CES/SES » POUR « C'EST » (miroir JS cesCestVig) : devant un déterminant, une préposition, une conjonction, « que », un
+# infinitif, ou un adjectif / participe seul suivi d'un non-nom → « c'est » (orange). Gardes : ponctuation ou trait d'union après ces/ses,
+# nom propre, mot surtout nom, préposition + nom au pluriel (« ces sous groupes »).
+_CEST_SUIV = {'le', 'la', 'les', 'un', 'une', 'des', 'du', 'au', 'aux', 'mon', 'ton', 'son', 'ma', 'ta', 'sa', 'mes', 'tes', 'ses', 'ce', 'cet',
+              'cette', 'ces', 'notre', 'votre', 'nos', 'vos', 'leur', 'leurs', 'que', 'qui', 'quand', 'car', 'parce', 'pourquoi', 'comme',
+              'si', 'mais', 'donc', 'ou', 'et', 'dans', 'pour', 'avec', 'sans', 'sur', 'sous', 'chez', 'par', 'entre', 'vers', 'contre',
+              'depuis', 'pendant', 'avant', 'apres', 'a', 'en', 'de', 'grace'}
+
+
+def _ces_cest(T, i):
+    if i < 0 or i + 1 >= len(T) or deacc(T[i].lower()) not in ('ces', 'ses'): return None
+    if _SEG is not None and ((i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]) or (i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1])
+                             or (i + 2 < len(_SEG['hy']) and _SEG['hy'][i + 2])): return None
+    nx = T[i + 1]
+    if nx[:1] != nx[:1].lower(): return None
+    nlw = nx.lower(); nl = deacc(nlw).split("'")[0]
+    if nl in _CEST_SUIV and nl in PREP and i + 2 < len(T):
+        n2_ = deacc(T[i + 2].lower()); p2_ = NOUN_POST.get(n2_) if NOUN_POST else None
+        if re.search(r'[sx]$', n2_) and p2_ and p2_[0] >= PL_TAU_M: return None
+    if nl in _CEST_SUIV or re.match(r"[ld]'", nlw): return _keepcase(T[i], "c'est")
+    pp = NOUN_POST.get(nl) if NOUN_POST else None
+    if pp and pp[0] >= PL_TAU_M: return None
+    if re.search(r'(er|ir|re|oir)$', nl) and nl in CONJ_C: return _keepcase(T[i], "c'est")
+    if not re.search(r'[sx]$', nl) and (nl in _ADJ_ANTE_PL or _is_ppl(nx)):
+        fin = i + 2 >= len(T) or (_SEG is not None and i + 2 < len(_SEG['bb']) and _SEG['bb'][i + 2])
+        n2 = '' if fin else deacc(T[i + 2].lower()).split("'")[0]
+        if fin or n2 in _CEST_SUIV: return _keepcase(T[i], "c'est")
+    return None
+
+
 def rule_cest_ces_vig(T, i):
     u"""⭐ « C'EST » + NOM PLURIEL → ces ? / ses ? (13/09/2026, muets du pipeline) : « C'est chiens sont âgés », « leur mère parle à c'est
     parents » — « c'est » ne précède pas un nom pluriel sans déterminant. ORANGE : ses après une préposition, ces devant un verbe pluriel ;
-    sur les paires locales 4 justes et 1 où seul le choix ces/ses diffère ; UD 14 450 : 0. Miroir JS cestCesVig."""
+    sur les paires locales 4 justes et 1 où seul le choix ces/ses diffère ; UD 14 450 : 0. Miroir JS cestCesVig.
+    ⭐ 30/09/2026 : et l'autre sens, « ces/ses » → c'est ? (_ces_cest, miroir JS cesCestVig)."""
+    if deacc(T[i].lower()) in ('ces', 'ses'): return _ces_cest(T, i)
     if deacc(T[i].lower()) != "c'est" or i + 1 >= len(T): return None
     dn = deacc(T[i + 1].lower())
     if not re.search(r'[sx]$', dn) or dn in _INVAR_S or len(dn) < 4 or T[i + 1][:1].isupper(): return None
@@ -4818,6 +4850,7 @@ def _pson_cands(n):
 
 
 def rule_pluriel_son(T, i):
+    if i > 0 and _ces_cest(T, i - 1): return None   # ⭐ 30/09/2026 : derrière « ces/ses » lu « c'est » (miroir JS plurielSonVig)
     if i < 1: return None
     ph, fr, po, gram, _k = _pson_tables()
     if not ph: return None
@@ -4871,6 +4904,7 @@ def rule_adj_ante_plural(T, i):
     # « les » est aussi PRONOM (« il les autre… » n'existe pas, mais « on les grand… » non plus) : après « les », exiger un
     # mot qui SUIT (nom ou adjectif) — jamais en fin de phrase (« il les seul » ≠ groupe nominal).
     if deacc(T[i - 1].lower()) == 'les' and not (i + 1 < len(T) and T[i + 1][:1].isalpha()): return None
+    if _ces_cest(T, i - 1): return None                                   # ⭐ 30/09/2026 : « Ces vrai que » — ce « ces » est « c'est » (miroir JS)
     return pl if pl != w else None
 
 

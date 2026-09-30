@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-09-30 (suite) — « ces/ses » pour « c'est » (catalogue des muets)
+
+- Catalogue : ses → c'est ×3 et ces → c'est ×2 muets ou mal proposés (le modèle ces/ses ne propose que l'un ou l'autre). Structure : un
+  déterminant pluriel ne précède ni un déterminant, ni une préposition, une conjonction, « que », un infinitif, ni un adjectif seul
+  suivi d'un non-nom. Et « Ces vrai que tu viens » recevait « vrais » en ROUGE (adjectif antéposé) : le « ces » y est « c'est ».
+- Orange « c'est » (famille « c'est/ces à vérifier », l'autre sens de cestCesVig), placée avant le modèle ces/ses ; derrière ce « ces »,
+  l'adjectif antéposé et les oranges de pluriel se taisent. Adjectif = liste fermée des antéposés ou participe (le lexique du
+  correcteur d'orthographe n'existe pas côté Python : la liste fermée garde le miroir exact). Gardes : ponctuation ou trait d'union
+  (« ses après-midi »), nom propre, mot surtout nom, préposition + nom pluriel (« ces sous groupes », vu sur frgec).
+- Mesuré (produit) : gold +6 « c'est » justes (4 muets, 2 où ces/ses proposait le mauvais mot), 1 orange fausse retirée, 0 perte sur
+  les 3 corpus dys ; UD 14 450 : aucune marque changée. Une première garde de l'adjectif (« aucun nom ne suit ») faisait passer un
+  rouge juste en orange : resserrée à « seulement derrière un ces/ses lu c'est ».
+- Tests : parity_core (5 « ces/ses » → c'est sans pluriel contradictoire ; 4 témoins muets ; « Ces vrai amis » garde « vrais »).
+
 ## 2026-09-30 (suite) — l'élision manquante (catalogue des muets)
 
 - En sondant les élisions du catalogue (« que il » → qu'il, muet ×3) : TOUTE élision manquante était muette — « je ai », « que il »,
