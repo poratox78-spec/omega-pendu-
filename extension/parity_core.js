@@ -586,6 +586,21 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (_ga) { console.log('PARITÉ KO — gardes des règles existantes : ' + _ga + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ gardes : se qu’elle → ce, se sont nos → ce, à tout les → tous ; 3 témoins muets'); }
 
+// ⭐ 30/09/2026 — LOCUTIONS PRÉPOSITIVES (a → à, orange) : à cause du, suite à, à qui, à ne jamais, grâce à, à partir du ; 2 témoins avoir.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _lo = 0;
+  for (const s of ['Il est rentré tôt a cause du vent.', 'Suite a cette réunion, tout a changé.', 'Voici le voisin a qui il a prêté son vélo.',
+                   'Il s\'applique a ne jamais trembler.', 'Il a réussi grâce a son travail.', 'Les cours a partir du mois prochain seront en ligne.']) {
+    const m = fl(s).filter(x => x.word === 'a');
+    if (m.length !== 1 || m[0].name !== 'a/à' || m[0].sugg !== 'à' || m[0].tier !== 'vigilance') { _lo++; console.log('  ✗ locutions : « ' + s + ' » → « à » orange attendu, obtenu ' + JSON.stringify(m)); }
+  }
+  for (const s of ['Il y en a qui pensent le contraire.', 'La suite a montré qu\'il avait raison.']) {
+    const m = fl(s).filter(x => x.name === 'a/à');
+    if (m.length) { _lo++; console.log('  ✗ locutions : témoin « ' + s + ' » marqué ' + JSON.stringify(m)); }
+  }
+  if (_lo) { console.log('PARITÉ KO — locutions prépositives : ' + _lo + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ locutions : 6 « à » proposés (orange) ; 2 témoins avoir muets'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

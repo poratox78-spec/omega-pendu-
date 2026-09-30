@@ -25739,8 +25739,23 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   var _AA_NEG={pas:1,plus:1,jamais:1,rien:1,point:1,guere:1},_AA_NOM={difficulte:1,difficultes:1,peine:1,mal:1,facilite:1,tendance:1,plaisir:1,interet:1},
       _AA_AUX={est:1,sont:1,etait:1,etaient:1,sera:1,seront:1,a:1,ont:1,ai:1,as:1,avons:1,avez:1,avait:1,avaient:1,aura:1,auront:1,fut:1,furent:1,soit:1,ait:1},
       _AA_ADV={ne:1,pas:1,plus:1,jamais:1,bien:1,deja:1,toujours:1,souvent:1,aussi:1,encore:1,meme:1,donc:1,alors:1,enfin:1,pourtant:1,vraiment:1,beaucoup:1,trop:1,tout:1};
+  /* ⭐ 30/09/2026 — LOCUTIONS PRÉPOSITIVES (catalogue des muets, a → à) : à cause de, à partir de, à l'intérieur de, à part, à ne pas
+     (jamais, plus…), à qui après un nom, suite à et grâce à sans déterminant devant le nom — écrites avec « a » : l'auxiliaire AVOIR
+     n'entre pas dans ces locutions (UD 14 450 : aucun emploi). Gardes : « il y en a qui » (avoir), « la suite a montré » (déterminant
+     devant : le nom est sujet), Grace prénom (capitale sans accent). Voie nouvelle, ORANGE. Miroir Python _aa_locution. */
+  var _AA_LOC_DET={la:1,le:1,une:1,un:1,cette:1,ce:1,sa:1,ma:1,ta:1,notre:1,votre:1,leur:1,de:1,du:1,quelle:1,toute:1};
+  function _aaLocution(T,i){var n=T.length,d1=i+1<n?deacc(T[i+1].toLowerCase()):'',d2=i+2<n?deacc(T[i+2].toLowerCase()):'',p1=deacc(T[i-1].toLowerCase()),p2=i>=2?deacc(T[i-2].toLowerCase()):'';
+    var de=/^(de|des|du|d['’].+)$/.test(d2);
+    if((d1==='cause'||d1==='partir')&&de)return true;                    // à cause de, à partir de
+    if(/^l['’](interieur|exterieur)e?$/.test(d1)&&de)return true;       // à l'intérieur de, à l'extérieur de
+    if(d1==='part')return true;                                          // à part
+    if(d1==='ne'&&_AA_NEG[d2]&&p1!=='y')return true;                     // à ne pas + … : « ne pas » collés ne précèdent jamais un verbe conjugué
+    if(d1==='qui'&&p1!=='y'&&p1!=='en'&&p1!=='qui'&&p1!=='ca'&&p1!=='cela'&&!SUBJ_PRON[p1])return true;   // la personne à qui ; « il y en a qui » reste avoir
+    if((p1==='suite'||p1==='grace')&&!_AA_LOC_DET[p2]&&(p1==='suite'||T[i-1]===T[i-1].toLowerCase()||T[i-1].indexOf('â')>=0))return true;   // suite à, grâce à
+    return false;}
   function _rAnouveau(T,i){
     if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase()||i<1)return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
+    if(_aaLocution(T,i))return 'à';                                      // ⑤ locution prépositive (sans infinitif)
     var k=i+1;while(k<T.length&&CLITIC[deacc(T[k].toLowerCase())])k++;if(k>=T.length||!/(er|ir|re|oir)$/.test(deacc(T[k].toLowerCase())))return null;
     var p1=deacc(T[i-1].toLowerCase());
     if(_AA_NEG[p1])return 'à';                                          // ① négation AVANT « a » : l'auxiliaire la précède toujours (« n'a pas »)
