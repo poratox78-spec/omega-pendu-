@@ -1014,7 +1014,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
   var _PEU_LOC={};('nouveau loin suite pres cote force justesse memoire naissance nature bonne '+
     'mauvaise plus moins mieux trop rien tout toute').split(' ').forEach(function(w){_PEU_LOC[w]=1;});
   var _PEU_NEG={},_PEU_PL={nous:'pouvons',vous:'pouvez',ils:'peuvent',elles:'peuvent'};'pas plus jamais rien guere point meme deja toujours vraiment donc non aussi osi'.split(' ').forEach(function(w){_PEU_NEG[w]=1;});   // ⭐ 13/09/2026 : ce qui suit « ne peu » (miroir Python)
-  function rPeu(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='peu'&&lw!=='peux'&&lw!=='peut')return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'peux';if(p==='il'||p==='elle'||p==='on'||p==='qui')return 'peut';if(p==='un'||p==='de'||p==='tres'||p==='si'||p==='trop'||p==='assez'||p==='bien'||p==='plus'||p==='tout'||p==='aussi'||p==='y')return 'peu';
+  function rPeu(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='peu'&&lw!=='peux'&&lw!=='peut')return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'peux';if(p==='il'||p==='elle'||p==='on'||p==='qui')return 'peut';if((p==='ca'||p==='cela'||p==='ceci')&&lw==='peu'&&i+1<T.length&&/(er|ir|re|oir)$/.test(deacc(T[i+1].toLowerCase()))&&CONJ_C[deacc(T[i+1].toLowerCase())])return 'peut';   /* ⭐ 30/09/2026 : « ça peu attendre » → peut (miroir Python) */if(p==='un'||p==='de'||p==='tres'||p==='si'||p==='trop'||p==='assez'||p==='bien'||p==='plus'||p==='tout'||p==='aussi'||p==='y')return 'peu';
     /* ⭐ LE CRÉNEAU DU VERBE EST-IL DÉJÀ PRIS ? La règle ne regardait que le mot d'AVANT. Or « peut »
        est un VERBE : si la proposition en porte déjà un fini, « peut » ne peut pas l'être — c'est
        l'adverbe « peu ».
@@ -1205,6 +1205,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
       if(T[i+1].toLowerCase().indexOf("'")>=0)return null;
       var nd=deacc(T[i+1].toLowerCase()),pp=NOUN_POST&&NOUN_POST.get(nd);
       if(!(pp&&pp[0]>=PL_TAU_M&&pp[1]<PL_EPS_M))return null;   // NOM confiant ET pas verbe-homographe (« ça marche »=verbe)
+      if(nd==='peu')return null;   // ⭐ 30/09/2026 : « ça peu attendre » → *Son* (rouge faux) : « peu » passe la garde du nom (« le peu ») mais, sans déterminant, c'est l'adverbe ou « peut » (rPeu) ; miroir Python
       if('aeiouyh'.indexOf(T[i+1].charAt(0).toLowerCase())>=0)return ckeepcase(T[i],'son');   // voyelle/h → son
       var g=GENDER_PURE[nd];if(g==='f')return ckeepcase(T[i],'sa');if(g==='m')return ckeepcase(T[i],'son');return null;}
     return null;}
@@ -2608,6 +2609,7 @@ function estQuestion(t,maxMots){
     var mts={};for(k=0;k<reads.length;k++)mts[reads[k][1]]=1;var mt=mts['ind:pre']?'ind:pre':(mts['ind:imp']?'ind:imp':null);if(!mt)return null;
     var nxt=i+1<T.length?deacc(T[i+1].toLowerCase()):'';var age=(lem.etre&&(nxt==='ans'||nxt==='an'));
     if(lem.etre&&(AVOIR_IDIOM[nxt]||age))return ((CONJ_C.avoir||{})[mt]||{})[per+nb]||null;
+    if(lem.avoir&&AUX_ETRE_PP[nxt]&&T[i+1].toLowerCase()==='ne'&&i+2<T.length){var _n2=deacc(T[i+2].toLowerCase());if('aeiouyh'.indexOf(_n2.charAt(0))<0&&((CLITIC[_n2]&&_n2!=='le')||/^(s|m|t|l)['’]/.test(T[i+2].toLowerCase())||svReads(T[i+2]).length))return null;}   // ⭐ 30/09/2026 : « ce qu'il a ne regarde que lui » → *est* (rouge faux) : « ne » SANS accent devant un verbe ou un clitique est la négation, pas « né » (devant voyelle, la négation s'élide : « ne en », « ne à » restent « né ») ; miroir Python
     if(lem.avoir&&AUX_ETRE_PP[nxt]){if(nxt.slice(0,4)==='tomb'&&i+2<T.length){var _cd=deacc(T[i+2].toLowerCase());if(_cd==='la'||_cd==='le'||_cd==='les'||_cd==='sa'||_cd==='son'||_cd==='ses'||_cd==='ma'||_cd==='mon'||_cd==='mes'||_cd==='une'||_cd==='un'||_cd==='des'||/^l'/.test(T[i+2].toLowerCase()))return null;}   // « il a tombé la veste » : COD → tomber transitif familier, on s'abstient
       return ((CONJ_C.etre||{})[mt]||{})[per+nb]||null;}return null;}
   function svLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;var prev=[],cur,ja,jb;for(jb=0;jb<=b.length;jb++)prev[jb]=jb;for(ja=1;ja<=a.length;ja++){cur=[ja];for(jb=1;jb<=b.length;jb++)cur[jb]=Math.min(prev[jb]+1,cur[jb-1]+1,prev[jb-1]+(a.charAt(ja-1)!==b.charAt(jb-1)?1:0));prev=cur;}return prev[b.length];}
@@ -4950,7 +4952,7 @@ function spellUnknown(tok,atStart,T,idx){
      « contre les vènt »  -> l'extension écrivait « vènts » (le site corrige vènt->vent PUIS vents)
      « La tigés »         -> l'extension écrivait « tigé »  (le site corrige tigés->tiges)
    Une faute appliquée EN SILENCE dans le champ de l'utilisateur : le pire cas possible. */
-  var _VOISIN_OK={'a/à':1,'ou/où':1,'élision fusionnée':1,'accord grammatical (é/er)':1,'est/et (proposition)':1};   // lot B1 : règles qui décident sur la NATURE du voisin ; + est/et (29/09/2026 : un adverbe mal écrit entre « est » et un pronom sujet)
+  var _VOISIN_OK={'a/à':1,'ou/où':1,'élision fusionnée':1,'accord grammatical (é/er)':1,'est/et (proposition)':1,'peu/peux/peut':1};   // lot B1 : règles qui décident sur la NATURE du voisin ; + est/et (29/09/2026 : un adverbe mal écrit entre « est » et un pronom sujet)
   function diagnoseAll(text){
     var sf=SP.ready?spellText(text):[];
     _SEG=_segInfo(text);var _T=toks(text),_Tc=_T.slice();
