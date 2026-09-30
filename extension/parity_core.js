@@ -507,6 +507,26 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   console.log('  ✓ genre contredit : pas de marque du déterminant devant « foret » ni devant « pole » (forêt, pôle proposés) ; « le maison » → La gardé');
 }
 
+// ⭐ 30/09/2026 — GÉRONDIF « en + -ent » EN MILIEU DE PHRASE : « en chantent » recevait « chante » (sujet-verbe, ROUGE faux) ; le
+// participe se forme sur le radical du « nous » (mangeant, commençant — plus « mangant ») ; témoins : clitique, inversion, nombre,
+// adjectif, locution — aucun gérondif. Miroir Python : correcteur_probe._gerondif (garde des règles sujet-verbe).
+{
+  const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _ge = 0;
+  for (const [s, w, sg] of [['Le garçon court dans le parc en chantent.', 'chantent', 'chantant'], ['Il a quitté la salle en disent merci.', 'disent', 'disant'],
+                            ['En mangent vite, il a fini.', 'mangent', 'mangeant'], ['Tout en commencent le travail, il chantait.', 'commencent', 'commençant']]) {
+    const f = fl(s), m = f.find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== 'vigilance') { _ge++; console.log('  ✗ gérondif : « ' + s + ' » → « ' + sg + ' » (orange) attendu, obtenu ' + JSON.stringify(m || null)); }
+    if (f.some(x => /sujet/.test(x.name))) { _ge++; console.log('  ✗ gérondif : « ' + s + ' » porte encore un accord sujet-verbe ' + JSON.stringify(f.filter(x => /sujet/.test(x.name)))); }
+  }
+  for (const s of ['Les voisins en parlent souvent.', 'Pourquoi en parlent-ils autant ?', 'Les trois en parlent.', 'La voiture est en excellent état.', 'Ils voyagent en différent groupes.', 'En fait, il pleut.']) {
+    const g = fl(s).filter(x => /participe présent/.test(x.name));
+    if (g.length) { _ge++; console.log('  ✗ gérondif : témoin « ' + s + ' » marqué ' + JSON.stringify(g)); }
+  }
+  if (_ge) { console.log('PARITÉ KO — gérondif : ' + _ge + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ gérondif : chantent → chantant, disent → disant, mangent → mangeant, commencent → commençant (orange, plus d’accord sujet-verbe) ; 6 témoins muets');
+}
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

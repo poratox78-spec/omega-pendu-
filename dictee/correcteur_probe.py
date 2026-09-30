@@ -6159,6 +6159,66 @@ RULES = [('élision inversée', rule_deselide),
          ('majuscule', rule_capital)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
+# ⭐ 30/09/2026 — GÉRONDIF « en + -ent » (miroir de gerondifVig, qui vit dans la chaîne ORANGE du JS) : ici un PRÉDICAT seulement —
+# aucune règle sujet-verbe ne corrige un verbe que « en » précède quand la lecture gérondif tient (« en chantent » → chante, ROUGE
+# faux ; le JS propose « chantant » en orange). Même logique que le JS : en tête de segment ou après « tout » (1er groupe), ou en
+# milieu de phrase devant une 3e pluriel écrite exactement, quand la lecture clitique est impossible.
+_GER_NONSUJ = {'il', 'elle', 'ils', 'elles', 'on', 'je', 'j', 'tu', 'nous', 'vous', 'qui', 'que', 'qu', 'ne', 'n', 'comme', 'et', 'ou',
+               'mais', 'plupart', 'beaucoup', 'peu', 'tous', 'toutes', 'certains', 'certaines', 'plusieurs', 'autres', 'eux', 'dont',
+               'chacun', 'chacune', 'combien', 'trop', 'assez', 'moins', 'plus', 'si', 'y'}
+_GER_SUJ_SUIT = {'il', 'elle', 'ils', 'elles', 'on', 'je', 'tu', 'nous', 'vous'}
+
+
+def _gerondif(T, i):
+    if not CONJ_F or i < 1: return None
+    w = T[i]; lw = w.lower()
+    if "'" in lw or not re.match(r'^[a-zà-ÿ]+$', lw): return None
+    if deacc(T[i-1].lower()) != 'en': return None
+    p2 = deacc(T[i-2].lower()) if i >= 2 else ''
+    initial = (i - 1 == 0) or (_SEG is not None and i - 1 < len(_SEG['bb']) and _SEG['bb'][i-1])
+    mid = False
+    if not initial and p2 != 'tout':
+        if (not lw.endswith('ent') or i < 2 or re.search(r'[sx]$', p2) or p2 in _GER_NONSUJ or p2 in CARD
+                or T[i-2][:1] != T[i-2][:1].lower() or re.search(r'[0-9]', T[i-2])): return None
+        if i + 1 < len(T) and deacc(T[i+1].lower()) in _GER_SUJ_SUIT: return None
+        tg = pos_tags(T)
+        if tg and i < len(tg) and tg[i] in ('ADJ', 'NOUN'): return None
+        mid = True
+    if w[:1] != lw[:1]: return None
+    if _SEG is not None and i < len(_SEG['dig']) and _SEG['dig'][i]: return None
+    npg = NOUN_POST.get(deacc(lw)) if NOUN_POST else None
+    if npg and npg[0] >= 100: return None
+    r = _reads(w)
+    if not r: return None
+    lem, ok_t = None, False
+    for x in r:
+        if lem and lem != x[0]: return None
+        lem = x[0]
+        md = x[1].split(':')
+        if md[0] == 'ind' and md[1] in ('pre', 'imp'): ok_t = True
+    if not ok_t or not lem or lem == 'aller': return None
+    if re.search(r'(ant|ent)$', deacc(lw)) and not lw.endswith('ent'): return None
+    if not mid and not lem.endswith('er'): return None
+    if lem in ('etre', 'avoir', 'savoir'): return None
+    cj = CONJ_C.get(lem, {})
+    if mid and (cj.get('ind:pre', {}).get('3p') or '').lower() != lw and (cj.get('ind:imp', {}).get('3p') or '').lower() != lw: return None
+    p1 = cj.get('ind:pre', {}).get('1p')
+    if p1 and p1.endswith('ons'): return p1[:-3] + 'ant'
+    return lem[:-2] + 'ant' if lem.endswith('er') else None
+
+
+def _sans_gerondif(f):
+    def g(T, i):
+        if i > 0 and deacc(T[i-1].lower()) == 'en' and _gerondif(T, i): return None
+        return f(T, i)
+    g.__name__ = f.__name__; g.__wrapped__ = f
+    return g
+
+
+_GER_REGLES_SV = {'accord sujet-verbe', 'accord du verbe au sujet nominal à vérifier'}   # la 2e : orange, après le gérondif dans la chaîne JS
+RULES = [(n, _sans_gerondif(f) if n in _GER_REGLES_SV else f) for n, f in RULES]   # garde centrale — miroir JS correctTokens
+
+
 def correct(text):
     text = text.replace('’', "'").replace('ʼ', "'")   # apostrophe typographique (claviers mobiles) = apostrophe droite (1:1, offsets intacts)
     """-> liste de (index, mot_tapé, suggestion, nom_règle) pour chaque mot jugé fautif."""

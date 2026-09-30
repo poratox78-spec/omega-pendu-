@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **590** (29,3 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **425** (21,1 %) |
-| mot FAUX proposé | 373 (18,5 %) | **336** (16,7 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **427** (21,2 %) |
+| mot FAUX proposé | 373 (18,5 %) | **335** (16,7 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
-| **muette** | **711** (35,3 %) | **638** (31,7 %) |
+| **muette** | **711** (35,3 %) | **637** (31,7 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **50** aujourd'hui (35 / 15 — le rouge de plus : « soiété », coquille laissée par le gold ; 4 oranges de genre du déterminant
@@ -126,7 +126,7 @@ Les fautes où le produit propose un **mot faux** : le second catalogue, ci-dess
 ## Le 2e catalogue : les mots FAUX proposés (29/09/2026)
 
 Même méthode. Le produit propose un mot, mais pas celui qu'attend le gold. Le pire cas est le **rouge** : la faute est remplacée
-d'office par une autre. Mesuré après les lots ci-dessus : **336**, dont **38 en rouge** (47 avant le premier lot), 41 « flag »,
+d'office par une autre. Mesuré après les lots ci-dessus : **335**, dont **37 en rouge** (47 avant le premier lot), 41 « flag »,
 257 en orange.
 
 | rouges faux, par règle (avant le premier lot) | n | cause | statut |
@@ -134,7 +134,7 @@ d'office par une autre. Mesuré après les lots ci-dessus : **336**, dont **38 e
 | orthographe | 15 | l'accent est bien restauré, mais le gold attend une autre flexion ou une élision | à lire : souvent « bon lemme » |
 | élision fusionnée | 9 | reste d'une liste fermée cherché sans accent, recopié tel quel (« s'éte ») ; « jen » = gens | ✅ 29/09 : 9 retirés |
 | -e/-é (participe) | 4 | la forme en -e lue comme participe (le nom ou le présent était voulu) | à mesurer |
-| accord sujet-verbe | 4 | sujet ou verbe lui-même mal écrit | à mesurer |
+| accord sujet-verbe | 4 | sujet ou verbe lui-même mal écrit ; « en + -ent » lu comme verbe fini (gérondif) | ✅ 30/09 : le gérondif (« en disent » → disant, orange) ; restent 3 |
 | pluriel du nom | 4 | le nom mal écrit est pluralisé tel quel | ⛔ garde « pluriel attesté » réfutée (1 retiré, 1 juste cassé) |
 | terminaison -er/-é, accord é/er | 7 | participe nu là où l'accord est attendu (bon lemme) | à relier à l'accord du participe |
 | accord participe, participe après auxiliaire, genre du déterminant | 4 | cas isolés | à lire |
