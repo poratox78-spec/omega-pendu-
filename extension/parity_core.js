@@ -618,6 +618,22 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (_rf) { console.log('PARITÉ KO — peu/peut et rouges faux construits : ' + _rf + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ peu/peut : ça, cela + infinitif → peut (orange derrière « cela » mal écrit) ; « il a ne en » → est gardé ; 4 témoins sans ça/sa ni « est »'); }
 
+// ⭐ 30/09/2026 — a → à : VERBE + ADVERBE + « a », INTERVALLE « de 10 … a 20 » (orange) ; témoins : relative sujet, participe, âge, « de 1995 a été ».
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _av = 0;
+  for (const s of ['Il parle souvent a ses amis.', 'Elle pense toujours a son chien.', 'Il donne tout a son frère.', 'Il est encore a la gare.',
+                   'Les fermes passent de 10 hectares a 20 hectares cette année.', 'Le prix passe de 5 a 8 euros.']) {
+    const m = fl(s).filter(x => x.word === 'a');
+    if (m.length !== 1 || m[0].name !== 'a/à' || m[0].sugg !== 'à' || m[0].tier !== 'vigilance') { _av++; console.log('  ✗ adverbe/intervalle : « ' + s + ' » → « à » orange attendu, obtenu ' + JSON.stringify(m)); }
+  }
+  for (const s of ['Ce qu\'il fait souvent a des effets.', 'Celui qui parle trop a tort.', 'Le train qui roule lentement a longtemps été critiqué.',
+                   'Il a 35 ans.', 'La loi de 1995 a été modifiée.']) {
+    const m = fl(s).filter(x => x.name === 'a/à');
+    if (m.length) { _av++; console.log('  ✗ adverbe/intervalle : témoin « ' + s + ' » marqué ' + JSON.stringify(m)); }
+  }
+  if (_av) { console.log('PARITÉ KO — verbe + adverbe + a, intervalle : ' + _av + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ adverbe : 4 « à » ; intervalle : 2 « à » (orange) ; 5 témoins avoir muets (relative sujet, participe, âge, loi de 1995)'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

@@ -924,9 +924,25 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(d1==='qui'&&p1!=='y'&&p1!=='en'&&p1!=='qui'&&p1!=='ca'&&p1!=='cela'&&!SUBJ_PRON[p1])return true;   // la personne à qui ; « il y en a qui » reste avoir
     if((p1==='suite'||p1==='grace')&&!_AA_LOC_DET[p2]&&(p1==='suite'||T[i-1]===T[i-1].toLowerCase()||T[i-1].indexOf('â')>=0))return true;   // suite à, grâce à
     return false;}
+  /* ⭐ 30/09/2026 — VERBE + ADVERBE + « a » (catalogue des muets) : « il parle souvent a ses amis » — la branche « après un verbe » de
+     la logique mesurée ne lit que le mot collé à « a ». UD 14 450 : un seul emploi d'avoir dans cette configuration, suivi d'un participe
+     (« a longtemps été ») → gardes : adverbes sautés, pas de participe après « a » ; « ce qu'il fait souvent a des effets » : une relative
+     en « ce que / celui qui » est le SUJET de « a ». Voie nouvelle, ORANGE. Miroir Python _aa_apres_adverbe. */
+  var _AA_ADV2={bien:1,deja:1,toujours:1,souvent:1,aussi:1,encore:1,meme:1,vraiment:1,beaucoup:1,trop:1,tout:1,ensuite:1,parfois:1,rarement:1,jamais:1,plus:1,longtemps:1,peu:1,mal:1},
+      _AA_CE_REL={ce:1,celui:1,celle:1,ceux:1,celles:1};
+  function _aaAdv(w){var a=deacc(w.toLowerCase());return !!_AA_ADV2[a]||(a.length>6&&/ment$/.test(a));}
+  function _aaApresAdverbe(T,i){if(i<2||!_aaAdv(T[i-1]))return false;if(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])return false;
+    for(var r=i-2;r>=1;r--){if(_SEG&&r<_SEG.bb.length&&_SEG.bb[r])break;var dr=deacc(T[r].toLowerCase());
+      if((dr==='que'||dr==='qui'||dr==='dont'||/^qu['’]/.test(dr))&&_AA_CE_REL[deacc(T[r-1].toLowerCase())])return false;}   // relative en « ce que / celui qui » : sujet de « a »
+    if(!vlike(T,i-2))return false;var d2=deacc(T[i-2].toLowerCase()),pv=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(d2):NOUN_POST[d2]):null;if(pv&&pv[0]>=PL_TAU_M&&pv[1]<PL_EPS_M)return false;   // nom confiant avant l'adverbe : sujet, « a » = avoir
+    var k=i+1;while(k<T.length&&_aaAdv(T[k]))k++;if(k>=T.length||T[k].length<2||_isPpl(T[k]))return false;   // « a longtemps été » : participe → avoir ; « a b » : lettre
+    if(T[k].charAt(0)===T[k].charAt(0).toLowerCase()&&_nounGateN(deacc(T[k].toLowerCase()))&&!/(er|ir|re|oir)$/.test(deacc(T[k].toLowerCase())))return false;   // devant un nom commun NU (homographe d'un verbe, que la règle du nom nu ne prend pas), c'est « au », pas « à » — pas de mot faux
+    return true;}
   function _rAnouveau(T,i){
     if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase()||i<1)return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(_aaLocution(T,i))return 'à';                                      // ⑤ locution prépositive (sans infinitif)
+    if(_aaApresAdverbe(T,i))return 'à';                                  // ⑥ verbe + adverbe + « a »
+    if(_SEG&&i+1<_SEG.dig.length&&_SEG.dig[i+1]){for(var _jd=i-1;_jd>=Math.max(0,i-2);_jd--){if(deacc(T[_jd].toLowerCase())==='de'&&_jd+1<_SEG.dig.length&&_SEG.dig[_jd+1])return 'à';}}   // ⑦ intervalle « de 10 hectares a 20 hectares » : un chiffre après « de », un autre après « a » (UD 14 450 : le seul « a » du motif est une faute du corpus)
     var k=i+1;while(k<T.length&&CLITIC[deacc(T[k].toLowerCase())])k++;if(k>=T.length||!/(er|ir|re|oir)$/.test(deacc(T[k].toLowerCase())))return null;
     var p1=deacc(T[i-1].toLowerCase());
     if(_AA_NEG[p1])return 'à';                                          // ① négation AVANT « a » : l'auxiliaire la précède toujours (« n'a pas »)

@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **599** (29,8 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **455** (22,6 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **460** (22,9 %) |
 | mot FAUX proposé | 373 (18,5 %) | **334** (16,6 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
-| **muette** | **711** (35,3 %) | **601** (29,9 %) |
+| **muette** | **711** (35,3 %) | **596** (29,6 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **53** aujourd'hui (36 / 17 — le rouge de plus : « soiété », coquille laissée par le gold ; 4 oranges de genre du déterminant
@@ -75,7 +75,7 @@ faux retirés ou ramenés en orange, 0 perte.
 
 | groupe | n | paires | ce qu'il faut regarder |
 |---|---|---|---|
-| a → à | 52 ✅ locutions prépositives (30/09) : 10 en orange | a→à ×52 | la règle rouge en répare autant (53) ; le reste n'a pas d'ancre sûre (recensement du 14/09 : le voisin est souvent fautif lui-même). Piste : une orange « carte » comme ces/ses, avec son seuil, mesurée sur UD et le gold |
+| a → à | 52 ✅ locutions prépositives, verbe + adverbe, intervalle « de 10 … a 20 » (30/09) : 15 en orange | a→à ×52 | la règle rouge en répare autant (53) ; le reste n'a pas d'ancre sûre (recensement du 14/09 : le voisin est souvent fautif lui-même). Piste : une orange « carte » comme ces/ses, avec son seuil, mesurée sur UD et le gold |
 | homophones grammaticaux | 60 ✅ se qu'elle, se sont + dét., à tout les ; peu → peut après cela (30/09) | et→est ×12 · est→et ×11 · se→ce ×6 · son→sont ×6 · ce→se ×5 · tout→tous ×3 · peu→peut ×3 | les règles existent ; lire les gardes qui se taisent, **et/est d'abord (23)**. ✅ 29/09 : **3 de plus en orange** (sujet nominal + participe, « est voilà », « est » + adverbe + nouvelle proposition), 0 fausse, UD 0 ; restent 20 : deux fautes à la fois (déterminant ou pronom mal écrit, participe écrit à l'infinitif) ou le sens (« est » + groupe nominal + verbe) |
 | forme du verbe (-er / -é / -ait) | 48 | arriver→arrivé ×2 · énerver→énervé ×2 · priver→privée ×2 · rouler→roulé | règles existantes muettes : auxiliaire lui-même mal écrit (« na », « jais »), verbe absent du lexique verbal (« ravager »), garde a/à |
 | élisions et apostrophes (autres) | 39 ✅ élision manquante, ces/ses → c'est, ma/ta/jais + participe (30/09) | ses→c'est ×3 · que→qu'il ×3 · jais→j'ai ×2 · ma→m'a ×2 · ces→c'est ×2 | motifs par préfixe : ses/ces + participe → c'est ; ma + participe → m'a ; jais / javais → j'ai / j'avais |
