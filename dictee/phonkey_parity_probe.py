@@ -26,7 +26,8 @@ ATTENDU = {u'cœur': u'ker', u'coeur': u'ker', u'sœur': u'ser', u'soeur': u'ser
            u'mœurs': u'mer', u'moeurs': u'mer', u'œuvre': u'evr', u'oeuvre': u'evr', u'écœurant': u'eker2',
            u'manœuvre': u'manevr', u'sœurs': u'ser', u'vœux': u'v',
            u'ker': u'ker', u'keur': u'ker', u'seur': u'ser',            # graphies dys : elles doivent retrouver cœur et sœur
-           u'cœlacanthe': u'koelak2', u'coelacanthe': u'koelak2'}     # œ SANS u : clé inchangée (hors de ce correctif)
+           u'cœlacanthe': u'koelak2t', u'coelacanthe': u'koelak2t',   # œ SANS u ; le t devant le e muet ÉCRIT est gardé (30/09/2026)
+           u'cette': u'set', u'séte': u'set', u'fête': u'fet', u'fêtes': u'fet', u'reste': u'rest'}   # ⭐ 30/09/2026 : plus de clé vide (« cette » = « sais » = « »)
 AUTRES = [u'chœur', u'Cœur', u'CŒUR', u'œil', u'queue', u'feu', u'peur', u'goéland', u'coexister', u'faute', u'leçon', u'noix']
 MOTS = list(ATTENDU) + AUTRES
 FICHIERS = ['extension/dys-core.js', 'app/omega-pendu.html', 'app/omega-pendu-en.html']

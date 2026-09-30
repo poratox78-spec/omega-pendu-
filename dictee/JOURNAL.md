@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-09-30 — le tri des candidats : la CLÉ phonétique rendait « cette » vide (2e catalogue)
+
+- Inventaire des 260 oranges au mot faux (orthographe / mot inconnu) par la clé phonétique du produit : « séte » → sais, alors que
+  « cette » est l'homophone. Cause : la dernière ligne de phonKey retirait EN BOUCLE tout e, t, s final — « cette » → sete → set →
+  se → s → rien. 312 formes du lexique ont une clé vide (ai, ait, ce, ces, cette, sais, caisse…), 923 mots fréquents une clé d'un
+  seul caractère : le tri les croyait homophones et prenait le plus fréquent.
+- La note du miroir Python rappelle une décision mesurée en 07/2026 : la clé APPROXIMATIVE bat un IPA fidèle, parce que le dys laisse
+  tomber les finales. Le correctif est intermédiaire et mesuré : « -es » se lit « -e », un e muet ÉCRIT final garde la consonne qui
+  le précède (cette = séte = set, fête = fêtes = fet), sinon la boucle d'origine (mangé = mangez = mangeait, fait, chat).
+- Un effet de bord vu aux tests : singulier et pluriel homophones sortent maintenant tous deux du seau (« afreuses » → affreuse). Le
+  -s ÉCRIT départage avant la fréquence — restreint aux paires singulier / pluriel : la version large déplaçait le vainqueur d'autres
+  tris (« rélles » → elles), le comparateur n'étant pas transitif (dette déjà nommée dans speller_probe).
+- Essayé et écarté en chemin : admettre à l'initiale un homophone d'une autre lettre (« foto » → photo) — tel quel, 11 cassés ;
+  restreint aux alternances f/ph, s/c, c/k/qu, g/j sans homophone de même initiale, 0 cassé mais +1 seulement (mesuré AVANT la
+  correction de la clé : à remesurer, « séte » → cette en dépend).
+- Le banc Chrome a alors rougi sur un cas documenté : « Elle a aprise la leçon » ne donnait plus « appris ». La nouvelle clé sépare, à
+  raison, « aprise » (apris) d'« appris » (apri) ; le seul homophone restant (apprise) était écrasé par « prise », 26 fois plus
+  fréquent — qui ôte la PREMIÈRE lettre. Garde : un rival qui n'est que le mot écrit AMPUTÉ de sa première lettre n'écrase pas un
+  homophone. Une version large (« le rival doit garder l'initiale ») a été mesurée puis RÉFUTÉE par le census dys : elle gagnait sur
+  frgec (« polution » → pollution) mais coûtait des fautes dys typiques e/a, g/j (evec → avec, gours → jours) : net −4 oranges justes.
+- Mesuré (produit, lot complet) : 141 marques devenues justes, 23 cassées sur les 3 corpus dys (gold +12, EcriScol +5, frgec +101) ;
+  UD 14 450 : aucune marque nouvelle ni perdue, 90 suggestions changées sur des mots rares déjà signalés. Gold : 17 mots faux de moins
+  (364 → 347), 13 bons mots orange de plus (401 → 414). Un mot « juste » touché en plus : « soiété », coquille laissée par le gold, désormais
+  proposée avec confiance.
+- Tests : test_speller (extension + app, dont les 6 cas d'omission), sonde de parité des clés (clés attendues : cette, fête, reste…),
+  parité speller Python ↔ JS, garde de palier gold.
+
 ## 2026-09-29 (suite) — 2e catalogue ouvert (les mots FAUX proposés) : les 9 rouges faux de l'élision fusionnée
 
 - Le 2e catalogue demandé à la suite des muets : 364 fautes du gold où le produit propose un MOT FAUX — 47 en ROUGE (appliqués

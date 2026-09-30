@@ -27851,6 +27851,14 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       if(ch==='c')res+=('eiy§'.indexOf(nx)>=0?'s':'k');else if(ch==='g')res+=('eiy'.indexOf(nx)>=0?'j':'g');
       else if(ch==='h'){}else if(ch==='x')res+=(j===s.length-1?'':'ks');   /* -x FINAL MUET (noix/prix/voix/choix) ; interne = ks (taxi) */else if(ch==='z'||ch==='s')res+='s';else if(ch==='y')res+='i';else if(ch==='w')res+='v';else if(ch==='ø')res+='e';else res+=ch;}   /* ⭐ 28/09/2026 : « oeu » (cœur, sœur, vœu) prend la classe e APRÈS le choix dur/doux du c et du g — le c était écrit devant un o, il reste /k/ : cœur → ker (l'ancien oeu→e d'avant la boucle donnait « ser »). Miroir speller_probe.phon_key, gardé par phonkey_parity_probe.py */
     s=res.replace(/¤/g,'nj');var out='';for(var k=0;k<s.length;k++){if(s[k]!==out[out.length-1])out+=s[k];}s=out;
+    /* ⭐ 30/09/2026 (2e catalogue : le tri des candidats) — un e muet ÉCRIT final garde la consonne qui le précède : « cette », « séte »
+       → set. La boucle retirait e, t puis s : clé VIDE, partagée avec « sais », « ai », « ce »… (312 formes du lexique ; 923 mots
+       fréquents à clé d'un seul caractère) — le tri croyait homophones des mots qui ne sonnent pas pareil et prenait le plus
+       fréquent (« séte » → sais). « -es » se lit comme « -e » (fêtes = fête). Sinon la boucle d'origine : mangé = mangez = mangeait.
+       Mesuré (produit, avec le départage singulier/pluriel et la garde « rival amputé de l'initiale ») : 141 marques devenues justes,
+       23 cassées sur les 3 corpus dys ; UD 14 450 : aucune marque nouvelle ni perdue (90 suggestions changées sur des mots rares déjà
+       signalés). Miroir Python speller_probe.phon_key. */
+    if(/[^e]es$/.test(s))s=s.slice(0,-1);if(/[^e]e$/.test(s))return s.slice(0,-1);
     while(s.length&&'est'.indexOf(s[s.length-1])>=0)s=s.slice(0,-1);return s;}
   function sEdits1(d){var res={},i,ci,c,a,b,sp=[];for(i=0;i<=d.length;i++)sp.push([d.slice(0,i),d.slice(i)]);
     for(var k=0;k<sp.length;k++){a=sp[k][0];b=sp[k][1];if(b)res[a+b.slice(1)]=1;if(b.length>1)res[a+b[1]+b[0]+b.slice(2)]=1;
@@ -28622,8 +28630,9 @@ function spellTokenCore(tok,atStart,T,idx){
       if(inpAud){var fax=fin_aud(x),fay=fin_aud(y);if(fax!==fay)return fay-fax;}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → préférer un candidat à finale AUDIBLE (mangé) au -e MUET (mange), AVANT la dominance de fréquence
       if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
-      var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;return py-px;}   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
+      var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1]&&deaccS(y)!==d.slice(1))return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1]&&deaccS(x)!==d.slice(1))return -1;return py-px;}   /* ⭐ 30/09/2026 : un rival qui n'est que le mot écrit AMPUTÉ de sa première lettre n'écrase pas un homophone (« aprise » : « prise » écrasait « apprise », la chaîne ne rendait plus « appris ») ; la version large (garder l'initiale) coûtait des fautes dys typiques e/a, g/j (evec → avec, gours → jours) — miroir Python */   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;
+      if(px===1&&py===1&&(x===y+'s'||y===x+'s'||x===y+'x'||y===x+'x')){var _ls=/[sx]$/.test(low);return (/[sx]$/.test(y)===_ls?1:0)-(/[sx]$/.test(x)===_ls?1:0);}   // ⭐ 30/09/2026 : singulier / pluriel HOMOPHONES : la finale -s/-x du mot ÉCRIT départage avant la fréquence (« afreuses » → affreuses) ; restreint à ces paires — le comparateur n'est pas transitif (« rélles » → elles sinon) — miroir Python
       return cand[y][1]-cand[x][1];});
     var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
     /* DÉTERMINANT : le GENRE du NOM SUIVANT domine la fréquence (doctrine aide-frappe ②, enquête
