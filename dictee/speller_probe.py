@@ -53,6 +53,9 @@ _DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'at
 _DAN_SUR = {'un', 'une', 'des', 'ce', 'cet', 'cette', 'ces', 'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'nos', 'votre', 'vos', 'leurs', 'quel', 'quelle', 'quels', 'quelles', 'tout', 'toute', 'tous', 'toutes'}   # ⭐ 13/09/2026 : « dan » + déterminant qui ne suit jamais un prénom sujet → dans (flag)
 _VACANCES_AV = {'en', 'de', "d'", 'des', 'les', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs', 'bonnes', 'grandes', 'petites'}   # ⭐ 13/09/2026 : « en vacance » → vacances
 _DAN_VIG = {'le', 'la', 'les', 'se'}   # « dan le regarde » peut être Dan → dans proposé (orange)
+_DET_E = {u'té': u'tes', u'dé': u'des', u'mé': u'mes', u'lé': u'les'}   # ⭐ 30/09/2026 : déterminants écrits avec « é » — miroir JS _DET_E
+_DET_E_PRON = set('je tu il elle on nous vous ils elles me te se ne y en qui que'.split())
+_DET_E_QU = set('beaucoup peu trop assez plus moins tant autant combien pas jamais point guere'.split())
 _APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il", "dabord": "d'abord", "daccord": "d'accord"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
 _SOUDE_VIG = {"dabor": "d'abord", "dacor": "d'accord", "dacord": "d'accord", "daccor": "d'accord", "ducou": "du coup"}   # ⭐ 30/09/2026 : formes soudées TRONQUÉES, orange (« ducou » : du cou ?) — miroir JS
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
@@ -597,6 +600,24 @@ class Speller:
             if _dnx in _DAN_VIG or _dnx[:2] == "l'": return ('vigilance', 'dans')
         # ⭐ « vacance » après en/de/des/les… → « vacances » (13/09/2026, muets du pipeline : 4/4 sur les paires locales, UD 14 450 : 0) — le
         # singulier « la vacance du poste » existe, jamais après ces mots-là. Miroir JS.
+        # ⭐ 30/09/2026 — DÉTERMINANTS ÉCRITS AVEC « é » (« té parents » → tes, « dé le matin » → dès, « lé » + nom → les) : sans déterminant
+        # devant, « té », « dé », « lé » (des noms) sont le déterminant pluriel ; après un pronom ou un clitique, rien. ORANGE. Miroir JS.
+        if tok == low and low in _DET_E and toks is not None and idx is not None and idx + 1 < len(toks):
+            _dp = deacc(toks[idx - 1].lower()) if idx > 0 else ''
+            _dn = deacc(toks[idx + 1].lower())
+            if _dp not in _DAN_SUR and _dp not in _DAN_VIG and _dp not in _DET_E_PRON and not re.match(u"^[dl]['’]", _dp):
+                if low == u'dé' and _dn in ('le', 'les', 'que', 'lors'):   # « de le », « de les » n'existent pas
+                    return ('vigilance', u'dès')
+                if low == u'dé' and (_dn in _DAN_SUR or _dn in _DAN_VIG or re.match(u"^l['’]", _dn) or _dp in _DET_E_QU):   # « dé la », « beaucoup dé »
+                    return ('vigilance', u'de')
+                if re.match(u'^[a-zà-ÿœæ]+$', toks[idx + 1]) and _dn not in _DAN_SUR and _dn not in _DAN_VIG:   # le NOMBRE du mot suivant choisit
+                    _nl = toks[idx + 1].lower(); _np = self.POS.get(_nl) or ''; _nk = _nl in self.WORDS; _ninv = self._invar_s(_nl); _npl = _nl[-1:] in ('s', 'x') and not _ninv
+                    if low == u'dé':
+                        return ('vigilance', u'de') if ('A' in _np or (_nk and not _npl)) else ('vigilance', u'des')
+                    if low == u'lé':
+                        if 'N' in _np and not _ninv: return ('vigilance', u'les' if _npl else u'le')   # « lé bois » : invariable
+                    elif _npl or not _nk:
+                        return ('vigilance', _DET_E[low])
         if tok == low and low == 'vacance' and toks is not None and idx is not None and idx >= 1 and deacc(toks[idx - 1].lower()) in _VACANCES_AV:
             return ('flag', 'vacances')
         # ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (plan ③ de l'audit, décalque de _APOS_FIX du produit) : liste CLOSE,

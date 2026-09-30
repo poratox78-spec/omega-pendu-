@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-09-30 (suite) — déterminants écrits avec « é » : té → tes, dé → des / dès, mé → mes, lé → les (catalogue des muets)
+
+- Catalogue : « té » → tes ×2 et « dé » → des muets (même son) ; sondé sur phrases inventées : « je vois lé enfants » → enfant en ROUGE —
+  l'accord singulier lisait « lé » (désaccentué) comme « le ».
+- Posé (orthographe, contexte) : « té », « dé », « lé » sont des noms (le té, un dé, un lé), toujours derrière un déterminant ; sans lui,
+  c'est le déterminant — et le NOMBRE du mot suivant choisit (orange) : devant un pluriel ou un mot inconnu, tes / des / mes / les ; « dé »
+  devant un adjectif, un singulier, après une quantité ou une négation, ou devant « la / l' / un… » = de (accent parasite : « dé belles
+  robes ») ; « dé » devant le / les / que / lors = dès (« de le » n'existe pas) ; « lé » devant un nom singulier = le, devant un
+  invariable (« lé bois ») rien ; « lé » seulement devant un nom connu (« elle lé perdu » =
+  elle l'a : autre chantier) ; après un pronom ou un clitique (« tu té trompé » = t'es), rien. Et l'accord singulier ne lit plus un
+  déterminant écrit AVEC un accent comme « le ».
+- Mesuré (produit) : gold +3 (tes ×2, des) ; 0 ailleurs sur les 3 corpus ; UD 14 450 : aucune de ces formes, aucune marque changée.
+  La 1re version (tout « dé » → des) passait la sonde de corpus mais pas la sonde de PRÉCISION : sur le corpus généré, 26 « dé » / « lé »
+  mis pour « de » / « le » (accent parasite) recevaient « des » / « les » — orthographe orange 61,4 → 60,2 %. Avec le nombre du mot
+  suivant : 24 deviennent justes (« de »), 2 restent inutiles.
+- Essayé et écarté en chemin : élargir le VOISIN ORANGE (lot B1) à 14 autres règles d'homophones, une par une (son/sont, et/est, ce/se,
+  on/ont, c'est/s'est, sais/sait, leur/leurs, la/là, accord pluriel / singulier du nom…) — 0 gain sur le gold ; 1 à 3 marques inutiles
+  sur ecriscol / frgec pour ce/se, on/ont, leur/leurs, accord singulier. Les muets à voisin fautif restants demandent autre chose.
+- Tests : test_speller (ext) et test_speller_app (5 formes, 2 témoins) ; parity_core (« lé enfants ») ; miroirs Python _DET_E
+  (speller_probe) et rule_noun_singular.
+
 ## 2026-09-30 (suite) — formes et expressions soudées : d'abord, d'accord, du coup, parce que (2e catalogue)
 
 - 2e catalogue : « dacor » → décor, « ducou » → un mot grossier (!), « dabor » → dabo, « dabord » → bâbord — le tri des candidats du

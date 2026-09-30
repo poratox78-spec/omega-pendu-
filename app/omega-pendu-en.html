@@ -26785,6 +26785,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     +'pauvre pauvres vrai vraie vrais vraies simple simples double demi demie plein pleine '
     +'gentil gentille brave braves cher chere chers cheres').split(' ').forEach(function(w){_ADJ_ANTE[w]=1;});
   function rNounSing(T,i){if(!NOUN_POST)return null;
+    if(i>0&&T[i-1].toLowerCase()!==deacc(T[i-1].toLowerCase())&&_SING_DET[deacc(T[i-1].toLowerCase())])return null;   // ⭐ 30/09/2026 : « lé enfants » — un déterminant écrit AVEC un accent n'est pas le singulier « le » (c'est « les ») ; miroir Python
     var _pre='';
     if(_elidKind(T[i])==='det'){if(!/s$/.test(deacc(_headText(T[i]).toLowerCase())))return null;_pre=T[i].slice(0,T[i].length-_headText(T[i]).length);T=T.slice();T[i]=_headText(T[i]);}
     // ÉCRAN ADJECTIF (miroir Python) : « la grande boites » / « le vieux fauteuils » passaient au
@@ -28531,6 +28532,7 @@ function estQuestion(t,maxMots){
     if(la===lb){var n=0;for(var k=0;k<la;k++)if(a[k]!==b[k]&&++n>1)return false;return true;}
     var s=la<lb?a:b,l=la<lb?b:a,i=0,j=0,sk=0;                                          // insertion/suppression unique
     while(i<s.length&&j<l.length){if(s[i]===l[j]){i++;j++;}else{if(++sk>1)return false;j++;}}return true;}
+  var _DET_E={'té':'tes','dé':'des','mé':'mes','lé':'les'},_DET_E_PRON={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,me:1,te:1,se:1,ne:1,y:1,en:1,qui:1,que:1},_DET_E_QU={beaucoup:1,peu:1,trop:1,assez:1,plus:1,moins:1,tant:1,autant:1,combien:1,pas:1,jamais:1,point:1,guere:1};   // ⭐ 30/09/2026 : déterminants écrits avec « é » (miroir Python)
   var _DAN_SUR={},_DAN_VIG={le:1,la:1,les:1,se:1};'un une des ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leurs quel quelle quels quelles tout toute tous toutes'.split(' ').forEach(function(w){_DAN_SUR[w]=1;});   // ⭐ 13/09/2026 : « dan » + déterminant → dans (miroir Python)
   var _VACANCES_AV={};"en de d' des les mes tes ses nos vos leurs bonnes grandes petites".split(' ').forEach(function(w){_VACANCES_AV[w]=1;});   // ⭐ 13/09/2026 : « en vacance » → vacances (miroir Python)
   /* ⭐ 29/09/2026 — MOTS ÉLIDÉS INCONNUS (catalogue des muets) : « l'aupital », « s'inkiète » ne recevaient RIEN alors que la forme nue
@@ -28597,6 +28599,18 @@ function spellTokenCore(tok,atStart,T,idx){
        « dan » est un mot (judo) et un prénom écrit en minuscules par les dys : FLAG devant un déterminant qui ne suit jamais un prénom sujet,
        ORANGE devant le/la/les/l'/se (« dan le regarde » = Dan). Jamais en majuscule. Miroir Python _DAN_SUR / _DAN_VIG. */
     if(tok===low&&low==='dan'&&T&&idx!=null&&idx+1<T.length){var _dnx=deaccS(T[idx+1].toLowerCase());if(_DAN_SUR[_dnx])return["flag","dans"];if(_DAN_VIG[_dnx]||_dnx.slice(0,2)==="l'")return["vigilance","dans"];}
+    /* ⭐ 30/09/2026 — DÉTERMINANTS ÉCRITS AVEC « é » (catalogue des muets ; inventés : « té amis », « dé livres ») : « té », « dé », « lé » sont
+       des noms (le té, un dé, un lé) — toujours derrière un déterminant ; sans lui, c'est le déterminant pluriel, même son. « dé » devant un
+       déterminant = dès (« dé le matin »). « lé » seulement devant un NOM connu (« elle lé perdu » = elle l'a). Après un pronom sujet ou un
+       clitique (« tu té trompé » = t'es), rien. ORANGE. UD 14 450 : aucune de ces formes. Miroir Python _DET_E. */
+    if(tok===low&&_DET_E[low]&&T&&idx!=null&&idx+1<T.length){var _dp=idx>0?deaccS(T[idx-1].toLowerCase()):'',_dn=deaccS(T[idx+1].toLowerCase());
+      if(!_DAN_SUR[_dp]&&!_DAN_VIG[_dp]&&!_DET_E_PRON[_dp]&&!/^[dl]['’]/.test(_dp)){
+        if(low==='dé'&&(_dn==='le'||_dn==='les'||_dn==='que'||_dn==='lors'))return["vigilance","dès"];   // « de le », « de les » n'existent pas
+        if(low==='dé'&&(_DAN_SUR[_dn]||_DAN_VIG[_dn]||/^l['’]/.test(_dn)||_DET_E_QU[_dp]))return["vigilance","de"];   // « dé la », « beaucoup dé » : de
+        if(/^[a-zà-ÿœæ]+$/.test(T[idx+1])&&!_DAN_SUR[_dn]&&!_DAN_VIG[_dn]){var _nl=T[idx+1].toLowerCase(),_np=SP.POS[_nl]||'',_nk=SP.WORDS.has(_nl),_ninv=sInvarS(_nl),_npl=/[sx]$/.test(_nl)&&!_ninv;   // le NOMBRE du mot suivant choisit : « dé bonne humeur » = de (accent parasite), « dé livres » = des
+          if(low==='dé'){if(_np.indexOf('A')>=0||(_nk&&!_npl))return["vigilance","de"];return["vigilance","des"];}
+          if(low==='lé'){if(_np.indexOf('N')>=0&&!_ninv)return["vigilance",_npl?"les":"le"];}   // « lé bois » : invariable, le nombre ne se lit pas
+          else if(_npl||!_nk)return["vigilance",_DET_E[low]];}}}
     if(tok===low&&low==='vacance'&&T&&idx!=null&&idx>=1&&_VACANCES_AV[deaccS(T[idx-1].toLowerCase())])return["flag","vacances"];   /* ⭐ 13/09/2026 : « en vacance » → vacances (miroir Python) */
     /* ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (audit 11/09/2026, plan ③ : « aujourdhui » restait un inconnu sans réponse alors
        que la réponse est fermée). Liste CLOSE recensée le 12/09 : aucune de ces soudures n'est un mot (speller, UD 14 450 : 0),

@@ -5023,6 +5023,7 @@ _ADJ_ANTE = frozenset(('grand grande grands grandes petit petite petits petites 
 
 
 def rule_noun_singular(T, i):
+    if i > 0 and T[i - 1].lower() != deacc(T[i - 1].lower()) and deacc(T[i - 1].lower()) in _SING_DET: return None   # ⭐ 30/09/2026 : « lé enfants » — un déterminant écrit AVEC un accent n'est pas le singulier « le » ; miroir JS
     # DÉTERMINANT ÉLIDÉ : « de l'hommes » n'a PAS de déterminant séparé — il est COLLÉ au nom, et « l' »
     # est toujours SINGULIER. La faute est alors DANS le token ; on corrige donc le token ENTIER, en
     # réémettant le préfixe élidé devant le nom singularisé (« l'hommes » → « l'homme »).
