@@ -550,6 +550,13 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   console.log('  ✓ c’est : 5 « ces/ses » → c’est (orange, sans accord de pluriel contradictoire) ; 4 témoins muets ; « Ces vrai amis » garde « vrais »');
 }
 
+// ⭐ 30/09/2026 — « ma/ta/jais » + participe → m'a/t'a/j'ai (élision-espace) : un participe qui est aussi un nom (P(NOM) ≥ 0,3, table
+// NOUN_POST — absente des harnais du seul correcteur d'orthographe) ne déclenche rien : « raconter ma mort » (vu sur UD).
+{ const g = (DYSCORE.diagnoseAll('Je veux vous raconter ma mort.').flags || []).filter(f => f.name === 'élision');
+  const h = (DYSCORE.diagnoseAll('Il ta donné un livre.').flags || []).find(f => f.name === 'élision');
+  if (g.length || !h || h.sugg !== "t'a donné") { console.log('PARITÉ KO — ma/ta/jais : « ma mort » ' + JSON.stringify(g) + ' / « ta donné » ' + JSON.stringify(h || null)); process.exit(1); }
+  console.log('  ✓ ma/ta/jais : « ta donné » → t’a donné ; « raconter ma mort » muet (participe qui est aussi un nom)'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);
