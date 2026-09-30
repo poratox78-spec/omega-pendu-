@@ -601,6 +601,23 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (_lo) { console.log('PARITÉ KO — locutions prépositives : ' + _lo + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ locutions : 6 « à » proposés (orange) ; 2 témoins avoir muets'); }
 
+// ⭐ 30/09/2026 — PEU/PEUT + DEUX ROUGES FAUX CONSTRUITS : « ça / cela peu » + infinitif → peut (aussi derrière « cela » mal écrit, voisin
+// orange) ; « ça peu » lu « sa/son » + nom (→ Son) ; « ne » sans accent lu « né » après avoir (→ est).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _rf = 0;
+  for (const [s, w, sg, tier] of [['Ça peu attendre demain.', 'peu', 'peut', 'auto'], ['Cela peu durer longtemps.', 'peu', 'peut', 'auto'],
+                                  ['Et ca peu changer demain.', 'peu', 'peut', 'auto'], ['Je crois que selà peu durer.', 'peu', 'peut', 'vigilance'],
+                                  ['Il a ne en hiver.', 'a', 'est', 'auto']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== tier) { _rf++; console.log('  ✗ peu/rouges faux : « ' + s + ' » → « ' + sg + ' » (' + tier + ') attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const s of ['Ça peu d\'importance.', 'Et ca peu changer demain.', 'Ce qu\'il a ne regarde que lui.', 'Ce qu\'elle a ne se voit pas.']) {
+    const m = fl(s).filter(x => x.name === 'ça/sa' || x.name === 'usage être/avoir' || x.word === 'ne');
+    if (m.length) { _rf++; console.log('  ✗ peu/rouges faux : témoin « ' + s + ' » marqué ' + JSON.stringify(m)); }
+  }
+  if (_rf) { console.log('PARITÉ KO — peu/peut et rouges faux construits : ' + _rf + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ peu/peut : ça, cela + infinitif → peut (orange derrière « cela » mal écrit) ; « il a ne en » → est gardé ; 4 témoins sans ça/sa ni « est »'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

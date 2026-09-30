@@ -1385,6 +1385,8 @@ def rule_peu(T, i):
     p = prev(T, i)
     if p in ('je', 'tu'):              return 'peux'                    # 1re/2e pers. → pouvoir
     if p in ('il', 'elle', 'on', 'qui'): return 'peut'                 # 3e sg → pouvoir
+    if (p in ('ca', 'cela', 'ceci') and lw == 'peu' and i + 1 < len(T) and re.search(r'(er|ir|re|oir)$', deacc(T[i + 1].lower()))
+            and deacc(T[i + 1].lower()) in CONJ_C): return 'peut'   # ⭐ 30/09/2026 : « ça peu attendre » → peut ; miroir JS
     if p in ('un', 'de', 'tres', 'si', 'trop', 'assez', 'bien', 'plus', 'tout', 'aussi', 'y'):
         return 'peu'                                                   # adverbe de quantité
     # ⭐ LE CRÉNEAU DU VERBE EST-IL DÉJÀ PRIS ? La règle ne regardait que le mot d'AVANT. Or « peut »
@@ -2996,6 +2998,10 @@ def rule_aux_usage(T, i):
     if 'etre' in lemmas and (nxt in AVOIR_IDIOM or age):         # ÊTRE devant idiome d'avoir / âge → AVOIR
         return CONJ_C.get('avoir', {}).get(mt, {}).get(per + nb)
     if 'avoir' in lemmas and nxt in AUX_ETRE_PP:                 # AVOIR devant participe de verbe d'être → ÊTRE
+        if T[i + 1].lower() == 'ne' and i + 2 < len(T):          # ⭐ 30/09/2026 : « ce qu'il a ne regarde que lui » → est (rouge faux) : « ne » SANS accent
+            n2 = deacc(T[i + 2].lower())                         # devant un verbe ou un clitique est la négation, pas « né » ; devant voyelle,
+            if n2[:1] not in 'aeiouyh' and ((n2 in CLITIC and n2 != 'le')   # la négation s'élide (« ne en », « ne à » restent « né ») ; miroir JS
+                                           or re.match(u"^(s|m|t|l)['’]", T[i + 2].lower()) or _reads(T[i + 2])): return None
         if nxt.startswith('tomb') and i + 2 < len(T):            # « il a tombé la veste » : COD → tomber transitif familier, abstention
             cd = deacc(T[i + 2].lower())
             if cd in ('la', 'le', 'les', 'sa', 'son', 'ses', 'ma', 'mon', 'mes', 'une', 'un', 'des') or T[i + 2].lower().startswith("l'"):
@@ -5139,6 +5145,7 @@ def rule_ca_sa(T, i):
         nd = deacc(T[i+1].lower())
         pp = NOUN_POST.get(nd)
         if not (pp and pp[0] >= PL_TAU_M and pp[1] < PL_EPS_M): return None   # NOM confiant ET pas verbe-homographe (« ça marche » = verbe)
+        if nd == 'peu': return None                                  # ⭐ 30/09/2026 : « ça peu attendre » → Son (rouge faux) : « peu » passe la garde du nom (« le peu ») mais, sans déterminant, c'est l'adverbe ou « peut » (rule_peu) ; miroir JS
         if T[i+1][:1].lower() in 'aeiouyh': return _keepcase(T[i], 'son')     # voyelle/h → son (sa amie→son amie)
         g = GENDER_PURE.get(nd)
         if g == 'f': return _keepcase(T[i], 'sa')

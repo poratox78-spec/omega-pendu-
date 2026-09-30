@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-09-30 (suite) — peu → peut après « ça / cela » + deux rouges faux construits (catalogue des muets)
+
+- Catalogue : 3 « peu → peut » muets ; 2 sont « cela » mal écrit (l'orthographe le corrige en orange) + peu + infinitif. rPeu / rule_peu
+  ne connaissait « cela » que devant « ne peu » : « ça / cela / ceci peu » + infinitif → peut ; et peu/peut rejoint les règles du voisin
+  orange (lot B1 : elle décide sur la nature du mot d'avant) — derrière « cela » corrigé en orange, « peut » est proposé en orange.
+- Deux rouges faux trouvés en sondant des phrases inventées (0 occurrence dans les 14 322 textes dys et dans UD, mais du texte plausible
+  réécrit en ROUGE par un mot faux) :
+  · « ça peu attendre » → Son : la règle ça → sa/son lit « ça » + nom, et « peu » passe la garde du nom (« le peu ») ; sans déterminant,
+    c'est l'adverbe ou « peut ». Garde dans rCaSa / rule_ca_sa (« ca » sans accent aussi) ;
+  · « ce qu'il a ne regarde que lui » → est, et « ne » → nee (accord du participe) : la règle usage être/avoir cherche « né » dans une
+    table désaccentuée, où la négation « ne » le rejoint. Garde : « ne » SANS accent devant un verbe ou un clitique commençant par une
+    consonne est la négation (devant voyelle, elle s'élide : « il a ne en hiver » → est reste proposé).
+- Mesuré (produit) : gold +2 « peut » (orange, voisin) ; 0 ailleurs sur les 3 corpus ; UD 14 450 : aucune marque changée.
+- Essayé et écarté : sujet nominal + « et » + infinitif en -er → est (« la lampe et tomber du bureau ») — 0 gain sur le gold, 5 marques
+  inutiles sur frgec, 1 fausse alerte UD : des infinitifs coordonnés (« ajouter le sel et bien mélanger ») lus comme sujet + verbe.
+- Tests : parity_core (4 « peut », « il a ne en » → est gardé, 4 témoins) ; miroirs Python rule_ca_sa, rule_peu, rule_aux_usage,
+  dys_pipeline_probe._VOISIN_OK.
+
 ## 2026-09-30 (suite) — a → à dans les locutions prépositives (catalogue des muets)
 
 - Le plus gros groupe du catalogue (a → à, 52 muettes) : inventaire des 42 encore non réparées, mot avant / mot après. Un paquet
