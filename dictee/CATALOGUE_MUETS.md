@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante) |
 |---|---|---|
-| réparée en rouge | 554 (27,5 %) | **590** (29,3 %) |
+| réparée en rouge | 554 (27,5 %) | **598** (29,7 %) |
 | bon mot proposé en orange | 356 (17,7 %) | **427** (21,2 %) |
-| mot FAUX proposé | 373 (18,5 %) | **335** (16,7 %) |
+| mot FAUX proposé | 373 (18,5 %) | **337** (16,7 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
-| **muette** | **711** (35,3 %) | **637** (31,7 %) |
+| **muette** | **711** (35,3 %) | **627** (31,2 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **50** aujourd'hui (35 / 15 — le rouge de plus : « soiété », coquille laissée par le gold ; 4 oranges de genre du déterminant
@@ -78,7 +78,7 @@ faux retirés ou ramenés en orange, 0 perte.
 | a → à | 52 | a→à ×52 | la règle rouge en répare autant (53) ; le reste n'a pas d'ancre sûre (recensement du 14/09 : le voisin est souvent fautif lui-même). Piste : une orange « carte » comme ces/ses, avec son seuil, mesurée sur UD et le gold |
 | homophones grammaticaux | 60 | et→est ×12 · est→et ×11 · se→ce ×6 · son→sont ×6 · ce→se ×5 · tout→tous ×3 · peu→peut ×3 | les règles existent ; lire les gardes qui se taisent, **et/est d'abord (23)**. ✅ 29/09 : **3 de plus en orange** (sujet nominal + participe, « est voilà », « est » + adverbe + nouvelle proposition), 0 fausse, UD 0 ; restent 20 : deux fautes à la fois (déterminant ou pronom mal écrit, participe écrit à l'infinitif) ou le sens (« est » + groupe nominal + verbe) |
 | forme du verbe (-er / -é / -ait) | 48 | arriver→arrivé ×2 · énerver→énervé ×2 · priver→privée ×2 · rouler→roulé | règles existantes muettes : auxiliaire lui-même mal écrit (« na », « jais »), verbe absent du lexique verbal (« ravager »), garde a/à |
-| élisions et apostrophes (autres) | 39 | ses→c'est ×3 · que→qu'il ×3 · jais→j'ai ×2 · ma→m'a ×2 · ces→c'est ×2 | motifs par préfixe : ses/ces + participe → c'est ; ma + participe → m'a ; jais / javais → j'ai / j'avais |
+| élisions et apostrophes (autres) | 39 ✅ élision manquante (30/09) | ses→c'est ×3 · que→qu'il ×3 · jais→j'ai ×2 · ma→m'a ×2 · ces→c'est ×2 | motifs par préfixe : ses/ces + participe → c'est ; ma + participe → m'a ; jais / javais → j'ai / j'avais |
 | nombre du nom | 60 | prise→prises ×2 · espace→espaces ×2 · tomate→tomates · pied→pieds · voiture→voitures | après « de » (beaucoup de, des tonnes de : 7) et après d'autres gouverneurs (53) : noms homographes d'un verbe, gouverneur loin |
 | accord de l'adjectif | 43 | austral→australe ×4 · chimique→chimiques ×4 · mondial→mondiale ×2 · majeur→majeure ×2 · quelque→quelques ×2 | épithète séparé de son nom, genre du nom inconnu, adjectif lu comme verbe |
 | terminaisons homophones (autres) | 66 | mure→murs ×3 · voire→voir ×2 · soi→soit ×2 · foie→fois | finales muettes entre deux mots différents : il faut le contexte grammatical, cas par cas |
@@ -126,8 +126,8 @@ Les fautes où le produit propose un **mot faux** : le second catalogue, ci-dess
 ## Le 2e catalogue : les mots FAUX proposés (29/09/2026)
 
 Même méthode. Le produit propose un mot, mais pas celui qu'attend le gold. Le pire cas est le **rouge** : la faute est remplacée
-d'office par une autre. Mesuré après les lots ci-dessus : **335**, dont **37 en rouge** (47 avant le premier lot), 41 « flag »,
-257 en orange.
+d'office par une autre. Mesuré après les lots ci-dessus : **337**, dont **37 en rouge** (47 avant le premier lot), 43 « flag » (dont 2 artefacts
+d'alignement de l'élision à deux mots, 30/09), 257 en orange.
 
 | rouges faux, par règle (avant le premier lot) | n | cause | statut |
 |---|---|---|---|
