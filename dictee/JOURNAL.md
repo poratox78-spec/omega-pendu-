@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-09-30 (suite) — règles existantes trop gardées : ce/se, accord de « tout » (catalogue des muets)
+
+- Les homophones grammaticaux muets du catalogue (se → ce, ce → se, tout → tous…) : les règles existent, des gardes se taisent. Sondé sur
+  des phrases inventées ; deux gardes trop larges, chacune lue dans le code :
+  · ce/se : « se qu'elle » — l'élidé forme UN jeton (« qu'elle »), la liste ne connaissait que « qu » et « qu' » seuls ; et « se sont » +
+    déterminant (« là-bas, se sont nos voisins ») → ce : un déterminant ne suit jamais le pronominal « se sont » (orange, famille ce/se) ;
+  · accord tout : « à tout les enfants » → tous — la garde « préposition avant tout » (« à tout le monde ») valait aussi pour le
+    pluriel, où « tout les » n'est jamais juste ; les locutions (après tout, avant tout, en tout…) restent gardées.
+- Essayé et écarté : « ce » + verbe après un sujet nominal (« le garçon ce lave ») → se — 2 fausses alertes UD (« deux fois ce voyage » :
+  voyage est aussi un nom) ; il faudrait savoir qu'aucun autre verbe n'est fini dans la proposition.
+- Mesuré (produit) : gold +3 (2 ce, 1 tous) ; frgec : « de toute les parcelles » → toutes, juste mais absent du gold ; UD 14 450 :
+  aucune marque changée.
+- Précision par famille : « ce/se · orange · pollué » 72,7 → 69,2 % dans les deux sondes — artefact de l'aligneur du juge : la phrase
+  porte trois « se », et la marque juste (« se » → ce devant l'élidé) est appariée au « se » suivant du gold ; références ré-ancrées.
+- Tests : parity_core (3 corrections, 3 témoins : « ils se sont levés », « à tout le monde », « après tout, les… ») ; miroirs Python
+  rule_ce_se et rule_tout_det.
+
 ## 2026-09-30 (suite) — homophones nom / verbe : « le travaille » → travail, « je travail » → travaille (catalogue des muets)
 
 - Catalogue : travaille → travail ×4, appel → appelle, rappel → rappelle… muets, dans les deux sens. Structure : un déterminant masculin ne

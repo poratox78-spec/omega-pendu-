@@ -1088,7 +1088,8 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     if(/^l['’]./.test(nr.toLowerCase()))return ckeepcase(T[i],'dès');   // un déterminant ne peut pas être suivi d'un autre déterminant élidé
     return null;}
   function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());
-    if(nd==='qui'||nd==='que'||nd==='dont'||nd==='qu'||nd==="qu'")return ckeepcase(T[i],'ce');   // ce qui/que/dont (+ élidé qu')
+    if(nd==='qui'||nd==='que'||nd==='dont'||nd==='qu'||nd==="qu'"||/^qu['’]/.test(nd))return ckeepcase(T[i],'ce');   // ce qui/que/dont (+ élidé qu') — ⭐ 30/09/2026 : et « se qu'elle », élidé en UN jeton (miroir Python)
+    if(lw==='se'&&(nd==='sont'||nd==='est'||nd==='etait'||nd==='etaient')&&i+2<T.length&&NUM_DET[deacc(T[i+2].toLowerCase())])return ckeepcase(T[i],'ce');   // ⭐ 30/09/2026 : « là-bas, se sont nos voisins » — un déterminant ne suit jamais le pronominal « se sont » (miroir Python)
     if(CAUX[nd]||nd==='sont'||nd==='est'){   /* ⭐ 12/09/2026 : ce qui suit l'AUXILIAIRE tranche « ce sont » / « se sont » — un PARTICIPE ne suit jamais « ce sont » (groupe nominal) ; sujet exigé devant, sinon ce serait « ils sont » (miroir Python rule_ce_se) */
       if(lw==='ce'){var _j=i+2;while(_j<T.length&&_j<=i+4&&PPMID[deacc(T[_j].toLowerCase())])_j++;
         if(_j<T.length&&_isPpl(T[_j])){var _tg0=posTags(T),_p0=_prevPron(T,i);
@@ -1824,7 +1825,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw==='tous'&&i+1<T.length){var _tt=_tousTout(T,i);return _tt?ckeepcase(T[i],_tt):null;}if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
     var num=NUM_DET[deacc(T[i+1].toLowerCase())];if(!num)return null;
     if(_SEG&&(i+1)<_SEG.bb.length&&_SEG.bb[i+1])return null;
-    var p=cprev(T,i);if(PREP[p]||NUM_DET[p]||TOUT_EXTRA[p])return null;
+    var p=cprev(T,i);if((PREP[p]&&num!=='pl')||NUM_DET[p]||TOUT_EXTRA[p])return null;   // ⭐ 30/09/2026 : « à tout les enfants » → tous — la préposition ne garde que le singulier (« à tout le monde ») ; miroir Python
     if(T[i+2].toLowerCase().indexOf("'")>=0)return null;
     var nd=deacc(T[i+2].toLowerCase());var pp=NOUN_POST&&NOUN_POST.get(nd);if(!(pp&&pp[0]>=PL_TAU_M))return null;
     var g=GENDER_PURE[nd];if(g!=='m'&&g!=='f')return null;

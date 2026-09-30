@@ -572,6 +572,20 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (_nv) { console.log('PARITÉ KO — nom/verbe : ' + _nv + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ nom/verbe : 5 homophones proposés (orange) ; 5 témoins muets (le pronom, phrases justes)'); }
 
+// ⭐ 30/09/2026 — RÈGLES EXISTANTES TROP GARDÉES : « se qu'elle » → ce (élidé en un jeton) ; « se sont nos » → ce ; « à tout les » → tous.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _ga = 0;
+  for (const [s, w, sg] of [['Dis-moi se qu\'elle dessine.', 'se', 'ce'], ['Là-bas, se sont nos voisins.', 'se', 'ce'], ['Il pense à tout les enfants.', 'tout', 'tous']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg) { _ga++; console.log('  ✗ gardes : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const s of ['Ils se sont levés tôt.', 'Il pense à tout le monde.', 'Après tout, les enfants sont là.']) {
+    const m = fl(s).filter(x => x.name === 'ce/se' || x.name === 'accord tout');
+    if (m.length) { _ga++; console.log('  ✗ gardes : témoin « ' + s + ' » marqué ' + JSON.stringify(m)); }
+  }
+  if (_ga) { console.log('PARITÉ KO — gardes des règles existantes : ' + _ga + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ gardes : se qu’elle → ce, se sont nos → ce, à tout les → tous ; 3 témoins muets'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);
