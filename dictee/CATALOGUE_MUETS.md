@@ -144,5 +144,6 @@ Le plus gros gisement est **orange** : le correcteur d'orthographe propose un ca
 « cette », « sais », « ai » (312 formes) — un e muet écrit garde maintenant sa consonne : 17 mots faux de moins sur le gold, 141 marques
 devenues justes sur les 3 corpus, UD sans marque nouvelle. ✅ 30/09, deuxième lot : « ou » ≠ « u » dans la clé (« tou » → tout ×5, « cur » → cure) et finales audibles en /ɛ/ (« apré » → après,
 pas la coquille « aprés ») : 11 mots faux de moins sur le gold, 19 fausses devenues justes sur les 3 corpus, 0 juste perdue, UD sans
-marque nouvelle. Reste : l'initiale (« séte » → cette demande d'admettre s/c en tête de mot), et les formes longues accentuées
-battues par une forme courte (« eclairait » → éclair).
+marque nouvelle. ✅ 30/09, troisième lot : « mot inconnu » — l'accent seul d'abord quand le mot écrit n'a aucun accent (« eclairait »
+→ éclairait, plus éclair ; un rival à une édition 20 fois plus fréquent garde la main : « apre » → après) : 44 suggestions deviennent
+le mot exact sur les 3 corpus, 1 perd, UD sans changement. Reste : l'initiale (« séte » → cette demande d'admettre s/c en tête de mot).

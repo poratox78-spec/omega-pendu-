@@ -4090,7 +4090,16 @@ function spellUnknown(tok,atStart,T,idx){
        Mesuré : « apré » → après ×5 sur le gold (le juge désaccentué comptait « aprés » juste) ; UD inchangé.
        Miroir Python spell_unknown. */
     var _pkU=phonKey(low),_bh=-1;                                          // AUDIBILITÉ (doctrine) : le dys écrit ce qu'il ENTEND. Un candidat HOMOPHONE passe avant un candidat seulement proche à l'œil — sinon « koi » se corrige en « ko » (fréquent, muet) au lieu de « quoi » (homophone). La garde de même première LETTRE écartait justement k/qu, c/qu, f/ph : on l'ouvre quand la clé phonétique est IDENTIQUE.
-    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}   // clé : audibilité d'abord (si saisie audible), puis fréquenceba=_au;bf=_fq;best=w;}}
+    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}
+    /* ⭐ 30/09/2026 (2e catalogue : le tri des candidats) — L'ACCENT SEUL D'ABORD, comme le tri principal (spellTokenCore le classe en
+       tête, mais n'y propose rien sous 1/M : « éclairait » 0,2/M tombait ici, où « éclair », homophone 41 fois plus fréquent, gagnait).
+       Seulement si le mot écrit n'a AUCUN accent (le dys pose aussi des accents FAUX : « apré » → âpre serait faux), et sauf si un
+       rival à UNE édition est ≥ 20 fois plus fréquent (« apre » → après, « lee » → le, « gallerie » → galerie, pas âpre, lée,
+       gallérie). Mesuré : 44 suggestions deviennent le mot exact
+       du gold (accents rendus : persécutions, médiéval, alcaloïdes…), 1 seule perd (« echarpes » → écharpes, le gold met le singulier) ;
+       UD 14 450 : aucune marque changée. Miroir Python spell_unknown. */
+    if(low===d){var _ao=null,_aof=-1;for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w)===d&&(SP.FREQ[w]||0)>_aof){_ao=w;_aof=SP.FREQ[w]||0;}}
+      if(_ao&&best!==_ao){var _dom=false;for(i=0;i<arr.length;i++){w=arr[i];var _dw=deaccS(w);if(_dw!==d&&sEd1(d,_dw)&&(SP.FREQ[w]||0)>=20*_aof){_dom=true;break;}}if(!_dom)best=_ao;}}   // clé : audibilité d'abord (si saisie audible), puis fréquenceba=_au;bf=_fq;best=w;}}
     if(best&&T&&idx!=null&&idx+1<T.length){                              // DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — même règle que le noyau, pour la voie best-effort
       var _dp2={un:'une',une:'un',le:'la',la:'le',ce:'cette',cette:'ce',cet:'cette'}[deaccS(best)];
       if(_dp2&&DET_G[deaccS(best)]){var _nw2=T[idx+1].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');

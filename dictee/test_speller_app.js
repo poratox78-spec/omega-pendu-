@@ -227,6 +227,11 @@ const SP = globalThis.__sp;
     if (!f || f.sugg !== 'succès') fail.push('« succé » : attendu « succès » (finale audible -ès), eu ' + JSON.stringify(f && f.sugg)); }
   { const f = SP.spell('le cheval a peur du foué').find(x => x.word === 'foué');
     if (!f || f.sugg !== 'fouet') fail.push('« foué » : attendu « fouet » (finale audible -et), eu ' + JSON.stringify(f && f.sugg)); }
+  // ⭐ 30/09/2026 — « mot inconnu » : l'accent seul d'abord quand le mot écrit n'a aucun accent (sauf rival à une édition ≫ 20×).
+  { const f = SP.spell('le soleil eclairait la piece').find(x => x.word === 'eclairait');
+    if (!f || f.sugg !== 'éclairait') fail.push('« eclairait » : attendu « éclairait » (l’accent seul d’abord), eu ' + JSON.stringify(f && f.sugg)); }
+  { const f = SP.spell('je viens apre le repas').find(x => x.word === 'apre');
+    if (!f || f.sugg !== 'après') fail.push('« apre » : attendu « après » (rival à une édition 20 fois plus fréquent : pas « âpre »), eu ' + JSON.stringify(f && f.sugg)); }
   const tr1 = SP.spell('la tres belle note').find(x => x.word.toLowerCase() === 'tres');
   if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
   const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');

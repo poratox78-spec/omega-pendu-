@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-09-30 (suite) — le tri des candidats, 3 : « mot inconnu », l'accent seul d'abord
+
+- « eclairait » → éclair (2e catalogue). Tracé sur une copie instrumentée (chaque return null de spellTokenCore) : le tri principal
+  classe bien « éclairait » en tête (accent seul), mais ne propose rien sous 1/M ; le mot tombe dans le repli « mot inconnu », dont la
+  boucle n'a PAS l'étape accent seul : « éclair », même clé approximative (la boucle retire -ait) et 41 fois plus fréquent, gagnait.
+- Première version (accent seul toujours d'abord) : 5 bons mots perdus sur le gold seul — « apré » → âpre, « éta » → êta (le dys pose
+  aussi des accents FAUX) : d'où la garde « mot écrit sans aucun accent ». Deuxième : 10 perdus sur les 3 corpus — « apre » → âpre au
+  lieu d'après, « lee » → lée, « gallerie » → gallérie, « che » → ché : d'où la garde « un rival à UNE édition ≥ 20 fois plus fréquent
+  garde la main ».
+- Mesuré (produit) : 44 suggestions deviennent le mot exact du gold (frgec 41, EcriScol 2 : persécutions, médiéval, alcaloïdes…),
+  1 perd (« echarpes » → écharpes, le gold met le singulier : l'accent seul garde le nombre écrit) ; UD 14 450 : aucune marque changée ;
+  census inchangé (363). Le juge officiel, désaccentué, voyait ces 44 marques « inutiles » : il ne lit pas l'accent.
+- Tests : test_speller extension + app (« eclairait » → éclairait ; « apre » → après, pas âpre).
+
 ## 2026-09-30 (suite) — le gérondif « en + -ent » en milieu de phrase (catalogue des muets)
 
 - Recensé sur les 3 corpus : « en » + forme en -ent que le gold corrige en -ant (6 cas, gold et EcriScol). Le participe présent après

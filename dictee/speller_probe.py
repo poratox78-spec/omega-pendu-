@@ -1084,6 +1084,14 @@ class Speller:
             fq = self.FREQ.get(w, 0)
             if hm > bh or (hm == bh and (au > ba or (au == ba and fq > bf))):
                 bh, ba, bf, best = hm, au, fq, w
+        # ⭐ 30/09/2026 — L'ACCENT SEUL D'ABORD (miroir JS spellUnknown) : mot écrit SANS aucun accent → la forme accentuée de mêmes lettres
+        # (« eclairait » → éclairait, plus « éclair »), sauf si un rival à UNE édition est ≥ 20× plus fréquent (« apre » → après, pas âpre).
+        if low == d:
+            ao, aof = None, -1.0
+            for w in arr:
+                if deacc(w) == d and self.FREQ.get(w, 0) > aof: ao, aof = w, self.FREQ.get(w, 0)
+            if ao and best != ao and not any(deacc(w) != d and sed1(d, deacc(w)) and self.FREQ.get(w, 0) >= 20 * aof for w in arr):
+                best = ao
         if best and toks and idx is not None and idx + 1 < len(toks):
             # DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — miroir JS
             dp2 = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}.get(deacc(best))
