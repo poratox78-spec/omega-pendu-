@@ -4870,7 +4870,18 @@ function spellUnknown(tok,atStart,T,idx){
        genre du déterminant et l'accord sujet-verbe EXCLUS (mesurés : 1 bon mot pour 6 justes touchés ou faux — la forme corrigée du
        voisin change le genre ou la personne), l'épithète aussi (2 fausses sur UD, mots étrangers). Miroir Python : dys_pipeline_probe.pyramide. */
     (function(){var _Tv2=_Tc.slice(),_sfi={},_nv=0;sf.forEach(function(f){if(typeof f.i!=='number')return;_sfi[f.i]=1;if(f.span===2||f.tier!=='vigilance'||(f.name!=='orthographe'&&f.name!=='mot inconnu')||typeof f.sugg!=='string'||!/^[A-Za-zÀ-ÿœŒ']+$/.test(f.sugg)||f.sugg.toLowerCase()===String(f.word).toLowerCase())return;_Tv2[f.i]=f.sugg;_nv++;});
-      if(!_nv)return;var _gv;try{_gv=correctTokens(_Tv2);}catch(e){return;}
+      if(!_nv)return;
+      /* ⭐ 30/09/2026 (2e catalogue : les mots justes touchés) — GENRE DU DÉTERMINANT CONTREDIT PAR L'ORANGE DU NOM : « la foret » → le
+         (le foret, l'outil, est masculin) alors que l'orthographe propose au même endroit « forêt », féminin, qui s'accorde avec « la ».
+         Relu avec la correction orange du nom, le déterminant est juste : sa marque orange se retire (deux oranges qui se contredisent
+         valent moins qu'une). Seulement quand le genre du nom corrigé est CONNU et égal à celui du déterminant.
+         Mesuré : 4 marques orange retirées sur des déterminants JUSTES du gold (« la foret », « le pole »), 0 ailleurs sur les 3 corpus
+         dys, 0 bonne marque perdue ; UD 14 450 : aucune marque changée.
+         Miroir Python dys_pipeline_probe.pyramide. */
+      gf=gf.filter(function(g){if(g.name!=='genre déterminant'||g.tier!=='vigilance'||g.i+1>=_Tv2.length||_Tv2[g.i+1]===_Tc[g.i+1])return true;
+        var _nw=String(_Tv2[g.i+1]).toLowerCase(),_gn=_GCOLL[_nw]||GENDER_PURE[deacc(_nw)],_gd=DET_G[deacc(String(_Tc[g.i]).toLowerCase())];
+        if(_gn&&_gd&&_gn===_gd){delete _gbt[g.i];return false;}return true;});
+      var _gv;try{_gv=correctTokens(_Tv2);}catch(e){return;}
       _gv.forEach(function(g2){if(_gbt[g2.i]!=null||_sfi[g2.i]||!_VOISIN_OK[g2.name]||(g2.span&&g2.span>1))return;g2.tier='vigilance';g2.voisin=true;_gbt[g2.i]=g2;gf.push(g2);
         var _nx=_gbt[g2.i+1];if(g2.name==='a/à'&&_nx&&_nx.tier!=='vigilance'&&(_nx.name==='accord grammatical (é/er)'||_nx.name==='terminaison -er/-é/-ez/-ai')&&/er$/i.test(String(_nx.word||_T[g2.i+1]))&&/é$/i.test(String(_nx.sugg))){_nx.tier='vigilance';_nx.voisin=true;}   // « il commanse a pleurer » : le rouge « pleuré » lisait « a » comme AVOIR ; le voisin dit « à » → les deux en orange, l'auteur tranche
       });})();

@@ -490,6 +490,23 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   console.log('  ✓ voisin orange : « commanse a pleurer » → à ? (orange), le rouge « pleuré » repasse en orange ; phrase correcte muette');
 }
 
+// ⭐ 30/09/2026 — GENRE DU DÉTERMINANT CONTREDIT PAR L'ORANGE DU NOM : « la foret » → le (le foret, l'outil) alors que l'orthographe
+// propose au même endroit « forêt », féminin — la marque du déterminant se retire ; un nom JUSTE garde la sienne (« le maison » → la).
+// Miroir de mesure : dys_pipeline_probe.pyramide (même étape).
+{
+  const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _gd = 0;
+  for (const [s, nom, sg] of [['Il habite près de la foret.', 'foret', 'forêt'], ['Le pole est froid.', 'pole', 'pôle']]) {
+    const f = fl(s), d = f.find(x => x.name === 'genre déterminant'), n = f.find(x => x.word === nom);
+    if (d) { _gd++; console.log('  ✗ genre contredit : « ' + s + ' » garde la marque du déterminant ' + JSON.stringify(d)); }
+    if (!n || n.sugg !== sg) { _gd++; console.log('  ✗ genre contredit : « ' + s + ' » → « ' + sg + ' » attendu sur le nom, obtenu ' + JSON.stringify(n || null)); }
+  }
+  const d3 = fl('Le maison est grande.').find(x => x.name === 'genre déterminant');
+  if (!d3 || d3.sugg !== 'La') { _gd++; console.log('  ✗ genre contredit : « Le maison » (nom juste) doit garder « La », obtenu ' + JSON.stringify(d3 || null)); }
+  if (_gd) { console.log('PARITÉ KO — genre du déterminant contredit : ' + _gd + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ genre contredit : pas de marque du déterminant devant « foret » ni devant « pole » (forêt, pôle proposés) ; « le maison » → La gardé');
+}
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);
