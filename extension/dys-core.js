@@ -4118,6 +4118,25 @@ function spellUnknown(tok,atStart,T,idx){
   }
   // VIGILANCE homophone : mot VALIDE mais probablement mal employé, dans un contexte SERRÉ → souligné orange « à vérifier »
   // (non affirmatif). Gardes étroites pour éviter les emplois légitimes (« la mer », « le fer », « papa »).
+  /* ⭐ 30/09/2026 (catalogue des muets) — HOMOPHONES NOM / VERBE : « le travaille » → travail, « je travail » → travaille (paires en
+     -ail/-aille, -eil/-eille, -euil/-euille, -el/-elle, -oi/-oie, -ui/-uie, -ai/-aie : travail, réveil, conseil, appel, rappel, envoi,
+     appui, essai…). Un déterminant masculin ne précède pas une forme SEULEMENT verbale (nom masculin de même son attesté) ; un pronom
+     sujet (clitiques permis entre les deux) ne précède pas un NOM sans lecture verbale (forme du verbe au présent attestée ; « tu » →
+     -s). ORANGE. Garde née d'UD et de frgec : « le » (ou « leur ») est PRONOM après un sujet, un clitique, un nom ou un prénom (« je le
+     conseille », « le roi le renvoie », « Paul le rappelle »). Mesuré : gold +7 (6 muets, 1 mot faux), 0 ailleurs sur les 3 corpus
+     dys ; UD 14 450 : aucune marque (la première version en faisait 4 : « je le conseille »). */
+  var _NV_DET={le:1,un:1,mon:1,ton:1,son:1,du:1,au:1,ce:1,notre:1,votre:1,leur:1},_NV_SUJ={je:1,il:1,elle:1,on:1,tu:1},_NV_CL={me:1,te:1,se:1,le:1,la:1,les:1,lui:1,nous:1,vous:1,ne:1,y:1,en:1};
+  var _NV_PAIRES=[['aille','ail'],['eille','eil'],['euille','euil'],['elle','el'],['oie','oi'],['uie','ui'],['aie','ai']];
+  function _nvNp(x){var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deaccS(x)):NOUN_POST[deaccS(x)]):null;return np?np[0]:-1;}
+  function nomVerbeVig(T,i){if(i<1)return null;var w=T[i],lw=w.toLowerCase();if(w!==lw||lw.indexOf("'")>=0)return null;var k,v,n;
+    var p=deacc(T[i-1].toLowerCase());
+    if(_NV_DET[p]&&(p==='le'||p==='leur')&&i>=2){var _pp=deacc(T[i-2].toLowerCase());if(_NV_SUJ[_pp]||_NV_CL[_pp]||_pp==='ils'||_pp==='elles'||_pp==='qui'||_pp==='nous'||_pp==='vous'||/^[jnmtsl]'/.test(T[i-2].toLowerCase())||_nvNp(T[i-2])>=PL_TAU_M||(i-2>0&&T[i-2].charAt(0)!==T[i-2].charAt(0).toLowerCase())||PRENOMS[T[i-2]])return null;}
+    if(_NV_DET[p]){for(k=0;k<_NV_PAIRES.length;k++){v=_NV_PAIRES[k];if(lw.length>v[0].length+1&&lw.slice(-v[0].length)===v[0]){n=lw.slice(0,-v[0].length)+v[1];
+        if(svReads(lw).length&&_nvNp(lw)<100&&_nvNp(n)>=PL_TAU_M&&sGender(n)==='m')return n;return null;}}return null;}
+    var j=i-1;while(j>=0&&_NV_CL[deacc(T[j].toLowerCase())])j--;if(j<0)return null;var s=deacc(T[j].toLowerCase());if(!_NV_SUJ[s])return null;
+    for(k=0;k<_NV_PAIRES.length;k++){v=_NV_PAIRES[k];if(lw.length>v[1].length+1&&lw.slice(-v[1].length)===v[1]){var x=lw.slice(0,-v[1].length)+v[0];if(s==='tu')x+='s';
+        if(!svReads(lw).length&&_nvNp(lw)>=PL_TAU_M&&svReads(x).some(function(r){return r[1]==='ind:pre'&&r[3]==='s';}))return x;return null;}}
+    return null;}
   function homoVig(T,i){var w=deaccS(T[i].toLowerCase());if(w!=='mer'&&w!=='fer'&&w!=='pa')return null;
     var p=i>0?deaccS(T[i-1].toLowerCase()):'';
     if(w==='mer'&&(p==='ma'||p==='ta'||p==='sa'||p==='notre'||p==='votre'||p==='leur'))return 'mère';   // « ma mer »→mère (≠ « la/en/une mer »)
@@ -4542,6 +4561,7 @@ function spellUnknown(tok,atStart,T,idx){
   var _ELI_PLEIN={je:"j'",que:"qu'",le:"l'",la:"l'",de:"d'",ce:"c'",ne:"n'",me:"m'",te:"t'",se:"s'",si:"s'"},_ELI_EXC={oui:1,ouais:1,ouistiti:1,ouistitis:1,onze:1,onzieme:1,onziemes:1,ouate:1,uhlan:1},_ELI_CONJ={et:1,ou:1},_ELI_SUJ={il:1,elle:1,ils:1,elles:1,on:1},_ELI_AVANT_CL={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,ne:1,qui:1};   // élision manquante (30/09/2026, voir l'élision-espace de spellText)
   function vigAt(T,i,st,text){var _tg=st.tg;   /* ⭐ 12/09/2026 — la CHAÎNE ORANGE de spellText, extraite TELLE QUELLE (ordre compris) : spellText la consulte token par token (sortie identique), diagnoseAll la consulte à UN index sur des tokens où l'orthographe est corrigée (bout de chaîne orthographe → orange). st.tg = tags du tagger, calculés une fois par liste de tokens ; text = null hors spellText (le juge B2 de l'app ancre le TEXTE, il ne se consulte pas sur des tokens corrigés). */
     {var h=homoVig(T,i);if(h){return {i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'};}}
+    {var nv=nomVerbeVig(T,i);if(nv){return {i:i,word:T[i],sugg:ckeepcase(T[i],nv),name:'homophone à vérifier',tier:'vigilance'};}}   // ⭐ 30/09/2026 : le travaille → travail, je travail → travaille
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var gv=genreAdjVig(T,i,_tg);if(gv&&gv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],gv),name:'accord genre à vérifier',tier:'vigilance'};}}   // genre adjectif épithète (« qui est-ce qui, il ou elle ? ») — audible, hors FP=0 → orange
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv&&!plTaisCarte(T,i)){return {i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'};}}
     {var psv=plurielSonVig(T,i);if(psv){return {i:i,word:T[i],sugg:ckeepcase(T[i],psv),name:'pluriel par le son à vérifier',tier:'vigilance'};}}   // ⭐ 28/09/2026 : le son donne le mot quand la grammaire exige le pluriel

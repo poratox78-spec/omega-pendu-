@@ -557,6 +557,21 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (g.length || !h || h.sugg !== "t'a donné") { console.log('PARITÉ KO — ma/ta/jais : « ma mort » ' + JSON.stringify(g) + ' / « ta donné » ' + JSON.stringify(h || null)); process.exit(1); }
   console.log('  ✓ ma/ta/jais : « ta donné » → t’a donné ; « raconter ma mort » muet (participe qui est aussi un nom)'); }
 
+// ⭐ 30/09/2026 — HOMOPHONES NOM / VERBE : « le travaille » → travail, « je travail » → travaille (orange) ; témoins : « le » pronom
+// (« je le conseille », « le roi le renvoie », « Paul le rappelle ») et phrases justes muettes.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => f.name === 'homophone à vérifier');
+  let _nv = 0;
+  for (const [s, w, sg] of [['Mon travaille est fini.', 'travaille', 'travail'], ['Je travail dans un bureau.', 'travail', 'travaille'], ['Je me réveil tôt.', 'réveil', 'réveille'],
+                            ['Il rappel son ami.', 'rappel', 'rappelle'], ['Tu travail trop.', 'travail', 'travailles']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== 'vigilance') { _nv++; console.log('  ✗ nom/verbe : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const s of ['Je le conseille vivement.', 'Le roi le renvoie chez lui.', 'Paul le rappelle demain.', 'Il travaille bien.', 'Mon travail est fini.']) {
+    if (fl(s).length) { _nv++; console.log('  ✗ nom/verbe : témoin « ' + s + ' » marqué ' + JSON.stringify(fl(s))); }
+  }
+  if (_nv) { console.log('PARITÉ KO — nom/verbe : ' + _nv + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ nom/verbe : 5 homophones proposés (orange) ; 5 témoins muets (le pronom, phrases justes)'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);
