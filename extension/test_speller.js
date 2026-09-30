@@ -75,6 +75,30 @@ for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass med
   if (!f || f.sugg !== 'parce que') fail.push('« parceque » : attendu « parce que » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
 { const f = DC.spell('il fait ça atravers le mur').find(x => x.word === 'atravers');
   if (!f || f.sugg !== 'à travers') fail.push('« atravers » : attendu « à travers » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
+// ⭐ 30/09/2026 — DÉTERMINANTS ÉCRITS AVEC « é » : té → tes, dé → des (dès devant un déterminant), mé → mes, lé + nom → les ; témoins : un dé, elle lé perdu.
+{ const f = DC.spell('je connais té amis').find(x => x.word === 'té');
+  if (!f || f.sugg !== 'tes') fail.push('« té » : attendu « tes » (déterminant écrit avec é), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il range dé livres').find(x => x.word === 'dé');
+  if (!f || f.sugg !== 'des') fail.push('« dé » : attendu « des » (déterminant écrit avec é), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il travaille dé le matin').find(x => x.word === 'dé');
+  if (!f || f.sugg !== 'dès') fail.push('« dé » : attendu « dès » (déterminant écrit avec é), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('je range mé affaires').find(x => x.word === 'mé');
+  if (!f || f.sugg !== 'mes') fail.push('« mé » : attendu « mes » (déterminant écrit avec é), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('je vois lé enfants').find(x => x.word === 'lé');
+  if (!f || f.sugg !== 'les') fail.push('« lé » : attendu « les » (déterminant écrit avec é), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il a lancé un dé rouge').find(x => x.word === 'dé');
+  if (f) fail.push('« dé » dans « il a lancé un dé rouge » : aucune suggestion attendue (témoin), eu ' + JSON.stringify(f.sugg)); }
+{ const f = DC.spell('elle lé perdu hier').find(x => x.word === 'lé');
+  if (f) fail.push('« lé » dans « elle lé perdu hier » : aucune suggestion attendue (témoin), eu ' + JSON.stringify(f.sugg)); }
+// ⭐ 30/09/2026 — le NOMBRE du mot suivant choisit : accent parasite sur « de » / « le » (« dé belles robes » → de), quantité (« beaucoup dé » → de), invariable (« lé bois ») : rien.
+{ const f = DC.spell('elle porte dé belles robes').find(x => x.word === 'dé');
+  if (!f || f.sugg !== 'de') fail.push('« dé » dans « elle porte dé belles robes » : attendu « de », eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il lit beaucoup dé livres').find(x => x.word === 'dé');
+  if (!f || f.sugg !== 'de') fail.push('« dé » dans « il lit beaucoup dé livres » : attendu « de », eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('je vois lé chat').find(x => x.word === 'lé');
+  if (!f || f.sugg !== 'le') fail.push('« lé » dans « je vois lé chat » : attendu « le », eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il met lé bois dehors').find(x => x.word === 'lé');
+  if (f) fail.push('« lé » dans « il met lé bois dehors » : aucune suggestion attendue (témoin), eu ' + JSON.stringify(f.sugg)); }
 // ⭐ 30/09/2026 — ÉLISION MANQUANTE : la forme pleine devant voyelle (« que il », « je ai ») → élidée ; témoins : trait d’union, « que oui », chiffre.
 { const f = DC.spell('je pense que il pleut').find(x => x.name === 'élision' && x.word === 'que il');
   if (!f || f.sugg !== 'qu\'il') fail.push('élision manquante « que il » : attendu « qu’il », eu ' + JSON.stringify(f && f.sugg)); }

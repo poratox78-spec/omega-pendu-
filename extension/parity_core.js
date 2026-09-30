@@ -649,6 +649,13 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (_mq) { console.log('PARITÉ KO — marques et sigles : ' + _mq + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ marques : Xbox, Nintendo, OGM, Netflix ; 3 témoins (internet, usa, la marque proche de « sont » entre deux pluriels)'); }
 
+// ⭐ 30/09/2026 — « lé enfants » : l'accord singulier lisait « lé » comme « le » et rendait « enfant » en ROUGE ; « lé » → les (orange).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  const m = fl('Je vois lé enfants.');
+  const bad = m.filter(x => x.name === 'accord singulier nom'), ok = m.find(x => x.word === 'lé' && x.sugg === 'les');
+  if (bad.length || !ok) { console.log('PARITÉ KO — déterminant écrit avec é : ' + JSON.stringify(m)); process.exit(1); }
+  console.log('  ✓ déterminant écrit avec é : « lé enfants » → les (orange), plus d’« enfant » rouge'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);
