@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-09-30 (suite) — a → à dans les locutions prépositives (catalogue des muets)
+
+- Le plus gros groupe du catalogue (a → à, 52 muettes) : inventaire des 42 encore non réparées, mot avant / mot après. Un paquet
+  structurel s'en détache : le « à » d'une LOCUTION PRÉPOSITIVE écrit « a », où l'auxiliaire avoir n'entre pas — à cause de, à partir
+  de, à l'intérieur de, à part, à ne pas / jamais / plus (« ne pas » collés ne précèdent jamais un verbe conjugué), à qui après un
+  nom, suite à et grâce à sans déterminant devant le nom. Surface UD 14 450 (français correct, où tout « a » est avoir) : aucun emploi. La règle rouge
+  s'en tenait au nom confiant (« cause » est aussi un verbe) et la voie orange (#828) exigeait un infinitif.
+- Posé : 5e structure de la voie nouvelle de rA / rule_a_aa (_aaLocution / _aa_locution), ORANGE. Gardes : « il y en a qui » (avoir),
+  « la suite a montré » (déterminant devant : le nom est sujet), « Grace » prénom (capitale sans accent).
+- Mesuré (produit, 14 322 textes dys + UD) : gold +11 « à » justes (10 muettes, 1 accord sujet-verbe inutile remplacé) ; ecriscol +5 ;
+  frgec +4, justes mais absents du corrigé (qui garde « a ») ; UD : aucune marque changée. Catalogue : muettes 613 → 603, mots faux
+  335 → 334. Vu en chemin : « les cours a partir du mois prochain » recevait « ont » en ROUGE — c'est maintenant « à » (orange).
+- Restent dans le groupe : double faute (verbe voisin mal écrit : ales → aller, soi → soit), le sens (nom + « a » + groupe nominal :
+  avoir ou à ?), verbe + adverbe + « a » (« il parle souvent a ses amis ») — à mesurer : « ce qu'il fait souvent a des effets » est juste.
+- Tests : parity_core (6 « à » orange, 2 témoins avoir) ; miroir Python _aa_locution.
+
 ## 2026-09-30 (suite) — règles existantes trop gardées : ce/se, accord de « tout » (catalogue des muets)
 
 - Les homophones grammaticaux muets du catalogue (se → ce, ce → se, tout → tous…) : les règles existent, des gardes se taisent. Sondé sur

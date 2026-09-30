@@ -1152,9 +1152,33 @@ _AA_AUX = frozenset(('est sont etait etaient sera seront a ont ai as avons avez 
 _AA_ADV = frozenset(('ne pas plus jamais bien deja toujours souvent aussi encore meme donc alors enfin pourtant vraiment beaucoup trop tout').split())
 
 
+# ⭐ 30/09/2026 — LOCUTIONS PRÉPOSITIVES (catalogue des muets, a → à) : à cause de, à partir de, à l'intérieur de, à part, à ne pas (jamais,
+# plus…), à qui après un nom, suite à et grâce à sans déterminant devant le nom — écrites avec « a » : l'auxiliaire AVOIR n'entre pas dans
+# ces locutions (UD 14 450 : aucun emploi). Gardes : « il y en a qui » (avoir), « la suite a montré » (déterminant devant : le nom est
+# sujet), Grace prénom (capitale sans accent). Voie nouvelle, ORANGE. Miroir JS _aaLocution.
+_AA_LOC_DET = frozenset('la le une un cette ce sa ma ta notre votre leur de du quelle toute'.split())
+
+
+def _aa_locution(T, i):
+    n = len(T)
+    d1 = deacc(T[i + 1].lower()) if i + 1 < n else ''
+    d2 = deacc(T[i + 2].lower()) if i + 2 < n else ''
+    p1 = deacc(T[i - 1].lower()); p2 = deacc(T[i - 2].lower()) if i >= 2 else ''
+    de = re.match(u"^(de|des|du|d['’].+)$", d2) is not None
+    if d1 in ('cause', 'partir') and de: return True                     # à cause de, à partir de
+    if re.match(u"^l['’](interieur|exterieur)e?$", d1) and de: return True   # à l'intérieur de, à l'extérieur de
+    if d1 == 'part': return True                                           # à part
+    if d1 == 'ne' and d2 in _AA_NEG and p1 != 'y': return True              # à ne pas + … : « ne pas » collés ne précèdent jamais un verbe conjugué
+    if d1 == 'qui' and p1 not in ('y', 'en', 'qui', 'ca', 'cela') and p1 not in SUBJ_PRON: return True   # la personne à qui ; « il y en a qui » reste avoir
+    if (p1 in ('suite', 'grace') and p2 not in _AA_LOC_DET
+            and (p1 == 'suite' or T[i - 1] == T[i - 1].lower() or u'â' in T[i - 1])): return True   # suite à, grâce à
+    return False
+
+
 def _rule_a_aa_nouveau(T, i):
     if deacc(T[i].lower()) != 'a' or T[i] != T[i].lower() or i < 1: return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    if _aa_locution(T, i): return u'à'                                    # ⑤ locution prépositive (sans infinitif)
     k = i + 1
     while k < len(T) and deacc(T[k].lower()) in CLITIC: k += 1
     if k >= len(T) or not re.search(r'(er|ir|re|oir)$', deacc(T[k].lower())): return None
