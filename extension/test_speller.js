@@ -62,6 +62,19 @@ for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass med
   if (!f || f.sugg !== 'éclairait') fail.push('« eclairait » : attendu « éclairait » (l’accent seul d’abord), eu ' + JSON.stringify(f && f.sugg)); }
 { const f = DC.spell('je viens apre le repas').find(x => x.word === 'apre');
   if (!f || f.sugg !== 'après') fail.push('« apre » : attendu « après » (rival à une édition 20 fois plus fréquent : pas « âpre »), eu ' + JSON.stringify(f && f.sugg)); }
+// ⭐ 30/09/2026 — FORMES ET EXPRESSIONS SOUDÉES : formes tronquées (liste fermée) et clé phonétique EXACTE d'une expression de _MWE, avant le tri.
+{ const f = DC.spell('il est venu ducou').find(x => x.word === 'ducou');
+  if (!f || f.sugg !== 'du coup') fail.push('« ducou » : attendu « du coup » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('je suis dacor avec toi').find(x => x.word === 'dacor');
+  if (!f || f.sugg !== 'd\'accord') fail.push('« dacor » : attendu « d’accord » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('je range dabor ma chambre').find(x => x.word === 'dabor');
+  if (!f || f.sugg !== 'd\'abord') fail.push('« dabor » : attendu « d’abord » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il est dabord parti').find(x => x.word === 'dabord');
+  if (!f || f.sugg !== 'd\'abord') fail.push('« dabord » : attendu « d’abord » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il est parti parceque il pleut').find(x => x.word === 'parceque');
+  if (!f || f.sugg !== 'parce que') fail.push('« parceque » : attendu « parce que » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il fait ça atravers le mur').find(x => x.word === 'atravers');
+  if (!f || f.sugg !== 'à travers') fail.push('« atravers » : attendu « à travers » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
 // ⭐ 30/09/2026 — ÉLISION MANQUANTE : la forme pleine devant voyelle (« que il », « je ai ») → élidée ; témoins : trait d’union, « que oui », chiffre.
 { const f = DC.spell('je pense que il pleut').find(x => x.name === 'élision' && x.word === 'que il');
   if (!f || f.sugg !== 'qu\'il') fail.push('élision manquante « que il » : attendu « qu’il », eu ' + JSON.stringify(f && f.sugg)); }
