@@ -688,7 +688,12 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   const pyA = cp.spawnSync('python3', ['-c', `
 import sys, json
 sys.path.insert(0, ${JSON.stringify(path.join(ROOT, 'dictee'))})
-import correcteur_probe as CP, dys_pipeline_probe as DPP
+import correcteur_probe as CP
+try:
+    import dys_pipeline_probe as DPP
+except FileNotFoundError as e:   # la CI n'a pas Lexique4 : le Speller de référence ne se construit pas → SAUTÉ, dit, jamais muet
+    if 'Lexique4' not in str(e): raise
+    print(json.dumps({'saute': 'Lexique4 absent'})); sys.exit(0)
 ph = json.loads(sys.stdin.read()); out = {}
 for g in ('f', 'm'):
     res = []
@@ -707,12 +712,13 @@ print(json.dumps(out))
 `], { input: JSON.stringify(CAS.map(c => c[0])), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) });
   if (pyA.status !== 0) { console.error('probe Python (genre de l’auteur) échoué :', pyA.stderr); process.exit(2); }
   const pyG = JSON.parse(pyA.stdout);
-  for (const g of ['f', 'm']) CAS.forEach(([s], k) => {
+  if (pyG.saute) console.log('  · genre de l’auteur : parité Python SAUTÉE (' + pyG.saute + ', comme en CI) — les attentes du produit, elles, sont vérifiées');
+  else for (const g of ['f', 'm']) CAS.forEach(([s], k) => {
     if (JSON.stringify(js[g][k]) !== JSON.stringify(pyG[g][k])) { _ga++; console.log('  ✗ genre de l’auteur : parité (' + g + ') « ' + s + ' » EXT ' + JSON.stringify(js[g][k]) + ' · PY ' + JSON.stringify(pyG[g][k])); }
   });
   if (_ga) { console.log('PARITÉ KO — réglage « j’écris au féminin / au masculin » : ' + _ga + ' attente(s) non tenue(s).'); process.exit(1); }
   const _n = (k) => CAS.reduce((s, c) => s + Object.keys(c[k]).length, 0), _sil = CAS.filter(c => !Object.keys(c[1]).length && !Object.keys(c[2]).length).length;
-  console.log('  ✓ genre de l’auteur : sans réglage rien ; au féminin ' + _n(1) + ' marques, au masculin ' + _n(2) + ', toutes orange ; ' + _sil + ' silences voulus ; parité Python sur ' + CAS.length + ' phrases × 2 réglages'); }
+  console.log('  ✓ genre de l’auteur : sans réglage rien ; au féminin ' + _n(1) + ' marques, au masculin ' + _n(2) + ', toutes orange ; ' + _sil + ' silences voulus' + (pyG.saute ? '' : ' ; parité Python sur ' + CAS.length + ' phrases × 2 réglages')); }
 
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
