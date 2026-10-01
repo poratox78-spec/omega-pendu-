@@ -72,7 +72,13 @@ const ASSETS = {
 };
 const setters = [...new Set([...moteur.matchAll(/\b(set[A-Z][A-Za-z]*)\s*:/g)].map((m) => m[1]))];
 const dansToile = (mots) => mots.some((x) => toile.toLowerCase().indexOf(x.toLowerCase()) >= 0);
+/* Les setters qui posent un RÉGLAGE de la personne, pas une table : rien n'est chargé, il n'y a rien à dessiner.
+   Liste fermée, chaque entrée avec sa raison — un setter absent des deux listes fait toujours rougir. */
+const REGLAGES = {
+  setAuteur: "« J'écris au féminin / au masculin » (01/10/2026) : une préférence gardée sur la machine, aucune donnée chargée",
+};
 for (const s of setters) {
+  if (REGLAGES[s]) continue;
   const mots = ASSETS[s];
   if (!mots) { fail.push('setter « ' + s + " » inconnu de ce banc : le moteur charge quelque chose de neuf — l'ajouter à ASSETS ET à la toile"); continue; }
   if (!dansToile(mots)) fail.push('la toile ne nomme nulle part ce que « ' + s + ' » charge (cherché : ' + mots.join(', ') + ')');

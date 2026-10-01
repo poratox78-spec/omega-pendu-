@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-10-01 — réglage « j'écris au féminin / au masculin » : le genre de la personne qui écrit (lot C du catalogue)
+
+- Lot C, décidé par Rem le 01/10 : « je suis allé / allée », « je me suis trompé / trompée », « je suis content / contente » — le
+  genre de « je » n'est pas dans le texte ; le moteur gardait le genre écrit (7 fautes muettes et 7 mots faux du gold en dépendent).
+  Revue de littérature avant de construire (#852, `LITTERATURE_GENRE_ET_SENS.md`) : Antidote a le même réglage (« Protagonistes ») ;
+  fournir le genre plutôt que le deviner, seulement pour le « je » de la personne, rien en dialogue.
+- Posé : un choix « J'écris : sans préciser / au féminin / au masculin » (panneau de l'extension et bulle de la page,
+  `chrome.storage.local` ; page du correcteur du site, `localStorage`) ; « sans préciser » est le défaut et EFFACE la valeur. Moteur :
+  `_jeCadre` (je (ne) (me) + être, y compris j'étais, m'étais, j'ai été), `_jeGenre` (participe ou adjectif genré), `auteurSugg`
+  (gardes), `_dialogueToks` (guillemets, ligne qui commence par un tiret, ponctuation entre deux mots), `auteurPasse` en fin de
+  `diagnoseAll` / `_computeCorrs` : une marque déjà posée prend le genre du réglage, un mot juste en soi mais au genre contraire
+  reçoit une orange. TOUJOURS orange, jamais appliquée seule. Miroir Python : `auteur_sugg` + fin de `pyramide`.
+- Mesuré au produit, le genre de chaque texte lu dans le gold (19 textes sur 72) : muettes 588 → 581 (les 7 de la classe), mots faux
+  316 → 311, orange juste 471 → 483, **0 mot juste touché**. Réglage CONTRAIRE sur ces 19 textes : 14 oranges, dont 3 sur des mots
+  justes (le coût d'un réglage faux) ; réglage f ou m sur les 53 autres : 0 marque. UD (922 phrases avec « je ») : 25 oranges au
+  féminin, 27 au masculin, toutes sur un accord qui dépend du genre de qui écrit (avis de clients). Trois fausses vues et réparées
+  avant la PR : « aussi mal reçue » (mal → male), « fort désolée » (adverbes, jamais le mot accordé), un « je suis » cité entre
+  guillemets ; et « je suis né » perdu un moment (né désaccentué = la négation ne : test sur la forme écrite).
+- Tests : `parity_core.js` (sans réglage rien ; 13 + 2 oranges attendues, 9 silences voulus ; parité Python sur 24 phrases × 2
+  réglages — falsifiée en retirant la garde des dialogues : 4 attentes tombent) ; `textes_probe` (le guide explique le nouveau choix).
+
 ## 2026-09-30 (suite) — tri des candidats : la dominance de fréquence seulement si l'initiale change pour une confusion connue (2e catalogue)
 
 - 2e catalogue : « polution » → solution (×2) — « pollution » a la même clé phonétique, mais un rival à une édition ≥ 20 fois plus

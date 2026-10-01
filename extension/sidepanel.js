@@ -79,6 +79,24 @@
       if (ch.omSize || ch.omDark) applyPrefs(szSel.value, dkCb.checked);
     });
   } catch (e) {}
+
+  // ===== ⭐ 01/10/2026 — « J'écris : sans préciser / au féminin / au masculin » (décidé par Rem ; revue : dictee/LITTERATURE_GENRE_ET_SENS.md).
+  // Accorde « je suis allé / allée », « je me suis trompé / trompée » : la marque reste ORANGE, jamais appliquée seule. Gardé dans
+  // chrome.storage.local (PAS sync : rien ne suit le compte Google, rien n'est envoyé) ; « sans préciser » EFFACE la valeur.
+  // Même clé que la bulle de la page (content.js), qui suit sans recharger.
+  var gnSel = document.getElementById('omdys-genre');
+  function appliqueGenre(v) { try { if (DC && DC.setAuteur) DC.setAuteur(v || null); } catch (e) {} }
+  try {
+    chrome.storage.local.get(['omGenre'], function (o) { var v = (o && o.omGenre) || ''; if (gnSel) gnSel.value = v; appliqueGenre(v); runNow(); });
+    if (gnSel) gnSel.addEventListener('change', function () {
+      var v = gnSel.value; if (v) chrome.storage.local.set({ omGenre: v }); else chrome.storage.local.remove('omGenre');
+      appliqueGenre(v); runNow();
+    });
+    chrome.storage.onChanged.addListener(function (ch, area) {   // réglé ailleurs (autre fenêtre) → suit sans recharger
+      if (area !== 'local' || !ch.omGenre) return;
+      var v = ch.omGenre.newValue || ''; if (gnSel) gnSel.value = v; appliqueGenre(v); runNow();
+    });
+  } catch (e) {}
   var TOKRE = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
   function spans(t) { var m, s = []; TOKRE.lastIndex = 0; while ((m = TOKRE.exec(t))) s.push([m.index, m.index + m[0].length]); return s; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
