@@ -2046,6 +2046,130 @@ def rule_adj_attr(T, i):
     sugg = _adj_agree(w, gender, num)
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
+# ---------- GENRE DE LA PERSONNE QUI ÉCRIT (réglage facultatif, 01/10/2026 — décidé par Rem) ----------
+# « je suis allé / allée », « je me suis trompé / trompée », « je suis content / contente » : le genre de « je » n'est pas dans le
+# texte. Sans réglage (le défaut), le moteur garde le genre écrit et se tait. Réglé (« j'écris au féminin / au masculin »), le mot
+# prend le genre du réglage, TOUJOURS en orange : l'information vient du réglage, pas du texte. Miroir EXACT du bloc JS (_jeCadre,
+# _jeGenre, auteurSugg, _dialogueToks) ; la passe finale vit dans dys_pipeline_probe.pyramide (miroir de auteurPasse).
+# Revue de littérature : dictee/LITTERATURE_GENRE_ET_SENS.md.
+AUTEUR = None
+
+
+def set_auteur(g):
+    global AUTEUR
+    AUTEUR = g if g in ('f', 'm') else None
+
+
+_JE_AUX = {'suis', 'serai', 'serais', 'fus', 'sois', 'etais'}
+_JE_ADJ_OK = {'seul', 'seule', 'certain', 'certaine', 'grand', 'grande'}   # attributs courants après « je suis », écartés ailleurs par _ADJ_STOP
+_JE_MID = set('ne pas plus jamais tres bien mal fort toujours deja vraiment tellement si trop assez enfin encore aussi souvent presque '
+              'completement vite'.split())
+_JE_COI = set(('demande dit permis promis plu deplu complu parle souri ri menti nui succede ressemble telephone suffi jure souhaite '
+               'reproche accorde achete offert propose donne imagine figure fait laisse vu entendu senti regarde ecoute rendu ecrit '
+               'envoye').split())   # « je me suis » + ces verbes : « me » complément INDIRECT (ou factitif/perception) → participe invariable
+_JE_PERC = {'vu', 'entendu', 'senti', 'regarde', 'ecoute', 'apercu', 'laisse', 'envoye', 'fait'}
+_JE_ELID = re.compile(r"^(j|c|qu|n|s|m|t|d|jusqu|lorsqu|puisqu)'")   # « j'ai », « c'est », « d'elle » : jamais un complément d'objet (l' reste un déterminant)
+_JE_PC = re.compile(u'[,;:()«»"“”–—.!?…]')
+_TOK_DLG = re.compile(u"[A-Za-zÀ-ÿœŒ'’ʼ]+")
+
+
+def _je_d(w):
+    return deacc(w.lower().replace(u'\u2019', "'").replace(u'\u02bc', "'"))
+
+
+def _je_cadre(T, i):
+    """« je (ne) (me) + être (+ adverbes) » juste avant T[i] → {'refl', 'j' = index du sujet} ; sinon None."""
+    k = i - 1; n = 0
+    while k >= 0 and n < 3 and _je_d(T[k]) in _JE_MID:
+        k -= 1; n += 1
+    if k < 0: return None
+    a = _je_d(T[k])
+    if a == "j'etais": return {'refl': False, 'j': k}
+    if a == 'ete':
+        k2 = k - 1
+        while k2 >= 0 and _je_d(T[k2]) in _JE_MID: k2 -= 1
+        if k2 < 0: return None
+        a2 = _je_d(T[k2])
+        if re.match(r"^j'(ai|avais|aurai|aurais)$", a2): return {'refl': False, 'j': k2}
+        if k2 >= 1 and re.match(r"^n'(ai|avais|aurai|aurais)$", a2) and _je_d(T[k2-1]) == 'je': return {'refl': False, 'j': k2 - 1}
+        return None
+    refl = (a == "m'etais")
+    if not refl and a not in _JE_AUX and a != "n'etais": return None
+    j = k - 1
+    if not refl and a != "n'etais" and j >= 0 and _je_d(T[j]) == 'me':
+        refl = True; j -= 1
+    if a != "n'etais" and j >= 0 and _je_d(T[j]) == 'ne': j -= 1
+    return {'refl': refl, 'j': j} if j >= 0 and _je_d(T[j]) == 'je' else None
+
+
+def _je_genre(w):
+    """(genre écrit, forme masculine, forme féminine) d'un participe ou d'un adjectif genré ; None sinon."""
+    lw = w.lower()
+    if "'" in lw or u'\u2019' in lw: return None
+    d = deacc(lw)
+    if d in ('du', 'ete') or lw in _JE_MID: return None   # adverbe (mal, fort, bien…) : jamais le mot accordé ; forme ÉCRITE (« né » n'est pas « ne »)
+    b = _pp_base(w)
+    if b is None: b = _IRR_PP.get(d)
+    if b is not None:
+        bl = b.lower()
+        if lw == bl: return ('m', bl, bl + 'e')
+        if lw == bl + 'e': return ('f', bl, bl + 'e')
+        return None
+    if lw in (u'sûr', u'sûre'): return ('m' if lw == u'sûr' else 'f', u'sûr', u'sûre')   # « sûr » ACCENTUÉ = l'adjectif ; « sur » (la préposition) reste exclu
+    e = ADJ_LEX.get(d)
+    if not e or e[0] not in ('m', 'f') or (d in _ADJ_STOP and d not in _JE_ADJ_OK) or d in _INVAR_COLOR: return None
+    alt = e[1].lower()
+    if deacc(alt) == d: return None
+    return ('m', lw, alt) if e[0] == 'm' else ('f', alt, lw)
+
+
+def auteur_sugg(T, i, cand, dlg=False, pc=None):
+    """Forme que demande le réglage pour `cand` placé en T[i] (T = tokens où se lit le cadre), ou None."""
+    if AUTEUR is None or dlg or not cand: return None
+    c = _je_cadre(T, i)
+    if c is None: return None
+    if pc is not None:
+        for q in range(c['j'] + 1, i + 1):
+            if q < len(pc) and pc[q]: return None   # ponctuation de l'auteur entre « je » et le mot : pas le même groupe
+    G = _je_genre(cand)
+    if G is None or G[0] == AUTEUR: return None
+    b = deacc(G[1]); pp = _pp_base(G[1]) is not None or b in _IRR_PP
+    tg = None
+    nx = i + 1 < len(T) and bool(_JE_ELID.match(T[i+1].lower().replace(u'\u2019', "'")))
+    if c['refl']:
+        if b in _JE_COI or b in _PP_COD_STOP: return None
+        tg = pos_tags(T)
+        if not nx and tg and i + 1 < len(tg) and tg[i+1] in ('NOUN', 'DET', 'PROPN'): return None
+    if i + 1 < len(T) and deacc(T[i+1].lower()) in VERB_LEX and b in _JE_PERC: return None
+    if not pp:
+        if tg is None: tg = pos_tags(T)
+        if not nx and tg and i + 1 < len(tg) and tg[i+1] in ('NOUN', 'PROPN'): return None
+    return _keepcase(cand, G[2] if AUTEUR == 'f' else G[1])
+
+
+def _dialogue_toks(text):
+    """Par token : (dans un dialogue — guillemets ou ligne qui commence par un tiret —, ponctuation dans l'espace qui le précède)."""
+    dlg, pc = [], []
+    prev = 0; guil = 0; dq = False; ligne = False; debut = True
+    for m in _TOK_DLG.finditer(text):
+        gap = text[prev:m.start()]
+        for ch in gap:
+            if ch == '\n':
+                ligne = False; debut = True; continue
+            if debut and ch in u'—–-':
+                ligne = True; debut = False; continue
+            if not ch.isspace(): debut = False
+            if ch == u'«': guil += 1
+            elif ch == u'»':
+                if guil > 0: guil -= 1
+            elif ch == u'“': dq = True
+            elif ch == u'”': dq = False
+            elif ch == '"': dq = not dq
+        dlg.append(guil > 0 or dq or ligne); pc.append(bool(_JE_PC.search(gap)))
+        debut = False; prev = m.end()
+    return dlg, pc
+
+
 _EPI_ART = {'le': 's', 'la': 's', 'les': 'p', 'un': 's', 'une': 's', 'des': 'p',
             'ce': 's', 'cet': 's', 'cette': 's', 'ces': 'p', 'du': 's'}   # articles à NOMBRE net (possessifs exclus : « leur » ambigu → FP mesuré)
 _COLOR_ADJ = {'bleu', 'vert', 'gris', 'blanc', 'noir', 'brun', 'violet', 'jaune', 'rouge', 'rose',

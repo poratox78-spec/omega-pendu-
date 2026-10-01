@@ -188,6 +188,25 @@ def pyramide(txt):
                         if nm == u'a/à' and j < len(out) and out[j] != Tc[j] and Tc[j].lower().endswith('er') and out[j].lower().endswith(u'é'):
                             orange.setdefault(j, []).append(out[j]); out[j] = Tc[j]
                     break
+    # ⭐ 01/10/2026 — GENRE DE LA PERSONNE QUI ÉCRIT (réglage ; miroir de auteurPasse) : une marque déjà posée dans le cadre « je + être »
+    # prend le genre du réglage (orange, plus appliquée) ; un mot juste en soi mais au genre contraire reçoit une orange. Sans réglage : rien.
+    if CP.AUTEUR:
+        dlg, pc = CP._dialogue_toks(txt)
+        for i in range(1, len(Tc)):
+            if out[i] != T[i]: cand, applique = out[i], True
+            elif orange.get(i):
+                if not _mot(orange[i][0]): continue
+                cand, applique = orange[i][0], False
+            elif i in signale: continue
+            else: cand, applique = T[i], False
+            s = CP.auteur_sugg(Tc, i, cand, i < len(dlg) and dlg[i], pc)
+            if not s or s.lower() == cand.lower(): continue
+            if applique:
+                out[i] = T[i]; orange[i] = [s] + [x for x in orange.get(i, []) if x != s]
+            elif orange.get(i):
+                orange[i] = [s] + [x for x in orange[i] if x != s]
+            elif s.lower() != T[i].lower():
+                orange[i] = [s]
     return T, out, Tc, orange, signale
 
 

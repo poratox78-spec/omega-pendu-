@@ -307,6 +307,7 @@
      que »… La règle SAIT de quoi elle parle : quand son nom a une leçon, c'est elle qu'on donne. */
   var _RTIP={
     'nom féminin en -ée':function(e,a){return '« '+a+' » est ici un NOM féminin : il finit par un « e » qui ne s’entend pas (la fumée, l’arrivée).';},
+    'genre de la personne qui écrit':function(e,a){return 'Avec « je », le participe ou l’adjectif s’accorde avec la personne qui écrit : « '+a+' » suit ton réglage « J’écris au féminin / au masculin ».';},
     'vingt/cent':function(e,a){return /^vingt/i.test(String(a||''))?'« vingt » prend un -s dans « quatre-vingts » quand aucun autre nombre ne le suit (quatre-vingts ans, mais quatre-vingt-deux ans).':'« cent » prend un -s quand il est multiplié et qu’aucun autre nombre ne le suit (deux cents euros, mais deux cent trois euros).';},
     'sujet je':function(){return 'le verbe « être » à la 1re personne (suis, serai, fus) va avec le sujet « je ».';},
     'du/de':function(){return '« du », c’est déjà « de le » : devant « la » ou « l’ », on écrit « de » (de la ferme, de l’école).';},
@@ -380,7 +381,7 @@
     'nombre du déterminant à vérifier':'accord','accord tout':'accord','vingt/cent':'accord',
     'élision':'segmentation','élision fusionnée':'segmentation','élision inversée':'segmentation',"qu'il (élision)":'segmentation','négation':'segmentation',
     'quel que soit':'segmentation','davantage':'segmentation','impératif (pronom)':'segmentation',
-    'nom féminin en -ée':'muette','accent (âge)':'accent','aux mal orthographié':'surface'
+    'nom féminin en -ée':'muette','accent (âge)':'accent','aux mal orthographié':'surface','genre de la personne qui écrit':'participe'
   };
   function _famRegle(n,sg){var t=_REGLE_FAM[n];if(t==='personne'&&n==='sais/sait'&&/^s['’]est$/i.test(String(sg||'')))t='homophone_gram';return t||null;}   // « il sait trompé » → s'est : un homophone, pas une personne
   // le conseil d'une faute : la leçon de SA règle quand elle en a une, sinon celle de sa famille ; sans mot en jeu (profil de session) → règle générale
@@ -2949,6 +2950,62 @@ function estQuestion(t,maxMots){
     else{var subj=_npSubject(T,tg,a);if(!subj)return null;num=subj.n;gender=subj.g;if(gender==='?'){if(!epi)return null;gender='m';}}
     if(num!==auxNum)return null;
     var sugg=_adjAgree(w,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
+  /* ⭐ 01/10/2026 — GENRE DE LA PERSONNE QUI ÉCRIT (réglage facultatif, décidé par Rem ; revue : dictee/LITTERATURE_GENRE_ET_SENS.md).
+     « je suis allé / allée », « je me suis trompé / trompée », « je suis content / contente » : le genre de « je » n'est pas dans le
+     texte. Sans réglage (« je ne précise pas », le défaut), le moteur garde le genre écrit et se tait. Réglé (« j'écris au féminin /
+     au masculin »), le mot prend le genre du réglage, TOUJOURS en orange : l'information vient du réglage, pas du texte — un dialogue,
+     une dictée, un texte écrit pour quelqu'un d'autre font parler un autre « je ». Portée stricte : « je (ne) (me) + être » juste avant
+     le mot ; rien entre guillemets ni sur une ligne de dialogue ; « je me suis » + verbe où « me » est complément INDIRECT (demandé,
+     dit, permis, plu…), suivi d'un complément d'objet (« coupé le doigt ») ou d'un infinitif → rien ; adjectif suivi d'un nom → rien.
+     Miroir Python : correcteur_probe.auteur_sugg + dys_pipeline_probe.pyramide. */
+  var _AUTEUR=null;function setAuteur(g){_AUTEUR=(g==='f'||g==='m')?g:null;}function getAuteur(){return _AUTEUR;}
+  var _JE_AUX={suis:1,serai:1,serais:1,fus:1,sois:1,etais:1};
+  var _JE_ADJ_OK={seul:1,seule:1,certain:1,certaine:1,grand:1,grande:1};   // attributs courants après « je suis », écartés ailleurs par ADJ_STOP pour d'autres raisons
+  var _JE_MID={};'ne pas plus jamais tres bien mal fort toujours deja vraiment tellement si trop assez enfin encore aussi souvent presque completement vite'.split(' ').forEach(function(w){_JE_MID[w]=1;});
+  var _JE_COI={};'demande dit permis promis plu deplu complu parle souri ri menti nui succede ressemble telephone suffi jure souhaite reproche accorde achete offert propose donne imagine figure fait laisse vu entendu senti regarde ecoute rendu ecrit envoye'.split(' ').forEach(function(w){_JE_COI[w]=1;});
+  function _jeCadre(T,i){var k=i-1,n=0;while(k>=0&&n<3&&_JE_MID[deacc(T[k].toLowerCase())]){k--;n++;}if(k<0)return null;
+    var a=deacc(T[k].toLowerCase());
+    if(a==="j'etais")return {refl:false,j:k};
+    if(a==='ete'){var k2=k-1;while(k2>=0&&_JE_MID[deacc(T[k2].toLowerCase())])k2--;if(k2<0)return null;var a2=deacc(T[k2].toLowerCase());
+      if(/^j'(ai|avais|aurai|aurais)$/.test(a2))return {refl:false,j:k2};
+      if(k2>=1&&/^n'(ai|avais|aurai|aurais)$/.test(a2)&&deacc(T[k2-1].toLowerCase())==='je')return {refl:false,j:k2-1};return null;}
+    var refl=(a==="m'etais");if(!refl&&!_JE_AUX[a]&&a!=="n'etais")return null;
+    var j=k-1;if(!refl&&a!=="n'etais"&&j>=0&&deacc(T[j].toLowerCase())==='me'){refl=true;j--;}
+    if(a!=="n'etais"&&j>=0&&deacc(T[j].toLowerCase())==='ne')j--;
+    return (j>=0&&deacc(T[j].toLowerCase())==='je')?{refl:refl,j:j}:null;}
+  function _jeGenre(w){var lw=String(w).toLowerCase();if(lw.indexOf("'")>=0)return null;var d=deacc(lw);if(d==='du'||d==='ete'||_JE_MID[lw])return null;   /* adverbe (mal, fort, bien…) : jamais le mot accordé ; forme ÉCRITE (« né » n'est pas « ne ») */
+    var b=_ppBase(w);if(b===null&&IRR_PP[d]!==undefined)b=IRR_PP[d];
+    if(b!==null){var bl=String(b).toLowerCase();if(lw===bl)return ['m',bl,bl+'e'];if(lw===bl+'e')return ['f',bl,bl+'e'];return null;}
+    if(lw==='sûr'||lw==='sûre')return [lw==='sûr'?'m':'f','sûr','sûre'];   // « sûr » ACCENTUÉ = l'adjectif ; « sur » sans accent (la préposition) reste exclu
+    var e=ADJP[d];if(!e||(e[0]!=='m'&&e[0]!=='f')||(ADJ_STOP[d]&&!_JE_ADJ_OK[d])||_INVAR_COLOR[d])return null;var alt=String(e[1]).toLowerCase();if(deacc(alt)===d)return null;
+    return e[0]==='m'?['m',lw,alt]:['f',alt,lw];}
+  function auteurSugg(T,i,cand,dlg,pc){if(!_AUTEUR||dlg||typeof cand!=='string'||!cand)return null;var c=_jeCadre(T,i);if(!c)return null;
+    if(pc)for(var q=c.j+1;q<=i;q++)if(pc[q])return null;   // ponctuation de l'auteur entre « je » et le mot : pas le même groupe (« le « je suis » fondamental »)
+    var G=_jeGenre(cand);if(!G||G[0]===_AUTEUR)return null;var b=deacc(G[1]),pp=(_ppBase(G[1])!==null||IRR_PP[b]!==undefined),tg=null;
+    var nx=(i+1<T.length&&/^(j|c|qu|n|s|m|t|d|jusqu|lorsqu|puisqu)'/.test(T[i+1].toLowerCase()))?1:0;   // « j'ai », « c'est », « d'elle » après le mot = une autre proposition ou un complément indirect, jamais un complément d'objet (l' reste un déterminant)
+    if(c.refl){if(_JE_COI[b]||PP_COD_STOP[b])return null;tg=posTags(T);if(!nx&&tg&&i+1<tg.length&&(tg[i+1]==='NOUN'||tg[i+1]==='DET'||tg[i+1]==='PROPN'))return null;}
+    if(i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())]&&/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(b))return null;
+    if(!pp){if(!tg)tg=posTags(T);if(!nx&&tg&&i+1<tg.length&&(tg[i+1]==='NOUN'||tg[i+1]==='PROPN'))return null;}
+    return ckeepcase(cand,_AUTEUR==='f'?G[2]:G[1]);}
+  function _dialogueToks(text){var out=[],pc=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,guil=0,dq=false,ligne=false,debut=true,q,ch;
+    while((m=re.exec(text))){var gap=text.slice(prev,m.index);
+      for(q=0;q<gap.length;q++){ch=gap.charAt(q);
+        if(ch==='\n'){ligne=false;debut=true;continue;}
+        if(debut&&(ch==='—'||ch==='–'||ch==='-')){ligne=true;debut=false;continue;}
+        if(!/\s/.test(ch))debut=false;
+        if(ch==='«')guil++;else if(ch==='»'){if(guil>0)guil--;}else if(ch==='“')dq=true;else if(ch==='”')dq=false;else if(ch==='"')dq=!dq;}
+      out.push(guil>0||dq||ligne);pc.push(/[,;:()«»"“”–—.!?…]/.test(gap));debut=false;prev=m.index+m[0].length;}
+    return {dlg:out,pc:pc};}
+  // passe finale (diagnoseAll / _computeCorrs) : une marque déjà posée dans le cadre prend le genre du réglage (orange) ; un mot juste en
+  // soi mais au genre contraire reçoit une marque orange. Sans réglage : la liste revient telle quelle.
+  function auteurPasse(list,T,Tc,text){if(!_AUTEUR)return list;var dq=_dialogueToks(text),dlg=dq.dlg,par={},cov={},aj=[],i,f,c,cand,s;
+    list.forEach(function(x){if(typeof x.i!=='number')return;par[x.i]=x;if(x.span&&x.span>1)for(c=1;c<x.span;c++)cov[x.i+c]=1;});
+    for(i=1;i<Tc.length;i++){if(cov[i])continue;f=par[i];if(f&&((f.span&&f.span>1)||typeof f.sugg!=='string'||!/^[A-Za-zÀ-ÿœŒ']+$/.test(f.sugg)))continue;
+      cand=f?f.sugg:T[i];s=auteurSugg(Tc,i,cand,!!dlg[i],dq.pc);if(!s||s.toLowerCase()===String(cand).toLowerCase())continue;
+      if(f){f.sugg=s;f.tier='vigilance';f.auteur=_AUTEUR;}
+      else if(s.toLowerCase()!==String(T[i]).toLowerCase())aj.push({i:i,word:T[i],sugg:s,name:'genre de la personne qui écrit',tier:'vigilance',auteur:_AUTEUR,src:'g'});}
+    return aj.length?list.concat(aj).sort(function(x,y){return x.i-y.i;}):list;}
+  function _auteurHint(f){return 'Tu as indiqué écrire au '+(f.auteur==='f'?'féminin':'masculin')+' : avec « je », ce mot s’accorde avec toi → « '+f.sugg+' ». Si ce « je » est quelqu’un d’autre (un dialogue, une dictée), garde le mot.';}
   // Accord de l'ADJECTIF ÉPITHÈTE ([article + nom genre connu + adj]) — MIROIR rule_adj_epithet (parité). FP=0 très gardé.
   var _EPI_ART={le:'s',la:'s',les:'p',un:'s',une:'s',des:'p',ce:'s',cet:'s',cette:'s',ces:'p',du:'s'};
   var _COLOR_ADJ={bleu:1,vert:1,gris:1,blanc:1,noir:1,brun:1,violet:1,jaune:1,rouge:1,rose:1,orange:1,marron:1,roux:1,blond:1,pourpre:1,mauve:1,beige:1,fauve:1};   // couleur composée/dérivée = INVARIABLE
@@ -4833,7 +4890,7 @@ function spellUnknown(tok,atStart,T,idx){
     var pk=km[2]==='er'?'mordre':km[2]==='ez'?'mordez':'mordu',a=Math.max(0,i-2),b=Math.min(T.length,i+3),w=T.slice(a,b);w[i-a]=pk;
     var me=km[2]==='er'?('infinitif « '+sg+' » (-er)'):km[2]==='ez'?('« '+sg+' » (-ez, vous)'):('participe « '+sg+' » (-'+km[2]+')'),oth=km[2]==='er'?('participe « '+km[1]+'é » (-é)'):('infinitif « '+km[1]+'er » (-er)');
     return 'Astuce : remplace par « '+pk+' ». « '+(a>0?'…':'')+w.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+me+' · non → '+oth+'.';}
-  function ctxHint(f,T){var i=f.i;if(typeof i!=='number'||!T||i>=T.length)return '';
+  function ctxHint(f,T){var i=f.i;if(typeof i!=='number'||!T||i>=T.length)return '';if(f.auteur)return _auteurHint(f);
     var h=_HPROBE[f.name];if(!h){var eh=_erHint(f,T,i);if(eh)return eh;}
     if(h){var a=Math.max(0,i-2),b=Math.min(T.length,i+3),win=T.slice(a,b);win[i-a]=h[0];
       return 'Astuce : remplace par « '+h[0]+' ». « '+(a>0?'…':'')+win.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
@@ -5077,6 +5134,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
           _SEG=_segSp;_o=vigAt(_Tv,f.i,{tg:_tv},null);}catch(e){_o=null;}
       if(_o&&typeof _o.sugg==='string'&&(_o.span==null||_o.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_o.sugg)&&_o.sugg.toLowerCase()!==f.sugg.toLowerCase()){f.sugg=_o.sugg;f.tier='vigilance';f.chaine=_o.name;}});
     _SEG=_segMain;
+    flags=auteurPasse(flags,_T,_Tc,text);   // ⭐ 01/10/2026 : genre de la personne qui écrit (réglage ; sans réglage, rien ne change)
     var _Tt=toks(text);flags.forEach(function(f){var hh=ctxHint(f,_Tt);if(hh)f.hint=hh;});   // hint contextuel par correction (affiché AU CLIC dans content.js)
     var rem=remedFams(flagsToFacts(flags));
     var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts (aucun conseil de remédiation) ; ajoutée aux flags pour rendu+clic
@@ -5188,6 +5246,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, setPrenoms:setPrenoms, loadPrenoms:loadPrenoms, setGaccLex:setGaccLex, loadGaccLex:loadGaccLex, osProbe:osProbe, cesProbe:cesProbe,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
+    setAuteur:setAuteur, getAuteur:getAuteur,   // ⭐ 01/10/2026 : réglage « j'écris au féminin / au masculin » (panneau, chrome.storage.local)
     udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel,  // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
     // phonKey EXISTAIT depuis toujours mais n'était pas exposé — la clé phonétique du speller,
     // celle qui rapproche « aveunir » de « avenir ». Exportée pour le jeu « Double-Sens », qui
