@@ -4018,6 +4018,31 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
   function udHas(w){ var n=udNorm(w); return _UD.has(n)||_UD.has(deaccS(n)); }
   function udAdd(w){ var n=udNorm(w); if(!n)return false; _UD.add(n); return true; }
   function udDel(w){ _UD.delete(udNorm(w)); }
+  /* ⭐ 01/10/2026 — LE MOT QUE LE 📗 ENREGISTRE (« ce mot est correct : ne plus le signaler »), ou null si le dictionnaire n'y peut
+     rien. Le dictionnaire n'est lu qu'à deux endroits : spellTokenCore (famille « orthographe ») et spellUnknown (« mot inconnu »).
+     Mesuré sur les 14 450 phrases d'UD avec ce moteur, en rejouant le clic (udAdd, nouvelle analyse) :
+       · la bulle n'offrait le 📗 qu'aux familles « orthographe » et « élision » — jamais aux 866 « mot inconnu », le cas le plus
+         courant d'un pseudo, d'une marque ou d'un mot de métier écrit en minuscule ; et 71 de ses 506 📗 ne faisaient rien
+         (51 élisions comme « ne étais » → n'étais, 20 mots élidés) ;
+       · la règle du site (`_udEligible` d'app/omega-pendu.html : mot hors lexique, famille ni accord ni homophone ni conjugaison)
+         en laisse 95 sur 1 327 sans effet : 39 dans des familles où le dictionnaire ne joue pas (nombre, abréviation, négation,
+         trait d'union…), 56 sur un mot ÉLIDÉ (« l'aquathlon ») dont elle enregistre le token entier, alors que le moteur
+         consulte le RADICAL.
+     Ici : 1 283 📗, 0 sans effet (1 258 font taire le signalement ; 25 laissent parler une autre règle sur le même mot, un accord).
+     Donc : famille du dictionnaire seulement, radical d'un mot élidé (la découpe de spellToken), mot hors lexique et pas encore
+     ajouté. La bulle (content.js) lit CETTE fonction ; UI seule, aucun signalement ne change. Garde : extension/test_speller.js
+     (le geste rejoué en Node) et extension/navigateur_ext_probe.js ⑪ (dans Chrome). */
+  function udMot(f){
+    try{
+      if(!f||typeof f.word!=='string'||(f.name!=='orthographe'&&f.name!=='mot inconnu'))return null;
+      var w=f.word,em=w.match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),pk;
+      if(em&&((pk=em[1].toLowerCase()).length===1&&SELIDE[pk]||pk==='qu'))w=em[2];   // « l'aquathlon » : le moteur lit « aquathlon »
+      var low=udNorm(w);
+      if(!/^[a-zà-ÿ'-]{2,}$/.test(low))return null;
+      if(!SP.ready||SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;   // mot du lexique (ou lexique pas encore chargé) : rien à ajouter
+      return udHas(low)?null:low;                                              // déjà au dictionnaire : plus de 📗
+    }catch(e){return null;}
+  }
 
   // ===== TÉMOIN AUDIBLE (miroir app) : la lettre finale MUETTE s'ENTEND dans un mot de la MÊME
   // FAMILLE — grand/grandE, long/lonGUe, amoureux/amoureuSE. Table produite par
@@ -5189,6 +5214,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
     udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel,  // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
+    udMot:udMot,  // le mot que le 📗 « ce mot est correct » enregistre (radical d'un mot élidé), ou null — lu par la bulle et le panneau
     // phonKey EXISTAIT depuis toujours mais n'était pas exposé — la clé phonétique du speller,
     // celle qui rapproche « aveunir » de « avenir ». Exportée pour le jeu « Double-Sens », qui
     // s'en sert à l'ENVERS du correcteur : lui doit TROUVER le mot parmi 214 000 (donc FP=0 et

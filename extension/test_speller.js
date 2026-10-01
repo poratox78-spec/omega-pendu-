@@ -212,6 +212,32 @@ const majOn = DC.spellText('les choses sont belles', true).find(x => x.name === 
 if (!majOn || majOn.sugg !== 'Les' || majOn.tier !== 'vigilance') fail.push('majuscule (capital=true) « les »→« Les » attendu, eu ' + JSON.stringify(majOn));
 if (DC.spellText('les choses sont belles').some(x => x.name === 'majuscule initiale à vérifier')) fail.push('FP majuscule sans capital (doit être OFF par défaut = direct)');
 if (DC.spellText('Les choses sont belles', true).some(x => x.name === 'majuscule initiale à vérifier')) fail.push('FP majuscule sur début déjà capitalisé');
+// ⭐ 01/10/2026 — LE 📗 « CE MOT EST CORRECT » (DC.udMot, lu par la bulle et le panneau) : offert là où le dictionnaire fait TAIRE le
+// signalement, et seulement là. La bulle ne l'offrait qu'aux familles « orthographe » et « élision » : jamais à un « mot inconnu »
+// (« padel » : le cas courant d'un pseudo, d'une marque, d'un mot de métier), et sur une élision le clic ne faisait rien. Pour un mot
+// ÉLIDÉ, le moteur consulte le RADICAL : enregistrer « l'airbnb » ne servait à rien. On rejoue le geste de la bulle — udAdd(udMot(f)),
+// nouvelle analyse — et plus aucun signalement d'orthographe ne doit rester sur le mot. Phrases INVENTÉES, vérifiées hors gold.
+{
+  const surMot = (t, w) => (DC.diagnoseAll(t).flags || []).filter(x => x.word === w);
+  for (const [t, w, cle] of [['mon frère joue au padel avec ses amis', 'padel', 'padel'], ["on a réservé l'airbnb pour les vacances", "l'airbnb", 'airbnb'],
+                             ["elle prend l'uber pour rentrer", "l'uber", 'uber']]) {
+    const f = surMot(t, w)[0], m = f ? DC.udMot(f) : undefined;
+    if (m !== cle) { fail.push('📗 : « ' + w + ' » ' + JSON.stringify(f && [f.name, f.tier]) + ' doit enregistrer « ' + cle + ' », udMot rend ' + JSON.stringify(m)); continue; }
+    DC.udAdd(m);
+    const reste = surMot(t, w).filter(x => x.name === 'orthographe' || x.name === 'mot inconnu'), encore = DC.udMot(f);
+    DC.udDel(m);
+    if (reste.length) fail.push('📗 : après le clic, « ' + w + ' » est encore signalé ' + JSON.stringify(reste.map(x => x.name + '→' + x.sugg)) + ' — le dictionnaire ne le fait pas taire');
+    if (encore !== null) fail.push('📗 : « ' + w + ' », déjà au dictionnaire, garde son 📗 (udMot rend ' + JSON.stringify(encore) + ')');
+  }
+  const RIEN = 'le dictionnaire n\'y peut rien, le clic ne ferait rien';
+  for (const [t, w, pourquoi] of [['Mr Durand arrive demain', 'Mr', 'abréviation : ' + RIEN], ['je ne étais pas là hier', 'ne étais', 'élision : ' + RIEN],
+                                  ['les chien aboient', 'chien', 'le mot existe, c\'est l\'accord qui est signalé : ' + RIEN],
+                                  ['mon coeur bat très vite', 'coeur', 'mot du lexique : le 📗 est pour les mots que le lexique ne connaît pas (prénom, lieu, jargon), comme sur le site']]) {
+    const f = surMot(t, w)[0];
+    if (!f) { fail.push('📗 (instrument) : « ' + t + ' » ne signale plus « ' + w + ' » — choisir un autre exemple (' + pourquoi.split(' :')[0] + ')'); continue; }
+    if (DC.udMot(f) !== null) fail.push('📗 offert sur « ' + w + ' » [' + f.name + '] — ' + pourquoi);
+  }
+}
 
 // ---- (B) parité directe dys-core ⊆ app.spellText sur batterie orthographique (contexte neutre) ----
 let parityKO = 0;
@@ -295,6 +321,6 @@ function finish(parityKO) {
 function conclure(parityKO) {
   if (fail.length) { console.error('✗ ÉCHEC (comportement) :\n  ' + fail.join('\n  ')); process.exit(1); }
   if (parityKO) { console.error('✗ PARITÉ KO : ' + parityKO + ' input(s) où ext ≠ app'); process.exit(1); }
-  console.log('✓ OK : speller extension — AUTO FP=0, hybride (fote→faute, premiere→premier), accent-POS (élève/élevé), élision, repli phonétique bâti en tâche de fond, ET parité directe ext ≡ app.');
+  console.log('✓ OK : speller extension — AUTO FP=0, hybride (fote→faute, premiere→premier), accent-POS (élève/élevé), élision, 📗 du dictionnaire (offert là où il fait taire le signalement), repli phonétique bâti en tâche de fond, ET parité directe ext ≡ app.');
   process.exit(0);
 }
