@@ -585,6 +585,51 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     }
     await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // on rend l'état : les gardes suivantes ne l'attendent pas
 
+    /* ⑫ LE 📗 DU PANNEAU ET « 📗 MES MOTS » (01/10/2026). Le panneau ne faisait que LIRE `vdc_userdict` : sans la bulle (éteinte par
+       défaut), personne ne pouvait ajouter un mot ; et nulle part on ne pouvait en RETIRER un — un 📗 cliqué par erreur sur une
+       vraie faute la cachait pour toujours. Le geste complet, dans la page du panneau : taper, cliquer 📗, relire le stockage et
+       « Mes mots », retirer par ✕, relire encore : le mot doit revenir signalé, avec son 📗. */
+    const MOT12 = "l'uber", CLE12 = 'uber', TXT12 = "elle prend l'uber pour rentrer";   // phrase INVENTÉE, vérifiée hors gold — [orthographe · à vérifier] ; le 📗 enregistre le RADICAL
+    await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // départ propre
+    const v12 = await evalue(pp, '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+      + ' const until = async (f, ms) => { const t0 = Date.now(); for (;;) { let v = null; try { v = await f(); } catch (e) {} if (v) return v; if (Date.now() - t0 > ms) return null; await w(150); } };'
+      + ' const stock = () => new Promise(r => chrome.storage.local.get("vdc_userdict", (o) => r((o && o.vdc_userdict) || [])));'
+      + ' const ta = document.getElementById("omdys-ta"), st = document.getElementById("omdys-st"); if (!ta) return { fatal: "zone omdys-ta introuvable" };'
+      + ' if (!(await until(() => st && /pr[êe]t/i.test(st.textContent || ""), 30000))) return { fatal: "le panneau ne se dit jamais prêt" };'
+      + ' const mir = document.getElementById("omdys-mirror"); if (mir && mir.checked) { mir.checked = false; mir.dispatchEvent(new Event("change", { bubbles: true })); }'
+      + ' const item = () => [...document.querySelectorAll("#omdys-corr .item")].find((e) => (e.textContent || "").indexOf(' + JSON.stringify('« ' + MOT12 + ' »') + ') === 0) || null;'
+      + ' const mots = () => { const d = document.getElementById("omdys-mots"); return d ? { visible: !d.hidden, liste: [...d.querySelectorAll(".mot")].map((m) => (m.firstChild && m.firstChild.textContent) || "") } : null; };'
+      + ' ta.focus(); ta.value = ' + JSON.stringify(TXT12) + '; ta.dispatchEvent(new Event("input", { bubbles: true }));'
+      + ' const it = await until(item, 20000); if (!it) return { fatal: "aucune ligne « ' + MOT12 + ' » dans le panneau" };'
+      + ' const out = { ud: !!it.querySelector(".ud"), mots0: mots() }; if (!out.ud) return out;'
+      + ' it.querySelector(".ud").click();'
+      + ' out.stock1 = await until(async () => { const s = await stock(); return s.length ? s : null; }, 5000);'
+      + ' out.parti = !!(await until(() => !item(), 5000)); out.mots1 = mots();'
+      + ' const x = [...document.querySelectorAll("#omdys-mots .mot")].find((m) => m.firstChild && m.firstChild.textContent === ' + JSON.stringify(CLE12) + ');'
+      + ' const bx = x && x.querySelector(".motx"); out.x = !!bx; if (!bx) return out; bx.click();'
+      + ' out.stock2 = await until(async () => { const s = await stock(); return s.indexOf(' + JSON.stringify(CLE12) + ') < 0 ? s : null; }, 5000);'
+      + ' out.revenu = !!(await until(() => { const i = item(); return i && i.querySelector(".ud") ? i : null; }, 5000)); out.mots2 = mots();'
+      + ' return out; })()');
+    await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // on rend l'état
+    {
+      const c = [];   // chaque défaut NOMMÉ
+      if (v12.fatal) c.push('INSTRUMENT : ' + v12.fatal);
+      else if (!v12.ud) c.push('le panneau n\'offre pas de 📗 à « ' + MOT12 + ' » : sidepanel.js ne lit pas DYSCORE.udMot');
+      else {
+        if (!(v12.stock1 && v12.stock1.indexOf(CLE12) >= 0)) c.push('vdc_userdict n\'a pas « ' + CLE12 + ' » après le 📗 (eu ' + JSON.stringify(v12.stock1) + ')');
+        if (!v12.parti) c.push('le panneau le signale encore après le 📗');
+        if (!(v12.mots1 && v12.mots1.visible && v12.mots1.liste.indexOf(CLE12) >= 0)) c.push('« Mes mots » ne montre pas « ' + CLE12 + ' » (eu ' + JSON.stringify(v12.mots1) + ')');
+        if (!v12.x) c.push('pas de ✕ pour « ' + CLE12 + ' » dans « Mes mots »');
+        else {
+          if (!v12.stock2) c.push('✕ ne retire pas « ' + CLE12 + ' » du stockage');
+          if (!v12.revenu) c.push('après ✕, « ' + MOT12 + ' » n\'est pas de nouveau signalé avec son 📗');
+          if (v12.mots2 && v12.mots2.visible) c.push('« Mes mots » reste affiché alors que le dictionnaire est vide');
+        }
+      }
+      garde(!c.length, '⑫ 📗 du PANNEAU + Mes mots ✕', v12.fatal ? v12.fatal : ('📗 ' + (v12.ud ? 'offert' : 'ABSENT') + (v12.ud ? ' · vdc_userdict=' + JSON.stringify(v12.stock1) + ' · Mes mots=' + JSON.stringify(v12.mots1 && v12.mots1.liste) + ' · ✕ → ' + JSON.stringify(v12.stock2) + ' · ' + (v12.revenu ? 'de nouveau signalé' : 'PAS revenu') : '')),
+        'couverture ⑫ : panneau, « ' + MOT12 + ' » → ' + c.join(' ; '));
+    }
+
     // CONTRÔLE de ⑦ : SW tué, panneau OUVERT → la bulle doit apparaître
     const mortC = await tuerSW();
     const sC = await taperDans('/', 'document.getElementById("z")', false);

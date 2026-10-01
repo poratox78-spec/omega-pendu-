@@ -482,7 +482,7 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
 //   a) chaque libellé cité (class="ui" data-src) existe TEL QUEL dans le fichier nommé ;
 //   b) chaque commande du panneau (bouton, case, liste, volet, lien ou zone à id omdys-…) est expliquée (data-cmd), et aucune data-cmd
 //      ne vise une commande disparue ;
-//   c) les exemples sont de VRAIES sorties du moteur de l'extension : mot, suggestion, famille, palier, 💡, remède, texte corrigé, vigilance ;
+//   c) les exemples sont de VRAIES sorties du moteur de l'extension : mot, suggestion, famille, palier, 💡, 📗, remède, texte corrigé, vigilance ;
 //   d) le bloc CSS « copie exacte » est celui du panneau, ligne pour ligne, et chaque ancre du sommaire mène quelque part.
 {
   const AIDE = path.join(EXT, 'aide.html');
@@ -533,7 +533,7 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
       for (const x of ed) { if (x[0] < last) continue; out += t.slice(last, x[0]) + x[2]; last = x[1]; }
       return out + t.slice(last);
     };
-    const n9 = { item: 0, out: 0, remed: 0, vig: 0 };
+    const n9 = { item: 0, out: 0, remed: 0, vig: 0, ud: 0 };
     for (const m of corps.matchAll(/<div class="(item [a-z ]+|out|remed|vig)"([^>]*)>/g)) {
       const cls = m[1], tag = m[0], phrase = attr(tag, 'data-phrase'), inner = blocDiv(corps, m.index + tag.length);
       if (!phrase || inner == null) { fail('mode d’emploi : exemple .' + cls.split(' ')[0] + ' sans data-phrase ou mal fermé'); continue; }
@@ -554,6 +554,9 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
         if (etat && sans.indexOf(etat) < 0) fail('mode d’emploi : l’exemple « ' + mot + ' » n’a pas la mention « ' + etat + ' » du panneau');
         if (!etat && /appliqué|annulé/.test(sans)) fail('mode d’emploi : l’exemple orange « ' + mot + ' » porte une mention d’application que le panneau ne met pas');
         if (!!f.hint !== /class="why"/.test(inner)) fail('mode d’emploi : l’exemple « ' + mot + ' » ' + (f.hint ? 'n’a pas le 💡 que le panneau afficherait' : 'a un 💡 que le panneau n’afficherait pas'));
+        const ud9 = !!(D.udMot && D.udMot(f));   // 📗 (01/10/2026) : le panneau l'affiche là où DYSCORE.udMot rend un mot
+        if (ud9 !== /class="ud"/.test(inner)) fail('mode d’emploi : l’exemple « ' + mot + ' » ' + (ud9 ? 'n’a pas le 📗 que le panneau afficherait' : 'a un 📗 que le panneau n’afficherait pas'));
+        if (ud9 && /class="ud"/.test(inner)) n9.ud++;   // compté s'il est MONTRÉ (et dû), pas seulement dû
         if (astuce && sp9(txt9(astuce[1])) !== sp9(f.hint || '')) fail('mode d’emploi : le 💡 de « ' + mot + ' » dit « ' + sp9(txt9(astuce[1])) + ' », le moteur dit « ' + (f.hint || '') + ' »');
       } else if (cls === 'out') {
         n9.out++;
@@ -574,6 +577,7 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
       }
     }
     if (n9.item < 3 || !n9.out || !n9.remed || !n9.vig) fail('mode d’emploi : exemples trop maigres (' + JSON.stringify(n9) + ') — la lecture est cassée ou des exemples ont disparu');
+    if (!n9.ud) fail('mode d’emploi : aucun exemple ne montre le 📗 du panneau (« ce mot est correct ») — sans la bulle, c’est la seule façon d’ajouter un mot');
 
     // d) le CSS recopié est celui du panneau, et le sommaire mène quelque part
     const bloc = /⇣⇣ COPIE EXACTE[^\n]*\n([\s\S]*?)\n[^\n]*⇡⇡ fin de la copie exacte/.exec(aide);
@@ -585,7 +589,7 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
       if (lignesCss.length < 15) fail('mode d’emploi : bloc CSS recopié trop court (' + lignesCss.length + ' lignes)');
     }
     for (const m of corps.matchAll(/href="#([^"]+)"/g)) if (corps.indexOf('id="' + m[1] + '"') < 0) fail('mode d’emploi : le sommaire mène à #' + m[1] + ', qui n’existe pas');
-    console.log('  ✓ mode d’emploi : ' + nUi + ' libellés cités existent, ' + ids.size + ' commandes du panneau expliquées, exemples = moteur (' + n9.item + ' corrections, texte corrigé, remède, vigilance), CSS du panneau');
+    console.log('  ✓ mode d’emploi : ' + nUi + ' libellés cités existent, ' + ids.size + ' commandes du panneau expliquées, exemples = moteur (' + n9.item + ' corrections dont ' + n9.ud + ' avec 📗, texte corrigé, remède, vigilance), CSS du panneau');
   }
 }
 
