@@ -84,6 +84,14 @@ DOMINANCE = 5.0                               # rapport freq top/2e pour qu'un c
 # consommateur existant ne change de comportement sans le demander).
 SPELL_KEEP = set('the and of with is are was were this that from they you your its new world er'.split())
 
+_INIT_CONF = ('aeiouy', 'bdpq', 'cskq', 'gj', 'fv', 'mn', 'td')   # ⭐ 30/09/2026 : confusions d'initiale admises pour la dominance de fréquence — miroir JS _INIT_CONF
+
+
+def _init_conf(w, d):
+    a, b = w[:1], d[:1]
+    return a == b or any(a in g and b in g for g in _INIT_CONF)
+
+
 def deacc(s):
     s = s.replace('œ', 'oe').replace('Œ', 'OE').replace('æ', 'ae').replace('Æ', 'AE')
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
@@ -794,8 +802,8 @@ class Speller:
                 # Un rival ≫20× plus fréquent (accord) écrase le phon-match d'un junk rare (accort) → restaure la finale muette -d.
                 # ⭐ 30/09/2026 : un rival qui n'est que le mot écrit AMPUTÉ de sa première lettre n'écrase pas un homophone (« aprise » :
                 # « prise » écrasait « apprise ») ; la version large (garder l'initiale) coûtait evec → avec, gours → jours — miroir JS
-                if phx > phy and py_ >= 1 and fy >= 20 * fx and deacc(wy) != d[1:]: return 1
-                if phy > phx and px_ >= 1 and fx >= 20 * fy and deacc(wx) != d[1:]: return -1
+                if phx > phy and py_ >= 1 and fy >= 20 * fx and deacc(wy) != d[1:] and (_init_conf(deacc(wy), d) or fx < 1): return 1
+                if phy > phx and px_ >= 1 and fx >= 20 * fy and deacc(wx) != d[1:] and (_init_conf(deacc(wx), d) or fy < 1): return -1   # ⭐ 30/09/2026 : initiale changée pour une CONFUSION connue seulement (« polution » : pollution, plus solution) — miroir JS
                 return phy - phx
             nx, ny = nmatch(wx), nmatch(wy)
             if nx != ny: return ny - nx
