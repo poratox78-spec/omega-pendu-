@@ -32,6 +32,11 @@
 
   try { chrome.storage && chrome.storage.local.get(['enabled'], function (o) { if (o && typeof o.enabled === 'boolean') CFG.enabled = o.enabled; }); } catch (e) {}
   try { chrome.storage && chrome.storage.onChanged && chrome.storage.onChanged.addListener(function (ch) { if (ch.enabled) { CFG.enabled = ch.enabled.newValue; if (!CFG.enabled) hideBar(); else schedule(active); } }); } catch (e) {}
+  // ⭐ 01/10/2026 — réglage « J'écris au féminin / au masculin » du panneau (chrome.storage.local) : la bulle accorde comme le panneau.
+  try { chrome.storage && chrome.storage.local.get(['omGenre'], function (o) { try { if (DC.setAuteur) DC.setAuteur((o && o.omGenre) || null); } catch (e) {} }); } catch (e) {}
+  try { chrome.storage && chrome.storage.onChanged && chrome.storage.onChanged.addListener(function (ch, area) {
+    if (area !== 'local' || !ch.omGenre) return; try { if (DC.setAuteur) DC.setAuteur(ch.omGenre.newValue || null); } catch (e) {}
+    if (CFG.enabled && active) schedule(active); }); } catch (e) {}
 
   // charge les lexiques depuis les assets de l'extension (fetch + DecompressionStream, comme l'app)
   try {

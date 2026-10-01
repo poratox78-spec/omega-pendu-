@@ -656,6 +656,64 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (bad.length || !ok) { console.log('PARITÉ KO — déterminant écrit avec é : ' + JSON.stringify(m)); process.exit(1); }
   console.log('  ✓ déterminant écrit avec é : « lé enfants » → les (orange), plus d’« enfant » rouge'); }
 
+// ⭐ 01/10/2026 — RÉGLAGE « J'ÉCRIS AU FÉMININ / AU MASCULIN » (genre de la personne qui écrit, décidé par Rem). Sans réglage : aucune marque
+// « auteur ». Réglé : le mot du cadre « je (ne) (me) + être » prend le genre du réglage, en ORANGE ; silences voulus (« je me suis
+// demandé », complément d'objet après, guillemets, dialogue, adjectif suivi d'un nom, factitif, adverbe, ponctuation entre « je » et le mot).
+// Attentes sur le PRODUIT (diagnoseAll) + PARITÉ avec la référence Python (dys_pipeline_probe.pyramide, positions changées par le réglage).
+{ const CAS = [   // [phrase, marques « auteur » attendues au féminin, au masculin] — phrases inventées, vérifiées hors du gold
+    ['Hier je suis allé au marché.', { 'allé': 'allée' }, {}], ['Je suis allée au marché.', {}, { 'allée': 'allé' }],
+    ['Je me suis trompé de chemin.', { 'trompé': 'trompée' }, {}], ['Je suis contente de te voir.', {}, { 'contente': 'content' }],
+    ["J'étais parti tôt.", { 'parti': 'partie' }, {}], ['Je ne suis pas venu hier.', { 'venu': 'venue' }, {}],
+    ["J'ai été surpris par la pluie.", { 'surpris': 'surprise' }, {}], ['Je suis rester à la maison.', { 'rester': 'restée' }, {}],
+    ['Je suis né en mai.', { 'né': 'née' }, {}], ['Je suis sûr de moi.', { 'sûr': 'sûre' }, {}], ["Je m'étais levé tôt.", { 'levé': 'levée' }, {}],
+    ['Je suis très heureux.', { 'heureux': 'heureuse' }, {}], ["Je me suis dépêché j'avais un train à prendre.", { 'dépêché': 'dépêchée' }, {}],
+    ["Je n'ai jamais été aussi mal reçu.", { 'reçu': 'reçue' }, {}], ['Je suis fort content.', { 'content': 'contente' }, {}],
+    ['Je me suis demandé pourquoi.', {}, {}], ['Je me suis coupé le doigt.', {}, {}], ["Je me suis rendu compte de l'erreur.", {}, {}],
+    ['Il a dit : « Je suis prêt. »', {}, {}], ['— Je suis fatigué, dit le garçon.', {}, {}], ['Je suis grand fan de ce groupe.', {}, {}],
+    ['Je me suis fait couper les cheveux.', {}, {}], ['Le mot « je suis » seul est court.', {}, {}], ['Elle est allée au marché.', {}, {}]];
+  const vus = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number' && f.auteur);
+  let _ga = 0; const js = { f: [], m: [] };
+  DYSCORE.setAuteur(null);
+  for (const [s] of CAS) { const m = vus(s); if (m.length) { _ga++; console.log('  ✗ genre de l’auteur : sans réglage, « ' + s + ' » marqué ' + JSON.stringify(m)); } }
+  for (const g of ['f', 'm']) {
+    DYSCORE.setAuteur(g);
+    for (const [s, af, am] of CAS) {
+      const m = vus(s), att = g === 'f' ? af : am, obt = {};
+      m.forEach(f => { obt[f.word] = f.sugg; if (f.tier !== 'vigilance') { _ga++; console.log('  ✗ genre de l’auteur : marque non orange ' + JSON.stringify(f)); } });
+      if (JSON.stringify(obt, Object.keys(obt).sort()) !== JSON.stringify(att, Object.keys(att).sort())) { _ga++; console.log('  ✗ genre de l’auteur (' + g + ') : « ' + s + ' » → ' + JSON.stringify(att) + ' attendu, obtenu ' + JSON.stringify(obt)); }
+      js[g].push(m.map(f => [f.i, f.sugg]).sort((a, b) => a[0] - b[0]));
+    }
+  }
+  DYSCORE.setAuteur(null);
+  const pyA = cp.spawnSync('python3', ['-c', `
+import sys, json
+sys.path.insert(0, ${JSON.stringify(path.join(ROOT, 'dictee'))})
+import correcteur_probe as CP, dys_pipeline_probe as DPP
+ph = json.loads(sys.stdin.read()); out = {}
+for g in ('f', 'm'):
+    res = []
+    for s in ph:
+        CP.set_auteur(None); T0, o0, c0, or0, s0 = DPP.pyramide(s)
+        CP.set_auteur(g); T1, o1, c1, or1, s1 = DPP.pyramide(s)
+        ch = []
+        for i in range(len(T1)):
+            a = or1[i][0] if or1.get(i) else None
+            b = or0[i][0] if or0.get(i) else None
+            if a != b or o1[i] != o0[i]: ch.append([i, a if a else o1[i]])
+        res.append(sorted(ch))
+    out[g] = res
+CP.set_auteur(None)
+print(json.dumps(out))
+`], { input: JSON.stringify(CAS.map(c => c[0])), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) });
+  if (pyA.status !== 0) { console.error('probe Python (genre de l’auteur) échoué :', pyA.stderr); process.exit(2); }
+  const pyG = JSON.parse(pyA.stdout);
+  for (const g of ['f', 'm']) CAS.forEach(([s], k) => {
+    if (JSON.stringify(js[g][k]) !== JSON.stringify(pyG[g][k])) { _ga++; console.log('  ✗ genre de l’auteur : parité (' + g + ') « ' + s + ' » EXT ' + JSON.stringify(js[g][k]) + ' · PY ' + JSON.stringify(pyG[g][k])); }
+  });
+  if (_ga) { console.log('PARITÉ KO — réglage « j’écris au féminin / au masculin » : ' + _ga + ' attente(s) non tenue(s).'); process.exit(1); }
+  const _n = (k) => CAS.reduce((s, c) => s + Object.keys(c[k]).length, 0), _sil = CAS.filter(c => !Object.keys(c[1]).length && !Object.keys(c[2]).length).length;
+  console.log('  ✓ genre de l’auteur : sans réglage rien ; au féminin ' + _n(1) + ' marques, au masculin ' + _n(2) + ', toutes orange ; ' + _sil + ' silences voulus ; parité Python sur ' + CAS.length + ' phrases × 2 réglages'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);
