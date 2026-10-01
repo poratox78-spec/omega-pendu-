@@ -95,7 +95,7 @@ faux retirés ou ramenés en orange, 0 perte.
 |---|---|---|---|---|
 | vrai mot à la place d'un autre (son différent) | 93 | plus→plupart ×3 · que→qui ×2 · en→on ×2 · place→plage ×2 · mois→moins ×2 | un vrai mot, mal choisi : le son ne le trahit pas, il faut le sens | quelques structures à creuser (que→qui sans sujet, en→on + verbe) ; le reste : un juge qui lit le sens (modèle léger local, comme le juge s'est/sait) |
 | homophone de sens | 30 | an→en ×2 · pano→panneau ×2 · publique→public ×2 · industriel→industrielle ×2 · pin→pain | même son, deux mots : seul le sens tranche | même piste (juge de sens) ; les accords de genre (publique, industriel) relèvent du groupe adjectif |
-| genre de l'AUTEUR | 7 | allée→allé · partie→parti · réveillé→réveillée · préparé→préparée | « je suis allé / allée » : le genre de celui ou celle qui écrit n'est pas dans le texte | **demander une fois** (réglage facultatif « j'écris au féminin / au masculin ») : alors ces 7 deviennent corrigibles |
+| genre de l'AUTEUR | 7 | allée→allé · partie→parti · réveillé→réveillée · préparé→préparée | « je suis allé / allée » : le genre de celui ou celle qui écrit n'est pas dans le texte | **demander une fois** (réglage facultatif « j'écris au féminin / au masculin ») : alors ces 7 deviennent corrigibles — **décidé le 01/10/2026** (Antidote a le même réglage, panneau « Protagonistes » ; cf. `LITTERATURE_GENRE_ET_SENS.md`) |
 | début de phrase sans ponctuation | 4 | le→Le · pour→Pour | l'auteur n'a pas mis de point : on ne sait pas où la phrase commence | la ponctuation (hors sujet dys, acté par Rem) ; ou le détecteur de phrases collées (run-on) |
 
 ### D — pas une faute (2)
@@ -119,7 +119,10 @@ UD sans changement). Reste « la » devant un verbe mal écrit, lu comme un nom.
 2. **Les deux gros gisements** : a → à (52) et et/est (23) — mesurer d'abord, orange d'abord. (et/est : 3 de plus le 29/09, 20 restent.)
 3. **Le correcteur d'orthographe qui saute** (28) et les **accents** (31).
 4. **Les silences de grammaire** (forme du verbe, nombre du nom, adjectif, sujet-verbe : ~180) — tracer les gardes, étendre l'existant.
-5. **Lot C** : en parler avec Rem — le réglage du genre, le juge de sens, la ponctuation.
+5. **Lot C** : décidé avec Rem le 01/10/2026 — le **réglage du genre** est à faire (« j'écris au féminin / au masculin / je ne précise
+   pas », orange, rien en dialogue) ; le **juge de sens** et le réglage ont leur revue de littérature : `LITTERATURE_GENRE_ET_SENS.md`
+   (seuil par paire et par sens, précision ≥ 0,99 sur du français correct, tables distillées pour l'extension) ; la ponctuation reste
+   hors sujet dys. « il serai » → *sera* (futur), choix de Rem.
 
 Les fautes où le produit propose un **mot faux** : le second catalogue, ci-dessous.
 
