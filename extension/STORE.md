@@ -199,7 +199,8 @@ pour cette raison. On donne à l'examinateur l'URL qui répond 200 du premier co
 |---|---|---|
 | Icône du Store | 128×128 PNG | ✅ `extension/icons/icon128.png` |
 | Captures d'écran | **1280×800** (ou 640×400), PNG ou JPEG 24 bits **sans canal alpha**, 1 à 5 | ✅ **refaites le 01/10/2026** sur la 0.6.44 (5 captures, textes inventés), remises à Rem pour remplacer celles du 28/08 — `node extension/captures_store.js && python extension/captures_store.py` → `data_local/store/captures/` |
-| Petite vignette promo | 440×280 | ⬜ facultative (nécessaire seulement pour être mis en avant) |
+| Petite image promotionnelle | **440×280**, PNG 24 bits **sans canal alpha** | ✅ **faite le 01/10/2026**, remise à Rem — `node extension/promo_store.js && python extension/promo_store.py` → `data_local/store/promo/` |
+| Image promotionnelle du haut de page | **1400×560**, PNG 24 bits **sans canal alpha** | ✅ **faite le 01/10/2026**, remise à Rem (même commande) |
 
 Les 5 captures du 01/10/2026, dans cet ordre (page d'écriture neutre à gauche, panneau RÉEL à droite, comme dans Chrome) :
 1. **Le panneau en action** — un texte à fautes inventé, corrections sûres en vert (appliquées à la copie), oranges à vérifier.
@@ -209,6 +210,12 @@ Les 5 captures du 01/10/2026, dans cet ordre (page d'écriture neutre à gauche,
 5. **Le mode d'emploi** — la page ❓ du paquet, hors-ligne.
 Le hors-ligne ne se photographie pas (une capture Wi-Fi coupé ressemble à toutes les autres) : il est écrit au pied du panneau,
 « Correcteur 100 % hors-ligne », visible sur les captures 1 à 4.
+
+Les deux images promotionnelles (01/10/2026) reprennent l'icône — fond nuit, Ω clair, trait orange comme un soulignement de
+correction — et restent lisibles réduites de moitié : la petite dit « Correcteur dys · Hors-ligne. Chaque faute expliquée. » ; celle du
+haut de page ajoute quatre points (orthographe et grammaire, le doute en orange, chaque faute expliquée, correction hors-ligne,
+gratuit, sans publicité) et une phrase inventée corrigée comme dans le panneau (vert = sûr, orange = à vérifier, 💡). Fond sombre :
+le Store est blanc. « Correction hors-ligne » et pas « 100 % hors-ligne » : la dictée vocale, en option, passe par Google.
 
 Conseil : capturer sur une fenêtre à 1280×800 exactement, fond clair, et **ne pas** mettre de texte
 marketing par-dessus (Google refuse les captures surchargées).
