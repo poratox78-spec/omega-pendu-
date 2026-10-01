@@ -27,6 +27,8 @@
  * cherchant autre chose : la page n'avait PAS LE FOCUS (onglet ouvert sur about:blank puis navigué),
  * et Chrome n'émet aucun événement de focus dans une page non focalisée — le content script ne voyait
  * jamais `focusin`. `Emulation.setFocusEmulationEnabled` (CDP) règle ça, et la barre est fiable.
+ * Depuis le 01/10/2026, le bouton 📗 de la barre aussi (gardes ⑩ ⑩bis : le dictionnaire de l'utilisateur
+ * est écrit, suivi par les autres onglets et le panneau, relu par une page neuve).
  *
  * ⭐ QUATRE PIÈGES PAYÉS EN ÉCRIVANT CE BANC, écrits ici pour qu'ils ne soient pas repayés :
  *  ① `--load-extension` NE CHARGE PLUS RIEN sur Chrome récent (152 ici) : aucun monde isolé n'est
@@ -448,6 +450,95 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
         'appliqué → ' + JSON.stringify(s9.applique) + ' · curseur en ' + g9.off + ' (pipeline=' + c9.pipeline.off + ', mutation=' + c9.mutation.off + ') → ' + (okPipe ? 'PIPELINE D’ÉDITION' : 'MUTATION DIRECTE ⛔'),
         'couverture ⑨ : dans un éditeur à modèle propre, l\'écriture ' + (okPipe ? 'n\'est pas appliquée' : 'MUTE LE DOM sous l\'éditeur (curseur en ' + g9.off + ', pipeline attendu en ' + c9.pipeline.off + ')') + ' — texte ' + JSON.stringify(s9.applique));
     }
+
+    /* ⑩ LE DICTIONNAIRE DE LA BULLE (01/10/2026). Le bouton 📗 (« ce mot est correct : ne plus le signaler »)
+       appelait `window.DysCore`, un nom qui n'existe nulle part : dys-core s'exporte en `DYSCORE` et content.js
+       le tient déjà sous `DC`. Tout était derrière `if (window.DysCore && …)` dans un try/catch : le clic ne
+       faisait RIEN, sans erreur. Mesuré dans Chrome 154 avant la réparation : `vdc_userdict` absent du stockage
+       après le clic, « deezer » toujours → « désert », et le 📗 revenu au rendu suivant. Le chargement au
+       démarrage et le suivi de `onChanged` étaient morts pareil : un dictionnaire déjà en stockage n'atteignait
+       jamais la bulle. Le panneau n'avait pas ce bug, mais il ne fait que LIRE `vdc_userdict` : sans la bulle,
+       personne ne l'écrivait. On garde le GESTE et la promesse du mode d'emploi (« il ne sera plus signalé, ni
+       dans la page ni dans le panneau ») : taper, cliquer 📗, puis relire le stockage, la bulle, le moteur de
+       la page, celui du panneau, et une page NEUVE (chargement au démarrage). */
+    const MOT_UD = 'deezer', TXT_UD = "j'écoute deezer le soir";   // phrase INVENTÉE, vérifiée hors gold — « deezer » → « désert » [orthographe · à vérifier] porte le 📗
+    const evalue = async (cnx, expression, ctx) => {
+      const q = await cnx.envoyer('Runtime.evaluate', Object.assign({ expression, awaitPromise: true, returnByValue: true, timeout: 30000 }, ctx ? { contextId: ctx } : {}));
+      if (q.exceptionDetails) throw new Error('dictionnaire de la bulle : ' + ((q.exceptionDetails.exception || {}).description || q.exceptionDetails.text || 'exception'));
+      return (q.result || {}).value;
+    };
+    const pageUD = async () => {   // une page NEUVE : son script de contenu démarre, donc relit le stockage
+      let c = 0;
+      const p = await connecter(await onglet(dp, 'about:blank'), (d) => {
+        if (d.method === 'Runtime.executionContextCreated' && (d.params.context.auxData || {}).type === 'isolated') c = d.params.context.id; });
+      await p.envoyer('Runtime.enable'); await p.envoyer('Page.enable');
+      await p.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + portPage + '/' });
+      for (let i = 0; i < 60 && !c; i++) await attendre(250);
+      if (!c) throw new Error("dictionnaire de la bulle : le script de contenu ne s'est pas injecté dans la page");
+      for (let i = 0; i < 80; i++) { if (await evalue(p, "(typeof DYSCORE!=='undefined'&&DYSCORE.isReady)?!!DYSCORE.isReady():false", c)) break; await attendre(250); }
+      try { await p.envoyer('Page.bringToFront', {}); } catch (e) {}
+      await p.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true });   // sans ça, aucun `focusin` (cf. ⑦⑧⑨)
+      return { p, c };
+    };
+    const fermerPagesUD = async () => { for (const x of (await cibles()).filter((t) => (t.url || '') === 'http://127.0.0.1:' + portPage + '/')) await fermerCible(x.id); };
+    /* les lignes de la bulle, lues quand son HTML ne bouge plus depuis 400 ms (un ÉTAT, pas un délai) ; [] si elle
+       reste cachée 6 s. `taper` = une seule frappe, comme ⑦⑧⑨ (ré-émettre `input` relancerait le délai sans fin). */
+    const lireBulle = (p, taper) => evalue(p, '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+      + (taper ? ' const el = document.getElementById("z"); el.value = ' + JSON.stringify(TXT_UD) + '; el.focus();'
+               + ' el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "r" }));' : '')
+      + ' const vis = () => { const b = document.querySelector(".omdys-bar"); return (b && getComputedStyle(b).display !== "none") ? b : null; };'
+      + ' let b = null; for (let i = 0; i < 60 && !(b = vis()); i++) await w(100); if (!b) return [];'
+      + ' let h = b.innerHTML, t0 = Date.now(); for (let i = 0; i < 40 && Date.now() - t0 < 400; i++) { await w(100); if (b.innerHTML !== h) { h = b.innerHTML; t0 = Date.now(); } }'
+      + ' if (!vis()) return [];'
+      + ' return [...b.querySelectorAll(".omdys-item")].map((x) => ({ txt: x.textContent.replace(/\\s+/g, " ").trim(), ud: !!x.querySelector(".omdys-ud") })); })()');
+    const ligneUD = (lignes) => (lignes || []).find((l) => l.txt.indexOf('« ' + MOT_UD + ' »') === 0) || null;
+    const moteurUD = (p, c) => evalue(p, '({ connu: !!(DYSCORE.udHas && DYSCORE.udHas(' + JSON.stringify(MOT_UD) + ')),'
+      + ' signale: ((DYSCORE.diagnoseAll(' + JSON.stringify(TXT_UD) + ') || {}).flags || []).some((f) => f.word === ' + JSON.stringify(MOT_UD) + ') })', c);
+    const stockUD = () => evalue(pp, 'new Promise(r => chrome.storage.local.get("vdc_userdict", (o) => r((o && o.vdc_userdict) || null)))');
+
+    await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // départ propre
+    const T = await pageUD();   // onglet TÉMOIN, ouvert avant le clic : il ne peut apprendre le mot que par `onChanged`
+    const A = await pageUD();
+    const avant = ligneUD(await lireBulle(A.p, true));
+    let stock = null;
+    if (avant && avant.ud) {
+      await evalue(A.p, '(() => { const it = [...document.querySelectorAll(".omdys-bar .omdys-item")].find((x) => x.textContent.indexOf(' + JSON.stringify('« ' + MOT_UD + ' »') + ') === 0);'
+        + ' const b = it && it.querySelector(".omdys-ud"); if (b) b.click(); return !!b; })()');
+      for (let i = 0; i < 20; i++) { stock = await stockUD(); if (stock && stock.indexOf(MOT_UD) >= 0) break; await attendre(150); }
+    }
+    const apres = ligneUD(await lireBulle(A.p, false));
+    const mA = await moteurUD(A.p, A.c);
+    let mP = null; for (let i = 0; i < 20; i++) { mP = await moteurUD(pp, 0); if (mP.connu) break; await attendre(150); }   // le panneau suit `onChanged`
+    let mT = null; for (let i = 0; i < 20; i++) { mT = await moteurUD(T.p, T.c); if (mT.connu) break; await attendre(150); }   // l'onglet témoin aussi
+    for (const x of [A, T]) { try { x.p.fermer(); } catch (e) {} }
+    await fermerPagesUD();
+    if (!avant || !avant.ud) {
+      garde(false, '⑩ 📗 de la BULLE : mot enregistré', 'INSTRUMENT : « ' + MOT_UD + ' » ne porte pas de 📗 (' + JSON.stringify(avant) + ')',
+        'couverture ⑩ : INSTRUMENT — « ' + TXT_UD + ' » ne donne plus de ligne « ' + MOT_UD + ' » avec 📗 dans la bulle (eu ' + JSON.stringify(avant) + ') ; choisir un autre mot inconnu signalé « orthographe »');
+    } else {
+      const muet = (m) => m.connu && !m.signale;
+      const causes = [];   // chaque défaut NOMMÉ : un seul accès cassé sur trois doit dire lequel
+      if (!(stock && stock.indexOf(MOT_UD) >= 0)) causes.push('vdc_userdict non écrit (' + JSON.stringify(stock) + ') : udSave');
+      if (apres) causes.push('la bulle le signale encore (' + apres.txt + ')');
+      if (mA.signale) causes.push('le moteur de la page le signale encore');
+      if (!muet(mT)) causes.push('un autre onglet ne l\'apprend pas : onChanged');
+      if (!muet(mP)) causes.push('le panneau le signale encore');
+      garde(!causes.length, '⑩ 📗 de la BULLE : mot enregistré', 'vdc_userdict=' + JSON.stringify(stock) + ' · bulle ' + (apres ? 'le signale ENCORE' : 'ne le signale plus')
+        + ' · page ' + (mA.signale ? 'le signale ENCORE' : 'muette') + ' · autre onglet ' + (muet(mT) ? 'muet' : 'le signale ENCORE') + ' · panneau ' + (muet(mP) ? 'muet' : 'le signale ENCORE'),
+        'couverture ⑩ : clic sur 📗 de « ' + MOT_UD + ' » dans la bulle → ' + causes.join(' ; ') + ' (content.js : le dictionnaire passe par DC, jamais par window.DysCore)');
+    }
+    // ⑩bis : une page NEUVE relit le dictionnaire au démarrage (udLoad) — si ⑩ a échoué, on pose le stockage nous-mêmes
+    if (!(stock && stock.indexOf(MOT_UD) >= 0)) await evalue(pp, 'new Promise(r => chrome.storage.local.set({ vdc_userdict: [' + JSON.stringify(MOT_UD) + '] }, () => r(1)))');
+    const B = await pageUD();
+    let mB = null; for (let i = 0; i < 20; i++) { mB = await moteurUD(B.p, B.c); if (mB.connu) break; await attendre(150); }
+    const neuve = ligneUD(await lireBulle(B.p, true));
+    try { B.p.fermer(); } catch (e) {}
+    await fermerPagesUD();
+    await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // on rend l'état : les gardes suivantes ne l'attendent pas
+    garde(mB.connu && !mB.signale && !neuve, '⑩bis page NEUVE : dictionnaire relu', 'moteur ' + (mB.connu ? 'le connaît' : 'NE LE CONNAÎT PAS') + ' · bulle ' + (neuve ? 'le signale ENCORE' : 'ne le signale plus'),
+      'couverture ⑩bis : vdc_userdict=["' + MOT_UD + '"] en stockage, une page neuve ' + (mB.connu ? (mB.signale ? 'le charge mais son moteur le signale encore' : 'le charge') : 'NE LE CHARGE PAS au démarrage (udLoad)')
+      + (neuve ? ', et sa bulle le signale encore (' + neuve.txt + ')' : ''));
+
     // CONTRÔLE de ⑦ : SW tué, panneau OUVERT → la bulle doit apparaître
     const mortC = await tuerSW();
     const sC = await taperDans('/', 'document.getElementById("z")', false);
