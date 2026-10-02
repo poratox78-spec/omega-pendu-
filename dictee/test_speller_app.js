@@ -9,7 +9,7 @@ const start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return res;}', spIdx) + 'return res;}'.length;   // jusqu'à la fin de complete() (aide-frappe) pour la garder aussi
 if (start < 0 || spIdx < 0 || cut < 0) { console.error('extraction échouée'); process.exit(2); }
-const code = html.slice(start, cut) + ';globalThis.__sp={load:loadSpellerLex,spell:spellText,complete:complete,ready:()=>SP.ready,nwords:()=>SP.WORDS&&SP.WORDS.size,ud:{mot:udMot,add:udAdd,del:udDel}};})();';
+const code = html.slice(start, cut) + ';globalThis.__sp={load:loadSpellerLex,spell:spellText,complete:complete,ready:()=>SP.ready,nwords:()=>SP.WORDS&&SP.WORDS.size,ud:{mot:udMot,add:udAdd,del:udDel},REMED:REMED};})();';
 
 const vdc = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [])[1] || '{}';
 const spl = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
@@ -398,6 +398,13 @@ const SP = globalThis.__sp;
       if (!f) { fail.push('📗 (instrument) : « ' + t + ' » ne signale plus « ' + w + ' » — choisir un autre exemple (' + pourquoi.split(' :')[0] + ')'); continue; }
       if (SP.ud.mot(f) !== null) fail.push('📗 offert sur « ' + w + ' » [' + f.name + '] — ' + pourquoi);
     }
+    // ⭐ 02/10/2026 (Rem : « ajoute le 📗 au conseil du mot inconnu ») — le conseil 🛠️ d'un mot inconnu SANS suggestion nomme le 📗,
+    // et seulement quand la carte l'offre (même décision : udMot). Mot inventé, mot élidé, mot du lexique, mot déjà ajouté.
+    const C = (w) => SP.REMED.surface(w, w), CLIC = 'clique 📗 sur sa correction';
+    for (const w of ['doctolib', "l'airbnb"]) if (C(w).indexOf(CLIC) < 0) fail.push('conseil du mot inconnu « ' + w + ' » : la carte offre le 📗, le conseil ne le nomme pas (« ' + C(w) + ' »)');
+    if (C('maison').indexOf('📗') >= 0) fail.push('conseil : le 📗 nommé pour « maison », mot du lexique que la carte n\'offre pas');
+    SP.ud.add('doctolib'); const dejA = C('doctolib'); SP.ud.del('doctolib');
+    if (dejA.indexOf('📗') >= 0) fail.push('conseil : le 📗 nommé pour « doctolib » déjà au dictionnaire (la carte ne l\'offre plus)');
   }
 
   // ⚠️ GARDE DE COÛT — le correcteur tourne À LA FRAPPE : tout ce qui alourdit le 1er passage se

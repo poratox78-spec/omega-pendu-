@@ -794,6 +794,7 @@ async function main() {
       const cMr = await carte('Mr'); out.mrCarte = !!cMr; out.mrUd = !!(cMr && cMr.querySelector('.vcud'));
       if (!(await taper("on a réservé l'airbnb pour les vacances", "l'airbnb"))) return { fatal: "pas de marque sur « l'airbnb »" };
       const c2 = await carte("l'airbnb"), b = c2 && c2.querySelector('.vcud'); out.ud = !!b; out.mots0 = mots();
+      out.conseil = !!(c2 && (c2.textContent || '').indexOf('clique 📗 sur sa correction') >= 0);   // le conseil 🛠️ du mot inconnu nomme le 📗 (02/10/2026)
       if (!b) return out;
       b.click();
       out.stock1 = stock(); out.parti = !!(await jusqua(() => !marque("l'airbnb"), 5000)); out.mots1 = mots();
@@ -815,6 +816,7 @@ async function main() {
         else if (uv.mrUd) c.push('la carte de « Mr » (abréviation) offre « 📗 C’est un mot » : le dictionnaire n\'y peut rien, le clic ne ferait rien');
         if (!uv.ud) c.push('la carte de « l\'airbnb » (mot inconnu élidé) n\'offre pas « 📗 C’est un mot »');
         else {
+          if (!uv.conseil) c.push('le conseil 🛠️ de la carte de « l\'airbnb » ne nomme pas le 📗 (« clique 📗 sur sa correction »)');
           if (JSON.stringify(uv.stock1) !== '["airbnb"]') c.push('vdc_userdict vaut ' + JSON.stringify(uv.stock1) + ' après 📗, attendu ["airbnb"]' + ((uv.stock1 || []).indexOf("l'airbnb") >= 0 ? ' : le token entier est enregistré, or le moteur lit le radical' : ''));
           if (!uv.parti) c.push('« l\'airbnb » reste marqué après 📗');
           if (!(uv.mots1 && uv.mots1.visible && uv.mots1.liste.indexOf('airbnb') >= 0)) c.push('« 📗 Mes mots » ne montre pas « airbnb » (eu ' + JSON.stringify(uv.mots1) + ')');

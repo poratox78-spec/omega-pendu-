@@ -24484,6 +24484,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 "c'est":'cela est' };
   // la phrase-test du 💡 (fenêtrée sur la phrase de l'élève) : [forme d'épreuve, si ça se dit, sinon]
   var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)'],"c'est/s'est":['cela est','« c\'est » (= cela est)','« s\'est » (il se … : verbe pronominal)']};
+  /* ⭐ 02/10/2026 (Rem : « ajoute le 📗 au conseil du mot inconnu ») — un mot inconnu SANS suggestion est souvent un prénom, un lieu,
+     un mot de métier : le conseil nomme le 📗, mais SEULEMENT si le moteur l'offre pour ce mot (udMot, défini par chaque moteur).
+     Un moteur sans udMot ne le nomme pas : le conseil reste vrai dans tous les états, quel que soit l'ordre des fusions. */
+  function _udConseil(e){try{return (typeof udMot==='function'&&udMot({name:'mot inconnu',word:String(e)}))?' S’il est juste (un prénom, un lieu, un mot de métier), clique 📗 sur sa correction : il ne sera plus signalé.':'';}catch(_){return '';}}
   var REMED={
     voisee_sourde:function(e,a){var d=_rd(e,a);
       if(d&&d.e.length===1&&d.a.length===1&&_diffMuette(e,a)===true)return _pr(e,a)+'à la fin du mot, « '+d.a+' » ne s’entend pas : photographie le mot « '+a+' ».';   // « vond » → « vont » : ni d ni t ne s'entendent (lot 3)
@@ -24505,7 +24509,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // l'ordre compte : une INSERTION (pome→pomme) n'est pas une substitution de graphème.
     surface:function(e,a){var d=_rd(e,a);
       // ⭐ AUDIT 11/09/2026 (vrai Chrome) : « aujourdhui » sans suggestion arrivait ici avec e === a. Un inconnu sans réponse n'a qu'un conseil : relire.
-      if(e&&a&&String(e).toLowerCase()===String(a).toLowerCase())return '« '+e+' » n’est pas dans le dictionnaire : relis-le lettre à lettre (une lettre ou une apostrophe manque peut-être), ou cherche-le.';
+      if(e&&a&&String(e).toLowerCase()===String(a).toLowerCase())return '« '+e+' » n’est pas dans le dictionnaire : relis-le lettre à lettre (une lettre ou une apostrophe manque peut-être), ou cherche-le.'+_udConseil(e);
       // « avont → avons » (même audit) disait « ce son s'écrit s, pas t » : ce n'est pas un SON, c'est la terminaison de « nous ».
       if(d&&d.e==='t'&&d.a==='s'&&/ont$/i.test(e)&&/ons$/i.test(a))return _pr(e,a)+'-ons, c’est « nous » ; -ont, c’est « ils ». Ici c’est la terminaison du verbe, pas un son.';
       if(d&&/^oe$/i.test(d.e)&&/^œ$/i.test(d.a))return _pr(e,a)+'« o » et « e » s’écrivent collés ici : « œ » (sœur, cœur, œuf).';
