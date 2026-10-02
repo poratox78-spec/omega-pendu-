@@ -235,6 +235,11 @@ console.log('  ✓ tests de substitution sans nom de règle (dictée, IA) : la f
   if (has(s7, 'ne s’entend pas')) fail('« irit → iris » : le s de iris se prononce — ' + s7);
   if (has(s8, 'ne s’entend pas')) fail('« direc → direct » : le t de direct se prononce — ' + s8);
   console.log('  ✓ lettre finale muette ou prononcée (bois/boit, hui/huit, irit/iris, direc/direct), lettre oubliée qui s’entend (tie/tige)');
+  // ⭐ 02/10/2026 (Rem : « ajoute le 📗 au conseil du mot inconnu ») — le conseil nomme le 📗 SI ET SEULEMENT SI ce moteur l'offre
+  // pour le mot (udMot). Vrai dans les deux états : extension sans udMot (pas de 📗, pas de mention) et avec (📗, mention).
+  const offre = typeof D.udMot === 'function' && !!D.udMot({ name: 'mot inconnu', word: 'xylophonage' }), s9 = D.REMED.surface('xylophonage', 'xylophonage');
+  if (offre !== has(s9, '📗')) fail('conseil du mot inconnu « xylophonage » : ' + (offre ? 'le moteur offre le 📗, le conseil ne le nomme pas' : 'le conseil nomme un 📗 que ce moteur n’offre pas') + ' — ' + s9);
+  else console.log('  ✓ conseil du mot inconnu : le 📗 ' + (offre ? 'offert et nommé' : 'ni offert ni nommé (moteur sans udMot)'));
 }
 
 // 2) app ≡ extension : la COUCHE DYS PARTAGÉE, octet pour octet, définie une seule fois

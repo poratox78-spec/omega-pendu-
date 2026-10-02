@@ -771,6 +771,69 @@ async function main() {
       log('  ' + (rv.kara >= 4 && rv.restaure ? '✓' : '✗') + ' lecture read-along (karaoké ' + rv.kara + ' mots, restauration ' + (rv.restaure ? 'OK' : 'KO') + ')');
     }
 
+    /* ── 📗 LE DICTIONNAIRE DE L'UTILISATEUR (02/10/2026). La carte offrait « 📗 C’est un mot » selon _udEligible : aussi sur des
+       abréviations, des nombres, des majuscules… où le clic ne fait rien (104 sur 1 345 sur UD, moteur de l'app), et pour un mot
+       ÉLIDÉ elle enregistrait « l'airbnb » alors que le moteur lit « airbnb ». Et rien ne permettait de RETIRER un mot. Elle lit
+       désormais udMot, et « 📗 Mes mots » liste les mots avec ✕. Le GESTE, dans la page : marque cliquée → carte → 📗 →
+       localStorage, marque partie, liste ; ✕ → stockage vidé, marque revenue ; un AUTRE onglet (événement storage) est suivi ;
+       « Mr » (abréviation) n'a pas de 📗. Phrases INVENTÉES, vérifiées hors gold. */
+    const ud = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
+      const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+      const jusqua = async (f, ms) => { const t0 = Date.now(); for (;;) { let v = null; try { v = f(); } catch (e) {} if (v) return v; if (Date.now() - t0 > ms) return null; await attendre(100); } };
+      const z = document.getElementById('vdc-in'); if (!z) return { fatal: 'zone vdc-in absente' };
+      const stock = () => { try { return JSON.parse(localStorage.getItem('vdc_userdict') || '[]'); } catch (e) { return ['illisible']; } };
+      const signal = () => window.dispatchEvent(new StorageEvent('storage', { key: 'vdc_userdict' }));   // = un autre onglet a écrit
+      localStorage.removeItem('vdc_userdict'); signal();   // départ propre
+      const marque = (w) => [...z.querySelectorAll('[data-key]')].find((e) => e.textContent === w) || null;
+      const taper = async (t, w) => { z.textContent = t; z.dispatchEvent(new InputEvent('input', { bubbles: true })); return await jusqua(() => marque(w), 8000); };
+      const carte = async (w) => { const m = marque(w); if (!m) return null; m.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        return await jusqua(() => { const c = document.getElementById('vdc-cardpop'); return (c && c.style.display === 'block') ? c : null; }, 3000); };
+      const mots = () => { const d = document.getElementById('vdc-ud'); return d ? { visible: !d.hidden, liste: [...d.querySelectorAll('.vdc-ud-mot')].map((m) => (m.firstChild && m.firstChild.textContent) || '') } : null; };
+      const out = {};
+      if (!(await taper('Mr Durand arrive demain', 'Mr'))) return { fatal: 'pas de marque sur « Mr »' };
+      const cMr = await carte('Mr'); out.mrCarte = !!cMr; out.mrUd = !!(cMr && cMr.querySelector('.vcud'));
+      if (!(await taper("on a réservé l'airbnb pour les vacances", "l'airbnb"))) return { fatal: "pas de marque sur « l'airbnb »" };
+      const c2 = await carte("l'airbnb"), b = c2 && c2.querySelector('.vcud'); out.ud = !!b; out.mots0 = mots();
+      out.conseil = !!(c2 && (c2.textContent || '').indexOf('clique 📗 sur sa correction') >= 0);   // le conseil 🛠️ du mot inconnu nomme le 📗 (02/10/2026)
+      if (!b) return out;
+      b.click();
+      out.stock1 = stock(); out.parti = !!(await jusqua(() => !marque("l'airbnb"), 5000)); out.mots1 = mots();
+      const x = [...document.querySelectorAll('#vdc-ud .vdc-ud-mot')].find((m) => m.firstChild && m.firstChild.textContent === 'airbnb');
+      const bx = x && x.querySelector('.vdc-ud-x'); out.x = !!bx;
+      if (bx) { bx.click(); out.stock2 = stock(); out.revenu = !!(await jusqua(() => { const m = marque("l'airbnb"); return m ? m : null; }, 5000)); out.mots2 = mots(); }
+      localStorage.setItem('vdc_userdict', JSON.stringify(['airbnb'])); signal();
+      out.autre = { parti: !!(await jusqua(() => !marque("l'airbnb"), 5000)), mots: mots() };
+      localStorage.removeItem('vdc_userdict'); signal();   // on rend l'état
+      return out;
+    })()`, awaitPromise: true, returnByValue: true, timeout: 60000 });
+    if (ud.exceptionDetails) throw new Error('📗 dictionnaire : ' + (ud.exceptionDetails.exception || {}).description);
+    const uv = ud.result.value || {};
+    {
+      const c = [];   // chaque défaut NOMMÉ
+      if (uv.fatal) c.push('INSTRUMENT : ' + uv.fatal);
+      else {
+        if (!uv.mrCarte) c.push('la marque « Mr » n\'ouvre pas sa carte');
+        else if (uv.mrUd) c.push('la carte de « Mr » (abréviation) offre « 📗 C’est un mot » : le dictionnaire n\'y peut rien, le clic ne ferait rien');
+        if (!uv.ud) c.push('la carte de « l\'airbnb » (mot inconnu élidé) n\'offre pas « 📗 C’est un mot »');
+        else {
+          if (!uv.conseil) c.push('le conseil 🛠️ de la carte de « l\'airbnb » ne nomme pas le 📗 (« clique 📗 sur sa correction »)');
+          if (JSON.stringify(uv.stock1) !== '["airbnb"]') c.push('vdc_userdict vaut ' + JSON.stringify(uv.stock1) + ' après 📗, attendu ["airbnb"]' + ((uv.stock1 || []).indexOf("l'airbnb") >= 0 ? ' : le token entier est enregistré, or le moteur lit le radical' : ''));
+          if (!uv.parti) c.push('« l\'airbnb » reste marqué après 📗');
+          if (!(uv.mots1 && uv.mots1.visible && uv.mots1.liste.indexOf('airbnb') >= 0)) c.push('« 📗 Mes mots » ne montre pas « airbnb » (eu ' + JSON.stringify(uv.mots1) + ')');
+          if (!uv.x) c.push('pas de ✕ pour « airbnb » dans « 📗 Mes mots »');
+          else {
+            if (JSON.stringify(uv.stock2) !== '[]') c.push('✕ laisse vdc_userdict à ' + JSON.stringify(uv.stock2));
+            if (!uv.revenu) c.push('après ✕, « l\'airbnb » n\'est pas de nouveau marqué');
+            if (uv.mots2 && uv.mots2.visible) c.push('« 📗 Mes mots » reste affiché alors que le dictionnaire est vide');
+          }
+          if (!(uv.autre && uv.autre.parti && uv.autre.mots && uv.autre.mots.liste.indexOf('airbnb') >= 0)) c.push('un mot ajouté dans un AUTRE onglet (événement storage) n\'est pas suivi : ' + JSON.stringify(uv.autre));
+        }
+      }
+      if (c.length) echecs.push('📗 dictionnaire du site : ' + c.join(' ; '));
+      log('  ' + (c.length ? '✗' : '✓') + ' 📗 dictionnaire : « Mr » ' + (uv.mrUd ? 'AVEC 📗' : 'sans 📗') + ', « l\'airbnb » → ' + JSON.stringify(uv.stock1) + ', ✕ → ' + JSON.stringify(uv.stock2)
+        + ', autre onglet ' + (uv.autre && uv.autre.parti ? 'suivi' : 'PAS suivi'));
+    }
+
     /* ── CRIBLE DES EXPLICATIONS (demande de Rem, 2026-08-26 : « on se doit, c'est un impératif,
        de bien expliquer les fautes — il va falloir repasser nos règles avec nos exemples au crible »).
        On ne lit pas le code : on CLIQUE chaque correction et on lit la carte que l'utilisateur voit.
@@ -1166,7 +1229,7 @@ async function main() {
     finally { if (sess3) sess3.fermer(); }
 
     if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
-    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along, vérifiés dans Chrome (DOM et localStorage lus) · crible explications ' + (global.__CRIBLE_RES || 'n/a') + '.');
+    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along + 📗 dictionnaire (carte, Mes mots), vérifiés dans Chrome (DOM et localStorage lus) · crible explications ' + (global.__CRIBLE_RES || 'n/a') + '.');
   } catch (e) {
     console.error('✗ NAVIGATEUR RÉEL : ' + e.message); code = 1;
   }
