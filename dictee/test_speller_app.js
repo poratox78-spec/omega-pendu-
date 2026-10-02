@@ -9,7 +9,7 @@ const start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return res;}', spIdx) + 'return res;}'.length;   // jusqu'à la fin de complete() (aide-frappe) pour la garder aussi
 if (start < 0 || spIdx < 0 || cut < 0) { console.error('extraction échouée'); process.exit(2); }
-const code = html.slice(start, cut) + ';globalThis.__sp={load:loadSpellerLex,spell:spellText,complete:complete,ready:()=>SP.ready,nwords:()=>SP.WORDS&&SP.WORDS.size};})();';
+const code = html.slice(start, cut) + ';globalThis.__sp={load:loadSpellerLex,spell:spellText,complete:complete,ready:()=>SP.ready,nwords:()=>SP.WORDS&&SP.WORDS.size,ud:{mot:udMot,add:udAdd,del:udDel}};})();';
 
 const vdc = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [])[1] || '{}';
 const spl = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
@@ -374,6 +374,32 @@ const SP = globalThis.__sp;
       fail.push('témoin « ' + b + ' » doit rester souligné SANS suggestion (sugg = mot), eu ' + JSON.stringify(r));
   }
 
+  // ⭐ 02/10/2026 — LE « 📗 C’EST UN MOT » DE LA CARTE (udMot, miroir de DYSCORE.udMot de l'extension) : offert là où le dictionnaire
+  // fait TAIRE le signalement, et seulement là. L'ancienne règle (_udEligible) l'offrait aussi aux abréviations, aux nombres, aux
+  // majuscules… où le clic ne fait rien, et enregistrait le token entier d'un mot élidé (« l'airbnb ») quand le moteur lit le radical.
+  // Le geste rejoué comme sur la carte : udAdd(udMot(f)), nouvelle analyse (capital=true, comme _computeCorrs) — plus aucun signalement
+  // d'orthographe sur le mot. Phrases INVENTÉES, vérifiées hors gold (les mêmes que extension/test_speller.js).
+  {
+    const surMot = (t, w) => SP.spell(t, true).filter(x => x.word === w);
+    for (const [t, w, cle] of [['mon frère joue au padel avec ses amis', 'padel', 'padel'], ["on a réservé l'airbnb pour les vacances", "l'airbnb", 'airbnb'],
+                               ["elle prend l'uber pour rentrer", "l'uber", 'uber']]) {
+      const f = surMot(t, w)[0], m = f ? SP.ud.mot(f) : undefined;
+      if (m !== cle) { fail.push('📗 : « ' + w + ' » ' + JSON.stringify(f && [f.name, f.tier]) + ' doit enregistrer « ' + cle + ' », udMot rend ' + JSON.stringify(m)); continue; }
+      SP.ud.add(m);
+      const reste = surMot(t, w).filter(x => x.name === 'orthographe' || x.name === 'mot inconnu'), encore = SP.ud.mot(f);
+      SP.ud.del(m);
+      if (reste.length) fail.push('📗 : après le clic, « ' + w + ' » est encore signalé ' + JSON.stringify(reste.map(x => x.name + '→' + x.sugg)) + ' — le dictionnaire ne le fait pas taire');
+      if (encore !== null) fail.push('📗 : « ' + w + ' », déjà au dictionnaire, garde son 📗 (udMot rend ' + JSON.stringify(encore) + ')');
+    }
+    const RIEN = 'le dictionnaire n\'y peut rien, le clic ne ferait rien';
+    for (const [t, w, pourquoi] of [['Mr Durand arrive demain', 'Mr', 'abréviation : ' + RIEN], ['je ne étais pas là hier', 'ne étais', 'élision : ' + RIEN],
+                                    ['mon coeur bat très vite', 'coeur', 'mot du lexique : le 📗 est pour les mots que le lexique ne connaît pas (prénom, lieu, jargon)']]) {
+      const f = surMot(t, w)[0];
+      if (!f) { fail.push('📗 (instrument) : « ' + t + ' » ne signale plus « ' + w + ' » — choisir un autre exemple (' + pourquoi.split(' :')[0] + ')'); continue; }
+      if (SP.ud.mot(f) !== null) fail.push('📗 offert sur « ' + w + ' » [' + f.name + '] — ' + pourquoi);
+    }
+  }
+
   // ⚠️ GARDE DE COÛT — le correcteur tourne À LA FRAPPE : tout ce qui alourdit le 1er passage se
   // paie chez l'utilisateur. Vérifiée en la cassant (un plafond de longueur relevé à 12 dans la
   // génération de candidats faisait passer ce même texte de 8 ms à 196 ms → rouge).
@@ -387,5 +413,5 @@ const SP = globalThis.__sp;
   else console.log('  coût 1er passage texte dys : ' + _ms + ' ms (plafond de garde 120)');
 
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
-  console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier), coût du 1er passage.');
+  console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier), 📗 de la carte (offert là où il fait taire le signalement), coût du 1er passage.');
 })().catch(e => { console.error(e); process.exit(1); });
