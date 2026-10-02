@@ -55,8 +55,8 @@
      PLEIN et non ondulé : ces mots sont les corrections DÉJÀ APPLIQUÉES, pas des fautes. */
   .out b{ text-decoration:underline; text-decoration-color:#2e8b57; text-decoration-thickness:2px;
           text-underline-offset:2px; }
-  .why,.tts{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
-  .why:hover,.tts:hover{ opacity:1; }
+  .why,.tts,.ud{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
+  .why:hover,.tts:hover,.ud:hover{ opacity:1; }
   .astuce{ margin-top:4px; padding:5px 8px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:5px; font-size:.9em; color:#22303c; line-height:1.45; }
   .remed{ margin-top:5px; padding:6px 9px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:5px; font-size:.92em; }
   .ok-msg{ color:#1f7a3d; font-weight:700; padding:6px 2px; }
@@ -103,9 +103,21 @@
   .vsr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
   /* ── AIDE AU NOMBRE (dyscalculie). Repliée par défaut : elle ne doit pas manger la place du
      correcteur pour ceux qui n'en ont pas besoin. */
-  details.calc summary{ cursor:pointer; list-style:none; display:flex; align-items:center; gap:6px;
+  details.calc summary, details.mots summary{ cursor:pointer; list-style:none; display:flex; align-items:center; gap:6px;
     font-weight:700; color:#2a6f97; }
-  details.calc summary::-webkit-details-marker{ display:none; }
+  details.calc summary::-webkit-details-marker, details.mots summary::-webkit-details-marker{ display:none; }
+  /* 📗 MES MOTS : le dictionnaire de l'utilisateur, VISIBLE et RÉVERSIBLE — sans lui, un 📗 cliqué par erreur sur une faute
+     la cachait pour toujours. Replié comme l'aide au nombre : une ligne, le détail sur demande ; absent tant qu'il est vide. */
+  details.mots{ margin-top:8px; }
+  .motsbox{ margin:7px 0 10px; display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+  .motsbox .note{ flex-basis:100%; font-size:.85em; color:#555; }
+  .mot{ display:inline-flex; align-items:center; border:1px solid #2a6f97; background:#eef5fb; color:#1b4b68; border-radius:6px; padding:1px 2px 1px 8px; font-size:.9em; }
+  .motx{ font:inherit; border:0; background:none; cursor:pointer; color:#8a1f11; padding:0 5px; }
+  .motx:hover, .motx:focus-visible{ color:#fff; background:#8a1f11; border-radius:4px; outline:none; }
+  body.dark details.calc summary, body.dark details.mots summary{ color:#8fc2f5; }   /* le bleu #2a6f97 ne contrastait qu'à 3,2 sur le fond sombre ; 9,5 ici */
+  body.dark .mot{ background:#16242f; color:#9fc6e0; }
+  body.dark .motx{ color:#f0a0a0; }
+  body.dark .motsbox .note{ color:#9aa7b4; }
   .calcbox{ margin-top:7px; }
   .calcbox input{ width:100%; font:inherit; font-size:1.15em; padding:7px 9px; border:1px solid #cfd6dd;
     border-radius:8px; box-sizing:border-box; }
@@ -186,6 +198,10 @@
   <div class="corr" id="omdys-corr" aria-live="polite"></div>
   <div id="omdys-vig"></div>
   <div id="omdys-stade" aria-live="polite"></div>
+  <details class="mots" id="omdys-mots" hidden>
+    <summary>📗 Mes mots <span id="omdys-motsn"></span></summary>
+    <div class="motsbox"><span class="note">Ces mots ne sont plus signalés. ✕ en retire un : il sera de nouveau signalé.</span><span id="omdys-motsliste" style="display:contents"></span></div>
+  </details>
   <details class="calc" id="omdys-calc">
     <summary>🔢 Aide au nombre<span class="vi" aria-hidden="true">i</span></summary>
     <div class="calcbox">

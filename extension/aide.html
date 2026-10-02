@@ -53,7 +53,7 @@
   .item.off .etat{ color:#888; }
   .out{ margin:6px 0; padding:7px 9px; border-radius:8px; background:#eef8f0; border-left:3px solid #2e8b57; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
   .out .lab{ color:#4f7f5f; font-size:.78em; }
-  .why,.tts{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
+  .why,.tts,.ud{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
   .astuce{ margin-top:4px; padding:5px 8px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:5px; font-size:.9em; color:#22303c; line-height:1.45; }
   .remed{ margin-top:5px; padding:6px 9px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:5px; font-size:.92em; }
   .vig{ margin-top:8px; padding:6px 9px; border-left:4px solid #1f7a3d; background:#eefaf1; border-radius:5px; font-size:.9em; }
@@ -163,6 +163,17 @@
     <li>Si la proposition est juste, clique dessus : elle s'écrit dans ta zone.</li>
   </ul>
 
+  <h3>Un mot juste que le correcteur ne connaît pas : 📗</h3>
+  <div class="ex" data-phrase="Mon frère joue au padel avec ses amis.">
+    <div class="phrase">Tu as écrit : « Mon frère joue au padel avec ses amis. »</div>
+    <div class="item tvig" data-phrase="Mon frère joue au padel avec ses amis." data-mot="padel" data-sugg="panel" data-famille="mot inconnu" data-palier="vigilance">« padel » → <b>« panel »</b> <span class="fam">[mot inconnu · à vérifier]</span><span class="tts" aria-hidden="true">🔊</span><span class="ud" aria-hidden="true">📗</span></div>
+  </div>
+  <ul class="points">
+    <li>Le correcteur ne connaît pas tous les mots : un prénom, un lieu, un pseudo, un mot de métier ou de sport.</li>
+    <li>Le mot est juste ? Clique <b>📗</b> : il entre dans ton dictionnaire. Il n'est plus signalé, ni dans le panneau ni dans la page.</li>
+    <li data-cmd="omdys-mots">Tes mots sont dans <span class="ui" data-src="sidepanel.html">📗 Mes mots</span>, sous les corrections. <b>✕</b> retire un mot : il sera de nouveau signalé.</li>
+  </ul>
+
   <h3>Vert clair : juste une vigilance</h3>
   <div class="ex" data-phrase="Mon frère a acheté un verre à la brocante.">
     <div class="phrase">Tu as écrit : « Mon frère a acheté un verre à la brocante. »</div>
@@ -211,7 +222,7 @@
   <ul class="points">
     <li>Clique une correction dans la bulle : elle s'applique dans le champ.</li>
     <li><span class="ui" data-src="content.js">tout corriger</span> applique les corrections sûres, <span class="ui" data-src="content.js">↩ annuler</span> revient en arrière.</li>
-    <li><b>📗</b> veut dire « ce mot est correct » : un prénom, un lieu, un mot de métier. Il ne sera plus signalé, ni dans la page ni dans le panneau.</li>
+    <li><b>📗</b> veut dire « ce mot est correct » : un prénom, un lieu, un mot de métier. Il ne sera plus signalé, ni dans la page ni dans le panneau. Il s'ajoute à <b>📗 Mes mots</b>, dans le panneau.</li>
     <li><b>×</b> cache la bulle pour ce champ.</li>
     <li>La bulle et la recopie ne marchent pas en même temps. Fermer le panneau éteint la bulle.</li>
   </ul>
