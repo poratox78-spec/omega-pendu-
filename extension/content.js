@@ -299,7 +299,7 @@
         h += '<div class="omdys-item' + (vigT ? ' omdys-tvig' : (orth ? ' omdys-orth' : '')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → ' + (devine ? 'peut-être <b>« ' + esc(f.sugg) + ' »</b> ?' : '<b>« ' + esc(f.sugg) + ' »</b>')
           + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vigT ? ' · à vérifier' : '')) + ']</span>'
           + (f.hint ? '<button class="omdys-why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')
-          + ((orth && !(DC.udHas && DC.udHas(f.word))) ? '<button class="omdys-ud" data-k="' + k + '" type="button" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗</button>' : '')
+          + ((DC.udMot && DC.udMot(f)) ? '<button class="omdys-ud" data-k="' + k + '" type="button" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗</button>' : '')   // ⭐ 01/10/2026 : le 📗 là où le dictionnaire fait taire le signalement (dys-core udMot) — les « mot inconnu » l'ont enfin, les élisions ne l'ont plus
           + (f.hint ? '<div class="omdys-astuce" data-k="' + k + '" hidden>' + esc(f.hint) + ' <button class="omdys-tts" data-k="' + k + '" type="button" title="écouter l\'explication">🔊</button></div>' : '')
           + '</div>';
       });
@@ -332,8 +332,8 @@
     })(items[z]);
     var uds = b.querySelectorAll('.omdys-ud');
     for (var uq = 0; uq < uds.length; uq++) (function (btn) {   // 📗 = « c'est un mot » : ajoute au dictionnaire utilisateur, ne corrige PAS
-      btn.onclick = function (ev) { ev.stopPropagation(); var fl = dg.flags[+btn.getAttribute('data-k')];
-        if (fl) { udSave(fl.word); btn.remove(); run(el); } };
+      btn.onclick = function (ev) { ev.stopPropagation(); var fl = dg.flags[+btn.getAttribute('data-k')], m = (fl && DC.udMot) ? DC.udMot(fl) : null;
+        if (m) udSave(m); btn.remove(); run(el); };   // m = le mot que le moteur consulte : le RADICAL d'un mot élidé (« l'aquathlon » → aquathlon)
     })(uds[uq]);
     var whys = b.querySelectorAll('.omdys-why');
     for (var wq = 0; wq < whys.length; wq++) (function (btn) {   // 💡 = révèle l'astuce contextuelle AU CLIC (masquée par défaut)

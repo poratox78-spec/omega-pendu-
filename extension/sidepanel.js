@@ -124,10 +124,10 @@
     // ⚠️ RÈGLE GÉNÉRALE : dys-core ne persiste RIEN — toute nouvelle surface doit appeler udSet().
     try {
       chrome.storage.local.get('vdc_userdict', function (o) {
-        if (o && o.vdc_userdict && DC.udSet) { DC.udSet(o.vdc_userdict); runNow(); }
+        if (o && o.vdc_userdict && DC.udSet) { DC.udSet(o.vdc_userdict); rendreMots(); runNow(); }
       });
       chrome.storage.onChanged.addListener(function (ch) {
-        if (ch.vdc_userdict && DC.udSet) { DC.udSet(ch.vdc_userdict.newValue || []); runNow(); }
+        if (ch.vdc_userdict && DC.udSet) { DC.udSet(ch.vdc_userdict.newValue || []); rendreMots(); runNow(); }
       });
     } catch (e) {}
   } catch (e) { stEl.textContent = 'erreur'; }
@@ -212,6 +212,39 @@
   }
   function speak(txt) { try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(String(txt).replace(/\s+/g, ' ').trim()); u.lang = 'fr-FR'; u.rate = 0.95; speechSynthesis.speak(u); } catch (e) {} }
 
+  /* ===== 📗 LE DICTIONNAIRE DE L'UTILISATEUR, ÉCRIT ET RETIRÉ D'ICI (01/10/2026) =====
+     Le panneau ne faisait que LIRE `vdc_userdict` : seule la bulle l'écrivait, et elle est éteinte par défaut — presque personne
+     ne pouvait donc ajouter un prénom, un pseudo, un mot de métier. Et nulle part on ne pouvait en RETIRER un : un 📗 cliqué par
+     erreur sur une vraie faute la cachait pour toujours. Ici : 📗 sur chaque correction où DC.udMot rend un mot (les mêmes que la
+     bulle), et « 📗 Mes mots » avec ✕. Même stockage que la bulle (chrome.storage.local) : tous les onglets suivent par onChanged.
+     LECTURE-MODIFICATION-ÉCRITURE dans le stockage, jamais DC.udAll() seul : un mot ajouté ailleurs entre-temps ne se perd pas. */
+  function udNormP(w) { return String(w || '').toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').trim(); }   // la normalisation de dys-core (udNorm)
+  function udEcrire(maj) {
+    try { chrome.storage.local.get('vdc_userdict', function (o) { chrome.storage.local.set({ vdc_userdict: maj(((o && o.vdc_userdict) || []).slice()) }); }); } catch (e) {}
+  }
+  function udAjoute(m) {
+    if (!m || !DC.udAdd) return;
+    DC.udAdd(m); rendreMots(); runNow();
+    udEcrire(function (l) { if (l.map(udNormP).indexOf(m) < 0) l.push(m); return l; });
+  }
+  function udRetire(m) {
+    if (!m || !DC.udDel) return;
+    DC.udDel(m); rendreMots(); runNow();
+    udEcrire(function (l) { return l.filter(function (x) { return udNormP(x) !== m; }); });
+  }
+  function rendreMots() {
+    var det = document.getElementById('omdys-mots'), liste = document.getElementById('omdys-motsliste'), n = document.getElementById('omdys-motsn');
+    if (!det || !liste || !DC || !DC.udAll) return;
+    var mots = DC.udAll().slice().sort(function (a, b) { return a.localeCompare(b, 'fr'); });
+    det.hidden = !mots.length;
+    n.textContent = mots.length ? '(' + mots.length + ')' : '';
+    liste.innerHTML = mots.map(function (w, j) {
+      return '<span class="mot">' + esc(w) + '<button class="motx" data-j="' + j + '" type="button" title="Retirer « ' + esc(w) + ' » de ton dictionnaire : il sera de nouveau signalé" aria-label="Retirer ' + esc(w) + '">✕</button></span>';
+    }).join('');
+    var xs = liste.querySelectorAll('.motx');
+    for (var q = 0; q < xs.length; q++) (function (b) { b.onclick = function () { udRetire(mots[+b.getAttribute('data-j')]); }; })(xs[q]);
+  }
+
   function render(dg) {
     lastDg = dg || { flags: [] };
     var flags = lastDg.flags || [];
@@ -234,13 +267,14 @@
         + (vig ? '' : '<span class="etat">' + (off ? 'annulé · clique pour réappliquer' : '✓ appliqué à la copie · clique pour annuler') + '</span>')
         + (f.hint ? '<button class="why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')
         + '<button class="tts" data-k="' + k + '" type="button" title="écouter">🔊</button>'
+        + ((DC.udMot && DC.udMot(f)) ? '<button class="ud" data-k="' + k + '" type="button" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗</button>' : '')
         + (f.hint ? '<div class="astuce" data-k="' + k + '" hidden>' + esc(f.hint) + '</div>' : '')
         + '</div>';
     });
     corr.innerHTML = h;
     var items = corr.querySelectorAll('.item');
     for (var z = 0; z < items.length; z++) (function (node) {
-      node.onclick = function (ev) { if (ev.target.closest('.why') || ev.target.closest('.astuce') || ev.target.closest('.tts')) return;
+      node.onclick = function (ev) { if (ev.target.closest('.why') || ev.target.closest('.astuce') || ev.target.closest('.tts') || ev.target.closest('.ud')) return;
         var f = flags[+node.getAttribute('data-k')]; if (!f) return;
         if (f.tier === 'vigilance') { applyFlag(f); return; }                 // ORANGE : au clic, dans la zone (inchangé)
         var key = _fk(f); if (_ign[key]) delete _ign[key]; else _ign[key] = true; runNow(); };   // ROUGE : bascule appliqué/annulé dans la copie
@@ -249,6 +283,8 @@
     for (var w = 0; w < whys.length; w++) (function (b) { b.onclick = function (e) { e.stopPropagation(); var a = corr.querySelector('.astuce[data-k="' + b.getAttribute('data-k') + '"]'); if (a) a.hidden = !a.hidden; }; })(whys[w]);
     var tts = corr.querySelectorAll('.tts');
     for (var t2 = 0; t2 < tts.length; t2++) (function (b) { b.onclick = function (e) { e.stopPropagation(); var f = flags[+b.getAttribute('data-k')]; if (f) speak('« ' + f.word + ' » devient « ' + f.sugg + ' ». ' + (f.hint || '')); }; })(tts[t2]);
+    var uds = corr.querySelectorAll('.ud');   // 📗 = « c'est un mot » : il rejoint le dictionnaire, la correction n'est PAS appliquée
+    for (var u2 = 0; u2 < uds.length; u2++) (function (b) { b.onclick = function (e) { e.stopPropagation(); var f = flags[+b.getAttribute('data-k')], m = (f && DC.udMot) ? DC.udMot(f) : null; if (m) udAjoute(m); }; })(uds[u2]);
     // aide-frappe (clic pour insérer le mot en cours)
     var cs = compsAt(), ch = '';
     if (cs.length) {

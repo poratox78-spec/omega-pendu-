@@ -28,7 +28,8 @@
  * et Chrome n'émet aucun événement de focus dans une page non focalisée — le content script ne voyait
  * jamais `focusin`. `Emulation.setFocusEmulationEnabled` (CDP) règle ça, et la barre est fiable.
  * Depuis le 01/10/2026, le bouton 📗 de la barre aussi (gardes ⑩ ⑩bis : le dictionnaire de l'utilisateur
- * est écrit, suivi par les autres onglets et le panneau, relu par une page neuve).
+ * est écrit, suivi par les autres onglets et le panneau, relu par une page neuve). Garde ⑪ : le 📗 est offert aux « mot
+ * inconnu », et pour un mot élidé c'est le RADICAL qui est enregistré (« l'airbnb » → airbnb).
  *
  * ⭐ QUATRE PIÈGES PAYÉS EN ÉCRIVANT CE BANC, écrits ici pour qu'ils ne soient pas repayés :
  *  ① `--load-extension` NE CHARGE PLUS RIEN sur Chrome récent (152 ici) : aucun monde isolé n'est
@@ -538,6 +539,96 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     garde(mB.connu && !mB.signale && !neuve, '⑩bis page NEUVE : dictionnaire relu', 'moteur ' + (mB.connu ? 'le connaît' : 'NE LE CONNAÎT PAS') + ' · bulle ' + (neuve ? 'le signale ENCORE' : 'ne le signale plus'),
       'couverture ⑩bis : vdc_userdict=["' + MOT_UD + '"] en stockage, une page neuve ' + (mB.connu ? (mB.signale ? 'le charge mais son moteur le signale encore' : 'le charge') : 'NE LE CHARGE PAS au démarrage (udLoad)')
       + (neuve ? ', et sa bulle le signale encore (' + neuve.txt + ')' : ''));
+
+    /* ⑪ LE 📗 DES « MOT INCONNU » ET DES MOTS ÉLIDÉS (01/10/2026). La bulle n'offrait le 📗 qu'aux familles « orthographe » et
+       « élision » : un « mot inconnu » — le cas le plus courant d'un pseudo, d'une marque, d'un mot de métier écrit en minuscule —
+       n'en avait jamais, et sur une élision (« ne étais » → n'étais) le clic ne faisait rien. Pour un mot ÉLIDÉ, le moteur consulte le
+       RADICAL : enregistrer « l'airbnb » ne servait à rien. La bulle lit désormais DYSCORE.udMot (la règle est gardée en Node par
+       extension/test_speller.js) ; ici, le GESTE : taper, voir le 📗, cliquer, relire `vdc_userdict` puis la bulle. Une page NEUVE
+       par cas : sans barre au départ, la lecture ne peut pas tomber sur le rendu de la frappe précédente. */
+    const UD11 = [   // phrases INVENTÉES, vérifiées hors gold
+      { txt: "j'ai pris rendez-vous sur doctolib pour lundi", mot: 'doctolib', cle: 'doctolib', quoi: '« mot inconnu »' },
+      { txt: "on a réservé l'airbnb pour les vacances", mot: "l'airbnb", cle: 'airbnb', quoi: 'mot élidé (radical)' },
+    ];
+    const bulle11 = (p, txt) => evalue(p, '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+      + (txt ? ' const el = document.getElementById("z"); el.value = ' + JSON.stringify(txt) + '; el.focus();'
+             + ' el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "r" }));' : '')
+      + ' const vis = () => { const b = document.querySelector(".omdys-bar"); return (b && getComputedStyle(b).display !== "none") ? b : null; };'
+      + ' let b = null; for (let i = 0; i < 60 && !(b = vis()); i++) await w(100); if (!b) return [];'
+      + ' let h = b.innerHTML, t0 = Date.now(); for (let i = 0; i < 40 && Date.now() - t0 < 400; i++) { await w(100); if (b.innerHTML !== h) { h = b.innerHTML; t0 = Date.now(); } }'
+      + ' if (!vis()) return [];'
+      + ' return [...b.querySelectorAll(".omdys-item")].map((x) => ({ txt: x.textContent.replace(/\\s+/g, " ").trim(), ud: !!x.querySelector(".omdys-ud") })); })()');
+    for (const c of UD11) {
+      await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // départ propre
+      const P = await pageUD();
+      const ligne = (l) => (l || []).find((x) => x.txt.indexOf('« ' + c.mot + ' »') === 0) || null;
+      const avant = ligne(await bulle11(P.p, c.txt));
+      let stock = null, apres = null;
+      if (avant && avant.ud) {
+        await evalue(P.p, '(() => { const it = [...document.querySelectorAll(".omdys-bar .omdys-item")].find((x) => x.textContent.indexOf(' + JSON.stringify('« ' + c.mot + ' »') + ') === 0);'
+          + ' const b = it && it.querySelector(".omdys-ud"); if (b) b.click(); return !!b; })()');
+        for (let i = 0; i < 20; i++) { stock = await stockUD(); if (stock && stock.length) break; await attendre(150); }
+        apres = ligne(await bulle11(P.p, null));
+      }
+      try { P.p.fermer(); } catch (e) {}
+      await fermerPagesUD();
+      const causes = [];   // chaque défaut NOMMÉ
+      if (!avant) causes.push('INSTRUMENT : « ' + c.txt + ' » ne donne plus de ligne « ' + c.mot + ' » dans la bulle — choisir un autre exemple');
+      else if (!avant.ud) causes.push('la bulle ne lui offre pas de 📗 (' + avant.txt + ') : content.js ne lit pas DYSCORE.udMot');
+      else {
+        if (!(stock && stock.indexOf(c.cle) >= 0)) causes.push('vdc_userdict n\'a pas « ' + c.cle + ' » (eu ' + JSON.stringify(stock) + ')'
+          + ((stock && c.mot !== c.cle && stock.indexOf(c.mot) >= 0) ? ' : le token entier est enregistré, or le moteur consulte le radical' : ''));
+        if (apres) causes.push('la bulle le signale encore (' + apres.txt + ')');
+      }
+      garde(!causes.length, '⑪ 📗 ' + c.quoi, avant ? ('📗 ' + (avant.ud ? 'offert' : 'ABSENT') + (avant.ud ? ' · vdc_userdict=' + JSON.stringify(stock) + ' · bulle ' + (apres ? 'le signale ENCORE' : 'ne le signale plus') : '')) : 'pas de ligne « ' + c.mot + ' »',
+        'couverture ⑪ : « ' + c.mot + ' » (' + c.quoi + ') dans la bulle → ' + causes.join(' ; '));
+    }
+    await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // on rend l'état : les gardes suivantes ne l'attendent pas
+
+    /* ⑫ LE 📗 DU PANNEAU ET « 📗 MES MOTS » (01/10/2026). Le panneau ne faisait que LIRE `vdc_userdict` : sans la bulle (éteinte par
+       défaut), personne ne pouvait ajouter un mot ; et nulle part on ne pouvait en RETIRER un — un 📗 cliqué par erreur sur une
+       vraie faute la cachait pour toujours. Le geste complet, dans la page du panneau : taper, cliquer 📗, relire le stockage et
+       « Mes mots », retirer par ✕, relire encore : le mot doit revenir signalé, avec son 📗. */
+    const MOT12 = "l'uber", CLE12 = 'uber', TXT12 = "elle prend l'uber pour rentrer";   // phrase INVENTÉE, vérifiée hors gold — [orthographe · à vérifier] ; le 📗 enregistre le RADICAL
+    await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // départ propre
+    const v12 = await evalue(pp, '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+      + ' const until = async (f, ms) => { const t0 = Date.now(); for (;;) { let v = null; try { v = await f(); } catch (e) {} if (v) return v; if (Date.now() - t0 > ms) return null; await w(150); } };'
+      + ' const stock = () => new Promise(r => chrome.storage.local.get("vdc_userdict", (o) => r((o && o.vdc_userdict) || [])));'
+      + ' const ta = document.getElementById("omdys-ta"), st = document.getElementById("omdys-st"); if (!ta) return { fatal: "zone omdys-ta introuvable" };'
+      + ' if (!(await until(() => st && /pr[êe]t/i.test(st.textContent || ""), 30000))) return { fatal: "le panneau ne se dit jamais prêt" };'
+      + ' const mir = document.getElementById("omdys-mirror"); if (mir && mir.checked) { mir.checked = false; mir.dispatchEvent(new Event("change", { bubbles: true })); }'
+      + ' const item = () => [...document.querySelectorAll("#omdys-corr .item")].find((e) => (e.textContent || "").indexOf(' + JSON.stringify('« ' + MOT12 + ' »') + ') === 0) || null;'
+      + ' const mots = () => { const d = document.getElementById("omdys-mots"); return d ? { visible: !d.hidden, liste: [...d.querySelectorAll(".mot")].map((m) => (m.firstChild && m.firstChild.textContent) || "") } : null; };'
+      + ' ta.focus(); ta.value = ' + JSON.stringify(TXT12) + '; ta.dispatchEvent(new Event("input", { bubbles: true }));'
+      + ' const it = await until(item, 20000); if (!it) return { fatal: "aucune ligne « ' + MOT12 + ' » dans le panneau" };'
+      + ' const out = { ud: !!it.querySelector(".ud"), mots0: mots() }; if (!out.ud) return out;'
+      + ' it.querySelector(".ud").click();'
+      + ' out.stock1 = await until(async () => { const s = await stock(); return s.length ? s : null; }, 5000);'
+      + ' out.parti = !!(await until(() => !item(), 5000)); out.mots1 = mots();'
+      + ' const x = [...document.querySelectorAll("#omdys-mots .mot")].find((m) => m.firstChild && m.firstChild.textContent === ' + JSON.stringify(CLE12) + ');'
+      + ' const bx = x && x.querySelector(".motx"); out.x = !!bx; if (!bx) return out; bx.click();'
+      + ' out.stock2 = await until(async () => { const s = await stock(); return s.indexOf(' + JSON.stringify(CLE12) + ') < 0 ? s : null; }, 5000);'
+      + ' out.revenu = !!(await until(() => { const i = item(); return i && i.querySelector(".ud") ? i : null; }, 5000)); out.mots2 = mots();'
+      + ' return out; })()');
+    await evalue(pp, 'new Promise(r => chrome.storage.local.remove("vdc_userdict", () => r(1)))');   // on rend l'état
+    {
+      const c = [];   // chaque défaut NOMMÉ
+      if (v12.fatal) c.push('INSTRUMENT : ' + v12.fatal);
+      else if (!v12.ud) c.push('le panneau n\'offre pas de 📗 à « ' + MOT12 + ' » : sidepanel.js ne lit pas DYSCORE.udMot');
+      else {
+        if (!(v12.stock1 && v12.stock1.indexOf(CLE12) >= 0)) c.push('vdc_userdict n\'a pas « ' + CLE12 + ' » après le 📗 (eu ' + JSON.stringify(v12.stock1) + ')');
+        if (!v12.parti) c.push('le panneau le signale encore après le 📗');
+        if (!(v12.mots1 && v12.mots1.visible && v12.mots1.liste.indexOf(CLE12) >= 0)) c.push('« Mes mots » ne montre pas « ' + CLE12 + ' » (eu ' + JSON.stringify(v12.mots1) + ')');
+        if (!v12.x) c.push('pas de ✕ pour « ' + CLE12 + ' » dans « Mes mots »');
+        else {
+          if (!v12.stock2) c.push('✕ ne retire pas « ' + CLE12 + ' » du stockage');
+          if (!v12.revenu) c.push('après ✕, « ' + MOT12 + ' » n\'est pas de nouveau signalé avec son 📗');
+          if (v12.mots2 && v12.mots2.visible) c.push('« Mes mots » reste affiché alors que le dictionnaire est vide');
+        }
+      }
+      garde(!c.length, '⑫ 📗 du PANNEAU + Mes mots ✕', v12.fatal ? v12.fatal : ('📗 ' + (v12.ud ? 'offert' : 'ABSENT') + (v12.ud ? ' · vdc_userdict=' + JSON.stringify(v12.stock1) + ' · Mes mots=' + JSON.stringify(v12.mots1 && v12.mots1.liste) + ' · ✕ → ' + JSON.stringify(v12.stock2) + ' · ' + (v12.revenu ? 'de nouveau signalé' : 'PAS revenu') : '')),
+        'couverture ⑫ : panneau, « ' + MOT12 + ' » → ' + c.join(' ; '));
+    }
 
     // CONTRÔLE de ⑦ : SW tué, panneau OUVERT → la bulle doit apparaître
     const mortC = await tuerSW();
