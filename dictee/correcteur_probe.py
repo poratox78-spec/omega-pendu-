@@ -326,6 +326,28 @@ def _pp_relit(T, i, part):
     return None
 
 
+# ⭐ 03/10/2026 — lot « forme du verbe » (catalogue des muets) : miroir de rEer (_EER_*, _eerMinf, _eerGouvInf) — pronoms enjambés,
+# modal à l'infinitif, « étant » / « une fois », adverbes après l'auxiliaire avoir. Voir le commentaire du moteur JS.
+_EER_CLIT = set('me te se nous vous lui leur le la les y en'.split())
+_EER_MINF = set('pouvoir devoir vouloir savoir aller venir faire laisser oser'.split())
+_EER_DET = set('le la les l un une du des au aux ce cet cette ces son sa ses mon ma mes ton ta tes notre votre nos vos leur leurs'.split())
+_EER_ADV = set('beaucoup bien deja toujours souvent encore aussi vraiment trop peu presque jamais pas plus enfin meme'.split())
+_EER_AVOIR = set('a ai as avons avez ont avait avais avaient avions aviez aura aurai auras aurons aurez auront aurait aurais auraient'.split())
+_EER_PINF = {'de', u'à', 'pour', 'sans', 'par'}   # prépositions qui gouvernent un INFINITIF (dans, sur, chez… jamais)
+
+
+def _eer_minf(T, k):
+    if k < 0 or deacc(T[k].lower()) not in _EER_MINF: return False
+    return not (k > 0 and deacc(T[k-1].lower()) in _EER_DET)   # modal à l'INFINITIF, pas le nom (« le pouvoir délégué »)
+
+
+def _eer_gouv_inf(T, k):
+    if k < 0: return False
+    r = T[k].lower(); d = deacc(r)
+    if r == u'à' and k > 0 and deacc(T[k-1].lower()) in ('quant', 'grace'): return False   # « quant à lui », « grâce à elle »
+    return r in _EER_PINF or (d != 'a' and d in MODAL) or _eer_minf(T, k)
+
+
 def rule_e_er(T, i):
     if i >= 2:
         _pse = deacc(T[i-1].lower())
@@ -337,6 +359,14 @@ def rule_e_er(T, i):
         #    « préposition » (vrai verbe -er du jeu curé, pas un nom : NOUN_E, table accentuée GENDER_ACC → « d'employé », « d'arrêté » restent des noms).
         _r = lw[2:]; _inf = _r[:-1] + 'er'
         if deacc(_r) not in NOUN_E and deacc(_inf) in VERB_LEX and GENDER_ACC.get(_r) not in ('m', 'f'): return w[:2] + _inf
+        return None
+    _mcl = re.match(u"^(m|t|s)'([a-zà-ÿœ]+é)$", lw)    # pronom élidé collé (« doit m'aidé ») ; « l' » exclu (aussi déterminant)
+    if _mcl and i > 0 and not w[2:3].isupper():
+        _km = i - 1; _na = 0
+        while _km > 0 and _na < 2 and deacc(T[_km].lower()) in _EER_ADV: _km -= 1; _na += 1
+        if _eer_gouv_inf(T, _km):
+            _rm = _mcl.group(2); _im = _rm[:-1] + 'er'
+            if deacc(_rm) not in NOUN_E and deacc(_im) in VERB_LEX and GENDER_ACC.get(_rm) not in ('m', 'f'): return w[:2] + _im
         return None
     if "'" in lw: return None                          # token contracté (l'été, d'…) → pas un verbe -er/-é
     # ⭐ CAPITALE EN COURS DE PHRASE = NOM PROPRE (08/09/2026). « est Allier Comté Communauté »
@@ -366,7 +396,16 @@ def rule_e_er(T, i):
         if rule_a_aa(T, i - 1) == 'a': return None
         return forms[1]                                # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif
     p = prev(T, i)
-    if p in AUX:
+    _kv = i - 1
+    if p not in AUX:                                   # adverbes entre l'auxiliaire AVOIR écrit et le verbe (« a tout de même augmenter »)
+        while _kv > 0 and i - _kv <= 4:
+            _dv = deacc(T[_kv].lower())
+            if _dv == 'meme' and _kv >= 2 and deacc(T[_kv-1].lower()) == 'de' and deacc(T[_kv-2].lower()) == 'tout': _kv -= 3; continue
+            if _dv == 'meme' and _kv >= 1 and deacc(T[_kv-1].lower()) == 'quand': _kv -= 2; continue
+            if _dv in _EER_ADV: _kv -= 1; continue
+            break
+    _av_adv = _kv < i - 1 and _kv >= 0 and T[_kv].lower() in _EER_AVOIR   # forme ÉCRITE : « à » n'est pas « a »
+    if p in AUX or _av_adv or p == 'etant' or (p == 'fois' and i >= 2 and deacc(T[i-2].lower()) == 'une'):
         # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — c'est la
         # 3e forme la plus souvent erronée du français dys (Bodard 2020). « tout en cherchent A trouver »,
         # « elle se lance A chanter », « une difficulté A étudier » : la règle lisait ce « a » comme l'AUXILIAIRE
@@ -406,6 +445,17 @@ def rule_e_er(T, i):
             if _tge and i < len(_tge) and _tge[i] in ('NOUN', 'PROPN'): return None
         return forms[1]                              # préposition → infinitif -er
     if p in MODAL:               return forms[1]
+    _kc = i - 1; _nc = 0; _det_pos = False             # préposition / modal + pronoms (≤ 2) + participe → infinitif
+    while _kc >= 0 and _nc < 2 and deacc(T[_kc].lower()) in _EER_CLIT:
+        if deacc(T[_kc].lower()) in ('le', 'la', 'les'): _det_pos = True
+        _kc -= 1; _nc += 1
+    if _det_pos and (deacc(forms[0].lower()) in D.GENDER_LEX or GENDER_ACC.get(forms[0].lower()) or _noun_gate(forms[0])): _nc = -1   # le/la/les aussi déterminants
+    if (_nc > 0 and _eer_gouv_inf(T, _kc)) or _eer_minf(T, i - 1):
+        if deacc(forms[0].lower()) in D.GENDER_LEX: return None
+        if GENDER_ACC.get(forms[0].lower()) in ('m', 'f'):
+            _t5 = pos_tags(T)
+            if _t5 and i < len(_t5) and _t5[i] in ('NOUN', 'PROPN'): return None
+        return forms[1]
     return None
 
 # --- Terminaisons -er / -é / -ez / -ai (verbe 1er groupe) tranchées par le GOUVERNEUR (test mordre/mordu) ---
@@ -1099,6 +1149,13 @@ def _aa_inverted(T, i):
     if i - 1 < len(hy) and hy[i - 1]: return True        # « a-t-il » : le trait d'union PROUVE l'inversion
     return vlike(T, i - 2) and deacc(T[i-1].lower()) in _PRON_INV   # « avait il a faim » (dys, trait d'union omis)
 
+# ⭐ 03/10/2026 — « difficile à réparé » : « à » + participe ne devient plus « a » après un adjectif qui se construit avec « à + infinitif »
+# (liste FERMÉE ; « à » accentué seulement) — miroir JS _AA_ADJ_INF.
+_AA_ADJ_INF = set(('difficile difficiles facile faciles impossible impossibles pret prete prets pretes simple simples agreable agreables '
+                   'penible penibles complique compliquee compliques compliquees lent lente lents lentes long longue longs longues dur dure durs dures '
+                   'apte aptes enclin encline enclins enclines prompt prompte prompts promptes habile habiles insuffisant insuffisante insuffisants insuffisantes').split())
+
+
 def _rule_a_aa_base(T, i):
     if deacc(T[i].lower()) != 'a': return None
     if T[i] == T[i].upper() and T[i] != T[i].lower(): return None      # « A » majuscule (sigle/lettre « Serie A » ; « À » en tête) → abstention (FP)
@@ -1112,6 +1169,7 @@ def _rule_a_aa_base(T, i):
     if not pb and p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça") and (pel or not _aa_inverted(T, i)): return 'a'   # sujet 3sg net (pas à travers une virgule, pas inversé « avait-il ») → avoir
     if i+1 < len(T) and _is_ppl(T[i+1]) and not deacc(T[i+1].lower()).endswith('ee'):   # « a + participe » (« a été », « a décidé ») → auxiliaire AVOIR, jamais « à ». Écarte -ée FÉMININ (après AVOIR le pp NE s'accorde PAS → « -ée » = NOM → « à durée limitée » reste préposition)
         dn = deacc(T[i+1].lower()); nt = tg[i+1] if (tg and i+1 < len(tg)) else ''
+        if T[i].lower() == u'à' and i > 0 and deacc(T[i-1].lower()) in _AA_ADJ_INF: return None   # « difficile à réparé » : le verbe est faux, pas « à »
         if not (dn in _PP_NOUN_HOMO and nt == 'NOUN'): return 'a'     # …SAUF nom-homographe tagué NOM (« condamnée à mort », « tout à fait ») = « à » préposition, pas le verbe « a »
     if i+2 < len(T) and deacc(T[i+1].lower()).endswith('ment') and (tg and i+1 < len(tg) and tg[i+1] == 'ADV') and _is_ppl(T[i+2]): return 'a'   # « a + ADVERBE(-ment) RÉEL + participe » (« a également exploité ») ; exige POS=ADV → exclut « à l'emplacement », « à l'effondrement » (NOM en -ment)
     if not pb and vlike(T, i-1):                                       # après un verbe (« va à »), même proposition → préposition
