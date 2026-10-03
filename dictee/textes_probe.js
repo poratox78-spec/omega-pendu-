@@ -62,6 +62,12 @@ const CAS = [
   { t: 'On a visiter un chateau tres ancien pendant les vacance.',
     mots: { visiter: { sugg: 'visité', oui: ['mordu', 'participe « visité »'] } },
     remed: { oui: ['chateau » → « château » : a→â', 'circonflexe'], non: ['a→â. Dis-le à voix haute'] } },   // 14/09 : « tres → très » a désormais SA leçon (é ferme, è ouvre) — c'est le circonflexe qui ne doit pas la recevoir
+  { t: 'La facture a tout de même doubler.',   // ⭐ 03/10/2026 : la fenêtre du test remonte jusqu'à l'auxiliaire à travers les adverbes
+    mots: { doubler: { sugg: 'doublé', oui: ['a tout de même mordu', 'participe « doublé »'], non: ['« …de même mordu'] } } },
+  { t: "Il doit m'aidé demain.",   // ⭐ 03/10/2026 : le pronom collé reste dans la phrase-test, désélidé devant « mordre »
+    mots: { "m'aidé": { sugg: "m'aider", oui: ['doit me mordre', "infinitif « m'aider »"] } } },
+  { t: "Il n'a pas manger sa soupe.",   // ⭐ 03/10/2026 : avoir avec « n' » collé est un auxiliaire
+    mots: { manger: { sugg: 'mangé', oui: ["n'a pas mordu", 'participe « mangé »'] } } },
   { t: 'Nous avont marcher longtemps sous la pluit.',
     mots: { marcher: { sugg: 'marché', oui: ['mordu'] } },
     remed: { oui: ['avont » → « avons » : -ons, c’est « nous »', 'marcher » → « marché » : remplace le verbe par « mordre »'],

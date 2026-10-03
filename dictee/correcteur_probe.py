@@ -396,15 +396,17 @@ def rule_e_er(T, i):
         if rule_a_aa(T, i - 1) == 'a': return None
         return forms[1]                                # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif
     p = prev(T, i)
+    _pel = re.match(u"^[nj]['’](.+)$", p or '')
+    if _pel and _pel.group(1) in D.AUX_AVOIR: p = _pel.group(1)   # ⭐ 03/10/2026 : AVOIR avec « n' » / « j' » collé (« il n'a pas manger ») — miroir JS
     _kv = i - 1
     if p not in AUX:                                   # adverbes entre l'auxiliaire AVOIR écrit et le verbe (« a tout de même doubler »)
         while _kv > 0 and i - _kv <= 4:
             _dv = deacc(T[_kv].lower())
             if _dv == 'meme' and _kv >= 2 and deacc(T[_kv-1].lower()) == 'de' and deacc(T[_kv-2].lower()) == 'tout': _kv -= 3; continue
             if _dv == 'meme' and _kv >= 1 and deacc(T[_kv-1].lower()) == 'quand': _kv -= 2; continue
-            if _dv in _EER_ADV: _kv -= 1; continue
+            if _dv in _EER_ADV or _dv == 'rien': _kv -= 1; continue
             break
-    _av_adv = _kv < i - 1 and _kv >= 0 and T[_kv].lower() in _EER_AVOIR   # forme ÉCRITE : « à » n'est pas « a »
+    _av_adv = _kv < i - 1 and _kv >= 0 and re.sub(u"^[nj]['’]", '', T[_kv].lower()) in _EER_AVOIR   # forme ÉCRITE : « à » n'est pas « a »
     if p in AUX or _av_adv or p == 'etant' or (p == 'fois' and i >= 2 and deacc(T[i-2].lower()) == 'une'):
         # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — c'est la
         # 3e forme la plus souvent erronée du français dys (Bodard 2020). « tout en cherchent A trouver »,

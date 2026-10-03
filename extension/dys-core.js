@@ -437,6 +437,15 @@
      faute ailleurs dans le mot, ils sont hors sujet — 45 des 82 affichés sur le vrai écrit dys (« cént » → cent : « le t muet
      s'entend dans centaine », la faute était l'accent). 14/09/2026. */
   function _finConcernee(w,s){w=deacc(String(w||'').toLowerCase());s=deacc(String(s||'').toLowerCase());return !w||w.slice(-1)!==s.slice(-1);}
+  /* ⭐ 03/10/2026 — FENÊTRE DU 💡 « mordre / mordu » (-er / -é) : quand des adverbes séparent le verbe du mot qui décide (« a tout de même
+     doubler », « a vraiment beaucoup manger »), la fenêtre de 2 mots coupait l'auxiliaire (« …de même mordu ») : elle remonte jusqu'à lui.
+     Un pronom collé reste dans la phrase-test, désélidé devant « mordre » (« doit m'aidé » → « doit me mordre »). Lu par _erHint (app ≡ ext). */
+  var _ERF_ADV={beaucoup:1,bien:1,'déjà':1,deja:1,toujours:1,souvent:1,encore:1,aussi:1,vraiment:1,trop:1,peu:1,presque:1,jamais:1,pas:1,plus:1,enfin:1,'même':1,meme:1};
+  function _erFen(T,i,pk){var a=Math.max(0,i-2),k=i-1,n=0,mot=pk,el=/^([mts])['’]/i.exec(String(T[i]||''));
+    while(k>0&&n<4){var d=String(T[k]).toLowerCase(),dp=String(T[k-1]||'').toLowerCase(),dn=String(T[k+1]||'').toLowerCase();
+      if(_ERF_ADV[d]||(d==='de'&&dp==='tout')||(d==='tout'&&dn==='de')||(d==='quand'&&_ERF_ADV[dn])){k--;n++;continue;}break;}
+    if(n>0&&k<a)a=k;if(el&&pk==='mordre')mot=el[1].toLowerCase()+'e '+pk;
+    return {a:a,mot:mot};}
   // ===== fin de la COUCHE DYS PARTAGÉE =====
 
   // ===== correcteur (règles homophones + accord + genre) — VERBATIM app =====
@@ -551,7 +560,7 @@ var w=T[i],lw=w.toLowerCase(),f;
       var _rd=lw.slice(2),_infd=_rd.slice(0,-1)+'er',_gd=_GACC[_rd];if(!NOUN_E[deacc(_rd)]&&COMMON_VERBS[deacc(_infd)]&&_gd!=='m'&&_gd!=='f')return w.slice(0,2)+_infd;return null;}
     var _mcl=/^(m|t|s)'([a-zà-ÿœ]+é)$/.exec(lw);   /* « l' » exclu : c'est aussi le déterminant (« dans l'encadré ») */if(_mcl&&i>0&&w.charAt(2)===w.charAt(2).toLowerCase()){var _km=i-1,_na=0;while(_km>0&&_na<2&&_EER_ADV[deacc(T[_km].toLowerCase())]){_km--;_na++;}if(_eerGouvInf(T,_km)){var _rm=_mcl[2],_im=_rm.slice(0,-1)+'er',_gm=_GACC[_rm];if(!NOUN_E[deacc(_rm)]&&COMMON_VERBS[deacc(_im)]&&_gm!=='m'&&_gm!=='f')return w.slice(0,2)+_im;}return null;}
     if(lw.indexOf("'")>=0)return null;if(w.charAt(0)!==w.charAt(0).toLowerCase())return null;   /* ⭐ CAPITALE EN COURS DE PHRASE = NOM PROPRE (08/09/2026, miroir Python) : « est Allier Comté Communauté »→Allié, « avec Honoré de Balzac »→Honorer, « Cry Me a River »→Rivé. La règle SŒUR rEPpl porte exactement cette ligne ; celle-ci ne testait aucune capitale. Mesuré : 0 correction perdue, 6 FP éteints, 2 tirs éteints sur UD (français CORRECT : « Louis de Frotté », « avec Aimé Picquet »). */if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A'){if(rA(T,i-1)==='a')return null;   // CASCADE DE DEUX ROUGES : « statue À CONSERVÉ » recevait « à »→« a » ET « conservé »→« conserver » → « a conserver », faute FABRIQUÉE. Si le correcteur juge lui-même ce « à » faux, l'ancre ne vaut rien → abstention (miroir Python rule_e_er)
-    return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});}var p=cprev(T,i);var _kv=i-1;if(!CAUX[p]){while(_kv>0&&i-_kv<=4){var _dv=deacc(T[_kv].toLowerCase());if(_dv==='meme'&&_kv>=2&&deacc(T[_kv-1].toLowerCase())==='de'&&deacc(T[_kv-2].toLowerCase())==='tout'){_kv-=3;continue;}if(_dv==='meme'&&_kv>=1&&deacc(T[_kv-1].toLowerCase())==='quand'){_kv-=2;continue;}if(_EER_ADV[_dv]){_kv--;continue;}break;}}var _avAdv=(_kv<i-1&&_kv>=0&&_EER_AVOIR[T[_kv].toLowerCase()]);   /* forme ÉCRITE : « à » désaccentué n'est pas l'auxiliaire « a » */if(CAUX[p]||_avAdv||p==='etant'||(p==='fois'&&i>=2&&deacc(T[i-2].toLowerCase())==='une')){
+    return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});}var p=cprev(T,i);var _pel=/^[nj]['’](.+)$/.exec(p||'');if(_pel&&AUX_AVOIR[_pel[1]])p=_pel[1];   /* ⭐ 03/10/2026 : AVOIR avec « n' » ou « j' » collé (« il n'a pas manger » → mangé) ; pas « s'est / n'est » (être : « ce n'est renverser » est juste), ni l' / m' / t' (le participe peut s'accorder avec ce pronom : « il m'a aidée ») */var _kv=i-1;if(!CAUX[p]){while(_kv>0&&i-_kv<=4){var _dv=deacc(T[_kv].toLowerCase());if(_dv==='meme'&&_kv>=2&&deacc(T[_kv-1].toLowerCase())==='de'&&deacc(T[_kv-2].toLowerCase())==='tout'){_kv-=3;continue;}if(_dv==='meme'&&_kv>=1&&deacc(T[_kv-1].toLowerCase())==='quand'){_kv-=2;continue;}if(_EER_ADV[_dv]||_dv==='rien'){_kv--;continue;}break;}}var _avAdv=(_kv<i-1&&_kv>=0&&_EER_AVOIR[T[_kv].toLowerCase().replace(/^[nj]['’]/,'')]);   /* forme ÉCRITE : « à » désaccentué n'est pas l'auxiliaire « a » */if(CAUX[p]||_avAdv||p==='etant'||(p==='fois'&&i>=2&&deacc(T[i-2].toLowerCase())==='une')){
       // ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL, parité Python rule_e_er) : le scripteur dys
       // confond a/à (3e forme la plus souvent erronée, Bodard 2020). « tout en cherchent A trouver », « elle se lance
       // A chanter » : ce « a » lu comme AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION.
@@ -4964,7 +4973,7 @@ function spellUnknown(tok,atStart,T,idx){
   // ⭐ -er / -é (audit 11/09/2026) : ces corrections n'avaient AUCUN 💡 — la branche accord les exclut (le gouverneur n'y dit rien) et famHint rend ''.
   // Le test que tout le monde apprend, fenêtré sur la phrase de l'élève : « mordre » (infinitif) / « mordu » (participe) / « mordez » (-ez). Miroir app _erHint.
   function _erHint(f,T,i){var n=f.name||'';if(!/é\/er|terminaison -er/.test(n))return '';var sg=(f.sugg||'').toLowerCase(),km=/^(.*?)(er|ez|ées|és|ée|é)$/.exec(sg);if(!km)return '';
-    var pk=km[2]==='er'?'mordre':km[2]==='ez'?'mordez':'mordu',a=Math.max(0,i-2),b=Math.min(T.length,i+3),w=T.slice(a,b);w[i-a]=pk;
+    var pk=km[2]==='er'?'mordre':km[2]==='ez'?'mordez':'mordu',_ef=_erFen(T,i,pk),a=_ef.a,b=Math.min(T.length,i+3),w=T.slice(a,b);w[i-a]=_ef.mot;
     var me=km[2]==='er'?('infinitif « '+sg+' » (-er)'):km[2]==='ez'?('« '+sg+' » (-ez, vous)'):('participe « '+sg+' » (-'+km[2]+')'),oth=km[2]==='er'?('participe « '+km[1]+'é » (-é)'):('infinitif « '+km[1]+'er » (-er)');
     return 'Astuce : remplace par « '+pk+' ». « '+(a>0?'…':'')+w.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+me+' · non → '+oth+'.';}
   function ctxHint(f,T){var i=f.i;if(typeof i!=='number'||!T||i>=T.length)return '';if(f.auteur)return _auteurHint(f);

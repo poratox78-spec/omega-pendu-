@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-10-03 — apostrophes : « il n'a pas manger » ; et les 💡 « mordre / mordu » du lot verbe relus
+
+- Relu les 💡 du lot « forme du verbe » (#860) dans le produit : la fenêtre de 2 mots coupait l'auxiliaire quand des adverbes
+  s'intercalent (« …de même mordu se dit ? » pour « a tout de même doubler ») et perdait le pronom collé (« doit m'aidé » → « Il doit
+  mordre demain »). `_erFen` (COUCHE DYS PARTAGÉE, octet pour octet app ≡ extension) remonte jusqu'à l'auxiliaire et désélide le pronom
+  devant « mordre » (« doit me mordre ») ; les deux `_erHint` la lisent. `textes_probe` : 3 phrases de plus (falsifié : 3 attentes tombent).
+- En testant : « il n'a pas manger » MUET, comme « je n'ai pas manger », « ils n'ont pas manger », « il n'a jamais manger » — le « n' »
+  collé cachait l'auxiliaire (« il a pas manger » était corrigé). `rEer` ≡ `rule_e_er` lit maintenant le mot sans « n' » / « j' » — AVOIR
+  seulement : la 1re version prenait aussi « s'est / n'est » (« si ce n'est + infinitif » est juste : rouge faux vu sur un corpus dys) et
+  l' / m' / t' (le participe peut s'accorder avec ce pronom : « il m'a aidée »). « rien » se saute comme un adverbe (« il n'a rien manger »).
+- Mesuré au produit (copie du moteur) : 3 corpus dys — 1 faute juste de plus, 1 correction juste que le gold du corpus avait oubliée,
+  1 double faute (« noyer » écrit pour « nettoyé ») qui reçoit « noyé » (la terminaison est juste, pas le mot ; elle était muette) ; UD
+  14 450 : 1 vraie faute d'UD corrigée (« n'a pas empêcher »), 0 marque sur un mot juste. Gold : muettes 581 → 580, mots faux 314 → 315.
+- Précision ré-ancrée (Python et Chrome) : « -é/-er » auto 92,0 → 89,3 % (Chrome 93,1 → 90,6 %), « terminaison -er/-é » auto 64,3 → 58,3 %
+  (Chrome 71,4 → 66,7 %). Sur les 1 798 textes de la sonde, 3 marques changent : 2 justes passent de « terminaison » à « -é/-er » (même
+  suggestion) et la double faute « noyer » (pour « nettoyé ») reçoit « noyé ». Aucun mot juste n'est touché ; « a noyer » sans apostrophe
+  recevait déjà « noyé ».
+- Rem l'a demandé le même jour : traiter l'apostrophe une bonne fois, elle pose trop souvent problème. C'est la même cause trois fois
+  aujourd'hui (« n'a », « l'âje », le « à » désaccentué) : chaque règle doit penser seule au mot collé. Chantier suivant : recenser, règle par
+  règle, ce que l'apostrophe fait taire (paires inventées avec / sans élision), puis une seule primitive partagée, mesurée.
+- Tests : `parity_core.js` (5 « n'a / n'ai / n'ont » + participe, avec et sans adverbe ; témoin « ce n'est pas commencer ») — falsifié chemin
+  par chemin (le mot d'avant, puis la traversée des adverbes).
+
 ## 2026-10-03 — « a » → « à » devant un verbe : avoir + groupe nominal objet, « facilitée », et « à » n'est plus l'auxiliaire pour l'orthographe
 
 - Signalé par Rem sur une phrase de test : « une facilitée a dessiner » — la faute est le « a » (→ « à »), pas le verbe ; le produit rendait
