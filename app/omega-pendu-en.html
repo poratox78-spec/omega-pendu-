@@ -25724,7 +25724,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
      (clitiques traversés). Voie NOUVELLE, jouée seulement si la logique existante se tait, et ORANGE (_tierOf) : la logique mesurée
      garde ses rouges. Mesuré (produit, 14 322 textes dys + UD) : 5 « à » justes de plus, 4 rouges faux retirés ou ramenés en orange,
      0 perte ; UD : 1 marque, une vraie faute du corpus (« rien a redire »). Miroir Python _rule_a_aa_nouveau. */
-  var _AA_NEG={pas:1,plus:1,jamais:1,rien:1,point:1,guere:1},_AA_NOM={difficulte:1,difficultes:1,peine:1,mal:1,facilite:1,tendance:1,plaisir:1,interet:1},
+  var _AA_NEG={pas:1,plus:1,jamais:1,rien:1,point:1,guere:1},_AA_NOM={difficulte:1,difficultes:1,peine:1,mal:1,facilite:1,facilites:1,tendance:1,plaisir:1,interet:1},
       _AA_AUX={est:1,sont:1,etait:1,etaient:1,sera:1,seront:1,a:1,ont:1,ai:1,as:1,avons:1,avez:1,avait:1,avaient:1,aura:1,auront:1,fut:1,furent:1,soit:1,ait:1},
       _AA_ADV={ne:1,pas:1,plus:1,jamais:1,bien:1,deja:1,toujours:1,souvent:1,aussi:1,encore:1,meme:1,donc:1,alors:1,enfin:1,pourtant:1,vraiment:1,beaucoup:1,trop:1,tout:1};
   /* ⭐ 30/09/2026 — LOCUTIONS PRÉPOSITIVES (catalogue des muets, a → à) : à cause de, à partir de, à l'intérieur de, à part, à ne pas
@@ -25755,6 +25755,30 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var k=i+1;while(k<T.length&&_aaAdv(T[k]))k++;if(k>=T.length||T[k].length<2||_isPpl(T[k]))return false;   // « a longtemps été » : participe → avoir ; « a b » : lettre
     if(T[k].charAt(0)===T[k].charAt(0).toLowerCase()&&_nounGateN(deacc(T[k].toLowerCase()))&&!/(er|ir|re|oir)$/.test(deacc(T[k].toLowerCase())))return false;   // devant un nom commun NU (homographe d'un verbe, que la règle du nom nu ne prend pas), c'est « au », pas « à » — pas de mot faux
     return true;}
+  /* ⭐ 03/10/2026 — ⑧ AVOIR + GROUPE NOMINAL OBJET + « a » + infinitif (« j'ai un livre a terminer », « il y a du travail a faire »,
+     « je n'ai pas de temps a perdre ») : le groupe nominal qui suit AVOIR est son OBJET ; le « a » d'après ne peut pas être un second
+     auxiliaire sans conjonction → « à ». Avant : la règle -er/-é lisait « a » comme avoir et rendait un participe ROUGE (« terminé »),
+     ou l'accord proposait « ont ». Gardes : ponctuation, que / qui / et…, pronom sujet ou participe dans le groupe ; « il y a » + durée
+     (« il y a deux ans a commencé ») ; « un livre DE cuisine » remonte au déterminant d'avant ; « à » accentué n'est pas avoir.
+     Mesuré au produit : 3 corpus dys (14 322 textes) : 1 « à » juste de plus et 1 verbe juste au lieu d'un participe faux, 0 perte ;
+     UD 14 450 : 0 marque. ORANGE (voie nouvelle). Miroir Python _aa_obj_avoir. */
+  var _AA_AVOBJ={ai:1,as:1,a:1,avons:1,avez:1,ont:1,avais:1,avait:1,avions:1,aviez:1,avaient:1,aurai:1,auras:1,aura:1,aurons:1,aurez:1,auront:1,aurais:1,aurait:1,aurions:1,auriez:1,auraient:1,eu:1,avoir:1,ayant:1},
+      _AA_DOBJ={un:1,une:1,des:1,du:1,de:1,le:1,la:1,les:1,mon:1,ma:1,mes:1,ton:1,ta:1,tes:1,son:1,sa:1,ses:1,notre:1,votre:1,nos:1,vos:1,leur:1,leurs:1,ce:1,cet:1,cette:1,ces:1,quelques:1,plusieurs:1},
+      _AA_QOBJ={pas:1,plus:1,jamais:1,beaucoup:1,plein:1,trop:1,assez:1,peu:1,tellement:1,autant:1},
+      _AA_TEMPS={an:1,ans:1,annee:1,annees:1,jour:1,jours:1,mois:1,semaine:1,semaines:1,heure:1,heures:1,minute:1,minutes:1,seconde:1,secondes:1,siecle:1,siecles:1,longtemps:1},
+      _AA_NPSTOP={que:1,qui:1,dont:1,ou:1,et:1,mais:1,donc:1,car:1,quand:1,si:1,comme:1,parce:1,puis:1};
+  function _aaObjAvoir(T,i){
+    for(var j=i-1;j>=Math.max(1,i-5);j--){var dj=deacc(T[j].toLowerCase()),el=/^[ld]['’]./.test(dj);
+      if(_SEG&&j+1<i&&j+1<_SEG.bb.length&&_SEG.bb[j+1])return false;
+      if(!_AA_DOBJ[dj]&&!el){if(_AA_NPSTOP[dj]||SUBJ_PRON[dj]||CLITIC[dj]||_AA_AUX[dj]||_AA_AVOBJ[dj.replace(/^(j|n)['’]/,'')]||_isPpl(T[j]))return false;continue;}
+      if(j===i-1&&!el)return false;if(_SEG&&j<_SEG.bb.length&&_SEG.bb[j])return false;
+      var v=j-1;if(v>=1&&deacc(T[v].toLowerCase())==='de')v--;
+      if(v>=1&&(dj==='de'||/^d['’]/.test(dj)||deacc(T[j-1].toLowerCase())==='de')&&_AA_QOBJ[deacc(T[v].toLowerCase())])v--;
+      if(v<0)return false;var rv=T[v].toLowerCase(),dv=deacc(rv).replace(/^(j|n|qu)['’]/,'');
+      if(rv==='à'||!_AA_AVOBJ[dv]){if(dj==='de'||dj==='du'||dj==='des'||/^d['’]/.test(dj))continue;return false;}   // « un livre DE cuisine » : on remonte au déterminant d'avant
+      if(dv==='a'&&v>=1&&deacc(T[v-1].toLowerCase())==='y'){for(var q=j;q<i;q++)if(_AA_TEMPS[deacc(T[q].toLowerCase()).replace(/^[ld]['’]/,'')])return false;}   // « il y a deux ans a commencé » : une durée, pas un objet
+      return true;}
+    return false;}
   function _rAnouveau(T,i){
     if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase()||i<1)return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(_aaLocution(T,i))return 'à';                                      // ⑤ locution prépositive (sans infinitif)
@@ -25763,7 +25787,8 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var k=i+1;while(k<T.length&&CLITIC[deacc(T[k].toLowerCase())])k++;if(k>=T.length||!/(er|ir|re|oir)$/.test(deacc(T[k].toLowerCase())))return null;
     var p1=deacc(T[i-1].toLowerCase());
     if(_AA_NEG[p1])return 'à';                                          // ① négation AVANT « a » : l'auxiliaire la précède toujours (« n'a pas »)
-    if(_AA_NOM[p1])return 'à';                                          // ② nom qui appelle « à » (du mal a dormir, de la peine a marcher)
+    if(_aaObjAvoir(T,i))return 'à';                                     // ⑧ avoir + groupe nominal OBJET + « a » (« j'ai un livre a terminer »)
+    if(_AA_NOM[p1]||_AA_NOM[p1.replace(/ee(s?)$/,'e$1')])return 'à';   // ② nom qui appelle « à » (du mal a dormir, de la peine a marcher) ; ⭐ 03/10/2026 : aussi écrit en -ée comme un participe (« une facilitée a dessiner ») — c'est le NOM : « a » devient « à », le verbe reste (avant : « dessiné » ROUGE). Miroir Python _rule_a_aa_nouveau
     var el=/^(m|t|s|l)['’](.+)$/.exec(T[i-1].toLowerCase());
     if(el){var wv=el[2],dv=deacc(wv);if(!_AA_AUX[dv]&&!_isPpl(wv)){var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(dv):NOUN_POST[dv]):null,T3=T.slice();T3[i-1]=wv;
       if((el[1]!=='l'||!(np&&np[0]>=100))&&(vlike(T3,i-1)||(CONJ_F&&CONJ_F[dv])))return 'à';}}   // ③ verbe collé à un pronom élidé (« m'obligea a fermer ») ; « l'expulsé a », ou « l'Est » devant « a », restent avoir
@@ -28873,8 +28898,8 @@ function spellTokenCore(tok,atStart,T,idx){
        (trigrammes absents du français) a été essayée et RÉFUTÉE : 14 gains perdus pour 5 bruits, et
        elle ne voyait même pas « flight ». */
     if(keys.length===1&&d.length>=4&&f1>=1.0&&_slipMot(d,deaccS(w1)))return['auto',w1];
-    var _aux=false;if(T){var _z=idx-1;while(_z>=0){var _dz=deaccS(T[_z].toLowerCase());if(SAUXAV[_dz]||SCOPULA[_dz]){_aux=true;break;}if(_dz==='ne'||_dz==='n'||_dz==='pas'||_dz==='plus'||_dz==='jamais'||_dz==='bien'||_dz==='tres'||_dz==='deja'||_dz==='toujours'||_dz==='y'||_dz==='en'||_dz==='tout'){_z--;continue;}break;}}
-    if(_aux&&/e$/.test(w1)&&!/é$/.test(w1)){var _pe=w1.slice(0,-1)+'é';if(cand[_pe]&&cand[_pe][1]>=1.0)return['flag',_pe];}   // PARTICIPE APRÈS AUXILIAIRE avoir/être : le dys écrit le PRÉSENT (-e) là où l'aux impose le PARTICIPE (-é) du MÊME verbe — « il a manje/manjé »→mangé. Ne touche QUE le présent -e (jamais pris/fait/vu en -s/-t/-u) ⇒ FP=0.
+    var _aux=false;if(T){var _z=idx-1;while(_z>=0){var _dz=deaccS(T[_z].toLowerCase());if((SAUXAV[_dz]||SCOPULA[_dz])&&T[_z].toLowerCase()!=='à'){_aux=true;break;}   /* ⭐ 03/10/2026 : « à » accentué n'est pas l'auxiliaire « a » (deaccS les confondait : « il apprend à rentrre » → « rentré », puis la grammaire changeait « à » en « a » EN ROUGE). Miroir speller_probe */if(_dz==='ne'||_dz==='n'||_dz==='pas'||_dz==='plus'||_dz==='jamais'||_dz==='bien'||_dz==='tres'||_dz==='deja'||_dz==='toujours'||_dz==='y'||_dz==='en'||_dz==='tout'){_z--;continue;}break;}}
+    if(_aux&&/e$/.test(w1)&&!/é$/.test(w1)&&!(T&&T[idx]&&/^[ld]['’]/i.test(T[idx]))){var _pe=w1.slice(0,-1)+'é';   /* ⭐ 03/10/2026 : un mot à « l' » / « d' » collé est un NOM, jamais un participe (« il a l'âje » donnait « l'âgé ») */if(cand[_pe]&&cand[_pe][1]>=1.0)return['flag',_pe];}   // PARTICIPE APRÈS AUXILIAIRE avoir/être : le dys écrit le PRÉSENT (-e) là où l'aux impose le PARTICIPE (-é) du MÊME verbe — « il a manje/manjé »→mangé. Ne touche QUE le présent -e (jamais pris/fait/vu en -s/-t/-u) ⇒ FP=0.
     var _cgd=(T&&idx>0)?DET_G[deaccS(T[idx-1].toLowerCase())]:null;   // GENRE du DETERMINANT immediat (audible, fiable) — pas la marche arriere sCtxGender, qui peut lire un genre POLLUE sur un mot-outil (« des » porte un genre dans le lexique relache)
     if(expPos){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
       if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → la ré-sélection context-first ne re-choisit QUE des candidats à finale AUDIBLE (manjé→mangé, pas mange) — sinon la fréquence réécrasait le tri d'audibilité (12536)

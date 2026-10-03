@@ -1205,7 +1205,7 @@ def _rule_a_aa_base(T, i):
 # ⭐ 29/09/2026 — ROUGES FAUX « a + INFINITIF » : quatre structures où « a » ne peut pas être l'auxiliaire, toujours devant un infinitif
 # (clitiques traversés) ; voie NOUVELLE jouée seulement si la logique existante se tait, ORANGE (tier_of). Miroir JS _rAnouveau.
 _AA_NEG = frozenset(('pas', 'plus', 'jamais', 'rien', 'point', 'guere'))
-_AA_NOM = frozenset(('difficulte', 'difficultes', 'peine', 'mal', 'facilite', 'tendance', 'plaisir', 'interet'))
+_AA_NOM = frozenset(('difficulte', 'difficultes', 'peine', 'mal', 'facilite', 'facilites', 'tendance', 'plaisir', 'interet'))
 _AA_AUX = frozenset(('est sont etait etaient sera seront a ont ai as avons avez avait avaient aura auront fut furent soit ait').split())
 _AA_ADV = frozenset(('ne pas plus jamais bien deja toujours souvent aussi encore meme donc alors enfin pourtant vraiment beaucoup trop tout').split())
 
@@ -1263,6 +1263,43 @@ def _aa_apres_adverbe(T, i):
     return True
 
 
+
+# ⭐ 03/10/2026 — ⑧ AVOIR + GROUPE NOMINAL OBJET + « a » + infinitif (« j'ai un livre a terminer », « il y a du travail a faire ») : le groupe
+# nominal qui suit AVOIR est son OBJET ; le « a » d'après ne peut pas être un second auxiliaire sans conjonction → « à ». Gardes : ponctuation,
+# que / qui / et…, pronom sujet ou participe dans le groupe ; « il y a » + durée ; « un livre DE cuisine » remonte au déterminant d'avant.
+# ORANGE (voie nouvelle). Miroir JS _aaObjAvoir.
+_AA_AVOBJ = frozenset('ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient eu avoir ayant'.split())
+_AA_DOBJ = frozenset('un une des du de le la les mon ma mes ton ta tes son sa ses notre votre nos vos leur leurs ce cet cette ces quelques plusieurs'.split())
+_AA_QOBJ = frozenset('pas plus jamais beaucoup plein trop assez peu tellement autant'.split())
+_AA_TEMPS = frozenset('an ans annee annees jour jours mois semaine semaines heure heures minute minutes seconde secondes siecle siecles longtemps'.split())
+_AA_NPSTOP = frozenset('que qui dont ou et mais donc car quand si comme parce puis'.split())
+
+
+def _aa_obj_avoir(T, i):
+    for j in range(i - 1, max(1, i - 5) - 1, -1):
+        dj = deacc(T[j].lower()); el = re.match(u"^[ld]['’].", dj) is not None
+        if _SEG is not None and j + 1 < i and j + 1 < len(_SEG['bb']) and _SEG['bb'][j + 1]: return False
+        if dj not in _AA_DOBJ and not el:
+            if (dj in _AA_NPSTOP or dj in SUBJ_PRON or dj in CLITIC or dj in _AA_AUX
+                    or re.sub(u"^(j|n)['’]", '', dj) in _AA_AVOBJ or _is_ppl(T[j])): return False
+            continue
+        if j == i - 1 and not el: return False
+        if _SEG is not None and j < len(_SEG['bb']) and _SEG['bb'][j]: return False
+        v = j - 1
+        if v >= 1 and deacc(T[v].lower()) == 'de': v -= 1
+        if v >= 1 and (dj == 'de' or re.match(u"^d['’]", dj) or deacc(T[j - 1].lower()) == 'de') and deacc(T[v].lower()) in _AA_QOBJ: v -= 1
+        if v < 0: return False
+        rv = T[v].lower(); dv = re.sub(u"^(j|n|qu)['’]", '', deacc(rv))
+        if rv == u'à' or dv not in _AA_AVOBJ:
+            if dj in ('de', 'du', 'des') or re.match(u"^d['’]", dj): continue   # « un livre DE cuisine » : on remonte au déterminant d'avant
+            return False
+        if dv == 'a' and v >= 1 and deacc(T[v - 1].lower()) == 'y':
+            for q in range(j, i):
+                if re.sub(u"^[ld]['’]", '', deacc(T[q].lower())) in _AA_TEMPS: return False   # « il y a deux ans a commencé » : une durée
+        return True
+    return False
+
+
 def _rule_a_aa_nouveau(T, i):
     if deacc(T[i].lower()) != 'a' or T[i] != T[i].lower() or i < 1: return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
@@ -1276,7 +1313,8 @@ def _rule_a_aa_nouveau(T, i):
     if k >= len(T) or not re.search(r'(er|ir|re|oir)$', deacc(T[k].lower())): return None
     p1 = deacc(T[i - 1].lower())
     if p1 in _AA_NEG: return u'à'                                     # ① négation AVANT « a »
-    if p1 in _AA_NOM: return u'à'                                     # ② nom qui appelle « à »
+    if _aa_obj_avoir(T, i): return u'à'                                # ⑧ avoir + groupe nominal OBJET + « a » (« j'ai un livre a terminer »)
+    if p1 in _AA_NOM or re.sub(r'ee(s?)$', r'e\1', p1) in _AA_NOM: return u'à'   # ② nom qui appelle « à » ; ⭐ 03/10/2026 : aussi écrit en -ée (« une facilitée a dessiner »)
     el = re.match(u"^(m|t|s|l)['’](.+)$", T[i - 1].lower())
     if el:
         wv = el.group(2); dv = deacc(wv)
