@@ -169,6 +169,7 @@ const PHRASES = [
   'Laquelle a-t-elle été ?', 'Ça été une belle fête.', 'Je pars au japon cet été.', "Elle aime l'europe.", 'Le franc suisse monte.'
 ];
 PHRASES.push(...fs.readFileSync(path.join(ROOT, 'dictee', 'phrases_courantes.txt'), 'utf8').split('\n').map(s => s.trim()).filter(s => s && s[0] !== '#'));   // ⭐ 13/09/2026 : phrases courantes 1re/2e personne — « Je ne peux pas. » → *puis* en rouge du 07 au 13/09, vu par aucun corpus
+PHRASES.push("Il refuse de nous aidé cette fois.", "Elle a fini par se levé très tard.", "Il doit m'aidé demain.", "Il vient la récupéré ce soir.", "Une fois rentrer à la maison, elle lit.", "Tout en étant fatiguer, il travaille.", "La facture a tout de même doubler.", "La facture a beaucoup doubler.", "Ce sera difficile à réparé.", "Le Nasdaq a quant à lui cédé 8 %.", "Les coureurs sont partis sur le tracé du circuit.", "Les chiffres sont dans l'encadré ci-contre.", "Il compte sur la facilité du parcours.", "Le pouvoir délégué aux régions est limité.", "Il à mangé une pomme.", "C'est bien manger.");   // ⭐ 03/10/2026 : lot « forme du verbe » (ext ⊆ Python sur ces phrases inventées)
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)
 
 // 3) flags Python
@@ -486,8 +487,14 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (fp && fp.tier !== 'vigilance') { _vo++; console.log('  ✗ voisin orange : le rouge « pleuré » (a lu comme avoir) devait passer en orange : ' + JSON.stringify(fp)); }
   const f2 = fl('Elle commence à avancer doucement.');
   if (f2.length) { _vo++; console.log('  ✗ voisin orange : phrase correcte marquée ' + JSON.stringify(f2.map(f => [f.word, f.sugg, f.name]))); }
+  // ⭐ 03/10/2026 : le voisin dit « à » → le -er → -é d'à côté (qui lisait « a » comme avoir) se RETIRE ; « à » + « parlé » se contredisaient
+  const f3 = fl('Il éprouve une dificultée a parler.'), fa3 = f3.find(f => f.word === 'a'), fp3 = f3.find(f => f.word === 'parler');
+  if (!fa3 || fa3.sugg !== 'à' || fa3.tier !== 'vigilance') { _vo++; console.log('  ✗ voisin orange : « dificultée a parler » → a/à orange attendu, obtenu ' + JSON.stringify(fa3 || null)); }
+  if (fp3) { _vo++; console.log('  ✗ voisin orange : « parler » ne doit plus rien porter quand le voisin dit « à » : ' + JSON.stringify(fp3)); }
+  const f4 = fl('Il éprouve une difficulté à parler.');
+  if (f4.length) { _vo++; console.log('  ✗ voisin orange : phrase correcte marquée ' + JSON.stringify(f4.map(f => [f.word, f.sugg, f.name]))); }
   if (_vo) { console.log('PARITÉ KO — voisin orange : ' + _vo + ' attente(s) non tenue(s).'); process.exit(1); }
-  console.log('  ✓ voisin orange : « commanse a pleurer » → à ? (orange), le rouge « pleuré » repasse en orange ; phrase correcte muette');
+  console.log('  ✓ voisin orange : « commanse a pleurer » → à ? (orange) ; « dificultée a parler » → à ? sans « parlé » contradictoire ; phrases correctes muettes');
 }
 
 // ⭐ 30/09/2026 — GENRE DU DÉTERMINANT CONTREDIT PAR L'ORANGE DU NOM : « la foret » → le (le foret, l'outil) alors que l'orthographe
@@ -719,6 +726,29 @@ print(json.dumps(out))
   if (_ga) { console.log('PARITÉ KO — réglage « j’écris au féminin / au masculin » : ' + _ga + ' attente(s) non tenue(s).'); process.exit(1); }
   const _n = (k) => CAS.reduce((s, c) => s + Object.keys(c[k]).length, 0), _sil = CAS.filter(c => !Object.keys(c[1]).length && !Object.keys(c[2]).length).length;
   console.log('  ✓ genre de l’auteur : sans réglage rien ; au féminin ' + _n(1) + ' marques, au masculin ' + _n(2) + ', toutes orange ; ' + _sil + ' silences voulus' + (pyG.saute ? '' : ' ; parité Python sur ' + CAS.length + ' phrases × 2 réglages')); }
+
+// ⭐ 03/10/2026 — LOT « FORME DU VERBE » (catalogue des muets) : la règle -er/-é enjambe les pronoms (préposition qui gouverne un infinitif
+// ou modal + pronoms + participe → infinitif), lit « étant » / « une fois » / l'auxiliaire avoir suivi d'adverbes (→ participe), et
+// « difficile à réparé » ne transforme plus « à » en « a ». Silences voulus : locutions, déterminants, noms, « c'est bien manger ».
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _vb = 0;
+  for (const [s, w, sg] of [['Il refuse de nous aidé cette fois.', 'aidé', 'aider'], ['Elle a fini par se levé très tard.', 'levé', 'lever'],
+                            ["Il doit m'aidé demain.", "m'aidé", "m'aider"], ['Il vient la récupéré ce soir.', 'récupéré', 'récupérer'],
+                            ['Une fois rentrer à la maison, elle lit.', 'rentrer', 'rentré'], ['Tout en étant fatiguer, il travaille.', 'fatiguer', 'fatigué'],
+                            ['La facture a tout de même doubler.', 'doubler', 'doublé'], ['La facture a beaucoup doubler.', 'doubler', 'doublé'],
+                            ['Ce sera difficile à réparé.', 'réparé', 'réparer'], ['Il à mangé une pomme.', 'à', 'a']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg) { _vb++; console.log('  ✗ forme du verbe : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  if (fl('Ce sera difficile à réparé.').some(x => x.word === 'à')) { _vb++; console.log('  ✗ forme du verbe : « difficile à réparé » touche encore « à »'); }
+  for (const [s, w] of [['Le Nasdaq a quant à lui cédé 8 %.', 'cédé'], ['Les coureurs sont partis sur le tracé du circuit.', 'tracé'],
+                        ["Les chiffres sont dans l'encadré ci-contre.", "l'encadré"], ['Il compte sur la facilité du parcours.', 'facilité'],
+                        ['Le pouvoir délégué aux régions est limité.', 'délégué'], ["C'est bien manger.", 'manger']]) {
+    const m = fl(s).filter(x => x.word === w);
+    if (m.length) { _vb++; console.log('  ✗ forme du verbe : témoin « ' + s + ' » marqué ' + JSON.stringify(m)); }
+  }
+  if (_vb) { console.log('PARITÉ KO — forme du verbe : ' + _vb + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ forme du verbe : 9 corrections (pronoms enjambés, étant, une fois, avoir + adverbes, difficile à) ; « il à mangé » → a gardé ; 6 témoins muets'); }
 
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`

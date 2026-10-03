@@ -184,9 +184,15 @@ def pyramide(txt):
                 if isinstance(sg, str) and sg != Tv[i]:
                     if nm in _VOISIN_OK:
                         orange.setdefault(i, []).append(sg)
-                        j = i + 1                                  # « il commanse a pleurer » : le rouge « pleuré » lisait « a » comme AVOIR → orange
-                        if nm == u'a/à' and j < len(out) and out[j] != Tc[j] and Tc[j].lower().endswith('er') and out[j].lower().endswith(u'é'):
-                            orange.setdefault(j, []).append(out[j]); out[j] = Tc[j]
+                        j = i + 1                                  # le -er → -é d'à côté lisait « a » comme AVOIR (miroir de diagnoseAll)
+                        if nm == u'a/à' and j < len(out) and Tc[j].lower().endswith('er'):
+                            if sg.lower() == u'à':                 # ⭐ 03/10/2026 : le voisin dit « à » → « à » + infinitif ; le -é se RETIRE (rouge ou orange)
+                                if out[j] != Tc[j] and out[j].lower().endswith(u'é'): out[j] = Tc[j]
+                                if j in orange:
+                                    orange[j] = [s for s in orange[j] if s.lower() != Tc[j][:-2].lower() + u'é']
+                                    if not orange[j]: del orange[j]
+                            elif out[j] != Tc[j] and out[j].lower().endswith(u'é'):   # à → a : le rouge passe en orange, l'auteur tranche
+                                orange.setdefault(j, []).append(out[j]); out[j] = Tc[j]
                     break
     # ⭐ 01/10/2026 — GENRE DE LA PERSONNE QUI ÉCRIT (réglage ; miroir de auteurPasse) : une marque déjà posée dans le cadre « je + être »
     # prend le genre du réglage (orange, plus appliquée) ; un mot juste en soi mais au genre contraire reçoit une orange. Sans réglage : rien.

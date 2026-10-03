@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-10-03 — lot « forme du verbe » (catalogue des muets) : pronoms enjambés, étant / une fois, avoir + adverbes ; « difficile à réparé »
+
+- Catalogue recalculé (03/10) : 588 muettes ; la plus grosse classe réparable par des règles = forme du verbe -er / -é (45). Lue cas par cas :
+  la règle -er/-é ne regardait que le mot d'AVANT ; un pronom (« de nous aidé »), un adverbe (« a beaucoup doubler ») ou « étant » / « une
+  fois » suffisaient à la faire taire. Et un ROUGE FAUX trouvé en route : « difficile à réparé » → « a » (la branche « à + participe → avoir »
+  ne regardait pas le mot d'avant).
+- Posé dans `rEer` (3 moteurs) ≡ `rule_e_er` : préposition qui gouverne un infinitif (de, à, pour, sans, par) ou modal + 1-2 pronoms +
+  participe → infinitif ; pronom élidé collé (m', t', s' — pas l', aussi déterminant) ; modal à l'infinitif sauf après un déterminant ;
+  « étant », « une fois », avoir + adverbes (y compris « tout de même », « quand même ») → participe. Dans `_rAbase` ≡ `_rule_a_aa_base` :
+  « à » accentué après un adjectif de la liste fermée « à + infinitif » (difficile, facile, prêt, impossible…) ne devient plus « a ».
+- Mesuré avec une COPIE du moteur (famille_diff sur 14 322 textes dys + diff_ud sur 14 450 phrases UD), chaque marque lue : la 1re version
+  posait 2 rouges faux sur des NOMS (« l'encadré », « la facilité » : l'/la déterminants) et 5 sur UD (« quant à lui cédé », « dans le / sur le »
+  + nom, « à toujours trouver » : « à » désaccentué pris pour « a ») — chacun a reçu sa garde. Final : gold 588 → 582 muettes, 316 → 315 mots
+  faux, réparées en rouge 614 → 621 ; 3 corpus +9 justes et 1 « à → a » faux retiré, 0 perte ; UD : 1 vraie faute d'UD corrigée (« avions déjà
+  souper »), 0 marque sur un mot juste ; census 363/363 justes gardées.
+- Instrument réparé au passage : `diff_ud.js` (labo) ne chargeait pas la table de genre accentuée que le produit charge — il voyait des faux
+  (« sur le tracé ») que le produit n'a pas.
+- Tests : `parity_core.js` (9 corrections, « il à mangé » → a gardé, 6 témoins muets ; phrases ajoutées à la parité ext ⊆ Python) —
+  falsifié en retirant la garde « difficile à » : 2 attentes tombent.
+- Même jour, le voisin a/à : quand le voisin orange conclut « à » (« une dificultée a parler » → à ?), le -er → -é d'à côté, qui lisait « a »
+  comme avoir, n'est plus proposé du tout. Il passait en orange (« deux propositions, l'auteur tranche ») ; mais « à » et « parlé » se
+  contredisent, et accepter les deux donnait « à parlé ». Dans l'autre sens (à → a), inchangé. Mesuré : 1 seule paire contradictoire sur
+  28 772 textes (3 corpus dys + UD), retirée ; rien d'autre ne bouge ; gold : mots justes touchés en orange 17 → 16. Miroir Python :
+  `dys_pipeline_probe.pyramide`. Test `parity_core.js` (falsifié : sans le correctif, l'attente tombe).
+
 ## 2026-10-01 — réglage « j'écris au féminin / au masculin » : le genre de la personne qui écrit (lot C du catalogue)
 
 - Lot C, décidé par Rem le 01/10 : « je suis allé / allée », « je me suis trompé / trompée », « je suis content / contente » — le
