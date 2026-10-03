@@ -528,11 +528,11 @@
   function _ppRelit(T,i,part){if(!part)return null;var Tv=T.slice();Tv[i]=part;var r=null;try{r=rPpEtre(Tv,i);}catch(e){r=null;}if(!r){try{r=rPpAvoirCod(Tv,i);}catch(e){r=null;}}return (r&&r.toLowerCase()!==part.toLowerCase())?r:null;}   /* ⭐ 12/09/2026 (lot 2) : le participe rendu par -er → -é est NU ; on relit l'accord du participe sur la liste virtuelle, un pas (miroir Python _pp_relit) */
   /* ⭐ 03/10/2026 — LOT « FORME DU VERBE » (catalogue des muets : 45 fautes -er / -é laissées sans rien). La règle ne lisait que le mot
      d'AVANT. Elle enjambe maintenant : (1) un ou deux PRONOMS entre une préposition qui gouverne un infinitif (de, à, pour, sans, par —
-     jamais dans, sur, chez…) ou un modal et le verbe (« de vous remercié » → remercier, « par se dirigé » → diriger), et le pronom élidé
+     jamais dans, sur, chez…) ou un modal et le verbe (« de nous aidé » → aider, « par se levé » → lever), et le pronom élidé
      collé (« doit m'aidé » → m'aider ; pas « l' », aussi déterminant) ; après « le / la / les », le mot ne doit être un NOM pour aucune
      table (« sur la facilité ») ; « quant à lui », « grâce à elle » exclus ; (2) le modal à l'infinitif (« de pouvoir », « aller »), sauf
-     après un déterminant (« le pouvoir délégué ») ; (3) « étant » et « une fois » (« une fois arriver » → arrivé) ; (4) des adverbes entre
-     l'auxiliaire AVOIR écrit et le verbe (« a tout de même augmenter » → augmenté ; « à » n'est pas « a »). Mesuré au produit : gold
+     après un déterminant (« le pouvoir délégué ») ; (3) « étant » et « une fois » (« une fois rentrer » → rentré) ; (4) des adverbes entre
+     l'auxiliaire AVOIR écrit et le verbe (« a tout de même doubler » → doublé ; « à » n'est pas « a »). Mesuré au produit : gold
      588 → 582 muettes, 9 fautes justes de plus sur les 3 corpus dys, 0 perte ; UD 14 450 : une vraie faute d'UD corrigée, 0 marque sur un
      mot juste. Miroir Python : rule_e_er (_eer_minf, _eer_gouv_inf). */
   var _EER_CLIT={};'me te se nous vous lui leur le la les y en'.split(' ').forEach(function(w){_EER_CLIT[w]=1;});
@@ -5151,10 +5151,10 @@ function spellUnknown(tok,atStart,T,idx){
       gf=gf.filter(function(g){if(g.name!=='genre déterminant'||g.tier!=='vigilance'||g.i+1>=_Tv2.length||_Tv2[g.i+1]===_Tc[g.i+1])return true;
         var _nw=String(_Tv2[g.i+1]).toLowerCase(),_gn=_GCOLL[_nw]||GENDER_PURE[deacc(_nw)],_gd=DET_G[deacc(String(_Tc[g.i]).toLowerCase())];
         if(_gn&&_gd&&_gn===_gd){delete _gbt[g.i];return false;}return true;});
-      var _gv;try{_gv=correctTokens(_Tv2);}catch(e){return;}
+      var _gv,_nxDel=[];try{_gv=correctTokens(_Tv2);}catch(e){return;}
       _gv.forEach(function(g2){if(_gbt[g2.i]!=null||_sfi[g2.i]||!_VOISIN_OK[g2.name]||(g2.span&&g2.span>1))return;g2.tier='vigilance';g2.voisin=true;_gbt[g2.i]=g2;gf.push(g2);
-        var _nx=_gbt[g2.i+1];if(g2.name==='a/à'&&_nx&&_nx.tier!=='vigilance'&&(_nx.name==='accord grammatical (é/er)'||_nx.name==='terminaison -er/-é/-ez/-ai')&&/er$/i.test(String(_nx.word||_T[g2.i+1]))&&/é$/i.test(String(_nx.sugg))){_nx.tier='vigilance';_nx.voisin=true;}   // « il commanse a pleurer » : le rouge « pleuré » lisait « a » comme AVOIR ; le voisin dit « à » → les deux en orange, l'auteur tranche
-      });})();
+        var _nx=_gbt[g2.i+1];if(g2.name==='a/à'&&_nx&&(_nx.name==='accord grammatical (é/er)'||_nx.name==='terminaison -er/-é/-ez/-ai')&&/er$/i.test(String(_nx.word||_T[g2.i+1]))&&/é$/i.test(String(_nx.sugg))){if(String(g2.sugg).toLowerCase()==='à'){delete _gbt[g2.i+1];_nxDel.push(_nx);}else if(_nx.tier!=='vigilance'){_nx.tier='vigilance';_nx.voisin=true;}}   // le -er → -é d'à côté lisait « a » comme AVOIR. ⭐ 03/10/2026 : si le voisin dit « à », il se RETIRE — « à » + infinitif est la seule lecture qui tient (« une dificultée a parler » proposait « à » ET « parlé », qui se contredisent ; mesuré : 1 seule paire de ce genre sur 28 772 textes dys + UD, rien d'autre ne bouge). Dans l'autre sens (à → a), il passe en orange : l'auteur tranche
+      });if(_nxDel.length)gf=gf.filter(function(g){return _nxDel.indexOf(g)<0;});})();
     gf.forEach(function(f){f.word=_T[f.i];});                                                     // le mot AFFICHÉ reste celui de l'utilisateur, pas la version nettoyée
 var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;
       else if(f.span>=2&&(byTok[f.i].span==null||byTok[f.i].span<2)&&byTok[f.i].tier!=='vigilance'&&typeof f.sugg==='string'&&typeof byTok[f.i].sugg==='string'&&typeof f.word==='string'&&f.sugg.slice(0,f.word.length)===f.word){f.sugg=byTok[f.i].sugg+f.sugg.slice(f.word.length);byTok[f.i]=f;}});   // COLLISION grammaire mono-mot (majuscule) sur le 1er mot d'un span:2 speller → FUSIONNER (parité app _computeCorrs), sinon l'espace/tiret est perdu

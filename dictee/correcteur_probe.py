@@ -397,7 +397,7 @@ def rule_e_er(T, i):
         return forms[1]                                # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif
     p = prev(T, i)
     _kv = i - 1
-    if p not in AUX:                                   # adverbes entre l'auxiliaire AVOIR écrit et le verbe (« a tout de même augmenter »)
+    if p not in AUX:                                   # adverbes entre l'auxiliaire AVOIR écrit et le verbe (« a tout de même doubler »)
         while _kv > 0 and i - _kv <= 4:
             _dv = deacc(T[_kv].lower())
             if _dv == 'meme' and _kv >= 2 and deacc(T[_kv-1].lower()) == 'de' and deacc(T[_kv-2].lower()) == 'tout': _kv -= 3; continue
