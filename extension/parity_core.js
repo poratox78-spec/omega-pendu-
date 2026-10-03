@@ -170,6 +170,7 @@ const PHRASES = [
 ];
 PHRASES.push(...fs.readFileSync(path.join(ROOT, 'dictee', 'phrases_courantes.txt'), 'utf8').split('\n').map(s => s.trim()).filter(s => s && s[0] !== '#'));   // ⭐ 13/09/2026 : phrases courantes 1re/2e personne — « Je ne peux pas. » → *puis* en rouge du 07 au 13/09, vu par aucun corpus
 PHRASES.push("Il refuse de nous aidé cette fois.", "Elle a fini par se levé très tard.", "Il doit m'aidé demain.", "Il vient la récupéré ce soir.", "Une fois rentrer à la maison, elle lit.", "Tout en étant fatiguer, il travaille.", "La facture a tout de même doubler.", "La facture a beaucoup doubler.", "Ce sera difficile à réparé.", "Le Nasdaq a quant à lui cédé 8 %.", "Les coureurs sont partis sur le tracé du circuit.", "Les chiffres sont dans l'encadré ci-contre.", "Il compte sur la facilité du parcours.", "Le pouvoir délégué aux régions est limité.", "Il à mangé une pomme.", "C'est bien manger.");   // ⭐ 03/10/2026 : lot « forme du verbe » (ext ⊆ Python sur ces phrases inventées)
+PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer.", "Je n'ai pas de temps a perdre.", "Mon frère a un chien a promener.", "Elle a une grande facilitée a dessiner.", "J'ai un livre de cuisine a lire.", "Il apprend à rentrre ce soir.", "Le chat de mon frère a manger.", "J'ai vu que le chat a manger.", "Il y a deux ans a commencer la guerre.", "J'ai un chat le chien a manger.");   // ⭐ 03/10/2026 : « a / à devant un verbe » (ext ⊆ Python)
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)
 
 // 3) flags Python
@@ -749,6 +750,28 @@ print(json.dumps(out))
   }
   if (_vb) { console.log('PARITÉ KO — forme du verbe : ' + _vb + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ forme du verbe : 9 corrections (pronoms enjambés, étant, une fois, avoir + adverbes, difficile à) ; « il à mangé » → a gardé ; 6 témoins muets'); }
+
+// ⭐ 03/10/2026 — « a / à DEVANT UN VERBE » : ⑧ avoir + groupe nominal OBJET + « a » + infinitif → à (orange), le verbe reste ; un nom en -té
+// écrit -ée (« une facilitée a dessiner ») appelle « à » comme le nom ; l'orthographe ne prend plus « à » pour l'auxiliaire « a » (« à rentrre »
+// donnait « rentré », puis « à » → « a » en ROUGE). Témoins : le « a » qui suit un SUJET reste avoir (« le chat de mon frère a manger » → mangé).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _av = 0;
+  for (const [s, v] of [["J'ai un livre a terminer.", 'terminer'], ['Il y a beaucoup de travail a terminer.', 'terminer'], ["Je n'ai pas de temps a perdre.", 'perdre'],
+                        ['Mon frère a un chien a promener.', 'promener'], ['Elle a une grande facilitée a dessiner.', 'dessiner']]) {
+    const f = fl(s), a = f.filter(x => x.word === 'a');
+    if (a.length !== 1 || a[0].sugg !== 'à') { _av++; console.log('  ✗ a / à : « ' + s + ' » → un seul « à » attendu, obtenu ' + JSON.stringify(a)); }
+    if (f.some(x => x.word === v)) { _av++; console.log('  ✗ a / à : « ' + s + ' » touche le verbe « ' + v + ' » : ' + JSON.stringify(f.filter(x => x.word === v))); }
+  }
+  const fr = fl('Il apprend à rentrre ce soir.');
+  if (fr.some(x => x.word === 'à')) { _av++; console.log('  ✗ a / à : « à rentrre » change encore « à » : ' + JSON.stringify(fr)); }
+  if (fr.some(x => x.word === 'rentrre' && /é$/.test(String(x.sugg)))) { _av++; console.log('  ✗ a / à : « à rentrre » propose encore un participe : ' + JSON.stringify(fr)); }
+  for (const [s, v, sg] of [['Le chat de mon frère a manger.', 'manger', 'mangé'], ["J'ai vu que le chat a manger.", 'manger', 'mangé'],
+                            ['Il y a deux ans a commencer la guerre.', 'commencer', 'commencé'], ["J'ai un chat le chien a manger.", 'manger', 'mangé']]) {
+    const f = fl(s), m = f.find(x => x.word === v);
+    if (!m || m.sugg !== sg || f.some(x => x.word === 'a' && x.sugg === 'à')) { _av++; console.log('  ✗ a / à : témoin « ' + s + ' » → « ' + sg + ' » attendu, sans « à » ; obtenu ' + JSON.stringify(f)); }
+  }
+  if (_av) { console.log('PARITÉ KO — a / à devant un verbe : ' + _av + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ a / à devant un verbe : 5 « à » (avoir + objet, facilitée) sans toucher le verbe ; « à rentrre » sans rouge ; 4 témoins où « a » reste avoir'); }
 
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`

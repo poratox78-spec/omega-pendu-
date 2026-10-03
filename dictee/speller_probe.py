@@ -922,10 +922,10 @@ class Speller:
             z = idx - 1
             while z >= 0:
                 dz = deacc(toks[z].lower())
-                if dz in self.AUXAV or dz in self.COPULA: aux = True; break
+                if (dz in self.AUXAV or dz in self.COPULA) and toks[z].lower() != u'à': aux = True; break   # ⭐ 03/10/2026 : « à » n'est pas l'auxiliaire « a »
                 if dz in ('ne', 'n', 'pas', 'plus', 'jamais', 'bien', 'tres', 'deja', 'toujours', 'y', 'en', 'tout'): z -= 1; continue
                 break
-        if aux and w1.endswith('e') and not w1.endswith('é'):
+        if aux and w1.endswith('e') and not w1.endswith('é') and not (toks and idx is not None and re.match(u"^[ld]['’]", toks[idx].lower())):   # ⭐ 03/10/2026 : « l' » / « d' » collé = un NOM, jamais un participe
             pe = w1[:-1] + 'é'
             if pe in cands and cands[pe][1] >= 1.0: return ('flag', pe)
         if exp_pos:

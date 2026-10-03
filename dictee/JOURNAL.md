@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-10-03 — « a » → « à » devant un verbe : avoir + groupe nominal objet, « facilitée », et « à » n'est plus l'auxiliaire pour l'orthographe
+
+- Signalé par Rem sur une phrase de test : « une facilitée a dessiner » — la faute est le « a » (→ « à »), pas le verbe ; le produit rendait
+  « dessiné » en ROUGE. La règle connaissait « facilité à », pas l'écriture en -ée : `_AA_NOM` la lit maintenant (facilités ajouté).
+- En testant la même famille, une forme bien plus courante : « j'ai un livre a terminer » → « terminé » ROUGE, « j'ai des choses a faire » →
+  « ont ». Le groupe nominal qui suit AVOIR est son OBJET ; le « a » d'après ne peut pas être un 2e auxiliaire → ⑧ de `_rAnouveau` ≡
+  `_rule_a_aa_nouveau` : « à » en ORANGE, le verbe reste. Gardes posées sur des témoins inventés : ponctuation, que / qui / et, pronom sujet
+  ou participe dans le groupe, « il y a » + durée (« il y a deux ans a commencé »), « un livre DE cuisine » remonte au déterminant d'avant.
+- Et un bug de la même famille dans l'orthographe : l'étape « participe après auxiliaire » désaccentuait le mot d'avant — « à » devenait
+  l'auxiliaire « a » : « il apprend à rentrre » → « rentré », puis la grammaire changeait le « à » juste en « a » EN ROUGE. Corrigé dans
+  `spellTokenCore` (3 moteurs) ≡ `speller_probe` (même leçon que `rEer` le matin : tester le token BRUT, pas sa forme désaccentuée). Et la
+  même étape ne propose plus de participe sur un mot à « l' » / « d' » collé, qui est un NOM (« il a l'âje » → « l'âge », plus « l'âgé »).
+- Mesuré au produit, chaque réparation seule (14 322 textes dys) : facilitée 0 changement (le cas n'y est pas, aucune casse) ; avoir + objet :
+  1 « à » juste de plus et 1 verbe juste au lieu d'un participe faux ; orthographe : 1 « à → a » ROUGE faux retiré, 1 participe faux affirmé
+  repassé en « à vérifier » ; « l' » collé : 0 changement. 0 perte. UD 14 450 : 0 marque. Gold : muettes 582 → 581, mots faux 315 → 314,
+  oranges justes 471 → 473.
+- Les deux sondes de précision ont baissé d'un dixième sur « orthographe|flag » (82,5 → 82,4 % ; Chrome 84,8 → 84,7 %) : une seule cause, « à
+  l'âje » ×2 dans le corpus GÉNÉRÉ — la proposition « l'âgé » (fausse : c'est l'accent de « âgé ») que le juge DÉSACCENTUÉ comptait juste
+  disparaît ; le produit propose à la place « l'âge », le bon mot, en orange (palier « mot inconnu », que la référence Python ne produit
+  pas dans ce mode). Ré-ancrées (--fix) : baisse voulue et lue.
+- Tests : `parity_core.js` (5 « à » sans toucher le verbe, « à rentrre » sans rouge, 4 témoins où « a » reste avoir ; phrases ajoutées à la
+  parité ext ⊆ Python) — falsifié réparation par réparation : sans chacune, ses attentes tombent.
+
 ## 2026-10-03 — lot « forme du verbe » (catalogue des muets) : pronoms enjambés, étant / une fois, avoir + adverbes ; « difficile à réparé »
 
 - Catalogue recalculé (03/10) : 588 muettes ; la plus grosse classe réparable par des règles = forme du verbe -er / -é (45). Lue cas par cas :
