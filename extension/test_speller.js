@@ -37,6 +37,16 @@ for (const [t, w, s] of [["Il est allé à l'aupital hier.", "l'aupital", "l'hô
   if (!f || f.sugg !== s || f.tier !== 'vigilance') fail.push('élidé inconnu « ' + w + ' » : attendu « ' + s + ' » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 for (const t of ["La cité de L'Atalaya est belle.", "N'golo court vite.", "Il joue de l'ukulélé."])
   if (DC.spell(t).length) fail.push('élidé : FP sur « ' + t + ' » → ' + JSON.stringify(DC.spell(t).map(x => x.word + '→' + x.sugg)));
+// ⭐ 04/10/2026 — APOSTROPHE OUBLIÉE, formes COURTES et négation : « il sest levé » → s'est, « il nest pas » → n'est, « je taime » → t'aime (flag) ;
+// « elle naprend pas » → n'apprend, « on narête pas » → n'arrête et pas « n'arête » (orange : reste MAL ÉCRIT, verbe conjugué de même son ;
+// un reste connu garde la route existante,
+// « il nécoute jamais » → n'écoute en flag). Témoin : « tai-chi » ne reçoit pas « t'ai ».
+for (const [t, w, s, tier] of [["Il sest levé tôt.", 'sest', "s'est", 'flag'], ["Il nest pas là.", 'nest', "n'est", 'flag'], ["Je taime beaucoup.", 'taime', "t'aime", 'flag'],
+                               ["Il nécoute jamais.", 'nécoute', "n'écoute", 'flag'], ["Tu naimes pas ça.", 'naimes', "n'aimes", 'flag'],
+                               ["Elle naprend pas vite.", 'naprend', "n'apprend", 'vigilance'], ["On narête pas de rire.", 'narête', "n'arrête", 'vigilance']]) {
+  const f = DC.spell(t).find(x => x.word === w);
+  if (!f || f.sugg !== s || f.tier !== tier) fail.push('apostrophe oubliée « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+{ const f = DC.spell('Il pratique le tai-chi.').find(x => /^t'/.test(x.sugg || '')); if (f) fail.push('apostrophe oubliée : « tai » (tai-chi) → ' + f.sugg); }
 // ⭐ 29/09/2026 — ACCENTS MUETS : « ca », « foret », « pole » → ça, forêt, pôle en ORANGE ; « le foret » (l'outil), « les mass media »,
 // « la pole position » et « Ca » (calcium) : rien.
 for (const [t, w, s] of [['je crois que ca marche', 'ca', 'ça'], ['on marche en foret', 'foret', 'forêt'], ['ils vont au pole sud', 'pole', 'pôle']]) {

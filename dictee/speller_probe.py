@@ -63,6 +63,7 @@ _SOUDE_VIG = {"dabor": "d'abord", "dacor": "d'accord", "dacord": "d'accord", "da
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
 _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restauration d'accent du reste (m'/t'/n' EXCLUS : « metre »=mètre≠m'être, mesuré FP)
+_ELC_COURT = {k: set(v.split()) for k, v in (('s', 'est etait etaient es'), ('n', 'est es as avait avais etait etais aime aimes ont avons avez'), ('t', 'aime es as avais avait etais'), ('m', 'aime as avait avais es ont'), ('l', 'ai as avait avais aime est etait ont'), ('j', 'aime avais etais'))}   # ⭐ 04/10/2026 : fins COURTES (apostrophe oubliée) — miroir _ELC de spellTokenCore
 VOWELS = set("aeiouyh")                        # le mot élidé commence par voyelle/h
 AUTO_FREQ = 1.0                                # fréquence min (occ/M) pour AUTO
 FLAG_FREQ = 0.1                                # fréquence min pour FLAG
@@ -718,6 +719,15 @@ class Speller:
         # ⭐ 11/09/2026 : la garde couvre aussi l'AIGU/GRAVE quand le rival n'est pas verbal — « desert » proposait
         # dessert (orange) alors que désert (23,8/M, nom) attendait. Mesuré : 1 changement sur 41 987 jetons, 0 faux.
         if _dblw and not _accent_rival(self, low, _dblf): return ('flag', _dblw)
+        # ⭐ 04/10/2026 — APOSTROPHE OUBLIÉE (miroir de spellTokenCore, même place) : A. fins COURTES très fréquentes, liste fermée par préfixe
+        # (« il sest levé » → s'est ; « jai / nai / na » restent à « élision fusionnée ») ; B. NÉGATION : « n » + voyelle, inconnu, suivi de pas /
+        # plus / jamais / rien / guère / point → « n' » + verbe CONJUGUÉ de même son, accordé au pronom sujet d'avant (« il nécoute pas ») — ORANGE.
+        _elc = _ELC_COURT.get(low[0]) if len(low) >= 3 else None
+        if _elc and deacc(low[1:]) in _elc:
+            rc = deacc(low[1:]); rw = rc if rc in self.WORDS else None
+            for w in self.D2A.get(rc, []):
+                if deacc(w) == rc and deacc(w)[:1] in VOWELS and (rw is None or self.FREQ.get(w, 0) > self.FREQ.get(rw, 0)): rw = w
+            if rw: return ('flag', low[0] + "'" + rw)
         if len(low) > 2 and low[0] in ELIDE and deacc(low[1])[:1] in VOWELS:
             rest = low[1:]; cw = rest if (rest in self.WORDS and len(rest) >= 5 and self.FREQ.get(rest, 0) >= 1.0) else None   # reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
             if cw is None and low[0] in _ELIDE_ACC and len(rest) >= 4:   # restauration d'accent du reste (lhopital→l'hôpital, léconomi→l'économie) — préfixes SÛRS uniquement
@@ -726,6 +736,21 @@ class Speller:
                         cw = w
             if cw and not (low[0] == 'c' and deacc(cw)[:1] not in 'ei'):   # « c' » seulement devant e/i (c'est, c'était)
                 return ('flag', low[0] + "'" + cw)                     # élision = FLAG (sûr mais on laisse l'utilisateur valider)
+        # ⭐ 04/10/2026 — route B (après le décollage, qui garde les restes CONNUS) : « n… pas », reste mal écrit → « n' » + verbe conjugué de même son
+        if (len(low) >= 4 and low[0] == 'n' and deacc(low[1])[:1] in VOWELS and toks and idx is not None and idx + 1 < len(toks)
+                and re.match(u'^(pas|plus|jamais|rien|guère|guere|point)$', toks[idx + 1], re.I)):
+            import correcteur_probe as _CPm   # conjugaison (verbe conjugué, accord au sujet) : la même table que la grammaire
+            nr = deacc(low[1:]); npn = _CPm.PRON_SUBJ.get(deacc(toks[idx - 1].lower())) if idx > 0 else None
+            pool = list(self.D2A.get(nr, []))
+            for e in edits1(nr): pool += self.D2A.get(e, [])
+            pool += self.PHON.get(phon_key(nr), [])
+            nb, nf = None, 0.0
+            for w in pool:
+                if deacc(w)[:1] not in VOWELS or 'V' not in self.POS.get(w, ()) or phon_key(w) != phon_key(nr) or not _CPm._is_finite(w): continue
+                if npn and not _CPm._agrees(_CPm._reads(w), npn[0], npn[1]): continue
+                f = self.FREQ.get(w, 0.0)
+                if f > nf: nb, nf = w, f
+            if nb and nf >= 1.0: return ('vigilance', "n'" + nb)
         cands = self._cands(low, d)
         if not cands: return None                               # aucun voisin → néologisme/nom propre → abstention
         pk = phon_key(low)

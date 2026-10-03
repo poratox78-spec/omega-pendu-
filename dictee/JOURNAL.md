@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-10-04 — apostrophe OUBLIÉE : « il sest levé », « il nest pas », « je taime », « on narête pas »
+
+- Où est vraiment le problème des apostrophes (demande de Rem) : dans le gold, la famille « apostrophe / découpage » compte 120 fautes —
+  37 rouges justes, 23 oranges justes, 30 MOTS FAUX, 25 muettes. Les paires que la relecture « décollée » de la grammaire aurait
+  réparées (« il m'a aider ») n'apparaissent dans AUCUN corpus (recensement par motif) ; le gros du problème est l'apostrophe OUBLIÉE :
+  le petit mot se colle au suivant, l'orthographe cherche UN mot et en propose un faux.
+- Lu dans spellTokenCore : la route d'élision collée exige un reste de 5 lettres (garde contre « Sabu » → S'abu, « tai-chi » → t'ai) —
+  « sest », « nest », « taime » lui échappaient (→ est, nés, aime), et un reste mal écrit aussi.
+- A : liste FERMÉE de fins courtes par préfixe (s' est / était / étaient / es ; n' est / es / as / avait / était / aime / ont… ; t' / m' /
+  l' / j' de même) → flag ; « jai / nai / na » restent à « élision fusionnée » (rouge : la 1re version les lui reprenait en flag, vu à la
+  mesure) ; « t'ai » retiré (« tai-chi », vu sur UD).
+- B : NÉGATION — « n » + voyelle suivi de pas / plus / jamais / rien / guère / point : « n' » + un verbe CONJUGUÉ de même SON (SP.PHON),
+  accordé au pronom sujet d'avant (« tu… » → n'aimes), ORANGE. Placé APRÈS le décollage existant : la 1re version passait avant et faisait
+  descendre « il nécoute jamais » de flag à orange (vu en falsifiant). Sans le SON, « néme » donnait « n'émet » ; sans le verbe CONJUGUÉ,
+  « n'allé ».
+- Mesuré au produit (copie du moteur) : 3 corpus dys — 2 mots faux deviennent justes, 2 restent faux mais changent (orange), 0 perte ;
+  4 corpus de la sonde de précision : 0 changement ; UD 14 450 : 0 marque. Gold : mots faux 315 → 313, oranges justes 473 → 475.
+- Miroir Python dans speller_probe (même place ; la conjugaison vient de correcteur_probe : _is_finite, _agrees, PRON_SUBJ).
+- Tests : `extension/test_speller.js` (7 phrases inventées + témoin « tai-chi ») — falsifié route par route.
+- Reste de la famille : les formes collées qui sont de VRAIS mots (« lai », « mas », « lest ») demandent le contexte (une règle de grammaire,
+  comme « ma dit » → m'a dit) ; les restes très abîmés.
+
 ## 2026-10-03 — apostrophes : « il n'a pas manger » ; et les 💡 « mordre / mordu » du lot verbe relus
 
 - Relu les 💡 du lot « forme du verbe » (#860) dans le produit : la fenêtre de 2 mots coupait l'auxiliaire quand des adverbes
