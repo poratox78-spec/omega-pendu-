@@ -30,6 +30,7 @@ const _HORS_NAV = {
   '404.html': "page d'erreur : Cloudflare Pages la sert (statut 404) sur toute URL inexistante — sans elle, fallback SPA = soft-404 sur tout le site (mesuré 27/08). Ne se lie pas, mais porte la nav complète pour repartir",
   'omega-pendu.html': "l'application elle-même : on y entre par les pages, elle a sa propre interface",
   'omega-pendu-en.html': "idem, version anglaise",
+  'deformateur-voix-confidentialite.html': "politique de confidentialité de l'extension Chrome « Déformateur de voix » (autre produit du même auteur) : son adresse est donnée au Chrome Web Store, elle ne se lie pas depuis le site (noindex, hors sitemap) ; porte la nav complète pour repartir",
 };
 /* Pages-OUTIL sans <nav> assumée : plein écran, on en sort par le bouton retour de la page. */
 const _SANS_NAV_OK = {};
