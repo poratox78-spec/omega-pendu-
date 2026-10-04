@@ -24690,6 +24690,8 @@ window.addEventListener('DOMContentLoaded', () => {
      « cheminé → cheminée », « l'article est élidé » sur « y → n'y », « c'est un PARTICIPE : il s'accorde… » sur « Quelque → Quel
      que »… La règle SAIT de quoi elle parle : quand son nom a une leçon, c'est elle qu'on donne. */
   var _RTIP={
+    'accord grammatical (é/er)':function(e,a){var x=String(e||'').toLowerCase(),y=String(a||'').toLowerCase();   // ⭐ 04/10/2026 : « il commence à mange » → manger — le PRÉSENT en -e, pas un -é : la leçon « mordre / mordu » de la famille ne parlait pas de cette faute ; '' = la leçon de la famille
+      return (/e$/.test(x)&&!/é$/.test(x)&&/er$/.test(y)&&deacc(y).slice(0,-2)===deacc(x).slice(0,-1))?'après « à » (il commence à…), « de » ou un verbe comme « vouloir », le verbe reste à l’INFINITIF en -er : « '+a+' ». Remplace-le par « mordre » : si la phrase se dit, c’est l’infinitif.':'';},
     'nom féminin en -ée':function(e,a){return '« '+a+' » est ici un NOM féminin : il finit par un « e » qui ne s’entend pas (la fumée, l’arrivée).';},
     'genre de la personne qui écrit':function(e,a){return 'Avec « je », le participe ou l’adjectif s’accorde avec la personne qui écrit : « '+a+' » suit ton réglage « J’écris au féminin / au masculin ».';},
     'vingt/cent':function(e,a){return /^vingt/i.test(String(a||''))?'« vingt » prend un -s dans « quatre-vingts » quand aucun autre nombre ne le suit (quatre-vingts ans, mais quatre-vingt-deux ans).':'« cent » prend un -s quand il est multiplié et qu’aucun autre nombre ne le suit (deux cents euros, mais deux cent trois euros).';},
@@ -24807,6 +24809,8 @@ window.addEventListener('DOMContentLoaded', () => {
     vb=isVerb(T,i);
     if(/genre/.test(n)||(!vb&&_diffGenre(sg,w))){gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
     if(!g&&i>0&&_CARD_PL[deacc(T[i-1].toLowerCase())]){g=T[i-1];lab='pluriel';}   // ⭐ audit 11/09/2026 : « huit heure » — le CARDINAL d'à côté commande, pas le « ma » six mots plus haut
+    if(!g&&i>0&&_PL_DET_X[deacc(T[i-1].toLowerCase())]&&/[sx]$/i.test(sg)){g=T[i-1];lab='pluriel';}   // ⭐ 04/10/2026 : « aux lettre », « divers objet », « certaines fleur » — ces déterminants pluriels (_PL_DET_X) manquaient au gouverneur
+    if(!g&&n==='accord adjectif antéposé'&&deacc(w.toLowerCase())==='quelque'&&i+1<T.length){g=T[i+1];lab='pluriel';}   // ⭐ 04/10/2026 : « quelque enfants » — c'est le NOM qui suit qui commande
     if(!g){gn=governorNumber(T,i,vb||isParticiple(T,i));
       if(gn){svn=_suggVerbNum(sg);if(svn&&svn!==gn[1])return '';   // sujet POSTPOSÉ/coordonné : le contrôleur est EN AVANT, le gouverneur arrière contredit la suggestion
         if(!vb&&!/verbe|sujet|personne/.test(n)&&((gn[1]==='sg'&&/[sx]$/i.test(sg)&&!/[sx]$/i.test(w))||(gn[1]==='pl'&&/[sx]$/i.test(w)&&!/[sx]$/i.test(sg))))return '';   // le nombre du gouverneur contredit celui que la suggestion AFFICHE
