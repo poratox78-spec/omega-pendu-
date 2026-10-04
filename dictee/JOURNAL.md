@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-10-04 — « plusieurs maison », « quelques jour », « aux lettre » → pluriel ; la table large de PLURAL_DET était MORTE
+
+- Vu en relisant les muettes « pluriel oublié » : « aux » + nom singulier était muet, « plusieurs maison » n'avait qu'un orange. Le
+  code semblait pourtant les connaître : une table `PLURAL_DET` « large » (aux, plusieurs, quelques, certains, quels…) existe depuis
+  le 30/06/2026. Elle n'a JAMAIS servi : la déclaration d'origine, plus bas dans le même fichier, la réécrasait au chargement, dans
+  les deux moteurs (même portée JS, réaffectation Python). Vérifié : produit identique à l'octet sur le gold sans elle → retirée.
+- `_PL_DET_X` (rNounPlural, rAdjAntePl) : quelques / divers / diverses ; plusieurs / certains / certaines avec le veto verbal (pronoms)
+  et, pour l'adjectif, un nom exigé après (UD « Certains même qui… » prenait « mêmes ») ; « aux » seulement devant un féminin ou une
+  voyelle — il se dit comme « au », et UD montrait le déterminant faux (« pains aux chocolat », « aux salon »).
+- Mesure : gold 2 muettes → rouge ; 3 corpus : 1 faute de plus, 3 oranges devenues rouges, 2 mots faux devenus justes ; UD 2 marques,
+  deux vraies fautes d'UD.
+- Leçon (déjà vue au portage de blocs) : une table déclarée deux fois ne prévient pas. Avant de croire qu'un mot est « dans la table »,
+  vérifier QUELLE déclaration vit à l'exécution.
+
 ## 2026-10-04 — genre de l'adjectif antéposé : « une grand maison » → grande, « un belle arbre » → bel (rouge)
 
 - Vu en relisant les muettes « genre de l'adjectif » : sur des phrases inventées, « une grand maison », « la petit fille », « une beau
