@@ -2326,6 +2326,41 @@ def _adj_acc_ok(lw, d):
     ka = p[1] if p else None                                         # forme accentuée de la clé = alt du partenaire (symétrie)
     if ka is None: return True                                       # paire non symétrique → ne bloque pas (comportement d'origine)
     return lw == ka.lower() or lw == alt.lower()
+# ⭐ 04/10/2026 — miroir JS rAdjGeo / rQuelque : l'adjectif après un nom de lieu qui porte son article (« la Chine entier » → entière),
+# « quelque » + nom pluriel → quelques (jamais devant un nombre, « fois », ou un nom sans singulier).
+_GEO_G = dict([(w, 'f') for w in u'afrique amerique europe asie oceanie antarctique france chine inde italie espagne allemagne angleterre russie belgique suisse grece turquie algerie tunisie egypte australie argentine colombie bolivie syrie libye mauritanie guinee coree indonesie malaisie arabie jordanie ukraine pologne roumanie hongrie bulgarie croatie serbie norvege suede finlande irlande ecosse autriche bretagne normandie provence bourgogne alsace lorraine corse savoie aquitaine occitanie gaule'.split()] + [(w, 'm') for w in u'japon canada bresil maroc portugal mexique perou chili vietnam senegal mali niger nigeria cameroun gabon togo benin congo kenya quebec danemark luxembourg liban pakistan iran irak venezuela cambodge mozambique zimbabwe tchad soudan'.split()])
+
+
+def rule_adj_geo(T, i):
+    if i < 1: return None
+    w = T[i]; lw = w.lower()
+    if "'" in lw or w[:1] != w[:1].lower(): return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    h = _head_text(T[i-1])
+    if not h or h[:1] == h[:1].lower(): return None                   # le nom de lieu, avec sa majuscule
+    g = _GEO_G.get(deacc(h.lower()))
+    if not g: return None
+    if not (_elid_kind(T[i-1]) == 'det' or (i >= 2 and T[i-2].lower() in ('la', 'le'))): return None   # il porte SON article
+    d = deacc(lw)
+    if d not in ADJ_LEX or _adj_estem(lw) is not None or not _adj_acc_ok(lw, d) or d in ('tout', 'tous', 'toute', 'toutes'): return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] != 'ADJ': return None
+    if any(p == '3' and n == 's' for (_l, _mt, p, n) in _reads(w)): return None   # un verbe (« la France produit ») — inerte sur les témoins essayés (l'étiqueteur y lit déjà un verbe)
+    sugg = _adj_agree(w, g, 's')
+    return _keepcase(T[i], sugg) if sugg.lower() != lw else None
+
+
+def rule_quelque(T, i):
+    if i + 1 >= len(T) or deacc(T[i].lower()) != 'quelque': return None
+    if _SEG is not None and i + 1 < len(_SEG['dig']) and _SEG['dig'][i+1]: return None   # « quelque 200 personnes » (environ)
+    if _SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i+1]: return None
+    n = T[i+1].lower()
+    if "'" in n or not re.search(r'[sx]$', n) or n == 'fois': return None
+    st = [n[:-3] + 'al', n[:-1]] if n.endswith('aux') else [n[:-1]]
+    if not any((NOUN_POST.get(deacc(x)) or [0])[0] >= PL_TAU_M for x in st): return None   # le nom doit avoir un singulier
+    return _keepcase(T[i], 'quelques')
+
+
 def rule_adj_epithet(T, i):
     """Accord en GENRE×NOMBRE de l'ADJECTIF ÉPITHÈTE avec le nom qu'il suit : [ARTICLE + NOM(genre connu) + ADJ]
     (« la règle présidentiel »→présidentielle, « les domaines industriel »→industriels). Le territoire genre-adjectif
@@ -6487,7 +6522,7 @@ def correct_tiered(text):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
+         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_geo), ('accord adjectif antéposé', rule_quelque), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
          ('accord adjectif épithète', rule_adj_aux),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
@@ -6678,6 +6713,8 @@ def bout_de_chaine_orange(text, i, sugg):
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
     ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
+    ("Le roi de France absent dort.", "le lieu SANS article (« de France ») est un complément : l'adjectif porte sur « roi » (04/10/2026)."),
+    ("Il a vu quelque 300 voitures.", "« quelque » devant un nombre = environ, invariable (04/10/2026)."),
     ("Trois joueurs du CA partent demain.", "« CA » (un sigle) n'est pas « ça » : « partent » s'accorde à « trois joueurs » (04/10/2026)."),
     ("Jon arrive demain.", "un prénom en tête de phrase : « j' » ne précède jamais « on » (« J'on » écrit en rouge jusqu'au 04/10/2026)."),
     ("Mon cher, moi je reste.", "la virgule coupe : ce « cher » n'est pas « chez »."),
@@ -6778,6 +6815,10 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 04/10/2026 — l'adjectif après un nom de lieu qui porte son article ; « quelque » + nom pluriel
+    ("La Chine entière dort.", "entière", "entier", "accord adjectif épithète"),
+    ("L'Europe occidentale est riche.", "occidentale", "occidental", "accord adjectif épithète"),
+    ("Il a lu quelques livres.", "quelques", "quelque", "accord adjectif antéposé"),
     # ⭐ 04/10/2026 — « ça / cela / ceci » = sujet de 3e personne du singulier (orange)
     ("Ça va mieux.", "va", "vas", "accord du verbe au sujet nominal à vérifier"),
     ("Cela pourrait marcher.", "pourrait", "pourrais", "accord du verbe au sujet nominal à vérifier"),
@@ -7100,9 +7141,9 @@ def main():
         err.append(u'%d FAUX POSITIF(S) sur texte CORRECT — FP=0 est un zéro DUR' % len(fp_corpus))
     if fp_cases:
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
-    # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
+    # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 223
+    _PLANCHER = 226   # 04/10/2026 : +3 cas (lieu + adjectif, quelque)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:

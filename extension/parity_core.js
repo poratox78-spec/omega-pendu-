@@ -174,6 +174,7 @@ PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer
 PHRASES.push("Il ce lave.", "Il ce porte bien.", "Le pain est le beurre sont sur la table.", "Le chat est le chien jouent.", "Le chat est le chien du voisin.", "Il ce matin est parti.");   // ⭐ 04/10/2026 : homophones (ext ⊆ Python)
 PHRASES.push("T'as finis ton travail.", "T'as manger ?", "T'es aller où ?", "Il t'a vue hier.");   // ⭐ 04/10/2026 : « t'as » = tu as (ext ⊆ Python)
 PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
+PHRASES.push("La Chine entier dort.", "L'Europe occidental est riche.", "Il a lu quelque livres.", "Le roi de France absent dort.", "Il a vu quelque 300 voitures.", "Il reste quelque temps.", "Il vient quelque fois.", "La France produit du vin.");   // ⭐ 04/10/2026 : lieu + adjectif, quelque (ext ⊆ Python)
 PHRASES.push("Jon arrive demain.", "Lils sont partis.", "Ques tu veux ?", "Il voit dest gens.", "Je crois que jai raison.", "Il pense quil pleut.", "Il vient dailleurs demain.", "Il appelle lami de Paul.");   // ⭐ 04/10/2026 : élisions impossibles (ext ⊆ Python)
 PHRASES.push("Il n'a pas manger sa soupe.", "Je n'ai pas manger.", "Ils n'ont pas manger.", "Il n'a rien manger.", "Il n'a manger que du pain.", "Le plus dur, ce n'est pas commencer.");   // ⭐ 03/10/2026 : avoir élidé (ext ⊆ Python)
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)
@@ -802,6 +803,20 @@ print(json.dumps(out))
   if (fl("Il t'a vue hier.").length) { _ta++; console.log("  ✗ t'as : témoin « il t'a vue » marqué " + JSON.stringify(fl("Il t'a vue hier."))); }
   if (_ta) { console.log("PARITÉ KO — t'as : " + _ta + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ t'as / t'es : 3 corrections (finis → fini, manger → mangé, aller → allé) ; « il t'a vue » muet"); }
+
+// ⭐ 04/10/2026 — deux accords qui restaient muets : l'adjectif après un nom de lieu qui porte son article (« la Chine entier » → entière),
+// « quelque » + nom pluriel → quelques. Témoins : lieu sans article, nombre, « temps », « fois », verbe.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _ge = 0;
+  for (const [s, w, sg] of [["La Chine entier dort.", 'entier', 'entière'], ["L'Europe occidental est riche.", 'occidental', 'occidentale'], ["Il a lu quelque livres.", 'quelque', 'quelques']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg) { _ge++; console.log('  ✗ lieu / quelque : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const s of ["Le roi de France absent dort.", "Il a vu quelque 300 voitures.", "Il reste quelque temps.", "Il vient quelque fois.", "La France produit du vin."]) {
+    const f = fl(s); if (f.length) { _ge++; console.log('  ✗ lieu / quelque : témoin « ' + s + ' » marqué ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  if (_ge) { console.log('PARITÉ KO — lieu / quelque : ' + _ge + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ lieu + adjectif (entière, occidentale), quelque → quelques ; 5 témoins muets"); }
 
 // ⭐ 04/10/2026 — ÉLISION FUSIONNÉE : les suites permises PAR PRÉFIXE (j', n', qu', d', l', comme s'/c') — plus d'élision IMPOSSIBLE écrite en
 // rouge (« J'on », « L'ils », « Qu'es », « d'est ») ; les vraies restent (j'ai, qu'il, d'ailleurs, l'ami).
