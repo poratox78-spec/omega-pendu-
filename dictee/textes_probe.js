@@ -40,6 +40,13 @@ D.setGaccLex(gz('gender-acc.json.gz'));
 // Chaque cas : la phrase, puis par mot corrigé ce que le 💡 doit contenir (oui) / ne plus contenir (non),
 // et pour la ligne « remèdes » (toutes familles confondues) les mêmes attentes.
 const CAS = [
+  { t: 'Elle répond aux lettre de ses amis.',   // ⭐ 04/10/2026 : « aux », « divers », « certaines »… (déterminants pluriels du lot du 04/10) commandent aussi le 💡
+    mots: { lettre: { sugg: 'lettres', oui: ['« aux » (pluriel)'] } } },
+  { t: 'Il connaît quelque enfants.',   // ⭐ 04/10/2026 : « quelque » + nom pluriel — c'est le NOM qui suit qui commande
+    mots: { quelque: { sugg: 'quelques', oui: ['« enfants » (pluriel)'] } } },
+  { t: 'Il commence à mange sa soupe.',   // ⭐ 04/10/2026 : le présent en -e après « à » → infinitif : la leçon dit l'infinitif, pas « qui commande »
+    mots: { mange: { sugg: 'manger', oui: ['mordre', 'infinitif « manger »'] } },
+    remed: { oui: ['l’INFINITIF en -er', '« mordre »'], non: ['QUI COMMANDE'] } },
   { t: 'Je fini mon travail.',   // 12/09/2026 : « personne du verbe » ouvre enfin le 💡 au pronom gouverneur
     mots: { fini: { sugg: 'finis', oui: ['« Je »', 'qui commande'] } } },   // le gouverneur cite le mot de la phrase, majuscule comprise
   { t: 'Nous allez au parc.',   // rapport de Rem, 15/09 : le remède citait « il », qui n'est pas dans la phrase

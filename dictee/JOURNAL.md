@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-10-04 — les explications des corrections du jour (relecture demandée par Rem)
+
+- Relu ce que le produit AFFICHE (💡 + remède) pour chaque correction ajoutée ce jour, sur phrases inventées. Trois trous :
+  le 💡 « qui commande » vide après aux / divers / certaines (gouverneur sans _PL_DET_X) et sur « quelque » + nom pluriel ;
+  le remède « repère qui commande et accorde » sur « commence à mange » → manger (rien ne s'accorde : c'est l'infinitif).
+- Corrigé dans la couche dys partagée (app ≡ ext) ; 3 cas dans textes_probe (💡 attendu, remède attendu / interdit).
+
+---
+
 ## 2026-10-04 — « chère lui », « chere moi » → chez
 
 - Mot faux du gold : « chere » + pronom recevait « chère » en ROUGE (orthographe) ; la règle cher/chez ne lisait que « cher ».
