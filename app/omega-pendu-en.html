@@ -26010,6 +26010,8 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     if(nd2==='que')return ckeepcase(T[i],'dès');                       // « des » est de+les, un déterminant pluriel ; « que » n'est pas un nom
     if(/^l['’]./.test(nr.toLowerCase()))return ckeepcase(T[i],'dès');   // un déterminant ne peut pas être suivi d'un autre déterminant élidé
     return null;}
+  var _CE_SE_STOP={};'est sont etait etaient fut furent sera seront serait seraient soit soient a peut pouvait pourrait pourra put doit devait devrait devra dut semble semblait sembla faire'.split(' ').forEach(function(w){_CE_SE_STOP[w]=1;});
+  var _CE_PREPX={en:1,pendant:1,durant:1,parmi:1,selon:1,envers:1},_CE_INFGOV={pour:1,a:1,de:1,sans:1,par:1};   // « ce » verbe → se : prépositions (déterminant) / celles qui appellent un infinitif
   function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());
     if(nd==='qui'||nd==='que'||nd==='dont'||nd==='qu'||nd==="qu'"||/^qu['’]/.test(nd))return ckeepcase(T[i],'ce');   // ce qui/que/dont (+ élidé qu') — ⭐ 30/09/2026 : et « se qu'elle », élidé en UN jeton (miroir Python)
     if(lw==='se'&&(nd==='sont'||nd==='est'||nd==='etait'||nd==='etaient')&&i+2<T.length&&NUM_DET[deacc(T[i+2].toLowerCase())])return ckeepcase(T[i],'ce');   // ⭐ 30/09/2026 : « là-bas, se sont nos voisins » — un déterminant ne suit jamais le pronominal « se sont » (miroir Python)
@@ -26023,6 +26025,21 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     if(/ant$/.test(nd)&&nd.length>4)return null;                                 // participe présent → se réfléchi
     var isv=vlike(T,i+1),isn=!!GENDER_MAP[nd];
     if(isv&&!isn)return ckeepcase(T[i],'se');
+    /* ⭐ 04/10/2026 — « CE » DEVANT UN VERBE, sans pronom sujet avant : « elle sort et ce promène » → se, « il veut ce reposer » → se.
+       « ce » ne détermine qu'un NOM : devant une forme que le lexique ne connaît QUE comme verbe (accent compris : « promène »,
+       « perd », « reposer »), c'est le pronom réfléchi ; devant un nom FÉMININ qui est aussi un verbe (« ce pose ») seulement si
+       l'étiqueteur y lit le verbe — « ce » masculin ne peut pas en être le déterminant. Gardes : être / pouvoir / devoir / sembler
+       (« ce doit être »), « pour ce faire », ponctuation ou chiffre entre (« Ce4 » aux échecs), voyelle ou h (ce serait « s' »),
+       paire -eille / -eil (« ce réveille » peut être « ce réveil » : l'orange voisine le dit), préposition avant (« dans ce » =
+       déterminant) sauf pour / à / de / sans / par devant un infinitif. ORANGE (famille ce/se). Miroir Python rule_ce_se. */
+    if(lw==='ce'&&!_CE_SE_STOP[nd]&&!(_SEG&&_SEG.bb&&i+1<_SEG.bb.length&&(_SEG.bb[i+1]||_SEG.dig[i+1]))&&T[i+1]===T[i+1].toLowerCase()&&(svReads(T[i+1]).length||CONJ_C[nd])){
+      var _pc=i>0?deacc(T[i-1].toLowerCase()):'';
+      if(!/^[aeiouyh]/.test(nd)&&!(/[ai]lle$/.test(nd)&&_nounGateN(nd.slice(0,-2)))&&!((PREP[_pc]||_CE_PREPX[_pc])&&!(_CE_INFGOV[_pc]&&CONJ_C[nd]))){
+        var _xp=_spos(T[i+1]);
+        if(_xp.indexOf('V')>=0&&_xp.indexOf('A')<0){
+          if(_xp.indexOf('N')<0)return ckeepcase(T[i],'se');                                    // verbe seul au lexique (forme exacte)
+          if(GENDER_MAP[nd]==='f'&&_GACC[T[i+1].toLowerCase()]!=='m'){var _tcs=posTags(T);if(_tcs&&i+1<_tcs.length&&(_tcs[i+1]==='VERB'||_tcs[i+1]==='AUX'))return ckeepcase(T[i],'se');}   // nom féminin lu verbe
+        }}}
     /* ⭐ 04/10/2026 : « il ce lave » — juste après un pronom sujet, « ce » n'est jamais un déterminant : si le mot suivant peut être un verbe,
        c'est « se », même s'il est aussi un nom (la lave, la porte, la marche). Gardes : ponctuation entre, nom de temps (« il ce matin »).
        Mesuré : 0 changement sur les corpus dys et UD (« elle / ils / on ce … » étaient déjà pris). Miroir Python rule_ce_se. */

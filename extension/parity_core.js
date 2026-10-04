@@ -174,6 +174,7 @@ PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer
 PHRASES.push("Il ce lave.", "Il ce porte bien.", "Le pain est le beurre sont sur la table.", "Le chat est le chien jouent.", "Le chat est le chien du voisin.", "Il ce matin est parti.");   // ⭐ 04/10/2026 : homophones (ext ⊆ Python)
 PHRASES.push("T'as finis ton travail.", "T'as manger ?", "T'es aller où ?", "Il t'a vue hier.");   // ⭐ 04/10/2026 : « t'as » = tu as (ext ⊆ Python)
 PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
+PHRASES.push("Elle sort et ce promène au parc.", "Elle veut ce reposer un peu.", "Elle apprend à ce baigner.", "Mon père ce perd en ville.", "Pour ce faire, il part.", "Ce peut être vrai.", "Il travaille dans ce bureau.", "Ce doit être lui.", "Il est assis sur ce banc.", "Mon frère ce réveille tard.", "Le garçon ce habille vite.", "La pièce Ce5 perd sa place.", "Il vit avec ce souvient.");   // ⭐ 04/10/2026 : « ce » devant un verbe → se (ext ⊆ Python)
 PHRASES.push("Il parle aux enfant du quartier.", "Elle répond aux lettre de ses amis.", "Il reste quelques jour avant la fête.", "Ils ont plusieurs maison à la mer.", "Il range divers objet dans la boîte.", "Elle a plusieurs petit chats.", "Elle dessine plusieurs grands chien.", "Certains pensent que non.", "Plusieurs sont venus hier.", "Je vois que certains porte un chapeau.", "Il boit un thé aux citron.", "Il va aux grand marché du samedi.", "Elle parle aux petit garçon.", "Il cherche quelques chose.", "Plusieurs même sont partis tôt.");   // ⭐ 04/10/2026 : plusieurs / quelques / divers / aux + nom singulier (ext ⊆ Python)
 PHRASES.push("Ils ont une grand maison.", "La petit fille joue.", "Un belle arbre pousse.", "C'est la premier fois.", "Cette grand route mène au village.", "Ma grand-tante dort.", "Le petite maison.");   // ⭐ 04/10/2026 : genre de l'adjectif antéposé (ext ⊆ Python)
 PHRASES.push("Il apprend à nagé.", "Elle continue à chanté.", "Il espère pouvoir invité ses amis.", "Elle doit aller rangé sa chambre.", "Il faut savoir écouté.", "Elle a dû porté le sac.", "Elle a dû passé la nuit dehors.", "J'aime m'habillé en bleu.", "Ce qu'il dit à fait rire.", "L'aide à été précieuse.", "Le reste à été vendu.", "L'aide à changé sa vie.", "Il a un grand pouvoir caché.");   // ⭐ 04/10/2026 : le verbe après à / après un infinitif (ext ⊆ Python)
@@ -806,6 +807,20 @@ print(json.dumps(out))
   if (fl("Il t'a vue hier.").length) { _ta++; console.log("  ✗ t'as : témoin « il t'a vue » marqué " + JSON.stringify(fl("Il t'a vue hier."))); }
   if (_ta) { console.log("PARITÉ KO — t'as : " + _ta + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ t'as / t'es : 3 corrections (finis → fini, manger → mangé, aller → allé) ; « il t'a vue » muet"); }
+
+// ⭐ 04/10/2026 — « CE » DEVANT UN VERBE → « se » (orange) : forme que le lexique ne connaît que comme verbe, ou nom féminin lu verbe.
+// Témoins : « pour ce faire », préposition + nom, « ce doit être », paire -eille/-eil, voyelle ou h (ce serait « s' »), chiffre collé.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number' && f.name === 'ce/se');
+  let _cs = 0;
+  for (const s of ["Elle sort et ce promène au parc.", "Elle veut ce reposer un peu.", "Elle apprend à ce baigner.", "Mon père ce perd en ville."]) {
+    const m = fl(s).find(x => x.word.toLowerCase() === 'ce');
+    if (!m || m.sugg.toLowerCase() !== 'se' || m.tier !== 'vigilance') { _cs++; console.log('  ✗ ce + verbe : « ' + s + ' » → « se » (orange) attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const s of ["Pour ce faire, il part.", "Ce peut être vrai.", "Il travaille dans ce bureau.", "Ce doit être lui.", "Il est assis sur ce banc.", "Mon frère ce réveille tard.", "Le garçon ce habille vite.", "La pièce Ce5 perd sa place.", "Il vit avec ce souvient."]) {
+    const f = fl(s); if (f.length) { _cs++; console.log('  ✗ ce + verbe : témoin « ' + s + ' » marqué ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  if (_cs) { console.log('PARITÉ KO — ce + verbe : ' + _cs + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ ce + verbe : 4 « se » orange ; 9 témoins muets"); }
 
 // ⭐ 04/10/2026 — PLUSIEURS / QUELQUES / CERTAINS / DIVERS / AUX + NOM AU SINGULIER : la table large de PLURAL_DET était MORTE
 // (réécrasée par la seconde déclaration, dans les deux moteurs, depuis le 30/06/2026) ; _PL_DET_X la remplace pour le nom et

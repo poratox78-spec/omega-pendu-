@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-10-04 — « ce » devant un verbe → se (orange), même sans pronom sujet avant
+
+- Muettes « ce → se » du gold : un nom sujet, « et » ou « que » avant, jamais un pronom — or `rCe` n'osait « se » qu'après un
+  pronom (« il ce lave »), ou quand `vlike` voyait le verbe (sa liste de verbes courants ne connaît pas « rend », « perd »…).
+- Fait structurel : « ce » ne détermine qu'un nom. Devant une forme que le lexique ne connaît QUE comme verbe (POS accent-exact du
+  speller, `_spos`, le même dans les deux moteurs) → « se » ; nom féminin aussi verbe → si l'étiqueteur lit le verbe.
+- Mesure, dans l'ordre : 1re version → 1 mot juste touché au gold (« dans ce » + mot mal écrit que l'orthographe avait changé en
+  verbe) et, dans un corpus, « sur ce » + nom mal écrit lu verbe → garde préposition ; UD « Ce4 » (échecs) → garde chiffre ; voyelle/h (ce serait
+  « s' ») et paire -eille/-eil (deux oranges contradictoires sinon) ajoutées sur phrases inventées.
+- Final : gold 4 muettes → orange juste, 0 mot juste touché ; 3 corpus 7 de plus, toutes justes (3 que le corrigé avait laissées) ;
+  UD 0 marque.
+
 ## 2026-10-04 — « plusieurs maison », « quelques jour », « aux lettre » → pluriel ; la table large de PLURAL_DET était MORTE
 
 - Vu en relisant les muettes « pluriel oublié » : « aux » + nom singulier était muet, « plusieurs maison » n'avait qu'un orange. Le
