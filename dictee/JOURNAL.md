@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-05 — infinitif de but : la référence Python lit la même table que le produit
+
+- Vu en écrivant des témoins (lot des déterminants pluriels) : la référence Python corrigeait en rouge une phrase JUSTE,
+  « il va au grand marché du samedi » → marcher ; le produit se taisait. Sur UD, même faux rouge de la référence seule :
+  « partis sur le tracé du circuit » → tracer.
+- Cause : `rule_inf_but` lisait `pos_of()`, désaccentué (« dominante VER ») — un sur-ensemble ASSUMÉ quand la référence n'avait
+  pas la colonne POS accentuée du speller. Elle l'a depuis (`_spos`). Aligné : verbe PUR (V sans N ni A), comme `rInfBut`.
+- Mesure : UD, la règle Python passe de 2 tirs à 1 (le restant est une vraie faute d'UD, déjà vue côté produit) ; produit
+  inchangé. Écarts de couverture de la parité ext ⊆ Python : 11 → 8.
+- Tests : la référence n'avait AUCUN cas « infinitif de but » — 2 CASES (miroir des cibles de parity_core) + 2 MUETS (marché,
+  tracé) ; parity_core reçoit « marché » dans ses pièges. Falsifié : l'ancienne lecture fait parler les 2 MUETS, la règle
+  retirée fait tomber le plancher, le verbe pur relâché côté JS fait tirer les 2 pièges.
+
+---
+
 ## 2026-10-04 — les explications des corrections du jour (relecture demandée par Rem)
 
 - Relu ce que le produit AFFICHE (💡 + remède) pour chaque correction ajoutée ce jour, sur phrases inventées. Trois trous :

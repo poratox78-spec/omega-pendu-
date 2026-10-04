@@ -320,7 +320,8 @@ const _BUT_OUI = [['Je suis allé à la plage mangé des champignons.', 'manger'
                   ['Il est parti au marché acheté du pain.', 'acheter'],
                   ['Je suis allé chez lui cherché mes affaires.', 'chercher']];
 const _BUT_NON = ['Je suis rentré à la maison épuisé.', 'Il est allé à la fête déguisé en pirate.',
-                  'Elle est venue à la maison fatiguée hier.', 'Ils sont partis sur le tracé du circuit.'];
+                  'Elle est venue à la maison fatiguée hier.', 'Ils sont partis sur le tracé du circuit.',
+                  'Il va au grand marché du samedi.'];   // ⭐ 05/10/2026 : « marché » N+V — la référence Python le corrigeait (faux), le produit non
 let _but = 0;
 for (const [ph, att] of _BUT_OUI) {
   const got = DYSCORE.correctText(ph).map(f => String(f.sugg).toLowerCase());
