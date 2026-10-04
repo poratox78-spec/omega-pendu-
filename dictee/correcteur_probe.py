@@ -4890,7 +4890,14 @@ _ELIDE_STOP = {"n'roll", "m'sieur", "m'dame", "m'ame", "c'te"}   # emprunt (rock
 # langue) sont des mots réels ; « m'ai »/« t'ai » ne valaient pas le FP mesuré sur UD.
 _FUS_PRE = ('qu', 'j', 's', 'c', 'n', 'd', 'l')
 _FUS_VOY = set('aeiouyhàâäéèêëîïôöùûü')
-_FUS_SC = {'s': frozenset('est etait etaient il ils en etre'.split()), 'c': frozenset('est etait etaient en'.split())}   # suites possibles après s' / c' (29/09/2026)
+_FUS_SC = {'s': frozenset('est etait etaient il ils en etre'.split()), 'c': frozenset('est etait etaient en'.split()),   # suites possibles après s' / c' (29/09/2026)
+           # ⭐ 04/10/2026 — et après j', n', qu', d', l' (élisions IMPOSSIBLES écrites en rouge : « qu'es », « l'en », « d'est », « l'ils »,
+           # « J'on ») — miroir JS _FUS_SC
+           'j': frozenset('ai as a ait avait avais avaient ont avons avez est es etait etais etaient en'.split()),
+           'n': frozenset('ai as a ait avait avais avaient ont avons avez est es etait etais etaient en'.split()),
+           'qu': frozenset('il ils elle elles on un une en autre autres ici aujourd ai a as ait avait avais avaient ont avons avez est etait etais etaient'.split()),
+           'd': frozenset('un une autre autres ici ailleurs aujourd elle elles en ete etre homme hommes ami amis amie amies ecole ecoles enfant enfants annee annees argent eau air arbre arbres animal animaux idee idees image images objet objets oeuf oeufs histoire histoires hopital ordinateur oreille oiseau oiseaux heure heures'.split()),
+           'l': frozenset('un une on autre autres ai as a ait avait avais avaient ont avons avez est es etait etais etaient ete etre homme hommes ami amis amie amies ecole ecoles enfant enfants annee annees argent eau air arbre arbres animal animaux idee idees image images objet objets oeuf oeufs histoire histoires hopital ordinateur oreille oiseau oiseaux heure heures'.split())}
 # Mots qui suivent RÉELLEMENT une élision : auxiliaires, pronoms, et les noms vocaliques usuels.
 # Liste FERMÉE — le lexique entier produisait 104 FP (« harles », « avoie », « aria », « uke »).
 _FUS_APRES = set('ai as a ait avait avais avaient ont avons avez est es etait etais etaient ete etre eu '
@@ -6667,6 +6674,7 @@ def bout_de_chaine_orange(text, i, sugg):
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
     ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
+    ("Jon arrive demain.", "un prénom en tête de phrase : « j' » ne précède jamais « on » (« J'on » écrit en rouge jusqu'au 04/10/2026)."),
     ("Mon cher, moi je reste.", "la virgule coupe : ce « cher » n'est pas « chez »."),
     ("Un cadeau cher le jour de Noël.", "« cher » + article : l'adjectif (seul le pronom tonique, « cher moi », est sûr)."),
     ("Ça été une belle fête.", "« ça été » = « ça a été » à l'oral : jamais « était »."),
@@ -6792,6 +6800,11 @@ CASES = [
     # ⭐ 29/09/2026 — catalogue des muets, lot A : élision « n' » (na, né), cher → chez, « il été » → était (orange), lieux en minuscule.
     ("Il n'a pas compris.", "n'a", "na", "élision fusionnée"),
     ("Ce n'est pas grave.", "n'est", "né", "élision fusionnée"),
+    # ⭐ 04/10/2026 — les suites permises par préfixe (j', n', qu', d', l') : les vraies élisions restent.
+    ("Je crois que j'ai raison.", "j'ai", "jai", "élision fusionnée"),
+    ("Il pense qu'il pleut.", "qu'il", "quil", "élision fusionnée"),
+    ("Il vient d'ailleurs demain.", "d'ailleurs", "dailleurs", "élision fusionnée"),
+    ("Il appelle l'ami de Paul.", "l'ami", "lami", "élision fusionnée"),
     ("Je rentre chez moi ce soir.", "chez", "cher", "cher/chez"),
     ("Il était content de venir.", "était", "été", "aux mal orthographié"),
     ("Je pars au Japon cet été.", "Japon", "japon", "majuscule"),
@@ -7083,6 +7096,10 @@ def main():
         err.append(u'DÉTECTION %d/%d < plancher 155' % (det, n))
     if corr < 155:
         err.append(u'CORRECTION %d/%d < plancher 155' % (corr, n))
+    # ⭐ 04/10/2026 — les SILENCES ATTENDUS (MUETS, posés le 15/09) s'imprimaient sans jamais faire échouer : un piège muet qui parlait
+    # restait vert (vu en falsifiant le lot « élisions impossibles » : « Jon arrive demain. » → « J'on » ne rougissait rien). Zéro dur aussi.
+    if muets:
+        err.append(u'%d silence(s) attendu(s) rompu(s) — un piège muet PARLE' % len(muets))
     if err:
         print(u'')
         print(u'✗ CORRECTEUR : la batterie FP=0 a RÉGRESSÉ :')

@@ -174,6 +174,7 @@ PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer
 PHRASES.push("Il ce lave.", "Il ce porte bien.", "Le pain est le beurre sont sur la table.", "Le chat est le chien jouent.", "Le chat est le chien du voisin.", "Il ce matin est parti.");   // ⭐ 04/10/2026 : homophones (ext ⊆ Python)
 PHRASES.push("T'as finis ton travail.", "T'as manger ?", "T'es aller où ?", "Il t'a vue hier.");   // ⭐ 04/10/2026 : « t'as » = tu as (ext ⊆ Python)
 PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
+PHRASES.push("Jon arrive demain.", "Lils sont partis.", "Ques tu veux ?", "Il voit dest gens.", "Je crois que jai raison.", "Il pense quil pleut.", "Il vient dailleurs demain.", "Il appelle lami de Paul.");   // ⭐ 04/10/2026 : élisions impossibles (ext ⊆ Python)
 PHRASES.push("Il n'a pas manger sa soupe.", "Je n'ai pas manger.", "Ils n'ont pas manger.", "Il n'a rien manger.", "Il n'a manger que du pain.", "Le plus dur, ce n'est pas commencer.");   // ⭐ 03/10/2026 : avoir élidé (ext ⊆ Python)
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)
 
@@ -801,6 +802,21 @@ print(json.dumps(out))
   if (fl("Il t'a vue hier.").length) { _ta++; console.log("  ✗ t'as : témoin « il t'a vue » marqué " + JSON.stringify(fl("Il t'a vue hier."))); }
   if (_ta) { console.log("PARITÉ KO — t'as : " + _ta + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ t'as / t'es : 3 corrections (finis → fini, manger → mangé, aller → allé) ; « il t'a vue » muet"); }
+
+// ⭐ 04/10/2026 — ÉLISION FUSIONNÉE : les suites permises PAR PRÉFIXE (j', n', qu', d', l', comme s'/c') — plus d'élision IMPOSSIBLE écrite en
+// rouge (« J'on », « L'ils », « Qu'es », « d'est ») ; les vraies restent (j'ai, qu'il, d'ailleurs, l'ami).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _ef = 0;
+  for (const [s, w, sg] of [["Je crois que jai raison.", 'jai', "j'ai"], ["Il pense quil pleut.", 'quil', "qu'il"], ["Il vient dailleurs demain.", 'dailleurs', "d'ailleurs"], ["Il appelle lami de Paul.", 'lami', "l'ami"]]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg) { _ef++; console.log('  ✗ élision fusionnée : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const [s, w] of [["Jon arrive demain.", 'Jon'], ["Lils sont partis.", 'Lils'], ["Ques tu veux ?", 'Ques'], ["Il voit dest gens.", 'dest']]) {
+    const m = fl(s).find(x => x.word === w && x.name === 'élision fusionnée');
+    if (m) { _ef++; console.log('  ✗ élision fusionnée : « ' + s + ' » → élision impossible « ' + m.sugg + ' »'); }
+  }
+  if (_ef) { console.log('PARITÉ KO — élision fusionnée : ' + _ef + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ élision fusionnée : j'ai, qu'il, d'ailleurs, l'ami ; plus de « J'on », « L'ils », « Qu'es », « d'est »"); }
 
 // ⭐ 04/10/2026 — « IL LA VU » : après un pronom sujet, « la » est un PRONOM (l'a vu) — la grammaire ne rend plus « vue » en ROUGE ;
 // « il a perdu la vu » (déterminant) garde « vue ».

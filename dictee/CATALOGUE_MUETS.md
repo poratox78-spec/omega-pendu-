@@ -136,6 +136,7 @@ d'alignement de l'élision à deux mots, 30/09), 241 en orange (dont 2 du même 
 |---|---|---|---|
 | orthographe | 15 | l'accent est bien restauré, mais le gold attend une autre flexion ou une élision | à lire : souvent « bon lemme » |
 | élision fusionnée | 9 | reste d'une liste fermée cherché sans accent, recopié tel quel (« s'éte ») ; « jen » = gens | ✅ 29/09 : 9 retirés |
+| élision fusionnée, après j', n', qu', d', l' (hors gold) | 6 | la liste COMMUNE des suites servait pour tous les préfixes : « qu'es », « l'ils », « d'est » (et « J'on » sur UD) | ✅ 04/10 : une liste par préfixe — 6 retirés sur les corpus dys, 2 sur UD |
 | -e/-é (participe) | 4 | la forme en -e lue comme participe (le nom ou le présent était voulu) | à mesurer |
 | accord sujet-verbe | 4 | sujet ou verbe lui-même mal écrit ; « en + -ent » lu comme verbe fini (gérondif) | ✅ 30/09 : le gérondif (« en disent » → disant, orange) ; restent 3 |
 | pluriel du nom | 4 | le nom mal écrit est pluralisé tel quel | ⛔ garde « pluriel attesté » réfutée (1 retiré, 1 juste cassé) |
