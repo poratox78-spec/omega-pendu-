@@ -5315,6 +5315,35 @@ def rule_pluriel_son(T, i):
 _ADJ_ANTE_PL = {'grand': 'grands', 'grande': 'grandes', 'petit': 'petits', 'petite': 'petites', 'grosse': 'grosses', 'beau': 'beaux', 'belle': 'belles', 'joli': 'jolis', 'jolie': 'jolies', 'jeune': 'jeunes', 'vieille': 'vieilles', 'nouveau': 'nouveaux', 'nouvelle': 'nouvelles', 'bon': 'bons', 'bonne': 'bonnes', 'mauvaise': 'mauvaises', 'long': 'longs', 'longue': 'longues', 'court': 'courts', 'courte': 'courtes', 'haut': 'hauts', 'haute': 'hautes', 'meilleur': 'meilleurs', 'meilleure': 'meilleures', 'moindre': 'moindres', 'seul': 'seuls', 'seule': 'seules', 'meme': 'mêmes', 'autre': 'autres', 'prochain': 'prochains', 'prochaine': 'prochaines', 'ancien': 'anciens', 'ancienne': 'anciennes', 'propre': 'propres', 'pauvre': 'pauvres', 'vrai': 'vrais', 'vraie': 'vraies', 'simple': 'simples', 'double': 'doubles', 'plein': 'pleins', 'pleine': 'pleines', 'gentil': 'gentils', 'gentille': 'gentilles', 'brave': 'braves', 'cher': 'chers', 'chere': 'chères'}
 
 
+# ⭐ 04/10/2026 — GENRE de l'adjectif ANTÉPOSÉ (miroir JS rAdjAnteGenre) : déterminant au genre sûr + adjectif de la classe fermée + nom au
+# genre connu (étiqueté nom) qui s'accordent entre eux → l'adjectif prend ce genre (« une grand maison » → grande, « un belle arbre » → bel).
+_ADJ_ANTE_G = dict(p.split(':') for p in u'grand:grande petit:petite gros:grosse beau:belle bel:belle joli:jolie nouveau:nouvelle nouvel:nouvelle vieux:vieille vieil:vieille bon:bonne mauvais:mauvaise meilleur:meilleure haut:haute long:longue faux:fausse gentil:gentille dernier:dernière premier:première prochain:prochaine seul:seule vrai:vraie majeur:majeure cher:chère'.split())
+_ADJ_ANTE_M = dict((v, k) for k, v in _ADJ_ANTE_G.items() if k not in ('bel', 'nouvel', 'vieil'))
+_DET_MASC_SUR = frozenset(('le', 'un', 'ce'))
+_ADJ_ANTE_VOY = {'beau': 'bel', 'nouveau': 'nouvel', 'vieux': 'vieil'}
+_GRAND_F = frozenset(u'mere tante route rue messe place peine chose voile faim soif peur croix chambre garde'.split())   # « grand route », « grand mère », « à grand peine » : anciens composés
+
+
+def rule_adj_ante_genre(T, i):
+    if i == 0 or i + 1 >= len(T): return None
+    w = T[i]
+    if w != w.lower() or not re.match(u'^[a-zà-ÿœæ]+$', w): return None
+    if _SEG is not None and ((i < len(_SEG['hy']) and _SEG['hy'][i]) or (i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1])): return None
+    if _SEG is not None and ((i < len(_SEG['bb']) and _SEG['bb'][i]) or (i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1])): return None
+    pd = deacc(T[i - 1].lower()); nx = T[i + 1].lower(); gn = GENDER_PURE.get(deacc(nx))
+    if gn not in ('m', 'f'): return None
+    tg = pos_tags(T)
+    if not tg or i + 1 >= len(tg) or tg[i + 1] != 'NOUN': return None
+    if pd in _DET_FEM_SUR and gn == 'f':
+        if w == 'grand' and deacc(nx) in _GRAND_F: return None
+        return _ADJ_ANTE_G.get(w)
+    if pd in _DET_MASC_SUR and gn == 'm':
+        m = _ADJ_ANTE_M.get(w)
+        if m and m in _ADJ_ANTE_VOY and re.match(u'^[aeiouyhàâéèêëîïôöûü]', deacc(nx)): m = _ADJ_ANTE_VOY[m]
+        return m
+    return None
+
+
 def rule_adj_ante_plural(T, i):
     if i == 0: return None
     if deacc(T[i - 1].lower()) not in PLURAL_DET: return None            # déterminant pluriel NON AMBIGU (les/des/ces/mes/tes/ses/nos/vos/leurs)
@@ -6589,7 +6618,7 @@ RULES = [('élision inversée', rule_deselide),
          ('genre déterminant', rule_det_gender),
          ('nombre du déterminant à vérifier', rule_det_number),   # ORANGE (11/09/2026) : « le maçons ont » → les ?
          ('accord tout', rule_tout_det),
-         ('accord adjectif antéposé', rule_adj_ante_plural),
+         ('accord adjectif antéposé', rule_adj_ante_plural), ('accord adjectif antéposé', rule_adj_ante_genre),
          ('nom féminin en -ée', rule_fem_ee),
          ('accord pluriel nom', rule_noun_plural),
          ('accord singulier nom', rule_noun_singular),
@@ -6753,6 +6782,9 @@ def bout_de_chaine_orange(text, i, sugg):
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
     ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
+    ("Cette grand route mène au village.", "« grand » des anciens composés (grand route, grand mère, à grand peine) reste tel quel (04/10/2026)."),
+    ("Ma grand-tante dort.", "trait d'union : un composé, pas un adjectif à accorder (04/10/2026)."),
+    ("Le petite maison est jolie.", "le déterminant et le nom ne s'accordent pas : l'adjectif n'a pas d'ancre sûre (04/10/2026)."),
     ("Il a un grand pouvoir caché.", "« pouvoir » y est un nom (déterminant + adjectif devant) : « caché » est juste (04/10/2026)."),
     ("Ce qu'il dit a fait rire.", "« dit » termine une relative : « a fait » est avoir (04/10/2026)."),
     ("Le roi de France absent dort.", "le lieu SANS article (« de France ») est un complément : l'adjectif porte sur « roi » (04/10/2026)."),
@@ -6857,6 +6889,11 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 04/10/2026 — genre de l'adjectif antéposé (déterminant et nom d'accord)
+    ("Ils ont une grande maison.", "grande", "grand", "accord adjectif antéposé"),
+    ("La petite fille joue.", "petite", "petit", "accord adjectif antéposé"),
+    ("Un bel arbre pousse.", "bel", "belle", "accord adjectif antéposé"),
+    ("C'est la première fois.", "première", "premier", "accord adjectif antéposé"),
     # ⭐ 04/10/2026 — le verbe après « à » (gouverneur) / après un infinitif (pouvoir, savoir, aller…), « dû », modal collé à « j' »
     ("Il apprend à nager.", "nager", "nagé", "-é/-er"),
     ("Il espère pouvoir inviter ses amis.", "inviter", "invité", "-é/-er"),
@@ -7194,7 +7231,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 234   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif)
+    _PLANCHER = 238   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
