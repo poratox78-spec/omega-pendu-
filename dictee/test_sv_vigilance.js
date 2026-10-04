@@ -90,10 +90,14 @@ const C = globalThis.__C;
     const r = pv(s); if (r.length) fail.push(`[pluriel ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
   }
   // ⭐ 29/09/2026 — un nombre EN CHIFFRES ≥ 2 joue le rôle du cardinal (orange) ; jamais une année, une date, une adresse, une unité, un numéro.
-  for (const [s, w, sg] of [['Nous avons planté 40 pommier.', 'pommier', 'pommiers'], ['Elle a 3 frère et 2 sœur.', 'frère', 'frères']]) {
+  for (const [s, w, sg] of [['Nous avons planté 40 pommier.', 'pommier', 'pommiers'], ['Elle a 3 frère et 2 sœur.', 'frère', 'frères'],
+                            // ⭐ 04/10/2026 : nom tagué PROPN (le chiffre n'est pas un mot), lecture verbale (minute), « il MESURE 2 mètre », silencieux appris contourné
+                            ['Il y en a pour 5 euro.', 'euro', 'euros'], ['Une ferme de 20 hectare.', 'hectare', 'hectares'], ['On a 10 minute.', 'minute', 'minutes'],
+                            ['Il mesure 2 mètre.', 'mètre', 'mètres']]) {
     const r = pv(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[chiffres ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
   }
-  for (const s of ['Il habite au 42 boulevard Voltaire.', 'La saison 5 épisode 8 commence.', 'Il est né en 2012 dans le Nord.', 'Le 25 mars il pleut.', 'Il court 4 min par jour.', 'Il a 1 frère.']) {
+  for (const s of ['Il habite au 42 boulevard Voltaire.', 'La saison 5 épisode 8 commence.', 'Il est né en 2012 dans le Nord.', 'Le 25 mars il pleut.', 'Il court 4 min par jour.', 'Il a 1 frère.',
+                   'Il a 512 kilo-octets de mémoire.', 'Le 25 maie il pleut.', 'Vers 450 grâce au roi, la ville grandit.']) {   // ⭐ 04/10/2026 : composé, date (mois mal écrit), année + locution
     const r = pv(s); if (r.length) fail.push(`[chiffres ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
   }
   // ⭐ 29/09/2026 — « infinitif après semi-auxiliaire » : les prises restent (suggestion accentuée), 4 faux positifs mesurés tombent.
