@@ -5225,6 +5225,9 @@ _DET_FEM_SUR = frozenset(('une', 'la', 'cette', 'ma', 'ta', 'sa'))
 def rule_fem_ee(T, i):
     if i == 0: return None
     if deacc(T[i - 1].lower()) not in _DET_FEM_SUR: return None
+    if (i >= 2 and deacc(T[i - 1].lower()) in ('la', 'sa')
+            and re.sub(u"['’]$", '', deacc(T[i - 2].lower())) in ('il', 'elle', 'on', 'je', 'tu', 'nous', 'vous', 'ils', 'elles', 'qui', 'ne', 'n')):
+        return None                                    # ⭐ 04/10/2026 : « il la vu » — « la » PRONOM (l'a vu), pas « la vue » ; miroir JS rFemEe
     w = T[i]
     if not w.isalpha() or w != w.lower(): return None
     f = _FEM_EE.get(w)

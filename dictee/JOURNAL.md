@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-10-04 — « il la vu » → l'a vu (et plus de « vue » en rouge), « je lai vu », « tu mas fait »
+
+- Suite du lot apostrophes : les formes collées qui sont de VRAIS mots (« la », « lai », « mas ») — l'orthographe les croit justes.
+  « Il la vu hier. » recevait même « vu » → « vue » en ROUGE : la règle « nom féminin en -ée » (« la cheminé », « la vu » = la vue) lisait
+  « la » comme un déterminant, alors qu'après un pronom sujet c'est un PRONOM.
+- G : `rFemEe` ≡ `rule_fem_ee` se tait quand « la / sa » suit un pronom sujet, « qui » ou « ne » ; « il a perdu la vu », « la vu est belle »
+  gardent « vue ».
+- E : la couche d'élision (celle de « ma / ta + participe → m'a / t'a », 3 moteurs, sans miroir Python) apprend « la » (après pronom sujet,
+  « qui », « ne »), « lai » (après « je »), « mas » (après « tu ») devant un participe masculin → l'a / l'ai / m'as, ORANGE, mêmes gardes.
+  « tai » (je tai vu) n'est pas pris : le mot inconnu passe d'abord par l'orthographe — à reprendre.
+- Mesuré (copie du moteur) : 0 changement sur les 3 corpus dys, les corpus de la sonde de précision et UD 14 450 — la forme n'est dans
+  aucun corpus ; le gain est sur des phrases plausibles, et un rouge faux de moins.
+- Tests : `test_speller.js` (4 élisions + 2 témoins), `parity_core.js` (plus de « vue » après un pronom, « l'a vu » proposé, « elle sa vu »
+  sans rouge, « il a perdu la vu » → vue) — falsifié : sans E, 4 attentes tombent ; sans G, « elle sa vu » reprend son rouge (avec E,
+  « il la vu » ne le montre pas : la marque couverte par l'élision s'efface d'elle-même — d'où le témoin « sa »).
+
 ## 2026-10-04 — apostrophe OUBLIÉE : « il sest levé », « il nest pas », « je taime », « on narête pas »
 
 - Où est vraiment le problème des apostrophes (demande de Rem) : dans le gold, la famille « apostrophe / découpage » compte 120 fautes —

@@ -47,6 +47,13 @@ for (const [t, w, s, tier] of [["Il sest levé tôt.", 'sest', "s'est", 'flag'],
   const f = DC.spell(t).find(x => x.word === w);
   if (!f || f.sugg !== s || f.tier !== tier) fail.push('apostrophe oubliée « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 { const f = DC.spell('Il pratique le tai-chi.').find(x => /^t'/.test(x.sugg || '')); if (f) fail.push('apostrophe oubliée : « tai » (tai-chi) → ' + f.sugg); }
+// ⭐ 04/10/2026 — APOSTROPHE OUBLIÉE (suite) : « il la vu » → l'a vu, « je lai vu » → l'ai vu, « tu mas fait » → m'as fait (orange, span 2) ;
+// témoins : « elle la regarde » (verbe conjugué), « il a perdu la vu » (le déterminant reste à la grammaire : « vue »).
+for (const [t, w, s] of [["Il la vu hier.", 'la vu', "l'a vu"], ["On la vu partir.", 'la vu', "l'a vu"], ["Je lai vu hier.", 'lai vu', "l'ai vu"], ["Tu mas fait peur.", 'mas fait', "m'as fait"]]) {
+  const f = DC.spell(t).find(x => x.name === 'élision' && x.word === w);
+  if (!f || f.sugg !== s || f.tier !== 'vigilance') fail.push('élision « ' + w + ' » : attendu « ' + s + ' » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+for (const t of ["Elle la regarde.", "Il a perdu la vu."])
+  if (DC.spell(t).some(x => x.name === 'élision')) fail.push('élision : témoin « ' + t + ' » marqué ' + JSON.stringify(DC.spell(t).map(x => x.word + '→' + x.sugg)));
 // ⭐ 29/09/2026 — ACCENTS MUETS : « ca », « foret », « pole » → ça, forêt, pôle en ORANGE ; « le foret » (l'outil), « les mass media »,
 // « la pole position » et « Ca » (calcium) : rien.
 for (const [t, w, s] of [['je crois que ca marche', 'ca', 'ça'], ['on marche en foret', 'foret', 'forêt'], ['ils vont au pole sud', 'pole', 'pôle']]) {
