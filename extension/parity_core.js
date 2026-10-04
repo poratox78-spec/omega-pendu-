@@ -174,6 +174,7 @@ PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer
 PHRASES.push("Il ce lave.", "Il ce porte bien.", "Le pain est le beurre sont sur la table.", "Le chat est le chien jouent.", "Le chat est le chien du voisin.", "Il ce matin est parti.");   // ⭐ 04/10/2026 : homophones (ext ⊆ Python)
 PHRASES.push("T'as finis ton travail.", "T'as manger ?", "T'es aller où ?", "Il t'a vue hier.");   // ⭐ 04/10/2026 : « t'as » = tu as (ext ⊆ Python)
 PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
+PHRASES.push("Elle retourne chère elle.", "Il dîne chere nous demain.", "Il est très cher lui aussi.", "Il le trouve cher lui-même.");   // ⭐ 04/10/2026 : chère / chere + pronom tonique → chez (ext ⊆ Python)
 PHRASES.push("Il commence à mange sa soupe.", "Elle continue a travaille tard.", "On apprend à nage cet été.", "Il réussit à lève la main.", "Il passe à table.", "Elle se met à table.");   // ⭐ 04/10/2026 : présent après un « à » gouverné → infinitif (ext ⊆ Python)
 PHRASES.push("Elle sort et ce promène au parc.", "Elle veut ce reposer un peu.", "Elle apprend à ce baigner.", "Mon père ce perd en ville.", "Pour ce faire, il part.", "Ce peut être vrai.", "Il travaille dans ce bureau.", "Ce doit être lui.", "Il est assis sur ce banc.", "Mon frère ce réveille tard.", "Le garçon ce habille vite.", "La pièce Ce5 perd sa place.", "Il vit avec ce souvient.");   // ⭐ 04/10/2026 : « ce » devant un verbe → se (ext ⊆ Python)
 PHRASES.push("Il parle aux enfant du quartier.", "Elle répond aux lettre de ses amis.", "Il reste quelques jour avant la fête.", "Ils ont plusieurs maison à la mer.", "Il range divers objet dans la boîte.", "Elle a plusieurs petit chats.", "Elle dessine plusieurs grands chien.", "Certains pensent que non.", "Plusieurs sont venus hier.", "Je vois que certains porte un chapeau.", "Il boit un thé aux citron.", "Il va aux grand marché du samedi.", "Elle parle aux petit garçon.", "Il cherche quelques chose.", "Plusieurs même sont partis tôt.");   // ⭐ 04/10/2026 : plusieurs / quelques / divers / aux + nom singulier (ext ⊆ Python)
@@ -808,6 +809,20 @@ print(json.dumps(out))
   if (fl("Il t'a vue hier.").length) { _ta++; console.log("  ✗ t'as : témoin « il t'a vue » marqué " + JSON.stringify(fl("Il t'a vue hier."))); }
   if (_ta) { console.log("PARITÉ KO — t'as : " + _ta + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ t'as / t'es : 3 corrections (finis → fini, manger → mangé, aller → allé) ; « il t'a vue » muet"); }
+
+// ⭐ 04/10/2026 — « CHÈRE / CHERE + moi, toi, elle… » → chez (l'orthographe rendait « chère » en rouge). Témoins : « cher » adjectif après un
+// intensif, ou devant « lui-même ».
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _cz = 0;
+  for (const [s, w] of [["Elle retourne chère elle.", 'chère'], ["Il dîne chere nous demain.", 'chere']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== 'chez' || m.name !== 'cher/chez') { _cz++; console.log('  ✗ chère → chez : « ' + s + ' » → « chez » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const s of ["Il est très cher lui aussi.", "Il le trouve cher lui-même."]) {
+    const f = fl(s).filter(x => x.name === 'cher/chez'); if (f.length) { _cz++; console.log('  ✗ chère → chez : témoin « ' + s + ' » marqué ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  if (_cz) { console.log('PARITÉ KO — chère → chez : ' + _cz + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ chère → chez : 2 corrections ; 2 témoins (l'adjectif reste)"); }
 
 // ⭐ 04/10/2026 — LE PRÉSENT APRÈS UN « À » GOUVERNÉ → INFINITIF : « il commence a mange » → manger (avant : « à mangé », deux rouges
 // faux). Témoins : un NOM après « à » (« passer à table », « se mettre à table ») ne devient pas un verbe.
