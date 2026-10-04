@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-10-04 — genre de l'adjectif antéposé : « une grand maison » → grande, « un belle arbre » → bel (rouge)
+
+- Vu en relisant les muettes « genre de l'adjectif » : sur des phrases inventées, « une grand maison », « la petit fille », « une beau
+  journée », « une nouveau voiture » ne recevaient RIEN. La règle du nombre (`rAdjAntePl`) existait ; son pendant en genre, non.
+- `rAdjAnteGenre` ≡ `rule_adj_ante_genre` : déterminant au genre sûr + adjectif de la classe fermée + nom au genre connu, étiqueté
+  nom, d'accord avec le déterminant (double ancre : un déterminant faux, « le petite maison », ne fait rien dire) ; bel / nouvel /
+  vieil devant voyelle.
+- Mesure : UD montrait « Cette grand route » (graphie ancienne de grand-route) → « grand » devant les noms des anciens composés
+  (route, rue, mère, messe, place, peine, chose…) reste tel quel. Gold : 3 fautes muettes réparées en rouge ; 3 corpus : 2 de plus
+  que le corrigé avait laissées ; UD 14 450 : 2 marques, deux vraies fautes du texte d'UD.
+- Tests : `parity_core.js` (4 corrections + 4 témoins), `correcteur_probe.py` (4 CASES + 3 MUETS, plancher 238) ; chaque pièce falsifiée
+  seule, sauf la garde « trait d'union », INERTE sur les témoins (les anciens composés la couvrent), gardée par prudence.
+
 ## 2026-10-04 — le verbe après « à » et après un infinitif (« apprend à nagé » → nager ; « pouvoir invité », « a dû porté » → l'infinitif)
 
 - Les 39 fautes muettes « forme du verbe » du gold, lues une par une : la plupart ont un voisin faux ; quelques motifs propres, essayés sur

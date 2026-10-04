@@ -174,6 +174,7 @@ PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer
 PHRASES.push("Il ce lave.", "Il ce porte bien.", "Le pain est le beurre sont sur la table.", "Le chat est le chien jouent.", "Le chat est le chien du voisin.", "Il ce matin est parti.");   // ⭐ 04/10/2026 : homophones (ext ⊆ Python)
 PHRASES.push("T'as finis ton travail.", "T'as manger ?", "T'es aller où ?", "Il t'a vue hier.");   // ⭐ 04/10/2026 : « t'as » = tu as (ext ⊆ Python)
 PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
+PHRASES.push("Ils ont une grand maison.", "La petit fille joue.", "Un belle arbre pousse.", "C'est la premier fois.", "Cette grand route mène au village.", "Ma grand-tante dort.", "Le petite maison.");   // ⭐ 04/10/2026 : genre de l'adjectif antéposé (ext ⊆ Python)
 PHRASES.push("Il apprend à nagé.", "Elle continue à chanté.", "Il espère pouvoir invité ses amis.", "Elle doit aller rangé sa chambre.", "Il faut savoir écouté.", "Elle a dû porté le sac.", "Elle a dû passé la nuit dehors.", "J'aime m'habillé en bleu.", "Ce qu'il dit à fait rire.", "L'aide à été précieuse.", "Le reste à été vendu.", "L'aide à changé sa vie.", "Il a un grand pouvoir caché.");   // ⭐ 04/10/2026 : le verbe après à / après un infinitif (ext ⊆ Python)
 PHRASES.push("La Chine entier dort.", "L'Europe occidental est riche.", "Il a lu quelque livres.", "Le roi de France absent dort.", "Il a vu quelque 300 voitures.", "Il reste quelque temps.", "Il vient quelque fois.", "La France produit du vin.");   // ⭐ 04/10/2026 : lieu + adjectif, quelque (ext ⊆ Python)
 PHRASES.push("Jon arrive demain.", "Lils sont partis.", "Ques tu veux ?", "Il voit dest gens.", "Je crois que jai raison.", "Il pense quil pleut.", "Il vient dailleurs demain.", "Il appelle lami de Paul.");   // ⭐ 04/10/2026 : élisions impossibles (ext ⊆ Python)
@@ -804,6 +805,20 @@ print(json.dumps(out))
   if (fl("Il t'a vue hier.").length) { _ta++; console.log("  ✗ t'as : témoin « il t'a vue » marqué " + JSON.stringify(fl("Il t'a vue hier."))); }
   if (_ta) { console.log("PARITÉ KO — t'as : " + _ta + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ t'as / t'es : 3 corrections (finis → fini, manger → mangé, aller → allé) ; « il t'a vue » muet"); }
+
+// ⭐ 04/10/2026 — GENRE DE L'ADJECTIF ANTÉPOSÉ (la sœur du nombre) : « une grand maison » → grande, « un belle arbre » → bel.
+// Témoins : « cette grand route » (ancien composé), « ma grand-tante » (trait d'union), « le petite maison » (dét. et nom en désaccord).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number' && f.name === 'accord adjectif antéposé');
+  let _ag = 0;
+  for (const [s, w, sg] of [["Ils ont une grand maison.", 'grand', 'grande'], ["La petit fille joue.", 'petit', 'petite'], ["Un belle arbre pousse.", 'belle', 'bel'], ["C'est la premier fois.", 'premier', 'première']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg) { _ag++; console.log('  ✗ adjectif antéposé : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const s of ["Cette grand route mène au village.", "Ma grand-tante dort.", "Le petite maison.", "Ils ont une grande maison."]) {
+    const f = fl(s); if (f.length) { _ag++; console.log('  ✗ adjectif antéposé : témoin « ' + s + ' » marqué ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  if (_ag) { console.log('PARITÉ KO — adjectif antéposé : ' + _ag + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ adjectif antéposé : grande, petite, bel, première ; 4 témoins muets"); }
 
 // ⭐ 04/10/2026 — LE VERBE APRÈS « À » / APRÈS UN INFINITIF : « apprend à nagé » → nager (le « à » reste) ; « pouvoir invité », « aller rangé »,
 // « savoir écouté », « a dû porté / passé », « j'aime m'habillé » → l'infinitif. Témoins : « ce qu'il dit à fait », « l'aide à été », « le reste à été » (a), « un grand pouvoir caché » (nom).
