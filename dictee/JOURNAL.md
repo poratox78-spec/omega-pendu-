@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-10-04 — le présent après un « à » gouverné → infinitif (« il commence a mange » → manger)
+
+- Vu dans les mots faux du gold : après « commencer a », la règle -e/-é lisait « a » comme avoir et rendait le PARTICIPE, en rouge,
+  pendant que la règle a/à rendait « à » — sur des phrases inventées, « il commence a mange » devenait « il commence à mangé ».
+- `rAInfE` ≡ `rule_a_inf_e` reprend le gouverneur du lot du verbe après « à » (`_aInfGouv`) : après lui, la forme en -e est
+  l'infinitif. Garde NOM : la 1re version écrivait « passer à tabler ».
+- Mesure : gold 1 mot faux → juste ; 3 corpus et UD : rien d'autre. Petit en nombre, mais il retire une paire de rouges qui
+  s'additionnaient en faute.
+
 ## 2026-10-04 — « ce » devant un verbe → se (orange), même sans pronom sujet avant
 
 - Muettes « ce → se » du gold : un nom sujet, « et » ou « que » avant, jamais un pronom — or `rCe` n'osait « se » qu'après un

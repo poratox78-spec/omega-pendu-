@@ -174,6 +174,7 @@ PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer
 PHRASES.push("Il ce lave.", "Il ce porte bien.", "Le pain est le beurre sont sur la table.", "Le chat est le chien jouent.", "Le chat est le chien du voisin.", "Il ce matin est parti.");   // ⭐ 04/10/2026 : homophones (ext ⊆ Python)
 PHRASES.push("T'as finis ton travail.", "T'as manger ?", "T'es aller où ?", "Il t'a vue hier.");   // ⭐ 04/10/2026 : « t'as » = tu as (ext ⊆ Python)
 PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
+PHRASES.push("Il commence à mange sa soupe.", "Elle continue a travaille tard.", "On apprend à nage cet été.", "Il réussit à lève la main.", "Il passe à table.", "Elle se met à table.");   // ⭐ 04/10/2026 : présent après un « à » gouverné → infinitif (ext ⊆ Python)
 PHRASES.push("Elle sort et ce promène au parc.", "Elle veut ce reposer un peu.", "Elle apprend à ce baigner.", "Mon père ce perd en ville.", "Pour ce faire, il part.", "Ce peut être vrai.", "Il travaille dans ce bureau.", "Ce doit être lui.", "Il est assis sur ce banc.", "Mon frère ce réveille tard.", "Le garçon ce habille vite.", "La pièce Ce5 perd sa place.", "Il vit avec ce souvient.");   // ⭐ 04/10/2026 : « ce » devant un verbe → se (ext ⊆ Python)
 PHRASES.push("Il parle aux enfant du quartier.", "Elle répond aux lettre de ses amis.", "Il reste quelques jour avant la fête.", "Ils ont plusieurs maison à la mer.", "Il range divers objet dans la boîte.", "Elle a plusieurs petit chats.", "Elle dessine plusieurs grands chien.", "Certains pensent que non.", "Plusieurs sont venus hier.", "Je vois que certains porte un chapeau.", "Il boit un thé aux citron.", "Il va aux grand marché du samedi.", "Elle parle aux petit garçon.", "Il cherche quelques chose.", "Plusieurs même sont partis tôt.");   // ⭐ 04/10/2026 : plusieurs / quelques / divers / aux + nom singulier (ext ⊆ Python)
 PHRASES.push("Ils ont une grand maison.", "La petit fille joue.", "Un belle arbre pousse.", "C'est la premier fois.", "Cette grand route mène au village.", "Ma grand-tante dort.", "Le petite maison.");   // ⭐ 04/10/2026 : genre de l'adjectif antéposé (ext ⊆ Python)
@@ -807,6 +808,21 @@ print(json.dumps(out))
   if (fl("Il t'a vue hier.").length) { _ta++; console.log("  ✗ t'as : témoin « il t'a vue » marqué " + JSON.stringify(fl("Il t'a vue hier."))); }
   if (_ta) { console.log("PARITÉ KO — t'as : " + _ta + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ t'as / t'es : 3 corrections (finis → fini, manger → mangé, aller → allé) ; « il t'a vue » muet"); }
+
+// ⭐ 04/10/2026 — LE PRÉSENT APRÈS UN « À » GOUVERNÉ → INFINITIF : « il commence a mange » → manger (avant : « à mangé », deux rouges
+// faux). Témoins : un NOM après « à » (« passer à table », « se mettre à table ») ne devient pas un verbe.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _ai = 0;
+  for (const [s, w, sg] of [["Il commence à mange sa soupe.", 'mange', 'manger'], ["Elle continue a travaille tard.", 'travaille', 'travailler'], ["On apprend à nage cet été.", 'nage', 'nager'], ["Il réussit à lève la main.", 'lève', 'lever']]) {
+    const f = fl(s), m = f.find(x => x.word === w);
+    if (!m || m.sugg !== sg || f.some(x => /é$/.test(x.sugg) && x.word === w)) { _ai++; console.log('  ✗ présent après à : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  for (const s of ["Il passe à table.", "Elle se met à table."]) {
+    const f = fl(s).filter(x => x.word === 'table'); if (f.length) { _ai++; console.log('  ✗ présent après à : témoin « ' + s + ' » marqué ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  { const f = fl("Il a mange une pomme.").filter(x => x.word === 'mange'); if (!f.length || f[0].sugg !== 'mangé') { _ai++; console.log('  ✗ présent après à : « Il a mange une pomme. » → « mangé » (avoir) attendu, obtenu ' + JSON.stringify(f.map(x => x.sugg))); } }
+  if (_ai) { console.log('PARITÉ KO — présent après à : ' + _ai + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ présent après à : 4 infinitifs ; 2 témoins (un nom reste un nom)"); }
 
 // ⭐ 04/10/2026 — « CE » DEVANT UN VERBE → « se » (orange) : forme que le lexique ne connaît que comme verbe, ou nom féminin lu verbe.
 // Témoins : « pour ce faire », préposition + nom, « ce doit être », paire -eille/-eil, voyelle ou h (ce serait « s' »), chiffre collé.
