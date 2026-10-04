@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-10-04 — « ça / cela / ceci » sujet : « ça vas mieux » → va, « cela pourrais marcher » → pourrait (orange)
+
+- Les 42 fautes muettes « accord sujet-verbe » du gold, lues une par une : trois freins dans la personne du verbe après un sujet NOMINAL
+  (`sujFlexVig` ≡ `rule_sujet_flexion_nom`), prototypés chacun derrière un interrupteur et mesurés séparément (3 corpus + UD) :
+  · un nom qui a aussi une lecture verbale (« la voiture » : voiturer) arrête la recherche du sujet — ⛔ le lever : 8 fausses alertes
+    sur UD (« aux avions », « les pare-brise »), 6 sur frgec : la garde protège ;
+  · un verbe « modal » (veux, peux, dois…) devant un infinitif est sauté — ⛔ le lever pour un sujet nominal : 0 gain, 3 fausses
+    alertes (le sujet nominal lointain est mal lu) ;
+  · « ça », « cela », « ceci » ne sont pas des sujets pour la règle — ✅ posé : sujet de 3e personne du singulier, palier orange.
+- Piège vu à la mesure : « CA » (un sigle : « trois joueurs du CA partent ») lu « ca » → la casse est lue telle qu'écrite.
+- Mesuré : gold 1 faute muette réparée (catalogue : muettes 577 → 576, orange juste 483 → 484), 0 ailleurs sur les 3 corpus dys,
+  UD 14 450 : 0 marque.
+- En falsifiant côté Python : retirer la règle laissait `correcteur_probe --check` VERT — le plancher de détection était à 155 pour
+  223 cas détectés (68 pouvaient se perdre). Planchers remontés à 223.
+- Tests : `test_sv_vigilance.js` (3 corrections + 3 témoins dont le sigle), `correcteur_probe.py` (2 CASES + 1 MUETS) — falsifiés
+  dans les deux moteurs (la règle retirée, puis la casse ignorée).
+
 ## 2026-10-04 — élision fusionnée : plus d'élision impossible en rouge (suites permises par préfixe)
 
 - Vu en cherchant des exemples pour le lot précédent : un mot inventé devenait « j'on » en ROUGE. Recensement de TOUTES les marques
