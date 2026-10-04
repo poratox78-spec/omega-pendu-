@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-10-04 — « mot inconnu » : le bon mot, pas la bonne forme (nombre du déterminant, personne du sujet)
+
+- Recensement des 313 mots faux du gold avant de toucher au moteur (`ortho/census_ortho.py`, `flexion_census.py`, labo privé) : 103
+  dont le bon mot était déjà candidat (problème de TRI), et surtout 170 « bon lemme, mauvaise flexion » — le correcteur trouve le mot
+  mais pas sa forme. Pour la plupart, l'indice (le déterminant, le sujet) est lui-même mal écrit : le lot ne prend que les ancres sûres.
+- `spellUnknown` ≡ `spell_unknown` : le tri (homophone, audibilité, fréquence) ne regardait pas le contexte. Après lui, `_suFlex` ≡
+  `_su_flex` accorde la FORME au mot juste avant quand le choix le contredit : NOMBRE du déterminant → la forme jumelle EXACTE du même
+  mot (+s, -u/+x, -al/-aux), candidate et homophone (« les kar » → cars) ; PERSONNE du sujet (pronom, déterminant + nom, « l' » + nom,
+  « ne » sauté) → le même verbe accordé (« le facteur veu » → veut).
+- Gardes nées de la mesure : jumelle EXACTE (la jumelle désaccentuée prenait « disciplinés » pour « disciplines ») ; jamais un
+  participe pour la personne (la table de conjugaison est désaccentuée : un participe s'y lit comme un présent) ; pas de nom de temps
+  pour sujet (« une fois … ») ; pas de sujet après une préposition ; un déterminant n'a pas de jumelle ; rien derrière le/la/les si le
+  mot se lit aussi verbe (pronom possible).
+- Mesuré : gold 6 mots faux → justes (catalogue : mots faux 313 → 307, orange juste 477 → 483) ; 3 corpus : 25 suggestions deviennent le
+  mot exact (juge strict), 0 perdue ; UD 14 450 : aucune marque en plus ni en moins (2 suggestions changées sur des coquilles d'UD
+  déjà soulignées, dont une devenue juste). Census des oranges ré-ancré à la hausse (justes 363 → 366). Palier : accord 100 %.
+- Tests : `test_speller.js` (ext) et `test_speller_app.js` (app) — 3 corrections + 2 témoins (préposition, déterminant) ; chaque pièce
+  falsifiée seule dans les deux moteurs.
+
 ## 2026-10-04 — homophones avec les repères de Rem : « il ce lave » → se, « est » qui relie deux sujets → et ; le son et le sens dans les conseils
 
 - Rem a donné ses repères : « et » se dit « é » (il relie), « est » se dit « è » (le verbe être : un état), « ai » se dit « è » aussi (avoir :

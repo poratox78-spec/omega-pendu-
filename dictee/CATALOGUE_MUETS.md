@@ -20,11 +20,11 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit, initiale et dominance, forme du verbe, a / à devant un verbe, avoir élidé, apostrophe oubliée, t'as / javais, pluriel après chiffres) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit, initiale et dominance, forme du verbe, a / à devant un verbe, avoir élidé, apostrophe oubliée, t'as / javais, pluriel après chiffres, forme du mot inconnu) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **622** (30,9 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **477** (23,7 %) |
-| mot FAUX proposé | 373 (18,5 %) | **313** (15,6 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **483** (24,0 %) |
+| mot FAUX proposé | 373 (18,5 %) | **307** (15,3 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
 | **muette** | **711** (35,3 %) | **577** (28,7 %) |
 | **total** | **2 012** | 2 012 |
@@ -150,3 +150,11 @@ pas la coquille « aprés ») : 11 mots faux de moins sur le gold, 19 fausses de
 marque nouvelle. ✅ 30/09, troisième lot : « mot inconnu » — l'accent seul d'abord quand le mot écrit n'a aucun accent (« eclairait »
 → éclairait, plus éclair ; un rival à une édition 20 fois plus fréquent garde la main : « apre » → après) : 44 suggestions deviennent
 le mot exact sur les 3 corpus, 1 perd, UD sans changement. ✅ 30/09 : « séte » → cette / cet et « set » → cette (orange, en contexte) : 7 de plus.
+
+✅ 04/10 : « mot inconnu » — **le bon mot, pas la bonne FORME**. Recensement d'abord : sur les 313 mots faux, 170 sont « bon lemme, mauvaise
+flexion » (singulier au lieu du pluriel, « veux » au lieu de « veut »…), dont 137 posés par l'orthographe ; pour la plupart, le mot
+d'avant est lui-même mal écrit (ancre polluée) et ne dit rien de sûr. Le tri de « mot inconnu » choisissait le mot sans regarder
+le contexte : la forme choisie s'accorde maintenant au mot juste avant quand celui-ci est sûr — le NOMBRE d'un déterminant (« les kar »
+→ cars : forme jumelle exacte +s, -u/+x, -al/-aux) et la PERSONNE d'un sujet (« le facteur veu » → veut : pronom, déterminant + nom,
+« l' » + nom ; le même verbe, jamais un participe). 6 mots faux de moins sur le gold ; 25 suggestions deviennent le mot exact sur les
+3 corpus (juge strict, accents compris), 0 perdue ; UD : aucune marque en plus ni en moins.

@@ -82,6 +82,18 @@ for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass med
   if (!f || f.sugg !== 'éclairait') fail.push('« eclairait » : attendu « éclairait » (l’accent seul d’abord), eu ' + JSON.stringify(f && f.sugg)); }
 { const f = DC.spell('je viens apre le repas').find(x => x.word === 'apre');
   if (!f || f.sugg !== 'après') fail.push('« apre » : attendu « après » (rival à une édition 20 fois plus fréquent : pas « âpre »), eu ' + JSON.stringify(f && f.sugg)); }
+// ⭐ 04/10/2026 — « mot inconnu » : la FORME du mot choisi s'accorde au mot d'avant — NOMBRE du déterminant, PERSONNE du sujet (dét. + nom, « l' » + nom).
+{ const f = DC.spell('ils prennent les kar pour partir').find(x => x.word === 'kar');
+  if (!f || f.sugg !== 'cars') fail.push('« les kar » : attendu « cars » (le nombre du déterminant), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('le facteur veu partir').find(x => x.word === 'veu');
+  if (!f || f.sugg !== 'veut') fail.push('« le facteur veu » : attendu « veut » (le verbe accordé au sujet), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell("l'enfant doi dormir").find(x => x.word === 'doi');
+  if (!f || f.sugg !== 'doit') fail.push('« l’enfant doi » : attendu « doit » (sujet « l’ » + nom), eu ' + JSON.stringify(f && f.sugg)); }
+// témoins : un groupe après une préposition n'est pas le sujet ; un déterminant n'a pas de « forme jumelle ».
+{ const f = DC.spell('dans le journal doi partir').find(x => x.word === 'doi');
+  if (!f || f.sugg !== 'dois') fail.push('« dans le journal doi » : attendu « dois » inchangé (pas de sujet après une préposition), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('il voit les sse').find(x => x.word === 'sse');
+  if (!f || f.sugg === 'ces') fail.push('« les sse » : un déterminant ne prend pas de forme jumelle (« ces »), eu ' + JSON.stringify(f && f.sugg)); }
 // ⭐ 30/09/2026 — dominance de fréquence seulement si l'initiale change pour une confusion connue : polution → pollution (plus solution) ; evec → avec, gours → jours gardés.
 { const f = DC.spell('une polution énorme').find(x => x.word === 'polution');
   if (!f || f.sugg !== 'pollution') fail.push('« polution » : attendu « pollution » (initiale), eu ' + JSON.stringify(f && f.sugg)); }

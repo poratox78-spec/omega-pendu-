@@ -29097,6 +29097,41 @@ function spellTokenCore(tok,atStart,T,idx){
   function _suPhonE1(low){var hits={},best=null,bf=-1,i,j,e1=sEdits1(phonKey(low));
     for(i=0;i<e1.length;i++){var a=SP.PHON[e1[i]];if(a)for(j=0;j<a.length;j++){var w=a[j];if(hits[w]==null){hits[w]=1;var f=SP.FREQ[w]||0;if(f>bf){bf=f;best=w;}}}}   // > strict : à fréquence égale le premier inséré gagne (miroir Python)
     return best;}
+  /* ⭐ 04/10/2026 (2e catalogue : le bon mot, pas la bonne FORME) — « mot inconnu » : le tri choisit le mot (homophone, audibilité,
+     fréquence) sans regarder le contexte. Quand la forme choisie CONTREDIT le mot juste avant, on prend la forme du MÊME mot qui
+     s'accorde, si elle est candidate et homophone :
+       · NOMBRE : nom ou adjectif après un déterminant de l'autre nombre → sa forme jumelle EXACTE (+s, -u/+x, -al/-aux ; jamais un
+         déterminant) — « ils prennent les kar » : car → cars. Rien si le mot se lit aussi verbe derrière le/la/les (« je les … » :
+         « les » y est un pronom) ;
+       · PERSONNE : verbe conjugué qui ne s'accorde pas au sujet juste avant (pronom ; déterminant + nom ; « l' » + nom ; « ne » sauté)
+         → le même verbe, accordé — « le facteur veu » : veux → veut. Jamais un participe (la table de conjugaison est désaccentuée :
+         « rangé » s'y lit « range »), ni un nom de temps pour sujet (« une fois rentrés »), ni un sujet après une préposition.
+     Mesuré sur une copie du moteur : gold dys 6 mots faux → justes, EcriScol 1, frgec 18 (dont 9 que le juge désaccentué comptait
+     « inutiles ») ; aucun perdu ; UD 14 450 : aucune marque en plus ni en moins. Miroir Python spell_unknown (_su_flex). */
+  var _SU_PLDET={},_SU_SGDET={},_SU_DETX={},_SU_NSTOP={},_SU_PREP={};
+  'les des ces mes tes ses nos vos leurs aux plusieurs quelques certains certaines divers diverses nombreux nombreuses deux trois quatre cinq six sept huit neuf dix douze vingt trente cent mille'.split(' ').forEach(function(w){_SU_PLDET[w]=1;});
+  'le la un une ce cet cette mon ma ton ta son sa notre votre leur chaque'.split(' ').forEach(function(w){_SU_SGDET[w]=1;});
+  'le la les un une des ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs'.split(' ').forEach(function(w){_SU_DETX[w]=1;});
+  'fois jour matin soir nuit an annee semaine mois heure moment temps'.split(' ').forEach(function(w){_SU_NSTOP[w]=1;});
+  "à de d' dans sur sous pour par avec sans chez vers en entre contre après avant depuis pendant".split(' ').forEach(function(w){_SU_PREP[w]=1;});
+  function _suLem(w){var r=svReads(w),o={},k;for(k=0;k<r.length;k++)o[r[k][0]]=1;return o;}
+  function _suFlex(best,arr,pk,T,idx){if(!T||idx==null||idx<1)return best;var i,w,f,b2=null,bf=-1,ps=SP.POS[best]||'',p=T[idx-1].toLowerCase();
+    if((_SU_PLDET[p]||_SU_SGDET[p])&&(ps.indexOf('N')>=0||ps.indexOf('A')>=0)&&!_SU_DETX[best]&&!(ps.indexOf('V')>=0&&/^(les|le|la)$/.test(p))){var pl=!!_SU_PLDET[p];
+      if(/[sx]$/.test(deaccS(best))!==pl){for(i=0;i<arr.length;i++){w=arr[i];if(phonKey(w)!==pk)continue;
+          if(pl?(w===best+'s'||(/u$/.test(best)&&w===best+'x')||(/al$/.test(best)&&w===best.slice(0,-2)+'aux')):(best===w+'s'||(/u$/.test(w)&&best===w+'x')||(/al$/.test(w)&&best===w.slice(0,-2)+'aux'))){f=SP.FREQ[w]||0;if(f>bf){bf=f;b2=w;}}}
+        if(b2)return b2;}}
+    if(_isFinite(best)){var k=idx-1,per=null;while(k>=0&&/^(ne|n'|n’)$/.test(T[k].toLowerCase()))k--;
+      if(k>=0){var tk=T[k].toLowerCase(),me=/^l['’](.+)$/.exec(tk),nn=me?me[1]:tk,pn=SP.POS[nn]||'',kd=k;
+        if(RPRON[deaccS(tk)])per=RPRON[deaccS(tk)];
+        else if(pn.indexOf('N')>=0&&pn.indexOf('V')<0&&!_SU_NSTOP[deaccS(nn)]){if(me)per=['3','s'];
+          else if(k>=1){var dt=T[k-1].toLowerCase();kd=k-1;if(_SU_SGDET[dt])per=['3','s'];else if(_SU_PLDET[dt]&&dt!=='aux')per=['3','p'];}}
+        if(per&&kd>=1&&_SU_PREP[T[kd-1].toLowerCase().replace(/’/g,"'")])per=null;}
+      if(per&&!svAgrees(svReads(best),per[0],per[1])){var lb=_suLem(best);
+        for(i=0;i<arr.length;i++){w=arr[i];if(w===best||/é(e?s?)$/.test(w)||phonKey(w)!==pk||!_isFinite(w)||!svAgrees(svReads(w),per[0],per[1]))continue;
+          var lw=_suLem(w),same=false;for(var q in lw)if(lb[q])same=true;
+          if(same){f=SP.FREQ[w]||0;if(f>bf){bf=f;b2=w;}}}
+        if(b2)return b2;}}
+    return best;}
   function spellUnknown(tok,atStart,T,idx){
     if(!SP.ready)return null;
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
@@ -29127,6 +29162,7 @@ function spellTokenCore(tok,atStart,T,idx){
        UD 14 450 : aucune marque changée. Miroir Python spell_unknown. */
     if(low===d){var _ao=null,_aof=-1;for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w)===d&&(SP.FREQ[w]||0)>_aof){_ao=w;_aof=SP.FREQ[w]||0;}}
       if(_ao&&best!==_ao){var _dom=false;for(i=0;i<arr.length;i++){w=arr[i];var _dw=deaccS(w);if(_dw!==d&&sEd1(d,_dw)&&(SP.FREQ[w]||0)>=20*_aof){_dom=true;break;}}if(!_dom)best=_ao;}}   // clé : audibilité d'abord (si saisie audible), puis fréquence
+    if(best)best=_suFlex(best,arr,_pkU,T,idx);   // ⭐ 04/10/2026 : la FORME s'accorde au mot d'avant (nombre du déterminant, personne du sujet) — miroir Python _su_flex
     if(best&&T&&idx!=null&&idx+1<T.length){                              // DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — même règle que le noyau, pour la voie best-effort
       var _dp2={un:'une',une:'un',le:'la',la:'le',ce:'cette',cette:'ce',cet:'cette'}[deaccS(best)];
       if(_dp2&&DET_G[deaccS(best)]){var _nw2=T[idx+1].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
