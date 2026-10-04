@@ -26171,7 +26171,17 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
         RETIRÉS des proclitiques : « mai » et « tai » sont des mots réels.
      Miroir Python rule_elision_fusionnee. */
   var _FUS_PRE=['qu','j','s','c','n','d','l'];
-  var _FUS_VOY={},_FUS_APRES={},_FUS_SC={s:{est:1,etait:1,etaient:1,etre:1,il:1,ils:1,en:1},c:{est:1,etait:1,etaient:1,en:1}};   // _FUS_SC : suites possibles après s' et c' (29/09/2026)
+  var _FUS_VOY={},_FUS_APRES={},_FUS_SC={s:{est:1,etait:1,etaient:1,etre:1,il:1,ils:1,en:1},c:{est:1,etait:1,etaient:1,en:1},   // _FUS_SC : suites possibles après s' et c' (29/09/2026)
+    /* ⭐ 04/10/2026 — et après j', n', qu', d', l' : l'élision fusionnée écrit en ROUGE, et la liste commune laissait passer des élisions
+       IMPOSSIBLES (« qu'es », « l'en », « d'est », « l'ils » sur les corpus dys ; « J'on », « J'amie » — des prénoms en tête de phrase —
+       sur UD). j' et n' : un verbe (ou « en ») ; qu' : un pronom, un article, « en », un verbe ; d' : un nom, un article, « elle », « en »,
+       « été », « être » ; l' : un nom, un article, « on », un verbe, « été », « être ». Mesuré : 6 rouges faux retirés sur les corpus dys,
+       0 juste perdu ; UD 14 450 : 2 rouges faux retirés. Miroir Python _FUS_SC. */
+    j:{ai:1,as:1,a:1,ait:1,avait:1,avais:1,avaient:1,ont:1,avons:1,avez:1,est:1,es:1,etait:1,etais:1,etaient:1,en:1},
+    n:{ai:1,as:1,a:1,ait:1,avait:1,avais:1,avaient:1,ont:1,avons:1,avez:1,est:1,es:1,etait:1,etais:1,etaient:1,en:1},
+    qu:{il:1,ils:1,elle:1,elles:1,on:1,un:1,une:1,en:1,autre:1,autres:1,ici:1,aujourd:1,ai:1,a:1,as:1,ait:1,avait:1,avais:1,avaient:1,ont:1,avons:1,avez:1,est:1,etait:1,etais:1,etaient:1},
+    d:{un:1,une:1,autre:1,autres:1,ici:1,ailleurs:1,aujourd:1,elle:1,elles:1,en:1,ete:1,etre:1,homme:1,hommes:1,ami:1,amis:1,amie:1,amies:1,ecole:1,ecoles:1,enfant:1,enfants:1,annee:1,annees:1,argent:1,eau:1,air:1,arbre:1,arbres:1,animal:1,animaux:1,idee:1,idees:1,image:1,images:1,objet:1,objets:1,oeuf:1,oeufs:1,histoire:1,histoires:1,hopital:1,ordinateur:1,oreille:1,oiseau:1,oiseaux:1,heure:1,heures:1},
+    l:{un:1,une:1,on:1,autre:1,autres:1,ai:1,as:1,a:1,ait:1,avait:1,avais:1,avaient:1,ont:1,avons:1,avez:1,est:1,es:1,etait:1,etais:1,etaient:1,ete:1,etre:1,homme:1,hommes:1,ami:1,amis:1,amie:1,amies:1,ecole:1,ecoles:1,enfant:1,enfants:1,annee:1,annees:1,argent:1,eau:1,air:1,arbre:1,arbres:1,animal:1,animaux:1,idee:1,idees:1,image:1,images:1,objet:1,objets:1,oeuf:1,oeufs:1,histoire:1,histoires:1,hopital:1,ordinateur:1,oreille:1,oiseau:1,oiseaux:1,heure:1,heures:1}};
   'aeiouyhàâäéèêëîïôöùûü'.split('').forEach(function(c){_FUS_VOY[c]=1;});
   ('ai as a ait avait avais avaient ont avons avez est es etait etais etaient ete etre eu '+
    'il ils elle elles on en un une autre autres ici ailleurs aujourd hui heure heures '+

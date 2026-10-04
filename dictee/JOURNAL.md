@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-10-04 — élision fusionnée : plus d'élision impossible en rouge (suites permises par préfixe)
+
+- Vu en cherchant des exemples pour le lot précédent : un mot inventé devenait « j'on » en ROUGE. Recensement de TOUTES les marques
+  « élision fusionnée » du produit (3 corpus dys + UD) : sur les corpus dys, « qu'es » ×3, « l'en », « d'est », « l'ils » ; sur UD (texte
+  correct), « J'on » et « J'amie » — des prénoms en tête de phrase. Toutes impossibles en français.
+- Cause : après « s' » et « c' », une liste des suites possibles existait (29/09) ; après j', n', qu', d', l', la liste COMMUNE (verbes,
+  pronoms, articles, noms vocaliques usuels) servait pour tous. `_FUS_SC` ≡ `_FUS_SC` (Python) : j' et n' → un verbe ou « en » ; qu' →
+  un pronom, un article, « en », un verbe ; d' → un nom, un article, « elle », « en », « été », « être » ; l' → un nom, un article,
+  « on », un verbe, « été », « être ».
+- Mesuré : 3 corpus dys, 6 rouges faux retirés (5 deviennent le bon mot en orange par le correcteur d'orthographe, 1 reste faux mais en
+  orange), 0 juste perdu ; UD 14 450 : 2 rouges faux retirés, 0 marque nouvelle. Reste : « d'en » dans un mot coupé par une lettre hors
+  alphabet (« ū ») — l'élision y est possible, c'est le découpage qui trompe.
+- En falsifiant : la batterie Python imprimait les SILENCES ATTENDUS (`MUETS`, posés le 15/09) sans jamais échouer — un piège muet qui
+  parlait restait vert. `--check` rougit désormais (zéro dur, comme les faux positifs).
+- Tests : `parity_core.js` (4 élisions vraies + 4 impossibles, phrases ajoutées à la parité ext ⊆ Python), `correcteur_probe.py` (4 CASES
+  + 1 MUETS) — chaque moteur falsifié seul.
+
 ## 2026-10-04 — « mot inconnu » : le bon mot, pas la bonne forme (nombre du déterminant, personne du sujet)
 
 - Recensement des 313 mots faux du gold avant de toucher au moteur (`ortho/census_ortho.py`, `flexion_census.py`, labo privé) : 103
