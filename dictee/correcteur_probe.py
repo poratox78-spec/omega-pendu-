@@ -1640,6 +1640,11 @@ def rule_des_des(T, i):
     return None
 
 
+_CE_SE_STOP = frozenset(u'est sont etait etaient fut furent sera seront serait seraient soit soient a peut pouvait pourrait pourra put doit devait devrait devra dut semble semblait sembla faire'.split())
+_CE_PREPX = frozenset(('en', 'pendant', 'durant', 'parmi', 'selon', 'envers'))
+_CE_INFGOV = frozenset(('pour', 'a', 'de', 'sans', 'par'))   # « ce » verbe → se : prépositions qui appellent un infinitif
+
+
 def rule_ce_se(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('ce', 'se'): return None
@@ -1666,6 +1671,23 @@ def rule_ce_se(T, i):
     if nd.endswith('ant') and len(nd) > 4: return None                 # participe présent/gérondif (se constituant, en chantant) → « se » réfléchi, jamais « ce »
     isv = vlike(T, i+1); isn = nd in D.GENDER_LEX
     if isv and not isn: return _keepcase(T[i], 'se')                                    # verbe PUR → se (pronominal)
+    # ⭐ 04/10/2026 — « ce » devant un VERBE sans pronom sujet avant (« elle sort et ce promène », « il veut ce reposer ») → se, orange.
+    # Forme connue SEULEMENT comme verbe (POS accent-exact du speller) ; nom féminin aussi verbe → si l'étiqueteur lit le verbe.
+    # Gardes : être/pouvoir/devoir/sembler, « pour ce faire », ponctuation ou chiffre, voyelle ou h, paire -eille/-eil,
+    # préposition avant sauf pour/à/de/sans/par + infinitif. Miroir JS rCe.
+    if (lw == 'ce' and nd not in _CE_SE_STOP
+            and not (_SEG is not None and i + 1 < len(_SEG['bb']) and (_SEG['bb'][i + 1] or _SEG['dig'][i + 1]))
+            and T[i + 1] == T[i + 1].lower() and (_reads(T[i + 1]) or nd in CONJ_C)):
+        _pc = deacc(T[i - 1].lower()) if i > 0 else ''
+        if (not re.match(u'^[aeiouyh]', nd) and not (re.search(u'[ai]lle$', nd) and _noun_gate_n(nd[:-2]))
+                and not ((_pc in PREP or _pc in _CE_PREPX) and not (_pc in _CE_INFGOV and nd in CONJ_C))):
+            _xp = _spos(T[i + 1])
+            if 'V' in _xp and 'A' not in _xp:
+                if 'N' not in _xp: return _keepcase(T[i], 'se')                       # verbe seul au lexique (forme exacte)
+                _lx = T[i + 1].lower()
+                if D.GENDER_LEX.get(nd) == 'f' and (None if _lx in _GACC_EPICENE else GENDER_ACC.get(_lx)) != 'm':   # nom féminin lu verbe
+                    _tcs = pos_tags(T)
+                    if _tcs and i + 1 < len(_tcs) and _tcs[i + 1] in ('VERB', 'AUX'): return _keepcase(T[i], 'se')
     if (isv and lw == 'ce' and i > 0 and deacc(T[i - 1].lower()) in ('il', 'elle', 'on', 'je', 'tu', 'ils', 'elles', 'qui')
             and not (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i])
             and nd not in ('matin', 'soir', 'jour', 'midi', 'week', 'weekend', 'mois', 'moment', 'temps', 'coup', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche')):
@@ -6805,6 +6827,14 @@ MUETS = [
     ("Elle parle aux petit garçon.", "« aux » + adjectif masculin : « au petit garçon » est aussi possible, pas de pluriel rouge (04/10/2026).", 'rouge'),
     ("Il cherche quelques chose.", "« quelques chose » : c'est « quelque » qui est faux, pas « chose » (04/10/2026).", 'rouge'),
     ("Plusieurs même sont partis tôt.", "« plusieurs » pronom sans nom après : « même » n'est pas un adjectif à accorder (04/10/2026).", 'rouge'),
+    ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
+    ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
+    ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Il vit avec ce souvient.", "préposition + « ce » = déterminant, même devant un mot lu verbe (04/10/2026)."),
+    ("Pour ce faire, il part.", "« pour ce faire » : « ce » pronom devant faire (04/10/2026)."),
+    ("Il travaille dans ce bureau.", "préposition + « ce » = déterminant (04/10/2026)."),
+    ("Ce doit être lui.", "« ce doit être » : pronom + devoir (04/10/2026)."),
+    ("Ce peut être vrai.", "« ce peut être » : pronom + pouvoir (04/10/2026)."),
     ("Certains pensent que non.", "« certains » pronom + verbe : pas de nom à mettre au pluriel (04/10/2026)."),
     ("Plusieurs sont venus hier.", "« plusieurs » pronom + verbe (04/10/2026)."),
     ("Cette grand route mène au village.", "« grand » des anciens composés (grand route, grand mère, à grand peine) reste tel quel (04/10/2026)."),
@@ -6914,6 +6944,11 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 04/10/2026 — « ce » devant un verbe → se (orange)
+    ("Elle sort et se promène au parc.", "se", "ce", "ce/se"),
+    ("Elle veut se reposer un peu.", "se", "ce", "ce/se"),
+    ("Elle apprend à se baigner.", "se", "ce", "ce/se"),
+    ("Mon père se perd en ville.", "se", "ce", "ce/se"),
     # ⭐ 04/10/2026 — plusieurs / quelques / divers / aux + nom singulier (la table large de PLURAL_DET était morte)
     ("Il parle aux enfants du quartier.", "enfants", "enfant", "accord pluriel nom"),
     ("Elle répond aux lettres de ses amis.", "lettres", "lettre", "accord pluriel nom"),
@@ -7264,7 +7299,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 245   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux)
+    _PLANCHER = 250   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
