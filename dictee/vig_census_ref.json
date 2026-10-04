@@ -1,6 +1,6 @@
 {
- "justes": 363,
- "pointeuses": 222,
+ "justes": 366,
+ "pointeuses": 219,
  "fatigue": 146,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -42,6 +42,7 @@
   "canabis→cannabis [orthographe] lettre_manque",
   "candidade→candidate [orthographe] lettre_change",
   "cannabit→cannabis [orthographe] terminaison",
+  "cartoucheris→cartoucherie [mot inconnu] terminaison",
   "cecond→second [orthographe] lettre_change",
   "cess→ces [orthographe] lettre_trop",
   "cestillan→castillan [mot inconnu] lettre_change",
@@ -204,6 +205,7 @@
   "mniute→minute [orthographe] inversion",
   "modèle→modèles [pluriel par le son à vérifier] accord",
   "monotypiqut→monotypique [mot inconnu] terminaison",
+  "municipalitês→municipalités [mot inconnu] accent",
   "mêem→même [orthographe] inversion",
   "mêmme→même [orthographe] lettre_trop",
   "mêmme→même [orthographe] lettre_trop",
@@ -352,6 +354,7 @@
   "youan→yuan [orthographe] lettre_change",
   "àeu→a eu [orthographe] dys_reel/texte3_h22",
   "économiqus→économiques [orthographe] terminaison",
+  "écosystèmmes→écosystèmes [mot inconnu] lettre_trop",
   "électroniquemennt→électroniquement [mot inconnu] lettre_trop",
   "électron→électrons [accord pluriel à vérifier] accord",
   "épisode→épisodes [accord pluriel à vérifier] accord",

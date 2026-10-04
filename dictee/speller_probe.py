@@ -63,6 +63,12 @@ _SOUDE_VIG = {"dabor": "d'abord", "dacor": "d'accord", "dacord": "d'accord", "da
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
 _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restauration d'accent du reste (m'/t'/n' EXCLUS : « metre »=mètre≠m'être, mesuré FP)
+# ⭐ 04/10/2026 — « mot inconnu » : la FORME s'accorde au mot d'avant (miroir JS _suFlex) — tables fermées
+_SU_PLDET = set('les des ces mes tes ses nos vos leurs aux plusieurs quelques certains certaines divers diverses nombreux nombreuses deux trois quatre cinq six sept huit neuf dix douze vingt trente cent mille'.split())
+_SU_SGDET = set('le la un une ce cet cette mon ma ton ta son sa notre votre leur chaque'.split())
+_SU_DETX = set('le la les un une des ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs'.split())
+_SU_NSTOP = set('fois jour matin soir nuit an annee semaine mois heure moment temps'.split())
+_SU_PREP = set("à de d' dans sur sous pour par avec sans chez vers en entre contre après avant depuis pendant".split())
 _ELC_COURT = {k: set(v.split()) for k, v in (('s', 'est etait etaient es'), ('n', 'est es as avait avais etait etais aime aimes ont avons avez'), ('t', 'aime es as avais avait etais'), ('m', 'aime as avait avais es ont'), ('l', 'ai as avait avais aime est etait ont'), ('j', 'aime avais etais'))}   # ⭐ 04/10/2026 : fins COURTES (apostrophe oubliée) — miroir _ELC de spellTokenCore
 VOWELS = set("aeiouyh")                        # le mot élidé commence par voyelle/h
 AUTO_FREQ = 1.0                                # fréquence min (occ/M) pour AUTO
@@ -1138,6 +1144,47 @@ class Speller:
                     if sc > bs or (sc == bs and best is not None and w < best): bs, best = sc, w
         return best
 
+    def _su_flex(self, best, arr, pk, toks, idx):
+        """⭐ 04/10/2026 (2e catalogue : le bon mot, pas la bonne FORME) — miroir JS _suFlex. Le tri de spell_unknown choisit le mot sans
+        le contexte ; quand la forme choisie CONTREDIT le mot juste avant, la forme du MÊME mot qui s'accorde, si elle est candidate et
+        homophone : NOMBRE du déterminant (jumelle exacte +s, -u/+x, -al/-aux ; jamais un déterminant ; rien si le mot se lit aussi verbe
+        derrière le/la/les) ; PERSONNE du sujet (pronom, dét. + nom, « l' » + nom, « ne » sauté → le même verbe accordé ; jamais un
+        participe, ni un nom de temps pour sujet, ni un sujet après une préposition)."""
+        if not toks or idx is None or idx < 1: return best
+        import correcteur_probe as _CPm   # conjugaison : la même table que la grammaire (comme la route B)
+        ps = self.POS.get(best, ())
+        p = toks[idx - 1].lower()
+        b2, bf = None, -1.0
+        if (p in _SU_PLDET or p in _SU_SGDET) and ('N' in ps or 'A' in ps) and best not in _SU_DETX and not ('V' in ps and p in ('les', 'le', 'la')):
+            pl = p in _SU_PLDET
+            if bool(re.search(r'[sx]$', deacc(best))) != pl:
+                for w in arr:
+                    if phon_key(w) != pk: continue
+                    if pl: ok = w == best + 's' or (best.endswith('u') and w == best + 'x') or (best.endswith('al') and w == best[:-2] + 'aux')
+                    else: ok = best == w + 's' or (w.endswith('u') and best == w + 'x') or (w.endswith('al') and best == w[:-2] + 'aux')
+                    if ok and self.FREQ.get(w, 0) > bf: bf, b2 = self.FREQ.get(w, 0), w
+                if b2: return b2
+        if _CPm._is_finite(best):
+            k, per = idx - 1, None
+            while k >= 0 and re.match(u"^(ne|n'|n’)$", toks[k].lower()): k -= 1
+            if k >= 0:
+                tk = toks[k].lower(); me = re.match(u"^l['’](.+)$", tk); nn = me.group(1) if me else tk; pn = self.POS.get(nn, ()); kd = k
+                if deacc(tk) in _CPm.PRON_SUBJ: per = _CPm.PRON_SUBJ[deacc(tk)]
+                elif 'N' in pn and 'V' not in pn and deacc(nn) not in _SU_NSTOP:
+                    if me: per = ('3', 's')
+                    elif k >= 1:
+                        dt = toks[k - 1].lower(); kd = k - 1
+                        if dt in _SU_SGDET: per = ('3', 's')
+                        elif dt in _SU_PLDET and dt != 'aux': per = ('3', 'p')
+                if per and kd >= 1 and toks[kd - 1].lower().replace(u'’', "'") in _SU_PREP: per = None
+            if per and not _CPm._agrees(_CPm._reads(best), per[0], per[1]):
+                lb = {r[0] for r in _CPm._reads(best)}
+                for w in arr:
+                    if w == best or re.search(u'é(e?s?)$', w) or phon_key(w) != pk or not _CPm._is_finite(w) or not _CPm._agrees(_CPm._reads(w), per[0], per[1]): continue
+                    if lb & {r[0] for r in _CPm._reads(w)} and self.FREQ.get(w, 0) > bf: bf, b2 = self.FREQ.get(w, 0), w
+                if b2: return b2
+        return best
+
     def spell_unknown(self, tok, at_start=False, toks=None, idx=None):
         """-> None | '' (souligné sans suggestion) | suggestion (orange AU CLIC, jamais appliquée)."""
         low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')
@@ -1173,6 +1220,7 @@ class Speller:
                 if deacc(w) == d and self.FREQ.get(w, 0) > aof: ao, aof = w, self.FREQ.get(w, 0)
             if ao and best != ao and not any(deacc(w) != d and sed1(d, deacc(w)) and self.FREQ.get(w, 0) >= 20 * aof for w in arr):
                 best = ao
+        if best: best = self._su_flex(best, arr, pk, toks, idx)   # ⭐ 04/10/2026 : la FORME s'accorde au mot d'avant (nombre, personne) — miroir JS _suFlex
         if best and toks and idx is not None and idx + 1 < len(toks):
             # DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — miroir JS
             dp2 = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}.get(deacc(best))
