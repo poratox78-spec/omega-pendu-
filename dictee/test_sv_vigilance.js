@@ -105,6 +105,13 @@ const C = globalThis.__C;
   for (const s of ['Le chat est le chien jouent.', 'Pierre est le chien jouent.']) {
     const r = sn(s); if (r.length) fail.push(`[est → et ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun : le sujet est double)`);
   }
+  // ⭐ 04/10/2026 — « ça / cela / ceci » = sujet de 3e personne du singulier (orange) ; « CA », un sigle, n'en est pas un.
+  for (const [s, w, sg] of [['Ça vas mieux.', 'vas', 'va'], ['Ça fais du bruit.', 'fais', 'fait'], ['Cela pourrais marcher.', 'pourrais', 'pourrait']]) {
+    const r = sn(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[ça sujet ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  for (const s of ['Trois joueurs du CA partent demain.', 'Ça va mieux.', 'Cela pourrait marcher.']) {
+    const r = sn(s); if (r.length) fail.push(`[ça sujet ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
+  }
   // ⭐ 29/09/2026 — « infinitif après semi-auxiliaire » : les prises restent (suggestion accentuée), 4 faux positifs mesurés tombent.
   const si = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'infinitif après semi-auxiliaire à vérifier'); };
   for (const [s, w, sg] of [['Elle ne peut plus marche.', 'marche', 'marcher'], ['On pouvait regardé la mer.', 'regardé', 'regarder'], ['Il se fit renversé par un vélo.', 'renversé', 'renverser'],

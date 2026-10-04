@@ -27556,6 +27556,10 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   var _SUBJ_PRON_PL={nous:['1','p'],vous:['2','p']};   // ABSENTS de SUBJ_PRON : ce sont aussi des clitiques OBJETS (miroir Python)
   var _CONJ_VAR={peux:'puis'};   // ⭐ 13/09/2026 : variantes d'une même case de paradigme (la table de génération n'en garde qu'une) — miroir Python
   function _conjVariante(c,f){if(!c)return false;if(c===f)return true;if(c.replace(/y/g,'i')===f.replace(/y/g,'i'))return true;return _CONJ_VAR[f]===c||_CONJ_VAR[c]===f;}
+  /* ⭐ 04/10/2026 — « ça », « cela », « ceci » (et « ca », l'oubli de la cédille) sont des sujets de 3e personne du singulier : « ça vas
+     mieux » → va, « cela pourrais marcher » → pourrait (orange, palier du sujet nominal). La casse est lue telle qu'écrite : « CA » (un sigle) n'en
+     est pas un. Mesuré : gold dys 1 faute muette réparée, 0 ailleurs sur les 3 corpus dys ; UD 14 450 : 0 marque. Miroir Python. */
+  var _SVN_CA={'ça':1,'ca':1,'cela':1,'ceci':1};
   function _sujetFlexion(T,i,tg){   /* (personne, nombre) du sujet de T[i] — miroir Python _sujet_flexion. On remonte jusqu'à la
      frontière de proposition en traversant CLITIQUES et ADVERBES, on s'arrête au premier candidat sujet. nous/vous ne sont SUJETS
      que si rien avant eux dans la proposition ne peut l'être (« il nous parle », « qui vous passionnera » = compléments). */
@@ -27581,6 +27585,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
         return [_SUBJ_PRON_PL[d][0],_SUBJ_PRON_PL[d][1],'pron'];
       }
       if(d==='qui')return null;
+      if(_SVN_CA[w]||_SVN_CA[w.charAt(0).toLowerCase()+w.slice(1)])return ['3','s','nom'];   // ⭐ 04/10/2026 : ça / cela / ceci = il (« CA » n'en est pas)
       if(svReads(w).length)return null;
       if(tg&&j<tg.length&&(tg[j]==='NOUN'||tg[j]==='PROPN')){var _np=_npSubject(T,tg,i);if(!_np||(_np.n!=='s'&&_np.n!=='p'))return null;   // sujet NOMINAL → palier ORANGE (miroir Python)
         var _dd=deacc(String(_np.dtxt||'').toLowerCase());if((_dd==='des'||_dd==='du'||_dd==='au'||_dd==='aux')&&_np.idx>=2){var _av=_np.idx-2;if(_av>=0&&(svReads(T[_av]).length||(tg&&_av<tg.length&&(tg[_av]==='NOUN'||tg[_av]==='PROPN'||tg[_av]==='VERB'||tg[_av]==='AUX'))))return null;}   /* ⭐ 12/09/2026 : contracté des/du/au/aux derrière un verbe ou un nom = COMPLÉMENT, pas le sujet (miroir Python, garde absente ici) — « dégoûtés du système partent » ne donne plus « part » */

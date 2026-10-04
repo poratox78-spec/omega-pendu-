@@ -4251,6 +4251,9 @@ def _ps_completer():
             _PS_INDEX.setdefault(deacc(f.lower()), []).append((lem, slot))
 
 
+_SVN_CA = {u'ça', 'ca', 'cela', 'ceci'}   # ⭐ 04/10/2026 — sujets de 3e personne du singulier (« cela pourrais » → pourrait, « ça vas » → va), casse lue telle qu'écrite — miroir JS _SVN_CA
+
+
 def _sujet_flexion(T, i, tg):
     """(personne, nombre) du sujet de T[i], ou None. Le contexte tranche, avec les primitives du projet :
     on remonte de i-1 jusqu'à la frontière de proposition (_SEG['bb']), en traversant les CLITIQUES et les
@@ -4287,6 +4290,7 @@ def _sujet_flexion(T, i, tg):
                 return None                                          # inconnu à gauche → prudence
             return _SUBJ_PRON_PL[d] + ('pron',)
         if d == 'qui': return None                                   # relatif : l'antécédent décide (règle dédiée)
+        if w in _SVN_CA or (w[:1].lower() + w[1:]) in _SVN_CA: return ('3', 's', 'nom')   # ⭐ 04/10/2026 : ça / cela / ceci = il (« CA », un sigle, n'en est pas) — miroir JS
         if _reads(w): return None                                    # verbe fini avant → inversion/incise → abstention
         if tg and j < len(tg) and tg[j] in ('NOUN', 'PROPN'):
             # SUJET NOMINAL — avec la primitive du projet, PAS un scan maison. Ma première version remontait
@@ -6674,6 +6678,7 @@ def bout_de_chaine_orange(text, i, sugg):
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
     ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
+    ("Trois joueurs du CA partent demain.", "« CA » (un sigle) n'est pas « ça » : « partent » s'accorde à « trois joueurs » (04/10/2026)."),
     ("Jon arrive demain.", "un prénom en tête de phrase : « j' » ne précède jamais « on » (« J'on » écrit en rouge jusqu'au 04/10/2026)."),
     ("Mon cher, moi je reste.", "la virgule coupe : ce « cher » n'est pas « chez »."),
     ("Un cadeau cher le jour de Noël.", "« cher » + article : l'adjectif (seul le pronom tonique, « cher moi », est sûr)."),
@@ -6773,6 +6778,9 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 04/10/2026 — « ça / cela / ceci » = sujet de 3e personne du singulier (orange)
+    ("Ça va mieux.", "va", "vas", "accord du verbe au sujet nominal à vérifier"),
+    ("Cela pourrait marcher.", "pourrait", "pourrais", "accord du verbe au sujet nominal à vérifier"),
     ("J'ai commencé le travail", "commencé", "commence", "-e/-é (participe)"),
     ("Il est obligé de partir", "obligé", "oblige", "-e/-é (participe)"),
     ("Elle s'est mariée hier", "mariée", "marie", "-e/-é (participe)"),
@@ -7092,10 +7100,13 @@ def main():
         err.append(u'%d FAUX POSITIF(S) sur texte CORRECT — FP=0 est un zéro DUR' % len(fp_corpus))
     if fp_cases:
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
-    if det < 155:
-        err.append(u'DÉTECTION %d/%d < plancher 155' % (det, n))
-    if corr < 155:
-        err.append(u'CORRECTION %d/%d < plancher 155' % (corr, n))
+    # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
+    # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
+    _PLANCHER = 223
+    if det < _PLANCHER:
+        err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
+    if corr < _PLANCHER:
+        err.append(u'CORRECTION %d/%d < plancher %d' % (corr, n, _PLANCHER))
     # ⭐ 04/10/2026 — les SILENCES ATTENDUS (MUETS, posés le 15/09) s'imprimaient sans jamais faire échouer : un piège muet qui parlait
     # restait vert (vu en falsifiant le lot « élisions impossibles » : « Jon arrive demain. » → « J'on » ne rougissait rien). Zéro dur aussi.
     if muets:
