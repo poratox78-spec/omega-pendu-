@@ -506,7 +506,10 @@
     if(!(SP&&SP.ready&&SP.WORDS&&SP.POS))return false;
     var inf=lw.slice(0,-1)+'er';
     return SP.WORDS.has(inf)&&(SP.POS[inf]||'').indexOf('V')>=0;}
-  var PLURAL_DET={};'les des ces leurs mes tes ses nos vos quels quelles plusieurs certains certaines quelques aux'.split(' ').forEach(function(w){PLURAL_DET[w]=1;});
+  /* ⭐ 04/10/2026 — ici vivait une SECONDE table PLURAL_DET, « large » (quels quelles plusieurs certains certaines quelques aux), posée le
+     30/06/2026 pour son/sont : MORTE dès le premier jour — la déclaration d'origine, plus bas (« classe fermée »), la réécrasait au
+     chargement (même portée, `var` relu). Retirée sans rien changer (produit identique à l'octet sur le gold). La table vivante est
+     celle d'en bas ; les déterminants pluriels de plus ont leur propre table, _PL_DET_X, lue par les seules règles mesurées avec elle. */
   var VSTOP={};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du','lui'].forEach(function(w){VSTOP[w]=1;});   /* 'lui' (12/09/2026) : VERB_LEX le connaît (luire) → « lui a donner »→à, casse — miroir Python VLIKE_STOP */Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
   function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;if(!COMMON_VERBS[w])return false;
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||{du:1,au:1,aux:1}[T[i-1].toLowerCase()])){   /* du/au/aux (12/09/2026) : contractions = déterminants, « du conseille a permis » ne lit plus un verbe — miroir Python */                                          // « le porte » reste un NOM…
@@ -2612,7 +2615,7 @@ function estQuestion(t,maxMots){
      « les prochaine fêtes », « des bonne idées » — après un déterminant pluriel non ambigu, un adjectif antéposé (classe
      fermée) est toujours au pluriel. Le nom n'est pas touché ici (sa propre règle, sa propre garde). Exclus : premier/dernier
      (ordinaux coordonnés, seuls motifs corrects dans UD), demi, formes invariables, bel/nouvel/vieil. Garde trait d'union. */
-  function rAdjAntePl(T,i){if(i===0)return null;var pd=deacc(T[i-1].toLowerCase());if(!PLURAL_DET[pd])return null;
+  function rAdjAntePl(T,i){if(i===0)return null;var pd=deacc(T[i-1].toLowerCase());if(!PLURAL_DET[pd]&&!_PL_DET_X[pd])return null;if(_PL_DET_X[pd]===3&&!_auxSur(T[i],true))return null;if(_PL_DET_X[pd]===2&&!(i+1<T.length&&/^[a-zà-ÿœæ]+$/.test(T[i+1])&&_nounGateN(deacc(T[i+1]))))return null;
     var w=T[i];if(!/^[A-Za-zÀ-ÿœŒæÆ]+$/.test(w)||w!==w.toLowerCase())return null;var pl=_ADJ_ANTE_PL[deacc(w)];if(!pl)return null;
     if(_SEG&&_SEG.hy&&(_SEG.hy[i]||_SEG.hy[i+1]))return null;   // trait d'union AVANT ou APRÈS (« grand-mères ») : hy[k] = trait dans l'espace qui précède le token k
     if(pd==='les'&&!(i+1<T.length&&/^[A-Za-zÀ-ÿœŒæÆ]/.test(T[i+1])))return null;
@@ -2634,13 +2637,22 @@ function estQuestion(t,maxMots){
     if(_SEG&&_SEG.bb){for(var m=z+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}
     if(z>=1){var q=deacc(T[z-1].toLowerCase()).split("'").pop();if(_PRON_INF_STOP[q])return null;if(vlike(T,z-1))return null;}
     var imp=((CONJ_C[lw]||{})["ind:imp"]||{})[slot];if(!imp)return null;return {sugg:imp,vig:1};}
+  /* ⭐ 04/10/2026 — DÉTERMINANTS PLURIELS DE PLUS : « plusieurs maison », « quelques jour », « divers objet », « aux voisin » → pluriel (rouge),
+     comme après des/ces/mes. 1 = pur déterminant (quelques, divers, diverses) ; 2 = aussi pronom (plusieurs, certains, certaines) : le
+     veto verbal du nom reste, et l'adjectif n'est accordé que si un nom le suit (« certains, même, … ») ; 3 = « aux », qui SE DIT comme
+     « au » : le déterminant peut être la faute (« un pain aux chocolat ») — il ne prouve le pluriel que devant un mot FÉMININ (« au » est
+     masculin) ou à VOYELLE (« au » y devient « à l' »). « quelques chose / part » : c'est « quelque » qui est faux. Lu par rNounPlural et
+     rAdjAntePl. Mesuré : voir REGLES_FR. Miroir Python _PL_DET_X / _aux_sur. */
+  var _PL_DET_X={aux:3,quelques:1,divers:1,diverses:1,plusieurs:2,certains:2,certaines:2};
+  function _auxSur(w,adj){var d=deacc(w.toLowerCase());return /^[aeiouy]/.test(d)||(adj?!!_ADJ_ANTE_M[w.toLowerCase()]:_nounGender(w,'s')==='f');}
   function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
-    var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&PLURAL_DET[deacc(T[i-2].toLowerCase())])_pd=deacc(T[i-2].toLowerCase());
+    var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&(PLURAL_DET[deacc(T[i-2].toLowerCase())]||_PL_DET_X[deacc(T[i-2].toLowerCase())]))_pd=deacc(T[i-2].toLowerCase());
     if(/^(dès|lès)$/i.test(_pd===deacc(T[i-1].toLowerCase())?T[i-1]:T[i-2]))return null;   // ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE (accents ôtés avant la comparaison)   // ⑤-b (13/09/2026) : traversée d'UN adjectif antéposé (« les prochaines demande ») — miroir Python
     var _card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
-    if(!PLURAL_DET[_pd]&&!_card)return null;
+    var _px=_PL_DET_X[_pd];if(!PLURAL_DET[_pd]&&!_card&&!_px)return null;
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null;
+    if(_px===3&&!_auxSur(n,false))return null;if(_pd==='quelques'&&(dn==='chose'||dn==='part'))return null;   // « aux » ≡ « au » à l'oreille ; « quelques chose » = quelque chose
     if(_card){if(n.indexOf("'")>=0)return null;                                 // élision (« quatre d'entre eux ») = pas un nom compté
       if(CARDINV[dn]||CARD[dn]||CARDSTOP[dn])return null;                       // cible = autre nombre/invariable/préfixe (« cent trente »)
       if(_SEG&&_SEG.hy&&_SEG.hy[i])return null;}                               // ordinal composé (« dix-septième »)
@@ -2649,7 +2661,7 @@ function estQuestion(t,maxMots){
     // un verbe CONJUGUÉ est impossible : le déterminant EST le contexte grammatical, et il est
     // AUDIBLE donc fiable. Le veto P(VER) y est redondant — il bloquait « des moule », « des porte ».
     // « les » et « leurs » restent gardés : ce sont AUSSI des pronoms (« il les porte »).
-    var _sur=(_card||(_pd!=='les'&&_pd!=='leurs'));
+    var _sur=(_card||(_pd!=='les'&&_pd!=='leurs'&&_px!==2));   // plusieurs / certains / certaines sont AUSSI pronoms (« certains porte ») : veto verbal gardé
     if(!(_sur?_nounGateN(dn):_nounGate(dn)))return null;
     var nx=i+1<T.length?T[i+1]:'';
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());var pp=NOUN_POST.get(dnx);

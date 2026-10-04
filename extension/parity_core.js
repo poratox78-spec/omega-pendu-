@@ -174,6 +174,7 @@ PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer
 PHRASES.push("Il ce lave.", "Il ce porte bien.", "Le pain est le beurre sont sur la table.", "Le chat est le chien jouent.", "Le chat est le chien du voisin.", "Il ce matin est parti.");   // ⭐ 04/10/2026 : homophones (ext ⊆ Python)
 PHRASES.push("T'as finis ton travail.", "T'as manger ?", "T'es aller où ?", "Il t'a vue hier.");   // ⭐ 04/10/2026 : « t'as » = tu as (ext ⊆ Python)
 PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
+PHRASES.push("Il parle aux enfant du quartier.", "Elle répond aux lettre de ses amis.", "Il reste quelques jour avant la fête.", "Ils ont plusieurs maison à la mer.", "Il range divers objet dans la boîte.", "Elle a plusieurs petit chats.", "Elle dessine plusieurs grands chien.", "Certains pensent que non.", "Plusieurs sont venus hier.", "Je vois que certains porte un chapeau.", "Il boit un thé aux citron.", "Il va aux grand marché du samedi.", "Elle parle aux petit garçon.", "Il cherche quelques chose.", "Plusieurs même sont partis tôt.");   // ⭐ 04/10/2026 : plusieurs / quelques / divers / aux + nom singulier (ext ⊆ Python)
 PHRASES.push("Ils ont une grand maison.", "La petit fille joue.", "Un belle arbre pousse.", "C'est la premier fois.", "Cette grand route mène au village.", "Ma grand-tante dort.", "Le petite maison.");   // ⭐ 04/10/2026 : genre de l'adjectif antéposé (ext ⊆ Python)
 PHRASES.push("Il apprend à nagé.", "Elle continue à chanté.", "Il espère pouvoir invité ses amis.", "Elle doit aller rangé sa chambre.", "Il faut savoir écouté.", "Elle a dû porté le sac.", "Elle a dû passé la nuit dehors.", "J'aime m'habillé en bleu.", "Ce qu'il dit à fait rire.", "L'aide à été précieuse.", "Le reste à été vendu.", "L'aide à changé sa vie.", "Il a un grand pouvoir caché.");   // ⭐ 04/10/2026 : le verbe après à / après un infinitif (ext ⊆ Python)
 PHRASES.push("La Chine entier dort.", "L'Europe occidental est riche.", "Il a lu quelque livres.", "Le roi de France absent dort.", "Il a vu quelque 300 voitures.", "Il reste quelque temps.", "Il vient quelque fois.", "La France produit du vin.");   // ⭐ 04/10/2026 : lieu + adjectif, quelque (ext ⊆ Python)
@@ -805,6 +806,22 @@ print(json.dumps(out))
   if (fl("Il t'a vue hier.").length) { _ta++; console.log("  ✗ t'as : témoin « il t'a vue » marqué " + JSON.stringify(fl("Il t'a vue hier."))); }
   if (_ta) { console.log("PARITÉ KO — t'as : " + _ta + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ t'as / t'es : 3 corrections (finis → fini, manger → mangé, aller → allé) ; « il t'a vue » muet"); }
+
+// ⭐ 04/10/2026 — PLUSIEURS / QUELQUES / CERTAINS / DIVERS / AUX + NOM AU SINGULIER : la table large de PLURAL_DET était MORTE
+// (réécrasée par la seconde déclaration, dans les deux moteurs, depuis le 30/06/2026) ; _PL_DET_X la remplace pour le nom et
+// l'adjectif antéposé. Témoins : pronoms + verbe ; veto verbal (« certains porte ») ; « aux » devant un masculin à consonne (il se
+// dit comme « au » : le déterminant peut être la faute) ; « quelques chose » ; « plusieurs même » (pas de nom après).
+{ const fl = (s, nm) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number' && f.name === nm);
+  let _px = 0;
+  for (const [s, w, sg, nm] of [["Il parle aux enfant du quartier.", 'enfant', 'enfants', 'accord pluriel nom'], ["Elle répond aux lettre de ses amis.", 'lettre', 'lettres', 'accord pluriel nom'], ["Il reste quelques jour avant la fête.", 'jour', 'jours', 'accord pluriel nom'], ["Ils ont plusieurs maison à la mer.", 'maison', 'maisons', 'accord pluriel nom'], ["Il range divers objet dans la boîte.", 'objet', 'objets', 'accord pluriel nom'], ["Elle a plusieurs petit chats.", 'petit', 'petits', 'accord adjectif antéposé'], ["Elle dessine plusieurs grands chien.", 'chien', 'chiens', 'accord pluriel nom']]) {
+    const m = fl(s, nm).find(x => x.word === w);
+    if (!m || m.sugg !== sg) { _px++; console.log('  ✗ déterminant pluriel : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const [s, nm] of [["Certains pensent que non.", 'accord pluriel nom'], ["Plusieurs sont venus hier.", 'accord pluriel nom'], ["Je vois que certains porte un chapeau.", 'accord pluriel nom'], ["Il boit un thé aux citron.", 'accord pluriel nom'], ["Il va aux grand marché du samedi.", 'accord adjectif antéposé'], ["Elle parle aux petit garçon.", 'accord adjectif antéposé'], ["Il cherche quelques chose.", 'accord pluriel nom'], ["Plusieurs même sont partis tôt.", 'accord adjectif antéposé']]) {
+    const f = fl(s, nm); if (f.length) { _px++; console.log('  ✗ déterminant pluriel : témoin « ' + s + ' » marqué ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  if (_px) { console.log('PARITÉ KO — déterminant pluriel : ' + _px + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ déterminant pluriel : aux, quelques, plusieurs, divers (nom et adjectif) ; 8 témoins muets"); }
 
 // ⭐ 04/10/2026 — GENRE DE L'ADJECTIF ANTÉPOSÉ (la sœur du nombre) : « une grand maison » → grande, « un belle arbre » → bel.
 // Témoins : « cette grand route » (ancien composé), « ma grand-tante » (trait d'union), « le petite maison » (dét. et nom en désaccord).

@@ -865,8 +865,9 @@ def rule_imperatif(T, i):
         return w[:-1]                                             # 2) « donnes-lui »→donne-lui (verbe -er, retire le -s ; exclut prends-le)
     return None
 
-PLURAL_DET = {'les', 'des', 'ces', 'leurs', 'mes', 'tes', 'ses', 'nos', 'vos', 'quels', 'quelles',
-              'plusieurs', 'certains', 'certaines', 'quelques', 'aux'}   # déterminants/marqueurs PLURIEL (sujet pluriel)
+# ⭐ 04/10/2026 — ici vivait une SECONDE table PLURAL_DET, « large » (quels quelles plusieurs certains certaines quelques aux),
+# posée le 30/06/2026 pour son/sont : MORTE dès le premier jour — la définition d'origine, plus bas (« classe fermée »), la
+# réécrasait à l'import. Retirée : les déterminants pluriels de plus ont leur propre table, _PL_DET_X (miroir JS).
 
 # Noms dont le -s/-x final n'est PAS une marque de pluriel : « son fils », « son corps », « son prix »
 # restent des possessifs. Même contenu que _OS_INVAR de os_subject_probe.py.
@@ -5161,6 +5162,17 @@ def _singularize_noun(n):
         if p and p[0] >= PL_TAU_M and p[1] < PL_EPS_M: return c
     return None
 
+# ⭐ 04/10/2026 — DÉTERMINANTS PLURIELS DE PLUS (miroir JS _PL_DET_X / _auxSur) : « plusieurs maison », « quelques jour » → pluriel.
+# 1 = pur déterminant ; 2 = aussi pronom (plusieurs, certains, certaines) → veto verbal, adjectif accordé seulement si un nom suit ;
+# 3 = « aux », qui se dit comme « au » : il ne prouve le pluriel que devant un mot féminin ou à voyelle.
+_PL_DET_X = {'aux': 3, 'quelques': 1, 'divers': 1, 'diverses': 1, 'plusieurs': 2, 'certains': 2, 'certaines': 2}
+
+
+def _aux_sur(w, adj):
+    d = deacc(w.lower())
+    return bool(re.match(u'^[aeiouy]', d)) or (w.lower() in _ADJ_ANTE_M if adj else _noun_gender(w, 's') == 'f')
+
+
 def rule_noun_plural(T, i):
     if i == 0: return None
     _pd = deacc(T[i - 1].lower())
@@ -5168,15 +5180,18 @@ def rule_noun_plural(T, i):
     # pluriel est à i-2, l'adjectif (classe fermée _ADJ_ANTE, celle de la traversée du genre) entre les deux. Recensé : gold_claude
     # 9 noms au singulier derrière DET pl + adjectif, tous pluriels dans le gold ; UD : les 4 motifs trouvés sont des fautes du corpus
     # (« ces nouveaux fusil Henry », « les meilleurs rang »). Le reste de la règle (gardes, posterior, composé) s'applique tel quel.
-    if _pd in _ADJ_ANTE and i >= 2 and deacc(T[i - 2].lower()) in PLURAL_DET:
+    if _pd in _ADJ_ANTE and i >= 2 and (deacc(T[i - 2].lower()) in PLURAL_DET or deacc(T[i - 2].lower()) in _PL_DET_X):
         _pd = deacc(T[i - 2].lower())
     if (T[i - 1] if _pd == deacc(T[i - 1].lower()) else T[i - 2]).lower() in (u'dès', u'lès'): return None   # ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE
     _card = _pd in CARD                                          # cardinal ≥2 (« cinq kilo ») = déterminant pluriel non ambigu
-    if _pd not in PLURAL_DET and not _card: return None          # déterminant pluriel juste avant
+    _px = _PL_DET_X.get(_pd)
+    if _pd not in PLURAL_DET and not _card and not _px: return None   # déterminant pluriel juste avant
     n = T[i]
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
     dn = deacc(n.lower())
     if len(dn) < 3 or dn[-1] in 'sxz' or dn in NOUN_PL_STOP: return None   # trop court (unité kg/cm) / déjà pluriel / invariant
+    if _px == 3 and not _aux_sur(n, False): return None             # « aux » ≡ « au » à l'oreille : féminin ou voyelle exigés
+    if _pd == 'quelques' and dn in ('chose', 'part'): return None   # « quelques chose » : c'est « quelque » qui est faux
     if _card:                                                    # gardes propres au cardinal (miroir pluralVig)
         if "'" in n: return None                                # élision (« quatre d'entre eux ») = pas un nom compté
         if dn in CARDINV or dn in CARD or dn in CARDSTOP: return None   # cible = autre nombre/invariable/préfixe
@@ -5186,7 +5201,7 @@ def rule_noun_plural(T, i):
     # un verbe CONJUGUÉ est impossible : le déterminant EST le contexte grammatical, et il est
     # AUDIBLE donc fiable. Le veto P(VER) y est redondant — il bloquait « des moule », « des porte ».
     # « les » et « leurs » restent gardés : ce sont AUSSI des pronoms (« il les porte »).
-    if not (_noun_gate_n(n) if (_card or _pd not in ('les', 'leurs')) else _noun_gate(n)): return None
+    if not (_noun_gate_n(n) if (_card or (_pd not in ('les', 'leurs') and _px != 2)) else _noun_gate(n)): return None   # plusieurs / certains / certaines : aussi pronoms → veto verbal
     #   « les porte/livre » (masse verbe) et « les rouge » (ADJ-dom, P(NOM)<0.5) ; récupère ami/voiture/faute que la garde nbhomog ratait.
     #   (Ancien : nbhomog==0 ∧ POS==NOM lu sur le tag DUR embarqué — faux pour faute=VER/amis=ADJ. Relaxe naïve nbhomog<=1 = REJETÉE, +25 FP.)
     nx = T[i + 1] if i + 1 < len(T) else ''
@@ -5346,7 +5361,10 @@ def rule_adj_ante_genre(T, i):
 
 def rule_adj_ante_plural(T, i):
     if i == 0: return None
-    if deacc(T[i - 1].lower()) not in PLURAL_DET: return None            # déterminant pluriel NON AMBIGU (les/des/ces/mes/tes/ses/nos/vos/leurs)
+    _pdx = _PL_DET_X.get(deacc(T[i - 1].lower()))
+    if deacc(T[i - 1].lower()) not in PLURAL_DET and not _pdx: return None   # déterminant pluriel NON AMBIGU (les/des/ces/mes/tes/ses/nos/vos/leurs ; plusieurs, quelques… : _PL_DET_X)
+    if _pdx == 3 and not _aux_sur(T[i], True): return None                # « aux » ≡ « au » à l'oreille
+    if _pdx == 2 and not (i + 1 < len(T) and re.match(u'^[a-zà-ÿœæ]+$', T[i + 1]) and _noun_gate_n(T[i + 1])): return None   # pronom (« certains, même ») : un nom doit suivre
     w = T[i]
     if not w.isalpha() or w != w.lower(): return None                    # capitalisé = nom propre / début → abstention
     pl = _ADJ_ANTE_PL.get(deacc(w))
@@ -6782,6 +6800,13 @@ def bout_de_chaine_orange(text, i, sugg):
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
     ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
+    ("Je vois que certains porte un chapeau.", "« certains » aussi pronom : un verbe derrière n'est pas un nom à mettre au pluriel (04/10/2026).", 'rouge'),
+    ("Il boit un thé aux citron.", "« aux » se dit comme « au » : devant un masculin, le déterminant peut être la faute (04/10/2026).", 'rouge'),
+    ("Elle parle aux petit garçon.", "« aux » + adjectif masculin : « au petit garçon » est aussi possible, pas de pluriel rouge (04/10/2026).", 'rouge'),
+    ("Il cherche quelques chose.", "« quelques chose » : c'est « quelque » qui est faux, pas « chose » (04/10/2026).", 'rouge'),
+    ("Plusieurs même sont partis tôt.", "« plusieurs » pronom sans nom après : « même » n'est pas un adjectif à accorder (04/10/2026).", 'rouge'),
+    ("Certains pensent que non.", "« certains » pronom + verbe : pas de nom à mettre au pluriel (04/10/2026)."),
+    ("Plusieurs sont venus hier.", "« plusieurs » pronom + verbe (04/10/2026)."),
     ("Cette grand route mène au village.", "« grand » des anciens composés (grand route, grand mère, à grand peine) reste tel quel (04/10/2026)."),
     ("Ma grand-tante dort.", "trait d'union : un composé, pas un adjectif à accorder (04/10/2026)."),
     ("Le petite maison est jolie.", "le déterminant et le nom ne s'accordent pas : l'adjectif n'a pas d'ancre sûre (04/10/2026)."),
@@ -6889,6 +6914,14 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 04/10/2026 — plusieurs / quelques / divers / aux + nom singulier (la table large de PLURAL_DET était morte)
+    ("Il parle aux enfants du quartier.", "enfants", "enfant", "accord pluriel nom"),
+    ("Elle répond aux lettres de ses amis.", "lettres", "lettre", "accord pluriel nom"),
+    ("Il reste quelques jours avant la fête.", "jours", "jour", "accord pluriel nom"),
+    ("Ils ont plusieurs maisons à la mer.", "maisons", "maison", "accord pluriel nom"),
+    ("Il range divers objets dans la boîte.", "objets", "objet", "accord pluriel nom"),
+    ("Elle a plusieurs petits chats.", "petits", "petit", "accord adjectif antéposé"),
+    ("Elle dessine plusieurs grands chiens.", "chiens", "chien", "accord pluriel nom"),
     # ⭐ 04/10/2026 — genre de l'adjectif antéposé (déterminant et nom d'accord)
     ("Ils ont une grande maison.", "grande", "grand", "accord adjectif antéposé"),
     ("La petite fille joue.", "petite", "petit", "accord adjectif antéposé"),
@@ -7231,7 +7264,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 238   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé)
+    _PLANCHER = 245   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
