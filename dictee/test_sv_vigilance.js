@@ -100,6 +100,11 @@ const C = globalThis.__C;
                    'Il a 512 kilo-octets de mémoire.', 'Le 25 maie il pleut.', 'Vers 450 grâce au roi, la ville grandit.']) {   // ⭐ 04/10/2026 : composé, date (mois mal écrit), année + locution
     const r = pv(s); if (r.length) fail.push(`[chiffres ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
   }
+  // ⭐ 04/10/2026 — « le chat est le chien jouent » : « est » y vaut « et » (deux sujets) → pas de « jouent → joue » contradictoire.
+  const sn = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord du verbe au sujet nominal à vérifier'); };
+  for (const s of ['Le chat est le chien jouent.', 'Pierre est le chien jouent.']) {
+    const r = sn(s); if (r.length) fail.push(`[est → et ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun : le sujet est double)`);
+  }
   // ⭐ 29/09/2026 — « infinitif après semi-auxiliaire » : les prises restent (suggestion accentuée), 4 faux positifs mesurés tombent.
   const si = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'infinitif après semi-auxiliaire à vérifier'); };
   for (const [s, w, sg] of [['Elle ne peut plus marche.', 'marche', 'marcher'], ['On pouvait regardé la mer.', 'regardé', 'regarder'], ['Il se fit renversé par un vélo.', 'renversé', 'renverser'],
