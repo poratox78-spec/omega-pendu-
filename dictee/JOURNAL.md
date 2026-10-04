@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-10-04 — homophones avec les repères de Rem : « il ce lave » → se, « est » qui relie deux sujets → et ; le son et le sens dans les conseils
+
+- Rem a donné ses repères : « et » se dit « é » (il relie), « est » se dit « è » (le verbe être : un état), « ai » se dit « è » aussi (avoir :
+  la possession) ; « sont » est un verbe, « son » va devant un nom ; « ce » montre, « se » va devant un verbe. Testés dans le produit :
+  « elle / ils / on ce … » étaient pris, « IL ce lave » non (« lave » est aussi un nom : la règle s'en remettait à l'étiqueteur, qui lit
+  « ce lave » comme déterminant + nom) ; et le sens « est → et » n'existait pas du tout.
+- ce/se (`rCe` ≡ `rule_ce_se`) : juste après un pronom sujet, « ce » n'est jamais un déterminant — si le mot suivant peut être un verbe,
+  c'est « se ». Gardes : ponctuation, nom de temps (« il ce matin »). 0 changement sur les corpus dys et UD.
+- est → et (`_rEstEtCoord` ≡ `_rule_est_et_coord`, ORANGE) : nom + est + (dét. singulier + nom | nom propre) + verbe conjugué au PLURIEL
+  seulement (« le pain est le beurre sont sur la table ») — le pluriel ne peut venir que de la coordination. La vigilance du sujet nominal
+  proposait en face « jouent → joue » : deux oranges qui se contredisent ; elle se tait quand « est » vaut « et ». Le 💡 « remplace par
+  était » y trompait (« le chat était le chien » se dit) : 💡 dédié, l'indice est le verbe au pluriel. 0 changement sur les corpus et UD.
+- Conseils et 💡 : `_HPROBE` et/est et son/sont disent le son et le sens ; ce/se reçoit sa phrase-test (« me ») ; REMED « j'est / j'ai » dit
+  « ai et est se disent tous les deux « è » : avoir (posséder), être (un état) ». Mode d'emploi : l'exemple « ce » a désormais son 💡 — la
+  garde du guide l'a vu (§9).
+- Tests : `parity_core.js` (4 corrections orange + 2 témoins), `test_sv_vigilance.js` (pas de « joue » en face de « et »), `textes_probe.js`
+  (5 phrases : son, sens, verbe au pluriel) — chaque pièce falsifiée seule.
+
 ## 2026-10-04 — pluriel après un nombre en chiffres : « pour 5 euro », « 20 hectare », « 10 minute », « il mesure 2 mètre »
 
 - 8 fautes muettes du gold dans la classe « nombre du nom après un nombre en chiffres ». La branche existait (lot A, 29/09) ; tracée sur une

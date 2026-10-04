@@ -109,8 +109,14 @@ const CAS = [
   // le test de substitution À L'ENVERS : « à » → « avait », « si la phrase ne tient plus, c'est « a » »
   { t: "Lorsqu'il à faim.", mots: { 'à': { sugg: 'a' } },
     remed: { oui: ['si la phrase se dit encore, c’est « a » (verbe avoir)'], non: ['si la phrase ne tient plus, c’est « a »'] } },
-  { t: "Puisqu'il ce regarde.", mots: { ce: { sugg: 'se' } },
-    remed: { oui: ['essaie « me » à la place de « ce »', 'si la phrase tient, c’est « se »'], non: ['essaie « cela »', 'lui-même'] } },
+  { t: "Puisqu'il ce regarde.", mots: { ce: { sugg: 'se', oui: ['remplace par « me »', 'devant un verbe'] } },   // ⭐ 04/10/2026 : ce/se a sa phrase-test (Rem : « se » devant un verbe, « ce » montre)
+    remed: { oui: ['remplace par « me »', '« se » (devant un verbe', '« ce » (il montre'], non: ['essaie « cela »', 'lui-même'] } },
+  // ⭐ 04/10/2026 — les repères de Rem dans les 💡 et les conseils : « est » se dit « è » (être : un état), « et » se dit « é » (il relie),
+  // « ai » se dit « è » (avoir : posséder), « son » devant un nom (mon) ; et « est » → « et » quand le verbe qui suit est au pluriel.
+  { t: 'Mon frère et content.', mots: { et: { sugg: 'est', oui: ['il se dit « è »', 'il se dit « é »', 'un état'] } } },
+  { t: 'Le chat est le chien jouent.', mots: { est: { sugg: 'et', oui: ['« jouent » est au pluriel', 'deux sujets'], non: ['remplace par « était »'] } } },
+  { t: 'Il a pris sont sac.', mots: { sont: { sugg: 'son', oui: ['devant un nom', '« mon »'] } } },
+  { t: "J'est un chien.", mots: { "J'est": { sugg: "J'ai" } }, remed: { oui: ['se disent tous les deux « è »', 'posséder', 'un état'] } },
   { t: 'Ma mer est gentille.', mots: { mer: { sugg: 'mère' } },
     remed: { oui: ['se prononcent pareil mais n’ont pas le même SENS', '« mère »'], non: ['forme sûre'] } },
   { t: 'Il peux venir.', mots: { peux: { sugg: 'peut' } },

@@ -143,7 +143,7 @@
                 /* « c'est » = « cela est » (audit 11/09/2026) : « Elle cela est trompé » ne se dit pas → c'est « s'est ». */
                 "c'est":'cela est' };
   // la phrase-test du 💡 (fenêtrée sur la phrase de l'élève) : [forme d'épreuve, si ça se dit, sinon]
-  var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)'],"c'est/s'est":['cela est','« c\'est » (= cela est)','« s\'est » (il se … : verbe pronominal)']};
+  var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (le verbe être : un état ; il se dit « è »)','« et » (il relie : et puis ; il se dit « é »)'],'son/sont':['étaient','« sont » (le verbe être)','« son » (devant un nom : on peut dire « mon »)'],'ce/se':['me','« se » (devant un verbe : il se lave)','« ce » (il montre : ce chien, c’est)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)'],"c'est/s'est":['cela est','« c\'est » (= cela est)','« s\'est » (il se … : verbe pronominal)']};
   /* ⭐ 02/10/2026 (Rem : « ajoute le 📗 au conseil du mot inconnu ») — un mot inconnu SANS suggestion est souvent un prénom, un lieu,
      un mot de métier : le conseil nomme le 📗, mais SEULEMENT si le moteur l'offre pour ce mot (udMot, défini par chaque moteur).
      Un moteur sans udMot ne le nomme pas : le conseil reste vrai dans tous les états, quel que soit l'ordre des fusions. */
@@ -326,8 +326,8 @@
     'quel que soit':function(){return '« quel que » s’écrit en deux mots devant « soit » et s’accorde avec le nom (quelle que soit la raison, quels que soient les jours).';},
     'que/dont':function(){return 'on dit « avoir besoin DE », « avoir envie DE », « avoir peur DE »… : le mot qui remplace « de … » est « dont » (ce dont j’ai besoin).';},
     'qui/que':function(){return '« qui » est SUJET : il ne se met pas devant un autre sujet (je, tu, j’) — ici c’est « que » (le film que j’ai vu).';},
-    "j'est/j'ai":function(){return '« est » va avec « il » ou « elle » ; avec « je », on écrit « j’ai » (avoir) ou « je suis » (être).';},
-    "j'est/j'ai à vérifier":function(){return '« est » va avec « il » ou « elle » ; avec « je », on écrit « j’ai » (avoir) ou « je suis » (être).';},
+    "j'est/j'ai":function(){return '« ai » et « est » se disent tous les deux « è » : « ai », c’est avoir (posséder : j’ai un chien) ; « est », c’est être (un état : il est content). « est » va avec « il » ou « elle » ; avec « je », on écrit « j’ai » ou « je suis ».';},
+    "j'est/j'ai à vérifier":function(){return '« ai » et « est » se disent tous les deux « è » : « ai », c’est avoir (posséder : j’ai un chien) ; « est », c’est être (un état : il est content). « est » va avec « il » ou « elle » ; avec « je », on écrit « j’ai » ou « je suis ».';},
     "c'ai/c'est":function(){return '« c’ » (= cela) va avec « est » : c’est.';},
     "étais après c'/s'":function(e,a){return 'après « c’ » ou « s’ », le verbe se conjugue comme avec « il » : -ait, pas -ais (« '+a+' »).';},
     'conjugaison après je à vérifier':function(e,a){return 'après « je », le verbe se CONJUGUE : « '+a+' », pas l’infinitif.';},
@@ -446,6 +446,12 @@
       if(_ERF_ADV[d]||(d==='de'&&dp==='tout')||(d==='tout'&&dn==='de')||(d==='quand'&&_ERF_ADV[dn])){k--;n++;continue;}break;}
     if(n>0&&k<a)a=k;if(el&&pk==='mordre')mot=el[1].toLowerCase()+'e '+pk;
     return {a:a,mot:mot};}
+  /* ⭐ 04/10/2026 — 💡 de « est » → « et » quand il RELIE deux sujets (« le chat est le chien jouent ») : le test « remplace par était » y
+     trompe (« le chat était le chien » se dit) ; l'indice, c'est le VERBE au pluriel qui suit. Lu par ctxHint / _ctxHint (app ≡ ext). */
+  function _hintEstEtCoord(T,i){if(!T||i==null||deacc(String(T[i]||'').toLowerCase())!=='est')return '';
+    for(var q=i+2;q<=i+3&&q<T.length;q++){var r=svReads(T[q]),pl=false,sg=false;for(var k=0;k<r.length;k++){if(r[k][2]!=='3')continue;if(r[k][3]==='p'||r[k][3]==='x')pl=true;else if(r[k][3]==='s')sg=true;}
+      if(pl&&!sg)return 'Le verbe « '+T[q]+' » est au pluriel : il y a deux sujets, reliés par « et » (il relie ; il se dit « é »). « est » (il se dit « è ») serait le verbe être.';}
+    return '';}
   // ===== fin de la COUCHE DYS PARTAGÉE =====
 
   // ===== correcteur (règles homophones + accord + genre) — VERBATIM app =====
@@ -1075,7 +1081,22 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     var dj=deacc(T[j].toLowerCase()),np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(dj):NOUN_POST[dj]):null;
     if(!_etPpl(T[j])||(np&&np[0]>=500)||svReads(T[j].toLowerCase()).length)return null;
     return _etSansVerbeFini(T,i,j)?'est':null;}
-  function rEt(T,i){var r=_rEtBase(T,i);return r!==null?r:_rEtNouveau(T,i);}
+  /* ⭐ 04/10/2026 — « est » → « et » quand il RELIE deux sujets (Rem : « et » se dit « é », il relie ; « est » se dit « è », c'est être) :
+     nom + est + (déterminant singulier + nom | nom propre) + verbe conjugué au PLURIEL seulement (« le pain est le beurre sont sur la table »,
+     « le chat est le chien jouent ») — ce pluriel ne peut venir que de la coordination. ORANGE (_tierOf). Mesuré : 0 changement sur les
+     corpus dys et UD (la forme n'y est pas), aucune casse. Miroir Python _rule_est_et_coord. */
+  function _rEstEtCoord(T,i){
+    if(deacc(T[i].toLowerCase())!=='est'||i<1||i+2>=T.length)return null;
+    if(_SEG&&((i<_SEG.bb.length&&_SEG.bb[i])||(i+1<_SEG.bb.length&&_SEG.bb[i+1])))return null;
+    var tg=posTags(T);if(!tg)return null;if(!(tg[i-1]==='NOUN'||tg[i-1]==='PROPN'))return null;
+    var j=i+1,dj=deacc(T[j].toLowerCase());
+    if(NUM_DET[dj]&&NUM_DET[dj]!=='pl'){j++;if(j>=T.length||!(tg[j]==='NOUN'||tg[j]==='PROPN'))return null;}
+    else if(!(tg[j]==='PROPN'&&T[j].charAt(0)!==T[j].charAt(0).toLowerCase()))return null;
+    var k=j+1;if(k>=T.length||(_SEG&&k<_SEG.bb.length&&_SEG.bb[k]))return null;
+    var rd=svReads(T[k]),pl3=false,sg3=false;for(var q=0;q<rd.length;q++){if(rd[q][2]!=='3')continue;if(rd[q][3]==='p'||rd[q][3]==='x')pl3=true;else if(rd[q][3]==='s')sg3=true;}
+    if(!pl3||sg3)return null;
+    return 'et';}
+  function rEt(T,i){var r=_rEtBase(T,i);if(r!==null)return r;r=_rEtNouveau(T,i);return r!==null?r:_rEstEtCoord(T,i);}
   var _CLAUSE_PRON={il:1,elle:1,ils:1,elles:1,on:1,je:1,tu:1,nous:1,vous:1};
   function rEstEtClause(T,i){   // « est » + NOUVELLE PROPOSITION (pronom sujet + verbe : « la plage est c'était cool ») → « et ». Miroir rule_est_et_clause (Python). ORANGE (vig).
     if(deacc(T[i].toLowerCase())!=='est'||i+1>=T.length||i===0)return null;
@@ -1193,6 +1214,10 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     if(/ant$/.test(nd)&&nd.length>4)return null;                                 // participe présent → se réfléchi
     var isv=vlike(T,i+1),isn=!!GENDER_MAP[nd];
     if(isv&&!isn)return ckeepcase(T[i],'se');
+    /* ⭐ 04/10/2026 : « il ce lave » — juste après un pronom sujet, « ce » n'est jamais un déterminant : si le mot suivant peut être un verbe,
+       c'est « se », même s'il est aussi un nom (la lave, la porte, la marche). Gardes : ponctuation entre, nom de temps (« il ce matin »).
+       Mesuré : 0 changement sur les corpus dys et UD (« elle / ils / on ce … » étaient déjà pris). Miroir Python rule_ce_se. */
+    if(isv&&lw==='ce'&&i>0&&/^(il|elle|on|je|tu|ils|elles|qui)$/.test(deacc(T[i-1].toLowerCase()))&&!(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])&&!/^(matin|soir|jour|midi|week|weekend|mois|moment|temps|coup|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)$/.test(nd))return ckeepcase(T[i],'se');
     var tg=posTags(T);if(!tg||i+1>=tg.length)return (isn&&!isv)?ckeepcase(T[i],'ce'):null;       // sans tagger : repli nom-pur → ce
     if(isn&&!isv&&tg[i+1]!=='VERB'&&tg[i+1]!=='AUX')return ckeepcase(T[i],'ce');                 // nom PUR confirmé (pas verbe au tagger) → ce ; sinon (« il se document[e] ») → ne pas forcer « ce »
     if(lw==='se'){if(tg[i+1]==='NOUN')return ckeepcase(T[i],'ce');
@@ -3754,7 +3779,7 @@ function estQuestion(t,maxMots){
   function _tierOf(T,i,name,sugg){   // MIROIR de correcteur_probe.tier_of — sous-cas SÛRS (rouge) des familles à vérifier ; sinon orange
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
     if(name==='a/à')return (_rAbase(T,i)===null&&_rAnouveau(T,i)==='à')?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir Python
-    if(name==='et/est')return (_rEtBase(T,i)===null&&_rEtNouveau(T,i)!==null)?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir Python
+    if(name==='et/est')return (_rEtBase(T,i)===null&&(_rEtNouveau(T,i)!==null||_rEstEtCoord(T,i)!==null))?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir Python
     if(name==='élision inversée'){var _dz=_deselide(T,i);return (_dz&&_dz[1])?'vigilance':'auto';}   // ⭐ 13/09/2026 : miroir tier_of Python
     if(name==='leur/leurs'){if(i+1>=n)return 'vigilance';var dn=deacc(T[i+1].toLowerCase());
       if(/s$/.test(sugg.toLowerCase())){if(_INVAR_S[dn]||!/[sx]$/.test(dn))return 'vigilance';var sg=/aux$/.test(dn)?dn.slice(0,-3)+'al':dn.slice(0,-1);if(_INVAR_S[sg])return 'vigilance';return _wordKnown(sg)?'auto':'vigilance';}
@@ -4834,7 +4859,7 @@ function spellUnknown(tok,atStart,T,idx){
     {var amv=auxManquantVig(T,i);if(amv){return {i:i,word:T[i],sugg:amv,name:'auxiliaire manquant à vérifier',tier:'vigilance'};}}   // ⭐ 12/09/2026 : « je noté le numéro » → j'ai ? (auxiliaire tombé ; miroir Python rule_aux_manquant_vig)
     {var ccv=cestCesVig(T,i);if(ccv){return {i:i,word:T[i],sugg:ccv,name:"c'est/ces à vérifier",tier:'vigilance'};}}   // ⭐ 13/09/2026 : « C'est chiens sont » → ces ? (miroir Python rule_cest_ces_vig)
     {var pps=ppAvoirSurnumVig(T,i);if(pps){return {i:i,word:T[i],sugg:pps,name:'accord du participe après avoir à vérifier',tier:'vigilance'};}}   // ⭐ 12/09/2026 — RÈGLE NEUVE, orange : « a signés un contrat » → signé (miroir Python rule_pp_avoir_surnum)
-    {var sfn=sujFlexNom(T,i);if(sfn){return {i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'};}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
+    {var sfn=sujFlexNom(T,i);if(sfn&&!((i>=3&&_rEstEtCoord(T,i-3)==='et')||(i>=2&&_rEstEtCoord(T,i-2)==='et'))){return {i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'};}}   /* ⭐ 04/10/2026 : « le chat est le chien jouent » — « est » y vaut « et » (le sujet est double) : pas de « joue » contradictoire */   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
     {var oov=onOntVig(T,i);if(oov){return {i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'};}}   // « Les enfants on mange » → ont ? (orange)
     {var dnv=rDetNumber(T,i);if(dnv){return {i:i,word:T[i],sugg:dnv,name:'nombre du déterminant à vérifier',tier:'vigilance'};}}   // « le maçons ont » → les ? (orange, 11/09/2026)
     {var ov=ouVig(T,i);if(ov)return {i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'};}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
@@ -5009,7 +5034,7 @@ function spellUnknown(tok,atStart,T,idx){
     var pk=km[2]==='er'?'mordre':km[2]==='ez'?'mordez':'mordu',_ef=_erFen(T,i,pk),a=_ef.a,b=Math.min(T.length,i+3),w=T.slice(a,b);w[i-a]=_ef.mot;
     var me=km[2]==='er'?('infinitif « '+sg+' » (-er)'):km[2]==='ez'?('« '+sg+' » (-ez, vous)'):('participe « '+sg+' » (-'+km[2]+')'),oth=km[2]==='er'?('participe « '+km[1]+'é » (-é)'):('infinitif « '+km[1]+'er » (-er)');
     return 'Astuce : remplace par « '+pk+' ». « '+(a>0?'…':'')+w.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+me+' · non → '+oth+'.';}
-  function ctxHint(f,T){var i=f.i;if(typeof i!=='number'||!T||i>=T.length)return '';if(f.auteur)return _auteurHint(f);
+  function ctxHint(f,T){var i=f.i;if(typeof i!=='number'||!T||i>=T.length)return '';if(f.auteur)return _auteurHint(f);if(f.name==='et/est'&&String(f.sugg||'').toLowerCase()==='et'){var _hc=_hintEstEtCoord(T,i);if(_hc)return _hc;}
     var h=_HPROBE[f.name];if(!h){var eh=_erHint(f,T,i);if(eh)return eh;}
     if(h){var a=Math.max(0,i-2),b=Math.min(T.length,i+3),win=T.slice(a,b);win[i-a]=h[0];
       return 'Astuce : remplace par « '+h[0]+' ». « '+(a>0?'…':'')+win.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}

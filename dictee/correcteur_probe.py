@@ -1476,9 +1476,34 @@ def _rule_et_est_nouveau(T, i):
     return 'est' if _et_sans_verbe_fini(T, i, j) else None
 
 
+def _rule_est_et_coord(T, i):
+    """⭐ 04/10/2026 — « est » → « et » quand il RELIE deux sujets : nom + est + (dét. singulier + nom | nom propre) + verbe conjugué au
+    PLURIEL seulement (« le pain est le beurre sont sur la table »). ORANGE (tier_of). Miroir JS _rEstEtCoord."""
+    if deacc(T[i].lower()) != 'est' or i < 1 or i + 2 >= len(T): return None
+    if _SEG is not None and ((i < len(_SEG['bb']) and _SEG['bb'][i]) or (i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1])): return None
+    tg = pos_tags(T)
+    if tg is None or tg[i - 1] not in ('NOUN', 'PROPN'): return None
+    j = i + 1; dj = deacc(T[j].lower())
+    if dj in NUM_DET and NUM_DET[dj] != 'pl':
+        j += 1
+        if j >= len(T) or tg[j] not in ('NOUN', 'PROPN'): return None
+    elif not (tg[j] == 'PROPN' and T[j][:1] != T[j][:1].lower()): return None
+    k = j + 1
+    if k >= len(T) or (_SEG is not None and k < len(_SEG['bb']) and _SEG['bb'][k]): return None
+    pl3 = sg3 = False
+    for r in _reads(T[k]):
+        if r[2] != '3': continue
+        if r[3] in ('p', 'x'): pl3 = True
+        elif r[3] == 's': sg3 = True
+    if not pl3 or sg3: return None
+    return 'et'
+
+
 def rule_et_est(T, i):
     r = _rule_et_est_base(T, i)
-    return r if r is not None else _rule_et_est_nouveau(T, i)
+    if r is not None: return r
+    r = _rule_et_est_nouveau(T, i)
+    return r if r is not None else _rule_est_et_coord(T, i)
 
 
 _CLAUSE_PRON = ('il', 'elle', 'ils', 'elles', 'on', 'je', 'tu', 'nous', 'vous')
@@ -1600,6 +1625,10 @@ def rule_ce_se(T, i):
     if nd.endswith('ant') and len(nd) > 4: return None                 # participe présent/gérondif (se constituant, en chantant) → « se » réfléchi, jamais « ce »
     isv = vlike(T, i+1); isn = nd in D.GENDER_LEX
     if isv and not isn: return _keepcase(T[i], 'se')                                    # verbe PUR → se (pronominal)
+    if (isv and lw == 'ce' and i > 0 and deacc(T[i - 1].lower()) in ('il', 'elle', 'on', 'je', 'tu', 'ils', 'elles', 'qui')
+            and not (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i])
+            and nd not in ('matin', 'soir', 'jour', 'midi', 'week', 'weekend', 'mois', 'moment', 'temps', 'coup', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche')):
+        return _keepcase(T[i], 'se')                    # ⭐ 04/10/2026 : « il ce lave » — après un pronom sujet, « ce » n'est jamais un déterminant (miroir JS)
     tg = pos_tags(T)                                                   # homographe (livre/marche…)/inconnu → le TAGGER (contexte) tranche
     if tg is None or i+1 >= len(tg):
         return _keepcase(T[i], 'ce') if (isn and not isv) else None                    # sans tagger : repli nom-pur → ce
@@ -4478,6 +4507,7 @@ def rule_sujet_flexion_nom(T, i):
     """Jumelle ORANGE de `rule_sujet_flexion`, pour le sujet NOMINAL (« les petits chats manges » → mangent).
     Même code, même gardes ; seul le palier change. Mesuré le 14/09 : en ROUGE le sujet nominal fait 3 justes
     sur 17 (17,6 %) — il propose, il n'impose pas. Le sujet PRONOM, lui, reste rouge."""
+    if (i >= 3 and _rule_est_et_coord(T, i - 3) == 'et') or (i >= 2 and _rule_est_et_coord(T, i - 2) == 'et'): return None   # ⭐ 04/10/2026 : « est » y vaut « et »
     global _ROUGE
     _ROUGE = False
     try: return rule_sujet_flexion(T, i)
@@ -6396,7 +6426,7 @@ def tier_of(T, i, name, sugg):
     if name == 'a/à':                                     # ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir JS
         return 'vigilance' if (_rule_a_aa_base(T, i) is None and _rule_a_aa_nouveau(T, i) == u'à') else 'auto'
     if name == 'et/est':                                  # ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir JS
-        return 'vigilance' if (_rule_et_est_base(T, i) is None and _rule_et_est_nouveau(T, i) is not None) else 'auto'
+        return 'vigilance' if (_rule_et_est_base(T, i) is None and (_rule_et_est_nouveau(T, i) is not None or _rule_est_et_coord(T, i) is not None)) else 'auto'
     if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge
         return 'vigilance' if deacc(T[i].lower()) in _AVOIR_HOMO else 'auto'
     if name == 'aux mal orthographié':                    # ⭐ 29/09/2026 : « il été » → était (ou « a été ») = orange ; le reste = rouge
