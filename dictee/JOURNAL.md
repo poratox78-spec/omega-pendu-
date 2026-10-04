@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-04 — « t'as finis » → fini, « t'as manger » → mangé, « t'es aller » → allé ; « javais » → j'avais
+
+- L'écrit FAMILIER aveuglait les règles : « T'as finis ton travail. » n'était pas corrigé, alors que « Tu as finis ton travail. » l'est ;
+  « t'as manger », « t'es aller » muets aussi. Cet écrit (« t'as » = tu as) n'est dans aucun corpus — ce sont des écrits scolaires —, c'est
+  pourtant l'usage de tous les jours.
+- « t'as / t'auras » ne sont jamais « te » + avoir (« te » a un autre sujet devant) ; « t'es » est « tu es », ou « te » + es après « tu »
+  (« tu t'es tromper ») — un auxiliaire dans tous les cas : `rEer` ≡ `rule_e_er` les lit comme auxiliaires ; `ppAvoirSurnumVig` ≡ son miroir excluait tout auxiliaire à « t' » collé (« il t'a vue » : le participe peut s'accorder avec
+  « te ») — « t'as / t'auras » n'en sont plus. « il t'a vue » reste muet.
+- « javais » : entrée PARASITE du lexique de l'orthographe (≈ 0, ce n'est pas un mot) — le correcteur le croyait juste. Recensement des
+  soudures « préfixe + mot fréquent » au lexique (303) : presque toutes sont de vrais mots (test, jet, quai, savant, lavoir) ; au gold, 3 seulement
+  sont corrigées en élision (javais 1/1, sen 1/3, lest 1/2) et 0 dans UD. « javais » → j'avais dans `_APOS_FIX` (rouge, comme « aujourdhui ») ;
+  « sen » et « lest » demandent le contexte.
+- Mesuré au produit : 0 changement sur les corpus et UD pour « t'as » ; gold : muettes 580 → 579, réparées rouge 621 → 622 (javais).
+- Tests : `parity_core.js` (3 corrections + témoin « il t'a vue »), `test_speller.js` (javais) — falsifié partie par partie.
+
 ## 2026-10-04 — « il la vu » → l'a vu (et plus de « vue » en rouge), « je lai vu », « tu mas fait »
 
 - Suite du lot apostrophes : les formes collées qui sont de VRAIS mots (« la », « lai », « mas ») — l'orthographe les croit justes.

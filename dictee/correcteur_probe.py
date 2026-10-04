@@ -398,6 +398,8 @@ def rule_e_er(T, i):
     p = prev(T, i)
     _pel = re.match(u"^[nj]['’](.+)$", p or '')
     if _pel and _pel.group(1) in D.AUX_AVOIR: p = _pel.group(1)   # ⭐ 03/10/2026 : AVOIR avec « n' » / « j' » collé (« il n'a pas manger ») — miroir JS
+    _ptu = re.match(u"^t['’](as|es|auras)$", p or '')
+    if _ptu: p = _ptu.group(1)                        # ⭐ 04/10/2026 : « t'as / t'auras » = TU as / auras ; « t'es » = tu es ou te + es (« tu t'es tromper ») : auxiliaire — miroir JS
     _kv = i - 1
     if p not in AUX:                                   # adverbes entre l'auxiliaire AVOIR écrit et le verbe (« a tout de même doubler »)
         while _kv > 0 and i - _kv <= 4:
@@ -406,7 +408,7 @@ def rule_e_er(T, i):
             if _dv == 'meme' and _kv >= 1 and deacc(T[_kv-1].lower()) == 'quand': _kv -= 2; continue
             if _dv in _EER_ADV or _dv == 'rien': _kv -= 1; continue
             break
-    _av_adv = _kv < i - 1 and _kv >= 0 and re.sub(u"^[nj]['’]", '', T[_kv].lower()) in _EER_AVOIR   # forme ÉCRITE : « à » n'est pas « a »
+    _av_adv = _kv < i - 1 and _kv >= 0 and re.sub(u"^t['’](as|auras)$", r'\1', re.sub(u"^[nj]['’]", '', T[_kv].lower())) in _EER_AVOIR   # forme ÉCRITE : « à » n'est pas « a »
     if p in AUX or _av_adv or p == 'etant' or (p == 'fois' and i >= 2 and deacc(T[i-2].lower()) == 'une'):
         # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — c'est la
         # 3e forme la plus souvent erronée du français dys (Bodard 2020). « tout en cherchent A trouver »,
@@ -5642,7 +5644,7 @@ def rule_pp_avoir_surnum(T, i):
         return None
     if a is None: return None
     ta = T[a].lower()
-    if "'" in ta and deacc(ta.split("'")[0]) in ('l', 'm', 't', 's', 'qu'): return None      # « l'a », « m'a » : COD élidé
+    if "'" in ta and deacc(ta.split("'")[0]) in ('l', 'm', 't', 's', 'qu') and not re.match(u"^t['’](as|auras)$", ta): return None      # « l'a », « m'a » : COD élidé ; ⭐ 04/10 : « t'as » = TU as
     lo = 0
     if _SEG is not None:
         for j in range(a, 0, -1):
