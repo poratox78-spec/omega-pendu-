@@ -341,10 +341,30 @@ def _eer_minf(T, k):
     return not (k > 0 and deacc(T[k-1].lower()) in _EER_DET)   # modal à l'INFINITIF, pas le nom (« le pouvoir délégué »)
 
 
+def _eer_minf_v(T, k):
+    """⭐ 04/10/2026 — modal à l'INFINITIF précédé d'un verbe conjugué, d'une préposition, d'un adverbe ou d'un clitique (« il espère
+    pouvoir », « de pouvoir ») : verbal — les gardes « nom homographe » ne s'appliquent plus derrière lui. Miroir JS _eerMinfV."""
+    if not _eer_minf(T, k): return False
+    if k < 1: return True
+    q = T[k-1].lower(); dq = deacc(q)
+    return (bool(_reads(q)) or q in _EER_PINF or dq == 'd' or dq in MODAL or dq in _EER_ADV or dq in _EER_CLIT
+            or dq in ('et', 'ou', 'mais', 'puis') or (_SEG is not None and k < len(_SEG['bb']) and _SEG['bb'][k]))   # « un grand pouvoir caché » : un nom
+
+
+def _eer_du(T, k):
+    """⭐ 04/10/2026 — « dû / du » après avoir = modal (« elle a dû quitté » → quitter). Miroir JS _eerDu."""
+    if k < 1: return False
+    d = T[k].lower()
+    if d not in (u'dû', 'du'): return False
+    return re.sub(u"^[jn]['’]", '', deacc(T[k-1].lower())) in _EER_AVOIR
+
+
 def _eer_gouv_inf(T, k):
     if k < 0: return False
     r = T[k].lower(); d = deacc(r)
     if r == u'à' and k > 0 and deacc(T[k-1].lower()) in ('quant', 'grace'): return False   # « quant à lui », « grâce à elle »
+    _dd = re.sub(r"^(j|n|qu)'", '', d)
+    if _dd != d and _dd != 'a' and _dd in MODAL: return True   # « j'aime m'habillé » : le modal collé à son pronom (⭐ 04/10/2026)
     return r in _EER_PINF or (d != 'a' and d in MODAL) or _eer_minf(T, k)
 
 
@@ -379,7 +399,7 @@ def rule_e_er(T, i):
     if lw.endswith('é'):              forms = (w, w[:-1] + 'er')          # tapé = participe
     elif deacc(lw).endswith('er') and len(lw) > 3: forms = (w[:-2] + 'é', w)  # tapé = infinitif
     else: return None
-    if deacc(forms[0].lower()) in NOUN_E: return None  # nom courant en -é (marché du travail, traité de Lyon, combiné nordique…) → pas une faute
+    if deacc(forms[0].lower()) in NOUN_E and not (i >= 1 and (_eer_minf_v(T, i - 1) or _eer_du(T, i - 1)) and i + 1 < len(T) and deacc(T[i+1].lower()) in _EER_DET): return None  # nom courant en -é (marché du travail, traité de Lyon, combiné nordique…) → pas une faute
     if deacc(forms[1].lower()) not in VERB_LEX: return None   # forms[1] = infinitif -er ; doit être un VRAI verbe (sinon « thé »→« ther » : FP)
     # NB (mesuré, rejeté) : élargir aux verbes du lexique 155k (POS=VER) — même borné à AVOIR — fait remonter le FP
     # (-é/-er 53→74 sur UD : « le traité/marché/côté » nom → infinitif). La règle exige du CONTEXTE (nom vs participe),
@@ -429,6 +449,10 @@ def rule_e_er(T, i):
             return forms[1]
         if forms[0].lower() == lw: return forms[0]   # participe DÉJÀ écrit : rien ici (l'accord est le métier de rule_pp_etre, avec SON explication)
         return _pp_relit(T, i, forms[0]) or forms[0]  # auxiliaire (a/ont/est…) → participe -é, ACCORDÉ si le contexte le permet (lot 2)
+    if _eer_du(T, i - 1):                           # ⭐ 04/10/2026 : « elle a dû quitté » → quitter (avant la branche préposition : « du » en est une)
+        _t6 = pos_tags(T)
+        if _t6 and i < len(_t6) and _t6[i] in ('NOUN', 'PROPN') and not (i + 1 < len(T) and deacc(T[i+1].lower()) in _EER_DET): return None
+        return forms[1]
     if p in PREP:
         if deacc(forms[0].lower()) in D.GENDER_LEX: return None   # prép + NOM homographe de participe (« par arrêté », « du passé/marché ») → abstention (FP)
         # ⭐ …ET LA TABLE ACCENTUÉE (08/09/2026). `GENDER_LEX` est DÉSACCENTUÉE : elle perd tout
@@ -454,9 +478,9 @@ def rule_e_er(T, i):
         if deacc(T[_kc].lower()) in ('le', 'la', 'les'): _det_pos = True
         _kc -= 1; _nc += 1
     if _det_pos and (deacc(forms[0].lower()) in D.GENDER_LEX or GENDER_ACC.get(forms[0].lower()) or _noun_gate(forms[0])): _nc = -1   # le/la/les aussi déterminants
-    if (_nc > 0 and _eer_gouv_inf(T, _kc)) or _eer_minf(T, i - 1):
-        if deacc(forms[0].lower()) in D.GENDER_LEX: return None
-        if GENDER_ACC.get(forms[0].lower()) in ('m', 'f'):
+    if (_nc > 0 and _eer_gouv_inf(T, _kc)) or _eer_minf_v(T, i - 1):
+        if not _eer_minf_v(T, i - 1) and deacc(forms[0].lower()) in D.GENDER_LEX: return None
+        if GENDER_ACC.get(forms[0].lower()) in ('m', 'f') and not (_eer_minf_v(T, i - 1) and i + 1 < len(T) and deacc(T[i+1].lower()) in _EER_DET):
             _t5 = pos_tags(T)
             if _t5 and i < len(_t5) and _t5[i] in ('NOUN', 'PROPN'): return None
         return forms[1]
@@ -1155,6 +1179,18 @@ def _aa_inverted(T, i):
 
 # ⭐ 03/10/2026 — « difficile à réparé » : « à » + participe ne devient plus « a » après un adjectif qui se construit avec « à + infinitif »
 # (liste FERMÉE ; « à » accentué seulement) — miroir JS _AA_ADJ_INF.
+_A_INF_GOUV = set(u'commencer continuer apprendre arriver chercher hesiter reussir penser aider inviter obliger autoriser encourager habituer mettre renoncer tenir jouer amuser passer servir rester parvenir consister tendre songer appliquer pousser forcer condamner preparer decider engager'.split())   # ⭐ 04/10/2026 — verbes qui appellent « à » + infinitif (miroir JS)
+
+
+def _a_inf_gouv(T, k):
+    if k < 0: return False
+    t0 = T[k].lower()
+    if re.match(u"^[ld]['’]", t0) or (k > 0 and deacc(T[k-1].lower()) in _EER_DET): return False   # un NOM (« l'aide à été ») : « a » reste avoir
+    t = re.sub(u"^(j|n|m|t|s|qu)['’]", '', t0)
+    if any(deacc(r[0]) in _A_INF_GOUV for r in _reads(t)): return True
+    return deacc(t) in _A_INF_GOUV
+
+
 _AA_ADJ_INF = set(('difficile difficiles facile faciles impossible impossibles pret prete prets pretes simple simples agreable agreables '
                    'penible penibles complique compliquee compliques compliquees lent lente lents lentes long longue longs longues dur dure durs dures '
                    'apte aptes enclin encline enclins enclines prompt prompte prompts promptes habile habiles insuffisant insuffisante insuffisants insuffisantes').split())
@@ -1174,6 +1210,10 @@ def _rule_a_aa_base(T, i):
     if i+1 < len(T) and _is_ppl(T[i+1]) and not deacc(T[i+1].lower()).endswith('ee'):   # « a + participe » (« a été », « a décidé ») → auxiliaire AVOIR, jamais « à ». Écarte -ée FÉMININ (après AVOIR le pp NE s'accorde PAS → « -ée » = NOM → « à durée limitée » reste préposition)
         dn = deacc(T[i+1].lower()); nt = tg[i+1] if (tg and i+1 < len(tg)) else ''
         if T[i].lower() == u'à' and i > 0 and deacc(T[i-1].lower()) in _AA_ADJ_INF: return None   # « difficile à réparé » : le verbe est faux, pas « à »
+        if T[i].lower() == u'à' and i > 0:                      # ⭐ 04/10/2026 : « apprend à nagé » — le « à » reste, le verbe se corrige (miroir JS _aInfGouv)
+            _ka = i - 1
+            while _ka > 0 and deacc(T[_ka].lower()) in _EER_ADV: _ka -= 1
+            if _a_inf_gouv(T, _ka): return None
         if not (dn in _PP_NOUN_HOMO and nt == 'NOUN'): return 'a'     # …SAUF nom-homographe tagué NOM (« condamnée à mort », « tout à fait ») = « à » préposition, pas le verbe « a »
     if i+2 < len(T) and deacc(T[i+1].lower()).endswith('ment') and (tg and i+1 < len(tg) and tg[i+1] == 'ADV') and _is_ppl(T[i+2]): return 'a'   # « a + ADVERBE(-ment) RÉEL + participe » (« a également exploité ») ; exige POS=ADV → exclut « à l'emplacement », « à l'effondrement » (NOM en -ment)
     if not pb and vlike(T, i-1):                                       # après un verbe (« va à »), même proposition → préposition
@@ -6713,6 +6753,8 @@ def bout_de_chaine_orange(text, i, sugg):
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
     ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
+    ("Il a un grand pouvoir caché.", "« pouvoir » y est un nom (déterminant + adjectif devant) : « caché » est juste (04/10/2026)."),
+    ("Ce qu'il dit a fait rire.", "« dit » termine une relative : « a fait » est avoir (04/10/2026)."),
     ("Le roi de France absent dort.", "le lieu SANS article (« de France ») est un complément : l'adjectif porte sur « roi » (04/10/2026)."),
     ("Il a vu quelque 300 voitures.", "« quelque » devant un nombre = environ, invariable (04/10/2026)."),
     ("Trois joueurs du CA partent demain.", "« CA » (un sigle) n'est pas « ça » : « partent » s'accorde à « trois joueurs » (04/10/2026)."),
@@ -6815,6 +6857,15 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 04/10/2026 — le verbe après « à » (gouverneur) / après un infinitif (pouvoir, savoir, aller…), « dû », modal collé à « j' »
+    ("Il apprend à nager.", "nager", "nagé", "-é/-er"),
+    ("Il espère pouvoir inviter ses amis.", "inviter", "invité", "-é/-er"),
+    ("Elle a dû porter le sac.", "porter", "porté", "-é/-er"),
+    ("Elle a dû passer la nuit dehors.", "passer", "passé", "-é/-er"),
+    ("J'aime m'habiller en bleu.", "m'habiller", "m'habillé", "-é/-er"),
+    ("L'aide a été précieuse.", "a", "à", "a/à"),   # un NOM n'est pas un gouverneur de « à »
+    ("Le reste a été vendu.", "a", "à", "a/à"),
+    ("L'aide a changé sa vie.", "a", "à", "a/à"),
     # ⭐ 04/10/2026 — l'adjectif après un nom de lieu qui porte son article ; « quelque » + nom pluriel
     ("La Chine entière dort.", "entière", "entier", "accord adjectif épithète"),
     ("L'Europe occidentale est riche.", "occidentale", "occidental", "accord adjectif épithète"),
@@ -7143,7 +7194,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 226   # 04/10/2026 : +3 cas (lieu + adjectif, quelque)
+    _PLANCHER = 234   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
