@@ -3800,7 +3800,11 @@ function estQuestion(t,maxMots){
      n'a jamais sa place. Gold dys : 5 muettes ; UD 14 450 : 0 tir. « cher le » reste muet (« un cadeau cher le jour de Noël »). Miroir
      Python rule_cher_chez. */
   var _CHEZ_TONIQ={moi:1,toi:1,lui:1,elle:1,nous:1,vous:1,eux:1,elles:1,soi:1};
-  function rCherChez(T,i){if(T[i].toLowerCase()!=='cher'||i+1>=T.length)return null;if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;return _CHEZ_TONIQ[deacc(T[i+1].toLowerCase())]?ckeepcase(T[i],'chez'):null;}   // « mon cher, moi je… » : la virgule coupe
+  /* ⭐ 04/10/2026 — « chère lui », « chere moi » : la forme FÉMININE (ou sans accent, que l'orthographe rendait « chère » en rouge)
+     devant un pronom tonique est aussi « chez » ; un adjectif « cher » ne précède jamais lui / moi seul. Gardes (phrases inventées) :
+     intensif avant (« très cher lui aussi » : adjectif), trait d'union après (« cher lui-même »). Miroir Python rule_cher_chez. */
+  var _CHEZ_INTENS={tres:1,trop:1,si:1,assez:1,plus:1,moins:1,aussi:1,vraiment:1,bien:1,pas:1,peu:1};
+  function rCherChez(T,i){if(!/^ch[eè]re?s?$/.test(T[i].toLowerCase())||i+1>=T.length)return null;if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;if(_SEG&&_SEG.hy&&i+2<_SEG.hy.length&&_SEG.hy[i+2])return null;if(i>0&&_CHEZ_INTENS[deacc(T[i-1].toLowerCase())])return null;return _CHEZ_TONIQ[deacc(T[i+1].toLowerCase())]?ckeepcase(T[i],'chez'):null;}   // « mon cher, moi je… » : la virgule coupe
   function rPresPret(T,i){var lw=T[i].toLowerCase();
     var dur=(lw==='prêt'||lw==='prêts'),mou=(lw==='prête'||lw==='prêtes');
     if(!dur&&!mou)return null;

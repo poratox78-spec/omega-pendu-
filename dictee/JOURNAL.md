@@ -5,6 +5,13 @@
 
 ---
 
+## 2026-10-04 — « chère lui », « chere moi » → chez
+
+- Mot faux du gold : « chere » + pronom recevait « chère » en ROUGE (orthographe) ; la règle cher/chez ne lisait que « cher ».
+- Étendue aux formes chère / chere / chers / chères. En l'essayant sur des phrases inventées, deux faux rouges de la règle d'origine
+  sont sortis (« très cher lui aussi », « cher lui-même ») : gardes intensif et trait d'union, pour toutes les formes.
+- Mesure : gold 1 mot faux → juste ; 3 corpus et UD : rien d'autre.
+
 ## 2026-10-04 — le présent après un « à » gouverné → infinitif (« il commence a mange » → manger)
 
 - Vu dans les mots faux du gold : après « commencer a », la règle -e/-é lisait « a » comme avoir et rendait le PARTICIPE, en rouge,

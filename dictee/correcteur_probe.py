@@ -6162,9 +6162,15 @@ _PRET_DET = {'la', 'le', 'les', 'un', 'une', 'des', 'du', 'ma', 'mon', 'mes', 's
 _CHEZ_TONIQ = {'moi', 'toi', 'lui', 'elle', 'nous', 'vous', 'eux', 'elles', 'soi'}
 
 
+# ⭐ 04/10/2026 — chère / chere + pronom tonique → chez aussi ; intensif avant ou trait d'union après = l'adjectif « cher » (miroir JS).
+_CHEZ_INTENS = frozenset(u'tres trop si assez plus moins aussi vraiment bien pas peu'.split())
+
+
 def rule_cher_chez(T, i):
-    if T[i].lower() != 'cher' or i + 1 >= len(T): return None
+    if not re.match(u'^ch[eè]re?s?$', T[i].lower()) or i + 1 >= len(T): return None
     if _SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]: return None   # « mon cher, moi je… » : la virgule coupe
+    if _SEG is not None and i + 2 < len(_SEG['hy']) and _SEG['hy'][i + 2]: return None   # « cher lui-même » : l'adjectif
+    if i > 0 and deacc(T[i - 1].lower()) in _CHEZ_INTENS: return None                   # « très cher lui aussi » : l'adjectif
     return _keepcase(T[i], u'chez') if deacc(T[i + 1].lower()) in _CHEZ_TONIQ else None
 
 
@@ -6859,6 +6865,8 @@ MUETS = [
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
     ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Il est très cher lui aussi.", "intensif avant : « cher » est l'adjectif, pas « chez » (04/10/2026)."),
+    ("Il le trouve cher lui-même.", "« lui-même » : « cher » est l'adjectif (04/10/2026)."),
     ("Il passe à table.", "« passer à table » : un nom après « à », pas un verbe à mettre à l'infinitif (04/10/2026)."),
     ("Elle se met à table.", "« se mettre à table » : un nom après « à » (04/10/2026)."),
     ("Il vit avec ce souvient.", "préposition + « ce » = déterminant, même devant un mot lu verbe (04/10/2026)."),
@@ -6975,6 +6983,9 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 04/10/2026 — chère / chere + pronom tonique → chez
+    ("Elle retourne chez elle.", "chez", "chère", "cher/chez"),
+    ("Il dîne chez nous demain.", "chez", "chere", "cher/chez"),
     # ⭐ 04/10/2026 — le présent après un « à » gouverné → infinitif
     ("Il a mangé une pomme.", "mangé", "mange", "-e/-é (participe)"),   # témoin : « a » avoir (pas de gouverneur) → participe, pas l'infinitif
     ("Il commence à manger sa soupe.", "manger", "mange", "-é/-er"),
@@ -7336,7 +7347,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 255   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné)
+    _PLANCHER = 257   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
