@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit, initiale et dominance, forme du verbe, a / à devant un verbe, avoir élidé, apostrophe oubliée) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit, initiale et dominance, forme du verbe, a / à devant un verbe, avoir élidé, apostrophe oubliée, t'as / javais) |
 |---|---|---|
-| réparée en rouge | 554 (27,5 %) | **621** (30,9 %) |
+| réparée en rouge | 554 (27,5 %) | **622** (30,9 %) |
 | bon mot proposé en orange | 356 (17,7 %) | **475** (23,6 %) |
 | mot FAUX proposé | 373 (18,5 %) | **313** (15,6 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
-| **muette** | **711** (35,3 %) | **580** (28,8 %) |
+| **muette** | **711** (35,3 %) | **579** (28,8 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **53** aujourd'hui (36 / 17 — le rouge de plus : « soiété », coquille laissée par le gold ; 4 oranges de genre du déterminant
