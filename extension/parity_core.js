@@ -174,6 +174,7 @@ PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer
 PHRASES.push("Il ce lave.", "Il ce porte bien.", "Le pain est le beurre sont sur la table.", "Le chat est le chien jouent.", "Le chat est le chien du voisin.", "Il ce matin est parti.");   // ⭐ 04/10/2026 : homophones (ext ⊆ Python)
 PHRASES.push("T'as finis ton travail.", "T'as manger ?", "T'es aller où ?", "Il t'a vue hier.");   // ⭐ 04/10/2026 : « t'as » = tu as (ext ⊆ Python)
 PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
+PHRASES.push("Il apprend à nagé.", "Elle continue à chanté.", "Il espère pouvoir invité ses amis.", "Elle doit aller rangé sa chambre.", "Il faut savoir écouté.", "Elle a dû porté le sac.", "Elle a dû passé la nuit dehors.", "J'aime m'habillé en bleu.", "Ce qu'il dit à fait rire.", "L'aide à été précieuse.", "Le reste à été vendu.", "L'aide à changé sa vie.", "Il a un grand pouvoir caché.");   // ⭐ 04/10/2026 : le verbe après à / après un infinitif (ext ⊆ Python)
 PHRASES.push("La Chine entier dort.", "L'Europe occidental est riche.", "Il a lu quelque livres.", "Le roi de France absent dort.", "Il a vu quelque 300 voitures.", "Il reste quelque temps.", "Il vient quelque fois.", "La France produit du vin.");   // ⭐ 04/10/2026 : lieu + adjectif, quelque (ext ⊆ Python)
 PHRASES.push("Jon arrive demain.", "Lils sont partis.", "Ques tu veux ?", "Il voit dest gens.", "Je crois que jai raison.", "Il pense quil pleut.", "Il vient dailleurs demain.", "Il appelle lami de Paul.");   // ⭐ 04/10/2026 : élisions impossibles (ext ⊆ Python)
 PHRASES.push("Il n'a pas manger sa soupe.", "Je n'ai pas manger.", "Ils n'ont pas manger.", "Il n'a rien manger.", "Il n'a manger que du pain.", "Le plus dur, ce n'est pas commencer.");   // ⭐ 03/10/2026 : avoir élidé (ext ⊆ Python)
@@ -803,6 +804,25 @@ print(json.dumps(out))
   if (fl("Il t'a vue hier.").length) { _ta++; console.log("  ✗ t'as : témoin « il t'a vue » marqué " + JSON.stringify(fl("Il t'a vue hier."))); }
   if (_ta) { console.log("PARITÉ KO — t'as : " + _ta + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ t'as / t'es : 3 corrections (finis → fini, manger → mangé, aller → allé) ; « il t'a vue » muet"); }
+
+// ⭐ 04/10/2026 — LE VERBE APRÈS « À » / APRÈS UN INFINITIF : « apprend à nagé » → nager (le « à » reste) ; « pouvoir invité », « aller rangé »,
+// « savoir écouté », « a dû porté / passé », « j'aime m'habillé » → l'infinitif. Témoins : « ce qu'il dit à fait », « l'aide à été », « le reste à été » (a), « un grand pouvoir caché » (nom).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _vi = 0;
+  for (const [s, w, sg] of [["Il apprend à nagé.", 'nagé', 'nager'], ["Elle continue à chanté.", 'chanté', 'chanter'], ["Il espère pouvoir invité ses amis.", 'invité', 'inviter'],
+                            ["Elle doit aller rangé sa chambre.", 'rangé', 'ranger'], ["Il faut savoir écouté.", 'écouté', 'écouter'], ["Elle a dû porté le sac.", 'porté', 'porter'], ["Elle a dû passé la nuit dehors.", 'passé', 'passer'],
+                            ["J'aime m'habillé en bleu.", "m'habillé", "m'habiller"]]) {
+    const f = fl(s), m = f.find(x => x.word === w);
+    if (!m || m.sugg !== sg) { _vi++; console.log('  ✗ verbe après à / infinitif : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+    if (f.some(x => x.word === 'à')) { _vi++; console.log('  ✗ verbe après à / infinitif : « ' + s + ' » — le « à » est touché : ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  for (const s of ["Ce qu'il dit à fait rire.", "L'aide à été précieuse.", "Le reste à été vendu.", "L'aide à changé sa vie."]) {   // un nom n'est pas un gouverneur ; « à été » = a été
+    const r = fl(s).find(x => x.word === 'à');
+    if (!r || r.sugg !== 'a') { _vi++; console.log('  ✗ verbe après à / infinitif : témoin « ' + s + ' » → « a » attendu, obtenu ' + JSON.stringify(r || null)); }
+  }
+  if (fl("Il a un grand pouvoir caché.").length) { _vi++; console.log("  ✗ verbe après à / infinitif : témoin « un grand pouvoir caché » marqué " + JSON.stringify(fl("Il a un grand pouvoir caché."))); }
+  if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
 // ⭐ 04/10/2026 — deux accords qui restaient muets : l'adjectif après un nom de lieu qui porte son article (« la Chine entier » → entière),
 // « quelque » + nom pluriel → quelques. Témoins : lieu sans article, nombre, « temps », « fois », verbe.

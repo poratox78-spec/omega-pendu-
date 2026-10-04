@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-10-04 — le verbe après « à » et après un infinitif (« apprend à nagé » → nager ; « pouvoir invité », « a dû porté » → l'infinitif)
+
+- Les 39 fautes muettes « forme du verbe » du gold, lues une par une : la plupart ont un voisin faux ; quelques motifs propres, essayés sur
+  des phrases inventées : « pouvoir invité », « savoir écouté », « aller rangé », « a dû porté », « j'aime m'habillé » restaient muets ; et
+  « il apprend à nagé » recevait « à » → « a » en ROUGE (le verbe est faux, pas le « à »).
+- Tracé sur une copie instrumentée du moteur : ① la règle a/à n'avait pas de liste des verbes qui appellent « à » + infinitif (elle n'en
+  avait que pour les adjectifs, « difficile à ») ; ② derrière un modal à l'infinitif, la garde « nom homographe » de `rEer` (faite pour
+  « de + nom ») écartait « invité », « écouté », « passé » ; ③ « dû » n'était pas un modal ; ④ « j'aime » collé n'était pas lu comme modal.
+- Posé (3 moteurs ≡ Python) : `_A_INF_GOUV` (liste fermée de lemmes, lue sur la conjugaison) ; `_eerMinfV` (le modal à l'infinitif est
+  verbal : précédé d'un verbe conjugué, d'une préposition, d'un adverbe, d'un clitique, de et/ou ou en début de phrase) — derrière lui,
+  l'étiqueteur seul tranche et un déterminant qui suit prouve le verbe ; `_eerDu` ; le modal collé à son pronom élidé.
+- Mesure : 1re version, une fausse alerte frgec (« pouvoir » nom, précédé d'un adjectif) → contexte verbal exigé ; en le posant, un ROUGE
+  FAUX DE MAIN est tombé aussi (« il a un grand pouvoir caché » → cacher). Relu sur des phrases inventées AVANT de committer : « l'aide à été »,
+  « le reste à été » perdaient leur « a » (aider, rester sont dans la liste ; ici ce sont des noms) → un nom après déterminant (ou « l' »)
+  n'est pas un gouverneur. Gold : 4 fautes muettes réparées en rouge (muettes 573 → 569) ;
+  3 corpus : 0 marque fausse ; UD 14 450 : 1 rouge faux retiré (« mettre à mort »), 0 marque nouvelle.
+- Tests : `parity_core.js` (8 infinitifs, « à » intact + 5 témoins), `correcteur_probe.py` (8 CASES + 2 MUETS, plancher 234) ; chaque
+  pièce falsifiée seule dans les deux moteurs. Le 1er témoin de « dû » passait sans la pièce (« quitté » n'est pas un nom) : remplacé.
+
 ## 2026-10-04 — accords muets : l'adjectif après un nom de lieu (« la Chine entier » → entière), « quelque » + nom pluriel → quelques
 
 - Deux motifs ENTIÈREMENT muets, trouvés en relisant les muettes du gold : un adjectif masculin après un nom de continent féminin (×4 dans un texte) et « quelque » +
