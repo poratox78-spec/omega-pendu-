@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-10-04 — accords muets : l'adjectif après un nom de lieu (« la Chine entier » → entière), « quelque » + nom pluriel → quelques
+
+- Deux motifs ENTIÈREMENT muets, trouvés en relisant les muettes du gold : un adjectif masculin après un nom de continent féminin (×4 dans un texte) et « quelque » +
+  nom pluriel (×2). `rAdjEpithet` écarte tout nom propre (son genre est inconnu) ; aucune règle ne regardait « quelque ».
+- `rAdjGeo` ≡ `rule_adj_geo` : liste FERMÉE de pays, continents, régions avec leur genre (_GEO_G) ; l'adjectif juste après prend ce
+  genre, au singulier. 1re version : 3 rouges FAUX sur UD (« duc de Bourgogne issu », « championnat de France professionnel » :
+  l'adjectif porte sur le 1er nom ; « tous ») → le lieu doit porter SON article (« l'Afrique », « la France »), tout/tous exclus.
+  Un cas du gold reste muet : l'étiqueteur y lit l'adjectif comme une préposition.
+- `rQuelque` ≡ `rule_quelque` : jamais devant un nombre (« quelque 300 voitures » = environ : `_SEG.dig`), ni devant « fois »
+  (quelquefois), ni quand le nom n'a pas de singulier attesté comme nom (« quelque temps »).
+- Mesuré : gold 3 fautes muettes réparées en rouge (catalogue : muettes 576 → 573, rouge 622 → 625) ; 3 corpus : 1 de plus
+  (« quelque minutes », que le corrigé avait laissé) ; UD 14 450 : 2 marques, deux vraies fautes du texte d'UD.
+- Tests : `parity_core.js` (3 corrections + 5 témoins), `correcteur_probe.py` (3 CASES + 2 MUETS) ; chaque garde falsifiée seule dans
+  les deux moteurs, sauf la garde « verbe » de `rAdjGeo` : INERTE sur tous les témoins essayés (l'étiqueteur y lit déjà un verbe),
+  gardée parce que la règle sœur l'a payée. Plancher de la batterie Python remonté à 226.
+
 ## 2026-10-04 — « ça / cela / ceci » sujet : « ça vas mieux » → va, « cela pourrais marcher » → pourrait (orange)
 
 - Les 42 fautes muettes « accord sujet-verbe » du gold, lues une par une : trois freins dans la personne du verbe après un sujet NOMINAL
