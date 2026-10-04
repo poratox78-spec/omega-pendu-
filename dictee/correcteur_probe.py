@@ -845,16 +845,17 @@ def rule_inf_but(T, i):
     direct — l'attribut ne l'est jamais), et verbe de mouvement LICENCIÉ (aller fini, ou participe
     précédé de son auxiliaire ÊTRE, sinon « d'une part », « le parti », « les sorties » tirent).
 
-    /!\ PARITÉ — les deux moteurs LIVRÉS (app + extension) lisent la colonne POS du lexique speller,
-    qui est ACCENTUÉE et sépare finement (« mangé » V, « épuisé » AV, « tracé » NV). Ce probe Python
-    n'a pas cette table : il utilise pos_of(), DÉSACCENTUÉ, et se contente de « dominante VER ». Il
-    est donc un SUR-ENSEMBLE volontaire — le contrat de parité est `app ⊆ Python`, jamais l'égalité,
-    et les deux surfaces réellement livrées, elles, sont IDENTIQUES entre elles.
+    /!\ PARITÉ — les moteurs LIVRÉS (app + extension) lisent la colonne POS du lexique speller, ACCENTUÉE,
+    qui sépare finement (« mangé » V, « épuisé » AV, « tracé » NV, « marché » NV). Cette référence lisait
+    pos_of(), DÉSACCENTUÉ (« dominante VER ») : un sur-ensemble qui corrigeait du français JUSTE en rouge,
+    là où le produit se tait — « il va au grand marché du samedi » → marcher, et sur UD « partis sur le
+    tracé du circuit » → tracer. ⭐ 05/10/2026 : elle lit la MÊME table que le produit (_spos, accent-exact),
+    avec la même garde (verbe PUR : V sans N ni A) — les deux moteurs sont égaux sur cette règle.
     """
     w = T[i]; lw = w.lower()
     if "'" in lw or i == 0 or not lw.endswith('é'): return None
-    pz = pos_of(w)
-    if not pz or pz[0] != 'VER': return None                     # sur-ensemble : écarte au moins les ADJ (épuisé, fatigué, déguisé)
+    pz = _spos(lw)                                              # ① VERBE PUR, colonne POS accent-exacte du speller (miroir JS : SP.POS)
+    if 'V' not in pz or 'N' in pz or 'A' in pz: return None     # « marché » NV, « tracé » NV, « épuisé » AV : pas un infinitif de but
     inf = _inf1(w)
     if inf is None or deacc(inf) == deacc(lw): return None
     if i + 1 >= len(T) or deacc(T[i+1].lower()) not in _BUT_DET: return None
@@ -6865,6 +6866,8 @@ MUETS = [
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
     ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Il va au grand marché du samedi.", "« marché » est aussi un NOM (lexique : N et V) : l'infinitif de but ne lit que les verbes PURS, comme le produit (05/10/2026)."),
+    ("Ils sont partis sur le tracé du circuit.", "« tracé » est aussi un NOM : pas d'infinitif de but (05/10/2026, faux rouge de la référence seule sur UD)."),
     ("Il est très cher lui aussi.", "intensif avant : « cher » est l'adjectif, pas « chez » (04/10/2026)."),
     ("Il le trouve cher lui-même.", "« lui-même » : « cher » est l'adjectif (04/10/2026)."),
     ("Il passe à table.", "« passer à table » : un nom après « à », pas un verbe à mettre à l'infinitif (04/10/2026)."),
@@ -6983,6 +6986,9 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 05/10/2026 — infinitif de but : la référence a ses propres cas (elle n'en avait aucun)
+    ("Nous sommes allés au village visiter le musée.", "visiter", "visité", "infinitif de but"),
+    ("Elle est partie au marché acheter du pain.", "acheter", "acheté", "infinitif de but"),
     # ⭐ 04/10/2026 — chère / chere + pronom tonique → chez
     ("Elle retourne chez elle.", "chez", "chère", "cher/chez"),
     ("Il dîne chez nous demain.", "chez", "chere", "cher/chez"),
@@ -7347,7 +7353,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 257   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez)
+    _PLANCHER = 259   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
