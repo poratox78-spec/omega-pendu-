@@ -171,6 +171,7 @@ const PHRASES = [
 PHRASES.push(...fs.readFileSync(path.join(ROOT, 'dictee', 'phrases_courantes.txt'), 'utf8').split('\n').map(s => s.trim()).filter(s => s && s[0] !== '#'));   // ⭐ 13/09/2026 : phrases courantes 1re/2e personne — « Je ne peux pas. » → *puis* en rouge du 07 au 13/09, vu par aucun corpus
 PHRASES.push("Il refuse de nous aidé cette fois.", "Elle a fini par se levé très tard.", "Il doit m'aidé demain.", "Il vient la récupéré ce soir.", "Une fois rentrer à la maison, elle lit.", "Tout en étant fatiguer, il travaille.", "La facture a tout de même doubler.", "La facture a beaucoup doubler.", "Ce sera difficile à réparé.", "Le Nasdaq a quant à lui cédé 8 %.", "Les coureurs sont partis sur le tracé du circuit.", "Les chiffres sont dans l'encadré ci-contre.", "Il compte sur la facilité du parcours.", "Le pouvoir délégué aux régions est limité.", "Il à mangé une pomme.", "C'est bien manger.");   // ⭐ 03/10/2026 : lot « forme du verbe » (ext ⊆ Python sur ces phrases inventées)
 PHRASES.push("J'ai un livre a terminer.", "Il y a beaucoup de travail a terminer.", "Je n'ai pas de temps a perdre.", "Mon frère a un chien a promener.", "Elle a une grande facilitée a dessiner.", "J'ai un livre de cuisine a lire.", "Il apprend à rentrre ce soir.", "Le chat de mon frère a manger.", "J'ai vu que le chat a manger.", "Il y a deux ans a commencer la guerre.", "J'ai un chat le chien a manger.");   // ⭐ 03/10/2026 : « a / à devant un verbe » (ext ⊆ Python)
+PHRASES.push("Il la vu hier.", "On la vu partir.", "Elle sa vu hier.", "Il a perdu la vu.");   // ⭐ 04/10/2026 : « il la vu » (ext ⊆ Python)
 PHRASES.push("Il n'a pas manger sa soupe.", "Je n'ai pas manger.", "Ils n'ont pas manger.", "Il n'a rien manger.", "Il n'a manger que du pain.", "Le plus dur, ce n'est pas commencer.");   // ⭐ 03/10/2026 : avoir élidé (ext ⊆ Python)
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)
 
@@ -773,6 +774,21 @@ print(json.dumps(out))
   }
   if (_av) { console.log('PARITÉ KO — a / à devant un verbe : ' + _av + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ a / à devant un verbe : 5 « à » (avoir + objet, facilitée) sans toucher le verbe ; « à rentrre » sans rouge ; 4 témoins où « a » reste avoir'); }
+
+// ⭐ 04/10/2026 — « IL LA VU » : après un pronom sujet, « la » est un PRONOM (l'a vu) — la grammaire ne rend plus « vue » en ROUGE ;
+// « il a perdu la vu » (déterminant) garde « vue ».
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _lv = 0;
+  if (fl("Elle sa vu hier.").some(x => x.sugg === 'vue')) { _lv++; console.log('  ✗ il la vu : « Elle sa vu » reçoit encore « vue » en rouge'); }   // la garde de la grammaire seule (pas d'élision proposée)
+  for (const s of ["Il la vu hier.", "On la vu partir."]) {
+    const f = fl(s);
+    if (f.some(x => x.sugg === 'vue')) { _lv++; console.log('  ✗ il la vu : « ' + s + ' » reçoit encore « vue » : ' + JSON.stringify(f)); }
+    if (!f.some(x => /^l'a /.test(String(x.sugg)))) { _lv++; console.log("  ✗ il la vu : « " + s + " » sans « l'a … » : " + JSON.stringify(f)); }
+  }
+  const g = fl("Il a perdu la vu.").find(x => x.word === 'vu');
+  if (!g || g.sugg !== 'vue') { _lv++; console.log('  ✗ il la vu : témoin « il a perdu la vu » → « vue » attendu, obtenu ' + JSON.stringify(g || null)); }
+  if (_lv) { console.log('PARITÉ KO — il la vu : ' + _lv + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ il la vu : « l'a vu » proposé, plus de « vue » après un pronom ; « il a perdu la vu » → vue"); }
 
 // ⭐ 03/10/2026 — AVOIR AVEC « n' » / « j' » COLLÉ : « il n'a pas manger » → mangé (le « n' » cachait l'auxiliaire), « rien » sauté comme un adverbe.
 // Témoin : ÊTRE n'est pas concerné (« ce n'est pas commencer » reste juste).
