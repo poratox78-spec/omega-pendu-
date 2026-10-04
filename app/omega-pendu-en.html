@@ -29147,7 +29147,17 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!tg||i>=tg.length)return null;
     var w=deaccS(T[i].toLowerCase());
     if(w.length<3||/[sxz]$/.test(w))return null;                       // déjà pluriel/invariable
-    if(tg[i]!=='NOUN'&&tg[i]!=='ADJ')return null;
+    /* ⭐ 04/10/2026 — APRÈS UN NOMBRE EN CHIFFRES, encore muets : « pour 5 euro », « 20 hectare », « 10 minute », « 3 kilo », « il mesure 2 mètre ».
+       ① l'étiqueteur ne voit pas le chiffre (ce n'est pas un mot) et tague le nom PROPN : un mot EN MINUSCULE que la table des noms
+       (NOUN_POST) donne pour nom commun est accepté ; ② « minute » a aussi une lecture verbale (minuter) : la table des noms tranche ;
+       ③ la garde « le nombre numérote le nom d'avant » (saison 5 épisode) lisait « il MESURE 2 mètre » : un pronom sujet avant = un verbe ;
+       ④ le « silencieux appris » (plTaisCarte) a été entraîné sur des déterminants, avant le chiffre : il ne juge plus cette branche.
+       Gardes vues à la mesure : composé (« 512 kilo-octets »), date (« le 25 maie » : un mois mal écrit), année (« vers 405 »), locution
+       (« grâce au »). Mesuré : gold +2 (euros, hectares), 3 corpus dys +1 juste et 1 fausse orange retirée, 0 perte (3 des 4 « inutiles »
+       du corpus frgec sont des fautes qu'il n'a pas corrigées : points, euros, mètres) ; UD 14 450 : 2 marques orange, sur « euro » et
+       « montant ». */
+    var _chif=!!(_SEG&&_SEG.num&&i<_SEG.num.length&&_SEG.num[i]!=null&&_SEG.num[i]>=2);
+    if(tg[i]!=='NOUN'&&tg[i]!=='ADJ'&&!(_chif&&tg[i]==='PROPN'&&_nounGateN(w)))return null;
     if(T[i].indexOf("'")>=0)return null;                             /* ÉLISION → ABSTENTION (signalé par Rem, 2026-08-11).
        « Les girolles QU'ELLE avait cueillies → qu'elles », « les livres QU'IL m'a rendus → qu'ils »,
        et même « M'A → m'as » : un token élidé (qu'elle, m'a, l'école) n'est JAMAIS un nom à accorder
@@ -29161,8 +29171,12 @@ function spellTokenCore(tok,atStart,T,idx){
        5 euro », « 16 porte ») ; gardes : numéro de rue (« 42 boulevard »), nombre qui NUMÉROTE le nom d'avant (« saison 5 épisode »), unité
        (« 4 min »), mois (« le 25 mars », « 30 prairial »), nom propre avant le nombre. Gold dys : 4. */
     if(_SEG&&_SEG.num&&i<_SEG.num.length&&_SEG.num[i]!=null&&_SEG.num[i]>=2&&!(_SEG.num[i]>=1000&&_SEG.num[i]<=2100)){
-      if(_CHIF_STOP[w]||CARDINV[w]||CARD[w]||CARDSTOP[w]||NOUN_PL_STOP[w]||svReads(T[i]).length)return null;
-      if(i>=1){var _pc=T[i-1],_dpc=deaccS(_pc.toLowerCase());if(i-1>0&&_pc.charAt(0)!==_pc.charAt(0).toLowerCase())return null;var _npc=(NOUN_POST&&NOUN_POST.get)?NOUN_POST.get(_dpc):null;if(_npc&&_npc[0]>=500&&!PREP[_dpc])return null;}
+      if(_CHIF_STOP[w]||CARDINV[w]||CARD[w]||CARDSTOP[w]||NOUN_PL_STOP[w]||(svReads(T[i]).length&&!_nounGateN(w)))return null;
+      if(_SEG.hy&&i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;   // « 512 kilo-octets » : le mot commence un composé
+      if(_SEG.num[i]<=31&&i>=1&&/^(le|du|au)$/.test(deaccS(T[i-1].toLowerCase())))return null;   // « le 25 maie » : une DATE (un mois, même mal écrit)
+      if(_SEG.num[i]>=100&&i>=1&&/^(vers|en)$/.test(deaccS(T[i-1].toLowerCase())))return null;   // « vers 405 » : une ANNÉE
+      if(/^(grace|face|suite)$/.test(w)&&i+1<T.length&&/^(à|a|au|aux)$/.test(T[i+1].toLowerCase()))return null;   // « grâce au » : locution
+      if(i>=1){var _pc=T[i-1],_dpc=deaccS(_pc.toLowerCase());if(i-1>0&&_pc.charAt(0)!==_pc.charAt(0).toLowerCase())return null;var _npc=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(_dpc):NOUN_POST[_dpc]):null;   /* ⭐ 04/10/2026 : accès TOLÉRANT (Map dans l'extension, objet dans l'app) — dans l'app cette garde ne tirait jamais */if(_npc&&_npc[0]>=500&&!PREP[_dpc]&&!(i>=2&&SUBJ_PRON[deaccS(T[i-2].toLowerCase())]))return null;}
       var _plN=_plu(T[i].toLowerCase());return _plN!==T[i].toLowerCase()?ckeepcase(T[i],_plN):null;}
     for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());if(/^(dès|lès)$/i.test(T[j]))break;   /* « dès » : préposition, sortie du GN (« dès janvier » → janviers, vu sur UD) */
       if(PLDET[dj]){
@@ -29625,7 +29639,7 @@ function spellTokenCore(tok,atStart,T,idx){
     {var h=homoVig(T,i);if(h){return {i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'};}}
     {var nv=nomVerbeVig(T,i);if(nv){return {i:i,word:T[i],sugg:ckeepcase(T[i],nv),name:'homophone à vérifier',tier:'vigilance'};}}   // ⭐ 30/09/2026 : le travaille → travail, je travail → travaille
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var gv=genreAdjVig(T,i,_tg);if(gv&&gv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],gv),name:'accord genre à vérifier',tier:'vigilance'};}}   // genre adjectif épithète (« qui est-ce qui, il ou elle ? ») — audible, hors FP=0 → orange
-    {if(_tg===null)_tg=st.tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv&&!plTaisCarte(T,i)){return {i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'};}}
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);var _chifI=!!(_SEG&&_SEG.num&&i<_SEG.num.length&&_SEG.num[i]!=null&&_SEG.num[i]>=2&&!(_SEG.num[i]>=1000&&_SEG.num[i]<=2100));if(pv&&(_chifI||!plTaisCarte(T,i))){return {i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'};}}
     {var psv=plurielSonVig(T,i);if(psv){return {i:i,word:T[i],sugg:ckeepcase(T[i],psv),name:'pluriel par le son à vérifier',tier:'vigilance'};}}   // ⭐ 28/09/2026 : le son donne le mot quand la grammaire exige le pluriel
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){return {i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'};}}
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var apv=attributPlVig(T,_tg,i);if(apv){if(apv.pp)return {i:i,word:T[i],sugg:ckeepcase(T[i],apv.s),name:'accord participe à vérifier',tier:'vigilance'};return {i:i,word:T[i],sugg:ckeepcase(T[i],apv.s),name:'accord adjectif à vérifier',tier:'vigilance'};}}   // ⭐ 28/09/2026 : « sont exploitable » → exploitables, « sont prise » → prises (participeEtreVig étendu)

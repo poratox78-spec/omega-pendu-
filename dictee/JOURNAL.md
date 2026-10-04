@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-10-04 — pluriel après un nombre en chiffres : « pour 5 euro », « 20 hectare », « 10 minute », « il mesure 2 mètre »
+
+- 8 fautes muettes du gold dans la classe « nombre du nom après un nombre en chiffres ». La branche existait (lot A, 29/09) ; tracée sur une
+  copie du moteur, quatre freins : ① l'étiqueteur ne voit pas le chiffre (ce n'est pas un mot) et tague le nom PROPN (« pour euro ») ;
+  ② « minute » a une lecture verbale (minuter) ; ③ la garde « le nombre numérote le nom d'avant » (« saison 5 épisode ») lisait « il MESURE
+  2 mètre » ; ④ le silencieux appris `plTaisCarte`, entraîné sur des déterminants avant que le chiffre n'existe, faisait taire « euros »,
+  « minutes », « kilos ». Réparé : nom en minuscule + NOUN_POST nom commun ; NOUN_POST tranche la lecture verbale ; pronom sujet avant =
+  verbe ; la carte ne juge plus cette branche.
+- Gardes posées sur ce que la mesure a montré : composé (« 512 kilo-octets »), date (« le 25 maie » : un mois mal écrit, et la chaîne
+  orthographe → pluriel en faisait « morts », « vrais »), année (« vers 405 »), locution (« grâce au »). Une garde « un / une + nombre »
+  essayée puis retirée : « un 2 pièce » doit bien devenir « 2 pièces ».
+- Trouvé en route : dans l'APP, `NOUN_POST` est un objet, pas une Map — la garde « saison 5 épisode » appelait `NOUN_POST.get` et ne tirait
+  JAMAIS ; c'est la carte qui masquait le trou. Accès tolérant (comme #654). Les 15 autres appels de l'app l'étaient déjà.
+- Mesuré au produit (copie du moteur) : gold +2 (euros, hectares) ; 3 corpus dys +1 juste (tonnes), 1 fausse orange retirée, 0 perte — 3 des
+  4 « inutiles » du corpus frgec sont des fautes qu'il n'a pas corrigées (points, euros, mètres), la 4e est un nom de série ; corpus de la
+  sonde de précision : 0 ; UD 14 450 : 2 marques orange (« euro », et une phrase où un mot manque). Gold : muettes 579 → 577, oranges justes
+  475 → 477.
+- Tests : `test_sv_vigilance.js` (4 pluriels + 3 témoins : composé, date, année + locution).
+
 ## 2026-10-04 — « t'as finis » → fini, « t'as manger » → mangé, « t'es aller » → allé ; « javais » → j'avais
 
 - L'écrit FAMILIER aveuglait les règles : « T'as finis ton travail. » n'était pas corrigé, alors que « Tu as finis ton travail. » l'est ;
