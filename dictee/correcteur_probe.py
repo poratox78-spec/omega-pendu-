@@ -635,6 +635,35 @@ def rule_e_ppl_vig(T, i):
     return _keepcase(w, _ppl_form(lw, suf))
 
 
+def _inf_form(w):
+    """Infinitif en -er à partir du présent en -e, radical accentué par le lexique (« lève » → lever). Miroir JS _infForm."""
+    _spos('a')
+    base = w[:-1]; cands = [base]
+    k = max(base.rfind('è'), base.rfind('ê'))
+    if k >= 0: cands += [base[:k] + 'é' + base[k+1:], base[:k] + 'e' + base[k+1:]]
+    for b in cands:
+        if (b + 'er') in _SPOS: return b + 'er'
+    return None
+
+
+def rule_a_inf_e(T, i):
+    """⭐ 04/10/2026 — « il commence a mange » → manger : après commencer / continuer / apprendre… à (_A_INF_GOUV), la forme au
+    présent en -e est l'infinitif ; rule_e_ppl lisait « a » comme avoir (« à mangé », faux). Placée avant elle. Miroir JS rAInfE."""
+    if i < 2: return None
+    w = T[i]; lw = w.lower(); dl = deacc(lw)
+    if w != lw or "'" in lw or not dl.endswith('e') or lw.endswith('é') or len(dl) < 4: return None
+    if deacc(T[i - 1].lower()) != 'a': return None
+    k = i - 2
+    while k > 0 and deacc(T[k].lower()) in _EER_ADV: k -= 1
+    if not _a_inf_gouv(T, k): return None
+    _spos('a')
+    if _SPOS and lw not in _SPOS: return None                          # mot bien écrit
+    if dl[:-1] + 'er' not in VERB_LEX and dl[:-1] + 'er' not in CONJ_C: return None   # verbe du 1er groupe
+    if _noun_gate_n(dl): return None                                    # NOM d'abord (« passer à table »)
+    inf = _inf_form(lw)
+    return _keepcase(w, inf) if inf else None
+
+
 def rule_e_ppl(T, i):
     """AUXILIAIRE + verbe au PRÉSENT en -e → PARTICIPE en -é (« ont trouve »→trouvé, « a utilise »→utilisé).
     Le dys écrit la forme qu'il ENTEND (/truv/) ; après un auxiliaire, une forme FINIE est structurellement
@@ -6631,7 +6660,7 @@ def correct_tiered(text):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_geo), ('accord adjectif antéposé', rule_quelque), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
+         ('-é/-er', rule_e_er), ('-é/-er', rule_a_inf_e), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_geo), ('accord adjectif antéposé', rule_quelque), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
          ('accord adjectif épithète', rule_adj_aux),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
@@ -6830,6 +6859,8 @@ MUETS = [
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
     ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Il passe à table.", "« passer à table » : un nom après « à », pas un verbe à mettre à l'infinitif (04/10/2026)."),
+    ("Elle se met à table.", "« se mettre à table » : un nom après « à » (04/10/2026)."),
     ("Il vit avec ce souvient.", "préposition + « ce » = déterminant, même devant un mot lu verbe (04/10/2026)."),
     ("Pour ce faire, il part.", "« pour ce faire » : « ce » pronom devant faire (04/10/2026)."),
     ("Il travaille dans ce bureau.", "préposition + « ce » = déterminant (04/10/2026)."),
@@ -6944,6 +6975,12 @@ CASES = [
     ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    # ⭐ 04/10/2026 — le présent après un « à » gouverné → infinitif
+    ("Il a mangé une pomme.", "mangé", "mange", "-e/-é (participe)"),   # témoin : « a » avoir (pas de gouverneur) → participe, pas l'infinitif
+    ("Il commence à manger sa soupe.", "manger", "mange", "-é/-er"),
+    ("Elle continue à travailler tard.", "travailler", "travaille", "-é/-er"),
+    ("On apprend à nager cet été.", "nager", "nage", "-é/-er"),
+    ("Il réussit à lever la main.", "lever", "lève", "-é/-er"),
     # ⭐ 04/10/2026 — « ce » devant un verbe → se (orange)
     ("Elle sort et se promène au parc.", "se", "ce", "ce/se"),
     ("Elle veut se reposer un peu.", "se", "ce", "ce/se"),
@@ -7299,7 +7336,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 250   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe)
+    _PLANCHER = 255   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
