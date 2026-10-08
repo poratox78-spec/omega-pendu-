@@ -17,6 +17,9 @@ var LISTE_INSULTES = {
     negre: 'haine', negresse: 'haine', negro: 'haine', bougnoule: 'haine', bougnoul: 'haine', bicot: 'haine',
     youpin: 'haine', youpine: 'haine', youtre: 'haine', chinetoque: 'haine', niakoue: 'haine', bamboula: 'haine',
     melon: ['haine', false], raton: ['haine', false], bride: ['haine', false], crouille: 'haine', crouillat: 'haine',
+    // relues une par une en juillet 2026 pour l'argot d'OMEGA (dictee/build_argot_lex.py, DROP_GLOSS) : le Wiktionnaire
+    // ne les marque PAS comme injures — « nèg », le mépris racialisé « zoulette », le validisme « coto », « débilos », « gneugneu »
+    neg: 'haine', zoulette: 'haine', coto: 'haine', debilos: 'haine', gneugneu: 'haine',
     // haine — homophobie, transphobie
     pede: 'haine', pd: 'haine', tarlouze: 'haine', tantouze: 'haine', tafiole: 'haine', gouine: 'haine',
     travelo: 'haine', tapette: ['haine', false], pedale: ['haine', false], fiotte: 'haine',
