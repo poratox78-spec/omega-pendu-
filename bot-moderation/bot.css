@@ -30,3 +30,7 @@ details { margin-top: 6px; } summary { cursor: pointer; color: var(--doux); }
 .actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 mark { background: rgba(229,83,75,.35); color: inherit; border-radius: 2px; padding: 0 1px; }
 footer { font-size: 11px; text-align: center; margin-top: 4px; }
+.num { display: inline-block; min-width: 18px; margin-right: 5px; padding: 0 4px; border-radius: 4px; background: var(--bord);
+  color: var(--orange); font: 700 11px/16px Consolas, monospace; text-align: center; }
+.alerte { background: rgba(229,83,75,.18); border: 1px solid var(--rouge); border-radius: 6px; padding: 4px 7px; }
+.ok { color: var(--vert); }
