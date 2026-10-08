@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-10-08 — relecture des explications : la batterie Python rejouée sur le produit
+
+- Avant de décider du sort de la référence Python, sa batterie a été rejouée sur le moteur du produit (`dys-core.js` + assets),
+  avec le même jugement que `--check` : 274 cas → 258 corrigés (Python 259 ; l'écart est une phrase de test écrite « systeme » sans
+  accent, que le produit corrige en « système »), 0 faux positif réel ; 74 muettes → 1 orange (« réveil », couche orthographe) ;
+  333 phrases correctes → 1 orange (« calmât » inconnu : 736 formes en -ât manquent au dictionnaire). Le produit fait ce que fait
+  la référence sur ses propres tests ; les deux oranges viennent d'une couche que la référence ne voit pas.
+- Les 259 fautes corrigées ont ensuite servi de banc aux TEXTES : ce que le produit affiche (💡 + remède), relu un par un.
+  9 textes faux, corrigés dans la couche dys partagée (extension ≡ app ≡ app EN) :
+  - genre de l'attribut : « la voiture de mon père est vert » → « C'est mon (masculin) qui commande → verte » — un déterminant de
+    complément au genre contraire est sauté pour l'attribut ; tout autre déterminant contraire → silence (l'épithète, jamais) ;
+  - pronom élidé : « je crois qu'elle est parti » → « C'est Je qui commande » — « qu'elle », « lorsqu'il », « s'il » sont lus ;
+  - personne : « ton frère et toi mange » → mangez citait « Ton (singulier) » ; le pronom cité doit être une personne que la
+    suggestion porte ; un pronom corrigé (« il sont » → ils) n'a pas de gouverneur d'avant ;
+  - infinitif sujet : « réussir cet examen demandent » → « C'est cet qui commande » — c'est l'infinitif ;
+  - « quel » : `/^quelle?$/` ne lisait que « quelle » — « Quelle joli paysage » citait l'adjectif comme nom ;
+  - phrase-test -er/-é : « elle a préférer rester » → « Elle a mordu rester » ne se dit jamais, on répondait « non » → -er (faux) ;
+    elle s'arrête avant l'infinitif qui suit ;
+  - « je peut » → peux : la phrase-test peu/peut (« Je pouvait ») parlait d'une autre faute ;
+  - participe à la mauvaise forme (prit, fais, mit, écris, dut, eux) : la leçon d'accord « s'accorde avec le sujet après être »
+    devient le test du féminin (prise, faite, écrite) ; « dû » et « eu » ont la leur ;
+  - « demain je noté » → noterai : « repère qui commande » devient la leçon du futur en -rai ; et « je met » → mets ne dit plus
+    « le s du pluriel » (un verbe qui prend -s, c'est je/tu).
+- Mesure : sur les 15 186 phrases des 3 corpus dys et de la dictée, 0 correction changée (12 077) ; 42 💡 et 17 remèdes changés,
+  relus : des 💡 contradictoires qui se taisent, des gouverneurs justes, les leçons ci-dessus. `textes_probe` : 13 phrases
+  inventées de plus, chacune rouge sur l'ancien moteur.
+- Reste vu, non traité ici (correction, pas texte) : « Ont mange ensemble » → on ET mangé (deux rouges qui se contredisent) ;
+  « elle ces mariée » → s'est en rouge ET mariées en orange.
+
 ## 2026-10-05 — infinitif de but : la référence Python lit la même table que le produit
 
 - Vu en écrivant des témoins (lot des déterminants pluriels) : la référence Python corrigeait en rouge une phrase JUSTE,

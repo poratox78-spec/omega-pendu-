@@ -24647,6 +24647,11 @@ window.addEventListener('DOMContentLoaded', () => {
         return _pr(e,a)+'c’est le PARTICIPE : mets-le au féminin, « '+a+'e » — on n’y entend pas de « '+le.slice(-1)+' », donc « '+a+' ».';
       if(/é(e|s|es)?$/.test(la)&&/(ais|ait|aient)$/.test(le))
         return _pr(e,a)+'après un auxiliaire, c’est le PARTICIPE « '+a+' », pas l’imparfait « '+e+' ».';
+      /* ⭐ 08/10/2026 : « ils ont prit » → pris recevait « il s'accorde avec le SUJET après être… » — la faute est la FORME du participe :
+         le féminin fait entendre la lettre muette (prise, faite, écrite) ; « dû » a son accent ; « eu » n'est pas « eux ». */
+      if(la==='dû'&&/^du[ts]?$/.test(le))return _pr(e,a)+'le participe de « devoir » s’écrit « dû », avec un accent (j’ai dû partir).';
+      if(la==='eu'&&le==='eux')return _pr(e,a)+'« eu » est le participe d’« avoir » (j’ai eu de la chance) ; « eux » est un pronom (avec eux).';
+      if(/[st]$/.test(la)&&!/ous$/.test(la)&&le!==la&&le.slice(0,-1)===la.slice(0,-1))return _pr(e,a)+'mets le PARTICIPE au féminin, « '+a+'e » : on y entend le « '+la.slice(-1)+' », donc « '+a+' ».';
       if(ac)return _pr(e,a)+'le participe s’accorde ici : « '+a+' » ('+({e:'féminin singulier',s:'masculin pluriel',es:'féminin pluriel'})[ac[1]]+').';
       return _pr(e,a)+'c’est un PARTICIPE : il s’accorde avec le SUJET après « être », et avec le COD placé AVANT après « avoir ».';},
     accord:function(e,a,r){var d=_rd(e,a),le=String(e||'').toLowerCase(),la=String(a||'').toLowerCase(),vb=/verbe|sujet/.test(r||''),x;
@@ -24660,7 +24665,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if(vb&&/ait$/.test(le)&&la===le.slice(0,-3)+'aient')return _pr(e,a)+'le sujet est au PLURIEL : -aient, pas -ait.';
       if(d&&d.e===''&&d.a==='nt')return _pr(e,a)+'le sujet est au PLURIEL, il manque le « nt » du verbe.';
       if(d&&d.a===''&&d.e==='nt')return _pr(e,a)+'le sujet est au SINGULIER, le « nt » est en trop.';
-      if(vb&&d&&d.e===''&&d.a==='s'&&_persDe(la,le)==='tu')return _pr(e,a)+'avec « tu », le verbe prend un -s.';
+      if(vb&&d&&d.e===''&&d.a==='s'&&!/(^|')(il|elle)$/.test(le))return _pr(e,a)+(_persDe(la,le)==='tu'?'avec « tu », le verbe prend un -s.':'avec « je » ou « tu », ce verbe prend un -s.');   // ⭐ 08/10/2026 : « je met » → mets : un VERBE qui prend -s, c'est je/tu — jamais « le s du pluriel »
       if(d&&d.e===''&&(d.a==='s'||d.a==='x'))return _pr(e,a)+'il manque le « '+d.a+' » du pluriel — regarde ce qui commande.';
       if(d&&d.a===''&&(d.e==='s'||d.e==='x'))return _pr(e,a)+'ici c’est le singulier, le « '+d.e+' » est en trop.';
       if(d&&d.e===''&&d.a==='es')return _pr(e,a)+'il manque « es » : le féminin ET le pluriel — cherche qui commande.';
@@ -24692,6 +24697,8 @@ window.addEventListener('DOMContentLoaded', () => {
   var _RTIP={
     'accord grammatical (é/er)':function(e,a){var x=String(e||'').toLowerCase(),y=String(a||'').toLowerCase();   // ⭐ 04/10/2026 : « il commence à mange » → manger — le PRÉSENT en -e, pas un -é : la leçon « mordre / mordu » de la famille ne parlait pas de cette faute ; '' = la leçon de la famille
       return (/e$/.test(x)&&!/é$/.test(x)&&/er$/.test(y)&&deacc(y).slice(0,-2)===deacc(x).slice(0,-1))?'après « à » (il commence à…), « de » ou un verbe comme « vouloir », le verbe reste à l’INFINITIF en -er : « '+a+' ». Remplace-le par « mordre » : si la phrase se dit, c’est l’infinitif.':'';},
+    'terminaison -er/-é/-ez/-ai':function(e,a){var y=String(a||'').toLowerCase();   // ⭐ 08/10/2026 : « demain je noté » → noterai : c'est le FUTUR, pas « qui commande » ; '' = la leçon de la famille (mordre / mordu / mordez)
+      return (/rai$/.test(y)&&!/rai$/.test(String(e||'').toLowerCase()))?'ce qui VA arriver s’écrit au FUTUR : avec « je », il finit par -rai (demain, je '+y+').':'';},
     'nom féminin en -ée':function(e,a){return '« '+a+' » est ici un NOM féminin : il finit par un « e » qui ne s’entend pas (la fumée, l’arrivée).';},
     'genre de la personne qui écrit':function(e,a){return 'Avec « je », le participe ou l’adjectif s’accorde avec la personne qui écrit : « '+a+' » suit ton réglage « J’écris au féminin / au masculin ».';},
     'vingt/cent':function(e,a){return /^vingt/i.test(String(a||''))?'« vingt » prend un -s dans « quatre-vingts » quand aucun autre nombre ne le suit (quatre-vingts ans, mais quatre-vingt-deux ans).':'« cent » prend un -s quand il est multiplié et qu’aucun autre nombre ne le suit (deux cents euros, mais deux cent trois euros).';},
@@ -24802,17 +24809,22 @@ window.addEventListener('DOMContentLoaded', () => {
   function _govHint(f,T,i){var n=f.name||'',sg=String(f.sugg||''),w=String(f.word||''),g=null,lab='',gn,svn,vb,j,gd,tg,gg;
     if(!((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)||(/^personne du verbe/.test(n)&&deacc(sg.toLowerCase())!==deacc(w.toLowerCase()))))return null;
     if(n==='genre déterminant'){j=i+1;gd=GEN_DET[sg.toLowerCase()]||({quel:'m',quelle:'f'})[sg.toLowerCase()];
-      if(/^quelle?$/i.test(sg)&&i+2<T.length){tg=posTags(T);if(tg&&tg[i+1]==='ADJ')j=i+2;}   // « quelle belle maison » : la règle lit le nom APRÈS l'adjectif
+      if(/^quel(le)?$/i.test(sg)&&i+2<T.length){tg=posTags(T);if(tg&&tg[i+1]==='ADJ')j=i+2;}   // « quelle belle maison » : la règle lit le nom APRÈS l'adjectif ; ⭐ 08/10/2026 : /^quelle?$/ ne lisait pas « quel » (« Quelle joli paysage » → « C'est le nom joli »)
       return (gd&&j<T.length)?'C\'est le nom « '+T[j]+' » ('+(gd==='f'?'féminin':'masculin')+') qui commande → on accorde « '+sg+' ».':'';}
     if(/après avoir/.test(n))return 'Avec « avoir », le participe ne s’accorde pas avec le sujet (elles ont mangé) — seulement avec un COD placé AVANT (les pommes qu’elles ont mangées).';
     if(/^personne du verbe/.test(n)&&/^[a-zà-ÿ]+['’]/i.test(sg))return '';
+    if(NUM_PRON[w.toLowerCase().replace(/^[a-z]+['’]/,'')])return '';   // ⭐ 08/10/2026 : « il sont » → ils : le pronom est commandé par le VERBE qui suit
     vb=isVerb(T,i);
-    if(/genre/.test(n)||(!vb&&_diffGenre(sg,w))){gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
+    if(/genre/.test(n)||(!vb&&_diffGenre(sg,w))){gg=_govGenreH(T,i,_diffGenre(sg,w)?(deacc(sg).length>deacc(w).length?'f':'m'):null,n==='accord adjectif'||n==='accord participe');if(gg==='')return '';if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
     if(!g&&i>0&&_CARD_PL[deacc(T[i-1].toLowerCase())]){g=T[i-1];lab='pluriel';}   // ⭐ audit 11/09/2026 : « huit heure » — le CARDINAL d'à côté commande, pas le « ma » six mots plus haut
     if(!g&&i>0&&_PL_DET_X[deacc(T[i-1].toLowerCase())]&&/[sx]$/i.test(sg)){g=T[i-1];lab='pluriel';}   // ⭐ 04/10/2026 : « aux lettre », « divers objet », « certaines fleur » — ces déterminants pluriels (_PL_DET_X) manquaient au gouverneur
     if(!g&&n==='accord adjectif antéposé'&&deacc(w.toLowerCase())==='quelque'&&i+1<T.length){g=T[i+1];lab='pluriel';}   // ⭐ 04/10/2026 : « quelque enfants » — c'est le NOM qui suit qui commande
-    if(!g){gn=governorNumber(T,i,vb||isParticiple(T,i));
+    if(!g){gn=_govNumH(T,i,vb||isParticiple(T,i));
       if(gn){svn=_suggVerbNum(sg);if(svn&&svn!==gn[1])return '';   // sujet POSTPOSÉ/coordonné : le contrôleur est EN AVANT, le gouverneur arrière contredit la suggestion
+        if(/verbe|sujet|personne/.test(n)){var _rs=svReads(sg),_p3=false,_pp=({je:'1s',tu:'2s',nous:'1p',vous:'2p'})[gn[0].toLowerCase()],_okp=false;
+          for(j=0;j<_rs.length;j++){if(_rs[j][2]==='3')_p3=true;if(_pp&&_rs[j][2]+_rs[j][3]===_pp)_okp=true;}
+          if(_rs.length&&!_p3&&!_okp)return '';   // ⭐ 08/10/2026 : « Ton frère et toi mange » → mangez (le contrôleur est « vous », pas « Ton ») ; « tu nous serait » → serais (pas « nous »)
+          if(gn[2]===1&&T.length>2&&NUM_DET[T[1].toLowerCase()]&&/(er|ir|re|oir)$/i.test(T[0])&&!svReads(T[0]).length){tg=posTags(T);if(tg&&tg[0]==='VERB')gn=[T[0],'sg',0];}}   // « Réussir cet examen demandent » : le sujet est l'INFINITIF, pas « cet »
         if(!vb&&!/verbe|sujet|personne/.test(n)&&((gn[1]==='sg'&&/[sx]$/i.test(sg)&&!/[sx]$/i.test(w))||(gn[1]==='pl'&&/[sx]$/i.test(w)&&!/[sx]$/i.test(sg))))return '';   // le nombre du gouverneur contredit celui que la suggestion AFFICHE
         g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');
         if(!vb&&_diffGenre(sg,w)){gd=({elle:'féminin',elles:'féminin',il:'masculin',ils:'masculin'})[deacc(g.toLowerCase())];if(gd)lab=gd;}}}   // « Elle est parti » → partie : c'est le GENRE que le pronom commande
@@ -24830,6 +24842,25 @@ window.addEventListener('DOMContentLoaded', () => {
       if(_ERF_ADV[d]||(d==='de'&&dp==='tout')||(d==='tout'&&dn==='de')||(d==='quand'&&_ERF_ADV[dn])){k--;n++;continue;}break;}
     if(n>0&&k<a)a=k;if(el&&pk==='mordre')mot=el[1].toLowerCase()+'e '+pk;
     return {a:a,mot:mot};}
+  /* ⭐ 08/10/2026 — trois 💡 faux trouvés en rejouant les 259 fautes de la batterie sur le produit (lus par _govHint, ctxHint / _ctxHint) :
+     · le genre : « La voiture de mon père est vert » → « C'est mon (masculin) qui commande → verte » — pour l'ATTRIBUT (après « être »), un
+       déterminant de COMPLÉMENT (« de mon ») au genre contraire est sauté ; tout autre déterminant contraire → silence (un indice
+       contradictoire vaut moins que rien — l'épithète s'accorde avec le nom d'à côté : « la gauche égyptienne », jamais sauté) ;
+     · le verbe : le pronom cité doit être une PERSONNE que la suggestion porte (« tu nous serait » → serais : pas « nous ») ; un pronom
+       corrigé (« il sont » → ils) est commandé par le VERBE qui suit, pas par un mot d'avant ;
+     · le nombre : « Je crois qu'elle est parti » → « C'est Je qui commande » — le pronom ÉLIDÉ (qu'elle, lorsqu'il, s'il) est lu ;
+     · la phrase-test -er/-é s'arrête avant un INFINITIF qui suit (« Elle a mordu rester » ne se dit jamais : on répondait « non » → -er, faux) ;
+     · « je peut » → peux : la phrase-test peu/peut (« Je pouvait ») parlait d'une autre faute — ici c'est la personne. */
+  function _govGenreH(T,idx,want,attr){for(var j=idx-1;j>=0;j--){var w=T[j].toLowerCase();
+      if(GEN_DET[w]){if(!want||GEN_DET[w]===want)return[T[j],GEN_DET[w]];if(attr&&j>0&&/^(de|du|des|d')$/.test(T[j-1].toLowerCase()))continue;return '';}
+      if(NUM_DET[w]||NUM_PRON[w]||/^[a-z]+['’](il|ils|elle|elles|on)$/.test(w))return null;}return null;}
+  function _govNumH(T,idx,skipPP){for(var j=idx-1;j>=0;j--){var w=T[j].toLowerCase(),m=/^(?:qu|lorsqu|puisqu|quoiqu|s)['’](il|ils|elle|elles|on)$/.exec(w);
+      if(m)return[T[j].slice(T[j].length-m[1].length),NUM_PRON[m[1]],j];if(NUM_PRON[w])return[T[j],NUM_PRON[w],j];
+      if(NUM_DET[w]){if(skipPP&&j>0&&PREP[deacc(T[j-1].toLowerCase())])continue;return[T[j],NUM_DET[w],j];}}return null;}
+  function _erFin(T,i,pk){var b=Math.min(T.length,i+3),tg;
+    if(pk!=='mordre'&&i+1<T.length&&/(er|ir|re)$/i.test(T[i+1])&&!svReads(T[i+1]).length){tg=posTags(T);if(tg&&tg[i+1]==='VERB')b=i+1;}
+    return b;}
+  function _peuHint(f){return (f&&f.name==='peu/peux/peut'&&/^peu[xt]$/i.test(String(f.word||''))&&/^peu[xt]$/i.test(String(f.sugg||'')))?'Avec « je » ou « tu » : je peux, tu peux ; avec « il », « elle », « on » ou un nom : il peut.':'';}
   /* ⭐ 04/10/2026 — 💡 de « est » → « et » quand il RELIE deux sujets (« le chat est le chien jouent ») : le test « remplace par était » y
      trompe (« le chat était le chien » se dit) ; l'indice, c'est le VERBE au pluriel qui suit. Lu par ctxHint / _ctxHint (app ≡ ext). */
   function _hintEstEtCoord(T,i){if(!T||i==null||deacc(String(T[i]||'').toLowerCase())!=='est')return '';
@@ -30595,10 +30626,10 @@ function spellTokenCore(tok,atStart,T,idx){
   // ⭐ -er / -é (audit 11/09/2026) : ces corrections n'avaient AUCUN 💡 — `_accHint` les exclut (le gouverneur n'y dit rien) et `_famHint` rend ''.
   // Le test que tout le monde apprend, fenêtré sur la phrase de l'élève : « mordre » (infinitif) / « mordu » (participe) / « mordez » (-ez). Miroir extension _erHint.
   function _erHint(f,i){var n=f.name||'';if(!/é\/er|terminaison -er/.test(n))return '';var sg=(f.sugg||'').toLowerCase(),km=/^(.*?)(er|ez|ées|és|ée|é)$/.exec(sg);if(!km)return '';
-    var pk=km[2]==='er'?'mordre':km[2]==='ez'?'mordez':'mordu',_ef=_erFen(_curToks,i,pk),a=_ef.a,b=Math.min(_curToks.length,i+3),w=_curToks.slice(a,b);w[i-a]=_ef.mot;
+    var pk=km[2]==='er'?'mordre':km[2]==='ez'?'mordez':'mordu',_ef=_erFen(_curToks,i,pk),a=_ef.a,b=_erFin(_curToks,i,pk),w=_curToks.slice(a,b);w[i-a]=_ef.mot;
     var me=km[2]==='er'?('infinitif « '+sg+' » (-er)'):km[2]==='ez'?('« '+sg+' » (-ez, vous)'):('participe « '+sg+' » (-'+km[2]+')'),oth=km[2]==='er'?('participe « '+km[1]+'é » (-é)'):('infinitif « '+km[1]+'er » (-er)');
     return 'Astuce : remplace par « '+pk+' ». « '+(a>0?'…':'')+esc(w.join(' '))+(b<_curToks.length?'…':'')+' » se dit ? oui → '+esc(me)+' · non → '+esc(oth)+'.';}
-  function _ctxHint(f){var i=f.i;if(typeof i!=='number'||!_curToks||i>=_curToks.length)return '';if(f.auteur)return esc(_auteurHint(f));if(f.name==='et/est'&&String(f.sugg||'').toLowerCase()==='et'){var _hc=_hintEstEtCoord(_curToks,i);if(_hc)return esc(_hc);}var h=_HPROBE[f.name];if(!h)return _erHint(f,i)||_accHint(f,i);
+  function _ctxHint(f){var i=f.i;if(typeof i!=='number'||!_curToks||i>=_curToks.length)return '';if(f.auteur)return esc(_auteurHint(f));if(f.name==='et/est'&&String(f.sugg||'').toLowerCase()==='et'){var _hc=_hintEstEtCoord(_curToks,i);if(_hc)return esc(_hc);}var _ph=_peuHint(f);if(_ph)return esc(_ph);var h=_HPROBE[f.name];if(!h)return _erHint(f,i)||_accHint(f,i);
     var a=Math.max(0,i-2),b=Math.min(_curToks.length,i+3),win=_curToks.slice(a,b);win[i-a]=h[0];   // remplace le mot par le probe
     var pre=a>0?'…':'',suf=b<_curToks.length?'…':'';
     return 'Astuce : remplace par « '+esc(h[0])+' ». « '+pre+esc(win.join(' '))+suf+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
