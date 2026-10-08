@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://omegapendu.com/bot-moderation/">
+<!-- Le bot de modération du Déformateur de voix (autre produit du même auteur), à ouvrir comme DOCK dans OBS.
+     Hors du référencement d'OMEGA (noindex, hors sitemap). Source : data_local/voix/bot/page/ ; détecteur mesuré par
+     data_local/voix/bot/sondes/sonde_detecteur.cjs ; mots courants tirés de Lexique 4 (CC BY-SA 4.0, voir NOTICE). -->
+<title>Bot de modération — Déformateur de voix</title>
+<link rel="stylesheet" href="bot.css">
+</head>
+<body>
+<header>
+  <h1>🛡 Bot de modération</h1>
+  <p id="etat" class="doux">Pas connecté.</p>
+</header>
+
+<section id="connexion">
+  <div id="pas-connecte">
+    <p class="doux">Connecte ton compte Twitch (celui de ta chaîne, ou d'un modérateur) : le bot lit ton chat et repère les
+      insultes, même camouflées (c0nnard, k o n, konar…).</p>
+    <button id="connecter" class="gros">🔑 Connecter Twitch</button>
+    <div id="code-zone" hidden>
+      <p>Sur <a id="lien-activer" href="https://www.twitch.tv/activate" target="_blank" rel="noopener">twitch.tv/activate ↗</a>,
+        tape ce code :</p>
+      <p id="code" class="code"></p>
+      <p class="doux">La page attend ta validation…</p>
+    </div>
+  </div>
+  <div id="connecte" hidden>
+    <p>Chaîne : <b id="chaine"></b> · <button id="deconnecter" class="petit">Se déconnecter</button></p>
+  </div>
+</section>
+
+<section>
+  <h2>Ce que fait le bot</h2>
+  <label class="ligne"><input type="radio" name="mode" value="prevenir" checked> 👀 Prévenir seulement (rien n'est effacé)</label>
+  <label class="ligne"><input type="radio" name="mode" value="effacer"> 🧹 Effacer le message</label>
+  <label class="ligne"><input type="radio" name="mode" value="exclure"> ⏱ Effacer + exclure 10 min (haine et menaces)</label>
+  <details>
+    <summary>Ce qu'il surveille</summary>
+    <label class="ligne"><input type="checkbox" data-famille="haine" checked> Haine (racisme, homophobie, sexisme, validisme)</label>
+    <label class="ligne"><input type="checkbox" data-famille="menace" checked> Menaces (violence, suicide)</label>
+    <label class="ligne"><input type="checkbox" data-famille="insulte" checked> Insultes</label>
+    <label class="ligne"><input type="checkbox" data-famille="leger"> Moqueries (idiot, nul, noob…)</label>
+    <label class="ligne"><input type="checkbox" data-famille="juron"> Jurons (merde, putain…)</label>
+    <label class="ligne"><input type="checkbox" id="ignorer-vip" checked> Ignorer les VIP</label>
+    <label class="ligne"><input type="checkbox" id="ignorer-abonnes"> Ignorer les abonnés</label>
+    <p class="doux">Toujours ignorés : toi et tes modérateurs.</p>
+  </details>
+  <details>
+    <summary>Mots autorisés sur ta chaîne</summary>
+    <p class="doux">Un mot par ligne : le bot ne le signalera plus (un pseudo, une blague de la communauté…).</p>
+    <textarea id="autorises" rows="4" spellcheck="false"></textarea>
+  </details>
+</section>
+
+<section>
+  <h2>Essayer une phrase</h2>
+  <input id="essai" type="text" placeholder="ex. t'es qu'un k o n n a r d" autocomplete="off">
+  <p id="essai-resultat" class="doux"></p>
+</section>
+
+<section>
+  <h2>Signalements <span id="nb" class="doux"></span> <button id="vider" class="petit">Vider</button></h2>
+  <ul id="signalements"></ul>
+  <p id="aucun" class="doux">Rien pour l'instant.</p>
+</section>
+
+<footer class="doux">Déformateur de voix · <a href="https://poratox78-spec.itch.io/deformateur-de-voix" target="_blank" rel="noopener">itch.io ↗</a> ·
+  rien n'est envoyé ailleurs qu'à Twitch · mots courants : Lexique 4 (CC BY-SA 4.0)</footer>
+
+<script src="cle_son.js"></script>
+<script src="mots_fr.js"></script>
+<script src="liste_insultes.js"></script>
+<script src="detecteur.js"></script>
+<script src="bot.js"></script>
+</body>
+</html>

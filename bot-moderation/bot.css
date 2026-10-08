@@ -1,0 +1,32 @@
+/* Le look du Déformateur (graphite et orange), pensé pour un dock d'OBS : étroit (dès 280 px), sombre. */
+:root { --fond: #1e2024; --carte: #2a2d33; --bord: #3a3e46; --texte: #e8e6e3; --doux: #a3a7ae; --orange: #ff8a1f;
+  --rouge: #e5534b; --jaune: #e3b341; --vert: #3fb950; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 8px; background: var(--fond); color: var(--texte); font: 13px/1.4 "Segoe UI", system-ui, sans-serif; }
+h1 { font-size: 15px; margin: 0; color: var(--orange); }
+h2 { font-size: 13px; margin: 0 0 6px; display: flex; align-items: center; gap: 6px; }
+h2 .petit { margin-left: auto; }
+header { margin-bottom: 8px; }
+section { background: var(--carte); border: 1px solid var(--bord); border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+.doux { color: var(--doux); }
+p { margin: 4px 0; }
+a { color: var(--orange); }
+.ligne { display: flex; gap: 6px; align-items: flex-start; margin: 3px 0; }
+button { font: inherit; cursor: pointer; border-radius: 6px; }
+.gros { padding: 6px 12px; background: #c96410; color: #fff; border: 1px solid var(--orange); }
+.petit { padding: 1px 8px; font-size: 11px; background: transparent; color: var(--doux); border: 1px solid var(--bord); }
+.petit:hover { color: #fff; border-color: var(--orange); }
+.code { font: 700 22px/1.2 Consolas, monospace; letter-spacing: 3px; color: var(--orange); text-align: center; user-select: all; }
+input[type=text], textarea { width: 100%; background: var(--fond); color: var(--texte); border: 1px solid var(--bord);
+  border-radius: 6px; padding: 5px 7px; font: inherit; }
+details { margin-top: 6px; } summary { cursor: pointer; color: var(--doux); }
+#signalements { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow-y: auto; }
+#signalements li { border-left: 3px solid var(--jaune); background: #24272c; border-radius: 4px; padding: 5px 7px; margin-bottom: 5px; }
+#signalements li.haine, #signalements li.menace { border-left-color: var(--rouge); }
+#signalements li.fait { opacity: .55; }
+.qui { font-weight: 600; } .quand { color: var(--doux); font-size: 11px; float: right; }
+.texte { word-break: break-word; margin: 2px 0; }
+.pourquoi { color: var(--doux); font-size: 11px; }
+.actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+mark { background: rgba(229,83,75,.35); color: inherit; border-radius: 2px; padding: 0 1px; }
+footer { font-size: 11px; text-align: center; margin-top: 4px; }
