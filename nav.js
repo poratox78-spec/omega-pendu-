@@ -142,8 +142,9 @@
 
     var bar = document.createElement('div'); bar.className = 'a11y';
     var bT = document.createElement('button'); bT.className = 'a11y-btn'; bT.type = 'button';
+    var bD = document.createElement('button'); bD.className = 'a11y-btn a11y-dys'; bD.type = 'button';
     var bS = document.createElement('button'); bS.className = 'a11y-btn'; bS.type = 'button';
-    bar.appendChild(bT); bar.appendChild(bS);
+    bar.appendChild(bT); bar.appendChild(bD); bar.appendChild(bS);
 
     function applyTheme(t){                                   // thème clair / sombre
       root.setAttribute('data-theme', t);
@@ -154,6 +155,21 @@
     }
     applyTheme(ls('omega_theme') || 'dark');                 // défaut sombre (identité du site) ; le choix prime et est mémorisé
     bT.addEventListener('click', function(){ var n = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; save('omega_theme', n); applyTheme(n); });
+
+    // ⭐ 10/10/2026 — « Aa OMEGA Dys » : tout le site dans notre police + espacement large (site.css, html[data-dysfont]).
+    // OFF par défaut, choix retenu (omega_dysfont) ; l'app intégrée lit la même clé (événement storage). Rem : « on laisse la personne décider ».
+    var dysEn = /(^|\/)en(\/|$)/.test(location.pathname);
+    function applyDys(v){
+      if (v) root.setAttribute('data-dysfont', '1'); else root.removeAttribute('data-dysfont');
+      bD.textContent = 'Aa';
+      bD.classList.toggle('on', v);
+      bD.setAttribute('aria-pressed', v ? 'true' : 'false');
+      bD.title = dysEn ? (v ? 'OMEGA Dys font: on — click to go back to the usual font' : 'OMEGA Dys font: our font with wide spacing on the whole site')
+                       : (v ? 'Police OMEGA Dys : activée — cliquer pour revenir à la police habituelle' : 'Police OMEGA Dys : tout le site dans notre police, avec un espacement large');
+      bD.setAttribute('aria-label', bD.title);
+    }
+    applyDys(ls('omega_dysfont') === '1');
+    bD.addEventListener('click', function(){ var v = root.getAttribute('data-dysfont') !== '1'; save('omega_dysfont', v ? '1' : '0'); applyDys(v); });
 
     var LV = ['Normal', 'Grand', 'Très grand'];              // taille du texte (loupe, 3 niveaux)
     function level(){ var n = parseInt(ls('omega_read') || '0', 10); return (n === 1 || n === 2) ? n : 0; }
