@@ -143,8 +143,10 @@
     var bar = document.createElement('div'); bar.className = 'a11y';
     var bT = document.createElement('button'); bT.className = 'a11y-btn'; bT.type = 'button';
     var bD = document.createElement('button'); bD.className = 'a11y-btn a11y-dys'; bD.type = 'button';
+    var bP = document.createElement('button'); bP.className = 'a11y-btn a11y-son'; bP.type = 'button';
     var bS = document.createElement('button'); bS.className = 'a11y-btn'; bS.type = 'button';
-    bar.appendChild(bT); bar.appendChild(bD); bar.appendChild(bS);
+    var dysEn = /(^|\/)en(\/|$)/.test(location.pathname);
+    bar.appendChild(bT); bar.appendChild(bD); if (!dysEn) bar.appendChild(bP); bar.appendChild(bS);
 
     function applyTheme(t){                                   // thème clair / sombre
       root.setAttribute('data-theme', t);
@@ -158,7 +160,6 @@
 
     // ⭐ 10/10/2026 — « Aa OMEGA Dys » : tout le site dans notre police + espacement large (site.css, html[data-dysfont]).
     // OFF par défaut, choix retenu (omega_dysfont) ; l'app intégrée lit la même clé (événement storage). Rem : « on laisse la personne décider ».
-    var dysEn = /(^|\/)en(\/|$)/.test(location.pathname);
     function applyDys(v){
       if (v) root.setAttribute('data-dysfont', '1'); else root.removeAttribute('data-dysfont');
       bD.textContent = 'Aa';
@@ -170,6 +171,36 @@
     }
     applyDys(ls('omega_dysfont') === '1');
     bD.addEventListener('click', function(){ var v = root.getAttribute('data-dysfont') !== '1'; save('omega_dysfont', v ? '1' : '0'); applyDys(v); });
+
+    // ⭐ 10/10/2026 — « 🔡 » : la POLICE DE SON (sons épais ou fins, muettes en vermillon, syllabes alternées) sur le texte de
+    // TOUTES les pages (police/son_site.js). Demande de Rem : les couleurs des syllabes et des sons sur le site. OFF par défaut, mêmes
+    // clés que l'app (vdd_son, vdd_syl) : l'allumer ici l'allume dans le correcteur et la dictée, et inversement (événement
+    // storage, dans les deux sens). Français seulement (le g2p est français) : pas de bouton sur les pages /en/. Les scripts
+    // ne se chargent qu'à la première activation : rien de plus à télécharger pour qui ne s'en sert pas.
+    function chargerSon(fin){
+      var L = [['OmegaDysSonCore', '/police/son_core.js'], ['_DECL2', '/extension/assets/g2p.js'], ['OmegaSonSite', '/police/son_site.js']], i = 0;
+      (function suivant(){
+        while (i < L.length && typeof window[L[i][0]] !== 'undefined') i++;
+        if (i >= L.length) return fin();
+        var sc = document.createElement('script'); sc.src = L[i++][1]; sc.onload = suivant; sc.onerror = function(){};
+        document.head.appendChild(sc);
+      })();
+    }
+    function applySon(v, s){
+      bP.textContent = '🔡';
+      bP.classList.toggle('on', v);
+      bP.setAttribute('aria-pressed', v ? 'true' : 'false');
+      bP.title = v ? 'Police de son : activée — cliquer pour la retirer'
+                   : 'Police de son : sons épais ou fins, lettres muettes en couleur, syllabes alternées, sur tout le site';
+      bP.setAttribute('aria-label', bP.title);
+      if (v) chargerSon(function(){ try { OmegaSonSite.set(true, s); } catch (e) {} });
+      else if (window.OmegaSonSite) { try { OmegaSonSite.set(false, false); } catch (e) {} }
+    }
+    if (!dysEn) {
+      applySon(ls('vdd_son') === '1', ls('vdd_syl') === '1');
+      bP.addEventListener('click', function(){ var v = ls('vdd_son') !== '1'; save('vdd_son', v ? '1' : '0'); save('vdd_syl', v ? '1' : '0'); applySon(v, v); });
+      window.addEventListener('storage', function(e){ if (e.key === 'vdd_son' || e.key === 'vdd_syl') applySon(ls('vdd_son') === '1', ls('vdd_syl') === '1'); });
+    }
 
     var LV = ['Normal', 'Grand', 'Très grand'];              // taille du texte (loupe, 3 niveaux)
     function level(){ var n = parseInt(ls('omega_read') || '0', 10); return (n === 1 || n === 2) ? n : 0; }
