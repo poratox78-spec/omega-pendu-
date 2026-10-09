@@ -170,6 +170,35 @@ def main():
                       % (lettre, w))
                 return 1
 
+    # ⑤ LE « e » DEVANT s/ss NON FINAL (09/10/2026, police de son). COND['e']['s'] tranchait MUET : juste pour le -es FINAL,
+    # faux ailleurs — 3 076 cas dans le lexique, le gold prononce le e dans au moins 1 914 (dessert, message, essai, reste,
+    # fresque), le g2p n'en avait que 4 justes. Aucun « e » muet devant un s/ss suivi d'autre chose ; le -es final reste muet (②).
+    e_ns = []
+    for w in W2P:
+        if not w.isalpha() or 's' not in w:
+            continue
+        st = D.g2p(w)
+        for k in range(len(st) - 2):
+            if st[k]['g'] == 'e' and ((not st[k]['ph']) or st[k]['ph'] in ('∅', '')) and st[k + 1]['g'] in ('s', 'ss'):
+                e_ns.append(w); break
+    if e_ns:
+        print('✗ MUETTES : « e » déclaré MUET devant un s/ss non final dans %d mot(s) : %s'
+              % (len(e_ns), ', '.join(sorted(e_ns)[:12])))
+        return 1
+    # ⑥ les PLURIELS des c/g finaux muets (bancs, blancs, étangs) ; ⑦ « est » (verbe) et « es » : e prononcé, s et t muets
+    for w in ['bancs', 'blancs', 'troncs', 'tabacs', 'étangs', 'poings', 'longs', 'rangs']:
+        st = D.g2p(w)
+        if len(st) >= 2 and st[-2]['g'] in ('c', 'g') and st[-2]['ph'] and st[-2]['ph'] not in ('∅', ''):
+            print('✗ MUETTES : le « %s » de « %s » est donné prononcé (pluriel d un c/g final muet)' % (st[-2]['g'], w))
+            return 1
+    for w in ['est', 'es']:
+        st = D.g2p(w)
+        ok = st and all(((x['g'] == 'e') == bool(x['ph'] and x['ph'] not in ('∅', ''))) for x in st)
+        if not ok:
+            print('✗ MUETTES : « %s » mal lu (attendu : e prononcé /ɛ/, s et t muets) : %s'
+                  % (w, ' '.join(x['g'] + '/' + str(x['ph']) for x in st)))
+            return 1
+
     log('✓ muettes : r final — %d mots mesurés, %.2f %% justes, AUCUN muet à tort ; '
         'e de les/des/mes prononcé ; c/g finaux dans les deux sens ; -ent verbal muet à %.1f %% sur %d mots, 0 faux positif '
         '(le gold seul reste fautif sur %s).'

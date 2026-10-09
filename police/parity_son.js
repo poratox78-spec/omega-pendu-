@@ -145,6 +145,10 @@ const seg = w => core.wordSegments(w, DECL2.g2p);
 const find = (w, g) => seg(w).find(x => x.g.toLowerCase() === g);
 if ((find('poison', 's') || {}).cls !== 'voi') fail.push('poison : s attendu VOISÉ, eu ' + JSON.stringify(find('poison', 's')));
 if ((find('poisson', 'ss') || {}).cls !== 'srd') fail.push('poisson : ss attendu SOURD, eu ' + JSON.stringify(find('poisson', 'ss')));
+// ⭐ 09/10/2026 — trois classes de muettes fausses (voir le g2p de l'app) : e devant s/ss non final, pluriels des c/g muets, « est »
+{ const de = seg('dessert'); if (de[1].cls === 'mute') fail.push('dessert : le 1er e attendu PRONONCÉ, eu ' + JSON.stringify(de));
+  const bl = seg('blancs'); if (bl[bl.length - 2].cls !== 'mute') fail.push('blancs : le c attendu MUET (comme blanc), eu ' + JSON.stringify(bl));
+  const es = seg('est'); if (es[0].cls === 'mute' || es[1].cls !== 'mute' || es[2].cls !== 'mute') fail.push('est : e prononcé, s et t muets attendus, eu ' + JSON.stringify(es)); }
 const chats = seg('chats');
 if (chats[chats.length - 1].cls !== 'mute' || chats[chats.length - 2].cls !== 'mute')
   fail.push('chats : finales t/s attendues muettes, eu ' + JSON.stringify(chats));

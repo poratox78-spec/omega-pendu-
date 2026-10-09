@@ -6635,6 +6635,23 @@ var _DECL2 = (function () {
     if(EPRON.has(w)){
       for(let k=0;k<steps.length;k++){ if(steps[k].g==='e'){ steps[k].ph='e'; steps[k].h=0.05; break } }
     }
+    /* ⭐ 09/10/2026 — POLICE DE SON : trois classes de muettes FAUSSES, mesurées contre la vérité-terrain (même source que les
+       règles du 25-26/09). Aucune n'est une casse récente : elles datent de la table, et se voyaient dans l'aperçu même
+       (« les petits chats blancs » : le c de « blancs » affiché prononcé).
+       ① COND['e']['s'] tranche MUET (h = 1,45) : juste pour le -es FINAL (petites, portes), faux devant un s/ss qui n'est PAS
+          final — 3 076 cas, le gold prononce le e dans au moins 1 914 (dessert, message, essai, reste, fresque, respiration),
+          le g2p n'en avait que 4 justes. ss → /e/ ; s + consonne → /ɛ/ ; s + voyelle → /ə/ (besoin).
+       ② CFIN_MUET / GFIN_MUET ne lisaient que le singulier : « bancs », « blancs », « étangs », « poings » prononçaient leur c/g.
+       ③ « est » (le verbe : /ɛ/, s et t muets — le gold donne le nom « l'est ») et « es » (tu es), qui disparaissait en entier.
+       Miroir exact dans dictee/decompose.py ; gardé par dictee/muettes_probe.py et police/parity_son.js. */
+    for(let k=0;k+2<steps.length;k++){ const ek=steps[k], sk=steps[k+1];
+      if(ek.g==='e' && (!ek.ph || ek.ph==='∅') && (sk.g==='s' || sk.g==='ss')){
+        ek.ph = sk.g==='ss' ? 'e' : (/^[aeiouyàâäéèêëîïôöùûü]/.test(steps[k+2].g) ? 'ə' : 'ɛ'); ek.h = 0.05; } }
+    if(w.length>2 && w.endsWith('s') && (CFIN_MUET.has(w.slice(0,-1)) || GFIN_MUET.has(w.slice(0,-1)))){
+      const _p = steps[steps.length-2];
+      if(_p && (_p.g==='c' || _p.g==='g')){ _p.ph='∅'; _p.h=0.05; }
+    }
+    if(w==='est' || w==='es'){ for(const x of steps){ x.ph = x.g==='e' ? 'ɛ' : '∅'; x.h = 0.05; } }
     return steps
   }
   function phonScore(word) {
