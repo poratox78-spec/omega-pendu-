@@ -228,5 +228,20 @@ for (const rel of ['son_ui.js', '../extension/sidepanel.html', '../police-de-son
     if (src.indexOf('#' + hex) < 0) fail.push('couleurs : ' + rel + ' — couleur perdue : ' + nom + ' #' + hex);
 }
 
+// Le complément Word (word/son_word.js) charge le MÊME g2p et le MÊME cœur depuis le site ; ses couleurs et l'alternance des
+// syllabes étaient recopiées sans garde (son README disait encore la muette « grisée »). Document Word = fond clair : la
+// paire claire seulement.
+{
+  const p = path.join(HERE, '..', 'word', 'son_word.js');
+  if (!fs.existsSync(p)) fail.push('couleurs : word/son_word.js introuvable');
+  else {
+    const src = fs.readFileSync(p, 'utf8').toLowerCase();
+    for (const [nom, hex] of [['muette (clair)', 'a34700'], ['syllabe (clair)', '0072b2']])
+      if (src.indexOf('#' + hex) < 0) fail.push('couleurs : word/son_word.js — couleur perdue : ' + nom + ' #' + hex);
+    if (!/idx\[i\]\s*%\s*2\s*===\s*1/.test(src)) fail.push('syllabes : word/son_word.js ne colore plus les syllabes IMPAIRES');
+    if (!/voi:\s*'omega dys heavy'/.test(src) || !/srd:\s*'omega dys light'/.test(src)) fail.push('graisse : word/son_word.js — voisé Heavy / sourd Light perdus');
+  }
+}
+
 if (fail.length) { console.error('PARITÉ SON — ÉCHEC :'); fail.forEach(f => console.error('  ✗ ' + f)); process.exit(1); }
-console.log('PARITÉ SON — OK (fraîcheur bloc + TTF, clitiques ≡ Python, texte intact, ancres voisé/sourd/muettes, plage de graisse sur 5 sources, table voisé=Heavy/sourd=Light et alternance des syllabes identiques dans son_ui, l\'extension, la page et le 🔡 du site, mêmes couleurs partout)');
+console.log('PARITÉ SON — OK (fraîcheur bloc + TTF, clitiques ≡ Python, texte intact, ancres voisé/sourd/muettes, plage de graisse sur 5 sources, table voisé=Heavy/sourd=Light et alternance des syllabes identiques dans son_ui, l\'extension, la page, le 🔡 du site et Word, mêmes couleurs partout)');
