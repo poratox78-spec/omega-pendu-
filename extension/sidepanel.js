@@ -11,7 +11,7 @@
       vigEl = document.getElementById('omdys-vig'), compsEl = document.getElementById('omdys-comps'),
       undoBtn = document.getElementById('omdys-undo'), szSel = document.getElementById('omdys-size'),
       dkCb = document.getElementById('omdys-dark'), bubCb = document.getElementById('omdys-bubble'),
-      ftCb = document.getElementById('omdys-font');
+      ftCb = document.getElementById('omdys-font'), ssCb = document.getElementById('omdys-sonsites');
 
   // ===== UNE SEULE ZONE DE CORRECTION (Rem, 07/2026 : « on garde que le panneau, c'est plus lisible ») : la bulle
   // flottante est DÉCOCHÉE par défaut. Elle reste à un clic — décocher ne coupe QUE la bulle et la correction auto
@@ -76,8 +76,12 @@
     // ⭐ 10/10/2026 — « Aa OMEGA Dys » : une case, une clé (omDysFont). content.js habille les pages consultées, aide.js le guide.
     chrome.storage.local.get(['omDysFont'], function (o) { ftCb.checked = !!(o && o.omDysFont); document.body.classList.toggle('omfont', ftCb.checked); });
     ftCb.addEventListener('change', function () { chrome.storage.local.set({ omDysFont: ftCb.checked }); document.body.classList.toggle('omfont', ftCb.checked); });
+    // ⭐ 10/10/2026 — « 🎨 Couleurs sur les sites » (omSonSites) : son_pages.js peint les pages consultées, sans toucher à leur texte.
+    chrome.storage.local.get(['omSonSites'], function (o) { ssCb.checked = !!(o && o.omSonSites); });
+    ssCb.addEventListener('change', function () { chrome.storage.local.set({ omSonSites: ssCb.checked }); });
     chrome.storage.onChanged.addListener(function (ch, area) {   // live : réglé ailleurs → suit sans recharger
       if (area !== 'local') return;
+      if (ch.omSonSites) ssCb.checked = !!ch.omSonSites.newValue;
       if (ch.omDysFont) { ftCb.checked = !!ch.omDysFont.newValue; document.body.classList.toggle('omfont', ftCb.checked); }
       if (ch.omSize) { szSel.value = ch.omSize.newValue || 'p'; }
       if (ch.omDark) { dkCb.checked = !!ch.omDark.newValue; }

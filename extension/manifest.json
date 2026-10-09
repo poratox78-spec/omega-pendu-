@@ -24,6 +24,9 @@
       ],
       "js": [
         "dys-core.js",
+        "assets/son_core.js",
+        "assets/g2p.js",
+        "son_pages.js",
         "content.js"
       ],
       "css": [

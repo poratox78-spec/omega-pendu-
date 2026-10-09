@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-10-10 (suite) — « 🎨 Couleurs sur les sites » : la police de son PEINTE sur les sites consultés, sans toucher à leur texte
+
+- Rem a demandé si l'extension avait le même manque que le site — oui : la police de son ne vivait que dans le panneau. Nouvelle case
+  du panneau (clé `omSonSites`, OFF par défaut) ; `extension/son_pages.js`, script de contenu (avec `assets/son_core.js` et
+  `assets/g2p.js`, les mêmes fichiers que le panneau et le site).
+- ⚠ PAS de <span> sur les sites des autres : couper le texte casse les éditeurs, les formulaires et les sites React (ils mettent à
+  jour LEURS nœuds texte — le défaut connu des traducteurs de page). Chrome PEINT par-dessus : CSS Custom Highlight API
+  (`::highlight`) + `StaticRange` (une Range vivante ralentirait chaque mutation du site). Le corps de la page ne change pas d'un nœud (seule une feuille de style s'ajoute dans <head>).
+- Ce que la peinture permet, essayé dans Chrome avant d'écrire : la couleur (muette vermillon, syllabes alternées bleues, mêmes
+  couleurs Okabe-Ito) et `text-shadow` (épaissit le voisé, en em : suit la taille du texte). Ce qu'elle ne permet pas :
+  `font-weight`, `font-family`, `-webkit-text-stroke` — les sourds ne s'amincissent pas ; la police de son complète reste
+  dans le panneau et sur le site. Variante claire des couleurs quand le texte est clair (fond sombre).
+- Texte À LIRE (paragraphes, listes, titres, tableaux, citations), en français ou sans langue déclarée ; jamais les champs, le
+  code, les boutons, les icônes, la bulle. Paresseux (IntersectionObserver) ; un texte réécrit par le site est repeint
+  (characterData), les zones des nœuds retirés sont libérées.
+- Vu sur fr.wikipedia.org (paquet réel, Chrome) : seul, et avec « Aa ». Sur une page, les liens bleus et les syllabes bleues
+  se ressemblent : c'est le prix d'une seule teinte de syllabe.
+- ⚠ Pris avant le commit : `build_zip.py` livre une LISTE de fichiers — `son_pages.js`, déclaré dans le manifest, n'était pas
+  dans le zip : Chrome aurait refusé l'extension installée depuis le site. La garde des références lisait les pages et les
+  scripts, pas le manifest ; elle le lit maintenant (vue rouge en retirant le fichier de la liste).
+- Garde : `navigateur_ext_probe.js` (paquet réel) — zones peintes sur le français (muette, syllabe, voisé), rien sur l'anglais,
+  le code ni le champ, corps de la page identique (nœuds et texte), texte réécrit repeint, décochée → rien, panneau suit. Vue
+  rouge en retirant le filtre de langue. L'onglet est mis au premier plan : une page cachée ne peint rien, à dessein.
+- Tuto : aide.html, Réglages. ⚠ Store (> 0.6.46) : deux réglages visibles de plus (« Aa », « 🎨 ») → lignes du §3 de la fiche.
+
 ## 2026-10-10 (suite) — « Aa OMEGA Dys » dans le panneau de l'extension : les SITES CONSULTÉS changent de police
 
 - Rem : « mets le bouton Aa dans le panneau ; ça changera la police des sites consultés ? » — oui, c'est le sens retenu. Une case
