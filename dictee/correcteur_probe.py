@@ -368,6 +368,24 @@ def _eer_gouv_inf(T, k):
     return r in _EER_PINF or (d != 'a' and d in MODAL) or _eer_minf(T, k)
 
 
+# ⭐ 09/10/2026 — ÊTRE + mot en -er que rule_e_er / rule_flexion_er mettaient au participe en rouge : « il est fier de » → fié,
+# « il est boulanger » → boulangé. ADJECTIF (lecture A) → silence ; surtout NOM (P(NOM) ≥ 0,5) → orange (tier_of). Miroir JS _etreAttrEr.
+_ETRE_ER = {'etre', 'ete', 'etant', 'serait', 'seraient', 'etions', 'etiez'}
+
+
+def _etre_attr_er(T, i):
+    lw = T[i].lower(); d = deacc(lw)
+    if i < 1 or not d.endswith('er'): return None
+    k = i - 1
+    while k > 0 and deacc(T[k].lower()) in _EER_ADV: k -= 1
+    tk = deacc(T[k].lower()); p = tk.split("'")[-1]
+    if p not in D.AUX_ETRE and p not in _ETRE_ER: return None
+    if re.match(r"^[smt]'", tk) or (k > 0 and deacc(T[k-1].lower()) in ('se', 'me', 'te', 'nous', 'vous')): return None   # pronominal → fié
+    if 'A' in _spos(lw): return 'A'
+    np_ = NOUN_POST.get(d) if NOUN_POST else None
+    return 'N' if (np_ and np_[0] >= PL_TAU_M) else None
+
+
 def rule_e_er(T, i):
     if i >= 2:
         _pse = deacc(T[i-1].lower())
@@ -430,6 +448,7 @@ def rule_e_er(T, i):
             break
     _av_adv = _kv < i - 1 and _kv >= 0 and re.sub(u"^t['’](as|auras)$", r'\1', re.sub(u"^[nj]['’]", '', T[_kv].lower())) in _EER_AVOIR   # forme ÉCRITE : « à » n'est pas « a »
     if p in AUX or _av_adv or p == 'etant' or (p == 'fois' and i >= 2 and deacc(T[i-2].lower()) == 'une'):
+        if _etre_attr_er(T, i) == 'A': return None   # « il est fier de » : adjectif attribut, pas « fié »
         # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — c'est la
         # 3e forme la plus souvent erronée du français dys (Bodard 2020). « tout en cherchent A trouver »,
         # « elle se lance A chanter », « une difficulté A étudier » : la règle lisait ce « a » comme l'AUXILIAIRE
@@ -769,6 +788,7 @@ def rule_flexion_er(T, i):
         if rule_a_aa(T, i - 1) == 'a': return None
         tgt = 'inf'                               # « à »/« À » = PRÉPOSITION → infinitif (AVANT avoir : « à » désaccentué = « a »)
     elif p in _AUX_AV or praw == "j'ai":          # avoir immédiat → participe (« avez classez »→classé)
+        if _etre_attr_er(T, i) == 'A': return None   # « il est fier de » : adjectif attribut
         # ⭐ MÊME GARDE QUE `rule_e_er` (22/08) : le scripteur dys écrit « a » pour « à » (3e forme la
         # plus souvent erronée, Bodard 2020). « tout en cherchent A trouver » : ce « a » lu comme
         # AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION → infinitif. Les DEUX
@@ -2657,6 +2677,7 @@ def rule_pp_etre(T, i):
     « elle est venu »→venue, « nous sommes sorti »→sortis, « elle est mort »→morte, « ils sont transformé »→transformés.
     Sujet = pronom fiable (il/elle/ils/elles/nous/je/tu ; on/vous exclus car ambigus). Genre inconnu (je/tu/nous) →
     on GARDE le genre écrit (jamais de fém→masc forcé). FP≈0 : ne se déclenche QUE si le participe est en DÉSACCORD."""
+    if _etre_attr_er(T, i) == 'A': return None   # ⭐ 09/10/2026 : « il est fier de lui » → « fié » — l'adjectif attribut (_etre_attr_er)
     lw = T[i].lower()
     if "'" in lw: return None
     base = _pp_base(T[i])                                      # base masc-sing du participe (tous groupes) ; None sinon
@@ -5350,7 +5371,7 @@ def _pson_cands(n):
 
 
 def rule_pluriel_son(T, i):
-    if i > 0 and _ces_cest(T, i - 1): return None   # ⭐ 30/09/2026 : derrière « ces/ses » lu « c'est » (miroir JS plurielSonVig)
+    if i > 0 and (_ces_cest(T, i - 1) or rule_ces_sest(T, i - 1)): return None   # ⭐ 09/10/2026 : et « ces » corrigé en s'est (« elle ces mariée ») ; 30/09/2026 : derrière « ces/ses » lu « c'est » (miroir JS plurielSonVig)
     if i < 1: return None
     ph, fr, po, gram, _k = _pson_tables()
     if not ph: return None
@@ -5436,7 +5457,7 @@ def rule_adj_ante_plural(T, i):
     # « les » est aussi PRONOM (« il les autre… » n'existe pas, mais « on les grand… » non plus) : après « les », exiger un
     # mot qui SUIT (nom ou adjectif) — jamais en fin de phrase (« il les seul » ≠ groupe nominal).
     if deacc(T[i - 1].lower()) == 'les' and not (i + 1 < len(T) and T[i + 1][:1].isalpha()): return None
-    if _ces_cest(T, i - 1): return None                                   # ⭐ 30/09/2026 : « Ces vrai que » — ce « ces » est « c'est » (miroir JS)
+    if _ces_cest(T, i - 1) or rule_ces_sest(T, i - 1): return None       # ⭐ 09/10/2026 : et « ces » → s'est ; 30/09/2026 : « Ces vrai que » — ce « ces » est « c'est » (miroir JS)
     return pl if pl != w else None
 
 
@@ -6590,7 +6611,7 @@ def rule_on_ont_sujet_pluriel(T, i):
     return 'ont'
 
 
-VIG_FAMILIES = ('a/à', 'et/est', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
+VIG_FAMILIES = ('accord grammatical (é/er)', '-é/-er', 'terminaison -er/-é/-ez/-ai', 'a/à', 'et/est', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'accord du verbe au sujet nominal à vérifier',
                 'on/ont après un sujet pluriel à vérifier', 'élision inversée')
@@ -6631,6 +6652,8 @@ def tier_of(T, i, name, sugg):
         return 'vigilance' if (_rule_et_est_base(T, i) is None and (_rule_et_est_nouveau(T, i) is not None or _rule_est_et_coord(T, i) is not None)) else 'auto'
     if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge
         return 'vigilance' if deacc(T[i].lower()) in _AVOIR_HOMO else 'auto'
+    if name in ('accord grammatical (é/er)', '-é/-er', 'terminaison -er/-é/-ez/-ai'):   # ⭐ 09/10/2026 : « est boulanger » — un métier ou un participe mal écrit : orange
+        return 'vigilance' if _etre_attr_er(T, i) == 'N' else 'auto'
     if name == 'aux mal orthographié':                    # ⭐ 29/09/2026 : « il été » → était (ou « a été ») = orange ; le reste = rouge
         return 'vigilance' if deacc(T[i].lower()).split("'")[-1] == 'ete' else 'auto'
     if name == u'élision inversée':                        # ⭐ 13/09/2026 : rouge seulement là où le mot complet est sûr (cf. _deselide)
@@ -6877,6 +6900,10 @@ MUETS = [
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
     ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Il est fier de lui.", "« fier » ADJECTIF attribut après « être » : pas le participe de « se fier » (« fié » était rouge, 09/10/2026)."),
+    ("Jean est boulanger depuis dix ans.", "un MÉTIER (nom en -er) après « être » : orange au plus, jamais « boulangé » en rouge (09/10/2026).", 'rouge'),
+    ("Mon oncle était conseiller municipal.", "un métier après « être » : orange au plus (09/10/2026).", 'rouge'),
+    ("Elle ces mariée très jeune.", "« ces » → s'est : « mariée » ne passe pas au pluriel derrière un « ces » corrigé (09/10/2026).", None, 'mariée'),
     ("Ont mange ensemble.", "« Ont » → on (pas de sujet) : plus d'auxiliaire, donc pas de participe « mangé » — les deux rouges donnaient « on mangé » (09/10/2026).", None, 'mange'),
     ("Les filles en ont profite.", "« en » ne coupe pas le sujet pluriel « les filles » : « ont » est juste, seul « profite » est faux (09/10/2026).", None, 'ont'),
     ("Il va au grand marché du samedi.", "« marché » est aussi un NOM (lexique : N et V) : l'infinitif de but ne lit que les verbes PURS, comme le produit (05/10/2026)."),
@@ -6964,6 +6991,7 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Il s'est fié à moi.", "fié", "fier", "participe après s'est"),   # ⭐ 09/10/2026 : pronominal — la garde « fier » adjectif ne s'applique pas après « s'est »
     ("Les filles en ont profité.", "profité", "profite", "-e/-é (participe)"),   # ⭐ 09/10/2026 : « en » entre le sujet et « ont » — avant, « ont » → on en rouge
     # ⭐ PLURIEL PAR LE SON (28/09/2026, orange) : derrière un déterminant pluriel, le mot de même son marqué du pluriel — homographe
     # d'un verbe (plante, produit, porte) ou MAUVAIS homophone (mure → murs : le pluriel du mot écrit serait « mures »).
@@ -7368,7 +7396,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 260   # 09/10/2026 : +1 (« les filles en ont profite ») ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 261   # 09/10/2026 : +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:

@@ -25432,6 +25432,20 @@ window.addEventListener('DOMContentLoaded', () => {
   function _eerMinfV(T,k){if(!_eerMinf(T,k))return false;if(k<1)return true;var q=T[k-1].toLowerCase(),dq=deacc(q);return !!(svReads(q).length||_EER_PINF[q]||dq==='d'||MODAL[dq]||_EER_ADV[dq]||_EER_CLIT[dq]||dq==='et'||dq==='ou'||dq==='mais'||dq==='puis'||(_SEG&&k<_SEG.bb.length&&_SEG.bb[k]));}
   function _eerDu(T,k){if(k<1)return false;var d=T[k].toLowerCase();if(d!=='dû'&&d!=='du')return false;var a=deacc(T[k-1].toLowerCase()).replace(/^[jn]['’]/,'');return !!_EER_AVOIR[a];}
   function _eerGouvInf(T,k){if(k<0)return false;var r=T[k].toLowerCase(),d=deacc(r);if(r==='à'&&k>0&&/^(quant|grace)$/.test(deacc(T[k-1].toLowerCase())))return false;   /* « quant à lui », « grâce à elle » : locutions, le pronom n'annonce pas un verbe */var _dd=d.replace(/^(j|n|qu)'/,'');if(_dd!==d&&_dd!=='a'&&MODAL[_dd])return true;   /* « j'aime m'habillé » : le modal collé à son pronom */return _EER_PINF[r]||(d!=='a'&&MODAL[d])||_eerMinf(T,k);}
+  /* ⭐ 09/10/2026 — ÊTRE + mot en -er, que rEer et rFlexionEr mettaient au PARTICIPE en rouge : « il est fier de lui » → « fié »,
+     « il est boulanger » → « boulangé » (UD : 4 rouges faux sur 6 de cette forme). Deux lectures que le participe écrasait :
+     · l'ADJECTIF (lecture A du speller : fier) est un attribut → la règle se tait ;
+     · le mot surtout NOM (P(NOM) ≥ 0,5, la porte du moteur : boulanger 0,85, conseiller 0,75, boucher 0,58) est un attribut (un
+       métier) OU un participe mal écrit (« le tuyau est boucher » → bouché) : le sens seul tranche → ORANGE (_tierOf).
+     Miroir Python _etre_attr_er. */
+  var _ETRE_ER={etre:1,ete:1,etant:1,serait:1,seraient:1,etions:1,etiez:1};
+  function _etreAttrEr(T,i){var lw=String(T[i]||'').toLowerCase(),d=deacc(lw);if(i<1||!/er$/.test(d))return null;
+    var k=i-1;while(k>0&&_EER_ADV[deacc(T[k].toLowerCase())])k--;var tk=deacc(T[k].toLowerCase()),p=tk.split("'").pop();
+    if(!AUX_ETRE[p]&&!_ETRE_ER[p])return null;
+    if(/^[smt]'/.test(tk)||(k>0&&/^(se|me|te|nous|vous)$/.test(deacc(T[k-1].toLowerCase()))))return null;   // « il s'est fier à moi » : pronominal → fié
+    if(_spos(lw).indexOf('A')>=0)return 'A';
+    var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(d):NOUN_POST[d]):null;
+    return (np&&np[0]>=PL_TAU_M)?'N':null;}
   function rEer(T,i){
     if(i>=2){var _pse=deacc(T[i-1].toLowerCase());
       if((_pse==='sais'||_pse==='sait')&&(function(){var _p2=deacc(T[i-2].toLowerCase());return _p2==='il'||_p2==='elle'||_p2==='on';})()&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}   // « il sais trompé » = frame s'est (orange saisVig) — ne pas fabriquer « sait tromper » ; « je sais nagé »→nager reste corrigé
@@ -25440,7 +25454,8 @@ var w=T[i],lw=w.toLowerCase(),f;
       var _rd=lw.slice(2),_infd=_rd.slice(0,-1)+'er',_gd=_GACC[_rd];if(!NOUN_E[deacc(_rd)]&&COMMON_VERBS[deacc(_infd)]&&_gd!=='m'&&_gd!=='f')return w.slice(0,2)+_infd;return null;}
     var _mcl=/^(m|t|s)'([a-zà-ÿœ]+é)$/.exec(lw);   /* « l' » exclu : c'est aussi le déterminant (« dans l'encadré ») */if(_mcl&&i>0&&w.charAt(2)===w.charAt(2).toLowerCase()){var _km=i-1,_na=0;while(_km>0&&_na<2&&_EER_ADV[deacc(T[_km].toLowerCase())]){_km--;_na++;}if(_eerGouvInf(T,_km)){var _rm=_mcl[2],_im=_rm.slice(0,-1)+'er',_gm=_GACC[_rm];if(!NOUN_E[deacc(_rm)]&&COMMON_VERBS[deacc(_im)]&&_gm!=='m'&&_gm!=='f')return w.slice(0,2)+_im;}return null;}
     if(lw.indexOf("'")>=0)return null;if(w.charAt(0)!==w.charAt(0).toLowerCase())return null;   /* ⭐ CAPITALE EN COURS DE PHRASE = NOM PROPRE (08/09/2026, miroir Python) : « est Allier Comté Communauté »→Allié, « avec Honoré de Balzac »→Honorer, « Cry Me a River »→Rivé. La règle SŒUR rEPpl porte exactement cette ligne ; celle-ci ne testait aucune capitale. Mesuré : 0 correction perdue, 6 FP éteints, 2 tirs éteints sur UD (français CORRECT : « Louis de Frotté », « avec Aimé Picquet »). */if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())]&&!(i>=1&&(_eerMinfV(T,i-1)||_eerDu(T,i-1))&&i+1<T.length&&_EER_DET[deacc(T[i+1].toLowerCase())]))return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A'){if(rA(T,i-1)==='a')return null;   // CASCADE DE DEUX ROUGES : « statue À CONSERVÉ » recevait « à »→« a » ET « conservé »→« conserver » → « a conserver », faute FABRIQUÉE. Si le correcteur juge lui-même ce « à » faux, l'ancre ne vaut rien → abstention (miroir Python rule_e_er)
-    return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});}var p=cprev(T,i);var _pel=/^[nj]['’](.+)$/.exec(p||'');if(_pel&&AUX_AVOIR[_pel[1]])p=_pel[1];var _ptu=/^t['’](as|es|auras)$/.exec(p||'');if(_ptu)p=_ptu[1];   /* ⭐ 04/10/2026 : « t'as / t'auras » = TU as / auras (jamais « te » + as : « te » a un autre sujet devant) ; « t'es » = tu es, ou te + es après « tu » (« tu t'es tromper ») — un auxiliaire dans tous les cas : « t'as manger » → mangé, « t'es aller » → allé */   /* ⭐ 03/10/2026 : AVOIR avec « n' » ou « j' » collé (« il n'a pas manger » → mangé) ; pas « s'est / n'est » (être : « ce n'est renverser » est juste), ni l' / m' / t' (le participe peut s'accorder avec ce pronom : « il m'a aidée ») */var _kv=i-1;if(!CAUX[p]){while(_kv>0&&i-_kv<=4){var _dv=deacc(T[_kv].toLowerCase());if(_dv==='meme'&&_kv>=2&&deacc(T[_kv-1].toLowerCase())==='de'&&deacc(T[_kv-2].toLowerCase())==='tout'){_kv-=3;continue;}if(_dv==='meme'&&_kv>=1&&deacc(T[_kv-1].toLowerCase())==='quand'){_kv-=2;continue;}if(_EER_ADV[_dv]||_dv==='rien'){_kv--;continue;}break;}}var _avAdv=(_kv<i-1&&_kv>=0&&_EER_AVOIR[T[_kv].toLowerCase().replace(/^[nj]['’]/,'').replace(/^t['’](as|auras)$/,'$1')]);   /* forme ÉCRITE : « à » désaccentué n'est pas l'auxiliaire « a » */if(CAUX[p]||_avAdv||p==='etant'||(p==='fois'&&i>=2&&deacc(T[i-2].toLowerCase())==='une')){
+    return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});}var p=cprev(T,i);var _pel=/^[nj]['’](.+)$/.exec(p||'');if(_pel&&AUX_AVOIR[_pel[1]])p=_pel[1];var _ptu=/^t['’](as|es|auras)$/.exec(p||'');if(_ptu)p=_ptu[1];   /* ⭐ 04/10/2026 : « t'as / t'auras » = TU as / auras (jamais « te » + as : « te » a un autre sujet devant) ; « t'es » = tu es, ou te + es après « tu » (« tu t'es tromper ») — un auxiliaire dans tous les cas : « t'as manger » → mangé, « t'es aller » → allé */   /* ⭐ 03/10/2026 : AVOIR avec « n' » ou « j' » collé (« il n'a pas manger » → mangé) ; pas « s'est / n'est » (être : « ce n'est renverser » est juste), ni l' / m' / t' (le participe peut s'accorder avec ce pronom : « il m'a aidée ») */var _kv=i-1;if(!CAUX[p]){while(_kv>0&&i-_kv<=4){var _dv=deacc(T[_kv].toLowerCase());if(_dv==='meme'&&_kv>=2&&deacc(T[_kv-1].toLowerCase())==='de'&&deacc(T[_kv-2].toLowerCase())==='tout'){_kv-=3;continue;}if(_dv==='meme'&&_kv>=1&&deacc(T[_kv-1].toLowerCase())==='quand'){_kv-=2;continue;}if(_EER_ADV[_dv]||_dv==='rien'){_kv--;continue;}break;}}var _avAdv=(_kv<i-1&&_kv>=0&&_EER_AVOIR[T[_kv].toLowerCase().replace(/^[nj]['’]/,'').replace(/^t['’](as|auras)$/,'$1')]);   /* forme ÉCRITE : « à » désaccentué n'est pas l'auxiliaire « a » */if(CAUX[p]||_avAdv||p==='etant'||(p==='fois'&&i>=2&&deacc(T[i-2].toLowerCase())==='une')){if(_etreAttrEr(T,i)==='A')return null;   // « il est fier de » : adjectif attribut, pas « fié » (_etreAttrEr)
+
       // ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL, parité Python rule_e_er) : le scripteur dys
       // confond a/à (3e forme la plus souvent erronée, Bodard 2020). « tout en cherchent A trouver », « elle se lance
       // A chanter » : ce « a » lu comme AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION.
@@ -25481,7 +25496,7 @@ var w=T[i],lw=w.toLowerCase();
     var hypv=(nx==='vous'&&_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1]);
     if(hypv)tgt='p2pl';
     else if(praw==='à'||T[i-1]==='A'||T[i-1]==='À'){if(rA(T,i-1)==='a')return null;tgt='inf';}   // MÊME CASCADE que rEer : si le correcteur juge lui-même ce « à » faux (« statue à conservé »→« a »), l'ancre ne vaut rien — proposer l'infinitif fabriquerait « a conserver » (miroir Python rule_flexion_er)
-    else if(_AUX_AV[p]||praw==="j'ai"){
+    else if(_AUX_AV[p]||praw==="j'ai"){if(_etreAttrEr(T,i)==='A')return null;   // « il est fier de » : adjectif attribut (_etreAttrEr)
       // ⭐ MÊME GARDE QUE rEer (22/08, parité Python rule_flexion_er) : le scripteur dys écrit « a »
       // pour « à ». « tout en cherchent A trouver » : ce « a » lu comme AUXILIAIRE rendait le participe,
       // alors que c'est une PRÉPOSITION. Les DEUX règles partageaient l'angle mort ; mesuré sur le
@@ -26951,7 +26966,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var w=T[i];if(!/^[A-Za-zÀ-ÿœŒæÆ]+$/.test(w)||w!==w.toLowerCase())return null;var pl=_ADJ_ANTE_PL[deacc(w)];if(!pl)return null;
     if(_SEG&&_SEG.hy&&(_SEG.hy[i]||_SEG.hy[i+1]))return null;   // trait d'union AVANT ou APRÈS (« grand-mères ») : hy[k] = trait dans l'espace qui précède le token k
     if(pd==='les'&&!(i+1<T.length&&/^[A-Za-zÀ-ÿœŒæÆ]/.test(T[i+1])))return null;
-    if(cesCestVig(T,i-1))return null;   // ⭐ 30/09/2026 : « Ces vrai que » — ce « ces » est « c'est » (miroir Python)
+    if(cesCestVig(T,i-1)||rCesSest(T,i-1))return null;   // ⭐ 09/10/2026 : et « ces » corrigé en s'est (« elle ces mariée ») ; 30/09/2026 : « Ces vrai que » — ce « ces » est « c'est » (miroir Python)
     return pl!==w?pl:null;}
   var _FEM_EE={"soiré": "soirée", "cheminé": "cheminée", "fumé": "fumée", "vu": "vue", "armé": "armée", "parti": "partie", "entré": "entrée", "arrivé": "arrivée", "journé": "journée", "anné": "année", "idé": "idée", "pensé": "pensée", "allé": "allée", "monté": "montée", "duré": "durée", "matiné": "matinée", "poupé": "poupée", "dicté": "dictée", "rentré": "rentrée", "sorti": "sortie", "tourné": "tournée", "randonné": "randonnée", "bouché": "bouchée", "poigné": "poignée", "vallé": "vallée", "rosé": "rosée", "plongé": "plongée", "traversé": "traversée", "levé": "levée", "gelé": "gelée", "fessé": "fessée", "coulé": "coulée", "percé": "percée", "mêlé": "mêlée", "croisé": "croisée"},_DET_FEM_SUR={une:1,la:1,cette:1,ma:1,ta:1,sa:1};
   /* ⭐ NOM FÉMININ EN -ée ÉCRIT -é APRÈS DÉTERMINANT FÉMININ (13/09/2026, plan ⑤-c B — miroir Python rule_fem_ee) : « la cheminé »,
@@ -27270,7 +27285,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var sb=_etreSubject(T,i),suf=(sb&&sb[0]!=null)?(_SUBJ3[sb[0]]!==undefined?_SUBJ3[sb[0]]:(_SUBJ12[sb[0]]||'')):'';
     var sugg=_pplForm(pres,suf);
     return sugg.toLowerCase()!==lw?ckeepcase(w,sugg):null;}
-  function rPpEtre(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
+  function rPpEtre(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;if(_etreAttrEr(T,i)==='A')return null;   // ⭐ 09/10/2026 : « il est fier de lui » → « fié » (rouge faux) — l'adjectif attribut (_etreAttrEr)
     var base=_ppBase(T[i]);if(base===null)return null;
     if(/^parties?$/.test(deacc(lw))&&i+1<T.length&&/^prenantes?$/.test(deacc(T[i+1].toLowerCase())))return null;   // ⭐ 28/09/2026 : locution « partie prenante » = invariable (« elles sont partie prenante » → parties, appliqué d'office)
     if(lw==='du')return null;   // ⭐ 28/09/2026 : « ils sont du côté », « elles sont du même avis » : « du » SANS accent est l'article — le participe s'écrit « dû » (et avec « être », dus/dues). Rouge faux appliqué d'office jusque-là.
@@ -28199,7 +28214,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   // (« La pont »→Le, « leur payss »→leurs, « fut créée »→créé). Une règle dont le contexte dys pollue l'ancre n'a pas le droit de
   // s'APPLIQUER d'office : orange (clic), pas rouge. Les familles à 100 % (participe après avoir, majuscule, a/à, adjectif
   // épithète, singulier du nom) restent rouges. MIROIR Python : correcteur_probe.VIG_FAMILIES (parité extension/parity_core.js).
-  var _VIG_FAM={'a/à':1,'et/est':1,'genre déterminant':1,'leur/leurs':1,'accord participe':1,'ce/se':1,'élision inversée':1,'participe après avoir':1,'aux mal orthographié':1};   // ⭐ 13/09/2026 : élision inversée rouge seulement dans ses sous-cas sûrs (_deselide)
+  var _VIG_FAM={'accord grammatical (é/er)':1,'terminaison -er/-é/-ez/-ai':1,'a/à':1,'et/est':1,'genre déterminant':1,'leur/leurs':1,'accord participe':1,'ce/se':1,'élision inversée':1,'participe après avoir':1,'aux mal orthographié':1};   // ⭐ 13/09/2026 : élision inversée rouge seulement dans ses sous-cas sûrs (_deselide)
   var _SUBJ_PRON={il:1,elle:1,ils:1,elles:1,on:1,je:1,tu:1,nous:1,vous:1};
   var _INVAR_S={};('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars dos os heros marais palais relais jus autobus bus virus refus').split(' ').forEach(function(w){_INVAR_S[w]=1;});
   var _COLL_BARE=null;   // clé nue → nb d'entrées _GCOLL partageant la clé (jumeau accentué) — construit à la 1re demande (après _GCOLL)
@@ -28217,6 +28232,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(name==='genre déterminant'){if(i+1>=n)return 'vigilance';var nx=T[i+1].toLowerCase();if(nx!==deacc(nx))return 'auto';
       return 'vigilance';}   // nom NU : mesuré 7/12 sur texte dys (« La pont », « Le sole » = nom mal écrit qui existe) → orange
     if(name==='participe après avoir')return _AVOIR_HOMO[deacc(T[i].toLowerCase())]?'vigilance':'auto';
+    if(name==='accord grammatical (é/er)'||name==='terminaison -er/-é/-ez/-ai')return _etreAttrEr(T,i)==='N'?'vigilance':'auto';   // ⭐ 09/10/2026 : « est boulanger » / « est boucher » — un métier, ou un participe mal écrit : orange (_etreAttrEr)
     if(name==='aux mal orthographié')return deacc(T[i].toLowerCase()).split("'").pop()==='ete'?'vigilance':'auto';   // ⭐ 29/09/2026 : « il été » → était (ou « a été ») = orange ; le reste = rouge   // ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge (miroir tier_of)
     if(name==='accord participe'){for(var j=i-1;j>=Math.max(0,i-3);j--){var t=deacc(T[j].toLowerCase());if(_SUBJ_PRON[t])return 'auto';if(PRENOMS[T[j]])return 'auto';}return 'vigilance';}
     return 'vigilance';}
@@ -29412,7 +29428,7 @@ function spellTokenCore(tok,atStart,T,idx){
   function svTaisCarte(T,i){return _taisCarte(T,i,SV_TAIS);}
   var _CHIF_STOP={};('janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre vendemiaire brumaire frimaire nivose pluviose ventose germinal floreal prairial messidor thermidor fructidor '+
     'rue boulevard avenue quai place allee chemin impasse route cours square passage min sec bar km kg cm mm ml cl mg ha pt pts pourcent').split(' ').forEach(function(x){_CHIF_STOP[x]=1;});   // mois, voies, unités : après un nombre en chiffres, jamais un effectif à accorder
-  function pluralVig(T,tg,i){if(i>0&&cesCestVig(T,i-1))return null;
+  function pluralVig(T,tg,i){if(i>0&&(cesCestVig(T,i-1)||rCesSest(T,i-1)))return null;   // ⭐ 09/10/2026 : « elle ces mariée » — « ces » corrigé en s'est (rouge) n'est plus un déterminant : plus de « mariées » en face
     if(!tg||i>=tg.length)return null;
     var w=deaccS(T[i].toLowerCase());
     if(w.length<3||/[sxz]$/.test(w))return null;                       // déjà pluriel/invariable
@@ -29888,7 +29904,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var sc=function(x){return (SP.FREQ[x]||0)+(SP.FREQ[x.slice(0,-1)]||0);};   // le pluriel ET son singulier : « murs » (mur) avant « mûres »
     out.sort(function(a,b){var na=(SP.POS[a]||'').indexOf('N')>=0?0:1,nb=(SP.POS[b]||'').indexOf('N')>=0?0:1;if(na!==nb)return na-nb;var d=sc(b)-sc(a);if(d)return d;return a<b?-1:(a>b?1:0);});
     return out;}
-  function plurielSonVig(T,i){if(i>0&&cesCestVig(T,i-1))return null;if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
+  function plurielSonVig(T,i){if(i>0&&(cesCestVig(T,i-1)||rCesSest(T,i-1)))return null;if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
     if(!_PSON_DPUR[pd]&&!_PSON_DAMB[pd])return null;
     var n=T[i];if(!/^[a-zà-ÿœæ]+$/i.test(n)||n.charAt(0)!==n.charAt(0).toLowerCase())return null;
     var low=n.toLowerCase(),dn=deaccS(low);if(dn.length<2||_PSON_GRAM[dn]||CARD[dn]||CARDSTOP[dn]||CONJ_C[dn])return null;

@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-10-09 (suite) — « est fier » / « est boulanger » ; « elle ces mariée »
+
+- **ÊTRE + mot en -er** (règles -er/-é `rEer` ≡ `rule_e_er`, `rFlexionEr` ≡ `rule_flexion_er`, et l'accord du participe) : le mot
+  passait au participe en ROUGE. Recensé sur les corpus : UD 14 450, 6 corrections de cette forme, toutes fausses (« il est fier de »
+  → fié ×2, « est boulanger », « était officier ») ; 3 corpus dys, « conseiller » ×2 et « fier » ×1 faux, à côté des vrais
+  (« il est rester », « elle est monter »…). Deux lectures que le participe écrasait (`_etreAttrEr` ≡ `_etre_attr_er`) :
+  - lecture ADJECTIF dans le speller (fier) → silence. Sauf le pronominal : « il s'est fier à moi » → fié reste rouge.
+  - mot surtout NOM (P(NOM) ≥ 0,5, la porte du moteur ; boulanger 0,85, conseiller 0,75, boucher 0,58) → ORANGE : un métier, ou
+    un participe mal écrit (« le tuyau est boucher » → bouché) — le sens seul tranche.
+  - En coupant rEer sur « fier », l'accord du participe prenait le relais (« fié » rouge) : même garde.
+  - Mesure : gold 0 changement ; 3 corpus : 2 rouges → orange, 1 rouge faux retiré ; UD : 2 rouges faux retirés, 2 → orange.
+- **« elle ces mariée »** : « ces » → s'est (rouge) ET « mariée » → mariées (orange, le pluriel derrière « ces »). Les gardes du
+  pluriel lisaient déjà « ces » pris pour c'est (`cesCestVig`), pas « ces » corrigé en s'est (`rCesSest`) : ajouté au pluriel
+  orange, au pluriel par le son et à l'adjectif antéposé (trois moteurs pour les deux derniers ; le premier est propre au produit).
+- Tests : 4 silences attendus (dont 1 avec le 4ᵉ champ « seul ce mot »), 1 cas (« s'est fier » pronominal) ; plancher 261.
+
 ## 2026-10-09 — « Ont mange » : un seul rouge ; « calmât » connu (5 221 formes accentuées de Morphalou)
 
 Les deux restes vus le 08/10, traités.
