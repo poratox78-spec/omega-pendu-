@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-10-09 (soir) — passé simple après un sujet NOMINAL : « le chat prîmes » → prit, « les chats fis » → firent
+
+- Derrière un sujet nominal (« le chat », « les chats »), la règle de la personne (version orange, `sujFlexNom`) se taisait au passé
+  simple : le tagger déclassait la forme en NOM (« primes », « fis ») et deux gardes la coupaient — « primes » est aussi le pluriel
+  du nom « prime » ; « fis » ressemble à un participe (heuristique `_looksPpl`, posée pour « les randonneurs épuisés »).
+- `_psFort` (miroir Python `_ps_fort`) : une case EXACTE du passé simple, écrite avec son circonflexe (â, î, û) ou que le lexique ne
+  connaît que comme VERBE sans être un participe (« fis » ; pas « pris », « mis », qui sont aussi participes), n'est plus déclassée
+  par le tagger. Orange, comme toute la règle à sujet nominal. « Le chat pris au piège miaule » reste muet.
+- Mesure : gold, 3 corpus dys, UD 14 450 : 0 marque changée. Couverture : le chat 91,2 → 93,8 %, les chats 91,3 → 93,9 % (passé
+  simple 22/22). Reste : « le chat mangeâmes » — la table n'a pas le passé simple SINGULIER des verbes en -er (« mangea »).
+- ⚠️ Instrument : les copies de labo des lots #889 et #890 venaient du dossier principal (moteur plus ancien) — la jonction data_local
+  résolvait `../../extension` vers lui. Mesures refaites avec les versions exactes (git show) : mêmes chiffres qu'annoncés (#889 : 3 corpus 3 marques, UD 4/2 ; #890 : 0). Chemins absolus désormais.
+- Tests : 2 cas (plancher 267), 2 silences attendus.
+
 ## 2026-10-09 (fin) — passé simple irrégulier : « vous durent partir » → dûtes, « il prîmes » → prit
 
 - Le trou rendu visible par le lot accentué (« vous durent » → dûtes muet) était une classe : le passé simple des verbes

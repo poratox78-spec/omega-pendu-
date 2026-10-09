@@ -4604,7 +4604,10 @@ def rule_sujet_flexion(T, i):
     # …mais une case de paradigme peut AUSSI être un adjectif (« complexes » = complexer 2sg ET adjectif) :
     # on ne lève les gardes nom/adjectif que si le TAGGER lit un verbe ici. Mesuré : sans ce ET, 1 FP de
     # batterie (« les problèmes complexes » → complexent).
-    if not (tg and i < len(tg) and tg[i] in ('VERB', 'AUX')) and not _ouvre: _lecC = []   # ⭐ …ou un sujet-pronom net devant une case exacte (12/09/2026)
+    # ⭐ 09/10/2026 — « le chat prîmes », « les chats fis » : une case EXACTE du passé simple, avec son circonflexe (â, î, û) ou forme
+    #    seulement VERBALE au lexique sans être un participe (« fis » ; pas « pris », « mis »), n'est pas déclassée en nom par le tagger.
+    _ps_fort = any(r[1] == 'ind:pas' and (re.search('[âîû]', lw) or (_spos(lw) == 'V' and not _is_ppl(w))) for r in _casex)
+    if not (tg and i < len(tg) and tg[i] in ('VERB', 'AUX')) and not _ouvre and not _ps_fort: _lecC = []   # ⭐ …ou un sujet-pronom net devant une case exacte (12/09/2026)
     if not _lecC:
         if _looks_ppl(w) or dl.endswith(('e', 'es')) and _looks_ppl(w[:-1] if dl.endswith('e') else w[:-2]): return None
     # `_verb_or_homograph` teste la forme EXACTE : « complexe » est dans _EPICENE_ADJ, « complexes » non
@@ -6929,6 +6932,8 @@ MUETS = [
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
     ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Le chat pris au piège miaule.", "« pris » participe épithète après un nom : la garde participe tient, pas de passé simple (09/10/2026)."),
+    ("Les chats prirent la souris.", "passé simple bien accordé avec un sujet nominal : rien (09/10/2026)."),
     ("Les vacances durent deux semaines.", "« durent » = durer (pas d'infinitif derrière) : pas le passé simple de devoir (09/10/2026)."),
     ("Ils durent partir tôt.", "devoir au passé simple, bien accordé avec « ils » : rien à corriger (09/10/2026)."),
     ("Nous prîmes le train du soir.", "« prîmes » avec son circonflexe = prendre, bien accordé : rien (09/10/2026)."),
@@ -7023,6 +7028,8 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Le chat prit la souris.", "prit", "prîmes", "accord du verbe au sujet nominal à vérifier"),   # ⭐ 09/10/2026 : sujet NOMINAL + passé simple au circonflexe (orange)
+    ("Les chats firent un bruit.", "firent", "fis", "accord du verbe au sujet nominal à vérifier"),   # ⭐ 09/10/2026 : « fis », forme seulement verbale, pas un participe
     ("Vous dûtes partir tôt.", "dûtes", "durent", "personne du verbe"),   # ⭐ 09/10/2026 : « durent » + infinitif = devoir au passé simple (_ps_lect)
     ("Vous prîtes le train du soir.", "prîtes", "prîmes", "personne du verbe"),   # ⭐ 09/10/2026 : « prîmes » = prendre, pas primer (accent exact)
     ("Il prit le train du soir.", "prit", "prîmes", "personne du verbe"),   # ⭐ 09/10/2026 : avant, « prime » en rouge
@@ -7432,7 +7439,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 265   # 09/10/2026 : +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 267   # 09/10/2026 : +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:

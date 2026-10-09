@@ -27758,7 +27758,12 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var _ouvre=!!_casex.length&&!!_sub0&&_sub0[2]==='pron'&&_adj;   /* ⭐ 12/09/2026 : le tagger est CONTAMINÉ par la faute (« nous finis » → ADJ) ; sujet-pronom net + case EXACTE du paradigme → on lève les gardes nom/adjectif (miroir Python) */
     if(!_psSeul&&!_ouvre&&!_verbOrHomograph(tg,T,i))return null;   // le tagger tague NOUN tout mot INCONNU : sa garde ne peut rien dire de « mangeames » — l'index EST la preuve verbale
     var _lecC=_casex.slice();   // ACCENT-EXACT (calculé plus haut) : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
-    if(!(tg&&i<tg.length&&(tg[i]==='VERB'||tg[i]==='AUX'))&&!_ouvre)_lecC=[];   // …ou un sujet-pronom net devant une case exacte (12/09/2026)   // une case de paradigme peut aussi être un ADJECTIF (« complexes ») : le tagger tranche (miroir Python)
+    /* ⭐ 09/10/2026 — « le chat prîmes », « les chats fis » : derrière un sujet NOMINAL, le tagger déclasse la forme en nom (« primes »,
+       « fis ») et les gardes nom / participe la taisaient. Une case EXACTE du passé simple, écrite avec son circonflexe (â, î, û) ou
+       que le lexique ne connaît que comme VERBE sans être un participe (« fis » ; pas « pris », « mis »), est un verbe : le tagger ne
+       la déclasse plus. Miroir Python _ps_fort. */
+    var _psFort=false;for(k=0;k<_casex.length;k++)if(_casex[k][1]==='ind:pas'&&(/[âîû]/.test(lw)||(_spos(lw)==='V'&&!_isPpl(w))))_psFort=true;
+    if(!(tg&&i<tg.length&&(tg[i]==='VERB'||tg[i]==='AUX'))&&!_ouvre&&!_psFort)_lecC=[];   // …ou un sujet-pronom net devant une case exacte (12/09/2026)   // une case de paradigme peut aussi être un ADJECTIF (« complexes ») : le tagger tranche (miroir Python)
     if(!_lecC.length){   // la forme n'est PAS une case exacte d'un paradigme → les gardes nom/adjectif s'appliquent (miroir Python)
       if(_looksPpl(w))return null;                                          // participe épithète : « Les randonneurs épuisés »
       if(/e$/.test(dl)&&_looksPpl(w.slice(0,-1)))return null;
