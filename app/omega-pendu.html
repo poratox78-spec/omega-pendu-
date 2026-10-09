@@ -31623,6 +31623,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
     lastTheme = t;
     if (on) refreshAll();
   }).observe(document.body, {attributes: true, attributeFilter: ['class']});
+  // ⭐ 10/10/2026 — le bouton 🔡 de l'en-tête du site (nav.js) écrit les MÊMES clés : l'app, dans le cadre de la page,
+  // suit sans recharger. (Le sens inverse — les boutons d'ici vers l'en-tête — passe par le même événement, côté nav.js.)
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEY) on = e.newValue === '1';
+    else if (e.key === KEY_SYL) syl = e.newValue === '1';
+    else return;
+    try { document.body.classList.toggle('son-actif', on); } catch (x) {}
+    controls.forEach(function (c) { c(on, syl); });
+    refreshAll();
+  });
   // body.son-actif : le CSS du correcteur y gate le mode « fond→trait » — l'init ne passe pas par setOn()
   try { document.body.classList.toggle('son-actif', on); } catch (e) {}
   controls.forEach(function (c) { c(on, syl); });

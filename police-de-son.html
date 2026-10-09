@@ -48,11 +48,12 @@
   .son-mute{color:#a34700}
   .son-syl{color:#0072b2}
   .son-syl.son-mute{color:#a34700}
-  @media (prefers-color-scheme:dark){
-    .son-mute{color:#f0a04b}
-    .son-syl{color:#6cc0f0}
-    .son-syl.son-mute{color:#f0a04b}
-  }
+  /* ⚠ 10/10/2026 — LE THÈME DU SITE, PAS CELUI DE WINDOWS. C'était `@media (prefers-color-scheme:dark)` : avec
+     Windows en sombre et le site en clair (bouton ☀️/🌙 de l'en-tête), la sortie, sur fond CLAIR, recevait le bleu
+     et l'orange PÂLES du sombre — vu dans Chrome. Le site a son propre thème (html[data-theme], posé par nav.js). */
+  html[data-theme="dark"] .son-mute{color:#f0a04b}
+  html[data-theme="dark"] .son-syl{color:#6cc0f0}
+  html[data-theme="dark"] .son-syl.son-mute{color:#f0a04b}
   .pds-legende{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 0;font-size:.9em;color:var(--fg-2)}
   .pds-legende b{font-weight:600}
   .pds-panne{border-left:3px solid #e8920c;background:rgba(232,146,12,.08);padding:10px 12px;
@@ -160,6 +161,11 @@
   <p>Pour lire <strong>tout le site</strong> dans cette police, clique sur le bouton <strong>Aa</strong> en haut, à côté du
   thème&nbsp;: les lettres et les mots s'espacent aussi. Ton choix est gardé d'une page à l'autre&nbsp;; un second clic remet
   la police habituelle.</p>
+
+  <p>Pour avoir <strong>les couleurs sur tout le site</strong>, clique sur le bouton <strong>🔡</strong>, juste après
+  <strong>Aa</strong>&nbsp;: chaque page se lit comme ici, avec les sons épais ou fins, les lettres muettes en vermillon et
+  les syllabes alternées. Le correcteur et la dictée s'allument en même temps. Le texte ne change pas&nbsp;; un second clic
+  retire les couleurs.</p>
 
   <h2>Pour qui</h2>
 

@@ -167,7 +167,7 @@ if (seg('bateau').filter(x => x.cls === 'voi').length !== 1) fail.push('bateau :
 // couleur, soit la moitié de l'outil, et pas celle qui lui donne son nom. La sonde vérifiait la
 // plage de graisse dans l'app, son_ui et l'extension, et se taisait sur la page.
 const SOURCES_FONTFACE = ['../app/omega-pendu.html', 'son_ui.js', '../extension/son_panel.js',
-                          '../police-de-son.html'];
+                          '../police-de-son.html', 'son_site.js'];   // + son_site.js (10/10/2026 : le 🔡 de l'en-tête, toutes les pages)
 for (const rel of SOURCES_FONTFACE) {
   const p = path.join(HERE, rel);
   if (!fs.existsSync(p)) { fail.push('FontFace : fichier introuvable ' + rel); continue; }
@@ -192,6 +192,7 @@ const TRIO = [
   ['son_ui.js', /FAM\s*=\s*\{([^}]*)\}/, /seg\.syl\s*%\s*2/],
   ['../extension/son_panel.js', /FAM\s*=\s*\{([^}]*)\}/, /seg\.syl\s*%\s*2/],
   ['../police-de-son.html', /data-son="voi"\][^}]*\}[\s\S]{0,160}?data-son="srd"\][^}]*\}/, /idx\[k\]\s*%\s*2\s*===\s*1/],
+  ['son_site.js', /data-son="voi"\][^}]*\}[\s\S]{0,160}?data-son="srd"\][^}]*\}/, /idx\[k\]\s*%\s*2\s*===\s*1/],
 ];
 for (const [rel, reFam, reAlt] of TRIO) {
   const p = path.join(HERE, rel);
@@ -215,5 +216,17 @@ for (const [rel, reFam, reAlt] of TRIO) {
   }
 }
 
+// ── LES COULEURS (10/10/2026) ────────────────────────────────────────────────────────────────
+// police-de-son.html AFFIRMAIT que ses couleurs étaient « gardées par une sonde » : aucune ne les lisait (seules la
+// graisse et l'alternance l'étaient). Muette vermillon, syllabe bleue, en clair ET en sombre, partout pareil.
+const COULEURS = { 'muette (clair)': 'a34700', 'muette (sombre)': 'f0a04b', 'syllabe (clair)': '0072b2', 'syllabe (sombre)': '6cc0f0' };
+for (const rel of ['son_ui.js', '../extension/sidepanel.html', '../police-de-son.html', 'son_site.js']) {
+  const p = path.join(HERE, rel);
+  if (!fs.existsSync(p)) { fail.push('couleurs : fichier introuvable ' + rel); continue; }
+  const src = fs.readFileSync(p, 'utf8').toLowerCase();
+  for (const [nom, hex] of Object.entries(COULEURS))
+    if (src.indexOf('#' + hex) < 0) fail.push('couleurs : ' + rel + ' — couleur perdue : ' + nom + ' #' + hex);
+}
+
 if (fail.length) { console.error('PARITÉ SON — ÉCHEC :'); fail.forEach(f => console.error('  ✗ ' + f)); process.exit(1); }
-console.log('PARITÉ SON — OK (fraîcheur bloc + TTF, clitiques ≡ Python, texte intact, ancres voisé/sourd/muettes, plage de graisse sur 4 sources, table voisé=Heavy/sourd=Light et alternance des syllabes identiques dans son_ui, l\'extension et la page)');
+console.log('PARITÉ SON — OK (fraîcheur bloc + TTF, clitiques ≡ Python, texte intact, ancres voisé/sourd/muettes, plage de graisse sur 5 sources, table voisé=Heavy/sourd=Light et alternance des syllabes identiques dans son_ui, l\'extension, la page et le 🔡 du site, mêmes couleurs partout)');

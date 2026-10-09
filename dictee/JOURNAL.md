@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-10-10 — bouton « 🔡 » dans l'en-tête : la police de son sur toutes les pages du site
+
+- Rem a demandé pourquoi le site n'avait pas les couleurs des syllabes et des sons. Elles n'existaient que dans le correcteur, la dictée
+  et la page « Police de son » ; « Aa » ne change que la forme des lettres. Ajouté : un bouton juste après « Aa ».
+- `police/son_site.js` (chargé par `nav.js` au premier clic seulement) habille le texte À LIRE de chaque page — paragraphes,
+  listes, titres, tableaux, citations — avec le même cœur (`son_core.js`), le même g2p (`extension/assets/g2p.js`) et les mêmes
+  couleurs que l'outil. Habillage paresseux (un bloc s'habille quand il approche de l'écran) ; la page la plus longue (/recherche,
+  19 433 segments) s'habille entière en 135 ms. En-tête, code, boutons, champs, cadres : jamais touchés. Le texte ne change pas :
+  un nœud texte devient un <span> qui porte les mêmes caractères (vérifié avant de remplacer), et éteindre remet le nœud.
+- Mêmes clés que l'app (`vdd_son`, `vdd_syl`) : un seul réglage. `son_ui.js` écoute désormais l'événement storage : allumer dans
+  l'en-tête allume le correcteur du cadre, et le bouton du correcteur allume l'en-tête — sans recharger. Pas de bouton en /en/
+  (le g2p est français).
+- Limite : dans un texte en gras, la graisse dit le son (voisé épais, sourd fin) — le gras de mise en valeur ne se voit plus,
+  comme dans le correcteur.
+- Défaut trouvé en regardant : la sortie de /police-de-son prenait ses couleurs SOMBRES du réglage de Windows
+  (`prefers-color-scheme`), pas du thème du site — en thème clair avec Windows en sombre, bleu pâle sur blanc. Suit désormais
+  `html[data-theme]`. Et la page affirmait que ses couleurs étaient gardées par une sonde : aucune ne les lisait. `parity_son.js`
+  compare maintenant les quatre couleurs dans son_ui, le panneau de l'extension, la page et son_site (vu rouge en en changeant une).
+- Garde : `dictee/sonsite_probe.js`, vrai Chrome (dev.sh + CI) — OFF par défaut, habillage à l'écran puis page entière, polices
+  chargées, voisé Heavy, muette vermillon, syllabes, texte intact, en-tête et code épargnés, choix retenu, cadre synchronisé dans
+  les deux sens, pas de bouton en /en/. Vue rouge sur deux fautes réintroduites (code habillé ; synchro coupée).
+- Tuto : /police-de-son et extension/aide.html (ligne 🌐).
+
 ## 2026-10-10 (suite) — « Aa OMEGA Dys » dans le panneau de l'extension : les SITES CONSULTÉS changent de police
 
 - Rem : « mets le bouton Aa dans le panneau ; ça changera la police des sites consultés ? » — oui, c'est le sens retenu. Une case
