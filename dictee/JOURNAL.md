@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-10-09 (nuit) — police de son : « est », « dessert », « blancs » mal lus (muettes colorées)
+
+- Rem : la police de son promise sur /recherche (« muettes colorées, syllabes, le s de poison rendu voisé ») semblait cassée.
+  Vérifié dans le vrai navigateur sur le correcteur, la dictée et /police-de-son : la mécanique TOURNE (habillage, syllabes,
+  voisé épais / sourd fin, texte intact) ; c'est le g2p qui se trompait sur des mots courants — et l'aperçu montrait lui-même
+  une erreur : le c de « blancs » affiché prononcé.
+- Le g2p de l'app comparé à 5 dates (avant/après chaque correctif des 25-26/09) : ces correctifs n'ont rien cassé (ils ont
+  réparé mer, pour, sac, avec, mes) ; les erreurs datent de la table. Trois classes, mesurées contre la vérité-terrain :
+  - « e » devant s/ss NON final déclaré muet (COND['e']['s'], juste pour le -es final) : 3 076 cas, le gold prononce le e dans
+    au moins 1 914 (dessert, message, essai, reste, fresque, respiration) → ss /e/, s + consonne /ɛ/, s + voyelle /ə/ ;
+  - pluriels des c/g finaux muets (les listes ne lisaient que le singulier) : bancs, blancs, étangs, poings, tabacs → muets ;
+  - « est » (e muet, s prononcé !) et « es » (entièrement muet) → /ɛ/, s et t muets (le gold donne le nom « l'est »).
+- Mesure (`decompose.py --measure`) : g2p brut 56,5 → 57,8 % de mots exacts, nombre de phonèmes juste 85,8 → 88,9 % ; la
+  version corrigée par la table apprise reste à 60,2 % (elle compensait déjà ce défaut — l'app, elle, roule le g2p brut).
+- Gardes : `muettes_probe.py` ⑤⑥⑦ (aucun e muet devant s/ss non final sur le lexique ; pluriels ; est/es) et `parity_son.js`
+  (dessert, blancs, est sur le g2p de l'app) — rouges sur l'ancien g2p (3 074 mots).
+
 ## 2026-10-09 (soir) — passé simple après un sujet NOMINAL : « le chat prîmes » → prit, « les chats fis » → firent
 
 - Derrière un sujet nominal (« le chat », « les chats »), la règle de la personne (version orange, `sujFlexNom`) se taisait au passé

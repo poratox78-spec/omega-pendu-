@@ -240,6 +240,19 @@ def g2p(word, accents=True, seg=None):
         for k in range(len(steps)):
             if steps[k]['g'] == 'e':
                 steps[k]['ph'], steps[k]['h'] = 'e', 0.05; break
+    # ⭐ 09/10/2026 — miroir app (police de son) : ① « e » devant s/ss NON final prononcé (ss → /e/, s + consonne → /ɛ/,
+    #    s + voyelle → /ə/) ; ② pluriels des c/g finaux muets (bancs, étangs) ; ③ « est » (verbe) et « es » → /ɛ/, s et t muets.
+    for k in range(len(steps) - 2):
+        ek, sk = steps[k], steps[k + 1]
+        if ek['g'] == 'e' and ek['ph'] in ('', '∅', None) and sk['g'] in ('s', 'ss'):
+            ek['ph'] = 'e' if sk['g'] == 'ss' else ('ə' if re.match('[aeiouyàâäéèêëîïôöùûü]', steps[k + 2]['g']) else 'ɛ')
+            ek['h'] = 0.05
+    if len(w) > 2 and w.endswith('s') and (w[:-1] in CFIN_MUET or w[:-1] in GFIN_MUET):
+        if len(steps) >= 2 and steps[-2]['g'] in ('c', 'g'):
+            steps[-2]['ph'], steps[-2]['h'] = '∅', 0.05
+    if w in ('est', 'es'):
+        for x in steps:
+            x['ph'], x['h'] = ('ɛ' if x['g'] == 'e' else '∅'), 0.05
     return steps
 
 def sublexical_phon(word, accents=True, correct=True, seg=None):
