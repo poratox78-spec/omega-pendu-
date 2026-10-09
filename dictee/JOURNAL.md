@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-10-09 — « Ont mange » : un seul rouge ; « calmât » connu (5 221 formes accentuées de Morphalou)
+
+Les deux restes vus le 08/10, traités.
+- **Deux rouges contradictoires.** « Ont mange ensemble » : on/ont lisait « on mange » (pas de sujet, verbe en -e), et la règle du
+  participe lisait l'auxiliaire « Ont » → « mangé ». Appliqués ensemble : « on mangé ». En tête de proposition (début, ponctuation de
+  l'auteur, ou après et / quand / mais…), quand on/ont lit « on », le participe se tait. En chemin, un autre rouge faux de on/ont :
+  « les filles en ont profite » → « on » — le clitique « en » cachait le sujet pluriel au parseur. Un clitique (deux au plus) entre
+  le sujet et « ont » est désormais sauté. Trois moteurs. Gold, 3 corpus dys et UD 14 450 : 0 marque changée (configuration absente
+  des corpus) ; témoins : 2 silences attendus (MUETS, avec un nouveau 4ᵉ champ : seul CE mot doit se taire) + 1 cas.
+- **« calmât » inconnu.** Morphalou a la forme ; `build_morph_lex.py` l'avait écartée. Son anti-masquage (aucun ajout à distance 1
+  d'un mot fréquent) teste aussi la forme DÉSACCENTUÉE — « calmat » est à une lettre de « calma ». Or une forme ajoutée à fréquence 0
+  n'entre que dans WORDS, à la graphie exacte : « calmat » tapé reste inconnu et corrigé. Nouveau lot `morph_acc_lex_fr.tsv`
+  (`build_morph_acc_lex.py`) : formes accentuées de Morphalou, anti-masquage sur la forme EXACTE seulement, sans jamais supprimer un
+  circonflexe (« mangeât » était écarté comme voisin de « mangent ») ; attestées par Morphalou2 et une autre source.
+  - Mesuré au produit (A/B node, même moteur, deux dictionnaires) : sans le filtre d'attestation, 16 vraies fautes des 3 corpus dys
+    devenaient « valides » (graphies d'une seule source) ; avec : 5 221 formes, gold 0 changement, 3 corpus 3 marques disparues
+    (2 fausses ; 1 juste : un vrai mot rare pris pour son voisin sans accent), UD −5 faux (« aliéna », « arasés », « réifie »,
+    « empiètements », « géromé »).
+  - Verbes en -er au passé simple « -a » sans leur « -ât » : 736 → 191. Speller 705 653 → 710 872 formes ; asset +16 Ko gz.
+  - Garde : `build_morph_acc_lex.py --check` vérifie le TSV ET son câblage dans `extension/assets/speller.tsv.gz` (témoins calmât,
+    mangeât connus à fréquence 0 ; « calmat » absent) — rouge sur l'ancien asset (5 219 formes absentes).
+  - La sonde de COUVERTURE de la conjugaison a « baissé » pour vous (98,4 → 98,0 %) : elle n'énumère que les formes que le
+    dictionnaire connaît. Le passé simple compte 1 à 5 cases de plus par sujet, toutes réussies sauf une, nouvellement visible :
+    « vous durent » → dûtes reste muet (comme « vous prîmes » → prîtes, déjà là). Chaque sujet réussit autant ou plus de cases
+    qu'avant ; réancrée (`--fix`). Le trou du passé simple pluriel irrégulier reste ouvert.
+  - Chiffre affiché sur le site : ~706 000 → ~711 000 formes (correcteur, confidentialité, données ×3, toile) ; lexique du solveur
+    et paquet omega-lexiques.zip régénérés.
+  - Vu au passage, pas traité : « est boulanger » → « boulangé » en rouge sur UD (faux, déjà présent avant ce lot).
+
 ## 2026-10-08 — relecture des explications : la batterie Python rejouée sur le produit
 
 - Avant de décider du sort de la référence Python, sa batterie a été rejouée sur le moteur du produit (`dys-core.js` + assets),

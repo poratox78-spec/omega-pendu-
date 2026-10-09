@@ -664,6 +664,11 @@ def rule_a_inf_e(T, i):
     return _keepcase(w, inf) if inf else None
 
 
+# ⭐ 09/10/2026 — « Ont mange ensemble » : rule_on_ont (« Ont » → on) ET rule_e_ppl (« mange » → mangé) tiraient tous deux, en rouge.
+# En TÊTE de proposition, « ont » sans sujet n'existe pas : quand rule_on_ont y lit « on », rule_e_ppl se tait. Miroir JS _ON_INTRO.
+_ON_INTRO = {'et', 'mais', 'donc', 'car', 'puis', 'quand', 'si', 'lorsque', 'comme', 'alors'}
+
+
 def rule_e_ppl(T, i):
     """AUXILIAIRE + verbe au PRÉSENT en -e → PARTICIPE en -é (« ont trouve »→trouvé, « a utilise »→utilisé).
     Le dys écrit la forme qu'il ENTEND (/truv/) ; après un auxiliaire, une forme FINIE est structurellement
@@ -693,6 +698,8 @@ def rule_e_ppl(T, i):
         if nx not in NUM_DET and nx not in DET_GENDER: return None
     if dl in PREP or dl in MODAL: return None                           # mot-outil homographe (« a ENTRE autres participé ») : « entre » est une préposition, pas un verbe
     if i == 0: return None
+    if deacc(T[i-1].lower()) == 'ont' and (i == 1 or (_SEG is not None and i - 1 < len(_SEG['bb']) and _SEG['bb'][i-1]) or deacc(T[i-2].lower()) in _ON_INTRO) \
+            and (rule_on_ont(T, i - 1) or '').lower() == 'on': return None   # « Ont mange » : on mange — pas d'auxiliaire, pas de participe
     # AVOIR, ET ÊTRE POUR LES SEULS VERBES QUI SE CONJUGUENT AVEC LUI.
     # L'exclusion d'ÊTRE était MESURÉE : « est infecte », « est sèche », « est célèbre », « est
     # égale » sont des ADJECTIFS, et ÊTRE apportait l'essentiel des 70 FP. On ne la rouvre donc PAS
@@ -1091,7 +1098,11 @@ def rule_on_ont(T, i):
         if _so is not None and _so['n'] == 's' and _so['dtxt']:
             _hn = deacc(T[_so['idx']].lower())
             if _hn.endswith(('s', 'x')) and _hn not in _INVAR_S and ((_hn[:-3] + 'al' if _hn.endswith('aux') else _hn[:-1]) in WORDS_SET): return None
-        if _so is not None and _so['idx'] == i - 1:
+        # ⭐ 09/10/2026 : « les filles EN ont profite », « les enfants LES ont mange » — un clitique ne coupe pas le sujet (avant : → on, rouge faux)
+        _ki = i - 1
+        while _ki > 0 and _ki >= i - 2 and deacc(T[_ki].lower()) in CLITIC and not (_so is not None and _ki <= _so['idx']): _ki -= 1
+        if _ki < i - 1 and _so is None and _tgo: _so = _np_subject(T, _tgo, _ki + 1)
+        if _so is not None and _so['idx'] == _ki:
             return None if _so["n"] == "p" else _keepcase(T[i], "a")
         _cib = (i == 0) or (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i])
         if _so is None and i > 0 and not _cib:
@@ -6866,6 +6877,8 @@ MUETS = [
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
     ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Ont mange ensemble.", "« Ont » → on (pas de sujet) : plus d'auxiliaire, donc pas de participe « mangé » — les deux rouges donnaient « on mangé » (09/10/2026).", None, 'mange'),
+    ("Les filles en ont profite.", "« en » ne coupe pas le sujet pluriel « les filles » : « ont » est juste, seul « profite » est faux (09/10/2026).", None, 'ont'),
     ("Il va au grand marché du samedi.", "« marché » est aussi un NOM (lexique : N et V) : l'infinitif de but ne lit que les verbes PURS, comme le produit (05/10/2026)."),
     ("Ils sont partis sur le tracé du circuit.", "« tracé » est aussi un NOM : pas d'infinitif de but (05/10/2026, faux rouge de la référence seule sur UD)."),
     ("Il est très cher lui aussi.", "intensif avant : « cher » est l'adjectif, pas « chez » (04/10/2026)."),
@@ -6951,6 +6964,7 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Les filles en ont profité.", "profité", "profite", "-e/-é (participe)"),   # ⭐ 09/10/2026 : « en » entre le sujet et « ont » — avant, « ont » → on en rouge
     # ⭐ PLURIEL PAR LE SON (28/09/2026, orange) : derrière un déterminant pluriel, le mot de même son marqué du pluriel — homographe
     # d'un verbe (plante, produit, porte) ou MAUVAIS homophone (mure → murs : le pluriel du mot écrit serait « mures »).
     ("Nous avons acheté des plantes vertes.", "plantes", "plante", "pluriel par le son à vérifier"),
@@ -7323,8 +7337,9 @@ def main():
             fp, d, c = per[name]; tot = sum(1 for x in CASES if x[3] == name)
             print(f"           {name:10} fp={fp}/{tot}  det={d}/{tot}  corr={c}/{tot}")
 
-    def _parle(e):                                                  # entrée (phrase, raison[, 'rouge']) : 'rouge' = seul le ROUGE est interdit, l'orange tolérée
+    def _parle(e):                                                  # entrée (phrase, raison[, 'rouge'[, mot]]) : 'rouge' = seul le ROUGE est interdit, l'orange tolérée ; mot = seul CE mot doit se taire (09/10/2026 : la phrase a une autre faute, corrigée)
         hits = correct_tiered(e[0])
+        if len(e) > 3 and e[3]: hits = [h for h in hits if deacc(h[1].lower()) == deacc(e[3].lower())]
         return [h for h in hits if h[4] == 'auto'] if (len(e) > 2 and e[2] == 'rouge') else hits
     muets = [(e[0], e[1]) for e in MUETS if _parle(e)]
     print(f"\n  [3] Silences ATTENDUS ({len(MUETS)} pièges hors corpus) : {len(MUETS) - len(muets)}/{len(MUETS)} muets")
@@ -7353,7 +7368,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 259   # 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 260   # 09/10/2026 : +1 (« les filles en ont profite ») ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:

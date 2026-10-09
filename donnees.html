@@ -22,7 +22,7 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Lexiques français ouverts & POS-tagger — OMEGA-Ω","description":"Lexiques du français retravaillés (lexique orthographique ~706 000 formes, genre des noms, homophones, morphologie) et un POS-tagger HMM, curés à zéro faux positif. Libres à réutiliser.","url":"https://omegapendu.com/donnees","license":"https://creativecommons.org/licenses/by-sa/4.0/","inLanguage":"fr","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"},"keywords":["lexique français","POS tagger","étiquetage morphosyntaxique","dyslexie","correcteur orthographique","TAL","NLP","genre des noms","homophones","morphologie"],"distribution":{"@type":"DataDownload","encodingFormat":"application/zip","contentUrl":"https://omegapendu.com/omega-lexiques.zip"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Lexiques français ouverts & POS-tagger — OMEGA-Ω","description":"Lexiques du français retravaillés (lexique orthographique ~711 000 formes, genre des noms, homophones, morphologie) et un POS-tagger HMM, curés à zéro faux positif. Libres à réutiliser.","url":"https://omegapendu.com/donnees","license":"https://creativecommons.org/licenses/by-sa/4.0/","inLanguage":"fr","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"},"keywords":["lexique français","POS tagger","étiquetage morphosyntaxique","dyslexie","correcteur orthographique","TAL","NLP","genre des noms","homophones","morphologie"],"distribution":{"@type":"DataDownload","encodingFormat":"application/zip","contentUrl":"https://omegapendu.com/omega-lexiques.zip"}}</script>
 <script src="nav.js" defer></script>
 <style>
   .lextab{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px}
@@ -55,7 +55,7 @@
 <section class="hero"><div class="wrap">
   <span class="tag">Données ouvertes · français · libres à réutiliser</span>
   <h1>Nos lexiques français, <em>retravaillés</em> — en un seul paquet.</h1>
-  <p class="lead">C'est le lexique du correcteur et de la dictée OMEGA — <strong>retravaillé, complété, curé</strong>, et sensiblement plus utile que la matière première dont il part&nbsp;: <strong>~706 000 formes</strong> (enrichies au Wiktionnaire), le <strong>genre des noms</strong> bouché, les <strong>homophones</strong>, la <strong>morphologie</strong>, et un <strong>POS-tagger</strong> qu'on a entraîné nous-mêmes — le tout trié à <strong>zéro faux positif</strong>. Le français n'appartient à personne&nbsp;: sers-t'en <strong>librement</strong>, pour n'importe quel projet.</p>
+  <p class="lead">C'est le lexique du correcteur et de la dictée OMEGA — <strong>retravaillé, complété, curé</strong>, et sensiblement plus utile que la matière première dont il part&nbsp;: <strong>~711 000 formes</strong> (enrichies au Wiktionnaire), le <strong>genre des noms</strong> bouché, les <strong>homophones</strong>, la <strong>morphologie</strong>, et un <strong>POS-tagger</strong> qu'on a entraîné nous-mêmes — le tout trié à <strong>zéro faux positif</strong>. Le français n'appartient à personne&nbsp;: sers-t'en <strong>librement</strong>, pour n'importe quel projet.</p>
   <div class="cta">
     <a class="btn primary" href="omega-lexiques.zip" download>⬇️ Télécharger le paquet (.zip, ~4,5&nbsp;Mo)</a>
     <a class="btn ghost" href="https://github.com/poratox78-spec/omega-pendu-">Parcourir sur GitHub</a>
@@ -69,7 +69,7 @@
   <table class="lextab">
     <thead><tr><th>Fichier</th><th>Contenu</th><th>Point de départ</th></tr></thead>
     <tbody>
-      <tr><td><code>speller.tsv.gz</code></td><td>Lexique orthographique — ~706&nbsp;000 formes (correction, accents, non-mots&nbsp;; forme, fréquence ‰, catégorie).</td><td class="src">Lexique 4 · Wiktionnaire · Morphalou&nbsp;3.1</td></tr>
+      <tr><td><code>speller.tsv.gz</code></td><td>Lexique orthographique — ~711&nbsp;000 formes (correction, accents, non-mots&nbsp;; forme, fréquence ‰, catégorie).</td><td class="src">Lexique 4 · Wiktionnaire · Morphalou&nbsp;3.1</td></tr>
       <tr><td><code>genre-accentue.json.gz</code></td><td>Genre des noms, formes accentuées (accord du déterminant et de l’adjectif).</td><td class="src">Lexique 4 · Wiktionnaire · Morphalou&nbsp;3.1</td></tr>
       <tr><td><code>genre-noms.tsv.gz</code></td><td>Genre des noms à genre non ambigu (pour l'accord).</td><td class="src">Lexique 4 · Wiktionnaire</td></tr>
       <tr><td><code>pos-tagger-hmm.json[.gz]</code></td><td>POS-tagger HMM&nbsp;: émissions + transitions bigramme, décodage Viterbi (version compressée + JSON lisible).</td><td class="src">UD French-GSD · Lexique 4</td></tr>

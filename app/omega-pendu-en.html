@@ -25677,7 +25677,8 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
       if(!_verbeFini(_qn)&&!CLITIC[_qn]&&!/^[nlmts]'/.test(_qn)&&(NUM_DET[_qn]||PART_ART[_qn]||(_wordKnown(_qn)&&!svReads(_qn).length)))return ckeepcase(T[i],'ont');}
     if(lw==='ont'){var _tgo=posTags(T),_so=_tgo?_npSubject(T,_tgo,i):null;   // « on » est un PRONOM SUJET : il ne peut PAS suivre un sujet NOMINAL. « La direction ont modifier » ne peut pas devenir « La direction ON modifier » — impossible en français. Ce test passe AVANT tous les autres, sinon le raccourci « mot suivant en -e » tranche le premier (« L'équipe ont rencontre » → « on rencontre »).
       if(_so&&_so.n==='s'&&_so.dtxt){var _hn=deacc(T[_so.idx].toLowerCase());if(/[sx]$/.test(_hn)&&!_INVAR_S[_hn]&&_wordKnown(/aux$/.test(_hn)?_hn.slice(0,-3)+'al':_hn.slice(0,-1)))return null;}   /* ⭐ 11/09/2026 : « le MAÇONS ont » — déterminant singulier + nom pluriel, le déterminant est suspect (même garde que rAccordSVnoun). Miroir Python. */
-    if(_so&&_so.idx===i-1){if(_so.n==='p')return null;return ckeepcase(T[i],'a');}
+    var _ki=i-1;while(_ki>0&&_ki>=i-2&&CLITIC[deacc(T[_ki].toLowerCase())]&&!(_so&&_ki<=_so.idx))_ki--;if(_ki<i-1&&!_so&&_tgo)_so=_npSubject(T,_tgo,_ki+1);   // ⭐ 09/10/2026 : « les filles EN ont profite », « les enfants LES ont mange » — un clitique ne coupe pas le sujet du verbe (avant : ont → on, rouge faux). Miroir Python.
+    if(_so&&_so.idx===_ki){if(_so.n==='p')return null;return ckeepcase(T[i],'a');}
       var _cib=(i===0)||(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]);
       if(!_so&&i>0&&!_cib){var _el=T[i-1].toLowerCase().match(/^l['’](.+)$/);   // ÉLISION : « L'équipe » est UN SEUL token, donc _npSubject n'y voit aucun déterminant et s'abstient. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) — l'information est là, elle est juste collée.
         var _lft=i>=2?deacc(T[i-2].toLowerCase()):'';   // MESURÉ : sans garde, cette branche coûte 4 FP sur UD (« de l'auteur, ont été publiées » sujet POSTPOSÉ, « de l'homme, ont été unanimes » incise, « et l'étalonnage ont été » coordination, « de l'album ont eu lieu » écran prépositionnel). Les quatre sont exactement ce que _npSubject garde déjà ⇒ on lui EMPRUNTE ses gardes au lieu d'en inventer.
@@ -26020,6 +26021,11 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     if(!COMMON_VERBS[dl.slice(0,-1)+'er']&&!CONJ_C[dl.slice(0,-1)+'er'])return null;                // verbe du 1er groupe
     if(_nounGateN(dl))return null;                                                                   // NOM d'abord (« passer à table »)
     var inf=_infForm(lw);return inf?ckeepcase(w,inf):null;}
+  /* ⭐ 09/10/2026 — « Ont mange ensemble » recevait DEUX rouges contradictoires : rOn (« Ont » → on : pas de sujet, verbe en -e) ET
+     rEPpl (« mange » → mangé, après l'auxiliaire « Ont »). Les deux appliqués : « on mangé ». En TÊTE de proposition (début, ponctuation
+     de l'auteur, ou après et / quand / mais…), « ont » sans sujet n'existe pas : quand rOn y lit « on », l'auxiliaire n'en est pas un et
+     rEPpl se tait. Ailleurs (« les filles en ont profite »), le sujet est à gauche : on ne touche à rien. Miroir Python _ON_INTRO. */
+  var _ON_INTRO={et:1,mais:1,donc:1,car:1,puis:1,quand:1,si:1,lorsque:1,comme:1,alors:1};
   function rEPpl(T,i){var w=T[i],lw=w.toLowerCase(),dl=deacc(lw);   // AUXILIAIRE + verbe au PRÉSENT en -e → PARTICIPE en -é (« ont trouve »→trouvé). Le dys écrit la forme qu'il ENTEND ; après un auxiliaire une forme FINIE est structurellement impossible. La règle é/er ne voyait que -é↔-er, jamais le présent nu.
     if(lw.indexOf("'")>=0||!/e$/.test(dl)||/é$/.test(lw)||/ée$/.test(lw))return null;
     if(dl.length<4)return null;
@@ -26038,6 +26044,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
       if(!NUM_DET[nx]&&!DET_G[nx])return null;}
     if(PREP[dl]||MODAL[dl])return null;   // mot-outil homographe (« a ENTRE autres participé ») : « entre » est une préposition, pas un verbe
     if(i===0)return null;
+    if(deacc(T[i-1].toLowerCase())==='ont'&&(i===1||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])||_ON_INTRO[deacc(T[i-2].toLowerCase())])&&String(rOn(T,i-1)||'').toLowerCase()==='on')return null;   // « Ont mange » : rOn lit « on mange » — pas d'auxiliaire, pas de participe (voir _ON_INTRO)
     /* AVOIR, ET ÊTRE POUR LES SEULS VERBES QUI SE CONJUGUENT AVEC LUI. L'exclusion d'ÊTRE était
        MESURÉE (« est infecte », « est sèche », « est célèbre », « est égale » : l'essentiel des
        70 FP). On ne la rouvre pas en grand : liste FERMÉE de verbes de mouvement/état, dont aucun
