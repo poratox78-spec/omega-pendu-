@@ -20,7 +20,7 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
   font-size:18px;line-height:1.65;-webkit-font-smoothing:antialiased}
 body.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.03em;word-spacing:.12em;line-height:1.9}
-/* ⭐ 10/10/2026 — « Aa OMEGA Dys » (barre d'en-tête, nav.js) : TOUTE la page dans notre police, avec un espacement large — le seul
+/* ⭐ 09/10/2026 — « Aa OMEGA Dys » (barre d'en-tête, nav.js) : TOUTE la page dans notre police, avec un espacement large — le seul
    effet robuste de la littérature (Zorzi et al. 2012) ; les formes de lettres « dys » seules n'en ont montré aucun. OFF par défaut :
    la personne décide, le choix est retenu (localStorage omega_dysfont) et l'app intégrée (correcteur, dictée) le suit. */
 @font-face{font-family:'OMEGA Dys';src:url('/police/OmegaDys-Regular.ttf') format('truetype');font-display:swap}

@@ -167,7 +167,7 @@ if (seg('bateau').filter(x => x.cls === 'voi').length !== 1) fail.push('bateau :
 // couleur, soit la moitié de l'outil, et pas celle qui lui donne son nom. La sonde vérifiait la
 // plage de graisse dans l'app, son_ui et l'extension, et se taisait sur la page.
 const SOURCES_FONTFACE = ['../app/omega-pendu.html', 'son_ui.js', '../extension/son_panel.js',
-                          '../police-de-son.html', 'son_site.js'];   // + son_site.js (10/10/2026 : le 🔡 de l'en-tête, toutes les pages)
+                          '../police-de-son.html', 'son_site.js'];   // + son_site.js (09/10/2026 : le 🔡 de l'en-tête, toutes les pages)
 for (const rel of SOURCES_FONTFACE) {
   const p = path.join(HERE, rel);
   if (!fs.existsSync(p)) { fail.push('FontFace : fichier introuvable ' + rel); continue; }
@@ -216,7 +216,7 @@ for (const [rel, reFam, reAlt] of TRIO) {
   }
 }
 
-// ── LES COULEURS (10/10/2026) ────────────────────────────────────────────────────────────────
+// ── LES COULEURS (09/10/2026) ────────────────────────────────────────────────────────────────
 // police-de-son.html AFFIRMAIT que ses couleurs étaient « gardées par une sonde » : aucune ne les lisait (seules la
 // graisse et l'alternance l'étaient). Muette vermillon, syllabe bleue, en clair ET en sombre, partout pareil.
 const COULEURS = { 'muette (clair)': 'a34700', 'muette (sombre)': 'f0a04b', 'syllabe (clair)': '0072b2', 'syllabe (sombre)': '6cc0f0' };

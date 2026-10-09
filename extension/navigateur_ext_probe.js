@@ -305,7 +305,7 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     const okErr = erreursAide.length === 0;
     log('  ' + (okErr ? '✓' : '✗') + ' [aide    ] aucune erreur de script ni de CSP' + (okErr ? '' : ' : ' + erreursAide.slice(0, 3).join(' | ')));
     if (!okErr) echecs.push('mode d’emploi : erreurs dans aide.html — ' + erreursAide.slice(0, 3).join(' | '));
-    /* ⭐ 10/10/2026 — « Aa OMEGA Dys » : le guide suit la case du panneau (clé omDysFont), comme pour le mode sombre */
+    /* ⭐ 09/10/2026 — « Aa OMEGA Dys » : le guide suit la case du panneau (clé omDysFont), comme pour le mode sombre */
     const fGuide = async () => ((await pa.envoyer('Runtime.evaluate', { returnByValue: true, expression: 'document.body.classList.contains("omfont") && getComputedStyle(document.body).fontFamily' })).result || {}).value;
     await reglerAide({ omDysFont: true });
     const g1 = await fGuide();
@@ -317,7 +317,7 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     try { pa.fermer(); } catch (e) {}
     try { const tl = await (await fetch('http://127.0.0.1:' + dp + '/json/list')).json(); const t = tl.find((x) => x.url === URL_AIDE); if (t) await fetch('http://127.0.0.1:' + dp + '/json/close/' + t.id); } catch (e) {}
 
-    /* ⭐ 10/10/2026 — « Aa OMEGA Dys » sur la PAGE CONSULTÉE (rapport de Rem : « ça changera la police des sites consultés ? » — oui) :
+    /* ⭐ 09/10/2026 — « Aa OMEGA Dys » sur la PAGE CONSULTÉE (rapport de Rem : « ça changera la police des sites consultés ? » — oui) :
        la case du panneau (omDysFont) habille la page par content.js : police RÉELLEMENT chargée depuis le paquet, texte de la page
        intact, polices d'icônes épargnées ; décochée → la page retrouve sa police, sans recharger. Le panneau suit aussi. */
     {
@@ -342,7 +342,7 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       if (!okAa) echecs.push('Aa OMEGA Dys : la page consultée / le panneau ne suivent pas la case — eu ' + JSON.stringify({ p0: { cls: p0.cls, ff: p0.ff }, p1: { cls: p1.cls, charge: p1.charge, ff: p1.ff, icone: p1.icone, texteIntact: p1.texte === p0.texte }, p2: { cls: p2.cls, ff: p2.ff }, q1, q2 }));
     }
 
-    /* ⭐ 10/10/2026 — « 🎨 Couleurs sur les sites » (case du panneau, clé omSonSites ; demande de Rem : les couleurs des
+    /* ⭐ 09/10/2026 — « 🎨 Couleurs sur les sites » (case du panneau, clé omSonSites ; demande de Rem : les couleurs des
        syllabes et des sons sur les sites consultés aussi). son_pages.js PEINT la page consultée (::highlight, StaticRange) SANS toucher à son DOM :
        zones peintes sur le paragraphe français (muette, syllabe, voisé), RIEN sur l'anglais, le code ni le champ ; texte et NOMBRE
        DE NŒUDS de la page identiques ; un texte réécrit par le site est repeint ; décochée → plus rien de peint. Le panneau suit. */

@@ -249,7 +249,7 @@
     lastTheme = t;
     if (on) refreshAll();
   }).observe(document.body, {attributes: true, attributeFilter: ['class']});
-  // ⭐ 10/10/2026 — le bouton 🔡 de l'en-tête du site (nav.js) écrit les MÊMES clés : l'app, dans le cadre de la page,
+  // ⭐ 09/10/2026 — le bouton 🔡 de l'en-tête du site (nav.js) écrit les MÊMES clés : l'app, dans le cadre de la page,
   // suit sans recharger. (Le sens inverse — les boutons d'ici vers l'en-tête — passe par le même événement, côté nav.js.)
   window.addEventListener('storage', function (e) {
     if (e.key === KEY) on = e.newValue === '1';

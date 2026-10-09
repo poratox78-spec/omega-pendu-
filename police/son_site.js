@@ -1,5 +1,5 @@
 // ===== OMEGA Dys — « 🔡 » de l'en-tête : la POLICE DE SON sur le texte des PAGES du site (chargé par nav.js) =====
-// ⭐ 10/10/2026 — Rem a demandé pourquoi le site n'avait pas les couleurs des syllabes et des sons. Le correcteur, la dictée et la page
+// ⭐ 09/10/2026 — Rem a demandé pourquoi le site n'avait pas les couleurs des syllabes et des sons. Le correcteur, la dictée et la page
 // « Police de son » habillaient LEUR texte ; les pages du site, non. Ici, le texte À LIRE de chaque page (paragraphes,
 // listes, titres, tableaux, citations) reçoit la police de son : voisé épais, sourd fin, muette vermillon, syllabes
 // alternées. Même cœur (son_core.js), même g2p (extension/assets/g2p.js), mêmes couleurs Okabe-Ito que l'outil.

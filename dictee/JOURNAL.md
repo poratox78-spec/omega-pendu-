@@ -5,7 +5,7 @@
 
 ---
 
-## 2026-10-10 (suite) — « 🎨 Couleurs sur les sites » : la police de son PEINTE sur les sites consultés, sans toucher à leur texte
+## 2026-10-09 (suite) — « 🎨 Couleurs sur les sites » : la police de son PEINTE sur les sites consultés, sans toucher à leur texte
 
 - Rem a demandé si l'extension avait le même manque que le site — oui : la police de son ne vivait que dans le panneau. Nouvelle case
   du panneau (clé `omSonSites`, OFF par défaut) ; `extension/son_pages.js`, script de contenu (avec `assets/son_core.js` et
@@ -30,7 +30,7 @@
   rouge en retirant le filtre de langue. L'onglet est mis au premier plan : une page cachée ne peint rien, à dessein.
 - Tuto : aide.html, Réglages. ⚠ Store (> 0.6.46) : deux réglages visibles de plus (« Aa », « 🎨 ») → lignes du §3 de la fiche.
 
-## 2026-10-10 — bouton « 🔡 » dans l'en-tête : la police de son sur toutes les pages du site
+## 2026-10-09 — bouton « 🔡 » dans l'en-tête : la police de son sur toutes les pages du site
 
 - Rem a demandé pourquoi le site n'avait pas les couleurs des syllabes et des sons. Elles n'existaient que dans le correcteur, la dictée
   et la page « Police de son » ; « Aa » ne change que la forme des lettres. Ajouté : un bouton juste après « Aa ».
@@ -53,7 +53,7 @@
   les deux sens, pas de bouton en /en/. Vue rouge sur deux fautes réintroduites (code habillé ; synchro coupée).
 - Tuto : /police-de-son et extension/aide.html (ligne 🌐).
 
-## 2026-10-10 (suite) — « Aa OMEGA Dys » dans le panneau de l'extension : les SITES CONSULTÉS changent de police
+## 2026-10-09 (suite) — « Aa OMEGA Dys » dans le panneau de l'extension : les SITES CONSULTÉS changent de police
 
 - Rem : « mets le bouton Aa dans le panneau ; ça changera la police des sites consultés ? » — oui, c'est le sens retenu. Une case
   du panneau (`omdys-font`, clé `omDysFont`, OFF par défaut) habille : la page consultée (content.js), le panneau, la bulle (dans la
@@ -67,7 +67,7 @@
   décochée → police du site. Tuto (aide.html, Réglages) : la case expliquée ; la sonde des textes la vérifie.
 - À la prochaine version Store : ajouter la ligne au §3 de la fiche (nouveau réglage visible).
 
-## 2026-10-10 — bouton « Aa OMEGA Dys » dans l'en-tête du site
+## 2026-10-09 — bouton « Aa OMEGA Dys » dans l'en-tête du site
 
 - Demande de Rem : changer la police du site pour la nôtre. Avis donné : pas par défaut — notre page /recherche le dit, le seul
   effet robuste est l'espacement large (Zorzi 2012), les formes « dys » seules n'ont montré aucun effet (méta-analyse 2026), et
@@ -80,7 +80,7 @@
   choix retenu sur /correcteur, cadre de l'app qui suit, second clic → OFF partout. Tuto : extension/aide.html (ligne 🌐) et
   /police-de-son.
 
-## 2026-10-10 — passé simple des verbes en -er au singulier : « le chat mangeâmes » → mangea
+## 2026-10-09 — passé simple des verbes en -er au singulier : « le chat mangeâmes » → mangea
 
 - 88 verbes en -er sur 5 291 avaient la 3e du singulier du passé simple en table : « le chat mangeâmes », « il mangeâmes »,
   « ils mangea » restaient muets (la cible n'existait pas). `_psCompleter` ≡ `_ps_completer` complète désormais la 3e du

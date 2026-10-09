@@ -33,7 +33,7 @@ STORE_ZIP = os.path.join(ROOT, 'omega-correcteur-dys-store.zip')  # zip du CHROM
 # pas afficher l'invite (contexte « offscreen »). Sans elles dans le zip, la dictée reste muette.
 # aide.html/aide.js : le MODE D'EMPLOI (15/09/2026), ouvert par le bouton ❓ du panneau. Oublié ici, le bouton mènerait à une page
 # absente du paquet — c'est ce que `references_pendantes()` refuse désormais pour TOUTE page, script ou image référencé.
-# son_pages.js (10/10/2026) : « 🎨 Couleurs sur les sites », script de contenu déclaré dans le manifest.
+# son_pages.js (09/10/2026) : « 🎨 Couleurs sur les sites », script de contenu déclaré dans le manifest.
 FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'calc_dys.js', 'background.js', 'sidepanel.html', 'sidepanel.js', 'son_panel.js', 'son_pages.js', 'micro.html', 'micro.js', 'aide.html', 'aide.js', 'README.md']
 EXCLUDE_DIRS = set()
 
@@ -75,7 +75,7 @@ def references_pendantes():
             cible = os.path.normpath(os.path.join(os.path.dirname(rel), cible)).replace(os.sep, '/')
             if cible not in livres:
                 trous.append('%s référence « %s » : absent du paquet (ajouter à FILES ou retirer la référence)' % (rel, ref))
-    # ⚠ 10/10/2026 — LE MANIFEST AUSSI. Un script de contenu ajouté au manifest mais pas à FILES (son_pages.js, vu avant le
+    # ⚠ 09/10/2026 — LE MANIFEST AUSSI. Un script de contenu ajouté au manifest mais pas à FILES (son_pages.js, vu avant le
     # commit) donnait un zip « frais » que Chrome REFUSE de charger (« Could not load javascript »). Les pages et les scripts
     # étaient vérifiés, pas le fichier qui dit à Chrome quoi charger.
     import json
