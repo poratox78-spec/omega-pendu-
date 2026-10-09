@@ -22,7 +22,7 @@
 
 Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en local · **constat** = mesuré une fois, daté. Le détail (pages, notes) vit dans le registre lui-même.
 
-## 2. Garde-fous actifs — 118 contrôles dans `dev.sh` (= CI, parité gardée)
+## 2. Garde-fous actifs — 119 contrôles dans `dev.sh` (= CI, parité gardée)
 
 | # | contrôle | commande |
 |---:|---|---|
@@ -122,28 +122,29 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 94 | répétition espacée (planificateur Leitner, bloc pur du monolithe) | `node dictee/srs_probe.js` |
 | 95 | navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM) | `node dictee/navigateur_probe.js --check` |
 | 96 | A11Y app réelle (aria-live, corrections au clavier, informatifs non tabbables) | `node dictee/a11y_probe.js --check` |
-| 97 | EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL) | `node extension/navigateur_ext_probe.js --check` |
-| 98 | ORDRE DE CHARGEMENT (page ouverte AVANT l'extension : le panneau le DIT) | `node extension/ordre_chargement_probe.js --check` |
-| 99 | précision par famille AU PRODUIT (extension réelle dans Chrome) | `python3 dictee/dys_precision_probe.py --navigateur` |
-| 100 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
-| 101 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
-| 102 | toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée) | `node dictee/toile_probe.js --check` |
-| 103 | noms épicènes exclus du genre (liste == Lexique4 ; SAUTÉ sans Lexique4.tsv.xz) | `python3 dictee/build_gacc_epicene_excl.py --check` |
-| 104 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
-| 105 | lot Morphalou accentué du speller : TSV commité bien formé (morph_acc, « calmât ») | `python3 dictee/build_morph_acc_lex.py --check` |
-| 106 | paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise) | `python3 build_lexiques.py --check` |
-| 107 | icônes extension FRAÎCHES (== icon-512.png, exigées par le Store) | `python3 extension/build_icons.py --check` |
-| 108 | icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png) | `python3 build_site_icons.py --check` |
-| 109 | zip extension FRAIS (octets == sources) | `python3 extension/build_zip.py --check` |
-| 110 | pack police OMEGA Dys FRAIS (octets == police/) | `python3 police/build_pack.py --check` |
-| 111 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
-| 112 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
-| 113 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
-| 114 | service worker (version+empreinte, précache, purge, comportement en bac à sable) | `node dictee/sw_probe.js` |
-| 115 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
-| 116 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
-| 117 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
-| 118 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
+| 97 | bouton Aa OMEGA Dys (vrai Chrome : police chargée, choix retenu, app intégrée suit) | `node dictee/dysfont_probe.js --check` |
+| 98 | EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL) | `node extension/navigateur_ext_probe.js --check` |
+| 99 | ORDRE DE CHARGEMENT (page ouverte AVANT l'extension : le panneau le DIT) | `node extension/ordre_chargement_probe.js --check` |
+| 100 | précision par famille AU PRODUIT (extension réelle dans Chrome) | `python3 dictee/dys_precision_probe.py --navigateur` |
+| 101 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
+| 102 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
+| 103 | toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée) | `node dictee/toile_probe.js --check` |
+| 104 | noms épicènes exclus du genre (liste == Lexique4 ; SAUTÉ sans Lexique4.tsv.xz) | `python3 dictee/build_gacc_epicene_excl.py --check` |
+| 105 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
+| 106 | lot Morphalou accentué du speller : TSV commité bien formé (morph_acc, « calmât ») | `python3 dictee/build_morph_acc_lex.py --check` |
+| 107 | paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise) | `python3 build_lexiques.py --check` |
+| 108 | icônes extension FRAÎCHES (== icon-512.png, exigées par le Store) | `python3 extension/build_icons.py --check` |
+| 109 | icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png) | `python3 build_site_icons.py --check` |
+| 110 | zip extension FRAIS (octets == sources) | `python3 extension/build_zip.py --check` |
+| 111 | pack police OMEGA Dys FRAIS (octets == police/) | `python3 police/build_pack.py --check` |
+| 112 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
+| 113 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
+| 114 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
+| 115 | service worker (version+empreinte, précache, purge, comportement en bac à sable) | `node dictee/sw_probe.js` |
+| 116 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
+| 117 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
+| 118 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
+| 119 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
 
 ## 3. Chantiers (source curée : `dictee/etat_chantiers.json`)
 

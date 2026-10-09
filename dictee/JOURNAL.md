@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-10-10 — bouton « Aa OMEGA Dys » dans l'en-tête du site
+
+- Demande de Rem : changer la police du site pour la nôtre. Avis donné : pas par défaut — notre page /recherche le dit, le seul
+  effet robuste est l'espacement large (Zorzi 2012), les formes « dys » seules n'ont montré aucun effet (méta-analyse 2026), et
+  le voisement par la graisse n'existe qu'avec la police de son. Retenu : un BOUTON, la personne décide.
+- `nav.js` : « Aa » entre le thème et la loupe ; `site.css` : `html[data-dysfont]` → OMEGA Dys (corps, titres, champs) +
+  espacement large ; choix retenu (`omega_dysfont`). L'app intégrée (correcteur, dictée, pendu) suit la même clé, police chargée
+  depuis son bloc base64 (hors-ligne), famille à part pour ne pas toucher aux trois graisses de la police de son.
+- La police couvre le français (accents, œ, « », ’, €) ; quelques symboles (→, ✓, ·, < >) tombent sur la police de secours.
+- Garde : `dictee/dysfont_probe.js` dans un vrai Chrome (dev.sh + CI) — OFF par défaut, police réellement chargée, texte intact,
+  choix retenu sur /correcteur, cadre de l'app qui suit, second clic → OFF partout. Tuto : extension/aide.html (ligne 🌐) et
+  /police-de-son.
+
 ## 2026-10-10 — passé simple des verbes en -er au singulier : « le chat mangeâmes » → mangea
 
 - 88 verbes en -er sur 5 291 avaient la 3e du singulier du passé simple en table : « le chat mangeâmes », « il mangeâmes »,

@@ -31630,5 +31630,37 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
 })();
 </script>
 <!-- OMEGADYS-SON:END -->
+<script>/* ⭐ 10/10/2026 — « Aa OMEGA Dys » du site (nav.js, clé omega_dysfont) : l'app (correcteur, dictée, pendu — aussi dans le cadre des
+   pages du site) suit le choix : même origine, même stockage, et l'événement « storage » quand on clique dans l'en-tête. La police vient
+   du bloc base64 déjà embarqué (marche hors-ligne) ; famille à part (« OMEGA Dys Site ») pour ne pas toucher aux trois graisses de la
+   police de son. OFF par défaut ; texte jamais modifié (habillage CSS seul). */
+(function () {
+  function on() { try { return localStorage.getItem('omega_dysfont') === '1'; } catch (e) { return false; } }
+  var css = null, charge = false;
+  function charger() {
+    if (charge) return; charge = true;
+    try {
+      var el = document.getElementById('omegadys-b64-regular'), b = el ? el.textContent.replace(/\s+/g, '') : '';
+      if (!b || typeof FontFace === 'undefined') return;
+      var bin = atob(b), u8 = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      new FontFace('OMEGA Dys Site', u8.buffer, {weight: '1 1000'}).load().then(function (ff) { document.fonts.add(ff); }).catch(function () {});
+    } catch (e) {}
+  }
+  function appliquer() {
+    var v = on();
+    if (v) charger();
+    if (v && !css) {
+      css = document.createElement('style');
+      css.textContent = 'html[data-dysfont] body,html[data-dysfont] :is(button,input,textarea,select){font-family:"OMEGA Dys Site",Verdana,Tahoma,sans-serif}' +
+        'html[data-dysfont] body{letter-spacing:.06em;word-spacing:.16em}';
+      document.head.appendChild(css);
+    }
+    if (v) document.documentElement.setAttribute('data-dysfont', '1'); else document.documentElement.removeAttribute('data-dysfont');
+  }
+  appliquer();
+  window.addEventListener('storage', function (e) { if (e.key === 'omega_dysfont') appliquer(); });
+})();
+</script>
 </body>
 </html>

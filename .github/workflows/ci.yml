@@ -51,6 +51,8 @@ jobs:
       # l'app d'avant d83d972 (Entrée/Espace muets, 0 tabindex) avant d'être vue verte.
       - name: A11Y app réelle — aria-live, corrections au clavier, informatifs non tabbables
         run: node dictee/a11y_probe.js --check
+      - name: "Bouton Aa OMEGA Dys — vrai Chrome (police chargée, choix retenu, app intégrée suit)"
+        run: node dictee/dysfont_probe.js --check
       - name: EXTENSION dans Chrome — paquet réel, assets chargés par chrome.runtime.getURL
         run: node extension/navigateur_ext_probe.js --check
       - name: ORDRE DE CHARGEMENT — page ouverte AVANT l'extension, le panneau le DIT

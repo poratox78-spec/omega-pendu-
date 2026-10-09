@@ -207,6 +207,7 @@ echo "── NAVIGATEUR RÉEL ──"
 run "répétition espacée (planificateur Leitner, bloc pur du monolithe)" node dictee/srs_probe.js
 run "navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM)" node dictee/navigateur_probe.js --check
 run "A11Y app réelle (aria-live, corrections au clavier, informatifs non tabbables)" node dictee/a11y_probe.js --check
+run "bouton Aa OMEGA Dys (vrai Chrome : police chargée, choix retenu, app intégrée suit)" node dictee/dysfont_probe.js --check
 run "EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL)" node extension/navigateur_ext_probe.js --check
 run "ORDRE DE CHARGEMENT (page ouverte AVANT l'extension : le panneau le DIT)" node extension/ordre_chargement_probe.js --check
 run "précision par famille AU PRODUIT (extension réelle dans Chrome)" python3 dictee/dys_precision_probe.py --navigateur
