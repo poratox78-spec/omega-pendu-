@@ -53,10 +53,12 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    serait MUETTE ici : verte par omission, le piège exact du 2026-08-11. On amorce donc SP à la main
    (WORDS + POS + FREQ : depuis le 10/09/2026 la grammaire lit AUSSI SP.FREQ — rule_sujet_flexion s'abstient sur une
    cible RARE à une lettre d'un auxiliaire. Sans FREQ ici, SP.ready était vrai et la table VIDE : « Nous êtes là » se
-   taisait dans ce harnais alors que le produit corrige. Mesurer un moteur amputé, ce n'est pas mesurer le produit.) */
+   taisait dans ce harnais alors que le produit corrige. Mesurer un moteur amputé, ce n'est pas mesurer le produit.)
+   ⭐ 10/10/2026 : + D2A (clé sans accent → formes, fréquence > 0, comme setLex) — _lemFreq en dépend : sans lui, « inconnu »
+   partout, et la garde « verbe courant » du passé simple se taisait ici sur « nous mangeames » que le produit corrige. */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
-  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};t.split(String.fromCharCode(10)).forEach(function(l){' +
-  'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[1])SP.FREQ[q[0]]=parseInt(q[1],10)/1000;if(q[2])SP.POS[q[0]]=q[2];}});SP.ready=true;};})();';
+  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};if(!SP.D2A)SP.D2A={};t.split(String.fromCharCode(10)).forEach(function(l){' +
+  'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[1])SP.FREQ[q[0]]=parseInt(q[1],10)/1000;if(q[2])SP.POS[q[0]]=q[2];if(q[1]&&parseInt(q[1],10)>0){var _d=(typeof deaccS=="function"?deaccS:deacc)(q[0]);(SP.D2A[_d]||(SP.D2A[_d]=[])).push(q[0]);}}});SP.ready=true;};})();';
 
 // 2) embed vdc-lex pour getElementById
 const m = html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/);

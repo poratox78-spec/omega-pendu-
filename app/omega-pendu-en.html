@@ -26395,7 +26395,7 @@ function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[]
       else if(lem.slice(-2)==='er'){   // 1er groupe RÉGULIER : radical de l'imparfait (il porte le e de « mangeait », la cédille de « commençait »), du futur pour -èrent
         r=lem.slice(0,-2);r2=(r.slice(-1)==='c')?r.slice(0,-1)+'ç':(r.slice(-1)==='g'?r+'e':r);
         st=(imp&&imp.slice(-3)==='ait')?imp.slice(0,-3):r2;st3=(fut&&fut.slice(-3)==='era')?fut.slice(0,-3):r;
-        cand={'1p':st+'âmes','2p':st+'âtes','3p':st3+'èrent'};}
+        cand={'1p':st+'âmes','2p':st+'âtes','3p':st3+'èrent','3s':st+'a'};}   // ⭐ 09/10/2026 : + la 3e du SINGULIER (« mangea ») — 88 verbes en -er sur 5 291 l'avaient en table : « le chat mangeâmes », « il mangeâmes » restaient muets. PAS -ai / -as : « il mangeai » est d'abord un -ai pour -ait (rAiAit), et le 2e groupe (« finit ») est homographe du présent
       else if(pas){   // 3e groupe IRRÉGULIER : on part de la 3e du SINGULIER déjà en table (« prit » → prîmes, « vint » → vînmes)
         b=deacc(pas.toLowerCase());
         if(b.slice(-3)==='int'){r=pas.slice(0,-3);m=['înmes','întes','inrent'];}
@@ -27764,6 +27764,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       var _hit=_PS_INDEX[dl]||[];
       if(_hit.length!==1)return null;                                 // forme ambiguë entre deux lemmes → abstention
       lec=[[_hit[0][0],'ind:pas',_hit[0][1].charAt(0),_hit[0][1].charAt(1)]];_psSeul=true;}
+    if(_psSeul&&SP&&SP.ready){var _lfp=_lemFreq(lec[0][0]);if(_lfp===null||_lfp<1)return null;}   // ⭐ 09/10/2026 : une lecture TIRÉE de l'index du passé simple exige un verbe connu et courant (≥ 1/M) — « houa » (mot étranger) lu comme houer → houèrent
     var tg=posTags(T);
     if(!tg)return null;
     if(i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])return null;   /* ⭐ 12/09/2026 : LA GARDE QUI MANQUAIT — après un auxiliaire c'est un PARTICIPE (« nous sommes ravis ») ; le tagger la tenait par accident (miroir Python) */
@@ -27820,7 +27821,8 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       _cands=[_forts[0]];}
     lemc=_cands[0][0];cible=_cands[0][1];
     if(!cible||cible.toLowerCase()===lw)return null;
-    if(deacc(cible.toLowerCase())===dl&&!_hors)return null;   // accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
+    if(deacc(cible.toLowerCase())===dl&&!_hors)return null;
+    if(_psSeul&&slot==='3s'&&deacc(cible.toLowerCase())===dl)return null;   // ⭐ 09/10/2026 : « exerca » → exerça n'est qu'un ACCENT à la même personne — l'auteur voulait peut-être le présent (« exerce ») : l'orthographe s'en charge, en orange   // accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
     /* ⭐ LEMME RARE À UNE LETTRE D'UN AUXILIAIRE (10/09/2026, cas de Rem) : « nous somme » → sommons, « vous somme » → sommez —
        *sommer* est un verbe que personne n'emploie (0,23/M) et l'écrit est à une lettre de « sommes » (433/M) : la lecture
        « verbe rare » est la mauvaise hypothèse. Abstention ; rAuxMisspell parle s'il peut. ⚠️ On pèse le LEMME (SP.D2A →

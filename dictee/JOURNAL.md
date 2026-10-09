@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-10-10 — passé simple des verbes en -er au singulier : « le chat mangeâmes » → mangea
+
+- 88 verbes en -er sur 5 291 avaient la 3e du singulier du passé simple en table : « le chat mangeâmes », « il mangeâmes »,
+  « ils mangea » restaient muets (la cible n'existait pas). `_psCompleter` ≡ `_ps_completer` complète désormais la 3e du
+  SINGULIER comme le pluriel : radical de l'imparfait + a (« mangeait » → mangea, « commençait » → commença), validé par le
+  lexique. PAS -ai / -as : « il mangeai » est d'abord un -ai pour -ait (rAiAit le corrige en mangeait) ; et pas le 2e groupe
+  (« finit » est aussi le présent).
+- Deux gardes, nées de la mesure :
+  - une lecture TIRÉE de l'index du passé simple exige un verbe connu et courant (≥ 1/M) — sur UD, « houa » (un mot chinois
+    dans un titre) devenait « houèrent » (houer) ;
+  - « exerca » → exerça, « décèda » → décéda : un ACCENT seul à la même personne passait en ROUGE par la règle de la personne.
+    Juste souvent, mais pas toujours : dans le corpus, l'auteur voulait parfois le PRÉSENT (exerce, succède, réforme) — et
+    « réforma », absent du speller, devenait « reforma ». Ces mots restent à l'orthographe, en orange.
+- Mesure : gold 0 ; 3 corpus : 1 marque, orange : un nom collectif suivi d'un complément pluriel (du type « une troupe de soldats
+  arrivèrent » → arriva ?), même politique que « la bande de gens arrivent » ; UD 14 450 : 0. Couverture : il 97,4 → 97,5 %, le chat 93,8 → 93,9 %.
+- Tests : 3 cas (plancher 270), 2 silences attendus (« il mangea », « elle placa » sans rouge).
+- ⚠️ Instrument : le banc de parité de l'app (`parity_corr.js`) amorçait le speller sans D2A (clé sans accent → formes) —
+  `_lemFreq` y rendait « inconnu » partout, et la garde « verbe courant » taisait « nous mangeames » que le produit corrige.
+  Amorce complétée comme `setLex` (fréquence > 0) ; la garde ne s'applique que speller prêt.
+
 ## 2026-10-09 (nuit) — police de son : « est », « dessert », « blancs » mal lus (muettes colorées)
 
 - Rem : la police de son promise sur /recherche (« muettes colorées, syllabes, le s de poison rendu voisé ») semblait cassée.

@@ -4390,7 +4390,7 @@ def _ps_completer():
             r2 = (r[:-1] + 'ç') if r.endswith('c') else (r + 'e' if r.endswith('g') else r)
             st = imp[:-3] if (imp and imp.endswith('ait')) else r2
             st3 = fut[:-3] if (fut and fut.endswith('era')) else r
-            cand = {'1p': st + 'âmes', '2p': st + 'âtes', '3p': st3 + 'èrent'}
+            cand = {'1p': st + 'âmes', '2p': st + 'âtes', '3p': st3 + 'èrent', '3s': st + 'a'}   # ⭐ 09/10/2026 : + 3e du singulier (« mangea ») ; pas -ai/-as (miroir JS)
         elif pas:
             # 3e groupe : IRRÉGULIER, on ne devine pas depuis l'infinitif — on part de la 3e personne du
             # SINGULIER déjà en table (« prit » → prîmes/prîtes/prirent, « fut » → fûmes, « vint » → vînmes).
@@ -4560,6 +4560,9 @@ def rule_sujet_flexion(T, i):
         lec = [(_hit[0][0], 'ind:pas', _hit[0][1][0], _hit[0][1][1])]
         _ps_seul = True                                           # le tagger lira NOUN (mot inconnu) : sa garde ne vaut pas ici
     else: _ps_seul = bool(_plx)                                   # la case exacte du passé simple EST la preuve verbale (miroir JS)
+    if _ps_seul:                                                     # ⭐ 09/10/2026 : lecture tirée de l'index → verbe connu et courant (≥ 1/M) — « houa »
+        _lfp = _lemfreq(lec[0][0])
+        if _lfp is None or _lfp < 1.0: return None
     tg = pos_tags(T)
     # ⭐ LA GARDE HOMOGRAPHE EXISTE DÉJÀ : `_verb_or_homograph` (écrite pour l'accord sujet-verbe) répond
     # « T[i] est-il un VERBE EN CONTEXTE ? » et écarte les noms/adjectifs connus. Sans elle, mesuré sur la
@@ -4676,6 +4679,7 @@ def rule_sujet_flexion(T, i):
     lemc, cible = _cands[0]
     if not cible or cible.lower() == lw: return None
     if deacc(cible.lower()) == dl and not _hors: return None   # accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
+    if _ps_seul and slot == '3s' and deacc(cible.lower()) == dl: return None   # ⭐ 09/10/2026 : « exerca » → exerça = accent seul, même personne : l'orthographe (orange)
     # ⭐ LEMME RARE À UNE LETTRE D'UN AUXILIAIRE (10/09/2026, cas de Rem) : « nous somme » → *sommons*, « vous somme » → *sommez*.
     # L'écrit est une case de *sommer* — mais il est aussi à UNE lettre de « sommes » (être, 433/M), et *sommer* est un verbe
     # que personne n'emploie (0,23/M). Le produit écrivait en ROUGE un mot que personne n'a voulu. Quand le LEMME est CONNU
@@ -6932,6 +6936,8 @@ MUETS = [
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
     ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Il mangea la soupe.", "passé simple 3s complété (« mangea »), bien accordé : rien (09/10/2026)."),
+    ("Elle placa le vase.", "accent seul à la même personne (placa → plaça) : l'orthographe en orange, jamais la personne en rouge — l'auteur voulait peut-être le présent (09/10/2026).", 'rouge'),
     ("Le chat pris au piège miaule.", "« pris » participe épithète après un nom : la garde participe tient, pas de passé simple (09/10/2026)."),
     ("Les chats prirent la souris.", "passé simple bien accordé avec un sujet nominal : rien (09/10/2026)."),
     ("Les vacances durent deux semaines.", "« durent » = durer (pas d'infinitif derrière) : pas le passé simple de devoir (09/10/2026)."),
@@ -7028,6 +7034,9 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Le chat mangea la souris.", "mangea", "mangeâmes", "accord du verbe au sujet nominal à vérifier"),   # ⭐ 09/10/2026 : 3e du singulier du passé simple des verbes en -er, complétée
+    ("Il mangea la soupe.", "mangea", "mangeâmes", "personne du verbe"),
+    ("Ils mangèrent la soupe.", "mangèrent", "mangea", "personne du verbe"),
     ("Le chat prit la souris.", "prit", "prîmes", "accord du verbe au sujet nominal à vérifier"),   # ⭐ 09/10/2026 : sujet NOMINAL + passé simple au circonflexe (orange)
     ("Les chats firent un bruit.", "firent", "fis", "accord du verbe au sujet nominal à vérifier"),   # ⭐ 09/10/2026 : « fis », forme seulement verbale, pas un participe
     ("Vous dûtes partir tôt.", "dûtes", "durent", "personne du verbe"),   # ⭐ 09/10/2026 : « durent » + infinitif = devoir au passé simple (_ps_lect)
@@ -7439,7 +7448,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 267   # 09/10/2026 : +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 270   # 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
