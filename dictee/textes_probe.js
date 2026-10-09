@@ -47,6 +47,38 @@ const CAS = [
   { t: 'Il commence à mange sa soupe.',   // ⭐ 04/10/2026 : le présent en -e après « à » → infinitif : la leçon dit l'infinitif, pas « qui commande »
     mots: { mange: { sugg: 'manger', oui: ['mordre', 'infinitif « manger »'] } },
     remed: { oui: ['l’INFINITIF en -er', '« mordre »'], non: ['QUI COMMANDE'] } },
+  // ⭐ 08/10/2026 — relecture des explications sur les 259 fautes de la batterie Python rejouées sur le produit : 9 textes faux
+  { t: 'La robe de mon frère est vert.',   // l'attribut : « de mon » est un complément, ce n'est pas lui qui commande
+    mots: { vert: { sugg: 'verte', oui: ['« La » (féminin)'], non: ['« mon »'] } } },
+  { t: "Je pense qu'elle est sorti.",   // le pronom ÉLIDÉ commande, pas le « Je » d'avant
+    mots: { sorti: { sugg: 'sortie', oui: ['« elle » (féminin)'], non: ['« Je »'] } } },
+  { t: 'Ton cousin et toi parle fort.',   // « parlez » : le contrôleur est « vous » — pas « Ton (singulier) »
+    mots: { parle: { sugg: 'parlez', non: ['qui commande'] } } },
+  { t: 'Tu nous serait utile.',   // « serais » : le pronom cité doit être une personne que la suggestion porte
+    mots: { serait: { sugg: 'serais', non: ['« nous »'] } } },
+  { t: 'Courir ce marathon demandent du courage.',   // l'infinitif sujet commande, pas « ce »
+    mots: { demandent: { sugg: 'demande', oui: ['« Courir » (singulier)'], non: ['« ce »'] } } },
+  { t: 'Quelle joli jardin.',   // /^quelle?$/ ne lisait pas « quel » : le 💡 citait l'adjectif
+    mots: { Quelle: { sugg: 'Quel', oui: ['le nom « jardin »'], non: ['« joli »'] } } },
+  { t: 'Elle a aimer chanter.',   // la phrase-test s'arrête avant l'infinitif qui suit (« Elle a mordu chanter » ne se dit jamais)
+    mots: { aimer: { sugg: 'aimé', oui: ['« Elle a mordu… »'], non: ['mordu chanter'] } } },
+  { t: 'Tu peut venir ce soir.',   // peut → peux : la personne, pas la phrase-test peu / peut
+    mots: { peut: { sugg: 'peux', oui: ['tu peux'], non: ['pouvait'] } } },
+  { t: 'Le matin il sont fatigués.',   // un pronom corrigé est commandé par le VERBE qui suit
+    mots: { il: { sugg: 'ils', non: ['qui commande'] } },
+    remed: { oui: ['le « s » du pluriel'], non: ['avec « je » ou « tu »'] } },
+  { t: 'Je met la table.',   // un VERBE qui prend -s, c'est je/tu — jamais « le s du pluriel »
+    mots: { met: { sugg: 'mets' } },
+    remed: { oui: ['avec « je » ou « tu », ce verbe prend un -s'], non: ['du pluriel'] } },
+  { t: 'Les filles ont prit le train.',   // la FORME du participe : le féminin fait entendre la lettre
+    mots: { prit: { sugg: 'pris' } },
+    remed: { oui: ['au féminin, « prise »', 'on y entend le « s »'], non: ['COD placé AVANT'] } },
+  { t: 'Elle a dut rentrer.',
+    mots: { dut: { sugg: 'dû' } },
+    remed: { oui: ['le participe de « devoir » s’écrit « dû »'], non: ['COD placé AVANT'] } },
+  { t: 'Demain je rangé la cave.',   // le FUTUR, pas « repère qui commande »
+    mots: { 'rangé': { sugg: 'rangerai' } },
+    remed: { oui: ['FUTUR', 'je rangerai'], non: ['QUI COMMANDE'] } },
   { t: 'Je fini mon travail.',   // 12/09/2026 : « personne du verbe » ouvre enfin le 💡 au pronom gouverneur
     mots: { fini: { sugg: 'finis', oui: ['« Je »', 'qui commande'] } } },   // le gouverneur cite le mot de la phrase, majuscule comprise
   { t: 'Nous allez au parc.',   // rapport de Rem, 15/09 : le remède citait « il », qui n'est pas dans la phrase
