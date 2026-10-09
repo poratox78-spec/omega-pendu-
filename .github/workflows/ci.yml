@@ -53,6 +53,8 @@ jobs:
         run: node dictee/a11y_probe.js --check
       - name: "Bouton Aa OMEGA Dys — vrai Chrome (police chargée, choix retenu, app intégrée suit)"
         run: node dictee/dysfont_probe.js --check
+      - name: "Bouton 🔡 police de son du site — vrai Chrome (pages habillées, texte intact, app synchronisée dans les deux sens)"
+        run: node dictee/sonsite_probe.js --check
       - name: EXTENSION dans Chrome — paquet réel, assets chargés par chrome.runtime.getURL
         run: node extension/navigateur_ext_probe.js --check
       - name: ORDRE DE CHARGEMENT — page ouverte AVANT l'extension, le panneau le DIT
