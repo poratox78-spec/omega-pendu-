@@ -28,6 +28,20 @@
   les deux sens, pas de bouton en /en/. Vue rouge sur deux fautes réintroduites (code habillé ; synchro coupée).
 - Tuto : /police-de-son et extension/aide.html (ligne 🌐).
 
+## 2026-10-10 (suite) — « Aa OMEGA Dys » dans le panneau de l'extension : les SITES CONSULTÉS changent de police
+
+- Rem : « mets le bouton Aa dans le panneau ; ça changera la police des sites consultés ? » — oui, c'est le sens retenu. Une case
+  du panneau (`omdys-font`, clé `omDysFont`, OFF par défaut) habille : la page consultée (content.js), le panneau, la bulle (dans la
+  page) et le mode d'emploi. Aucune autorisation nouvelle : le script tourne déjà sur toutes les pages, assets/* déjà accessible.
+- Page consultée : une classe sur <html> + une feuille de style ; le texte n'est jamais touché. Polices d'icônes épargnées (i, svg,
+  classes icon / fa- / material / glyph, aria-hidden), code en chasse fixe. ⚠️ Vu dans Chrome : un @font-face posé dans la page
+  ne charge pas le fichier de l'extension → la police est lue par le script (fetch de chrome.runtime.getURL, la voie des assets du
+  moteur) et ajoutée au document (FontFace, plage de graisse).
+- Limite : le cadre principal seulement (`all_frames: false`) ; les pages dessinées sur un canevas (Google Docs) ne changent pas.
+- Garde : navigateur_ext_probe.js — page en OMEGA Dys (police chargée), icône épargnée, texte intact, panneau et guide suivent,
+  décochée → police du site. Tuto (aide.html, Réglages) : la case expliquée ; la sonde des textes la vérifie.
+- À la prochaine version Store : ajouter la ligne au §3 de la fiche (nouveau réglage visible).
+
 ## 2026-10-10 — bouton « Aa OMEGA Dys » dans l'en-tête du site
 
 - Demande de Rem : changer la police du site pour la nôtre. Avis donné : pas par défaut — notre page /recherche le dit, le seul

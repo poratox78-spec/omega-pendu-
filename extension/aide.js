@@ -8,6 +8,11 @@
     document.body.classList.toggle('dark', !!dk);
   }
   var etat = { sz: 'p', dk: false };
+  // ⭐ 10/10/2026 — « Aa OMEGA Dys » (omDysFont) : le guide passe dans notre police, comme le panneau et les pages
+  try {
+    chrome.storage.local.get(['omDysFont'], function (o) { document.body.classList.toggle('omfont', !!(o && o.omDysFont)); });
+    chrome.storage.onChanged.addListener(function (ch, area) { if (area === 'local' && ch.omDysFont) document.body.classList.toggle('omfont', !!ch.omDysFont.newValue); });
+  } catch (e) {}
   try {
     chrome.storage.local.get(['omSize', 'omDark'], function (o) {
       etat.sz = (o && o.omSize) || 'p'; etat.dk = !!(o && o.omDark); applique(etat.sz, etat.dk);
