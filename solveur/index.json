@@ -2,39 +2,39 @@
  "longueurs": {
   "10": {
    "courants": 29653,
-   "mots": 99064,
-   "octets": 333565,
-   "sha": "4795e304a5c35c00"
+   "mots": 99234,
+   "octets": 334002,
+   "sha": "606ea4951bc2aeae"
   },
   "11": {
    "courants": 24199,
-   "mots": 98345,
-   "octets": 334794,
-   "sha": "5adfb2293a0311e5"
+   "mots": 98433,
+   "octets": 335023,
+   "sha": "53dc87bad8492e53"
   },
   "12": {
    "courants": 17607,
-   "mots": 85604,
-   "octets": 296463,
-   "sha": "38343bec95cc6cee"
+   "mots": 85632,
+   "octets": 296537,
+   "sha": "fd35ce470f93b56f"
   },
   "13": {
    "courants": 11498,
-   "mots": 66471,
-   "octets": 235850,
-   "sha": "20afd043c1d1a54d"
+   "mots": 66489,
+   "octets": 235898,
+   "sha": "9fb5e3bdb4a5f6e5"
   },
   "14": {
    "courants": 7077,
-   "mots": 46543,
-   "octets": 171562,
-   "sha": "83851033416816ec"
+   "mots": 46547,
+   "octets": 171573,
+   "sha": "465a620eb391118d"
   },
   "15": {
    "courants": 4170,
-   "mots": 30137,
-   "octets": 115851,
-   "sha": "1cf104424fc434c6"
+   "mots": 30139,
+   "octets": 115854,
+   "sha": "922f2300a3f9caaa"
   },
   "3": {
    "courants": 904,
@@ -44,40 +44,40 @@
   },
   "4": {
    "courants": 2918,
-   "mots": 3012,
-   "octets": 8066,
-   "sha": "8cb5c63a18608c8b"
+   "mots": 3030,
+   "octets": 8108,
+   "sha": "20b0860c12d11323"
   },
   "5": {
    "courants": 7041,
-   "mots": 7899,
-   "octets": 24107,
-   "sha": "5cbe13a702193eac"
+   "mots": 8102,
+   "octets": 24644,
+   "sha": "11e9605157b03b51"
   },
   "6": {
    "courants": 13352,
-   "mots": 18020,
-   "octets": 58804,
-   "sha": "269eb316aa4e05a5"
+   "mots": 18562,
+   "octets": 60182,
+   "sha": "dab91a2f9a24b97f"
   },
   "7": {
    "courants": 21023,
-   "mots": 36044,
-   "octets": 118669,
-   "sha": "46468befbdbd97ab"
+   "mots": 36857,
+   "octets": 120682,
+   "sha": "8b7b867d8ed2b652"
   },
   "8": {
    "courants": 28110,
-   "mots": 61707,
-   "octets": 205817,
-   "sha": "b64edfedc72410cc"
+   "mots": 62387,
+   "octets": 207583,
+   "sha": "f61f4011d18a4da5"
   },
   "9": {
    "courants": 31253,
-   "mots": 85713,
-   "octets": 286844,
-   "sha": "70c18d4dec4b2775"
+   "mots": 86085,
+   "octets": 287827,
+   "sha": "9fd7b02b69c2c87b"
   }
  },
- "total": 639501
+ "total": 642439
 }
