@@ -4,10 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<link rel="canonical" href="https://omegapendu.com/bot-moderation/">
-<!-- Le bot de modération du Déformateur de voix (autre produit du même auteur), à ouvrir comme DOCK dans OBS.
-     Hors du référencement d'OMEGA (noindex, hors sitemap). Source : data_local/voix/bot/page/ ; détecteur mesuré par
-     data_local/voix/bot/sondes/sonde_detecteur.cjs ; mots courants tirés de Lexique 4 (CC BY-SA 4.0, voir NOTICE). -->
 <title>Bot de modération — Déformateur de voix</title>
 <link rel="stylesheet" href="bot.css">
 </head>
@@ -58,6 +54,19 @@
 </section>
 
 <section>
+  <h2>🎙 Ordres à la voix</h2>
+  <label class="ligne"><input type="checkbox" id="voix"> Écouter le Déformateur de voix (menu Live → « Modération à la voix »)</label>
+  <p id="voix-etat" class="doux"></p>
+  <p id="voix-confirmer" class="alerte" hidden></p>
+  <details>
+    <summary>Ce qu'on peut dire</summary>
+    <p class="doux">« Bot, efface » · « Bot, exclus » (10 min) · « Bot, bannis » puis « Bot, confirme » · « Bot, pas grave » —
+      le dernier signalement, ou un numéro (« Bot, exclus trois »), ou un pseudo qui vient d'écrire (« Bot, efface Kevin »).<br>
+      « Bot, mode bouclier » / « Bot, fin du bouclier » · « Bot, mode lent » / « Bot, fin du mode lent ».</p>
+  </details>
+</section>
+
+<section>
   <h2>Essayer une phrase</h2>
   <input id="essai" type="text" placeholder="ex. t'es qu'un k o n n a r d" autocomplete="off">
   <p id="essai-resultat" class="doux"></p>
@@ -70,7 +79,7 @@
 </section>
 
 <footer class="doux">Déformateur de voix · <a href="https://poratox78-spec.itch.io/deformateur-de-voix" target="_blank" rel="noopener">itch.io ↗</a> ·
-  rien n'est envoyé ailleurs qu'à Twitch · mots courants : Lexique 4 (CC BY-SA 4.0)</footer>
+  liste d'insultes modifiable · rien n'est envoyé ailleurs qu'à Twitch</footer>
 
 <script src="cle_son.js"></script>
 <script src="mots_fr.js"></script>
