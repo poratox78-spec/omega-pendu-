@@ -26392,6 +26392,18 @@ function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[]
       for(var sl in cand){if(slots[sl])continue;if(_spos(cand[sl]))slots[sl]=cand[sl];}   // ne JAMAIS écraser une case mesurée ; LE LEXIQUE valide
       var nn=0,z;for(z in slots)nn++;if(!nn)delete d['ind:pas'];}
     for(var lm in CONJ_C){var ps=CONJ_C[lm]['ind:pas'];if(!ps)continue;for(var s2 in ps){var kk=deacc((Array.isArray(ps[s2])?ps[s2][0]:ps[s2]).toLowerCase());(_PS_INDEX[kk]||(_PS_INDEX[kk]=[])).push([lm,s2]);}}}   // index INVERSE, une seule construction
+  /* ⭐ 09/10/2026 — LE PASSÉ SIMPLE PAR SA FORME EXACTE. CONJ_F est indexé SANS accent : « prîmes » (prendre) s'y lit « primes »
+     (primer, 2e du singulier) — « il prîmes » recevait « prime » en ROUGE, « ils prîmes » → « priment », « vous prîmes » se taisait
+     (homographe : abstention). Une forme écrite AVEC le circonflexe du passé simple (â, î, û) est une case EXACTE de l'index complété :
+     elle se lit passé simple, et seulement ainsi. Sans accent, l'homographe reste ambigu (« durent » : durer, ou devoir) — sauf
+     devant un INFINITIF, que seul le modal gouverne (« vous durent partir » → dûtes). Lu par rAccordSV et sujFlexVig. Miroir Python _ps_lect. */
+  var _PS_MODAL={devoir:1,pouvoir:1,vouloir:1,savoir:1};
+  function _psLect(T,i){var lw=String(T[i]||'').toLowerCase(),dl=deacc(lw);_psCompleter();var h=_PS_INDEX[dl];if(!h)return [];
+    var circ=/[âîû]/.test(lw),out=[],k,f,nx;
+    if(!circ){if(i+1>=T.length)return [];nx=T[i+1].toLowerCase();if(!(/(er|ir|re|oir)$/.test(deacc(nx))&&!svReads(nx).length&&_spos(nx).indexOf('V')>=0))return [];}
+    for(k=0;k<h.length;k++){f=_ps1(CONJ_C[h[k][0]]||{},'ind:pas',h[k][1]);if(!f)continue;
+      if(circ?f.toLowerCase()===lw:(_PS_MODAL[h[k][0]]&&deacc(f.toLowerCase())===dl))out.push([h[k][0],'ind:pas',h[k][1].charAt(0),h[k][1].charAt(1)]);}
+    return out;}
   var _ELIDED_PRON=/^(?:qu|s|n|c|j|l|d|m|t|puisqu|lorsqu|quoiqu)['’](il|ils|elle|elles|on|je|tu|nous|vous)$/;   // « qu'il », « s'ils » : le pronom sujet vit DANS le token élidé (miroir Python _ELIDED_PRON)
   function _prevPron(T,i){if(i<=0)return null;var m=_ELIDED_PRON.exec(T[i-1].toLowerCase());return m?deacc(m[1]):cprev(T,i);}   // pronom sujet EFFECTIF avant i : lit aussi le pronom PORTÉ par un token élidé (« Lorsqu'il à faim », « Puisqu'elle c'est levée » — 5 règles à liste propre le rataient, mesuré 30/08/2026). Miroir Python _prev_pron.
   function svSubject(T,i){var j=i-1,st=0;while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}if(j<0)return null;if(_SEG){for(var m=j+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}var _me=_ELIDED_PRON.exec(T[j].toLowerCase());if(_me)return SUBJ_PRON[deacc(_me[1])]||null;return SUBJ_PRON[deacc(T[j].toLowerCase())]||null;}
@@ -26416,7 +26428,7 @@ function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[]
     if(q===null)return false;
     var d1=q>=1?deacc(T[q-1].toLowerCase()):'',d2=q>=2?deacc(T[q-2].toLowerCase()):'';
     return !!(_SUBJ_T2[d1]||_SUBJ_T3[d2+' '+d1]);}
-  function rAccordSV(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;var reads=svReads(T[i]);if(!reads.length)return null;
+  function rAccordSV(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;var reads=svReads(T[i]),_pl=_psLect(T,i);if(_pl.length)reads=_pl;if(!reads.length)return null;   // « il prîmes » : passé simple de prendre, pas primer (_psLect)
     var _dsv=deacc(T[i].toLowerCase());
     if(_dsv==='sais'||_dsv==='sait'){if(b2Cadre(i))return null;   // le JUGE B2 a tranché « s'est » ici → l'accord se tait (sinon il ressuscite sais→sait sur la mauvaise lecture — le renforcement vu sur ASEI texte4)
       var _js=i+1;while(_js<T.length&&_js<=i+3&&PPMID[deacc(T[_js].toLowerCase())])_js++;
@@ -27729,7 +27741,8 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(MODAL[dl]&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;   // MODAL seulement devant un VRAI INFINITIF (« je vais manger ») — miroir EXACT du Python (VERB_LEX ≡ COMMON_VERBS). L'ancien test « le mot suivant n'a aucune lecture » était vrai de « au », « le », « des »… : « Nous allez AU parc » restait muet DANS LE PRODUIT alors que la référence le corrigeait
     if(rAuxMisspell(T,i))return null;   // ⭐ si la règle des auxiliaires parle (« nous somme » → sommes), celle-ci se tait : conjuguer *sommer* par-dessus donnait « sommons ». Renvoi explicite, indépendant de l'ordre du registre — miroir Python
     _psCompleter();                                                  // complète le passé simple pluriel, une fois
-    var lec=svReads(w),_psSeul=false;
+    var lec=svReads(w),_psSeul=false,_plx=_psLect(T,i);
+    if(_plx.length){lec=_plx;_psSeul=true;}   // ⭐ 09/10/2026 : « vous prîmes », « vous durent partir » — la case exacte du passé simple (_psLect)
     if(!lec.length){   // « mangeames » ≡ « mangeâmes » : une case de paradigme que CONJ_F ne porte pas — on la cherche par sa DÉACCENTUATION
       var _hit=_PS_INDEX[dl]||[];
       if(_hit.length!==1)return null;                                 // forme ambiguë entre deux lemmes → abstention

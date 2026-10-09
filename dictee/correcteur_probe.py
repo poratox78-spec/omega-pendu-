@@ -3319,6 +3319,8 @@ def rule_accord_sv(T, i):
     if not CONJ_LOADED or "'" in T[i].lower(): return None        # forme élidée (j'ai) → hors v1
     if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None   # participe (mangé…) : accord adjectival/temps composé, pas présent (deacc é→e trompe)
     reads = _reads(T[i])
+    _pl = _ps_lect(T, i)
+    if _pl: reads = _pl                                           # ⭐ 09/10/2026 : « il prîmes » = prendre, pas primer (_ps_lect)
     if not reads: return None                                     # pas une forme verbale connue → abstention
     _dsv = deacc(T[i].lower())
     if _dsv in ('sais', 'sait'):
@@ -4487,6 +4489,31 @@ _SUJ_SAUT = {'ne', 'n', 'se', 's', 'me', 'm', 'te', 't', 'y', 'en', 'le', 'la', 
 _CONJ_VAR = {'peux': 'puis'}   # ⭐ 13/09/2026 : variantes d'une même case de paradigme (la table de génération n'en garde qu'une)
 
 
+# ⭐ 09/10/2026 — LE PASSÉ SIMPLE PAR SA FORME EXACTE (miroir JS _psLect). CONJ_F est indexé sans accent : « prîmes » (prendre)
+# s'y lit « primes » (primer). Une forme AVEC le circonflexe du passé simple (â, î, û) est une case exacte de l'index complété :
+# passé simple, et seulement. Sans accent, l'homographe reste ambigu (« durent » : durer ou devoir) — sauf devant un INFINITIF.
+_PS_MODAL = {'devoir', 'pouvoir', 'vouloir', 'savoir'}
+
+
+def _ps_lect(T, i):
+    lw = T[i].lower(); dl = deacc(lw)
+    _ps_completer()
+    h = _PS_INDEX.get(dl)
+    if not h: return []
+    circ = bool(re.search('[âîû]', lw))
+    if not circ:
+        if i + 1 >= len(T): return []
+        nx = T[i + 1].lower()
+        if not (re.search('(er|ir|re|oir)$', deacc(nx)) and not _reads(nx) and 'V' in _spos(nx)): return []
+    out = []
+    for lem, slot in h:
+        f = _ps1(CONJ_C.get(lem) or {}, 'ind:pas', slot)
+        if not f: continue
+        if (f.lower() == lw) if circ else (lem in _PS_MODAL and deacc(f.lower()) == dl):
+            out.append((lem, 'ind:pas', slot[0], slot[1]))
+    return out
+
+
 def _conj_variante(cellule, forme):
     u"""La case générée et la forme écrite sont-elles la même case ? Identiques, ou variantes : alternance y/i (paye/paie, rayerais/
     raierais) et peux/puis."""
@@ -4522,6 +4549,8 @@ def rule_sujet_flexion(T, i):
     if rule_aux_misspell(T, i): return None
     _ps_completer()                                                  # complète le passé simple pluriel, une fois
     lec = _reads(w)
+    _plx = _ps_lect(T, i)
+    if _plx: lec = _plx                                              # ⭐ 09/10/2026 : « vous prîmes », « vous durent partir » — case exacte (_ps_lect)
     if not lec:
         # FORME INCONNUE des lectures : c'est peut-être une case de paradigme que `CONJ_F` n'a pas (le passé
         # simple pluriel n'y est pas). On la cherche par sa DÉACCENTUATION dans les tables complétées —
@@ -4530,7 +4559,7 @@ def rule_sujet_flexion(T, i):
         if len(_hit) != 1: return None                            # forme ambiguë entre deux lemmes → abstention
         lec = [(_hit[0][0], 'ind:pas', _hit[0][1][0], _hit[0][1][1])]
         _ps_seul = True                                           # le tagger lira NOUN (mot inconnu) : sa garde ne vaut pas ici
-    else: _ps_seul = False
+    else: _ps_seul = bool(_plx)                                   # la case exacte du passé simple EST la preuve verbale (miroir JS)
     tg = pos_tags(T)
     # ⭐ LA GARDE HOMOGRAPHE EXISTE DÉJÀ : `_verb_or_homograph` (écrite pour l'accord sujet-verbe) répond
     # « T[i] est-il un VERBE EN CONTEXTE ? » et écarte les noms/adjectifs connus. Sans elle, mesuré sur la
@@ -6900,6 +6929,9 @@ MUETS = [
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
     ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Les vacances durent deux semaines.", "« durent » = durer (pas d'infinitif derrière) : pas le passé simple de devoir (09/10/2026)."),
+    ("Ils durent partir tôt.", "devoir au passé simple, bien accordé avec « ils » : rien à corriger (09/10/2026)."),
+    ("Nous prîmes le train du soir.", "« prîmes » avec son circonflexe = prendre, bien accordé : rien (09/10/2026)."),
     ("Il est fier de lui.", "« fier » ADJECTIF attribut après « être » : pas le participe de « se fier » (« fié » était rouge, 09/10/2026)."),
     ("Jean est boulanger depuis dix ans.", "un MÉTIER (nom en -er) après « être » : orange au plus, jamais « boulangé » en rouge (09/10/2026).", 'rouge'),
     ("Mon oncle était conseiller municipal.", "un métier après « être » : orange au plus (09/10/2026).", 'rouge'),
@@ -6991,6 +7023,10 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Vous dûtes partir tôt.", "dûtes", "durent", "personne du verbe"),   # ⭐ 09/10/2026 : « durent » + infinitif = devoir au passé simple (_ps_lect)
+    ("Vous prîtes le train du soir.", "prîtes", "prîmes", "personne du verbe"),   # ⭐ 09/10/2026 : « prîmes » = prendre, pas primer (accent exact)
+    ("Il prit le train du soir.", "prit", "prîmes", "personne du verbe"),   # ⭐ 09/10/2026 : avant, « prime » en rouge
+    ("Ils prirent le train du soir.", "prirent", "prîmes", "personne du verbe"),   # ⭐ 09/10/2026 : avant, « priment » en rouge
     ("Il s'est fié à moi.", "fié", "fier", "participe après s'est"),   # ⭐ 09/10/2026 : pronominal — la garde « fier » adjectif ne s'applique pas après « s'est »
     ("Les filles en ont profité.", "profité", "profite", "-e/-é (participe)"),   # ⭐ 09/10/2026 : « en » entre le sujet et « ont » — avant, « ont » → on en rouge
     # ⭐ PLURIEL PAR LE SON (28/09/2026, orange) : derrière un déterminant pluriel, le mot de même son marqué du pluriel — homographe
@@ -7396,7 +7432,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 261   # 09/10/2026 : +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 265   # 09/10/2026 : +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
