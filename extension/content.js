@@ -247,6 +247,40 @@
     schedule(s.el);
   }
 
+  // ===== ⭐ 10/10/2026 — « Aa OMEGA Dys » : la PAGE CONSULTÉE passe dans notre police (case du panneau, clé omDysFont) =====
+  // OFF par défaut ; aucune autorisation nouvelle (le script tourne déjà partout, assets/* est déjà accessible aux pages). Le texte
+  // de la page n'est JAMAIS touché : une classe sur <html> et une feuille de style. Les polices d'ICÔNES sont épargnées (i, svg,
+  // classes icon / fa- / material / glyph, aria-hidden) — sinon les pictos d'un site deviennent des lettres ; le code garde sa
+  // police à chasse fixe. La bulle, qui vit dans la page, suit.
+  // La police est lue par CE script (même voie que les assets du moteur) puis ajoutée au document (FontFace) : une feuille de
+  // style posée dans la page ne peut pas tirer le fichier de l'extension elle-même (vu dans Chrome : police jamais chargée).
+  (function () {
+    var sty = null, charge = false;
+    function charger() {
+      if (charge) return; charge = true;
+      try {
+        fetch(chrome.runtime.getURL('assets/OmegaDys-Regular.ttf')).then(function (r) { return r.arrayBuffer(); })
+          .then(function (b) { return new FontFace('OMEGA Dys Page', b, { weight: '1 1000' }).load(); })
+          .then(function (ff) { document.fonts.add(ff); }).catch(function () {});
+      } catch (e) {}
+    }
+    function css() {
+      var X = ':not(i):not(svg):not(svg *):not(code):not(pre):not(kbd):not(samp):not([class*="icon"]):not([class*="Icon"])'
+            + ':not([class*="fa-"]):not([class^="fa"]):not([class*="material"]):not([class*="glyph"]):not([aria-hidden="true"])';
+      return 'html.omdys-font body,html.omdys-font body *' + X + '{font-family:"OMEGA Dys Page",Verdana,Tahoma,sans-serif !important}'
+           + 'html.omdys-font body{letter-spacing:.05em !important;word-spacing:.14em !important}';
+    }
+    function applique(v) {
+      try {
+        if (v) charger();
+        if (v && !sty) { sty = document.createElement('style'); sty.id = 'omdys-page-font'; sty.textContent = css(); (document.head || document.documentElement).appendChild(sty); }
+        document.documentElement.classList.toggle('omdys-font', !!v);
+      } catch (e) {}
+    }
+    try { chrome.storage.local.get(['omDysFont'], function (o) { applique(!!(o && o.omDysFont)); }); } catch (e) {}
+    try { chrome.storage.onChanged.addListener(function (ch, area) { if (area === 'local' && ch.omDysFont) applique(!!ch.omDysFont.newValue); }); } catch (e) {}
+  })();
+
   // ===== barre flottante =====
   var bar = null, active = null, dismissed = new WeakSet();
   // ===== réglages d'accessibilité (popup → chrome.storage.local) : taille de texte + mode sombre de la barre =====

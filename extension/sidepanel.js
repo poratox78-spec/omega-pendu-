@@ -10,7 +10,8 @@
       copyBtn = document.getElementById('omdys-copy'), mirCb = document.getElementById('omdys-mirror'),
       vigEl = document.getElementById('omdys-vig'), compsEl = document.getElementById('omdys-comps'),
       undoBtn = document.getElementById('omdys-undo'), szSel = document.getElementById('omdys-size'),
-      dkCb = document.getElementById('omdys-dark'), bubCb = document.getElementById('omdys-bubble');
+      dkCb = document.getElementById('omdys-dark'), bubCb = document.getElementById('omdys-bubble'),
+      ftCb = document.getElementById('omdys-font');
 
   // ===== UNE SEULE ZONE DE CORRECTION (Rem, 07/2026 : « on garde que le panneau, c'est plus lisible ») : la bulle
   // flottante est DÉCOCHÉE par défaut. Elle reste à un clic — décocher ne coupe QUE la bulle et la correction auto
@@ -72,8 +73,12 @@
     });
     szSel.addEventListener('change', function () { chrome.storage.local.set({ omSize: szSel.value }); applyPrefs(szSel.value, dkCb.checked); });
     dkCb.addEventListener('change', function () { chrome.storage.local.set({ omDark: dkCb.checked }); applyPrefs(szSel.value, dkCb.checked); });
+    // ⭐ 10/10/2026 — « Aa OMEGA Dys » : une case, une clé (omDysFont). content.js habille les pages consultées, aide.js le guide.
+    chrome.storage.local.get(['omDysFont'], function (o) { ftCb.checked = !!(o && o.omDysFont); document.body.classList.toggle('omfont', ftCb.checked); });
+    ftCb.addEventListener('change', function () { chrome.storage.local.set({ omDysFont: ftCb.checked }); document.body.classList.toggle('omfont', ftCb.checked); });
     chrome.storage.onChanged.addListener(function (ch, area) {   // live : réglé ailleurs → suit sans recharger
       if (area !== 'local') return;
+      if (ch.omDysFont) { ftCb.checked = !!ch.omDysFont.newValue; document.body.classList.toggle('omfont', ftCb.checked); }
       if (ch.omSize) { szSel.value = ch.omSize.newValue || 'p'; }
       if (ch.omDark) { dkCb.checked = !!ch.omDark.newValue; }
       if (ch.omSize || ch.omDark) applyPrefs(szSel.value, dkCb.checked);

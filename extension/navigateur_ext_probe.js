@@ -305,8 +305,42 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     const okErr = erreursAide.length === 0;
     log('  ' + (okErr ? '✓' : '✗') + ' [aide    ] aucune erreur de script ni de CSP' + (okErr ? '' : ' : ' + erreursAide.slice(0, 3).join(' | ')));
     if (!okErr) echecs.push('mode d’emploi : erreurs dans aide.html — ' + erreursAide.slice(0, 3).join(' | '));
+    /* ⭐ 10/10/2026 — « Aa OMEGA Dys » : le guide suit la case du panneau (clé omDysFont), comme pour le mode sombre */
+    const fGuide = async () => ((await pa.envoyer('Runtime.evaluate', { returnByValue: true, expression: 'document.body.classList.contains("omfont") && getComputedStyle(document.body).fontFamily' })).result || {}).value;
+    await reglerAide({ omDysFont: true });
+    const g1 = await fGuide();
+    await reglerAide({ omDysFont: false });
+    const g0 = await fGuide();
+    const okGuideAa = typeof g1 === 'string' && /OMEGA Dys Texte/.test(g1) && g0 === false;
+    log('  ' + (okGuideAa ? '✓' : '✗') + ' [aide    ] « Aa OMEGA Dys » suivi par le guide : ' + JSON.stringify({ g1, g0 }));
+    if (!okGuideAa) echecs.push('Aa OMEGA Dys : le mode d’emploi ne suit pas la case du panneau — eu ' + JSON.stringify({ g1, g0 }));
     try { pa.fermer(); } catch (e) {}
     try { const tl = await (await fetch('http://127.0.0.1:' + dp + '/json/list')).json(); const t = tl.find((x) => x.url === URL_AIDE); if (t) await fetch('http://127.0.0.1:' + dp + '/json/close/' + t.id); } catch (e) {}
+
+    /* ⭐ 10/10/2026 — « Aa OMEGA Dys » sur la PAGE CONSULTÉE (rapport de Rem : « ça changera la police des sites consultés ? » — oui) :
+       la case du panneau (omDysFont) habille la page par content.js : police RÉELLEMENT chargée depuis le paquet, texte de la page
+       intact, polices d'icônes épargnées ; décochée → la page retrouve sa police, sans recharger. Le panneau suit aussi. */
+    {
+      const pageAa = async () => ((await pg.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 20000,
+        expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+          + ' if (!document.getElementById("omdys-ico")) { const i = document.createElement("span"); i.id = "omdys-ico"; i.className = "material-icons"; i.style.fontFamily = "monospace"; i.textContent = "home"; document.body.appendChild(i); }'
+          + ' for (let k = 0; k < 40; k++) { if ([...document.fonts].some(f => f.family.replace(/\"/g, "") === "OMEGA Dys Page" && f.status === "loaded") || !document.documentElement.classList.contains("omdys-font")) break; await w(100); }'
+          + ' return { cls: document.documentElement.classList.contains("omdys-font"), ff: getComputedStyle(document.body).fontFamily,'
+          + '   charge: [...document.fonts].some(f => f.family.replace(/\"/g, "") === "OMEGA Dys Page" && f.status === "loaded"),'
+          + '   icone: getComputedStyle(document.getElementById("omdys-ico")).fontFamily, texte: document.body.innerText }; })()' })).result || {}).value || {};
+      const regler = (o) => pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 20000,
+        expression: 'new Promise(r => chrome.storage.local.set(' + JSON.stringify(o) + ', () => setTimeout(() => r(1), 500)))' });
+      const panneauAa = async () => ((await pp.envoyer('Runtime.evaluate', { returnByValue: true, expression: '({ coche: document.getElementById("omdys-font").checked, cls: document.body.classList.contains("omfont") })' })).result || {}).value || {};
+      const p0 = await pageAa();
+      await regler({ omDysFont: true });
+      const p1 = await pageAa(), q1 = await panneauAa();
+      await regler({ omDysFont: false });
+      const p2 = await pageAa(), q2 = await panneauAa();
+      const okAa = !p0.cls && p1.cls && p1.charge && /OMEGA Dys Page/.test(p1.ff) && !/OMEGA Dys Page/.test(p1.icone) && p1.texte === p0.texte
+        && !p2.cls && !/OMEGA Dys Page/.test(p2.ff) && q1.coche && q1.cls && !q2.coche && !q2.cls;
+      log('  ' + (okAa ? '✓' : '✗') + ' [page    ] « Aa OMEGA Dys » : page ' + (p1.charge ? 'en OMEGA Dys (police chargée)' : 'NON habillée') + ', icône épargnée, texte intact, panneau suit, décochée → police du site');
+      if (!okAa) echecs.push('Aa OMEGA Dys : la page consultée / le panneau ne suivent pas la case — eu ' + JSON.stringify({ p0: { cls: p0.cls, ff: p0.ff }, p1: { cls: p1.cls, charge: p1.charge, ff: p1.ff, icone: p1.icone, texteIntact: p1.texte === p0.texte }, p2: { cls: p2.cls, ff: p2.ff }, q1, q2 }));
+    }
 
     /* ⑥ LA BASCULE BULLE ↔ RECOPIE SURVIT-ELLE À UNE FERMETURE ? (rapport de Rem, 09/09/2026)
        Trois symptômes, une seule cause : l'exclusion mutuelle n'était appliquée QU'AU CLIC.

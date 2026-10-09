@@ -153,6 +153,11 @@
   body.dark .cbtn{ background:#16242f; color:#9fc6e0; }
   body.dark .prefs, body.dark .mir, body.dark #omdys-count{ color:#9aa7b4; }
   body.dark .foot{ color:#7c8894; border-top-color:#2a333c; }
+  /* ⭐ 10/10/2026 — « Aa OMEGA Dys » (case du panneau, clé omDysFont) : notre police + espacement large ; famille à part pour ne
+     pas toucher aux trois graisses de la police de son (OMEGA Dys / Light / Heavy). */
+  @font-face{ font-family:'OMEGA Dys Texte'; src:url('assets/OmegaDys-Regular.ttf') format('truetype'); font-weight:1 1000; font-display:swap; }
+  body.omfont, body.omfont :is(button,input,textarea,select){ font-family:'OMEGA Dys Texte',Verdana,Tahoma,sans-serif; }
+  body.omfont{ letter-spacing:.05em; word-spacing:.14em; }
 </style>
 </head>
 <body>
@@ -163,6 +168,7 @@
       <select id="omdys-size"><option value="p">normal</option><option value="m">grand</option><option value="g">très grand</option></select>
     </label>
     <label><input type="checkbox" id="omdys-dark"> Sombre</label>
+    <label title="Les sites que tu consultes, ce panneau, la bulle et le mode d'emploi passent dans notre police OMEGA Dys, avec plus d'espace entre les lettres et les mots. Le texte ne change pas."><input type="checkbox" id="omdys-font"> Aa OMEGA Dys</label>
     <label title="La bulle flottante dans la page. Décochée : ce panneau est la SEULE zone de correction."><input type="checkbox" id="omdys-bubble"> Bulle dans la page</label>
     <label title="Police OMEGA Dys : phonème voisé = épais, sourd = fin, lettre muette = vermillon (le texte ne change pas)"><input type="checkbox" id="omdys-son"> 🔡 Police de son</label>
     <label title="Alterne la couleur des syllabes (avec la police de son)"><input type="checkbox" id="omdys-syl"> ✂️ Syllabes</label>
