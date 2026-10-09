@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-09 (fin) — passé simple irrégulier : « vous durent partir » → dûtes, « il prîmes » → prit
+
+- Le trou rendu visible par le lot accentué (« vous durent » → dûtes muet) était une classe : le passé simple des verbes
+  irréguliers, lu par une table indexée SANS accent. « prîmes » (prendre) s'y lisait « primes » (primer, 2e du singulier) :
+  « il prîmes » → « prime » en ROUGE, « ils prîmes » → « priment » en rouge, « vous prîmes » muet (homographe → abstention).
+  « durent » est vraiment double (durer au présent, devoir au passé simple) : muet ou « dure ».
+- `_psLect` ≡ `_ps_lect` : une forme écrite AVEC le circonflexe du passé simple (â, î, û) se lit sur sa case EXACTE de l'index
+  complété (`_psCompleter`), et seulement ainsi ; sans accent, l'homographe garde son abstention — sauf devant un INFINITIF, que
+  seul un modal (devoir, pouvoir, vouloir, savoir) gouverne : « vous durent partir » → dûtes. Lu par la règle de la personne
+  (sujFlexVig ≡ rule_sujet_flexion) et l'accord sujet-verbe (qui se tait sur le passé simple au lieu de proposer « prime »).
+- Mesure : gold, 3 corpus dys, UD 14 450 : 0 marque changée. Couverture de la conjugaison : vous 98,0 → 98,5 %, il 96,9 →
+  97,4 %, ils 98,0 → 98,5 % (réancrée à la hausse). Reste, honnêtement : « vous durent » SANS suite (durez ou dûtes ? le sens
+  manque) ; « il allai » → allait (la règle -ai/-ait, voulue : le dys écrit -ai pour -ait) ; les sujets nominaux (« le chat prîmes »).
+- Tests : 4 cas (plancher 265), 3 silences attendus (« les vacances durent », « ils durent partir », « nous prîmes »).
+
 ## 2026-10-09 (suite) — « est fier » / « est boulanger » ; « elle ces mariée »
 
 - **ÊTRE + mot en -er** (règles -er/-é `rEer` ≡ `rule_e_er`, `rFlexionEr` ≡ `rule_flexion_er`, et l'accord du participe) : le mot
