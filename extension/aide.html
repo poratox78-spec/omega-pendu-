@@ -73,6 +73,11 @@
   body.dark a{ color:#8cc3e8; }
   body.dark .ex .phrase{ color:#aab4bf; }
   body.dark footer{ color:#8a94a0; }
+  /* ⭐ 10/10/2026 — « Aa OMEGA Dys » (case du panneau, clé omDysFont) : notre police + espacement large ; famille à part pour ne
+     pas toucher aux trois graisses de la police de son (OMEGA Dys / Light / Heavy). */
+  @font-face{ font-family:'OMEGA Dys Texte'; src:url('assets/OmegaDys-Regular.ttf') format('truetype'); font-weight:1 1000; font-display:swap; }
+  body.omfont, body.omfont :is(button,input,textarea,select){ font-family:'OMEGA Dys Texte',Verdana,Tahoma,sans-serif; }
+  body.omfont{ letter-spacing:.05em; word-spacing:.14em; }
 </style>
 </head>
 <body>
@@ -234,11 +239,12 @@
   <ul class="points">
     <li data-cmd="omdys-size"><b>Texte</b> : <span class="ui" data-src="sidepanel.html">normal</span>, <span class="ui" data-src="sidepanel.html">grand</span> ou <span class="ui" data-src="sidepanel.html">très grand</span>.</li>
     <li data-cmd="omdys-dark"><span class="ui" data-src="sidepanel.html">Sombre</span> : fond foncé.</li>
+    <li data-cmd="omdys-font"><span class="ui" data-src="sidepanel.html">Aa OMEGA Dys</span> : les sites que tu consultes passent dans notre police OMEGA Dys, avec plus d'espace entre les lettres et les mots — ce panneau, la bulle et ce guide aussi. Le texte ne change pas. Ton choix est gardé ; décoche pour retrouver la police des sites.</li>
     <li data-cmd="omdys-son"><span class="ui" data-src="sidepanel.html">🔡 Police de son</span> : les sons se voient sur les lettres : les sons qui font vibrer la gorge en épais, les autres en fin, les lettres muettes en couleur. Le texte ne change pas.</li>
     <li data-cmd="omdys-syl"><span class="ui" data-src="sidepanel.html">✂️ Syllabes</span> : les syllabes changent de couleur, une sur deux. Avec la police de son.</li>
     <li data-cmd="omdys-genre"><b><span class="ui" data-src="sidepanel.html">J'écris</span></b> : <span class="ui" data-src="sidepanel.html">sans préciser</span>, <span class="ui" data-src="sidepanel.html">au féminin</span> ou <span class="ui" data-src="sidepanel.html">au masculin</span>. Avec « je », certains mots changent selon qui écrit : « je suis allé » ou « je suis allée », « je suis content » ou « je suis contente ». Si tu choisis, le correcteur te propose cet accord en orange : c'est toi qui cliques. Il ne touche pas à un dialogue ni à ce qui est entre guillemets, car ce « je » peut être quelqu'un d'autre. Sans préciser, il ne change rien.</li>
   </ul>
-  <p>La taille et le mode sombre s'appliquent aussi à la bulle et à ce guide.</p>
+  <p>La taille, le mode sombre et la police OMEGA Dys s'appliquent aussi à la bulle et à ce guide.</p>
 </section>
 
 <section id="prive">
