@@ -73,10 +73,10 @@
     });
     szSel.addEventListener('change', function () { chrome.storage.local.set({ omSize: szSel.value }); applyPrefs(szSel.value, dkCb.checked); });
     dkCb.addEventListener('change', function () { chrome.storage.local.set({ omDark: dkCb.checked }); applyPrefs(szSel.value, dkCb.checked); });
-    // ⭐ 10/10/2026 — « Aa OMEGA Dys » : une case, une clé (omDysFont). content.js habille les pages consultées, aide.js le guide.
+    // ⭐ 09/10/2026 — « Aa OMEGA Dys » : une case, une clé (omDysFont). content.js habille les pages consultées, aide.js le guide.
     chrome.storage.local.get(['omDysFont'], function (o) { ftCb.checked = !!(o && o.omDysFont); document.body.classList.toggle('omfont', ftCb.checked); });
     ftCb.addEventListener('change', function () { chrome.storage.local.set({ omDysFont: ftCb.checked }); document.body.classList.toggle('omfont', ftCb.checked); });
-    // ⭐ 10/10/2026 — « 🎨 Couleurs sur les sites » (omSonSites) : son_pages.js peint les pages consultées, sans toucher à leur texte.
+    // ⭐ 09/10/2026 — « 🎨 Couleurs sur les sites » (omSonSites) : son_pages.js peint les pages consultées, sans toucher à leur texte.
     chrome.storage.local.get(['omSonSites'], function (o) { ssCb.checked = !!(o && o.omSonSites); });
     ssCb.addEventListener('change', function () { chrome.storage.local.set({ omSonSites: ssCb.checked }); });
     chrome.storage.onChanged.addListener(function (ch, area) {   // live : réglé ailleurs → suit sans recharger

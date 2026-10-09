@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* sonsite_probe.js — le bouton « 🔡 » de l'en-tête : la police de son sur TOUTES les pages, dans un VRAI Chrome (10/10/2026).
+/* sonsite_probe.js — le bouton « 🔡 » de l'en-tête : la police de son sur TOUTES les pages, dans un VRAI Chrome (09/10/2026).
  *
  * Demande de Rem : les couleurs des syllabes et des sons sur tout le site, puis dans l'extension, rendu vérifié à l'œil.
  * Un grep prouverait que le code est ÉCRIT ; ici Chrome ouvre les pages et on vérifie ce qu'un visiteur verrait.

@@ -247,7 +247,7 @@
     schedule(s.el);
   }
 
-  // ===== ⭐ 10/10/2026 — « Aa OMEGA Dys » : la PAGE CONSULTÉE passe dans notre police (case du panneau, clé omDysFont) =====
+  // ===== ⭐ 09/10/2026 — « Aa OMEGA Dys » : la PAGE CONSULTÉE passe dans notre police (case du panneau, clé omDysFont) =====
   // OFF par défaut ; aucune autorisation nouvelle (le script tourne déjà partout, assets/* est déjà accessible aux pages). Le texte
   // de la page n'est JAMAIS touché : une classe sur <html> et une feuille de style. Les polices d'ICÔNES sont épargnées (i, svg,
   // classes icon / fa- / material / glyph, aria-hidden) — sinon les pictos d'un site deviennent des lettres ; le code garde sa

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* dysfont_probe.js — le bouton « Aa OMEGA Dys » de l'en-tête, dans un VRAI Chrome (10/10/2026).
+/* dysfont_probe.js — le bouton « Aa OMEGA Dys » de l'en-tête, dans un VRAI Chrome (09/10/2026).
  *
  * Demande de Rem : « un bouton dans l'en-tête, à côté du thème ; il passe tout le site dans notre police avec un espacement large,
  * et le choix est retenu d'une page à l'autre — on laisse la personne décider ». Un grep prouverait que le code est ÉCRIT, pas qu'il

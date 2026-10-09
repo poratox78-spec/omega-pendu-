@@ -1,5 +1,5 @@
 // son_pages.js — « 🎨 Couleurs sur les sites » (case du panneau, clé chrome.storage.local omSonSites). Content script.
-// ⭐ 10/10/2026 — demande de Rem : les couleurs des syllabes et des sons manquaient sur le site ET dans l'extension, hors du
+// ⭐ 09/10/2026 — demande de Rem : les couleurs des syllabes et des sons manquaient sur le site ET dans l'extension, hors du
 // panneau. Le site habille ses propres pages (police/son_site.js) ; ici ce sont les sites des AUTRES.
 //
 // ⚠ PRINCIPE : AUCUN caractère et AUCUN nœud de la page ne sont touchés. Couper un mot en <span> sur un site qu'on ne connaît

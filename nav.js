@@ -158,7 +158,7 @@
     applyTheme(ls('omega_theme') || 'dark');                 // défaut sombre (identité du site) ; le choix prime et est mémorisé
     bT.addEventListener('click', function(){ var n = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; save('omega_theme', n); applyTheme(n); });
 
-    // ⭐ 10/10/2026 — « Aa OMEGA Dys » : tout le site dans notre police + espacement large (site.css, html[data-dysfont]).
+    // ⭐ 09/10/2026 — « Aa OMEGA Dys » : tout le site dans notre police + espacement large (site.css, html[data-dysfont]).
     // OFF par défaut, choix retenu (omega_dysfont) ; l'app intégrée lit la même clé (événement storage). Rem : « on laisse la personne décider ».
     function applyDys(v){
       if (v) root.setAttribute('data-dysfont', '1'); else root.removeAttribute('data-dysfont');
@@ -172,7 +172,7 @@
     applyDys(ls('omega_dysfont') === '1');
     bD.addEventListener('click', function(){ var v = root.getAttribute('data-dysfont') !== '1'; save('omega_dysfont', v ? '1' : '0'); applyDys(v); });
 
-    // ⭐ 10/10/2026 — « 🔡 » : la POLICE DE SON (sons épais ou fins, muettes en vermillon, syllabes alternées) sur le texte de
+    // ⭐ 09/10/2026 — « 🔡 » : la POLICE DE SON (sons épais ou fins, muettes en vermillon, syllabes alternées) sur le texte de
     // TOUTES les pages (police/son_site.js). Demande de Rem : les couleurs des syllabes et des sons sur le site. OFF par défaut, mêmes
     // clés que l'app (vdd_son, vdd_syl) : l'allumer ici l'allume dans le correcteur et la dictée, et inversement (événement
     // storage, dans les deux sens). Français seulement (le g2p est français) : pas de bouton sur les pages /en/. Les scripts

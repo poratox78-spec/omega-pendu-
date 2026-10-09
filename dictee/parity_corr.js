@@ -54,7 +54,7 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    (WORDS + POS + FREQ : depuis le 10/09/2026 la grammaire lit AUSSI SP.FREQ — rule_sujet_flexion s'abstient sur une
    cible RARE à une lettre d'un auxiliaire. Sans FREQ ici, SP.ready était vrai et la table VIDE : « Nous êtes là » se
    taisait dans ce harnais alors que le produit corrige. Mesurer un moteur amputé, ce n'est pas mesurer le produit.)
-   ⭐ 10/10/2026 : + D2A (clé sans accent → formes, fréquence > 0, comme setLex) — _lemFreq en dépend : sans lui, « inconnu »
+   ⭐ 09/10/2026 : + D2A (clé sans accent → formes, fréquence > 0, comme setLex) — _lemFreq en dépend : sans lui, « inconnu »
    partout, et la garde « verbe courant » du passé simple se taisait ici sur « nous mangeames » que le produit corrige. */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
   ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};if(!SP.D2A)SP.D2A={};t.split(String.fromCharCode(10)).forEach(function(l){' +
