@@ -24,6 +24,30 @@
   vu ROUGE sur l'ancienne app (4 lectures). Mode d'emploi (`aide.html`) : les messages qui défilent sont colorés, jamais les champs,
   boutons ni adresses web.
 
+## 2026-10-10 — terminaisons muettes, lot 2 : la personne du verbe par le son
+
+- Suite du catalogue (Rem : faire le lot suivant). Dans « autre terminaison », la personne du verbe après un pronom sujet restait muette
+  dès que le mot écrit n'avait AUCUNE lecture de verbe conjugué : participe (« je dormie »), nom (« il envois »), passé simple
+  absent des tables (les tables n'ont le passé simple singulier que de quelques verbes en -ir/-re ; #893 l'avait ajouté pour -er).
+  Tracé à l'instrument : `svReads` vide → `rAccordSV` se tait.
+- `personneSonVig` (orange « personne du verbe par le son à vérifier », JS) : parmi les mots de même clé phonétique, la forme d'un même verbe qui s'accorde au pronom ; le passé
+  simple singulier manquant se déduit (sœur en table, ou infinitif en -re/-ir) et doit être un mot connu. Le scripteur écrit ce qu'il
+  entend : on propose ce qui sonne pareil.
+- La 1re version touchait des mots justes (gold : 16 → 28 en orange) : petits mots (« pas » → passait, « lui » → luit, « vous »),
+  infinitif après une inversion (« faut-il partir »), l'auxiliaire dans « l'ai », le subjonctif imparfait (« qu'elle restât »),
+  « je chantai », un « j » isolé, « on » écrit pour « ont » après un pluriel. Gardes posées une par une ; justes touchés revenus à 16.
+- Nom propre à la règle : `persVig` a une jumelle Python et la parité exige que ses noms d'orange existent des deux côtés
+  (`parity_core.js`) ; la nouvelle règle, JS seule, a son nom, et passe APRÈS `persVig` pour ne pas la priver de ses cas.
+- Mesure : gold muettes 541 → 535 (terminaisons 168 → 162), oranges justes 507 → 513, justes touchés 16 / 36 inchangés ; frgec :
+  2 mots faux → justes, 4 vraies fautes que sa correction avait laissées ; EcriScol : 2 discutables (participe sans auxiliaire,
+  un participe en -u devenu passé simple, quand l'auxiliaire manque) ; UD 14 450 : 2 marques, deux fautes du corpus.
+- Trouvé en écrivant les tests : « je chantai », « je mangeai » (passé simple, CORRECT) recevaient « chante » en orange depuis
+  longtemps — `persVig` lisait « chantai » + s = « chantais » puis proposait le PRÉSENT. Même garde que la nouvelle règle : forme en
+  -ai d'un verbe en -er connu → silence (dans les 3 moteurs : `rule_personne_verbe` en Python aussi).
+- Tests : `test_sv_vigilance.js` (5 prises, 7 silences dont « je chantai », phrases inventées vérifiées) — vus ROUGES sur l'ancienne app.
+- Mesuré et laissé : « -ent » pour « -ant » après très / est / un (≈ 5 cas, une partie déjà au gérondif) ; « pour / sans / de + verbe en
+  -e » (2 cas sur les 3 corpus).
+
 ## 2026-10-10 — terminaisons muettes, lot 1 : quantité + de, petits mots sans leur lettre muette, « ont été »
 
 - Demande de Rem : avancer sur les 187 terminaisons muettes du catalogue (terminaison qui sonne pareil). Recensé d'abord par sorte
