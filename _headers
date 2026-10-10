@@ -11,3 +11,8 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(self), camera=(self)
   X-Frame-Options: SAMEORIGIN
+
+# 10/10/2026 — le bot du Déformateur (dock d'OBS) et le plateau du pendu : seuls les fichiers du site s'exécutent, et la
+# page ne parle qu'à Twitch et à l'outil sur le PC (127.0.0.1). Même chaîne que data_local/voix/bot/sondes/chrome_sonde.cjs.
+/bot-moderation/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://id.twitch.tv https://api.twitch.tv wss://eventsub.wss.twitch.tv wss://irc-ws.chat.twitch.tv ws://127.0.0.1:*; base-uri 'none'; form-action 'none'; frame-ancestors 'none'

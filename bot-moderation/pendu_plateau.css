@@ -1,0 +1,23 @@
+/* Le style du plateau du pendu (sorti de pendu.html le 10/10/2026 : la page n'a plus aucun code écrit en ligne,
+   ce qui permet une règle de sécurité stricte — seuls les fichiers du site peuvent s'exécuter). */
+  :root { --orange: #ff8a1f; --trait: #e9d4a8; --rouge: #e5534b; --vert: #3fb950; --fond: rgba(24, 26, 30, .82); color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  body { font: 600 22px/1.3 "Segoe UI", system-ui, sans-serif; color: #f4f1ec; }
+  #plateau { position: absolute; inset: 12px; display: flex; gap: 22px; align-items: center; padding: 18px 26px; box-sizing: border-box;
+    background: var(--fond); border: 2px solid rgba(255, 138, 31, .55); border-radius: 18px; transition: opacity .6s ease; }
+  #plateau.cache { opacity: 0; }
+  #potence { width: 220px; height: 290px; flex: none; }
+  #droite { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  #titre { color: var(--orange); font-size: 20px; letter-spacing: 3px; text-transform: uppercase; }
+  #mot { display: flex; flex-wrap: wrap; gap: 8px; }
+  .case { width: 42px; height: 54px; border-bottom: 4px solid var(--trait); display: flex; align-items: center; justify-content: center;
+    font: 800 36px/1 Consolas, "Segoe UI", monospace; color: #fff; }
+  .case.neuve { animation: pop .5s ease; color: var(--orange); }
+  @keyframes pop { 0% { transform: scale(1.6); } 100% { transform: scale(1); } }
+  #erreurs { font-size: 22px; } #erreurs b { color: var(--rouge); }
+  #ratees { color: var(--rouge); letter-spacing: 6px; font-size: 22px; min-height: 28px; text-decoration: line-through; }
+  #dernier { color: #cfcac2; font-size: 18px; min-height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #fin { font-size: 30px; font-weight: 800; min-height: 40px; }
+  #fin.gagnee { color: var(--vert); } #fin.perdue { color: var(--rouge); } #fin.arretee { color: #cfcac2; }
+  #aide { position: absolute; inset: 12px; display: none; align-items: center; justify-content: center; text-align: center;
+    background: var(--fond); border-radius: 18px; padding: 20px; font-size: 20px; }
