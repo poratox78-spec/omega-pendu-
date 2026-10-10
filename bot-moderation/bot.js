@@ -810,11 +810,13 @@
   $('pendu-mes-mots').addEventListener('input', function () { reglages.pendu.mesMots = $('pendu-mes-mots').value; sauverCommandes(); });
   $('pendu-lancer').addEventListener('click', function () { lancerPendu(); });
   $('pendu-arreter').addEventListener('click', function () { if (partie && !partie.fin) finirPendu('arretee'); });
-  $('pendu-indice').addEventListener('click', function () {
-    if (!partie || partie.fin) return;
+  function donnerIndice() {                                    // le bouton 💡 et « Bot, indice » : rend la lettre, ou null
+    if (!partie || partie.fin) return null;
     var l = PENDU.indice(partie);
     if (l) { noter('💡 Indice : ' + l.toUpperCase()); viderTampon(); }
-  });
+    return l;
+  }
+  $('pendu-indice').addEventListener('click', donnerIndice);
   $('pendu-voir').addEventListener('click', function () { $('pendu-mot').classList.toggle('cache'); });
   $('pendu-zero').addEventListener('click', function () {
     if (!confirm('Remettre le classement du pendu à zéro ?')) return;
@@ -1045,6 +1047,21 @@
       var rb = await helix('PUT', '/moderation/shield_mode?broadcaster_id=' + chaine.id + '&moderator_id=' + moi.id, { is_active: a === 'bouclier' });
       dire(rb.code === 200 ? (a === 'bouclier' ? '🛡 Mode bouclier allumé.' : '🛡 Mode bouclier éteint.') : refus(rb), rb.code === 200);
       return a;
+    }
+    // 4.04 — Rem : « Bot, pendu » et « Bot, indice » (et « Bot, fin du pendu »)
+    if (a === 'pendu') {
+      if (partie && !partie.fin) { parler(PENDU.ligneEtat(partie), true); dire('🎯 Une partie tourne déjà : je la rappelle dans le chat.', true); return 'rappel'; }
+      if (!lancerPendu()) { dire('🎯 Le pendu écrit dans le chat : il faut le compte du bot (pas le tien) pour le lancer.'); return 'impossible'; }
+      dire('🎯 Nouvelle partie de pendu lancée.', true); return 'pendu';
+    }
+    if (a === 'indice') {
+      var l = donnerIndice();
+      dire(l ? '💡 Indice donné : ' + l.toUpperCase() : '💡 Pas d\'indice : aucune partie, ou il ne reste qu\'une lettre.', !!l);
+      return l ? 'indice' : 'rien';
+    }
+    if (a === 'fin_pendu') {
+      if (!partie || partie.fin) { dire('🎯 Aucune partie en cours.'); return 'rien'; }
+      finirPendu('arretee'); dire('🎯 Partie arrêtée : le mot est donné dans le chat.', true); return 'fin_pendu';
     }
     if (a === 'lent' || a === 'fin_lent') {
       var rl = await helix('PATCH', '/chat/settings?broadcaster_id=' + chaine.id + '&moderator_id=' + moi.id,
