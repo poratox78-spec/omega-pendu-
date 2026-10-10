@@ -97,7 +97,12 @@ var REPLIQUES = (function () {
     pendu_arrete: ['Partie arrêtée. On rejoue quand vous voulez. 🎯'],
     pendu_sommeil: ['Personne ? Je range le pendu. 💤'],
     pendu_classement: ['🏆 Classement du pendu : {liste}'],
-    pendu_vide: ['Personne n\'a encore de points au pendu. Ça va venir. 😏']
+    pendu_vide: ['Personne n\'a encore de points au pendu. Ça va venir. 😏'],
+    // 10/10 — étape 5 : les filtres classiques (après l'effacement) et !permit
+    filtre_lien: ['{pseudo}, pas de lien sans permission. Demande à un modo ! 🔗', '🔗 Lien confisqué, {pseudo}. Un modo peut te donner un !permit.'],
+    filtre_majuscules: ['{pseudo}, pas besoin de crier, on t\'entend très bien. 🔊', 'Doucement sur les MAJUSCULES, {pseudo}. Mes oreilles de robot sifflent. 🤖'],
+    filtre_spam: ['{pseudo}, on a bien lu la première fois. 😉', 'Écho… écho… écho… On a compris, {pseudo}. 🔁'],
+    permit: ['{cible} peut poster un lien pendant 60 secondes. Pas de bêtise ! 🔗']
   };
   var SOBRE = {
     efface: ['Message de {pseudo} retiré.'],
@@ -131,7 +136,11 @@ var REPLIQUES = (function () {
     pendu_arrete: ['Partie arrêtée.'],
     pendu_sommeil: ['Partie arrêtée faute de joueurs.'],
     pendu_classement: ['Classement du pendu : {liste}'],
-    pendu_vide: ['Aucun point au pendu pour l\'instant.']
+    pendu_vide: ['Aucun point au pendu pour l\'instant.'],
+    filtre_lien: ['Lien retiré ({pseudo}).'],
+    filtre_majuscules: ['Message en majuscules retiré ({pseudo}).'],
+    filtre_spam: ['Message répété retiré ({pseudo}).'],
+    permit: ['{cible} peut poster un lien pendant 60 secondes.']
   };
   // ce qu'on ajoute à une réplique « camouflé » selon ce qui a été fait
   var SUITE = { efface: ' Message retiré.', exclu: ' Et 10 minutes de pause.', banni: '' };

@@ -51,6 +51,18 @@
     <p class="doux">Toujours ignorés : toi et tes modérateurs.</p>
   </details>
   <details>
+    <summary>Filtres classiques (liens, majuscules, répétitions)</summary>
+    <label class="ligne"><input type="checkbox" id="filtre-liens" checked> 🔗 Liens (sauf les sites autorisés)</label>
+    <label class="ligne"><input type="checkbox" id="filtre-majuscules" checked> 🔠 Messages en MAJUSCULES</label>
+    <label class="ligne"><input type="checkbox" id="filtre-spam" checked> 🔁 Le même message répété (3 fois en 1 minute)</label>
+    <label class="ligne"><input type="checkbox" id="filtre-liens-abonnes"> Les abonnés et VIP peuvent poster des liens</label>
+    <label class="ligne colonne">Sites autorisés (un par ligne)
+      <textarea id="filtre-sites" rows="3" spellcheck="false" placeholder="youtube.com&#10;clips.twitch.tv"></textarea></label>
+    <p class="doux">Les émoticônes ne comptent jamais : ni dans les majuscules, ni dans les répétitions. <b>!permit pseudo</b>
+      (toi et tes modos) : cette personne peut poster UN lien pendant 60 secondes. Ce que les filtres trouvent est
+      seulement effacé, jamais exclu ; en « Prévenir seulement », rien n'est effacé.</p>
+  </details>
+  <details>
     <summary>Mots autorisés sur ta chaîne</summary>
     <p class="doux">Un mot par ligne : le bot ne le signalera plus (un pseudo, une blague de la communauté…).</p>
     <textarea id="autorises" rows="4" spellcheck="false"></textarea>
@@ -193,6 +205,7 @@
 <script src="mots_fr.js"></script>
 <script src="liste_insultes.js"></script>
 <script src="detecteur.js"></script>
+<script src="filtres.js"></script>
 <script src="repliques.js"></script>
 <script src="pendu_mots.js"></script>
 <script src="pendu.js"></script>
