@@ -6490,6 +6490,9 @@ def rule_personne_verbe(T, i):
     p_ = deacc(T[j].lower())
     per = '1' if p_ == 'je' else ('2' if p_ == 'tu' else None)
     if per is None: return None
+    # ⭐ 10/10/2026 — « je chantai », « je mangeai » : PASSÉ SIMPLE des verbes en -er (absent des tables) — la règle proposait le
+    # présent « chante » sur du français correct. Miroir JS persVig.
+    if per == '1' and lw.endswith('ai') and ((lw[:-2] + 'er') in CONJ_C or (lw[:-3] + 'er') in CONJ_C): return None
     if j > 0:
         av = deacc(T[j-1].lower())
         if av in NUM_DET: return None                  # « le je », « le tu » : pas un pronom sujet
