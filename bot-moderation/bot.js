@@ -613,7 +613,7 @@
   // le chat tape UNE lettre (ou le mot entier), le bot écrit l'état (groupé toutes les 2,5 s) ; le plateau d'OBS
   // (pendu.html) le redessine en lisant ces messages. Le streamer, qui voit le mot dans son dock, ne joue pas.
   if (!reglages.pendu) reglages.pendu = {};
-  [['niveau', 'facile'], ['erreurs', 8], ['qui', 'modos'], ['relance', false], ['mesMots', ''], ['seulementMesMots', false]]
+  [['niveau', 'facile'], ['erreurs', 8], ['qui', 'modos'], ['relance', false], ['mesMots', ''], ['seulementMesMots', false], ['streamerJoue', true]]
     .forEach(function (d) { if (reglages.pendu[d[0]] == null) reglages.pendu[d[0]] = d[1]; });
   var PENDU_GROUPE_MS = 2500, PENDU_COUP_MS = 4000, PENDU_SOMMEIL_MS = 5 * 60000, PENDU_RELANCE_MS = 30000, PENDU_RAPPEL_MS = 10000;
   var partie = null, tamponPendu = [], minuteriePendu = null, relancePendu = null, dernierCoup = {}, recentsMots = [], dernierRappel = 0;
@@ -693,7 +693,8 @@
         : REPLIQUES.choisir(tonCommandes(), 'pendu_vide', {}), true);
       return true;
     }
-    if (!partie || partie.fin || ev.chatter_user_id === chaine.id) return false;
+    // le streamer joue aussi (Rem, 10/10 : « je veux jouer aussi ») ; le mot reste flouté dans son dock — case pour l'exclure
+    if (!partie || partie.fin || (ev.chatter_user_id === chaine.id && !reglages.pendu.streamerJoue)) return false;
     var qui = ev.chatter_user_name || ev.chatter_user_login;
     var m = /^(?:!l(?:ettre)?\s+)?([a-zàâäçéèêëîïôöùûüÿ])$/i.exec(t);
     if (m) {
@@ -750,14 +751,16 @@
     var P = reglages.pendu;
     $('pendu-niveau').value = P.niveau; $('pendu-erreurs').value = P.erreurs; $('pendu-qui').value = P.qui;
     $('pendu-relance').checked = !!P.relance; $('pendu-mes-mots').value = P.mesMots; $('pendu-seulement').checked = !!P.seulementMesMots;
+    $('pendu-streamer').checked = P.streamerJoue !== false;
     dessinerPartie(); dessinerClassement();
   }
-  ['pendu-niveau', 'pendu-erreurs', 'pendu-qui', 'pendu-relance', 'pendu-seulement'].forEach(function (id) {
+  ['pendu-niveau', 'pendu-erreurs', 'pendu-qui', 'pendu-relance', 'pendu-seulement', 'pendu-streamer'].forEach(function (id) {
     $(id).addEventListener('change', function () {
       var P = reglages.pendu;
       P.niveau = $('pendu-niveau').value; P.qui = $('pendu-qui').value;
       P.erreurs = Math.max(4, Math.min(12, Math.round(+$('pendu-erreurs').value) || 8)); $('pendu-erreurs').value = P.erreurs;
       P.relance = $('pendu-relance').checked; P.seulementMesMots = $('pendu-seulement').checked;
+      P.streamerJoue = $('pendu-streamer').checked;
       sauverCommandes();
       if (!P.relance) clearTimeout(relancePendu);
     });
