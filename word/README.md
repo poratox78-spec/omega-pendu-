@@ -2,7 +2,7 @@
 
 La **quatrième surface** de la police de son, après le Correcteur, la Dictée et l'extension Chrome :
 dans Word, le texte sélectionné (ou tout le document) est ré-inséré **caractère pour caractère** en
-runs stylés — phonème **voisé = OMEGA Dys Heavy**, **sourd = Light**, **muette = grisée**, syllabes
+runs stylés — phonème **voisé = OMEGA Dys Heavy**, **sourd = Light**, **muette = vermillon**, syllabes
 en couleur (option). Le texte n'est **jamais** modifié : la garde est dans le code (`son_word.js`
 refuse tout mot dont la reconstruction diffère) et en CI (`word/test_son_word.js`, g2p réel).
 
