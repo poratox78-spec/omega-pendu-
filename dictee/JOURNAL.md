@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-10-10 — terminaisons muettes, lot 1 : quantité + de, petits mots sans leur lettre muette, « ont été »
+
+- Demande de Rem : avancer sur les 187 terminaisons muettes du catalogue (terminaison qui sonne pareil). Recensé d'abord par sorte
+  et par gouverneur : pluriel oublié 73, autre terminaison 33, -er/-é 31, féminin oublié 26, e en trop 15, pluriel en trop 9 — une
+  longue traîne ; le gouverneur est souvent lui-même mal écrit. Trois cadres sûrs retenus, tous en ORANGE, JS (extension + app) :
+  - **quantité + de + nom** (`quantDeVig`) : la recherche du déterminant s'arrêtait à « de ». Recensé UD : après nombre / millions /
+    milliers / centaines / dizaines / milliards, 222 pluriels pour 3 singuliers — les 3 sont des fautes du corpus. Beaucoup / peu /
+    plus / moins exclus : 70 singuliers corrects. Gardes vues à la mesure : composé (« micro-organismes », nom + nom), nom dont le
+    pluriel est rare (« coordination »).  Gold +6.
+  - **petits mots sans leur lettre muette** (`lettreMuetteVig`) : j'ais, ne … plu, sou + dét., ver + heure, en cour, avi / tapi après
+    un déterminant. Le mot écrit existe : l'orthographe se taisait. Garde vue à la mesure : « en cour martiale ».  Gold +11.
+  - **« ont été » + participe** (`attributPlVig`) : « ont été » lu comme « sont ».  Gold +2 ; frgec : 4 vraies fautes que sa correction
+    avait laissées.
+- Mesure du lot : gold muettes 560 → 541 (terminaisons 187 → 168), oranges justes 488 → 507, mots justes touchés inchangés (16 / 36) ;
+  3 corpus : rien de faux de plus hormis 2 discutables (deux noms de montant qui se comptent mal après « milliards ») ; UD 14 450 : 2 marques,
+  deux fautes du corpus (« un certain nombre de roue », « le nombre de sélection »).
+- Écartés : le déterminant mal écrit (« certin », « diver », « plusier » + nom au singulier) — l'orthographe le corrige au singulier ou
+  propose un mauvais mot ; c'est le chantier de l'orthographe du mot. Le féminin/masculin après « je suis » reste au réglage « J'écris
+  au féminin / au masculin ».
+- ⛔ Mesuré pour le chantier orthographe et NON retenu : corriger la clé phonétique (c/g doux lus avant les nasales — « gens » avait la
+  clé du g dur ; « gu » dur — « collègue » sonnait « collège »). Gold : +3 justes (collège ×2, licenciement), −4 (vacances,
+  nécessairement perdus ; guerre, descendu passés du rouge à l'orange) : le scripteur garde souvent la lettre du mot d'origine
+  (« vacence », « geurre »), et la clé approximative des DEUX côtés le retrouvait. Confirme la note de `phon_key` : l'approximation
+  est la fonction. Une idée qui resterait : indexer sous les deux clés et préférer la juste — à mesurer d'abord sur frgec.
+- Tests : `test_sv_vigilance.js` (13 prises, 10 silences, phrases inventées vérifiées contre le gold et les 3 corpus) — vus ROUGES sur
+  l'ancienne app. Outils du labo : les mesures lisent désormais les assets du worktree (`EXTDIR`) : le dossier principal, resté avant
+  #888, avait un dictionnaire périmé.
+
 ## 2026-10-10 — « Cette page ne se recopie pas ici » restait après actualisation (YouTube)
 
 - Rapport de Rem : le message persiste même après avoir rechargé la page, par exemple sur YouTube.

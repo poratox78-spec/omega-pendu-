@@ -122,6 +122,29 @@ const C = globalThis.__C;
                    'Ce fait pourrait tout changer.', 'Il va en prison.', 'On doit la série à sa sœur.', 'Le satellite IRAS avait photographié la galaxie.']) {
     const r = si(s); if (r.length) fail.push(`[semi-aux ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
   }
+  // ⭐ 10/10/2026 — catalogue des muets, terminaisons : ① quantité + de + nom → pluriel ; ② petits mots sans leur lettre muette ;
+  // ③ « ont été » + participe → pluriel. Toujours en orange ; chaque prise a ses silences voulus.
+  const ho = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'homophone à vérifier'); };
+  const pa = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord participe à vérifier' || f.name === 'accord adjectif à vérifier'); };
+  for (const [s, w, sg] of [['Le nombre de touriste augmente chaque été.', 'touriste', 'touristes'], ["La ville compte un million d'habitant.", "d'habitant", "d'habitants"],
+                            ["Des centaines d'oiseau passent ici.", "d'oiseau", "d'oiseaux"]]) {
+    const r = pv(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[quantité ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  for (const s of ["Le nombre d'or est célèbre.", 'Le nombre de fois augmente.', 'Elle garde beaucoup de patience.', 'Le pays possède un grand nombre de porte-avions.']) {
+    const r = pv(s); if (r.length) fail.push(`[quantité ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
+  }
+  for (const [s, w, sg] of [["J'ais fini mes devoirs.", "J'ais", "J'ai"], ["Il faut que j'ais du courage.", "j'ais", "j'aie"], ['Il ne chante plu depuis hier.', 'plu', 'plus'],
+                            ['Le chat dort sou la table.', 'sou', 'sous'], ['Il rentre ver huit heures.', 'ver', 'vers'], ['Les élèves sont en cour.', 'cour', 'cours'],
+                            ['Il attend leur avi.', 'avi', 'avis'], ['Le chien dort sur le tapi.', 'tapi', 'tapis']]) {
+    const r = ho(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[lettre muette ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  for (const s of ["Ce film m'a plu.", "Il n'a plus un sou.", 'Un ver de terre sort du sol.', "Il est jugé en cour d'appel.", 'Le soldat passe en cour martiale.']) {
+    const r = ho(s); if (r.length) fail.push(`[lettre muette ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
+  }
+  for (const [s, w, sg] of [['Les portes ont été peinte.', 'peinte', 'peintes'], ["Les maisons n'avaient jamais été vendue.", 'vendue', 'vendues']]) {
+    const r = pa(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[ont été ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  { const r = pa('Il a été pris.'); if (r.length) fail.push(`[ont été Il a été pris.] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`); }
   if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe / attribut :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log(`✓ OK : vigilance accord sujet-verbe + participe + attribut après « sont » (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length + AD.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length + AD.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
 })();
