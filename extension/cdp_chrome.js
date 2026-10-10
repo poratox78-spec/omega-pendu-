@@ -37,6 +37,9 @@ function trouverChrome() {
    deux écritures possibles (pipeline d'édition vs mutation directe du DOM). Voir navigateur_ext_probe ⑧⑨. */
 const PAGES = {
   '/': '<!doctype html><meta charset="utf-8"><title>essai</title><textarea id="z"></textarea>',
+  // page LOURDE (10/10/2026) : le script de contenu n'arrive qu'après 2,5 s — le cas de YouTube, où le panneau concluait trop tôt
+  '/lourde': '<!doctype html><meta charset="utf-8"><title>lourde</title><textarea id="z"></textarea>'
+    + '<script>var t0 = Date.now(); while (Date.now() - t0 < 2500) {}</script>',
   '/shadow': '<!doctype html><meta charset="utf-8"><title>shadow</title><div id="hote"></div>'
     + '<script>document.getElementById("hote").attachShadow({ mode: "open" }).innerHTML = "<textarea id=z rows=3 cols=60></textarea>";</script>',
   '/riche': '<!doctype html><meta charset="utf-8"><title>riche</title>'
