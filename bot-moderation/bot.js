@@ -54,6 +54,8 @@
   if (reglages.voix == null) reglages.voix = /\bOBS\//.test(navigator.userAgent) || !!window.obsstudio;
   if (reglages.ton == null) reglages.ton = 'taquin';       // 10/10 : choix de Rem
   if (reglages.chaine == null) reglages.chaine = '';       // vide = la chaîne du compte connecté
+  // 10/10 : les filtres classiques (filtres.js) — Rem : « liens, MAJUSCULES, spam si même texte, pas de limite d'émoticônes »
+  if (!reglages.filtres) reglages.filtres = { liens: true, majuscules: true, spam: true, liensAbonnes: false, sites: [] };
   var jeton = lire('jeton', null);                         // { access, refresh, expire }
   var moi = null;                                          // { id, login, name } : le compte connecté (le bot, ou le streamer)
   var chaine = null;                                       // { id, login, name, mod } : la chaîne surveillée
@@ -68,6 +70,10 @@
     $('voix').checked = !!reglages.voix;
     $('ton').value = reglages.ton;
     $('nom-chaine').value = reglages.chaine;
+    var F = reglages.filtres;
+    $('filtre-liens').checked = F.liens !== false; $('filtre-majuscules').checked = F.majuscules !== false;
+    $('filtre-spam').checked = F.spam !== false; $('filtre-liens-abonnes').checked = !!F.liensAbonnes;
+    $('filtre-sites').value = (F.sites || []).join('\n');
   }
   function noterReglages() {
     reglages.mode = (document.querySelector('input[name=mode]:checked') || {}).value || 'prevenir';
@@ -78,13 +84,18 @@
     var avant = reglages.voix;
     reglages.voix = $('voix').checked;
     reglages.ton = $('ton').value || 'taquin';
+    reglages.filtres = { liens: $('filtre-liens').checked, majuscules: $('filtre-majuscules').checked, spam: $('filtre-spam').checked,
+      liensAbonnes: $('filtre-liens-abonnes').checked,
+      sites: $('filtre-sites').value.split('\n').map(function (s) { return FILTRES.domaine(s.trim()); }).filter(Boolean) };
     ecrire('reglages', reglages);
     montrerParole();
     if (avant !== reglages.voix) { if (reglages.voix) chercherOutil(); else couperOutil(); }
     essayer();
   }
-  document.querySelectorAll('input[name=mode], input[data-famille], #ignorer-vip, #ignorer-abonnes, #voix, #ton').forEach(function (e) { e.addEventListener('change', noterReglages); });
+  document.querySelectorAll('input[name=mode], input[data-famille], #ignorer-vip, #ignorer-abonnes, #voix, #ton, '
+    + '#filtre-liens, #filtre-majuscules, #filtre-spam, #filtre-liens-abonnes').forEach(function (e) { e.addEventListener('change', noterReglages); });
   $('autorises').addEventListener('input', noterReglages);
+  $('filtre-sites').addEventListener('change', noterReglages);
   // la chaîne à surveiller : on relance l'écoute quand elle change (« twitch.tv/Rem » ou « @Rem » sont acceptés)
   $('nom-chaine').addEventListener('change', function () {
     var v = $('nom-chaine').value.trim().replace(/^.*twitch\.tv\//i, '').replace(/^@/, '').replace(/[/?#].*$/, '').toLowerCase();
@@ -97,7 +108,8 @@
   function etat(t) { $('etat').textContent = t; }
 
   // ── essayer une phrase (sans Twitch) ─────────────────────────────────────────────────────────────────────
-  var NOMS = { haine: 'haine', menace: 'menace', insulte: 'insulte', leger: 'moquerie', juron: 'juron' };
+  var NOMS = { haine: 'haine', menace: 'menace', insulte: 'insulte', leger: 'moquerie', juron: 'juron',
+    lien: 'lien', majuscules: 'majuscules', spam: 'message répété' };
   function expliquer(r) {
     return r.trouvailles.map(function (t) { return '« ' + t.mot + ' » (' + NOMS[t.famille] + ', ' + t.comment + ')'; }).join(' ; ');
   }
@@ -105,6 +117,7 @@
     var v = $('essai').value.trim();
     if (!v) { $('essai-resultat').textContent = ''; return; }
     var r = DETECTEUR.analyser(v, { familles: familles(), autorises: reglages.autorises });
+    if (!r.signale) r = FILTRES.analyser({ message: { text: v } }, optionsFiltres(false), null);   // liens et majuscules aussi
     $('essai-resultat').textContent = r.signale ? '⚠ ' + expliquer(r) : '✓ rien à signaler';
   }
   $('essai').addEventListener('input', essayer);
@@ -262,10 +275,12 @@
     var protege = ev.chatter_user_id === chaine.id || b.indexOf('broadcaster') >= 0 || b.indexOf('moderator') >= 0
       || (reglages.ignorerVip && b.indexOf('vip') >= 0) || (reglages.ignorerAbonnes && (b.indexOf('subscriber') >= 0 || b.indexOf('founder') >= 0));
     var r = protege ? { signale: false } : DETECTEUR.analyser(texte, { familles: familles(), autorises: reglages.autorises });
+    if (!protege && !r.signale) r = filtrer(ev, b);             // 10/10 : liens, majuscules, même message répété
     if (!r.signale) {
       compterLigne();
       if (ev.cheer && ev.cheer.bits) remercierBits(ev);
       else accueillir(ev);
+      if (permettre(ev, texte, b)) return;                     // « !permit Lili » (toi et tes modos)
       if (jouerPendu(ev, texte, b)) return;                    // une lettre, un mot, !pendu, !classement
       if (!commande(ev, texte, b)) repondre(ev, texte);
       return;
@@ -281,7 +296,33 @@
   async function effacer(s) {
     var r = await helix('DELETE', '/moderation/chat?broadcaster_id=' + chaine.id + '&moderator_id=' + moi.id + '&message_id=' + encodeURIComponent(s.id));
     marquer(s, r.code === 204 ? '🧹 effacé' : '✗ effacement refusé (' + r.code + ')');
-    if (r.code === 204) parlerApres('efface', s);
+    if (r.code === 204) parlerApres(s.r && FILTRES.FAMILLES[s.r.gravite] ? 'filtre_' + s.r.gravite : 'efface', s);
+  }
+
+  // ── 10/10 : LES FILTRES CLASSIQUES (filtres.js) ──────────────────────────────────────────────────────────
+  // Après les insultes ; jamais pour toi, tes modos (ni les VIP, si « Ignorer les VIP »). Ce qu'ils signalent suit le
+  // mode du bot, mais n'est jamais qu'EFFACÉ (pas d'exclusion pour un lien ou des majuscules).
+  var memoireSpam = {}, permisLiens = {}, PERMIT_MS = 60000;
+  function optionsFiltres(permis) {
+    var F = reglages.filtres;
+    return { liens: F.liens, majuscules: F.majuscules, spam: F.spam, sites: F.sites, liensPermis: permis };
+  }
+  function filtrer(ev, b) {
+    var login = (ev.chatter_user_login || '').toLowerCase(), maintenant = Date.now();
+    var abonne = ['subscriber', 'founder', 'vip'].some(function (x) { return b.indexOf(x) >= 0; });
+    var permit = permisLiens[login] && maintenant < permisLiens[login];
+    var r = FILTRES.analyser(ev, optionsFiltres(!!(reglages.filtres.liensAbonnes && abonne) || !!permit), memoireSpam, maintenant);
+    if (permit && FILTRES.liens(FILTRES.texteSeul(ev)).length) delete permisLiens[login];   // un !permit = UN lien
+    return r;
+  }
+  // « !permit Lili » : Lili peut poster un lien pendant 60 s (toi et tes modos seulement)
+  function permettre(ev, texte, b) {
+    var m = /^\s*!permit\s+@?([A-Za-z0-9_]{2,25})\b/i.exec(texte);
+    if (!m) return false;
+    if (!estChef(ev, b)) return true;
+    permisLiens[m[1].toLowerCase()] = Date.now() + PERMIT_MS;
+    parler(REPLIQUES.choisir(tonCommandes(), 'permit', { cible: m[1] }), true);
+    return true;
   }
   async function exclure(s, duree) {
     var corps = { data: { user_id: s.user, reason: s.r ? 'Bot de modération : ' + s.r.trouvailles.map(function (t) { return NOMS[t.famille]; })
@@ -331,7 +372,8 @@
     if (fileParole.length) minuterieParole = setTimeout(pousserParole, PAROLE_ECART_MS);
   }
   function camoufle(s) {
-    return !!(s && s.r && s.r.trouvailles && s.r.trouvailles.some(function (t) { return t.comment && t.comment !== 'en clair' && t.comment !== 'expression'; }));
+    return !!(s && s.r && s.r.trouvailles && s.r.trouvailles.some(function (t) {
+      return !FILTRES.FAMILLES[t.famille] && t.comment && t.comment !== 'en clair' && t.comment !== 'expression'; }));
   }
   function parlerApres(genre, s) {
     parler(REPLIQUES.choisir(reglages.ton, genre, { pseudo: s.pseudo, chaine: chaine.name, camoufle: camoufle(s) }));
@@ -916,8 +958,12 @@
          ['⛔ Bannir', function () { if (confirm('Bannir ' + s.pseudo + ' ?')) exclure(s, 0); }],
          ['✓ Pas grave', function () { marquer(s, 'laissé'); }]]
           // « autoriser » un mot : jamais pour une menace (on n'autorise pas « va te suicider » d'un clic)
-          .concat(s.r.gravite === 'menace' ? [] : [['➕ Autoriser « ' + s.r.trouvailles[0].mot + ' »', function () {
-            reglages.autorises.push(s.r.trouvailles[0].mot); ecrire('reglages', reglages); dessinerReglages(); marquer(s, 'mot autorisé'); }]])
+          .concat(s.r.gravite === 'menace' || s.r.gravite === 'majuscules' || s.r.gravite === 'spam' ? []
+            // un lien : on autorise le SITE (youtube.com…), pas un mot
+            : s.r.gravite === 'lien' ? [['➕ Autoriser le site « ' + s.r.trouvailles[0].mot + ' »', function () {
+              reglages.filtres.sites.push(s.r.trouvailles[0].mot); ecrire('reglages', reglages); dessinerReglages(); marquer(s, 'site autorisé'); }]]
+            : [['➕ Autoriser « ' + s.r.trouvailles[0].mot + ' »', function () {
+              reglages.autorises.push(s.r.trouvailles[0].mot); ecrire('reglages', reglages); dessinerReglages(); marquer(s, 'mot autorisé'); }]])
           .forEach(function (x) { var bt = document.createElement('button'); bt.className = 'petit'; bt.textContent = x[0]; bt.onclick = x[1]; a.appendChild(bt); });
         li.appendChild(a);
       }
