@@ -29380,6 +29380,27 @@ function spellTokenCore(tok,atStart,T,idx){
     for(k=0;k<_NV_PAIRES.length;k++){v=_NV_PAIRES[k];if(lw.length>v[1].length+1&&lw.slice(-v[1].length)===v[1]){var x=lw.slice(0,-v[1].length)+v[0];if(s==='tu')x+='s';
         if(!svReads(lw).length&&_nvNp(lw)>=PL_TAU_M&&svReads(x).some(function(r){return r[1]==='ind:pre'&&r[3]==='s';}))return x;return null;}}
     return null;}
+  /* ⭐ 10/10/2026 — PETITS MOTS SANS LEUR LETTRE MUETTE (catalogue des muets, terminaison qui sonne pareil) : le mot écrit existe, donc
+     l'orthographe se tait ; le CONTEXTE dit lequel des deux. Listes fermées, ORANGE, chacune à sa place :
+     « j'ais » → j'ai (j'aie après « que ») ; « ne … plu » → plus (pas après avoir/être : « ça m'a plu ») ; « sou » + déterminant → sous
+     (pas après un déterminant : « pas un sou », « sans le sou ») ; « ver » + nombre, déterminant, midi, minuit, heure → vers (pas après
+     un déterminant : « un ver de terre ») ; « en cour » → en cours (sauf « en cour d'appel », « en cour martiale ») ; déterminant + « avi / tapi » → avis / tapis.
+     Recensé : gold dys 11 justes ; corpus EcriScol et frgec : 0 marque après la garde « en cour martiale » ; UD (14 450 phrases
+     correctes) : 0 marque. */
+  var _MUET_DET={le:1,la:1,les:1,l:1,un:1,une:1,des:1,du:1,au:1,aux:1,mon:1,ma:1,mes:1,ton:1,ta:1,tes:1,son:1,sa:1,ses:1,notre:1,votre:1,nos:1,vos:1,leur:1,leurs:1,ce:1,cet:1,cette:1,ces:1,chaque:1,quel:1,quelle:1};
+  var _MUET_NOM={avi:'avis',tapi:'tapis'};
+  function lettreMuetteVig(T,i){var t=T[i],w=deaccS(t.toLowerCase()).replace(/’/g,"'");
+    var pv=i>0?deaccS(T[i-1].toLowerCase()).replace(/’/g,"'").replace(/'$/,''):'',nx=i+1<T.length?deaccS(T[i+1].toLowerCase()).replace(/’/g,"'"):'';
+    if(w==="j'ais")return (pv==='que'||pv==='qu')?t.slice(0,2)+'aie':t.slice(0,2)+'ai';
+    if(w==='plu'){if(/^(a|as|ai|ont|avons|avez|avait|avaient|aurait|eut|est|sont|etait|ete|m'a|t'a|l'a|lui|y)$/.test(pv))return null;
+      for(var k=i-1;k>=0&&k>=i-4;k--){var dk=deaccS(T[k].toLowerCase()).replace(/’/g,"'");if(dk==='ne'||/^n'/.test(dk))return 'plus';if(/^[.!?;:,]$/.test(dk))break;}
+      return null;}
+    if(w==='sou'){if(_MUET_DET[pv]||/^\d/.test(pv)||pv==='pas')return null;nx=nx.replace(/'.*$/,'');return _MUET_DET[nx]||nx==='l'?'sous':null;}
+    if(w==='ver'){if(_MUET_DET[pv]||ADJP[pv])return null;var nx0=nx.replace(/'.*$/,'');
+      return (/^\d/.test(nx)||CARD[nx]||_MUET_DET[nx0]||nx0==='l'||/^(midi|minuit|heures?|chez)$/.test(nx))?'vers':null;}
+    if(w==='cour'&&pv==='en'){if(/^(d'|de$)/.test(nx)||ADJP[nx]||/^(martiale|supreme|royale|imperiale)$/.test(nx))return null;return 'cours';}   // « en cour d'appel », « en cour martiale »
+    if(_MUET_NOM[w]&&_MUET_DET[pv])return _MUET_NOM[w];
+    return null;}
   function homoVig(T,i){var w=deaccS(T[i].toLowerCase());if(w!=='mer'&&w!=='fer'&&w!=='pa')return null;
     var p=i>0?deaccS(T[i-1].toLowerCase()):'';
     if(w==='mer'&&(p==='ma'||p==='ta'||p==='sa'||p==='notre'||p==='votre'||p==='leur'))return 'mère';   // « ma mer »→mère (≠ « la/en/une mer »)
@@ -29425,6 +29446,30 @@ function spellTokenCore(tok,atStart,T,idx){
   function svTaisCarte(T,i){return _taisCarte(T,i,SV_TAIS);}
   var _CHIF_STOP={};('janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre vendemiaire brumaire frimaire nivose pluviose ventose germinal floreal prairial messidor thermidor fructidor '+
     'rue boulevard avenue quai place allee chemin impasse route cours square passage min sec bar km kg cm mm ml cl mg ha pt pts pourcent').split(' ').forEach(function(x){_CHIF_STOP[x]=1;});   // mois, voies, unités : après un nombre en chiffres, jamais un effectif à accorder
+  /* ⭐ 10/10/2026 — QUANTITÉ + de + NOM au singulier : « le nombre de touriste », « des milliers de visiteur », « un million
+     d'habitant » → pluriel ? (orange). La recherche du déterminant de pluralVig s'arrête à la préposition « de » : ces noms restaient
+     muets. Recensé sur UD (14 450 phrases correctes) : après nombre / millions / milliers / centaines / dizaines / milliards, 222 pluriels
+     pour 3 singuliers — et les 3 sont des fautes du corpus (« nombre de roue », « millions de franc », « nombre de sélection »). PAS
+     beaucoup / peu / plus / moins / trop / assez : 70 singuliers corrects (« beaucoup de temps », « peu d'importance »). ORANGE et non
+     rouge : « le nombre d'or », « nombre de masse » existent. Le mot doit être un NOM pour la table des noms ; jamais un nom propre ;
+     jamais un composé (« micro-organismes », « porte avions ») ; jamais un nom dont le pluriel est rare (« coordination »). */
+  var _QUANT_DE={nombre:1,nombres:1,million:1,millions:1,millier:1,milliers:1,centaines:1,dizaines:1,milliard:1,milliards:1};
+  var _QUANT_STOP={or:1,masse:1,onde:1};
+  function quantDeVig(T,i){var t=T[i],q,nom,pre='';
+    if(/^d['’]./i.test(t)&&i>=1){q=deaccS(T[i-1].toLowerCase());nom=t.slice(2);pre=t.slice(0,2);}
+    else if(i>=2&&deaccS(T[i-1].toLowerCase())==='de'){q=deaccS(T[i-2].toLowerCase());nom=t;}
+    else return null;
+    if(!_QUANT_DE[q])return null;
+    var w=deaccS(nom.toLowerCase());
+    if(w.length<3||/[sxz]$/.test(w)||!/^[a-z-]+$/.test(w)||_QUANT_STOP[w]||NOUN_PL_STOP[w]||CARD[w]||CARDINV[w]||CARDSTOP[w])return null;
+    var c0=nom.charAt(0);if(c0!==c0.toLowerCase())return null;   // nom propre (« nombre de Mach »)
+    if(!_nounGateN(w))return null;                                // un NOM pour la table des noms
+    if(_SEG&&_SEG.hy&&i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;   // composé au trait d'union (« micro-organismes »)
+    var nx=i+1<T.length?T[i+1]:'';if(nx&&/^[a-zà-ÿœ]+$/.test(nx)){var dnx=deaccS(nx);var pp=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(dnx):NOUN_POST[dnx]):null;
+      if(pp&&pp[0]>=PL_TAU_M&&!ADJP[dnx])return null;}             // nom + nom = composé sans trait d'union (« porte avions ») : le pluriel est plus loin
+    var pl=_plu(nom.toLowerCase());if(!pl||pl===nom.toLowerCase())return null;
+    if(typeof SP!=='undefined'&&SP&&SP.ready&&SP.FREQ){var _fs=SP.FREQ[nom.toLowerCase()]||0,_fp=SP.FREQ[pl]||0;if(_fs>0&&_fp<0.03*_fs)return null;}   // nom qui ne se compte pas : son pluriel est rare (coordination, argent)
+    return pre+(pre?pl:ckeepcase(nom,pl));}
   function pluralVig(T,tg,i){if(i>0&&(cesCestVig(T,i-1)||rCesSest(T,i-1)))return null;   // ⭐ 09/10/2026 : « elle ces mariée » — « ces » corrigé en s'est (rouge) n'est plus un déterminant : plus de « mariées » en face
     if(!tg||i>=tg.length)return null;
     var w=deaccS(T[i].toLowerCase());
@@ -29539,7 +29584,8 @@ function spellTokenCore(tok,atStart,T,idx){
      pluriel. On n'ajoute que la marque du NOMBRE (muette) et on garde le genre écrit ; sujet sûrement féminin (elles, groupe nominal
      féminin) → féminin, comme le participe ; sujet masculin (« ils », groupe nominal masculin) + forme féminine → rien (l'erreur peut
      être ailleurs). Pièges lus sur UD et sur phrases inventées : « bien sûr », « se sont succédé », « tout de même », « mal à l'aise », nombres, noms, couleurs. */
-  var _ATPL_AUX={sont:1,etaient:1,furent:1,seront:1};   // « êtes » exclu : vous de politesse (« vous êtes prêt »)
+  var _ATPL_AUX={sont:1,etaient:1,furent:1,seront:1};
+  var _ATPL_AVOIR3P={ont:1,avaient:1,auront:1,auraient:1,eurent:1};   // ⭐ 10/10/2026 : « ont été » + participe (voir attributPlVig)   // « êtes » exclu : vous de politesse (« vous êtes prêt »)
   var _ATPL_STOP={meme:1,sur:1,juste:1,mal:1,super:1,extra:1,sympa:1,cool:1,top:1,standard:1,du:1};   // adverbes (même, juste, mal), « sur »/« bien sûr », invariables familiers, article « du »
   var _ATPL_AL={banal:1,bancal:1,fatal:1,final:1,natal:1,naval:1,glacial:1,tonal:1};   // -al → -als
   function _etreSujGenre(T,tg,a){for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deacc(T[k].toLowerCase()).replace(/^[a-z]+'/,'');if(dk==='elles')return 'f';if(dk==='ils')return 'm';}
@@ -29554,7 +29600,12 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!/^[a-zàâäéèêëîïôöùûüÿçœæ]+$/.test(lw)||w.charAt(0)!==lw.charAt(0))return null;   // mot simple en minuscules (nom propre, sigle, nombre → rien)
     var d=deacc(lw);if(d.length<3||/[sxz]$/.test(d)||_ATPL_STOP[d]||ADJ_MID[d]||PPMID[d]||CARD[d]||_INVAR_COLOR[d])return null;   // déjà marqué, invariable, adverbe
     if(_SEG&&_SEG.hy&&(_SEG.hy[i]||_SEG.hy[i+1]))return null;
-    var a=-1;for(var j=i-1;j>=1&&j>=i-3;j--){var dj=deacc(T[j].toLowerCase()).replace(/^n'/,'');if(_ATPL_AUX[dj]){a=j;break;}if(ADJ_MID[dj])continue;return null;}
+    var a=-1;for(var j=i-1;j>=1&&j>=i-3;j--){var dj=deacc(T[j].toLowerCase()).replace(/^n'/,'');if(_ATPL_AUX[dj]){a=j;break;}
+      /* ⭐ 10/10/2026 — « ont été » = « sont » au passé : « les portes ont été peinte », « n'avaient jamais été vendue » → peintes, vendues ? Avoir au 3e PLURIEL
+         (ont, avaient, auront, auraient, eurent) devant « été » (adverbes de négation admis) : le sujet est pluriel, le participe aussi. */
+      if(dj==='ete'){var _k=j-1;while(_k>=1&&_k>=j-2&&/^(pas|plus|jamais|toujours|deja|aussi|bien|tous|toutes)$/.test(deacc(T[_k].toLowerCase())))_k--;
+        if(_k>=1&&_ATPL_AVOIR3P[deacc(T[_k].toLowerCase()).replace(/^n'/,'')]){a=j;break;}return null;}
+      if(ADJ_MID[dj])continue;return null;}
     if(a<1)return null;
     var dpv=deacc(T[a-1].toLowerCase());if(dpv==='se'||/^s'/.test(dpv))return null;   // pronominal : « se sont succédé » reste invariable
     if(tg[a-1]==='ADP'||tg[a-1]==='DET')return null;                                   // « de sont… » : pas le verbe être
@@ -29919,8 +29970,10 @@ function spellTokenCore(tok,atStart,T,idx){
   var _ELI_PLEIN={je:"j'",que:"qu'",le:"l'",la:"l'",de:"d'",ce:"c'",ne:"n'",me:"m'",te:"t'",se:"s'",si:"s'"},_ELI_EXC={oui:1,ouais:1,ouistiti:1,ouistitis:1,onze:1,onzieme:1,onziemes:1,ouate:1,uhlan:1},_ELI_CONJ={et:1,ou:1},_ELI_SUJ={il:1,elle:1,ils:1,elles:1,on:1},_ELI_AVANT_CL={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,ne:1,qui:1};   // élision manquante (30/09/2026, voir l'élision-espace de spellText)
   function vigAt(T,i,st,text){var _tg=st.tg;   /* ⭐ 12/09/2026 — la CHAÎNE ORANGE de spellText, extraite TELLE QUELLE (ordre compris) : spellText la consulte token par token (sortie identique), diagnoseAll la consulte à UN index sur des tokens où l'orthographe est corrigée (bout de chaîne orthographe → orange). st.tg = tags du tagger, calculés une fois par liste de tokens ; text = null hors spellText (le juge B2 de l'app ancre le TEXTE, il ne se consulte pas sur des tokens corrigés). */
     {var h=homoVig(T,i);if(h){return {i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'};}}
+    {var lm=lettreMuetteVig(T,i);if(lm){return {i:i,word:T[i],sugg:ckeepcase(T[i],lm),name:'homophone à vérifier',tier:'vigilance'};}}   // ⭐ 10/10/2026 : « il ne parle plu » → plus ?
     {var nv=nomVerbeVig(T,i);if(nv){return {i:i,word:T[i],sugg:ckeepcase(T[i],nv),name:'homophone à vérifier',tier:'vigilance'};}}   // ⭐ 30/09/2026 : le travaille → travail, je travail → travaille
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var gv=genreAdjVig(T,i,_tg);if(gv&&gv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],gv),name:'accord genre à vérifier',tier:'vigilance'};}}   // genre adjectif épithète (« qui est-ce qui, il ou elle ? ») — audible, hors FP=0 → orange
+    {var qv=quantDeVig(T,i);if(qv){return {i:i,word:T[i],sugg:qv,name:'accord pluriel à vérifier',tier:'vigilance'};}}   // ⭐ 10/10/2026 : « le nombre de touriste » → touristes ?
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);var _chifI=!!(_SEG&&_SEG.num&&i<_SEG.num.length&&_SEG.num[i]!=null&&_SEG.num[i]>=2&&!(_SEG.num[i]>=1000&&_SEG.num[i]<=2100));if(pv&&(_chifI||!plTaisCarte(T,i))){return {i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'};}}
     {var psv=plurielSonVig(T,i);if(psv){return {i:i,word:T[i],sugg:ckeepcase(T[i],psv),name:'pluriel par le son à vérifier',tier:'vigilance'};}}   // ⭐ 28/09/2026 : le son donne le mot quand la grammaire exige le pluriel
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){return {i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'};}}

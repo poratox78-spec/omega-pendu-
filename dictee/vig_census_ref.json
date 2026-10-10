@@ -1,7 +1,7 @@
 {
- "justes": 366,
+ "justes": 367,
  "pointeuses": 219,
- "fatigue": 146,
+ "fatigue": 147,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -201,6 +201,7 @@
   "mein→main [orthographe] lettre_change",
   "mesoure→mesure [orthographe] lettre_change",
   "mias→mais [orthographe] inversion",
+  "millier→milliers [accord pluriel à vérifier] accord",
   "minuttes→minutes [orthographe] lettre_trop",
   "mniute→minute [orthographe] inversion",
   "modèle→modèles [pluriel par le son à vérifier] accord",
