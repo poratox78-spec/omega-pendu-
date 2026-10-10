@@ -89,7 +89,15 @@ var REPLIQUES = (function () {
     merci_cadeaux: ['{pseudo} offre {nombre} abonnements ! Pluie de cadeaux sur le chat. 🎁'],
     merci_raid: ['🚀 Raid de {pseudo} avec {spectateurs} ! Bienvenue à tous, essuyez vos pieds. 😏',
       '🚀 {pseudo} débarque avec {spectateurs} ! Faites de la place, ça arrive. 🎉'],
-    merci_bits: ['Merci pour les {bits}, {pseudo} ! Ça brille. 💎', '{bits} de la part de {pseudo} ! Je les range dans le coffre. 💎']
+    merci_bits: ['Merci pour les {bits}, {pseudo} ! Ça brille. 💎', '{bits} de la part de {pseudo} ! Je les range dans le coffre. 💎'],
+    // 10/10 — étape 4 : le pendu (la fin du message, après « — » : la ligne d'état elle-même est fixe, cf. pendu.js)
+    pendu_debut: ['Nouvelle partie ! {n} lettres. Tapez UNE lettre dans le chat. 🎯', 'Un mot de {n} lettres vous attend. À vos lettres ! 🔤'],
+    pendu_gagne: ['Bravo ! Le chat est trop fort. 🎉', 'Bien joué ! Je n\'aurais pas fait mieux. 😏'],
+    pendu_perdu: ['Le pendu a gagné cette fois. Revanche ? 😈', 'Perdu ! C\'était pourtant facile… non ? 😏'],
+    pendu_arrete: ['Partie arrêtée. On rejoue quand vous voulez. 🎯'],
+    pendu_sommeil: ['Personne ? Je range le pendu. 💤'],
+    pendu_classement: ['🏆 Classement du pendu : {liste}'],
+    pendu_vide: ['Personne n\'a encore de points au pendu. Ça va venir. 😏']
   };
   var SOBRE = {
     efface: ['Message de {pseudo} retiré.'],
@@ -116,7 +124,14 @@ var REPLIQUES = (function () {
     merci_cadeau: ['Merci {pseudo} pour l\'abonnement offert à {cible}.'],
     merci_cadeaux: ['Merci {pseudo} pour les {nombre} abonnements offerts.'],
     merci_raid: ['Merci {pseudo} pour le raid avec {spectateurs}.'],
-    merci_bits: ['Merci {pseudo} pour les {bits}.']
+    merci_bits: ['Merci {pseudo} pour les {bits}.'],
+    pendu_debut: ['Nouvelle partie : {n} lettres. Proposez une lettre.'],
+    pendu_gagne: ['Bravo.'],
+    pendu_perdu: ['Perdu.'],
+    pendu_arrete: ['Partie arrêtée.'],
+    pendu_sommeil: ['Partie arrêtée faute de joueurs.'],
+    pendu_classement: ['Classement du pendu : {liste}'],
+    pendu_vide: ['Aucun point au pendu pour l\'instant.']
   };
   // ce qu'on ajoute à une réplique « camouflé » selon ce qui a été fait
   var SUITE = { efface: ' Message retiré.', exclu: ' Et 10 minutes de pause.', banni: '' };

@@ -266,6 +266,7 @@
       compterLigne();
       if (ev.cheer && ev.cheer.bits) remercierBits(ev);
       else accueillir(ev);
+      if (jouerPendu(ev, texte, b)) return;                    // une lettre, un mot, !pendu, !classement
       if (!commande(ev, texte, b)) repondre(ev, texte);
       return;
     }
@@ -370,6 +371,8 @@
   function listeCommandes() {
     var noms = Object.keys(INTEGREES).filter(integreeActive);
     reglages.commandes.perso.forEach(function (p) { if (p.nom && p.texte && (p.qui || 'tous') === 'tous' && noms.indexOf(p.nom) < 0) noms.push(p.nom); });
+    if (reglages.pendu && reglages.pendu.qui === 'tous') noms.push('pendu');
+    noms.push('classement');
     return noms.map(function (n) { return '!' + n; }).join(' ');
   }
   var dernierUsage = {};
@@ -603,6 +606,180 @@
     });
     montrerAccueil();
   }
+
+  // ── 10/10 : ÉTAPE 4 — LE PENDU DANS LE CHAT ──────────────────────────────────────────────────────────────
+  // Rem : « GO PENDU » (puis « tu écris le cœur du jeu alors qu'on l'a déjà ? » → on reprend les points et le dessin de
+  // pendable.html, les niveaux de mot-difficile-pendu.html ; seul le branchement au chat est neuf). Le bot choisit le mot,
+  // le chat tape UNE lettre (ou le mot entier), le bot écrit l'état (groupé toutes les 2,5 s) ; le plateau d'OBS
+  // (pendu.html) le redessine en lisant ces messages. Le streamer, qui voit le mot dans son dock, ne joue pas.
+  if (!reglages.pendu) reglages.pendu = {};
+  [['niveau', 'facile'], ['erreurs', 8], ['qui', 'modos'], ['relance', false], ['mesMots', ''], ['seulementMesMots', false]]
+    .forEach(function (d) { if (reglages.pendu[d[0]] == null) reglages.pendu[d[0]] = d[1]; });
+  var PENDU_GROUPE_MS = 2500, PENDU_COUP_MS = 4000, PENDU_SOMMEIL_MS = 5 * 60000, PENDU_RELANCE_MS = 30000, PENDU_RAPPEL_MS = 10000;
+  var partie = null, tamponPendu = [], minuteriePendu = null, relancePendu = null, dernierCoup = {}, recentsMots = [], dernierRappel = 0;
+  var scores = lire('pendu.scores', {});                       // login → { pseudo, points }
+  function motPropre(m) { return String(m || '').trim().toLowerCase(); }
+  function mesMots() {
+    return reglages.pendu.mesMots.split(/[\n,;]+/).map(motPropre).filter(function (m) { return /^[a-zàâäçéèêëîïôöùûüÿœæ]{3,20}$/.test(m); });
+  }
+  function motsPendu() {
+    var P = reglages.pendu, mes = mesMots();
+    if (P.seulementMesMots && mes.length) return mes;
+    var base = P.niveau === 'melange' ? PENDU_MOTS.facile.concat(PENDU_MOTS.moyen, PENDU_MOTS.dur) : (PENDU_MOTS[P.niveau] || PENDU_MOTS.facile);
+    return mes.length ? base.concat(mes, mes, mes) : base;    // tes mots : trois fois plus de chances de sortir
+  }
+  function lancerPendu() {
+    if ((partie && !partie.fin) || !peutParler(true)) return false;
+    clearTimeout(relancePendu);
+    var l = motsPendu().filter(function (m) { return recentsMots.indexOf(m) < 0; });
+    if (!l.length) l = motsPendu();
+    var mot = l[Math.floor(Math.random() * l.length)];
+    recentsMots.push(mot); if (recentsMots.length > 50) recentsMots.shift();
+    partie = PENDU.nouvelle(mot, Math.max(4, Math.min(12, +reglages.pendu.erreurs || 8)));
+    tamponPendu = []; dernierCoup = {};
+    parler(PENDU.ligneEtat(partie, REPLIQUES.choisir(tonCommandes(), 'pendu_debut', { n: mot.length })), true);
+    dessinerPartie();
+    return true;
+  }
+  function viderTampon() {                                     // les coups des 2,5 dernières secondes : un seul message
+    clearTimeout(minuteriePendu); minuteriePendu = null;
+    if (!partie || partie.fin || !tamponPendu.length) return;
+    var suite = tamponPendu.slice(-8).join(' · ');
+    tamponPendu = [];
+    parler(PENDU.ligneEtat(partie, suite), true);
+  }
+  function noter(evenement) {
+    tamponPendu.push(evenement);
+    if (!minuteriePendu) minuteriePendu = setTimeout(viderTampon, PENDU_GROUPE_MS);
+    dessinerPartie();
+  }
+  function finirPendu(quoi, qui, points, genre) {
+    if (!partie) return;
+    clearTimeout(minuteriePendu); minuteriePendu = null; tamponPendu = [];
+    if (!partie.fin) partie.fin = quoi === 'gagnee' ? 'gagnee' : quoi === 'perdue' ? 'perdue' : 'arretee';
+    var suite = REPLIQUES.choisir(tonCommandes(), genre || ('pendu_' + (quoi === 'gagnee' ? 'gagne' : quoi === 'perdue' ? 'perdu' : 'arrete')), {});
+    if (reglages.pendu.relance && quoi !== 'arretee') {
+      suite += ' Prochaine partie dans ' + Math.round(PENDU_RELANCE_MS / 1000) + ' s.';
+      relancePendu = setTimeout(lancerPendu, PENDU_RELANCE_MS);
+    }
+    parler(PENDU.ligneFin(partie, quoi, qui, points, suite), true);
+    dessinerPartie();
+  }
+  function ajouterPoints(ev, pts) {
+    var login = (ev.chatter_user_login || '').toLowerCase();
+    var s = scores[login] || (scores[login] = { pseudo: ev.chatter_user_name || login, points: 0 });
+    s.points += pts; s.pseudo = ev.chatter_user_name || s.pseudo;
+    ecrire('pendu.scores', scores);
+    dessinerClassement();
+  }
+  function premiers(n) {
+    return Object.keys(scores).map(function (k) { return scores[k]; }).filter(function (s) { return s.points > 0; })
+      .sort(function (a, b) { return b.points - a.points; }).slice(0, n);
+  }
+  // rend true si le message appartenait au pendu (on ne le traite alors pas comme une commande ou une conversation)
+  function jouerPendu(ev, texte, b) {
+    var t = String(texte || '').trim(), bas = t.toLowerCase(), maintenant = Date.now();
+    if (/^!pendu\b/.test(bas)) {
+      if (partie && !partie.fin) {                             // une partie tourne : on la rappelle
+        if (maintenant - dernierRappel >= PENDU_RAPPEL_MS || estChef(ev, b)) { dernierRappel = maintenant; parler(PENDU.ligneEtat(partie), true); }
+      } else if (reglages.pendu.qui === 'tous' || estChef(ev, b)) lancerPendu();
+      return true;
+    }
+    if (/^!(classement|top)\b/.test(bas)) {
+      if (maintenant - dernierRappel < PENDU_RAPPEL_MS && !estChef(ev, b)) return true;
+      dernierRappel = maintenant;
+      var top = premiers(5);
+      parler(top.length ? REPLIQUES.choisir(tonCommandes(), 'pendu_classement', { liste: top.map(function (s, i) { return (i + 1) + '. ' + s.pseudo + ' ' + s.points; }).join(' · ') })
+        : REPLIQUES.choisir(tonCommandes(), 'pendu_vide', {}), true);
+      return true;
+    }
+    if (!partie || partie.fin || ev.chatter_user_id === chaine.id) return false;
+    var qui = ev.chatter_user_name || ev.chatter_user_login;
+    var m = /^(?:!l(?:ettre)?\s+)?([a-zàâäçéèêëîïôöùûüÿ])$/i.exec(t);
+    if (m) {
+      if (maintenant - (dernierCoup[ev.chatter_user_id] || 0) < PENDU_COUP_MS) return true;   // une lettre toutes les 4 s chacun
+      var r = PENDU.proposer(partie, m[1]);
+      if (r.quoi === 'deja' || r.quoi === 'invalide') return true;
+      dernierCoup[ev.chatter_user_id] = maintenant;
+      var L = PENDU.nu(m[1]).toUpperCase();
+      if (r.quoi === 'bonne') {
+        var pts = PENDU.pointsLettre(partie, m[1], r.n);
+        ajouterPoints(ev, pts);
+        if (partie.fin === 'gagnee') finirPendu('gagnee', qui, pts); else noter('✅ ' + qui + ' : ' + L);
+      } else if (partie.fin === 'perdue') finirPendu('perdue');
+      else noter('❌ ' + qui + ' : ' + L);
+      return true;
+    }
+    var mot = t.replace(/^!mot\s+/i, '');
+    if (/^[a-zàâäçéèêëîïôöùûüÿœæ]+$/i.test(mot) && PENDU.nu(mot).length === partie.cle.length) {
+      var gagnes = PENDU.deviner(partie, mot);
+      if (gagnes) { ajouterPoints(ev, gagnes); finirPendu('gagnee', qui, gagnes); return true; }
+    }
+    return /^!mot\s/i.test(t);                                  // « !mot xxx » faux : rien, mais ce n'est pas une conversation
+  }
+  setInterval(function () {                                    // personne ne joue depuis 5 min : on range la partie
+    if (partie && !partie.fin && Date.now() - partie.dernier > PENDU_SOMMEIL_MS) finirPendu('arretee', '', 0, 'pendu_sommeil');
+  }, 20000);
+
+  // le dock : la partie (le mot, visible d'un clic), les boutons, les réglages, le classement, l'adresse du plateau
+  function dessinerPartie() {
+    var z = $('pendu-partie');
+    if (!z) return;
+    var enCours = partie && !partie.fin;
+    $('pendu-masque').textContent = partie ? PENDU.masque(partie, !!partie.fin) : '—';
+    $('pendu-info').textContent = !partie ? 'Pas de partie.' : (enCours ? '❌ ' + partie.erreurs + '/' + partie.max
+      + (partie.ratees.length ? ' · ' + partie.ratees.join(' ').toUpperCase() : '') : ({ gagnee: '🏆 trouvé', perdue: '💀 perdu', arretee: '⏹ arrêté' })[partie.fin]);
+    $('pendu-mot').textContent = partie ? partie.mot.toUpperCase() : '';
+    $('pendu-lancer').disabled = enCours || !peutParler(true);
+    $('pendu-indice').disabled = !enCours;
+    $('pendu-arreter').disabled = !enCours;
+  }
+  function dessinerClassement() {
+    var ul = $('pendu-classement');
+    if (!ul) return;
+    ul.textContent = '';
+    var top = premiers(5);
+    top.forEach(function (s, i) { var li = document.createElement('li'); li.textContent = (i + 1) + '. ' + s.pseudo + ' — ' + s.points + ' pts'; ul.appendChild(li); });
+    if (!top.length) { var li = document.createElement('li'); li.className = 'doux'; li.textContent = 'Personne n\'a encore de points.'; ul.appendChild(li); }
+  }
+  function adressePlateau() {
+    var base = location.origin + location.pathname.replace(/[^/]*$/, '');
+    return base + 'pendu.html?chaine=' + encodeURIComponent(chaine ? chaine.login : '') + '&bot=' + encodeURIComponent(moi ? moi.login : '');
+  }
+  function dessinerReglagesPendu() {
+    var P = reglages.pendu;
+    $('pendu-niveau').value = P.niveau; $('pendu-erreurs').value = P.erreurs; $('pendu-qui').value = P.qui;
+    $('pendu-relance').checked = !!P.relance; $('pendu-mes-mots').value = P.mesMots; $('pendu-seulement').checked = !!P.seulementMesMots;
+    dessinerPartie(); dessinerClassement();
+  }
+  ['pendu-niveau', 'pendu-erreurs', 'pendu-qui', 'pendu-relance', 'pendu-seulement'].forEach(function (id) {
+    $(id).addEventListener('change', function () {
+      var P = reglages.pendu;
+      P.niveau = $('pendu-niveau').value; P.qui = $('pendu-qui').value;
+      P.erreurs = Math.max(4, Math.min(12, Math.round(+$('pendu-erreurs').value) || 8)); $('pendu-erreurs').value = P.erreurs;
+      P.relance = $('pendu-relance').checked; P.seulementMesMots = $('pendu-seulement').checked;
+      sauverCommandes();
+      if (!P.relance) clearTimeout(relancePendu);
+    });
+  });
+  $('pendu-mes-mots').addEventListener('input', function () { reglages.pendu.mesMots = $('pendu-mes-mots').value; sauverCommandes(); });
+  $('pendu-lancer').addEventListener('click', function () { lancerPendu(); });
+  $('pendu-arreter').addEventListener('click', function () { if (partie && !partie.fin) finirPendu('arretee'); });
+  $('pendu-indice').addEventListener('click', function () {
+    if (!partie || partie.fin) return;
+    var l = PENDU.indice(partie);
+    if (l) { noter('💡 Indice : ' + l.toUpperCase()); viderTampon(); }
+  });
+  $('pendu-voir').addEventListener('click', function () { $('pendu-mot').classList.toggle('cache'); });
+  $('pendu-zero').addEventListener('click', function () {
+    if (!confirm('Remettre le classement du pendu à zéro ?')) return;
+    scores = {}; ecrire('pendu.scores', scores); dessinerClassement();
+  });
+  $('pendu-plateau').addEventListener('click', function () {
+    var a = adressePlateau(), fait = function () { $('pendu-plateau-etat').textContent = '✓ Copiée : ' + a; };
+    try { navigator.clipboard.writeText(a).then(fait, function () { $('pendu-plateau-etat').textContent = a; }); }
+    catch (e) { $('pendu-plateau-etat').textContent = a; }
+  });
 
   // ── les réglages des commandes et des messages réguliers, dans le dock ──
   function nomPropre(n) { return String(n || '').toLowerCase().replace(/^!+/, '').replace(/\s+/g, '').slice(0, 25); }
@@ -900,12 +1077,15 @@
     tourMinuteurs: function (t) { return tourMinuteurs(t); }, oublierLive: function () { cacheLive.quand = 0; },
     redessinerCommandes: function () { dessinerCommandes(); },
     annonce: function (ev) { return annonce(ev); }, suivi: function (ev) { suivi(ev); }, groupeMs: function (ms) { GROUPE_MS = ms; },
-    ecoute: function () { return ecoute; }, vus: function () { return vus; } };
+    ecoute: function () { return ecoute; }, vus: function () { return vus; },
+    partie: function () { return partie; }, lancerPendu: function () { return lancerPendu(); }, scores: function () { return scores; },
+    penduGroupeMs: function (ms) { PENDU_GROUPE_MS = ms; }, adressePlateau: function () { return adressePlateau(); } };
 
   dessinerReglages();
   dessiner();
   dessinerCommandes();
   dessinerAccueil();
+  dessinerReglagesPendu();
   montrerParole();
   if (jeton && jeton.access) demarrer();
   if (reglages.voix) chercherOutil();
