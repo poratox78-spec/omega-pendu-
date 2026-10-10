@@ -1,6 +1,6 @@
 {
- "justes": 367,
- "pointeuses": 219,
+ "justes": 369,
+ "pointeuses": 220,
  "fatigue": 147,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -95,8 +95,10 @@
   "dtéermnée→déterminée [mot inconnu] autre",
   "duoce→douce [orthographe] inversion",
   "dvéient→devient [orthographe] autre",
+  "décri→décrit [personne du verbe par le son à vérifier] terminaison",
   "dénonccé→dénoncé [orthographe] lettre_trop",
   "départment→département [orthographe] lettre_manque",
+  "dérives→dérive [personne du verbe par le son à vérifier] accord",
   "désormées→désormais [orthographe] terminaison",
   "déséqquilibré→déséquilibré [mot inconnu] lettre_trop",
   "eaut→eau [orthographe] terminaison",

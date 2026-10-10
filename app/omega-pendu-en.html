@@ -24739,7 +24739,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'mais/mes':'homophone_gram','met/mais':'homophone_gram','mai/mais':'homophone_gram','peu/peux/peut':'homophone_gram','leur/leurs':'homophone_gram',
     'ces/ses à vérifier':'homophone_gram','que/dont':'homophone_gram','qui/que':'homophone_gram',
     'guère/guerre':'homophone_lex','vit/vie':'homophone_lex','homophone à vérifier':'homophone_lex','adjectif en -ant/-ent':'homophone_lex',
-    'personne du verbe':'personne','personne du verbe à vérifier':'personne','sais/sait':'personne',"j'est/j'ai":'personne',"j'est/j'ai à vérifier":'personne',
+    'personne du verbe':'personne','personne du verbe à vérifier':'personne','personne du verbe par le son à vérifier':'personne','sais/sait':'personne',"j'est/j'ai":'personne',"j'est/j'ai à vérifier":'personne',
     "c'ai/c'est":'personne',"étais après c'/s'":'personne','être (ête)':'personne','conjugaison après je à vérifier':'personne','si + conditionnel':'personne',
     'infinitif après semi-auxiliaire à vérifier':'personne','infinitif après pronom sujet à vérifier':'personne','impératif':'personne','usage être/avoir':'personne','sujet je':'personne',
     '-e/-é (participe)':'participe','participe après auxiliaire':'participe','participe après être à vérifier':'participe','participe après avoir':'participe',"participe après s'est":'participe',
@@ -27868,6 +27868,10 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var p=deacc(T[j].toLowerCase());
     var per=(p==='je')?'1':((p==='tu')?'2':null);
     if(!per)return null;
+    /* ⭐ 10/10/2026 — « je chantai », « je mangeai » : PASSÉ SIMPLE des verbes en -er, absent des tables (#893 n'a ajouté que la 3e
+       personne). La règle lisait « chantai » + s = « chantais » (imparfait) et proposait le PRÉSENT « chante » — sur du français
+       correct, vu en mesurant la personne par le son. Forme en -ai d'un verbe en -er connu → silence. */
+    if(per==='1'&&/ai$/.test(lw)&&SP&&SP.WORDS&&(SP.WORDS.has(lw.slice(0,-2)+'er')||SP.WORDS.has(lw.slice(0,-3)+'er')))return null;
     if(j>0){var av=deacc(T[j-1].toLowerCase());
       if(NUM_DET[av])return null;                                // « le je », « le tu » : pas un sujet
       if(CONJ_F[av])return null;}                                // forme conjuguée avant = INVERSION
@@ -29401,6 +29405,60 @@ function spellTokenCore(tok,atStart,T,idx){
     if(w==='cour'&&pv==='en'){if(/^(d'|de$)/.test(nx)||ADJP[nx]||/^(martiale|supreme|royale|imperiale)$/.test(nx))return null;return 'cours';}   // « en cour d'appel », « en cour martiale »
     if(_MUET_NOM[w]&&_MUET_DET[pv])return _MUET_NOM[w];
     return null;}
+  /* ⭐ 10/10/2026 — PERSONNE DU VERBE PAR LE SON (orange) : « il servi le repas » → servit, « je dormie bien » → dormis, « je le
+     servie » → servis, « lorsqu'il envois un message » → envoie, « elle dormie tôt » → dormit. La règle de personne se
+     taisait : le mot écrit n'a AUCUNE lecture de verbe conjugué (participe, nom, passé simple absent des tables). Le scripteur écrit ce
+     qu'il ENTEND : parmi les mots qui se prononcent pareil, une seule forme d'un même verbe s'accorde au pronom sujet → on la propose.
+     Le passé simple singulier absent des tables (« entendis », « servis ») se déduit d'une sœur en table (servit → servis) ou de
+     l'infinitif en -re/-ir du radical, et doit être un mot connu. Gardes : auxiliaire avant (temps composé, « je les ai servis »),
+     inversion (« faut-il »), frontière de proposition, nom propre, petits mots (pas, lui, vous…), infinitif, participe en -é (c'est
+     l'auxiliaire qui manque), subjonctif imparfait et passé simple absents des tables (« qu'elle restât », « je chantai », « il vint »),
+     « on » pour « ont » après un pluriel, forme d'être ou d'avoir (« il suis »), plusieurs verbes possibles → rien. */
+  var _PSON_PRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s']};   // « j » seul n'en est pas un (un « j » isolé) : « j' » se lit dans le token
+  var _PSON_CL={ne:1,me:1,te:1,se:1,le:1,la:1,les:1,lui:1,leur:1,y:1,en:1,nous:1,vous:1};
+  var _PSON_STOP={};('pas plus point jamais rien guere que qui quoi lui leur leurs eux elle elles nous vous les des le la se ce si ou et en y on '
+    +'pour dans avant apres avec sans sous sur chez vers par entre depuis pendant tout tous toute toutes tres trop deja encore toujours souvent '
+    +'alors donc puis ensuite meme aussi bien mal mieux moins peu beaucoup ici la-bas maintenant parfois enfin ainsi comme quand').split(' ').forEach(function(w){_PSON_STOP[w]=1;});
+  function _psonAux(tok){var d=deaccS(String(tok||'').toLowerCase()).replace(/’/g,"'").replace(/^(?:l|m|t|s|n|j|qu)'/,'');return !!FULL_AUX[d];}
+  function _psonReads(c){var r=svReads(c).slice(),d=deaccS(c.toLowerCase()),m,st,k;
+    m=/^(.+)(is|it)$/.exec(d);if(m&&!r.length){st=c.slice(0,c.length-2);
+      for(k=0;k<2&&!r.length;k++){var inf=deaccS(st.toLowerCase())+(k?'ir':'re');if(CONJ_C&&CONJ_C[inf]&&!/er$/.test(inf)&&SP.WORDS.has(c.toLowerCase())){
+        if(m[2]==='is'){r.push([inf,'ind:pas','1','s']);r.push([inf,'ind:pas','2','s']);}else r.push([inf,'ind:pas','3','s']);}}}
+    if(!r.length&&/(is|us|ins)$/.test(d)){var s3=c.slice(0,-1)+'t',r3=svReads(s3);for(k=0;k<r3.length;k++)if(r3[k][1]==='ind:pas'&&r3[k][2]==='3'){r.push([r3[k][0],'ind:pas','1','s']);r.push([r3[k][0],'ind:pas','2','s']);break;}}
+    return r;}
+  function personneSonVig(T,i){var t=T[i],lt=t.toLowerCase().replace(/’/g,"'"),pre='',x=t,per=null,j,m;
+    if(!SP||!SP.ready||!SP.PHON)return null;
+    m=/^(j|n)'(.+)$/.exec(lt);
+    if(m&&m[1]==='j'){per=['1','s'];pre=t.slice(0,2);x=t.slice(2);}
+    else{if(m&&m[1]==='n'){pre=t.slice(0,2);x=t.slice(2);}
+      if(t.charAt(0)!==lt.charAt(0)&&i>0)return null;                                   // nom propre
+      j=i-1;var st=0;while(j>=0&&st<3&&_PSON_CL[deaccS(T[j].toLowerCase())]&&!/^(nous|vous)$/.test(deaccS(T[j].toLowerCase()))){j--;st++;}
+      if(j<0)return null;if(_SEG){for(var b=j+1;b<=i&&b<_SEG.bb.length;b++)if(_SEG.bb[b])return null;}
+      var pj=deaccS(T[j].toLowerCase()).replace(/’/g,"'"),me=_ELIDED_PRON.exec(pj);if(me)pj=deaccS(me[1]);
+      per=_PSON_PRON[pj];if(!per)return null;
+      if(pj==='on'&&j>=1&&/[sx]$/i.test(T[j-1])&&!_PSON_CL[deaccS(T[j-1].toLowerCase())])return null;   // « les voisins on aidé » : « on » y est « ont »
+      if(_SEG&&_SEG.hy&&j<_SEG.hy.length&&_SEG.hy[j])return null;                       // inversion (« faut-il », « a-t-elle ») : le pronom suit son verbe
+      if(j>=1&&_psonAux(T[j-1]))return null;}
+    if(!per||!/^[a-zà-ÿœ]+$/i.test(x)||x.length<3)return null;
+    var dx=deaccS(x.toLowerCase());if(_PSON_STOP[dx])return null;                        // petits mots (pas, lui, vous, pour…) : jamais un verbe à accorder
+    if(/[âîû]t$/.test(x.toLowerCase()))return null;                                      // subjonctif imparfait (« qu'elle restât ») : correct, absent des tables
+    if(/(é|ée|és|ées)$/.test(x.toLowerCase()))return null;                               // participe en -é sans auxiliaire : c'est l'auxiliaire qui manque (autre règle)
+    if(per[0]==='1'&&/ai$/.test(dx)&&(SP.WORDS.has(x.toLowerCase())||SP.WORDS.has(dx.slice(0,-2)+'er')||SP.WORDS.has(dx.slice(0,-3)+'er')))return null;          // « je chantai » : passé simple des verbes en -er, absent des tables
+    if(per[0]==='3'&&/t$/.test(dx)&&SP.WORDS.has(x.toLowerCase())&&(SP.POS[x.toLowerCase()]||'').indexOf('V')>=0)return null;   // « il vint » : passé simple 3e pers. absent des tables
+    if(/(er|ir|re|oir)$/.test(dx)&&!svReads(x).length)return null;                      // infinitif (« faut-il partir »)
+    if((i>=1&&_psonAux(T[i-1]))||(i>=2&&_psonAux(T[i-2])))return null;                  // temps composé : participe légitime (« je les ai servis »)
+    var _px=SP.POS[x.toLowerCase()]||'',_xv=!SP.WORDS.has(x.toLowerCase())||_px.indexOf('V')>=0;
+    var _rx=svReads(x);if(svAgrees(_rx,per[0],per[1]))return null;
+    for(var _q=0;_q<_rx.length;_q++)if(_rx[_q][0]==='etre'||_rx[_q][0]==='avoir')return null;   // « il suis » : être ou suivre ? on ne choisit pas
+    var lx=x.toLowerCase(),c=SP.PHON[phonKey(lx)]||[],best=null,lem=null,bd=99,bf=-1,k,q;
+    for(k=0;k<c.length;k++){var w=c[k];if(w===lx||!/^[a-zà-ÿœ]+$/.test(w))continue;var r=_psonReads(w);if(!svAgrees(r,per[0],per[1]))continue;
+      if(!_xv&&deaccS(w).slice(0,4)!==dx.slice(0,4))continue;                             // un nom/adjectif écrit : seulement la forme qui en garde le début (envois → envoie)
+      var ls={};for(q=0;q<r.length;q++)if(r[q][2]===per[0])ls[r[q][0]]=1;var l1=Object.keys(ls);if(l1.length!==1)return null;
+      if(lem&&lem!==l1[0])return null;lem=l1[0];
+      var dd=0,a=deaccS(w),bb2=deaccS(lx);for(q=0;q<Math.max(a.length,bb2.length);q++)if(a[q]!==bb2[q])dd++;var f=SP.FREQ[w]||0;
+      if(dd<bd||(dd===bd&&f>bf)){bd=dd;bf=f;best=w;}}
+    if(!best)return null;
+    return pre+(pre?best:ckeepcase(x,best));}
   function homoVig(T,i){var w=deaccS(T[i].toLowerCase());if(w!=='mer'&&w!=='fer'&&w!=='pa')return null;
     var p=i>0?deaccS(T[i-1].toLowerCase()):'';
     if(w==='mer'&&(p==='ma'||p==='ta'||p==='sa'||p==='notre'||p==='votre'||p==='leur'))return 'mère';   // « ma mer »→mère (≠ « la/en/une mer »)
@@ -29992,6 +30050,7 @@ function spellTokenCore(tok,atStart,T,idx){
     {var sv2=saisVig(T,i);if(sv2){return {i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'};}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
     {var jiv=jInfVig(T,i);if(jiv){return {i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'};}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
     {var pv=persVig(T,i);if(pv){return {i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'};}}
+    {var ps=personneSonVig(T,i);if(ps){return {i:i,word:T[i],sugg:ps,name:'personne du verbe par le son à vérifier',tier:'vigilance'};}}   // ⭐ 10/10/2026 : APRÈS persVig (qui a sa jumelle Python) — « il servi le repas » → servit ?
     {var jv=jestVig(T,i);if(jv){return {i:i,word:T[i],sugg:jv,name:"j'est/j'ai à vérifier",tier:'vigilance'};}}   // ⭐ 12/09/2026 : « j'est dans ma chambre » → je suis ? (les deux lectures incertaines de j'est, miroir Python rule_jest_vig)
     {var amv=auxManquantVig(T,i);if(amv){return {i:i,word:T[i],sugg:amv,name:'auxiliaire manquant à vérifier',tier:'vigilance'};}}   // ⭐ 12/09/2026 : « je noté le numéro » → j'ai ? (auxiliaire tombé ; miroir Python rule_aux_manquant_vig)
     {var ccv=cestCesVig(T,i);if(ccv){return {i:i,word:T[i],sugg:ccv,name:"c'est/ces à vérifier",tier:'vigilance'};}}   // ⭐ 13/09/2026 : « C'est chiens sont » → ces ? (miroir Python rule_cest_ces_vig)

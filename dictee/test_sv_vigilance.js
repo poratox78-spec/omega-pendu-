@@ -145,6 +145,16 @@ const C = globalThis.__C;
     const r = pa(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[ont été ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
   }
   { const r = pa('Il a été pris.'); if (r.length) fail.push(`[ont été Il a été pris.] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`); }
+  // ⭐ 10/10/2026 — personne du verbe PAR LE SON : pronom sujet + mot sans lecture de verbe accordée → la forme du même verbe, même son.
+  const pso = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => (f.name === 'personne du verbe à vérifier' || f.name === 'personne du verbe par le son à vérifier')); };
+  for (const [s, w, sg] of [['Il servi le repas.', 'servi', 'servit'], ['Je dormie bien cette nuit.', 'dormie', 'dormis'], ['Je le servie avant les autres.', 'servie', 'servis'],
+                            ["Lorsqu'il envois un message, il sourit.", 'envois', 'envoie'], ['Elle dormie tôt.', 'dormie', 'dormit']]) {
+    const r = pso(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[personne par le son ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  for (const s of ['Je les ai servis.', 'Il a fini son repas.', 'Faut-il partir maintenant ?', 'Il ne lui parle pas.', 'Surpris, je chantai fort.',
+                   "Il fallait qu'elle restât.", 'Elle est partie hier.']) {
+    const r = pso(s); if (r.length) fail.push(`[personne par le son ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
+  }
   if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe / attribut :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log(`✓ OK : vigilance accord sujet-verbe + participe + attribut après « sont » (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length + AD.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length + AD.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
 })();
