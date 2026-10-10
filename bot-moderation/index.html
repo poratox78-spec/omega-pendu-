@@ -14,19 +14,23 @@
 </header>
 
 <section id="connexion">
+  <label class="ligne colonne">Ta chaîne (ton pseudo Twitch)
+    <input id="nom-chaine" type="text" placeholder="ex. poratox78" autocomplete="off" spellcheck="false"></label>
   <div id="pas-connecte">
-    <p class="doux">Connecte ton compte Twitch (celui de ta chaîne, ou d'un modérateur) : le bot lit ton chat et repère les
-      insultes, même camouflées (c0nnard, k o n, konar…).</p>
-    <button id="connecter" class="gros">🔑 Connecter Twitch</button>
+    <p class="doux">Connecte le <b>compte du bot</b> : un compte Twitch à part que tu as créé pour lui (ex. « MonPseudoBot »),
+      que tu nommes modérateur en tapant <b>/mod</b> suivi de son nom dans ton chat. Il lit ton chat, repère les insultes,
+      même camouflées (c0nnard, k o n, konar…), et parle avec son propre nom.</p>
+    <button id="connecter" class="gros">🔑 Connecter le compte du bot</button>
     <div id="code-zone" hidden>
-      <p>Sur <a id="lien-activer" href="https://www.twitch.tv/activate" target="_blank" rel="noopener">twitch.tv/activate ↗</a>,
-        tape ce code :</p>
+      <p>Ouvre une <b>fenêtre privée</b> (Ctrl + Maj + N), va sur
+        <a id="lien-activer" href="https://www.twitch.tv/activate" target="_blank" rel="noopener">twitch.tv/activate ↗</a>,
+        connecte-toi avec le <b>compte du bot</b> (pas le tien), puis tape ce code :</p>
       <p id="code" class="code"></p>
       <p class="doux">La page attend ta validation…</p>
     </div>
   </div>
   <div id="connecte" hidden>
-    <p>Chaîne : <b id="chaine"></b> · <button id="deconnecter" class="petit">Se déconnecter</button></p>
+    <p>Compte : <b id="compte"></b> · chaîne : <b id="chaine"></b> · <button id="deconnecter" class="petit">Se déconnecter</button></p>
   </div>
 </section>
 
@@ -51,6 +55,61 @@
     <p class="doux">Un mot par ligne : le bot ne le signalera plus (un pseudo, une blague de la communauté…).</p>
     <textarea id="autorises" rows="4" spellcheck="false"></textarea>
   </details>
+</section>
+
+<section>
+  <h2>💬 Le bot parle dans le chat</h2>
+  <label class="ligne">Ton :
+    <select id="ton">
+      <option value="taquin">😏 Taquin — il chambre, gentiment</option>
+      <option value="sobre">🙂 Sobre — une phrase neutre</option>
+      <option value="muet">🤐 Muet — pas de commentaire (commandes et merci seulement)</option>
+    </select></label>
+  <p id="parole-etat" class="doux"></p>
+  <button id="bonjour" class="petit">👋 Dire bonjour dans le chat</button>
+  <ul id="dits"></ul>
+  <details>
+    <summary>Quand parle-t-il ?</summary>
+    <p class="doux">Après chaque message qu'il efface, chaque exclusion, chaque bannissement — et quand on l'appelle :
+      <b>@sonnom</b> (bonjour, merci, ou n'importe quoi) ou <b>!bot</b>. Il ne répond qu'une fois toutes les 30 secondes à
+      la même personne. Il ne répète jamais le mot fautif, et ne se moque jamais d'une faute d'orthographe.
+      En « Prévenir seulement », il ne dit rien. Il ne parle jamais sous ton nom.</p>
+  </details>
+</section>
+
+<section>
+  <h2>🎉 Accueil et remerciements</h2>
+  <p class="doux">Le bot salue et remercie dans le chat. Plusieurs arrivées ou follows rapprochés : un seul message
+    (« Bienvenue Lili, Max et Zoé ! »). Une vague de follows d'un coup (souvent des robots) : il se tait 5 minutes.
+    Texte vide = ses phrases à lui ; dans ton texte, <b>{pseudo}</b> = la personne.</p>
+  <p id="accueil-etat" class="doux"></p>
+  <div id="accueil"></div>
+</section>
+
+<section>
+  <h2>⌨️ Commandes</h2>
+  <p class="doux">Un spectateur tape la commande dans le chat, le bot répond. Une même commande : une fois toutes les
+    5 secondes, et une fois toutes les 30 secondes par personne (toi et tes modos, sans attendre).</p>
+  <div id="cmd-integrees"></div>
+  <label class="ligne colonne">Ton Discord (pour !discord)
+    <input id="cmd-discord" type="text" placeholder="https://discord.gg/…" autocomplete="off" spellcheck="false"></label>
+  <label class="ligne colonne">Tes réseaux (pour !reseaux)
+    <input id="cmd-reseaux" type="text" placeholder="TikTok : @… · Instagram : @…" autocomplete="off" spellcheck="false"></label>
+  <details>
+    <summary>Tes commandes à toi</summary>
+    <div id="cmd-perso"></div>
+    <button id="cmd-ajouter" class="petit">➕ Ajouter une commande</button>
+    <p class="doux">Dans le texte : <b>{pseudo}</b> (qui tape la commande), <b>{cible}</b> (le pseudo écrit après :
+      « !calin Lili »), <b>{chaine}</b>, <b>{titre}</b>, <b>{jeu}</b>, <b>{uptime}</b>.</p>
+  </details>
+</section>
+
+<section>
+  <h2>⏰ Messages réguliers</h2>
+  <p class="doux">Le bot les écrit tout seul, chacun à son rythme — seulement pendant ton live, et s'il y a eu au moins
+    5 messages dans le chat depuis le dernier.</p>
+  <div id="minuteurs"></div>
+  <button id="min-ajouter" class="petit">➕ Ajouter un message</button>
 </section>
 
 <section>
@@ -85,6 +144,7 @@
 <script src="mots_fr.js"></script>
 <script src="liste_insultes.js"></script>
 <script src="detecteur.js"></script>
+<script src="repliques.js"></script>
 <script src="bot.js"></script>
 </body>
 </html>
