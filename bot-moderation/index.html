@@ -87,6 +87,54 @@
 </section>
 
 <section>
+  <h2>🎯 Pendu dans le chat</h2>
+  <div id="pendu-partie">
+    <p id="pendu-masque" class="pendu-masque">—</p>
+    <p id="pendu-info" class="doux">Pas de partie.</p>
+    <p class="doux">Le mot (pour toi seul) : <b id="pendu-mot" class="cache"></b> <button id="pendu-voir" class="petit">👁</button></p>
+    <div class="actions">
+      <button id="pendu-lancer" class="petit">▶ Nouvelle partie</button>
+      <button id="pendu-indice" class="petit">💡 Indice</button>
+      <button id="pendu-arreter" class="petit">⏹ Arrêter</button>
+    </div>
+  </div>
+  <details>
+    <summary>Comment on joue</summary>
+    <p class="doux">Le bot choisit un mot et l'écrit masqué dans le chat. Chacun tape <b>une lettre</b> (une toutes les
+      4 secondes) ou <b>le mot entier</b>. Points : la valeur de la lettre (A = 1… Z = 10, comme au jeu du pendu du site)
+      × le nombre de fois qu'elle est dans le mot ; +10 à celui qui finit le mot. <b>!pendu</b> lance une partie (ou la
+      rappelle), <b>!classement</b> donne les meilleurs. Toi, tu vois le mot : tes lettres ne comptent pas.</p>
+  </details>
+  <details>
+    <summary>Réglages du pendu</summary>
+    <label class="ligne">Niveau :
+      <select id="pendu-niveau">
+        <option value="facile">Facile</option><option value="moyen">Moyen</option><option value="dur">Dur</option>
+        <option value="melange">Mélange</option>
+      </select></label>
+    <label class="ligne">Erreurs permises : <input id="pendu-erreurs" type="number" min="4" max="12" class="cmd-min"></label>
+    <label class="ligne">« !pendu » :
+      <select id="pendu-qui"><option value="modos">toi et tes modos</option><option value="tous">tout le monde</option></select></label>
+    <label class="ligne"><input id="pendu-relance" type="checkbox"> Relancer une partie toute seule, 30 s après la fin</label>
+    <label class="ligne colonne">Tes mots à toi (un par ligne : ton jeu, ta communauté…)
+      <textarea id="pendu-mes-mots" rows="3" spellcheck="false" placeholder="diablo&#10;paladin&#10;nécromancien"></textarea></label>
+    <label class="ligne"><input id="pendu-seulement" type="checkbox"> Seulement mes mots</label>
+  </details>
+  <details>
+    <summary>Classement</summary>
+    <ul id="pendu-classement" class="liste-simple"></ul>
+    <button id="pendu-zero" class="petit">Remettre à zéro</button>
+  </details>
+  <details>
+    <summary>Le plateau dans OBS</summary>
+    <p class="doux">Dans OBS : <b>Sources → ＋ → Navigateur</b>, colle l'adresse, largeur <b>800</b>, hauteur <b>450</b>.
+      Le plateau lit ton chat tout seul (sans compte) et dessine la partie ; il est transparent quand aucune partie ne tourne.</p>
+    <button id="pendu-plateau" class="petit">📋 Copier l'adresse du plateau</button>
+    <p id="pendu-plateau-etat" class="doux"></p>
+  </details>
+</section>
+
+<section>
   <h2>⌨️ Commandes</h2>
   <p class="doux">Un spectateur tape la commande dans le chat, le bot répond. Une même commande : une fois toutes les
     5 secondes, et une fois toutes les 30 secondes par personne (toi et tes modos, sans attendre).</p>
@@ -145,6 +193,8 @@
 <script src="liste_insultes.js"></script>
 <script src="detecteur.js"></script>
 <script src="repliques.js"></script>
+<script src="pendu_mots.js"></script>
+<script src="pendu.js"></script>
 <script src="bot.js"></script>
 </body>
 </html>
