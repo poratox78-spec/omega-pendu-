@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-10-10 — « Cette page ne se recopie pas ici » restait après actualisation (YouTube)
+
+- Rapport de Rem : le message persiste même après avoir rechargé la page, par exemple sur YouTube.
+- Mesuré dans Chrome, paquet réel, panneau en recopie : le panneau ne vérifiait qu'UNE fois, 0,9 s après le début du
+  chargement (et 1,8 s après le bouton « Recharger »). Or le script de contenu n'arrive qu'à la FIN du chargement
+  (document_idle), après lecture du moteur : sur YouTube, la page répond « branchée » à partir de ~2,5 s. Le panneau avait
+  déjà conclu « non » et ne redemandait plus : message affiché à 8 s sur une page parfaitement branchée. Même chose sur une
+  page de test à 2,5 s de script.
+- Corrigé : le service worker dit aussi si le chargement de la page est terminé (`status`, lisible sans la permission « tabs ») ;
+  le panneau ne conclut rien pendant le chargement, relance deux fois une fois la page chargée, et une fois le message
+  montré continue de regarder — il s'efface tout seul si la page se branche. Une page ouverte AVANT l'installation reçoit
+  toujours le message (vers 2,7 s au lieu de 0,6 s).
+- Garde : `extension/ordre_chargement_probe.js` ⑤ — page lourde (2,5 s de script, `/lourde` dans cdp_chrome.js)
+  actualisée dans l'onglet actif : le panneau doit se taire 8 s après. Vue ROUGE sur l'ancien panneau, verte après. Sur le
+  vrai YouTube : message absent à 8 s (il était affiché).
+- Concerne l'extension : à livrer dans la prochaine version Store (> 0.6.47).
+
 ## 2026-10-09 (suite) — « 🎨 Couleurs sur les sites » : la police de son PEINTE sur les sites consultés, sans toucher à leur texte
 
 - Rem a demandé si l'extension avait le même manque que le site — oui : la police de son ne vivait que dans le panneau. Nouvelle case

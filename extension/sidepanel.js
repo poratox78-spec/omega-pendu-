@@ -415,19 +415,33 @@
      « lire votre historique » à l'installation — trop cher pour ce service). Le petit texte le dit. */
   var noBr = document.getElementById('omdys-nobranch');
   var reBtn = document.getElementById('omdys-recharger');
-  var _brT = 0;
+  /* ⭐ 10/10/2026 — LE MESSAGE RESTAIT APRÈS ACTUALISATION (rapport de Rem, YouTube). La vérification n'avait lieu qu'UNE
+     fois, 0,9 s après le début du chargement ; or le script de contenu n'arrive qu'à la FIN du chargement (document_idle),
+     après lecture du moteur. Mesuré dans Chrome, paquet réel : sur YouTube, « branchée » ne devient vrai qu'à ~2,5 s — le
+     panneau avait déjà conclu « non » et ne redemandait plus jamais : message affiché sur une page parfaitement branchée.
+     Désormais : tant que la page charge, on ne conclut rien ; une fois chargée, deux relances avant de montrer ; et une fois
+     montré, on continue de regarder (le message s'efface tout seul si la page se branche). Le doute ne se crie toujours pas. */
+  var _brT = 0, _brN = 0;
+  function demanderBranche() {
+    try {
+      chrome.runtime.sendMessage({ type: 'omdys-branche?' }, function (r) {
+        void chrome.runtime.lastError;
+        if (!mirCb.checked || (r && r.branche === true)) { noBr.hidden = true; return; }
+        if (!r || r.branche !== false) return;                  // `null` (inconnu) ne montre RIEN
+        _brN++;
+        if (r.charge === false && _brN < 40) { _brT = setTimeout(demanderBranche, 700); return; }   // page en chargement : attendre
+        if (noBr.hidden && _brN < 3) { _brT = setTimeout(demanderBranche, 900); return; }          // tout juste chargée : le script arrive
+        noBr.hidden = false;
+        if (_brN < 45) _brT = setTimeout(demanderBranche, 2000);                                     // montré : on continue de regarder
+      });
+    } catch (e) {}
+  }
   function verifBranche(delai) {
     if (!noBr) return;
     clearTimeout(_brT);
+    _brN = 0;
     if (!mirCb.checked) { noBr.hidden = true; return; }
-    _brT = setTimeout(function () {
-      try {
-        chrome.runtime.sendMessage({ type: 'omdys-branche?' }, function (r) {
-          void chrome.runtime.lastError;
-          noBr.hidden = !(r && r.branche === false);   // `null` (inconnu) ne montre RIEN : le doute ne se crie pas
-        });
-      } catch (e) {}
-    }, delai || 0);
+    _brT = setTimeout(demanderBranche, delai || 0);
   }
   if (reBtn) reBtn.addEventListener('click', function () {
     try { chrome.runtime.sendMessage({ type: 'omdys-recharge' }, function () { void chrome.runtime.lastError; }); } catch (e) {}

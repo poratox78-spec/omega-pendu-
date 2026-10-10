@@ -93,7 +93,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       if (!t || t.id == null) { try { sendResponse({ branche: null }); } catch (e) {} return; }
       chrome.tabs.sendMessage(t.id, { type: 'omdys-ping' }, function (rep) {
         var e = chrome.runtime.lastError;   // « Receiving end does not exist » = aucun script de contenu
-        try { sendResponse({ branche: !e && !!(rep && rep.branche) }); } catch (x) {}
+        // ⭐ 10/10/2026 — + « le chargement de la page est-il terminé ? » (`status`, lisible SANS la permission « tabs ») : pendant le
+        // chargement, « pas de script » ne veut rien dire — il arrive à la fin (document_idle), pas avant.
+        try { sendResponse({ branche: !e && !!(rep && rep.branche), charge: t.status === 'complete' }); } catch (x) {}
       });
     });
   } catch (e) { try { sendResponse({ branche: null }); } catch (x) {} }

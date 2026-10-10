@@ -141,9 +141,22 @@ const log = (...a) => { if (!CHECK) console.log(...a); };
                 + " » — il crierait au loup sur une page parfaitement branchée");
     }
 
+    /* ⑤ ACTUALISER UNE PAGE LOURDE (10/10/2026, rapport de Rem : le message restait sur YouTube après actualisation).
+       Le script de contenu arrive à la FIN du chargement ; le panneau concluait « pas branchée » à 0,9 s et ne redemandait
+       plus. Ici : page à 2,5 s de script, chargée dans l'onglet actif ; 8 s plus tard le panneau doit se TAIRE. Vu ROUGE
+       sur l'ancien panneau (« MONTRE » à 8 s) avant d'être vu vert. */
+    await pgB.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + portPage + '/lourde' });
+    await attendre(8000);
+    const c = await message();
+    log("   page LOURDE actualisée (script à 2,5 s) → le panneau, 8 s après : " + c);
+    if (c !== 'cache') {
+      fail.push("page LOURDE actualisée : le panneau affiche « " + c + " » alors que la page est branchée — il a conclu "
+                + "avant que le script de contenu arrive (fin du chargement) et ne l'a plus revérifié");
+    }
+
     if (fail.length) { fail.forEach(f => console.log('  ✗ ' + f)); nettoyer(); process.exit(1); }
     log('');
-    log('✓ ORDRE DE CHARGEMENT : page ouverte AVANT → le panneau MONTRE pourquoi il ne voit rien ; onglet ouvert APRÈS → il se tait.');
+    log('✓ ORDRE DE CHARGEMENT : page ouverte AVANT → le panneau MONTRE pourquoi il ne voit rien ; onglet ouvert APRÈS → il se tait ; page lourde actualisée → il se tait.');
     nettoyer(); process.exit(0);
   } catch (e) {
     console.log('✗ ORDRE DE CHARGEMENT : ' + ((e && e.message) || e));
