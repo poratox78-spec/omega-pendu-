@@ -349,18 +349,26 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     {
       // noeuds = éléments du CORPS : le <style> des surlignages va dans <head>, le corps de la page ne doit pas bouger d'un nœud
       const ZONE = `<p id="son-fr">Le petit chat gris dort sur le tapis du salon.</p><p lang="en" id="son-en">The grey cat sleeps on the mat.</p>`
-        + `<p><code id="son-code">bateau poison gâteau</code></p><textarea id="son-ta">bateau poison gâteau</textarea>`;
+        + `<p><code id="son-code">bateau poison gâteau</code></p><textarea id="son-ta">bateau poison gâteau</textarea>`
+        // ⭐ 10/10/2026 — comme le chat de Twitch : du texte dans des div/span (la 1re version ne regardait que p/li/titres/tableaux),
+        // un pseudo qui a le rôle de bouton, une adresse web (jamais peinte), et un message AJOUTÉ après coup.
+        + `<div id="son-chat"><span id="son-span">Le chien joue dans la cour.</span><span role="button" id="son-btn">Pseudo rigolo</span>`
+        + `<span id="son-url">voir www.exemple.com aussi</span></div>`;
       const pageSon = async (attendrePeint, reecrire) => ((await pg.envoyer('Runtime.evaluate', { contextId: ctx, awaitPromise: true, returnByValue: true, timeout: 20000,   // monde ISOLÉ : c'est lui qui tient les surlignages
         expression: `(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));
           if (!document.getElementById('son-fr')) { const d = document.createElement('div'); d.innerHTML = ${JSON.stringify(ZONE)}; document.body.prepend(d); }
-          if (${!!reecrire}) document.getElementById('son-fr').firstChild.nodeValue = 'Les oiseaux chantent dans le jardin.';
+          if (${!!reecrire}) { document.getElementById('son-fr').firstChild.nodeValue = 'Les oiseaux chantent dans le jardin.';
+            const a = document.createElement('div'); a.id = 'son-ajout'; a.innerHTML = '<span>Le facteur apporte une lettre.</span>'; document.getElementById('son-chat').appendChild(a); }
           const dans = (id) => { const el = document.getElementById(id); let n = 0; const noms = {};
             for (const [nom, h] of CSS.highlights) { if (!/^omdys-/.test(nom)) continue;
               for (const r of h) if (el.contains(r.startContainer)) { n++; noms[nom] = 1; if (r.endOffset > r.startContainer.length) noms.HORS = 1; } }
             return { n, noms: Object.keys(noms).sort() }; };
-          for (let k = 0; k < 50 && ${!!attendrePeint}; k++) { if (dans('son-fr').n && (!${!!reecrire} || dans('son-fr').noms.indexOf('HORS') < 0)) break; await w(100); }
+          const urlPeinte = () => { const el = document.getElementById('son-url'), t = el.firstChild, a = t.nodeValue.indexOf('www'), b = a + 'www.exemple.com'.length; let n = 0;
+            for (const [nom, h] of CSS.highlights) { if (!/^omdys-/.test(nom)) continue; for (const r of h) if (r.startContainer === t && r.startOffset >= a && r.startOffset < b) n++; } return n; };
+          for (let k = 0; k < 50 && ${!!attendrePeint}; k++) { if (dans('son-fr').n && (!${!!reecrire} || (dans('son-fr').noms.indexOf('HORS') < 0 && dans('son-ajout').n))) break; await w(100); }
           await w(${reecrire ? 400 : 0});
-          return { fr: dans('son-fr'), en: dans('son-en'), code: dans('son-code'), ta: dans('son-ta'),
+          return { fr: dans('son-fr'), en: dans('son-en'), code: dans('son-code'), ta: dans('son-ta'), span: dans('son-span'), btn: dans('son-btn'),
+            url: dans('son-url'), urlIn: urlPeinte(), ajout: document.getElementById('son-ajout') ? dans('son-ajout') : null,
             noeuds: document.querySelectorAll('body *').length, spans: document.querySelectorAll('#son-fr *').length, texte: document.body.innerText }; })()` })).result || {}).value || {};
       const regler = (o) => pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 20000,
         expression: 'new Promise(r => chrome.storage.local.set(' + JSON.stringify(o) + ', () => setTimeout(() => r(1), 500)))' });
@@ -377,9 +385,10 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       const noms = s1.fr && s1.fr.noms || [];
       const okSon = s0.fr && s0.fr.n === 0 && s1.fr.n > 0 && ['omdys-m', 'omdys-s', 'omdys-v'].every((x) => noms.some((y) => y.indexOf(x) === 0))
         && s1.en.n === 0 && s1.code.n === 0 && s1.ta.n === 0 && s1.noeuds === s0.noeuds && s1.spans === 0 && s1.texte === s0.texte
-        && s2.fr.n > 0 && s2.fr.noms.indexOf('HORS') < 0 && s3.fr.n === 0 && c1 === true && c3 === false;
-      log('  ' + (okSon ? '✓' : '✗') + ' [page    ] « 🎨 Couleurs sur les sites » : ' + (s1.fr ? s1.fr.n : 0) + ' zones peintes (' + noms.join(', ') + '), anglais / code / champ épargnés, DOM et texte intacts, texte réécrit repeint, décochée → rien, panneau suit');
-      if (!okSon) echecs.push('Couleurs sur les sites : ' + JSON.stringify({ s0: { fr: s0.fr, noeuds: s0.noeuds }, s1: { fr: s1.fr, en: s1.en, code: s1.code, ta: s1.ta, noeuds: s1.noeuds, spans: s1.spans, texteIntact: s1.texte === s0.texte }, s2: s2.fr, s3: s3.fr, c1, c3 }));
+        && s2.fr.n > 0 && s2.fr.noms.indexOf('HORS') < 0 && s3.fr.n === 0 && c1 === true && c3 === false
+        && s1.span.n > 0 && s1.btn.n === 0 && s1.url.n > 0 && s1.urlIn === 0 && s2.ajout && s2.ajout.n > 0 && s3.span.n === 0;
+      log('  ' + (okSon ? '✓' : '✗') + ' [page    ] « 🎨 Couleurs sur les sites » : ' + (s1.fr ? s1.fr.n : 0) + ' zones peintes (' + noms.join(', ') + '), anglais / code / champ épargnés, texte en div/span peint (' + (s1.span ? s1.span.n : 0) + '), message ajouté peint, bouton et adresse web épargnés, DOM et texte intacts, texte réécrit repeint, décochée → rien, panneau suit');
+      if (!okSon) echecs.push('Couleurs sur les sites : ' + JSON.stringify({ s0: { fr: s0.fr, noeuds: s0.noeuds }, s1: { fr: s1.fr, en: s1.en, code: s1.code, ta: s1.ta, span: s1.span, btn: s1.btn, url: s1.url, urlIn: s1.urlIn, noeuds: s1.noeuds, spans: s1.spans, texteIntact: s1.texte === s0.texte }, s2: { fr: s2.fr, ajout: s2.ajout }, s3: s3.fr, c1, c3 }));
     }
 
     /* ⑥ LA BASCULE BULLE ↔ RECOPIE SURVIT-ELLE À UNE FERMETURE ? (rapport de Rem, 09/09/2026)

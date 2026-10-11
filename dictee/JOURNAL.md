@@ -33,6 +33,25 @@
   vus ROUGES sur l'ancienne app ; Python vérifié sur les mêmes 25 phrases (mêmes réponses). Phrases inventées, vérifiées contre le gold et
   les 3 corpus (deux premières versions reprenaient un bout du gold : remplacées).
 
+## 2026-10-10 — « 🎨 Couleurs sur les sites » : Twitch, les div et span ; le g2p relisait la table des verbes à chaque mot
+
+- Rapport de Rem : les couleurs ne s'appliquent pas partout, même sur du texte en français — Twitch par exemple.
+- Mesuré sur twitch.tv (paquet réel, Chrome, case cochée) : 9 messages du chat affichés, 0 zone peinte. La 1re version ne
+  surveillait que les paragraphes, listes, titres, tableaux et citations ; le chat de Twitch, comme la plupart des applis web, range
+  son texte dans des div et des span. On surveille désormais le PARENT de chaque morceau de texte, quelle que soit sa balise, et on
+  peint ses textes directs. Exclus en plus : ce qui a le RÔLE d'un contrôle (bouton, onglet, menu, case…, même écrit en div), les
+  adresses web, courriels, @pseudos et #étiquettes (le g2p français n'a rien à y lire). Après : le chat est peint, les pseudos non.
+- En mesurant le coût, trouvé une lenteur qui n'était pas celle de la nouvelle version : colorier toute une page de presse prenait
+  17,5 s (27 s avec l'ancienne). Profil CPU dans le monde isolé de l'extension : 95 % du temps dans `_build3P` du g2p. L'index des
+  3e personnes du pluriel (les « -ent » muets lus dans les tables de conjugaison, 25/09) vivait DANS `g2p()` : tout l'arbre des
+  verbes était relu à CHAQUE mot — 1,75 ms par mot. Déplacé au niveau du module, reconstruit seulement si la table change d'objet ;
+  le test « finit par -ent » passe d'abord. Même résultat sur 15 116 mots (dont tous les -ent du dictionnaire au 1/9), 250 fois plus
+  rapide ; page de presse entière 17,5 s → 0,1 s. Le même code tourne dans l'app (source de `_DECL2`).
+- Tests : `navigateur_ext_probe.js` (un chat en span : phrase peinte, faux bouton et adresse non peints, message ajouté ensuite peint)
+  — vu ROUGE sur l'ancienne version ; `police/parity_son.js` compte les lectures de la table des verbes pendant 8 mots (1 au plus) —
+  vu ROUGE sur l'ancienne app (4 lectures). Mode d'emploi (`aide.html`) : les messages qui défilent sont colorés, jamais les champs,
+  boutons ni adresses web.
+
 ## 2026-10-10 — terminaisons muettes, lot 2 : la personne du verbe par le son
 
 - Suite du catalogue (Rem : faire le lot suivant). Dans « autre terminaison », la personne du verbe après un pronom sujet restait muette

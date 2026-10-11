@@ -6490,6 +6490,7 @@ var _DECL2 = (function () {
   const ENTAMBIG = new Set(["consent","coprésident","divergent","détergent","expédient","ferment","purulent","ressent","résident","résilient","strident","talent","truculent","équivalent","évident"]);   // -ent HOMOGRAPHES : nom/adjectif ET 3e pers. pluriel — seule la POS trancherait, en contexte
   const RFIN = new Set(["acer","after","alter","amer","anticancer","aster","beeper","ber","bestseller","biker","bipper","blazer","blister","blockbuster","boer","bookmaker","boomer","bootlegger","bulldozer","bunker","burger","cancer","cascher","casher","cathéter","charter","cheerleader","cheeseburger","cher","chester","clipper","clubber","cluster","confer","coroner","crooner","cuiller","cutter","cyber","dealer","der","dogger","dragster","drifter","driver","drummer","dumper","enfer","ether","eyeliner","fer","fier","follower","freezer","führer","gamer","gangster","getter","geyser","gyrolaser","hacker","hamburger","hamster","handler","hier","highlander","hiver","holster","hunter","hyper","imper","inter","joker","jumper","junker","karcher","kascher","kasher","keylogger","khmer","kipper","laser","leader","liber","lieder","looser","magister","marker","maser","masséter","master","mer","moder","outremer","outsider","pacemaker","panzer","partner","pater","picker","pier","placer","pointer","poker","polyéther","popper","pullover","quaker","raider","raver","retriever","revolver","rocker","roller","rooter","rottweiler","rover","runner","révolver","scanner","scooter","scraper","setter","shiner","sitter","skater","slasher","speaker","spencer","sphincter","spinnaker","sprinter","squatter","stathouder","steamer","sticker","streamer","subwoofer","super","supertanker","sweater","taser","teaser","tender","ter","thaler","toner","trimmer","truther","turnover","tweeter","ulster","vener","ver","wafer","water","webmaster","winchester","wiper","éther"]);   // -er au r PRONONCÉ (liste fermée, vérité-terrain)
   const ENTSIL = new Set([])
+  let _3Pidx = null, _3Psrc = null;   // index des 3e pers. du pluriel (voir _build3P) — au niveau du MODULE, pas de chaque mot
   function g2p(word){
     const w=word.toLowerCase().replace(/[^a-zàâäéèêëîïôöùûüÿç]/g,'')
     const steps=[]; let i=0
@@ -6538,20 +6539,28 @@ var _DECL2 = (function () {
        exister — on retombe alors sur ENTSIL, jamais sur une erreur. */
     /* index PARESSEUX des 3e personnes du pluriel : CONJ_F est une projection INCOMPLÈTE de CONJ_C
        (mesuré : 69,2 % des -ent muets par CONJ_F seul, 95,8 % en lisant aussi l arbre). On construit
-       l index une fois, à la première question, depuis les tables déjà chargées. */
-    let _3P = null;
+       l index une fois, à la première question, depuis les tables déjà chargées.
+       ⭐ 10/10/2026 — « une fois » était faux : l index vivait DANS g2p(), il était donc reconstruit à CHAQUE mot (tout
+       l arbre des verbes parcouru par mot). Mesuré dans l extension (🎨 Couleurs sur les sites, page de presse chargée) :
+       1,75 ms par mot, 95 % du temps dans _build3P. Il vit maintenant au niveau du module et n est reconstruit que si la
+       table change d objet (chargement tardif) ; le résultat de g2p est inchangé. */
     function _build3P(){
-      _3P = new Set();
+      let _C = null;
       try{
-        const _C = (typeof CONJ_C!=='undefined' && CONJ_C) ||
+        _C = (typeof CONJ_C!=='undefined' && CONJ_C) ||
           (typeof self!=='undefined' && self.__OMEGA_CJ && self.__OMEGA_CJ.c) || null;
+      }catch(e){}
+      if(_3Pidx && _3Psrc === _C) return _3Pidx;
+      const idx = new Set();
+      try{
         if(_C) for(const lem in _C){
           const modes = _C[lem]; if(!modes) continue;
           for(const mo in modes){ const f = modes[mo] && modes[mo]['3p'];
-            if(typeof f === 'string') _3P.add(f); else if(Array.isArray(f)) f.forEach(x=>_3P.add(x)); }
+            if(typeof f === 'string') idx.add(f); else if(Array.isArray(f)) f.forEach(x=>idx.add(x)); }
         }
       }catch(e){}
-      return _3P;
+      _3Pidx = idx; _3Psrc = _C;
+      return idx;
     }
     function _entVerbe(m){
       if(ENTAMBIG.has(m)) return false;
@@ -6561,13 +6570,13 @@ var _DECL2 = (function () {
           (typeof self!=='undefined' && self.__OMEGA_CJ && self.__OMEGA_CJ.f) || null;
         if(_F){ const e=_F[m];
           if(e && String(e).split('|').some(t=>t.endsWith(';3;p'))) return true; }
-        if((_3P || _build3P()).has(m)) return true;
+        if(_build3P().has(m)) return true;
       }catch(e){}
       return false;
     }
     // ⚠️ ENTAMBIG PRIME sur ENTSIL : la liste faite main contenait déjà « ferment », que le gold donne
     // prononcé (le ferment, un nom). Une liste écrite à la main ne bat pas une mesure.
-    if(!ENTAMBIG.has(w) && (ENTSIL.has(w) || _entVerbe(w)) && w.endsWith('ent')){
+    if(w.endsWith('ent') && !ENTAMBIG.has(w) && (ENTSIL.has(w) || _entVerbe(w))){
       for(let k=steps.length-1;k>=0;k--){ if(steps[k].g==='en'){ steps[k].ph='∅'; steps[k].h=0.02; break } }
     }
     /* ⭐ 25/09/2026 — les -er dont le r SE PRONONCE. Liste FERMÉE de 160 mots relevés un par un dans la

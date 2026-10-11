@@ -9,18 +9,23 @@
 // Ce que la peinture permet : la COULEUR (muette en vermillon, syllabes alternées en bleu — les couleurs Okabe-Ito du produit)
 // et une OMBRE qui épaissit les sons voisés. Ce qu'elle ne permet pas : changer de police — les sourds ne s'amincissent pas
 // (la police de son complète, épais ET fin, vit dans le panneau et sur le site).
-// Texte À LIRE seulement (paragraphes, listes, titres, tableaux, citations) ; jamais les champs, le code, les boutons, les
-// icônes ; pages en français (ou sans langue déclarée) : le g2p est français. Paresseux : un bloc n'est peint que lorsqu'il
-// approche de l'écran ; un texte modifié par le site est repeint.
+// Texte À LIRE : tout texte visible de la page — jamais les champs, le code, les boutons ni ce qui en a le rôle, les icônes ;
+// pages en français (ou sans langue déclarée) : le g2p est français. Paresseux : un texte n'est peint que lorsqu'il approche de
+// l'écran ; un texte ajouté ou modifié par le site est (re)peint.
+// ⭐ 10/10/2026 — rapport de Rem : les couleurs manquaient sur des pages en français, Twitch par exemple. La 1re version ne regardait
+// que les paragraphes, listes, titres, tableaux et citations ; Twitch (le chat, les bandeaux) et la plupart des applis web rangent
+// leur texte dans des div/span. Mesuré sur twitch.tv (paquet réel, Chrome) : 9 messages du chat affichés, 0 zone peinte. On
+// surveille désormais le PARENT de chaque morceau de texte, quelle que soit sa balise, et on peint ses textes directs.
 (function () {
   'use strict';
   if (typeof CSS === 'undefined' || !CSS.highlights || typeof Highlight === 'undefined' || typeof StaticRange === 'undefined') return;
   if (typeof OmegaDysSonCore === 'undefined' || typeof _DECL2 === 'undefined' || !_DECL2 || typeof _DECL2.g2p !== 'function') return;
 
-  var BLOC = 'p,li,h1,h2,h3,h4,h5,h6,dt,dd,td,th,figcaption,blockquote,summary,caption';
   var SKIP = 'script,style,noscript,textarea,input,select,option,button,code,pre,kbd,samp,var,svg,math,canvas,iframe,template,'
            + '[contenteditable],[aria-hidden="true"],[class*="icon"],[class*="Icon"],[class*="material"],[class*="glyph"],'
-           + '[class*="fa-"],.omdys-bar';
+           + '[class*="fa-"],.omdys-bar,'
+           + '[role="button"],[role="tab"],[role="menuitem"],[role="option"],[role="switch"],[role="checkbox"],[role="radio"],'
+           + '[role="slider"],[role="textbox"],[role="searchbox"],[role="combobox"]';   // ce qui a le RÔLE d'un contrôle, même en div
   var LETTRE = /[A-Za-zÀ-ÿœŒæÆ]/;
   var EPAIS = 'text-shadow:.025em 0 0 currentColor,-.025em 0 0 currentColor';
   // nom → règle ; « d » = variante pour texte CLAIR sur fond sombre (mêmes paires que son_ui.js / sidepanel.html)
@@ -29,7 +34,7 @@
     'omdys-s': 'color:#0072b2', 'omdys-vs': 'color:#0072b2;' + EPAIS, 'omdys-m': 'color:#a34700',
     'omdys-sd': 'color:#6cc0f0', 'omdys-vsd': 'color:#6cc0f0;' + EPAIS, 'omdys-md': 'color:#f0a04b'
   };
-  var H = null, css = null, io = null, mo = null, parNoeud = new Map(), vus = new WeakSet(), nettoyage = 0;
+  var H = null, css = null, io = null, mo = null, parNoeud = new Map(), vus = new WeakSet(), suivis = new WeakSet(), nettoyage = 0;
 
   function francais(el) {
     var l = el.closest('[lang]');
@@ -56,8 +61,13 @@
   function peindreNoeud(tn, fonce) {
     retirer(tn);
     var t = tn.nodeValue, pos = 0, morceaux = [], dernier = null;
+    // adresses web, mails, @pseudos, #mots-clés : pas du français à lire — on n'y peint rien (vu sur le chat de Twitch)
+    var hors = [], mh, RX = /(?:https?:\/\/|www\.)\S+|\S+@\S+\.\w+|[@#][\w.-]+|\S+\.(?:com|fr|tv|gg|net|org|io)\S*/gi;
+    while ((mh = RX.exec(t))) hors.push([mh.index, mh.index + mh[0].length]);
+    var dehors = function (a) { for (var q = 0; q < hors.length; q++) if (a >= hors[q][0] && a < hors[q][1]) return true; return false; };
     OmegaDysSonCore.sentenceSegments(t, _DECL2.g2p).forEach(function (m) {
       if (m.raw !== undefined) { pos += m.raw.length; dernier = null; return; }
+      if (dehors(pos)) { pos += m.mot.length; dernier = null; return; }
       var idx = null;
       try { idx = OmegaDysSonCore.syllableIndex(m.segs); } catch (e) {}
       m.segs.forEach(function (sg, k) {
@@ -80,25 +90,38 @@
     });
     if (L.length) parNoeud.set(tn, L);
   }
-  function peindreBloc(b) {
+  function peindreBloc(b, fonce) {                      // b = un PARENT de texte : on peint ses textes DIRECTS (ses enfants ont leur tour)
     if (!H || !b.isConnected) return;
     vus.add(b);
-    var fonce = sombre(b), walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT, null), L = [], n;
-    while ((n = walker.nextNode())) if (admissible(n)) L.push(n);
-    L.forEach(function (tn) { try { peindreNoeud(tn, fonce); } catch (e) {} });
+    if (fonce === undefined) fonce = sombre(b);
+    var c;
+    for (c = b.firstChild; c; c = c.nextSibling) if (c.nodeType === 3 && admissible(c)) { try { peindreNoeud(c, fonce); } catch (e) {} }
+  }
+  /* ⭐ 10/10/2026 — PAR LOT : la couleur du texte (fond clair ou sombre) est lue pour TOUS les blocs d'abord, puis on peint.
+     Lire un style juste après avoir ajouté des zones forçait Chrome à recalculer les styles de la page à CHAQUE bloc (mesuré sur
+     une page de presse : 27 s pour tout peindre, bloc par bloc). */
+  function peindreLot(L) {
+    if (!H || !L.length) return;
+    var f = L.map(function (b) { return b.isConnected ? sombre(b) : false; });
+    L.forEach(function (b, k) { peindreBloc(b, f[k]); });
+  }
+  function suivre(tn) {                                  // le parent d'un texte admissible entre dans l'observateur (une fois)
+    var p = tn.parentElement;
+    if (!p || suivis.has(p) || !admissible(tn)) return;
+    suivis.add(p);
+    if (vus.has(p)) { try { peindreNoeud(tn, sombre(p)); } catch (e) {} } else io.observe(p);
   }
   function surveiller(root) {
     if (!io || !root || root.nodeType !== 1) return;
-    if (root.matches(BLOC)) io.observe(root);
-    var L = root.querySelectorAll(BLOC);
-    for (var i = 0; i < L.length; i++) io.observe(L[i]);
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n;
+    while ((n = w.nextNode())) suivre(n);
   }
   function texteChange(tn) {                             // le site a écrit dans un nœud texte : on le repeint (ou on l'efface)
     retirer(tn);
-    var p = tn.parentElement, b = p && p.closest(BLOC);
-    if (!b) return;
-    if (vus.has(b)) { if (admissible(tn)) try { peindreNoeud(tn, sombre(b)); } catch (e) {} }
-    else io.observe(b);
+    var p = tn.parentElement;
+    if (!p) return;
+    if (vus.has(p)) { if (admissible(tn)) try { peindreNoeud(tn, sombre(p)); } catch (e) {} }
+    else if (admissible(tn)) { suivis.add(p); io.observe(p); }
   }
   function nettoyer() {                                  // nœuds retirés par le site : on libère leurs zones peintes
     nettoyage = 0;
@@ -118,7 +141,9 @@
     css.textContent = regles;
     (document.head || document.documentElement).appendChild(css);
     io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); peindreBloc(e.target); } });
+      var L = [];
+      es.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); L.push(e.target); } });
+      peindreLot(L);
     }, { rootMargin: '600px 0px' });
     surveiller(document.body);
     mo = new MutationObserver(function (muts) {
@@ -143,11 +168,11 @@
     Object.keys(H).forEach(function (nom) { CSS.highlights.delete(nom); });
     if (css && css.parentNode) css.parentNode.removeChild(css);
     H = css = io = mo = null; nettoyage = 0;
-    parNoeud = new Map(); vus = new WeakSet();
+    parNoeud = new Map(); vus = new WeakSet(); suivis = new WeakSet();
   }
   function applique(v) { try { if (v && document.body) allumer(); else eteindre(); } catch (e) {} }
   // tout() : peint tous les blocs d'un coup (sonde de l'extension, page qu'on va imprimer)
-  try { self.__omdysSonPages = { tout: function () { if (!H) return; var L = document.querySelectorAll(BLOC); for (var i = 0; i < L.length; i++) peindreBloc(L[i]); },
+  try { self.__omdysSonPages = { tout: function () { if (!H) return; var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n, P = new Set(); while ((n = w.nextNode())) if (n.parentElement) P.add(n.parentElement); peindreLot(Array.from(P)); },
                                  compte: function () { if (!H) return 0; var n = 0; Object.keys(H).forEach(function (k) { n += H[k].size; }); return n; } }; } catch (e) {}
   try { chrome.storage.local.get(['omSonSites'], function (o) { applique(!!(o && o.omSonSites)); }); } catch (e) {}
   try { chrome.storage.onChanged.addListener(function (ch, area) { if (area === 'local' && ch.omSonSites) applique(!!ch.omSonSites.newValue); }); } catch (e) {}

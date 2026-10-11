@@ -61,6 +61,17 @@ try {
 try { DECL2 = (0, eval)(html.slice(i0 + 'var _DECL2 = '.length, iEnd)); }
 catch (e) { console.error('eval _DECL2 échoué :', e.message); process.exit(2); }
 
+/* ⭐ 10/10/2026 — L INDEX DES « -ent » SE CONSTRUIT UNE FOIS. Il vivait DANS g2p() : tout l arbre des verbes relu à CHAQUE
+   mot (mesuré dans l extension : 1,75 ms par mot ; une page de presse entière, 17,5 s à colorer avec « 🎨 Couleurs sur les
+   sites »). Le résultat était juste, seule la vitesse trahissait. On compte les lectures de la table pendant 8 mots : 1 au plus. */
+{
+  const vraie = globalThis.CONJ_C; let lectures = 0;
+  globalThis.CONJ_C = new Proxy(vraie, { ownKeys(t) { lectures++; return Reflect.ownKeys(t); } });
+  try { for (const w of ['table', 'maison', 'lent', 'souvent', 'parlent', 'dorment', 'courent', 'lisent']) DECL2.g2p(w); }
+  finally { globalThis.CONJ_C = vraie; }
+  if (lectures > 1) fail.push('g2p : table des verbes relue ' + lectures + ' fois pour 8 mots — l index des 3e pers. du pluriel doit se construire UNE fois (sinon 1,75 ms par mot)');
+}
+
 /* ⭐ 25/09/2026 — LE « R » FINAL, SUR LE g2p DE L APP (rapport de Rem : « pour, jour, sur, bonjour, mer :
    ils sont pas muets ces r »). Le banc Python (dictee/r_final_probe.py) mesure la même chose à l échelle,
    mais sur le moteur PYTHON : la règle vit dans le CODE des deux moteurs, pas dans les tables extraites,
