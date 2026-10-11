@@ -1,5 +1,5 @@
 {
- "justes": 370,
+ "justes": 372,
  "pointeuses": 220,
  "fatigue": 147,
  "cles_justes": [
@@ -14,6 +14,7 @@
   "amultetes→amulettes [mot inconnu] inversion",
   "amèen→amène [orthographe] inversion",
   "aoux→aux [orthographe] lettre_change",
+  "apparut→apparu [participe après être à vérifier] terminaison",
   "appelez→appelé [accord participe] terminaison",
   "arbirgae→arbitrage [mot inconnu] autre",
   "arbtire→arbitre [orthographe] inversion",
@@ -130,6 +131,7 @@
   "eviron→environ [orthographe] lettre_manque",
   "exemplairres→exemplaires [orthographe] lettre_trop",
   "exiait→existait [orthographe] autre",
+  "fais→fait [participe après être à vérifier] terminaison",
   "farie→faire [orthographe] inversion",
   "filiala→filiale [orthographe] lettre_change",
   "fills→fils [orthographe] lettre_trop",

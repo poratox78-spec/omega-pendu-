@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-12 — lot 13 : forme finie après être (il est partit, c'est finit, je me suis fais mal)
+
+- « il a finit » était corrigé (rAvoirFini) ; après être, rien : « il est partit », « c'est finit », « je me suis fais mal », « il est
+  prit » étaient muets. `rEtreFini` ≡ `rule_etre_fini` (orange, nom existant « participe après être à vérifier ») reprend la mécanique
+  d'avoir : forme conjuguée qui n'est pas un participe, consonne finale muette ôtée ou échangée (t ↔ s), le participe doit exister.
+  Accord avec le sujet pour partir / sortir (« elle est partie », « ils sont partis »).
+- Gardes vues en mesurant : le participe ACCORDÉ (« sont apparus », « sont régis » — frgec) ; nom ou adjectif homographe (« il est
+  déjà nuit », « le choc est subit »).
+- Mesure : 1 « pris » juste (EcriScol) ; frgec : 1 « fut choisit » que sa correction avait laissé ; UD : 1 vraie faute du corpus
+  (« ayant soit franchit ») ; aucun mot juste touché. Census des oranges : justes 370 → 372, pointeuses et fatigue
+  inchangées (`vig_census_ref.json` ré-ancré, un gain).
+- Tests : `parity_corr.js` (7 prises, 6 silences) — 7 échecs sur l'ancienne app ; Python vérifié sur les mêmes phrases.
+
+---
+
 ## 2026-10-11 — lot 12 : homophones de mots-outils (quand / quant, quelle / qu'elle, peut-être, il est temps)
 
 - Même sondage que le lot 11 : « Quand à moi », « quant il pleut », « qu'elle heure », « je pense quel viendra », « Peut être qu'il
