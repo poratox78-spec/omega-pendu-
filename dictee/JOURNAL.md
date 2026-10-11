@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-10-11 — lot 7 : faux jumeaux soudés / détachés (davantage, plutôt / plus tôt)
+
+- Question de Rem : « plutôt » d'un côté, « plus tôt » (l'inverse de « plus tard ») de l'autre — le correcteur fait-il la différence ?
+  Mesuré : il rendait l'accent de « plutot », mais ne voyait la confusion dans AUCUN sens. Recensement des faux jumeaux sur les 3
+  corpus : « d'avantage » pour « davantage » 24 fois (frgec), « plus tôt / plutôt » 1, et quelques « par ce que / parce que »,
+  « quel que / quelque », « aussitôt / aussi tôt » isolés ; le gold n'en a aucun.
+- `rDavantage` ≡ `rule_davantage` : la règle ne lisait que la fin de proposition et « que ». Sur frgec, « d'avantage » suit presque
+  toujours un VERBE (parler, contribuer, est…) ou précède « de » → davantage. Le nom reste : mot de quantité devant (pas, peu, plus…,
+  déjà gardé), nom après un déterminant (« ce type d'avantage », vu en écrivant les tests), « il n'y a d'avantage que / à » (fausse
+  alerte PRÉEXISTANTE de la règle d'origine, éteinte ; « n'y » est un seul mot pour le tokeniseur).
+- `rPlutot` ≡ `rule_plutot` (orange « plutôt / plus tôt à vérifier ») : cadres sûrs seulement — « le plutôt possible », « plutôt que
+  prévu / d'habitude / la veille » → plus tôt ; « plus tôt que de » + infinitif → plutôt. « plus tôt que de coutume », « je pense plutôt
+  que », « il est plutôt content » restent muets.
+- Mesure : frgec +18 justes (dont 2 que sa correction avait laissées : le juge les compte « inutiles ») ; UD 14 450 : 0 changement ;
+  gold : 0 (aucun cas).
+- Tests : `parity_corr.js` (8 prises, 7 silences) — vus ROUGES sur l'ancienne app ; Python vérifié sur les mêmes phrases. Phrases
+  inventées choisies pour n'avoir aucune suite de trois mots en commun avec les corpus.
+
+---
+
 ## 2026-10-11 — lot 6 : « a » écrit pour « à » (locutions, avoir droit à, un lieu, une ville après une durée)
 
 - Rem : lot suivant. Parmi les fautes muettes, « a » pour « à » est le plus gros paquet d'un seul type (25 dans le gold). Sur des

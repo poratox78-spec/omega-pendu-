@@ -6320,12 +6320,43 @@ def rule_pres_pret(T, i):
     return 'près'
 
 
+_PLT_TEMPS = set("prevu prevue prevus prevues d'habitude d'ordinaire hier".split())
+
+
+def rule_plutot(T, i):
+    """⭐ 11/10/2026 — plutôt / plus tôt (cadres sûrs, orange) : « le plutôt possible » → le plus tôt ; « plutôt que prévu / d'habitude »
+    → plus tôt ; « plus tôt que de » + infinitif → plutôt. Miroir JS rPlutot."""
+    n = len(T); d = deacc(T[i].lower())
+    d1 = deacc(T[i + 1].lower()) if i + 1 < n else ''; d2 = deacc(T[i + 2].lower()) if i + 2 < n else ''
+    if d == 'plutot':
+        p = deacc(T[i - 1].lower()) if i >= 1 else ''; maj = T[i][:1] != T[i][:1].lower()
+        que = d1 == 'que' or re.match(u"^qu['’]", d1) is not None
+        if p == 'le' and (d1 == 'possible' or que): return u'Plus tôt' if maj else u'plus tôt'
+        if que and (d2 in _PLT_TEMPS or (d2 == 'la' and i + 3 < n and deacc(T[i + 3].lower()) == 'veille')): return u'Plus tôt' if maj else u'plus tôt'
+        return None
+    if d == 'plus' and d1 == 'tot' and d2 == 'que' and i + 3 < n:
+        d3 = deacc(T[i + 3].lower()); inf = None
+        if d3 == 'de' and i + 4 < n: inf = deacc(T[i + 4].lower())
+        elif re.match(u"^d['’]", d3): inf = d3[2:]
+        if inf and re.search(r'(er|ir|re|oir)$', inf) and inf in VERB_LEX: return u'Plutôt' if T[i][:1] != T[i][:1].lower() else u'plutôt'
+    return None
+
+
+_DAV_DET = set("le la les l' un une des du ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs chaque quel quelle tout toute".split())
 _DAV_PREV = {'pas', 'plus', 'point', 'guere', 'aucun', 'sans', 'peu'}
 
 
 def rule_davantage(T, i):
     if T[i].lower() != "d'avantage": return None
     if i >= 1 and deacc(T[i - 1].lower()) in _DAV_PREV: return None          # « il n'y a pas d'avantage » : lecture nominale légitime
+    if i >= 2 and deacc(T[i - 1].lower()) == 'a' and re.sub(u"^n['’]", '', deacc(T[i - 2].lower())) == 'y' and i + 1 < len(T) and re.match(u"^(que|qu['’].*|a|à)$", deacc(T[i + 1].lower())): return None   # ⭐ 11/10/2026 : « il n'y a d'avantage que » : le NOM — miroir JS
+    if i >= 1:   # ⭐ 11/10/2026 (lot 7) : après un VERBE ou devant « de » — miroir JS rDavantage
+        pv = T[i - 1].lower().replace(u'’', "'"); dv = re.sub(r"^(d|l|j|n|s|qu)'", '', deacc(pv)); pp = _spos(pv)
+        nom = 'N' in pp and ('V' not in pp or (i >= 2 and T[i - 2].lower().replace(u'’', "'") in _DAV_DET))   # « ce type d'avantage » — miroir JS
+        if not nom and not (_SEG and i < len(_SEG['bb']) and _SEG['bb'][i]):
+            if _reads(dv) or dv in VERB_LEX: return 'davantage'
+            nx = T[i + 1].lower() if i + 1 < len(T) else ''
+            if deacc(nx) in ('de', 'des', 'du') or re.match(u"^d['’]", nx): return 'davantage'
     if i + 1 < len(T):
         nn = T[i + 1].lower()
         if deacc(nn) != 'que' and not nn.startswith("qu'") and not (_SEG and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]):
@@ -6868,7 +6899,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
