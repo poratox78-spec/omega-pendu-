@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-10-11 — terminaisons muettes, lot 3 : l'infinitif attendu
+
+- Suite du catalogue (Rem : lot suivant). Recensement des 162 terminaisons muettes restantes : 31 « -er / -é », dont 11 où l'INFINITIF
+  est attendu après un verbe, une préposition ou un pronom — le plus gros paquet d'un même cadre. En sondant le produit sur des phrases
+  inventées, trois trous et deux rouges faux :
+  - **formes manquantes** : « il pourrait mangé », « ils devraient parlé », « qu'il puisse mangé », « veuillez patienté » passaient sans
+    rien, alors que « il pourra mangé » était signalé — la liste `_SEMI_AUX` n'avait ni le conditionnel de pouvoir / devoir, ni plusieurs
+    futurs, ni le subjonctif, ni « veuillez ». Ajoutés (3 moteurs), et à `_FAIRE_SEMI` pour les formes de faire (sinon un nom après « fasse » était lu comme un verbe, vu sur frgec).
+  - **participe accordé** : « il veut vous aidée » — la table de conjugaison n'a pas « aidée » ; on passe par « aide ». Les verbes en -yer
+    (« envoyée » : la table n'a que « envoie ») : infinitif rebâti du mot écrit s'il est un verbe connu.
+  - **gouverneur + à** (« elle commence à chantée », « facile à réparé ») et **de / pour / sans + pronom** (« merci de nous envoyée »).
+    Gardes nées de la mesure : un « a » sans accent seulement si la règle a/à le juge « à » (« le plus difficile a été fait », « ce qui
+    était facile a changé » sont justes) ; après « à », seulement un mot en -é / -ée / -ez (« il arrive à bout » donnait bouillir), ni
+    majuscule (« apprend à » + prénom, frgec), ni le/la/les entre (« arrive à la porte »), ni « à côté » ; « leur » exclu des pronoms
+    (« de leur côté » sur UD, 8 possessifs sur frgec) ; la locution « en fait » se tait (UD, frgec).
+  - **rouges faux** : la ponctuation de l'auteur entre le gouverneur et le mot était ignorée — « il doit, épuisé, s'arrêter » → épuiser,
+    « il va, pressé, vers la gare » → presser, en ROUGE ; 3 sur frgec, 3 sur UD. Garde dans `rEer`, `rFlexionEr` (cible infinitif seulement :
+    « s'il vous plaît, cherché » → cherchez reste corrigé), `semiInfVig` et leurs jumelles Python. Et « c'est facile a réparer » devenait
+    « réparé » : la faute est le « a », l'infinitif est juste — la règle se tait.
+- Mesure : gold muettes 535 → 532 (terminaisons 162 → 159), mots faux 305 → 304 (« demendé » : demandé → demander), oranges justes
+  513 → 517, justes touchés inchangés (16 / 36) ; 3 corpus : +1 juste sur EcriScol, 3 rouges faux éteints sur frgec, 2 oranges sur de
+  vraies fautes que sa correction a laissées ; UD 14 450 : 0 marque de plus, 4 fausses alertes de moins (3 rouges, 1 orange).
+- Laissés : le verbe gouverneur lui-même mal écrit (« pouvoir » au conditionnel écrit sans ses lettres, « peuvent » sans -nt) — c'est
+  l'orthographe du mot ; les verbes de mouvement + participe : « il rentre épuisé » est juste.
+- Tests : `test_sv_vigilance.js` (7 prises, 16 silences) et `parity_corr.js` (4 rouges qui doivent se taire, « cherchez » qui doit rester) —
+  vus ROUGES sur l'ancienne app ; Python vérifié sur les mêmes 25 phrases (mêmes réponses). Phrases inventées, vérifiées contre le gold et
+  les 3 corpus (deux premières versions reprenaient un bout du gold : remplacées).
+
 ## 2026-10-10 — terminaisons muettes, lot 2 : la personne du verbe par le son
 
 - Suite du catalogue (Rem : faire le lot suivant). Dans « autre terminaison », la personne du verbe après un pronom sujet restait muette

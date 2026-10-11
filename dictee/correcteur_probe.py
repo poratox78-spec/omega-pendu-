@@ -398,6 +398,7 @@ def rule_e_er(T, i):
         _r = lw[2:]; _inf = _r[:-1] + 'er'
         if deacc(_r) not in NOUN_E and deacc(_inf) in VERB_LEX and GENDER_ACC.get(_r) not in ('m', 'f'): return w[:2] + _inf
         return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # ⭐ 11/10/2026 : ponctuation de l'auteur juste avant (« il doit, épuisé, s'arrêter ») — miroir JS rEer
     _mcl = re.match(u"^(m|t|s)'([a-zà-ÿœ]+é)$", lw)    # pronom élidé collé (« doit m'aidé ») ; « l' » exclu (aussi déterminant)
     if _mcl and i > 0 and not w[2:3].isupper():
         _km = i - 1; _na = 0
@@ -466,6 +467,7 @@ def rule_e_er(T, i):
         # (FP UD 1,44 % → 2,00 %). Le prix de la garde cardinale est trop élevé — ne pas refaire.
         if i > 0 and deacc(T[i - 1].lower()) == 'a' and rule_a_aa(T, i - 1) == 'à':
             return forms[1]
+        if i > 1 and deacc(T[i - 1].lower()) == 'a' and deacc(T[i - 2].lower()) in _A_INF_ADJ and deacc(lw).endswith('er'): return None   # ⭐ 11/10/2026 : « facile a réparer » — miroir JS rEer
         if forms[0].lower() == lw: return forms[0]   # participe DÉJÀ écrit : rien ici (l'accord est le métier de rule_pp_etre, avec SON explication)
         return _pp_relit(T, i, forms[0]) or forms[0]  # auxiliaire (a/ont/est…) → participe -é, ACCORDÉ si le contexte le permet (lot 2)
     if _eer_du(T, i - 1):                           # ⭐ 04/10/2026 : « elle a dû quitté » → quitter (avant la branche préposition : « du » en est une)
@@ -798,6 +800,7 @@ def rule_flexion_er(T, i):
         if i > 0 and deacc(T[i - 1].lower()) == 'a' and rule_a_aa(T, i - 1) == 'à':
             tgt = 'inf'
         else:
+            if i > 1 and deacc(T[i - 1].lower()) == 'a' and deacc(T[i - 2].lower()) in _A_INF_ADJ and cur == 'inf': return None   # ⭐ 11/10/2026 : « facile a réparer » — miroir JS rFlexionEr
             tgt = 'part'
     elif p in _INF_GOV or p in MODAL or p in _CAUS:   # prépo (de/pour/sans/afin)/modal/causatif (faire+inf) → infinitif
         # ⭐ …SAUF UN NOM QUE SEULE LA TABLE ACCENTUÉE CONNAÎT (08/09/2026). Les trois listes de
@@ -835,6 +838,7 @@ def rule_flexion_er(T, i):
             tgt = 'inf'                           # prépo/modal/causatif (+ clitique) → infinitif (« veut se séparé »→séparer, « fait déclaré »→déclarer)
         else:
             return None
+    if tgt == 'inf' and _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # ⭐ 11/10/2026 : ponctuation de l'auteur juste avant — miroir JS rFlexionEr
     if cur == tgt: return None                    # déjà la bonne classe de terminaison (n'écrase pas un accord)
     if lw.endswith(('és', 'ées')) and tgt in ('inf', 'p2pl', 'fut1'):
         return None                               # participe/adj PLURIEL (achetés, présumés) = jamais un infinitif/-ez/-ai mutilé
@@ -6522,7 +6526,8 @@ def rule_personne_verbe(T, i):
     return out if (out and deacc(out.lower()) != lw) else None
 
 
-_FAIRE_SEMI = set('fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient'.split())   # faire + infinitif (« le fit ramenais » → ramener, 03/09/2026)
+_FAIRE_SEMI = set('fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient '
+                  'ferai feras ferons ferez ferais ferions feriez fasse fasses fassions fassiez fassent faisais faisions faisiez'.split())   # ⭐ 11/10/2026 : mêmes formes qu'ajoutées à _SEMI_AUX — miroir JS   # faire + infinitif (« le fit ramenais » → ramener, 03/09/2026)
 _SEMI_NEG = {'pas', 'plus', 'jamais'}   # ⭐ 12/09/2026 : négation sautée entre le semi-auxiliaire et l'infinitif (« ne voulant plus avansé » → avancer). Miroir JS _SEMI_NEG.
 _SEMI_AUX = set(('voulant pouvant '   # ⭐ 12/09/2026 : participes présents, jamais ambigus (« le vélo ne voulant plus avancer ») — « devant » EXCLU (préposition)
                  'fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient '
@@ -6535,7 +6540,14 @@ _SEMI_AUX = set(('voulant pouvant '   # ⭐ 12/09/2026 : participes présents, j
                  # écrit qu'un semi-auxiliaire. « Le train sait arrete en gare » recevait
                  # « sait arrêter » — une proposition FAUSSE sur une vraie faute. Et « je sais
                  # nager » n'avait jamais besoin de la règle : l'infinitif y est déjà correct.
-                 'faut fallait faudra faudrait').split())
+                 'faut fallait faudra faudrait '
+                 # ⭐ 11/10/2026 — formes qui MANQUAIENT (« il pourrait mangé », « qu'il puisse mangé ») — miroir JS
+                 'pourras pourrez pourront pourrais pourrait pourrions pourriez pourraient puisse puisses puissions puissiez puissent '
+                 'devras devrez devront devrais devrait devrions devriez devraient doive doives '
+                 'voudrai voudras voudra voudrons voudrez voudront voudriez voudraient veuille veuilles veuillent veuillez '
+                 'irais irait irions iriez iraient aille ailles aillent '
+                 'ferai feras ferons ferez ferais ferions feriez fasse fasses fassions fassiez fassent faisais faisions faisiez '
+                 'faille').split())
 _INF_OUTILS = set((u"a \u00e0 en y de du des le la les ce se ne que qui si ou o\u00f9 et est par pour "
                    u"sans sous sur vers dans chez avec entre contre depuis apres avant plus moins "
                    u"tout tous bien mieux trop puis donc alors ainsi aussi encore jamais toujours").split())
@@ -6561,6 +6573,13 @@ def _acc_lemme(out):
 _SACC = None
 
 
+_P_INF_GOV = {'de', 'pour', 'sans'}; _P_INF_CL = {'me', 'te', 'se', 'nous', 'vous', 'lui'}   # préposition + pronom complément — « leur » exclu (possessif) — miroir JS
+_A_LOC = {'cote', 'gue'}   # « à côté », « à gué » — miroir JS
+_A_INF_ADJ = set('facile faciles difficile difficiles impossible impossibles pret prete prets pretes'.split())   # ⭐ 11/10/2026 : « facile a réparer » reste un infinitif — miroir JS
+_A_INF_GOV = set('commence commences commencent commencait commencaient commencer commencons commencez commencera commenceront commencerait continue continues continuent continuait continuaient continuer apprend apprends apprennent apprenait apprendre appris arrive arrives arrivent arrivait arrivaient arriver reussi reussit reussis reussissent reussir cherche cherches cherchent cherchait chercher hesite hesites hesitent hesitait hesiter parvient parviennent parvenait parvenir parvenu facile faciles difficile difficiles impossible impossibles pret prete prets pretes'.split())   # ⭐ 11/10/2026 : verbes / adjectifs + « à + infinitif » — miroir JS
+_EN_FAIT_OBJ = set('un une des le la les du de mon ma mes ton ta tes son sa ses notre votre nos vos leur leurs ce cet cette ces autant plus moins trop beaucoup partie part usage'.split())   # ce qui suit « en faire » — miroir JS
+
+
 def rule_inf_semi_aux(T, i):
     """« je vais mange » -> manger · « je dois fini » -> finir.
 
@@ -6577,13 +6596,21 @@ def rule_inf_semi_aux(T, i):
     j, st = i - 1, 0
     while j >= 0 and st < 3 and (deacc(T[j].lower()) in CLITIC or deacc(T[j].lower()) in _SEMI_NEG):
         j -= 1; st += 1
-    if j < 0 or deacc(T[j].lower()) not in _SEMI_AUX: return None
+    _agov = j >= 1 and (T[j].lower() == u'à' or (T[j].lower() == 'a' and rule_a_aa(T, j) == u'à')) and deacc(T[j - 1].lower()) in _A_INF_GOV   # ⭐ 11/10/2026 : gouverneur + à — miroir JS
+    _pgov = (j >= 0 and j < i - 1 and deacc(T[j].lower()) in _P_INF_GOV and re.search(u'é(e|es|s)?$', w.lower()) is not None
+             and all(deacc(T[_q].lower()) in _P_INF_CL for _q in range(j + 1, i)))   # ⭐ 11/10/2026 : « de nous envoyée » — miroir JS
+    if j < 0 or (not _agov and not _pgov and deacc(T[j].lower()) not in _SEMI_AUX): return None
+    if _agov:   # ⭐ 11/10/2026 — après « à » : seulement un mot qui sonne comme l'infinitif ; ni locution, ni majuscule, ni le/la/les entre — miroir JS
+        if not re.search(u'(é|ée|és|ées|ez)$', w.lower()) or lw in _A_LOC or w[:1] != w[:1].lower(): return None
+        if any(deacc(T[_q].lower()) in ('le', 'la', 'les', "l'") for _q in range(j + 1, i)): return None
+    if _SEG is not None and any(_b < len(_SEG['bb']) and _SEG['bb'][_b] for _b in range(j + 1, i + 1)): return None   # ⭐ 11/10/2026 : ponctuation de l'auteur entre les deux — miroir JS
     # ⭐ 29/09/2026 — QUATRE FAUX POSITIFS MESURÉS, une garde chacun (miroir JS semiInfVig) : les prises justes restent.
     gv = deacc(T[j].lower()); g1 = deacc(T[j - 1].lower()) if j > 0 else ''; g2 = deacc(T[j - 2].lower()) if j > 1 else ''
     em2 = _ELIDED_PRON.match(T[j - 2].lower()) if j > 1 else None
     if em2: g2 = deacc(em2.group(1))
     _bb = (_SEG or {}).get('bb') or []
     if j > 0 and T[j][:1] != T[j][:1].lower() and not (j < len(_bb) and _bb[j]): return None     # ① sigle / nom propre en gouverneur
+    if lw == 'fait' and i > 0 and deacc(T[i - 1].lower()) == 'en' and not (i + 1 < len(T) and deacc(T[i + 1].lower()) in _EN_FAIT_OBJ): return None   # ⭐ 11/10/2026 : locution « en fait » — miroir JS
     if gv == 'fait' and (g1 in ('en', 'de', 'ce', 'cet', 'le', 'du', 'au', 'un') or (g1 == 'a' and g2 == 'tout')) and g2 not in SUBJ_PRON and g2 != 'ne': return None   # ② « fait » nom / locution
     if gv in ('faite', 'faites', 'faits') and not re.search(r'é(e?s?)$', w.lower()):                  # ③ participe accordé après un auxiliaire
         for _k in range(j - 1, max(-1, j - 4), -1):
@@ -6603,7 +6630,11 @@ def rule_inf_semi_aux(T, i):
     for _r in range(j - 1, max(-1, j - 4), -1):
         if deacc(T[_r].lower()) in ('ou', 'dont'): return None
     src = CONJ_F.get(lw) or CONJ_F.get(lw + 's')
-    if not src: return None
+    if not src and re.search(u'é(e|es)$', w.lower()): src = CONJ_F.get(re.sub('es?$', '', lw))   # ⭐ 11/10/2026 : participe ACCORDÉ (« il veut vous aidée ») — miroir JS
+    if not src:   # ⭐ 11/10/2026 : verbes en -yer (« envoyée ») — infinitif rebâti du mot écrit, s'il est un verbe connu ; miroir JS
+        _sE = re.match(u'^(.*)é(e|es|s)?$', w.lower())
+        if _sE and len(_sE.group(1)) >= 2 and deacc(_sE.group(1) + 'er') in VERB_LEX: return _sE.group(1) + 'er'
+        return None
     out = None
     for r in src.split('|'):
         a = r.split(';')
@@ -6611,7 +6642,8 @@ def rule_inf_semi_aux(T, i):
         if deacc(a[0].lower()) == lw: return None       # c'est DEJA l'infinitif
         if out and out != a[0]: return None             # plusieurs lemmes -> abstention
         out = a[0]
-    if out and w.lower().endswith('é') and deacc(w.lower()[:-1] + 'er') == deacc(out.lower()): out = w.lower()[:-1] + 'er'   # ⭐ 12/09/2026 : le lemme de la table est NU (« demarrer ») ; l'accent du radical vit dans la forme ÉCRITE (« démarré » → démarrer). Miroir JS.
+    _stE = re.match(u'^(.*)é(e|es|s)?$', w.lower())
+    if out and _stE and deacc(_stE.group(1) + 'er') == deacc(out.lower()): out = _stE.group(1) + 'er'   # ⭐ 12/09/2026 : le lemme de la table est NU (« demarrer ») ; l'accent du radical vit dans la forme ÉCRITE (« démarré » → démarrer). Miroir JS.
     if out and out == deacc(out): out = _acc_lemme(out)   # ⭐ 29/09/2026 : lemme désaccentué → graphie du lexique (réussir, être) — miroir JS
     return out
 
