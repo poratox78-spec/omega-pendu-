@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-10-11 — lot 8 : faux jumeaux soudés (parce que, quelque, quelquefois, aussitôt, à bientôt)
+
+- Demande de Rem : « par ce que / parce que », « quel que / quelque », « aussitôt / aussi tôt » — des mots très utilisés, même si les
+  corpus en ont peu (gold 3, frgec 3). Sur des phrases inventées, tous muets (seul « quelque soit » avait sa règle) ; « à bien tôt »
+  aussi, ajouté (même famille, fin de message).
+- `rSoude` ≡ `rule_soude` (orange « mot soudé à vérifier ») : « par ce que » + sujet → parce que, sauf après un mot qui appelle « par »
+  (participe passif, commencer, finir, passer… ; un participe de MOUVEMENT n'a pas d'agent : « parti par ce qu'il pleuvait » → parce
+  que, vu en testant) ; « quel que » + nom de la liste (chose, part, temps, jours…) → quelque(s), jamais devant « soit » ; « quelque
+  fois » → quelquefois ; « aussi tôt » + participe ou « après » → aussitôt ; « à bien tôt » en fin de phrase → à bientôt.
+- Mesure : gold +1 ; frgec : 1 « quelque fois » que sa correction avait laissé (« sometimes ») ; UD 14 450 : 0 changement.
+- Témoin mis à jour : « Il vient quelque fois » (parity_core.js, 04/10) interdisait toute marque — son intention était « jamais
+  quelques » ; il exige désormais « quelquefois ».
+- Tests : `parity_corr.js` (9 prises, 6 silences) — vus ROUGES sur l'ancienne app ; Python vérifié sur les mêmes phrases.
+
+---
+
 ## 2026-10-11 — lot 7 : faux jumeaux soudés / détachés (davantage, plutôt / plus tôt)
 
 - Question de Rem : « plutôt » d'un côté, « plus tôt » (l'inverse de « plus tard ») de l'autre — le correcteur fait-il la différence ?

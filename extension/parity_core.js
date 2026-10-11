@@ -916,7 +916,11 @@ print(json.dumps(out))
     const m = fl(s).find(x => x.word === w);
     if (!m || m.sugg !== sg) { _ge++; console.log('  ✗ lieu / quelque : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
   }
-  for (const s of ["Le roi de France absent dort.", "Il a vu quelque 300 voitures.", "Il reste quelque temps.", "Il vient quelque fois.", "La France produit du vin."]) {
+  // ⭐ 11/10/2026 (lot 8) : « Il vient quelque fois. » ne doit jamais devenir « quelques » (« fois » invariable) ; il reçoit désormais
+  // « quelquefois » (en un mot), la bonne correction — le témoin le dit.
+  { const m = fl("Il vient quelque fois.").filter(x => x.word === 'quelque');
+    if (m.length !== 1 || m[0].sugg !== 'quelquefois') { _ge++; console.log('  ✗ lieu / quelque : « Il vient quelque fois. » → « quelquefois » attendu (jamais « quelques »), obtenu ' + JSON.stringify(m.map(x => x.sugg))); } }
+  for (const s of ["Le roi de France absent dort.", "Il a vu quelque 300 voitures.", "Il reste quelque temps.", "La France produit du vin."]) {
     const f = fl(s); if (f.length) { _ge++; console.log('  ✗ lieu / quelque : témoin « ' + s + ' » marqué ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
   }
   if (_ge) { console.log('PARITÉ KO — lieu / quelque : ' + _ge + ' attente(s) non tenue(s).'); process.exit(1); }

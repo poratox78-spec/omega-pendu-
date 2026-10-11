@@ -424,6 +424,22 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 11/10/2026 — lot 8 : faux jumeaux soudés (orange, « mot soudé à vérifier ») — par ce que → parce que, quel que + nom → quelque(s),
+   quelque fois → quelquefois, aussi tôt + participe → aussitôt, à bien tôt → à bientôt ; silences : « par » appelé par le mot d'avant
+   (passif, commencer), « quel que soit », « quelques fois », « aussi tôt que possible », « bien tôt ce matin ». Python : rule_soude. */
+{ let _k8 = 0;
+  for (const [ph, w, sg] of [['Je reste par ce que je suis malade.', 'par', 'parce'], ["Il est parti par ce qu'il pleuvait.", 'par', 'parce'],
+                             ['Par ce que tu es là, je suis content.', 'Par', 'Parce'], ['Il prend quel que temps pour lui.', 'quel', 'quelque'],
+                             ['Il part quel que part.', 'quel', 'quelque'], ['Il reste quel que jours.', 'quel', 'quelques'], ['Je viens quelque fois.', 'quelque', 'quelquefois'],
+                             ['Aussi tôt arrivé, il dort.', 'Aussi', 'Aussitôt'], ['Je te dis à bien tôt.', 'bien', 'bientôt']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _k8++; console.log('✗ soudé : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Je suis touché par ce que tu dis.', 'par'], ['Il commence par ce que tu préfères.', 'par'], ['Il pleut quel que soit le temps.', 'quel'],
+                         ['Je viens quelques fois.', 'quelques'], ['Il part aussi tôt que possible.', 'aussi'], ["Il s'est levé bien tôt ce matin.", 'bien']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _k8++; console.log('✗ soudé : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k8) { console.log('PARITÉ KO — ' + _k8 + ' cas « mot soudé ».'); process.exit(1); } }
+
 /* ⭐ 11/10/2026 — lot 5 : « été » écrit pour était / étais / étaient — sujet NOM et sujet INVERSÉ (orange) ; silences : « été » nom,
    auxiliaire présent, ellipse et incise (UD), complément après une préposition. Python : même règle (rule_aux_misspell, _ete_sujet). */
 { let _k5 = 0;

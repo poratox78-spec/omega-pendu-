@@ -6320,6 +6320,34 @@ def rule_pres_pret(T, i):
     return 'près'
 
 
+_SOU_PARGOV = set(deacc(w) for w in u'commence commencer commencent commencait commencé commencez finit finir finissent finissait fini passe passer passent passait passé termine terminer terminé debute debuter debuté remplace remplacer remplacé explique expliquer expliqué'.split())
+_SOU_QQ = set('chose choses part temps peu sorte jour jours mois annees ans instant instants moment moments heure heures minutes semaines'.split())
+_SOU_QQPL = set('choses jours mois annees ans instants moments heures minutes semaines'.split())
+_SOU_SUJ = set("je j' tu il elle on nous vous ils elles c' ce cela ca les le la mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs un une des".split())
+
+
+def rule_soude(T, i):
+    """⭐ 11/10/2026 — faux jumeaux soudés (orange) : par ce que → parce que ; quel que + nom → quelque(s) ; quelque fois → quelquefois ;
+    aussi tôt + participe → aussitôt ; à bien tôt (fin de phrase) → à bientôt. Miroir JS rSoude (l'app marque deux mots)."""
+    n = len(T); w = T[i]; d = deacc(w.lower())
+    d1 = deacc(T[i + 1].lower()) if i + 1 < n else ''; d2 = deacc(T[i + 2].lower()) if i + 2 < n else ''
+    maj = w[:1] != w[:1].lower(); cap = (lambda x: x[:1].upper() + x[1:] if maj else x); p = deacc(T[i - 1].lower()) if i >= 1 else ''
+    bb = (_SEG or {}).get('bb') or []
+    if i + 1 < len(bb) and bb[i + 1]: return None
+    if d == 'par' and d1 == 'ce' and (d2 == 'que' or re.match(u"^qu['’](il|ils|elle|elles|on)$", d2)):
+        if p and (p in _SOU_PARGOV or (_is_ppl(T[i - 1]) and p not in AUX_ETRE_PP)): return None   # participe de mouvement : pas d'agent — miroir JS
+        if d2 == 'que':
+            sj = re.sub(u"(['’]).*$", r'\1', deacc(T[i + 3].lower())).replace(u'’', "'") if i + 3 < n else ''
+            if sj not in _SOU_SUJ and sj.rstrip("'") not in _SOU_SUJ: return None
+        return cap('parce')
+    if d == 'quel' and d1 == 'que' and d2 in _SOU_QQ: return cap('quelques' if d2 in _SOU_QQPL else 'quelque')
+    if d == 'quelque' and d1 == 'fois': return cap('quelquefois')
+    if d == 'aussi' and d1 == 'tot' and i + 2 < n and (d2 == 'apres' or (re.search(u'(é|ée|és|ées|i|ie|is|ies|u|ue|us|ues|it|ite|its|ites)$', T[i + 2].lower()) and _is_ppl(T[i + 2]))):
+        return cap(u'aussitôt')
+    if d == 'bien' and d1 == 'tot' and p in ('a', u'à') and (i + 2 >= n or (i + 2 < len(bb) and bb[i + 2])): return u'bientôt'
+    return None
+
+
 _PLT_TEMPS = set("prevu prevue prevus prevues d'habitude d'ordinaire hier".split())
 
 
@@ -6899,7 +6927,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
