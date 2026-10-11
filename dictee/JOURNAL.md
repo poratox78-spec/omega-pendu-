@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-10-11 — lot 9 : expressions figées mal coupées (quand même, en fait, tout le temps, en train de, tant pis)
+
+- Suite des faux jumeaux de Rem (mots très utilisés). Sur des phrases inventées, ces expressions étaient toutes muettes ; les
+  corpus n'en ont presque pas (0 dans les 3) — la règle vise l'usage courant, avec des silences gardés pour chaque emploi juste.
+- `rFige` ≡ `rule_fige` (orange « expression figée à vérifier ») : « comme même » → quand même (pas devant un déterminant ou un
+  pronom) ; « en faite » → en fait (pas après un pronom : « vous en faites ») ; « enfaite » → en fait ; « tous le temps » → tout le
+  temps (pas avec un sujet pluriel avant) ; « par que », « pars que » → parce que (pas « je pars ») ; « entrain de » + infinitif →
+  en train de ; « sur tout » + pas / ne / quand / si / parce → surtout ; « temps pis / mieux » en tête de proposition → tant.
+- `_aaLocution` : « tout a fait » → à (sauf « Tout a fait défaut » : « tout » sujet) ; « au fur et a mesure » → à.
+- Trouvé en testant : « il comprend au fur et a mesure » donnait « mesuré » en ROUGE. La garde « nom homographe après « a » nu »
+  de `rEPpl` lisait GENDER_PURE, qui n'a pas les mots à la fois nom et verbe ; Python lisait le lexique complet. Alignée
+  (GENDER_MAP) : 3 rouges faux en moins sur 14 322 textes (forme, mise, place), 2 d'entre eux sur des mots justes ; aucune perte.
+- UD 14 450 : 0 changement. Tests : `parity_corr.js` (13 prises, 10 silences) — 15 échecs sur l'ancienne app ; Python vérifié
+  sur les mêmes phrases.
+
+---
+
 ## 2026-10-11 — lot 8 : faux jumeaux soudés (parce que, quelque, quelquefois, aussitôt, à bientôt)
 
 - Demande de Rem : « par ce que / parce que », « quel que / quelque », « aussitôt / aussi tôt » — des mots très utilisés, même si les
