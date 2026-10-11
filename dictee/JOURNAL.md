@@ -22,6 +22,31 @@
   correcteur change le verbe ; trancher demande le sens), « a » + nom de lieu mal écrit.
 - Tests : `parity_corr.js` (8 prises, 4 silences) — vus ROUGES sur l'ancienne app ; Python vérifié sur les mêmes phrases.
 
+## 2026-10-11 — lot 5 : le mot qui existe, mais pas à sa place (« été » pour était, « -ent » pour « -ant »)
+
+- Rem : lot suivant. Recensement des mots faux restants à la vérité du PRODUIT (pas de la seule couche orthographe : la grammaire en
+  rattrape une partie, « des livre » → livres) — 294, sans paquet : chacun a son bruit autour. Trois pistes MESURÉES et ÉCARTÉES :
+  · « le son d'abord » dans le tri principal : 10 cas ;
+  · un filtre des propositions « absurdes » (son différent ET ≥ 3 lettres d'écart) : le seau contient 55 justes pour 29 fausses ;
+  · une seconde passe « corriger le voisin d'abord » (appliquer les corrections du produit, relancer, garder les nouvelles marques en
+    orange) : gold −20 muettes, mais frgec 48 inutiles et UD +20 ; restreinte aux mots qui commandent (déterminants, pronoms,
+    auxiliaires) : gold −7, frgec 18 inutiles, UD +11 dont « Le plus urgent est » → sont. Les oranges de la passe 1 ne sont pas assez
+    sûres pour être propagées — ne pas refaire sans un critère de confiance mesuré.
+- Porté, dans les fautes MUETTES de l'orthographe (le mot écrit existe, rien ne le signalait) :
+  - « été » pour était / étais / étaient : `rAuxMisspell` ≡ `rule_aux_misspell` ne lisait que le pronom (« il été ») ; + sujet INVERSÉ
+    (« où été tu ») et sujet NOM (« le chat été content »). Gardes nées de la mesure : adjectif devant (« le dernier été »), auxiliaire
+    plus haut dans la phrase (UD : ellipse, incise), groupe nominal après une préposition (complément).
+  - « -ent » pour « -ant » : `antVig` (orange « forme en -ant à vérifier ») — nom après un déterminant qui ne peut pas être un pronom
+    (« un étudient »), adjectif après être ou un intensif (« c'est très importent ») ; gardes : -ent aussi nom (« un résident »), « est »
+    collé par un trait d'union (« nord-est »).
+  - Au passage : `cestCesVig` lisait « très » comme un nom pluriel (« C'est très importent » → « Ces ») ; `sujFlexVig` lisait le « est »
+    de « sud-est » comme le verbe (fausses alertes préexistantes : frgec −4, UD −1) ; `personneSonVig` (lot 2) proposait « plantait »
+    pour « il plan » (bout de chaîne d'un « pran » mal écrit) — forme limitée à 2 lettres de plus que l'écrit.
+- Mesure : gold muettes 532 → 527, oranges justes 526 → 531, mots justes touchés inchangés (16 / 36) ; 3 corpus : 5 justes, 0 inutile,
+  4 fausses alertes de moins sur frgec ; UD 14 450 : 0 marque de plus, 1 de moins.
+- Tests : `test_sv_vigilance.js` (forme en -ant, sud-est, « il plan ») et `parity_corr.js` (« été », 5 prises et 6 silences) — vus
+  ROUGES sur l'ancienne app ; Python vérifié sur les mêmes phrases. Phrases inventées vérifiées contre le gold et les 3 corpus.
+
 ## 2026-10-11 — mots faux, lot 4 : le quantifieur pluriel mal écrit (certin, diver, nombreu, plusier, serten)
 
 - Rem : reprendre les corrections. Recensement des 163 mots faux de l'orthographe : 67 « bon mot, mauvaise forme », 96 « autre mot ».

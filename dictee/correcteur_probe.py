@@ -1851,6 +1851,7 @@ def rule_cest_ces_vig(T, i):
     if deacc(T[i].lower()) != "c'est" or i + 1 >= len(T): return None
     dn = deacc(T[i + 1].lower())
     if not re.search(r'[sx]$', dn) or dn in _INVAR_S or len(dn) < 4 or T[i + 1][:1].isupper(): return None
+    if dn in ('tres', 'plus', 'moins', 'assez', 'trop'): return None   # ⭐ 11/10/2026 : un ADVERBE en -s n'est pas un nom pluriel — miroir JS
     sg = dn[:-3] + 'al' if dn.endswith('aux') else dn[:-1]
     if sg not in WORDS_SET or _reads(dn): return None
     pp = NOUN_POST.get(sg) if NOUN_POST else None
@@ -3540,6 +3541,38 @@ def _voisin_aux_long(dl):
     return next((f for f in _AUX_LONGS if abs(len(f) - len(dl)) <= 1 and _lev(dl, f) == 1), None)   # ⭐ 12/09/2026 : rend la FORME voisine (« sommes »), vrai/faux avant
 
 
+_ETE_INT = {'ou', u'où', 'quand', 'comment', 'pourquoi', 'combien'}
+_ETE_INV = {'tu': u'étais', 'je': u'étais', 'il': u'était', 'elle': u'était', 'on': u'était', 'ils': u'étaient', 'elles': u'étaient'}
+_ETE_DET = set('le la un une mon ma ton ta son sa notre votre leur ce cet cette'.split())
+_ETE_DETP = set('les des ces mes tes ses nos vos leurs'.split())
+_ETE_PREP = set(deacc(w) for w in u'de du des à a au aux sur dans par pour avec sans sous chez vers entre contre en'.split())   # groupe nominal précédé d'une préposition = complément (miroir JS)
+
+
+def _ete_pur(x):
+    ps = _spos(x)
+    return 'N' in ps and 'A' not in ps and 'V' not in ps
+
+
+def _ete_sujet(T, i):
+    """⭐ 11/10/2026 — « été » écrit pour était / étais / étaient : sujet INVERSÉ (« été » + tu / il / elle / on / ils / elles, en tête de
+    phrase ou après où / quand / comment / pourquoi / combien) ou sujet NOM (déterminant + nom PUR + « été »). Miroir JS _eteSujet."""
+    if i + 1 < len(T):
+        nx = T[i + 1].lower().lstrip('-'); inv = _ETE_INV.get(nx)
+        if inv and (i == 0 or (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]) or T[i - 1].lower() in _ETE_INT): return inv
+    for k5 in range(i - 1, max(-1, i - 9), -1):   # ⭐ auxiliaire plus haut dans la phrase : ellipse ou incise — miroir JS
+        if _SEG is not None and k5 + 1 < len(_SEG['ss']) and _SEG['ss'][k5 + 1]: break
+        a5 = deacc(T[k5].lower()).split("'")[-1]
+        if a5 in AUX: return None   # AUX = AUX_ETRE ∪ AUX_AVOIR (mêmes tables que le JS)
+    if i >= 1:
+        pn = T[i - 1].lower().replace(u'’', "'"); me = re.match(r"^l'(.+)$", pn)
+        if me and _ete_pur(me.group(1)) and not (i >= 2 and deacc(T[i - 2].lower()) in _ETE_PREP): return u'était'   # complément, pas sujet
+        if i >= 2 and not me:
+            dt = T[i - 2].lower()
+            if (dt in _ETE_DET or dt in _ETE_DETP) and _ete_pur(pn) and not (i >= 3 and deacc(T[i - 3].lower()) in _ETE_PREP):
+                return u'étaient' if dt in _ETE_DETP else u'était'
+    return None
+
+
 def rule_aux_misspell(T, i):
     # ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : « il été content » → était, « j'été » → j'étais. Le participe « été » ne suit JAMAIS un
     # sujet sans auxiliaire ; deux corrections possibles (« il était » / « il a été ») → ORANGE (tier_of). Gold dys : 3 ; UD 14 450 : 0 tir.
@@ -3549,6 +3582,9 @@ def rule_aux_misspell(T, i):
         p0 = deacc(T[i - 1].lower())
         if p0 in ('il', 'elle', 'on'): return _keepcase(T[i], u'était')
         if p0 in ('je', 'tu'): return _keepcase(T[i], u'étais')
+    if l0 == u'été' and not (_SEG is not None and i >= 1 and i - 1 < len(_SEG['hy']) and _SEG['hy'][i - 1]):
+        es = _ete_sujet(T, i)   # ⭐ 11/10/2026 : sujet NOM (« le chat été content ») et sujet INVERSÉ (« où été tu ») — miroir JS _eteSujet
+        if es: return _keepcase(T[i], es)
     if not CONJ_LOADED or "'" in T[i].lower(): return None
     w = deacc(T[i].lower())
     if len(w) < 3 or not w.isalpha(): return None                # ≥3 lettres (les mots-outils courts « ne »/« le »/« se » ne sont jamais un aux mutilé)
@@ -4555,6 +4591,7 @@ def rule_sujet_flexion(T, i):
     formes différentes → abstention. Miroir JS : rSujFlex."""
     if not CONJ_F or not CONJ_C: return None
     w = T[i]; lw = w.lower(); dl = deacc(lw)
+    if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # ⭐ 11/10/2026 : mot collé par un trait d'union (« sud-est ») — miroir JS sujFlexVig
     if lw.startswith("j'") and len(lw) > 3 and lw.count("'") == 1 and lw[2:].isalpha() and deacc(lw[2:]) not in FULL_AUX:   # être/avoir élidés (« j'est », « j'a ») = famille j'est/j'ai, qui se tait à dessein sur « j'est de Paris »
         # ⭐ 12/09/2026 : « même si j'admet que » → j'admets — le pronom ÉLIDÉ vit dans le token ; on relit la règle sur « je + verbe »
         #    (liste virtuelle, UN pas, comme rule_il_ils lit _ELIDED_PRON) et le préfixe est rendu tel quel. Miroir JS sujFlexVig.

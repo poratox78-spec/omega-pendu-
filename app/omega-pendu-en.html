@@ -24730,6 +24730,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'nombre du déterminant à vérifier':function(){return 'le déterminant prend le NOMBRE du nom qui le suit (le chat, les chats).';},
     'pluriel par le son à vérifier':function(e,a){return 'après « les », « des », « ces »…, le nom est au PLURIEL : « '+a+' » se prononce comme « '+String(e||'').toLowerCase()+' » — est-ce bien ce mot ?';},   // ⭐ 28/09/2026 : le son a choisi le mot, l'auteur vérifie
     'auxiliaire manquant à vérifier':function(e,a){return 'il manque l’auxiliaire devant le participe : « '+a+' … » (j’ai noté, je suis allé).';},
+    'forme en -ant à vérifier':function(e,a){return '« -ent » et « -ant » se disent pareil : ici, c’est le nom ou l’adjectif en -ANT : « '+a+' ».';},   // ⭐ 11/10/2026
     'participe présent après « en » à vérifier':function(e,a){return 'après « en », le verbe prend la forme en -ANT : en '+String(a||'').toLowerCase()+'.';},
     'infinitif après semi-auxiliaire à vérifier':function(e,a){return 'après « aller », « devoir », « pouvoir », « vouloir »…, après « commencer à », « facile à », et après « de », « pour », « sans » suivis d’un pronom (« de nous », « pour te »), le verbe reste à l’INFINITIF : « '+a+' ».';},   // ⭐ 11/10/2026 : l'explication couvre les nouveaux gouverneurs
     'infinitif après pronom sujet à vérifier':function(e,a){return 'après un sujet (il, elle, qui…), le verbe se CONJUGUE : « '+a+' », pas l’infinitif « '+e+' ».';},
@@ -24753,7 +24754,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'infinitif après semi-auxiliaire à vérifier':'personne','infinitif après pronom sujet à vérifier':'personne','impératif':'personne','usage être/avoir':'personne','sujet je':'personne',
     '-e/-é (participe)':'participe','participe après auxiliaire':'participe','participe après être à vérifier':'participe','participe après avoir':'participe',"participe après s'est":'participe',
     'accord participe':'participe','accord participe (COD avoir)':'participe','accord participe (dont)':'participe','accord participe épithète':'participe','accord participe à vérifier':'participe',
-    'accord du participe après avoir à vérifier':'participe','participe présent après « en » à vérifier':'participe','auxiliaire manquant à vérifier':'participe',
+    'accord du participe après avoir à vérifier':'participe','participe présent après « en » à vérifier':'participe','forme en -ant à vérifier':'participe','auxiliaire manquant à vérifier':'participe',
     'accord grammatical (é/er)':'accord','terminaison -er/-é/-ez/-ai':'accord','infinitif de but':'accord','accord sujet-verbe':'accord','accord sujet-verbe à vérifier':'accord',
     'accord verbe à vérifier':'accord','accord du verbe au sujet nominal à vérifier':'accord','accord adjectif':'accord','accord adjectif à vérifier':'accord','accord adjectif épithète':'accord','accord adjectif antéposé':'accord',
     'accord pluriel nom':'accord','accord singulier nom':'accord','accord pluriel à vérifier':'accord','pluriel par le son à vérifier':'accord','accord genre à vérifier':'accord','genre déterminant':'accord',
@@ -25847,7 +25848,27 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(d1==='ne'&&_AA_NEG[d2]&&p1!=='y')return true;                     // à ne pas + … : « ne pas » collés ne précèdent jamais un verbe conjugué
     if(d1==='qui'&&p1!=='y'&&p1!=='en'&&p1!=='qui'&&p1!=='ca'&&p1!=='cela'&&!SUBJ_PRON[p1])return true;   // la personne à qui ; « il y en a qui » reste avoir
     if((p1==='suite'||p1==='grace')&&!_AA_LOC_DET[p2]&&(p1==='suite'||T[i-1]===T[i-1].toLowerCase()||T[i-1].indexOf('â')>=0))return true;   // suite à, grâce à
+    /* ⭐ 11/10/2026 — lot 6 : d'autres locutions où l'auxiliaire avoir n'entre pas, « avoir droit à », un LIEU après « a » (« son papi a
+       l'hôpital », « partir a la piscine »), une ville après une durée (« une semaine a Paris »). Gardes : pronom sujet devant (« on a la
+       piscine »), « y » / « en » / « qui » devant (« il y a la mer »), « a force de loi » (avoir). Miroir Python _aa_locution. */
+    var d3=i+3<n?deacc(T[i+3].toLowerCase()):'';
+    if(p1==='rapport'&&p2==='par')return true;                           // par rapport à
+    if(p1==='quant')return true;                                          // quant à
+    if(p1==='face'&&!_AA_LOC_DET[p2])return true;                         // face à (« la face a » : le nom est sujet)
+    if(d1==='travers'||d1==='propos'||d1==='nouveau')return true;        // à travers, à propos, à nouveau
+    if(d1==='cote'&&de)return true;                                       // à côté de
+    if(d1==='la'&&d2==='fois')return true;                                // à la fois
+    if(d1==='condition'&&(de||d2==='que'||/^qu['’]/.test(d2)))return true;   // à condition de / que
+    if(d1==='peu'&&d2==='pres')return true;                               // à peu près
+    if(d1==='force'&&de&&d3!=='loi')return true;                          // à force de (« a force de loi » : avoir)
+    if(p1==='droit'&&_AA_AVF[p2])return true;                             // avoir droit à
+    if(!SUBJ_PRON[p1]&&p1!=='y'&&p1!=='en'&&p1!=='qui'&&p1!=='il'&&p1!=='elle'&&p1!=='on'&&((d1==='la'&&_AA_LIEU_F[d2])||_AA_LIEU_L.test(d1)))return true;   // un LIEU
+    if(_AA_DUREE[p1]&&i+1<n&&T[i+1].charAt(0)!==T[i+1].charAt(0).toLowerCase()&&!(_SEG&&_SEG.bb&&i+1<_SEG.bb.length&&_SEG.bb[i+1]))return true;   // « une semaine a Paris »
     return false;}
+  var _AA_LIEU_F={};'plage maison piscine mer montagne campagne gare mairie poste banque boulangerie pharmacie cantine bibliotheque fac messe peche chasse foire fete'.split(' ').forEach(function(w){_AA_LIEU_F[w]=1;});
+  var _AA_LIEU_L=/^l['’]?(hopital|ecole|eglise|hotel|aeroport|universite|usine|ile|infirmerie)$/;
+  var _AA_DUREE={};'semaine semaines mois jour jours vacances an ans annee annees soir matin weekend week-end'.split(' ').forEach(function(w){_AA_DUREE[w]=1;});
+  var _AA_AVF={};'a ai as ont avons avez avait avaient avais aura auront aurait avoir'.split(' ').forEach(function(w){_AA_AVF[w]=1;});
   /* ⭐ 30/09/2026 — VERBE + ADVERBE + « a » (catalogue des muets) : « il parle souvent a ses amis » — la branche « après un verbe » de
      la logique mesurée ne lit que le mot collé à « a ». UD 14 450 : un seul emploi d'avoir dans cette configuration, suivi d'un participe
      (« a longtemps été ») → gardes : adverbes sautés, pas de participe après « a » ; « ce qu'il fait souvent a des effets » : une relative
@@ -26362,6 +26383,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
   function jestVig(T,i){return rJest(T,i,true);}   // jumelle ORANGE (« j'est dans ma chambre » → je suis ?, « j'est descendu » → je suis ?)
   function cestCesVig(T,i){if(deacc(T[i].toLowerCase())!=="c'est"||i+1>=T.length)return null;   /* ⭐ 13/09/2026 — « C'est chiens sont » → ces ? ; « à c'est parents » → ses ? (miroir Python rule_cest_ces_vig) */
     var dn=deacc(T[i+1].toLowerCase());if(!/[sx]$/.test(dn)||_INVAR_S[dn]||dn.length<4||T[i+1].charAt(0)!==T[i+1].charAt(0).toLowerCase())return null;
+    if(dn==='tres'||dn==='plus'||dn==='moins'||dn==='assez'||dn==='trop')return null;   // ⭐ 11/10/2026 : un ADVERBE en -s n'est pas un nom pluriel — « C'est très importent » recevait « Ces » (miroir Python)
     var sg=/aux$/.test(dn)?dn.slice(0,-3)+'al':dn.slice(0,-1);if(!_wordKnown(sg)||svReads(dn).length)return null;
     var pp=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(sg):NOUN_POST[sg]):null;if(!(pp&&pp[0]>=PL_TAU_M))return null;   // Map (extension) ou objet (app)
     var p1=i>=1?deacc(T[i-1].toLowerCase()):'',n2=i+2<T.length?deacc(T[i+2].toLowerCase()):'';
@@ -27109,11 +27131,29 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   function svAuxTargets(per,nb){var out=[],vs=['etre','avoir'],ms=['ind:pre','ind:imp'],vi,mi,f;for(vi=0;vi<2;vi++)for(mi=0;mi<2;mi++){f=((CONJ_C[vs[vi]]||{})[ms[mi]]||{})[per+nb];if(f)out.push([deacc(f),vs[vi],f]);}return out;}
   var _AUX_LONGS=null;   /* formes LONGUES (≥ 4) d'être/avoir, déaccentuées — « somme » est à une lettre de « sommes » ; les courtes (a, as, ont…) sont à une lettre de tout */
   function _voisinAuxLong(dl){if(_AUX_LONGS===null){_AUX_LONGS=[];for(var f in FULL_AUX)if(f.length>=4)_AUX_LONGS.push(f);}for(var q=0;q<_AUX_LONGS.length;q++)if(Math.abs(_AUX_LONGS[q].length-dl.length)<=1&&svLev(dl,_AUX_LONGS[q])===1)return _AUX_LONGS[q];return null;}   // ⭐ 12/09/2026 : rend la FORME voisine (miroir Python)
+  /* ⭐ 11/10/2026 — « été » ÉCRIT POUR était / étais / étaient (lot 5, fautes muettes : le mot existe, rien ne le signalait). Le participe
+     « été » ne suit jamais un sujet sans auxiliaire ; la règle ne lisait que le PRONOM juste avant (« il été »). Deux cadres de plus :
+     · sujet INVERSÉ : « été » + tu / il / elle / on / ils / elles, en tête de phrase ou après où / quand / comment / pourquoi / combien ;
+     · sujet NOM : déterminant + nom PUR (ni adjectif ni verbe : « le dernier été », « un bel été » restent) + « été » ; « l'été », « d'été »
+       sont un seul mot et ne passent pas ici. Nombre lu sur le déterminant. ORANGE comme « il été ». Miroir Python _ete_sujet. */
+  var _ETE_INT={ou:1,'où':1,quand:1,comment:1,pourquoi:1,combien:1},_ETE_INV={tu:'étais',je:'étais',il:'était',elle:'était',on:'était',ils:'étaient',elles:'étaient'};
+  var _ETE_DET={le:1,la:1,un:1,une:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,leur:1,ce:1,cet:1,cette:1},_ETE_DETP={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};
+  var _ETE_PREP={};'de du des à a au aux sur dans par pour avec sans sous chez vers entre contre en'.split(' ').forEach(function(w){_ETE_PREP[deacc(w)]=1;});   // groupe nominal précédé d'une préposition = complément (miroir Python)
+  function _etePur(x){var ps=(SP&&SP.POS&&SP.POS[x])||'';return ps.indexOf('N')>=0&&ps.indexOf('A')<0&&ps.indexOf('V')<0;}
+  function _eteSujet(T,i){
+    if(i+1<T.length){var nx=T[i+1].toLowerCase().replace(/^-/,''),inv=_ETE_INV[nx];
+      if(inv&&(i===0||(_SEG&&_SEG.bb&&_SEG.bb[i])||_ETE_INT[T[i-1].toLowerCase()]))return inv;}
+    for(var _k5=i-1;_k5>=0&&_k5>=i-8;_k5--){if(_SEG&&_SEG.ss&&_k5+1<_SEG.ss.length&&_SEG.ss[_k5+1])break;var _a5=deacc(T[_k5].toLowerCase()).split("'").pop();if(AUX_AVOIR[_a5]||AUX_ETRE[_a5])return null;}   // ⭐ auxiliaire plus haut dans la phrase : ellipse (« a été retiré et le réacteur été monté ») ou incise (« a, par la suite, été suivi ») — UD
+    if(i>=1){var pn=T[i-1].toLowerCase().replace(/’/g,"'"),me=/^l'(.+)$/.exec(pn);
+      if(me&&_etePur(me[1])&&!(i>=2&&_ETE_PREP[deacc(T[i-2].toLowerCase())]))return 'était';   // « une pièce DE la maison été » : complément, pas sujet
+      if(i>=2&&!me){var dt=T[i-2].toLowerCase();if((_ETE_DET[dt]||_ETE_DETP[dt])&&_etePur(pn)&&!(i>=3&&_ETE_PREP[deacc(T[i-3].toLowerCase())]))return _ETE_DETP[dt]?'étaient':'était';}}
+    return null;}
   function rAuxMisspell(T,i){
     /* ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : « il été content » → était, « j'été » → j'étais. Le participe « été » ne suit JAMAIS un sujet
        sans auxiliaire ; deux corrections possibles (« il était » / « il a été ») → ORANGE (_tierOf). Gold dys : 3 ; UD 14 450 : 0 tir. */
     var _l0=T[i].toLowerCase().replace(/’/g,"'");if(_l0==="j'été"||_l0==="j'ete")return ckeepcase(T[i],"j'étais");
     if(_l0==='été'&&i>=1&&!(_SEG&&i-1<_SEG.hy.length&&_SEG.hy[i-1])){var _p0=deacc(T[i-1].toLowerCase());if(_p0==='il'||_p0==='elle'||_p0==='on')return ckeepcase(T[i],'était');if(_p0==='je'||_p0==='tu')return ckeepcase(T[i],'étais');}
+    if(_l0==='été'&&!(_SEG&&i>=1&&i-1<_SEG.hy.length&&_SEG.hy[i-1])){var _es=_eteSujet(T,i);if(_es)return ckeepcase(T[i],_es);}   // ⭐ 11/10/2026 : sujet NOM (« le chat été content » → était) et sujet INVERSÉ (« où été tu » → étais) — miroir Python
     if(T[i].toLowerCase().indexOf("'")>=0)return null;var w=deacc(T[i].toLowerCase());if(w.length<3||!/^[a-zà-ÿœæ]+$/.test(w))return null;if(FULL_AUX[w]||NON_AUX[w])return null;
     var pn=svSubject(T,i),k;if(!pn&&i>0){var pv=deacc(T[i-1].toLowerCase());if(pv==='nous')pn=['1','p'];else if(pv==='vous')pn=['2','p'];}
     if(!pn)return null;var per=pn[0],nb=pn[1];   // « je » (1sg) : cibles courtes avoir (ai) déjà écartées (len<4) → on autorise les longues (suis/étais) : « je sui »→suis
@@ -27558,6 +27598,26 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
      … » est une locution). Et aucune règle sujet-verbe ne corrige alors le verbe (garde de correctTokens et de rAccordSVnoun :
      « en chantent » → chante, ROUGE faux). Mesuré : 4 marques devenues justes, 0 juste perdue
      sur les 3 corpus dys (dont « en disent » → dit, ROUGE faux) ; UD 14 450 : aucune marque changée. Miroir Python correcteur_probe._gerondif. */
+  /* ⭐ 11/10/2026 — « -ENT » ÉCRIT POUR « -ANT » (lot 5, fautes muettes : la forme en -ent existe, c'est un verbe ; rien ne la signalait).
+     Même son, deux cadres où le verbe conjugué est impossible :
+     · NOM après un déterminant qui ne peut pas être un pronom : un / ce / cet / mon / ton / son / notre / votre / chaque → -ant ;
+       des / ces / mes / tes / ses / nos / vos → -ants (« le », « la », « les », « leur » EXCLUS : pronoms devant un verbe, « ils le
+       mangent ») — « un étudient » → étudiant ;
+     · ADJECTIF après être ou un intensif (est, était, sont, étaient, c'est, très, trop, si, assez, tellement, vraiment) → -ant(s)
+       (« c'est très importent » → important ; le correcteur y proposait « Ces » pour « C'est »).
+     La forme en -ant doit être au lexique avec la bonne nature (nom / adjectif). ORANGE. JS seul (nom propre, pas de jumelle Python). */
+  var _ANT_DS={un:1,ce:1,cet:1,mon:1,ton:1,son:1,notre:1,votre:1,chaque:1},_ANT_DP={des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1};
+  var _ANT_ETRE={est:1,etait:1,"c'est":1,sont:1,etaient:1},_ANT_INT={tres:1,trop:1,si:1,assez:1,tellement:1,vraiment:1};
+  function antVig(T,i){if(i<1||!SP||!SP.WORDS)return null;var w=T[i],lw=w.toLowerCase();if(!/^[a-zàâäéèêëîïôöùûüç]+ent$/.test(lw)||lw.length<6)return null;
+    if(!svReads(w).length)return null;   // un VERBE conjugué écrit (étudient, importent) — sinon ce n'est pas ce cadre
+    if(/[NA]/.test(SP.POS[lw]||''))return null;   // la forme en -ent est AUSSI un nom ou un adjectif (« un résident », frgec ; agent, parent, patient) : rien à corriger
+    var c=lw.slice(0,-3)+'ant',pc=SP.POS[c]||'',p=T[i-1].toLowerCase().replace(/’/g,"'"),dp=deacc(p),pl=false,want=null;
+    if(_ANT_DS[dp])want='N';else if(_ANT_DP[dp]){want='N';pl=true;}
+    else{var j=i-1,dj=dp;if(_ANT_INT[dj]&&j>=1){j--;dj=deacc(T[j].toLowerCase().replace(/’/g,"'"));}
+      if(_SEG&&_SEG.hy&&j<_SEG.hy.length&&_SEG.hy[j])return null;   // « nord-est recouvrent » (UD) : « est » collé par un trait d'union n'est pas le verbe
+      if(_ANT_ETRE[dj]||(j<i-1&&_ANT_INT[dp]&&j===i-2)){want='A';pl=(dj==='sont'||dj==='etaient');if(!_ANT_ETRE[dj]&&!_ANT_INT[dp])want=null;}}
+    if(!want||pc.indexOf(want)<0)return null;
+    var out=pl?c+'s':c;if(pl&&!SP.WORDS.has(out))return null;return ckeepcase(w,out);}
   function gerondifVig(T,i){if(!CONJ_F||i<1)return null;var w=T[i],lw=w.toLowerCase();if(lw.indexOf("'")>=0||!/^[a-zà-ÿ]+$/.test(lw))return null;
     if(deacc(T[i-1].toLowerCase())!=='en')return null;var p2=(i>=2)?deacc(T[i-2].toLowerCase()):'';
     var initial=(i-1===0)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1]),_mid=false;if(!initial&&p2!=='tout'){if(!/ent$/.test(lw)||i<2||/[sx]$/.test(p2)||_GER_NONSUJ[p2]||CARD[p2]||T[i-2].charAt(0)!==T[i-2].charAt(0).toLowerCase()||/[0-9]/.test(T[i-2]))return null;if(i+1<T.length&&_SUBJ_PRON[deacc(T[i+1].toLowerCase())])return null;var _tgm=posTags(T);if(_tgm&&i<_tgm.length&&(_tgm[i]==='ADJ'||_tgm[i]==='NOUN'))return null;_mid=true;}
@@ -27786,6 +27846,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
      donne le TEMPS (on ne réécrit pas au présent). Miroir Python rule_sujet_flexion. */
     if(!CONJ_F||!CONJ_C)return null;
     var w=T[i];if(!w)return null;
+    if(_SEG&&_SEG.hy&&i<_SEG.hy.length&&_SEG.hy[i])return null;   // ⭐ 11/10/2026 : mot collé par un trait d'union (« les villes du sud-est sont » : « est » n'est pas le verbe) — miroir Python
     var lw=w.toLowerCase(),dl=deacc(lw),k;
     if(lw.indexOf("j'")===0&&lw.length>3&&lw.indexOf("'")===lw.lastIndexOf("'")&&/^[a-zà-ÿœ]+$/.test(lw.slice(2))&&!FULL_AUX[deacc(lw.slice(2))]){   /* être/avoir élidés (« j'est ») = famille j'est/j'ai, silence voulu */var _Tj=T.slice(0,i).concat(['je',w.slice(2)],T.slice(i+1)),_rj=sujFlexVig(_Tj,i+1);return _rj?w.slice(0,2)+_rj:null;}   /* ⭐ 12/09/2026 : « j'admet que » → j'admets — pronom ÉLIDÉ dans le token, relu sur « je + verbe » (liste virtuelle, un pas). Miroir Python rule_sujet_flexion. */
     if(lw.indexOf("'")>=0||lw.indexOf('’')>=0||!/^[a-zà-ÿœ]+$/.test(dl)||dl.length<2)return null;
@@ -29516,6 +29577,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var lx=x.toLowerCase(),c=SP.PHON[phonKey(lx)]||[],best=null,lem=null,bd=99,bf=-1,k,q;
     for(k=0;k<c.length;k++){var w=c[k];if(w===lx||!/^[a-zà-ÿœ]+$/.test(w))continue;var r=_psonReads(w);if(!svAgrees(r,per[0],per[1]))continue;
       if(!_xv&&deaccS(w).slice(0,4)!==dx.slice(0,4))continue;                             // un nom/adjectif écrit : seulement la forme qui en garde le début (envois → envoie)
+      if(Math.abs(deaccS(w).length-dx.length)>2)continue;                                  // ⭐ 11/10/2026 : pas une forme bien plus longue que l'écrit — « il plan » (bout de chaîne d'un « pran » mal écrit) recevait « plantait »
       var ls={};for(q=0;q<r.length;q++)if(r[q][2]===per[0])ls[r[q][0]]=1;var l1=Object.keys(ls);if(l1.length!==1)return null;
       if(lem&&lem!==l1[0])return null;lem=l1[0];
       var dd=0,a=deaccS(w),bb2=deaccS(lx);for(q=0;q<Math.max(a.length,bb2.length);q++)if(a[q]!==bb2[q])dd++;var f=SP.FREQ[w]||0;
@@ -30103,6 +30165,7 @@ function spellTokenCore(tok,atStart,T,idx){
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()&&!svTaisCarte(T,i)){return {i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'};}}}
     /* ORDRE (03/09/2026, mesure) : une faute de FORME (« vont cherchait » → chercher, « s'est mariaient » → mariée) est plus
        fondamentale qu'une faute de NOMBRE ; ces règles passaient APRÈS l'orange de nombre, qui les faisait taire. Elles passent d'abord. */
+    {var av5=antVig(T,i);if(av5&&av5.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:av5,name:'forme en -ant à vérifier',tier:'vigilance'};}}   // ⭐ 11/10/2026 : « un étudient » → étudiant, « c'est très importent » → important (orange)
     {var gv2=gerondifVig(T,i);if(gv2&&gv2.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:gv2,name:'participe présent après « en » à vérifier',tier:'vigilance'};}}
     {var spv=sestPpVig(T,i);if(spv){return {i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'};}}   // « elle s'est marié » → mariée ? (pronominal = orange)
     {var siv=semiInfVig(T,i);if(siv){return {i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'};}}   // « je vais mange » → manger ? (orange)
