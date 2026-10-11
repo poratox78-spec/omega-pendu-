@@ -174,6 +174,19 @@
   // tout() : peint tous les blocs d'un coup (sonde de l'extension, page qu'on va imprimer)
   try { self.__omdysSonPages = { tout: function () { if (!H) return; var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n, P = new Set(); while ((n = w.nextNode())) if (n.parentElement) P.add(n.parentElement); peindreLot(Array.from(P)); },
                                  compte: function () { if (!H) return 0; var n = 0; Object.keys(H).forEach(function (k) { n += H[k].size; }); return n; } }; } catch (e) {}
-  try { chrome.storage.local.get(['omSonSites'], function (o) { applique(!!(o && o.omSonSites)); }); } catch (e) {}
-  try { chrome.storage.onChanged.addListener(function (ch, area) { if (area === 'local' && ch.omSonSites) applique(!!ch.omSonSites.newValue); }); } catch (e) {}
+  // ⭐ 11/10/2026 — case cochée ET panneau ouvert (omPanneau, cf. background.js / content.js) : fermer le panneau retire les couleurs,
+  // le rouvrir les remet ; extension désactivée ou rechargée (script orphelin) → on retire tout au retour sur l'onglet.
+  var pref = false, panneau = false;
+  function maj() { applique(pref && panneau); }
+  try { chrome.storage.local.get(['omSonSites', 'omPanneau'], function (o) { pref = !!(o && o.omSonSites); panneau = !!(o && o.omPanneau); maj(); }); } catch (e) {}
+  try { chrome.storage.onChanged.addListener(function (ch, area) {
+    if (area !== 'local') return;
+    if (ch.omSonSites) pref = !!ch.omSonSites.newValue;
+    if (ch.omPanneau) panneau = !!ch.omPanneau.newValue;
+    if (ch.omSonSites || ch.omPanneau) maj();
+  }); } catch (e) {}
+  function orphelin() { try { return !chrome.runtime || !chrome.runtime.id; } catch (e) { return true; } }
+  ['visibilitychange', 'focus', 'pageshow'].forEach(function (ev) {
+    (ev === 'visibilitychange' ? document : window).addEventListener(ev, function () { if (orphelin()) applique(false); }, true);
+  });
 })();

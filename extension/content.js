@@ -277,8 +277,26 @@
         document.documentElement.classList.toggle('omdys-font', !!v);
       } catch (e) {}
     }
-    try { chrome.storage.local.get(['omDysFont'], function (o) { applique(!!(o && o.omDysFont)); }); } catch (e) {}
-    try { chrome.storage.onChanged.addListener(function (ch, area) { if (area === 'local' && ch.omDysFont) applique(!!ch.omDysFont.newValue); }); } catch (e) {}
+    /* ⭐ 11/10/2026 — case cochée ET panneau ouvert (omPanneau, cf. background.js) : fermer le panneau rend sa police à la page,
+       le rouvrir la remet (rapport de Rem : l'extension fermée, nos polices restaient). Si le service worker a dormi pendant la
+       fermeture, la clé peut être restée vraie : la page le lui demande (« omdys-panneau? »), il vérifie et l'éteint. Extension
+       désactivée ou rechargée : ce script est orphelin (chrome.runtime.id disparaît) — au retour sur l'onglet, il retire sa police. */
+    var pref = false, panneau = false;
+    function maj() { applique(pref && panneau); }
+    try { chrome.storage.local.get(['omDysFont', 'omPanneau'], function (o) {
+      pref = !!(o && o.omDysFont); panneau = !!(o && o.omPanneau); maj();
+      if (o && o.omPanneau) { try { chrome.runtime.sendMessage({ type: 'omdys-panneau?' }, function () { void chrome.runtime.lastError; }); } catch (e) {} }
+    }); } catch (e) {}
+    try { chrome.storage.onChanged.addListener(function (ch, area) {
+      if (area !== 'local') return;
+      if (ch.omDysFont) pref = !!ch.omDysFont.newValue;
+      if (ch.omPanneau) panneau = !!ch.omPanneau.newValue;
+      if (ch.omDysFont || ch.omPanneau) maj();
+    }); } catch (e) {}
+    function orphelin() { try { return !chrome.runtime || !chrome.runtime.id; } catch (e) { return true; } }
+    ['visibilitychange', 'focus', 'pageshow'].forEach(function (ev) {
+      (ev === 'visibilitychange' ? document : window).addEventListener(ev, function () { if (orphelin()) applique(false); }, true);
+    });
   })();
 
   // ===== barre flottante =====

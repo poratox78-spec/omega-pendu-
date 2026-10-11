@@ -713,6 +713,50 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
         'couverture ⑫ : panneau, « ' + MOT12 + ' » → ' + c.join(' ; '));
     }
 
+    /* ⭐ 11/10/2026 — ⑬ FERMER LE PANNEAU RETIRE LA POLICE ET LES COULEURS DES PAGES (rapport de Rem : l'extension fermée, nos
+       polices restaient sur les sites). Cases « Aa OMEGA Dys » et « 🎨 Couleurs » cochées, panneau ouvert → page en OMEGA Dys et
+       peinte ; service worker tué (= après 30 s d'inactivité), panneau toujours ouvert → rien ne bouge (contrôle) ; panneau fermé
+       → police du site, plus rien de peint ; panneau rouvert → tout revient, cases toujours cochées.
+       ⚠️ Sa PROPRE page : la page du début (`pg`) a été fermée par fermerPagesUD (même adresse) — un appel vers une cible fermée ne
+       répond jamais, le banc restait pendu. Chaque appel a aussi son délai maximal. L'attente vit côté banc, pas dans la page. */
+    {
+      const R13 = (p, nom) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('⑬ sans réponse : ' + nom)), 30000))]);
+      let ctx13 = 0;
+      const pg13 = await R13(connecter(await onglet(dp, 'about:blank'), (d) => {
+        if (d.method === 'Runtime.executionContextCreated' && (d.params.context.auxData || {}).type === 'isolated') ctx13 = d.params.context.id; }), 'page');
+      await R13(pg13.envoyer('Runtime.enable'), 'Runtime'); await R13(pg13.envoyer('Page.enable'), 'Page');
+      await R13(pg13.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + portPage + '/' }), 'navigate');
+      for (let i = 0; i < 60 && !ctx13; i++) await attendre(250);
+      await R13(pg13.envoyer('Runtime.evaluate', { expression: 'document.body.insertAdjacentHTML("afterbegin", "<p id=\\"son13\\">Le petit chat gris dort sur le tapis du salon.</p>")' }), 'texte');
+      const devant = async () => { try { await R13(pg13.envoyer('Page.bringToFront'), 'devant'); } catch (e) {} };
+      const etatPage = async () => ((await R13(pg13.envoyer('Runtime.evaluate', { contextId: ctx13, returnByValue: true,
+        expression: '(() => { let z = 0; for (const [nom, h] of CSS.highlights) if (/^omdys-/.test(nom)) z += h.size;'
+          + ' return { police: document.documentElement.classList.contains("omdys-font"), zones: z }; })()' }), 'état')).result || {}).value || {};
+      const attendreEtat = async (police, peint) => { let e = {}; for (let k = 0; k < 30; k++) { await attendre(300); e = await etatPage(); if (e.police === police && (e.zones > 0) === peint) break; } return e; };
+      const regler13 = async (cible, o) => { await R13(cible.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true,
+        expression: 'new Promise(r => chrome.storage.local.set(' + JSON.stringify(o) + ', () => r(1)))' }), 'réglage'); await attendre(500); };
+      let ok13 = false, det13 = '';
+      try {
+        await regler13(pp, { omDysFont: true, omSonSites: true }); await devant();
+        const f1 = await attendreEtat(true, true);
+        const mortF = await tuerSW(); await attendre(2500);   // le panneau rouvre son port (1 s) : le service worker se relève
+        const f2 = await attendreEtat(true, true);
+        for (const x of (await cibles()).filter((t) => t.url === URL_PANNEAU)) await fermerCible(x.id);   // = l'utilisateur ferme le panneau
+        const f3 = await attendreEtat(false, false);
+        const pp13 = await R13(connecter(await onglet(dp, URL_PANNEAU)), 'panneau'); await R13(pp13.envoyer('Runtime.enable'), 'Runtime panneau'); await attendre(1500);
+        await devant();
+        const f4 = await attendreEtat(true, true);
+        const cases = ((await R13(pp13.envoyer('Runtime.evaluate', { returnByValue: true,
+          expression: '({ aa: document.getElementById("omdys-font").checked, son: document.getElementById("omdys-sonsites").checked })' }), 'cases')).result || {}).value || {};
+        await regler13(pp13, { omDysFont: false, omSonSites: false, enabled: true, omMir: false });   // fermer le panneau a éteint la bulle (voulu) : on la rallume pour ⑦, comme l'utilisateur
+        ok13 = f1.police && f1.zones > 0 && mortF && f2.police && f2.zones > 0 && !f3.police && f3.zones === 0 && f4.police && f4.zones > 0 && cases.aa && cases.son;
+        det13 = 'ouvert ' + JSON.stringify(f1) + ' · SW tué ' + JSON.stringify(f2) + ' · fermé ' + JSON.stringify(f3) + ' · rouvert ' + JSON.stringify(f4) + ' · cases ' + JSON.stringify(cases);
+      } catch (e) { det13 = (e && e.message) || String(e); }
+      try { pg13.fermer(); } catch (e) {}
+      garde(ok13, '⑬ panneau fermé : police, couleurs', det13,
+        'couverture ⑬ : fermer le panneau doit rendre aux pages leur police et retirer les couleurs, les remettre à la réouverture — eu ' + det13);
+    }
+
     // CONTRÔLE de ⑦ : SW tué, panneau OUVERT → la bulle doit apparaître
     const mortC = await tuerSW();
     const sC = await taperDans('/', 'document.getElementById("z")', false);

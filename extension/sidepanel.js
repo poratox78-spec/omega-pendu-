@@ -26,7 +26,21 @@
      Chrome le déconnecte dès que cette page disparaît — c'est le seul signal de fermeture fiable
      pour un side panel MV3. C'est le service worker qui éteint `enabled` (cf. background.js) ;
      le faire ici serait vain, la page est déjà en train de mourir. */
-  try { chrome.runtime.connect({ name: 'omdys-panneau' }); } catch (e) {}
+  /* ⭐ 11/10/2026 — …ET LES POLICES ET COULEURS DES PAGES (rapport de Rem : l'extension fermée, nos polices restaient sur les sites).
+     Le même port dit « panneau ouvert » (clé omPanneau, posée par le service worker) ; « Aa OMEGA Dys » et « 🎨 Couleurs sur les sites »
+     ne s'appliquent que panneau ouvert. Le port BAT toutes les 20 s : un port silencieux ne garde pas le service worker en vie (mesuré
+     le 10/09, cf. background.js), et un SW mort ne voit pas la fermeture. S'il casse (SW relancé), on le rouvre. */
+  (function () {
+    var port = null;
+    function ouvrir() {
+      try {
+        port = chrome.runtime.connect({ name: 'omdys-panneau' });
+        port.onDisconnect.addListener(function () { void chrome.runtime.lastError; port = null; setTimeout(ouvrir, 1000); });
+      } catch (e) { port = null; }   // contexte invalidé (extension rechargée) : on n'insiste pas
+    }
+    ouvrir();
+    setInterval(function () { try { if (port) port.postMessage({ type: 'vivant' }); } catch (e) {} }, 20000);
+  })();
 
   bubCb.addEventListener('change', function () {
     try { chrome.storage.local.set({ enabled: bubCb.checked }); } catch (e) {}
