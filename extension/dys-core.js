@@ -1034,7 +1034,27 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(d1==='ne'&&_AA_NEG[d2]&&p1!=='y')return true;                     // à ne pas + … : « ne pas » collés ne précèdent jamais un verbe conjugué
     if(d1==='qui'&&p1!=='y'&&p1!=='en'&&p1!=='qui'&&p1!=='ca'&&p1!=='cela'&&!SUBJ_PRON[p1])return true;   // la personne à qui ; « il y en a qui » reste avoir
     if((p1==='suite'||p1==='grace')&&!_AA_LOC_DET[p2]&&(p1==='suite'||T[i-1]===T[i-1].toLowerCase()||T[i-1].indexOf('â')>=0))return true;   // suite à, grâce à
+    /* ⭐ 11/10/2026 — lot 6 : d'autres locutions où l'auxiliaire avoir n'entre pas, « avoir droit à », un LIEU après « a » (« son papi a
+       l'hôpital », « partir a la piscine »), une ville après une durée (« une semaine a Paris »). Gardes : pronom sujet devant (« on a la
+       piscine »), « y » / « en » / « qui » devant (« il y a la mer »), « a force de loi » (avoir). Miroir Python _aa_locution. */
+    var d3=i+3<n?deacc(T[i+3].toLowerCase()):'';
+    if(p1==='rapport'&&p2==='par')return true;                           // par rapport à
+    if(p1==='quant')return true;                                          // quant à
+    if(p1==='face'&&!_AA_LOC_DET[p2])return true;                         // face à (« la face a » : le nom est sujet)
+    if(d1==='travers'||d1==='propos'||d1==='nouveau')return true;        // à travers, à propos, à nouveau
+    if(d1==='cote'&&de)return true;                                       // à côté de
+    if(d1==='la'&&d2==='fois')return true;                                // à la fois
+    if(d1==='condition'&&(de||d2==='que'||/^qu['’]/.test(d2)))return true;   // à condition de / que
+    if(d1==='peu'&&d2==='pres')return true;                               // à peu près
+    if(d1==='force'&&de&&d3!=='loi')return true;                          // à force de (« a force de loi » : avoir)
+    if(p1==='droit'&&_AA_AVF[p2])return true;                             // avoir droit à
+    if(!SUBJ_PRON[p1]&&p1!=='y'&&p1!=='en'&&p1!=='qui'&&p1!=='il'&&p1!=='elle'&&p1!=='on'&&((d1==='la'&&_AA_LIEU_F[d2])||_AA_LIEU_L.test(d1)))return true;   // un LIEU
+    if(_AA_DUREE[p1]&&i+1<n&&T[i+1].charAt(0)!==T[i+1].charAt(0).toLowerCase()&&!(_SEG&&_SEG.bb&&i+1<_SEG.bb.length&&_SEG.bb[i+1]))return true;   // « une semaine a Paris »
     return false;}
+  var _AA_LIEU_F={};'plage maison piscine mer montagne campagne gare mairie poste banque boulangerie pharmacie cantine bibliotheque fac messe peche chasse foire fete'.split(' ').forEach(function(w){_AA_LIEU_F[w]=1;});
+  var _AA_LIEU_L=/^l['’]?(hopital|ecole|eglise|hotel|aeroport|universite|usine|ile|infirmerie)$/;
+  var _AA_DUREE={};'semaine semaines mois jour jours vacances an ans annee annees soir matin weekend week-end'.split(' ').forEach(function(w){_AA_DUREE[w]=1;});
+  var _AA_AVF={};'a ai as ont avons avez avait avaient avais aura auront aurait avoir'.split(' ').forEach(function(w){_AA_AVF[w]=1;});
   /* ⭐ 30/09/2026 — VERBE + ADVERBE + « a » (catalogue des muets) : « il parle souvent a ses amis » — la branche « après un verbe » de
      la logique mesurée ne lit que le mot collé à « a ». UD 14 450 : un seul emploi d'avoir dans cette configuration, suivi d'un participe
      (« a longtemps été ») → gardes : adverbes sautés, pas de participe après « a » ; « ce qu'il fait souvent a des effets » : une relative
