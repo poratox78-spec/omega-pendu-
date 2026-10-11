@@ -424,6 +424,20 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 11/10/2026 — lot 10 : « sa » écrit pour « ça » devant un verbe (orange, branche de « ça/sa ») — « sa va », « sa fait », « sa
+   dépend », « sa tous les jours » ; silences : nom après « sa » (chambre, maison, part, robe), adjectif (nouvelle, propre), mot à la
+   fois nom et verbe (marche, passe). Python : _sa_ca_verbe (rule_ca_sa, tier_of). */
+{ let _k10 = 0;
+  for (const [ph, w] of [['Sa va bien ce matin.', 'Sa'], ['Il fait sa tous les jours.', 'sa'], ["Sa fait longtemps que je t'attends.", 'Sa'],
+                         ['Sa dépend de toi.', 'Sa'], ['Sa sert à rien.', 'Sa'], ['Sa suffit maintenant.', 'Sa']]) {
+    const got = corr(ph).filter(f => f.word === w), sg = w === 'Sa' ? 'Ça' : 'ça';
+    if (!got.length || got[0].sugg !== sg) { _k10++; console.log('✗ sa/ça : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const ph of ['Il regarde si sa marche tient.', 'Elle range sa chambre.', 'Elle aime sa nouvelle maison.', 'Sa propre mère le dit.',
+                    'Il vend sa part.', 'Elle porte sa robe.', 'Il garde sa passe pour demain.']) {
+    const got = corr(ph).filter(f => /^sa$/i.test(f.word));
+    if (got.length) { _k10++; console.log('✗ sa/ça : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k10) { console.log('PARITÉ KO — ' + _k10 + ' cas « sa / ça ».'); process.exit(1); } }
+
 /* ⭐ 11/10/2026 — lot 9 : expressions figées mal coupées (orange, « expression figée à vérifier ») — comme même → quand même, en faite
    / enfaite → en fait, tous le temps → tout le temps, par(s) que → parce que, entrain de + infinitif → en train de, sur tout pas →
    surtout, temps pis / mieux → tant pis / mieux ; « tout a fait », « au fur et a mesure » → à (a/à). Silences : « comme même un

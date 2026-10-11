@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-11 — lot 10 : « sa » écrit pour « ça » devant un verbe (sa va, sa fait, sa dépend)
+
+- Vu en préparant le lot 9 : « Sa va bien », « sa fait longtemps », « sa dépend » étaient muets. La règle ça/sa ne connaissait que
+  « sa » + pronom (« sa me plaît ») ; son commentaire le disait (« sa va » non couvert), à cause des noms qui sont aussi des verbes
+  (marche, passe…).
+- Fait structurel : « sa » est un déterminant FÉMININ ; il précède un nom ou un adjectif, jamais un verbe qui n'est ni l'un ni
+  l'autre. `_saCaVerbe` ≡ `_sa_ca_verbe` lit le POS du speller (V sans N ni A) + une liste fermée (fait, tous, aussi, depuis).
+  ORANGE (branche de « ça/sa », `tier_of` côté Python).
+- Gardes vues en mesurant : un infinitif ou un participe après « sa » est un NOM mal écrit (une « tournée » écrite en -er, un
+  participe féminin pour un adjectif) → muet.
+- Mesure (produit, 14 322 textes) : 3 « ça » justes (gold 2, EcriScol 1), 0 marque inutile ; UD 14 450 : 0 changement.
+- Tests : `parity_corr.js` (6 prises, 7 silences) — 6 échecs sur l'ancienne app ; Python vérifié sur les mêmes phrases.
+
+---
+
 ## 2026-10-11 — lot 9 : expressions figées mal coupées (quand même, en fait, tout le temps, en train de, tant pis)
 
 - Suite des faux jumeaux de Rem (mots très utilisés). Sur des phrases inventées, ces expressions étaient toutes muettes ; les

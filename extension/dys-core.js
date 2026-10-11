@@ -1437,8 +1437,17 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     if(i>=2&&_OU_NOM[deacc(T[i-1].toLowerCase())]&&_OU_DET[T[i-2].toLowerCase()]&&_ouClauseVerbe(T,i))return {sugg:ckeepcase(T[i],'où'),vig:1};
     if(i+2<n&&_OU_PRON[T[i+2].toLowerCase()]&&_ouVerbal(T[i+1].toLowerCase())&&!_ouCorrel(T,i))return {sugg:ckeepcase(T[i],'où'),vig:1};
     return null;}
-  function rCaSa(T,i){var lw=deacc(T[i].toLowerCase());   // ça↔sa. sa+clitique→ça (un clitique n'est pas un nom) ; ça+NOM confiant→sa/son (ça ne précède jamais un nom nu). FP=0 (garde nom stricte P(NOM)≥τ∧P(VER)<ε). « sa va » non couvert.
-    if(lw==='sa'){if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;if(i+1<T.length){var _nt=T[i+1].toLowerCase(),_nd=deacc(_nt);if(CLITIC[_nd]||_SA_NONNOUN[_nd]||_nt.indexOf("'")>=0)return ckeepcase(T[i],'ça');}return null;}
+  /* ⭐ 11/10/2026 — « SA » POUR « ÇA » DEVANT UN VERBE (lot 10 ; « sa va », « sa fait », « sa dépend »). « sa » est un déterminant
+     FÉMININ : il précède un nom ou un adjectif, jamais un verbe conjugué qui n'est ni l'un ni l'autre (lu dans le speller : V sans N ni A),
+     ni « fait », « tous », « aussi », « depuis ». Gardes : un infinitif ou un participe après « sa » est un NOM mal écrit (« sa tourner »
+     = sa tournée) → muet ; « sa marche », « sa passe » (nom ET verbe) → muet. ORANGE. Miroir Python _sa_ca_verbe. */
+  var _SA_CA={};'fait plait tous aussi depuis'.split(' ').forEach(function(w){_SA_CA[w]=1;});
+  function _saCaVerbe(T,i){if(i+1>=T.length)return false;var nt=T[i+1].toLowerCase(),nd=deacc(nt);
+    if(CLITIC[nd]||_SA_NONNOUN[nd]||nt.indexOf("'")>=0)return false;   // cas déjà rouge (clitique, pronom, élision)
+    if(_SA_CA[nd])return true;
+    var sp=_spos(nt);return !!sp&&sp.indexOf('V')>=0&&sp.indexOf('N')<0&&sp.indexOf('A')<0&&!/(er|ir|re|oir)$/.test(nd)&&!/(é|ée|és|ées|ie|ies|ue|ues)$/.test(nt)&&!_isPpl(T[i+1]);}
+  function rCaSa(T,i){var lw=deacc(T[i].toLowerCase());   // ça↔sa. sa+clitique→ça (un clitique n'est pas un nom) ; ça+NOM confiant→sa/son (ça ne précède jamais un nom nu). FP=0 (garde nom stricte P(NOM)≥τ∧P(VER)<ε). « sa va » : _saCaVerbe (orange, 11/10/2026).
+    if(lw==='sa'){if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;if(i+1<T.length){var _nt=T[i+1].toLowerCase(),_nd=deacc(_nt);if(CLITIC[_nd]||_SA_NONNOUN[_nd]||_nt.indexOf("'")>=0)return ckeepcase(T[i],'ça');if(_saCaVerbe(T,i))return {sugg:ckeepcase(T[i],'ça'),vig:1};}return null;}   // ⭐ 11/10/2026 : « sa va » → ça (orange)
     if(lw==='ca'){
       if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;   // « CA » sigle → abstention
       if(i+1>=T.length)return null;
