@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-11 — extension : fermer le panneau retire la police OMEGA Dys et les couleurs des sites
+
+- Rapport de Rem : l'extension fermée, nos polices restaient sur les sites — un problème.
+- Cause : « Aa OMEGA Dys » et « 🎨 Couleurs sur les sites » ne lisaient que leur case ; rien ne les reliait au panneau. La bulle, elle,
+  s'éteint à la fermeture depuis le 09/09 (décision de Rem : ce dont on ignore l'origine fait désinstaller).
+- Réparation : le port du panneau sert de signal « panneau ouvert » (clé `omPanneau`, posée par le service worker, un compteur par
+  fenêtre) ; la police et les couleurs ne s'appliquent que case cochée ET panneau ouvert. Les cases gardent leur choix : rouvrir le
+  panneau remet tout. Le port BAT toutes les 20 s (un port silencieux ne garde pas le service worker en vie, mesuré le 10/09) et se
+  rouvre s'il casse ; au réveil, ou quand une page qui s'habille le demande, le service worker vérifie qu'un panneau existe encore
+  (`getContexts`). Extension désactivée ou rechargée : le script de la page devient orphelin — au retour sur l'onglet, il retire sa
+  police et ses couleurs.
+- Test : `navigateur_ext_probe.js` ⑬ — cases cochées, panneau ouvert → page en OMEGA Dys et peinte ; service worker tué, panneau
+  ouvert → rien ne bouge ; panneau fermé → police du site, rien de peint ; panneau rouvert → tout revient, cases cochées. Mode
+  d'emploi et infobulles du panneau : « seulement quand ce panneau est ouvert ».
+
 ## 2026-10-11 — terminaisons muettes, lot 3 : l'infinitif attendu
 
 - Suite du catalogue (Rem : lot suivant). Recensement des 162 terminaisons muettes restantes : 31 « -er / -é », dont 11 où l'INFINITIF

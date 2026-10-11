@@ -22,12 +22,20 @@ try { chrome.sidePanel && chrome.sidePanel.setPanelBehavior({ openPanelOnActionC
    qu'en soit la cause. On éteint alors `enabled` ; `content.js` le voit par `storage.onChanged`,
    le fil qui existe déjà. Rouvrir le panneau ne rallume PAS la bulle : elle est décochée par
    défaut depuis 07/2026, l'utilisateur la recoche s'il la veut. */
+/* ⭐ 11/10/2026 — la POLICE et les COULEURS des pages consultées suivent aussi le panneau (rapport de Rem : l'extension fermée, nos
+   polices restaient sur les sites). Clé omPanneau : vraie tant qu'au moins un panneau est ouvert (un par fenêtre), éteinte au
+   dernier qui se ferme. Les cases « Aa OMEGA Dys » et « 🎨 Couleurs » gardent leur choix : rouvrir le panneau remet tout. */
+var _nPanneaux = 0;
 try {
   chrome.runtime.onConnect.addListener(function (port) {
     if (!port || port.name !== 'omdys-panneau') return;
+    _nPanneaux++;
+    try { chrome.storage.local.set({ omPanneau: true }); } catch (e) {}
+    port.onMessage.addListener(function () {});   // le battement du panneau : il suffit qu'il arrive
     port.onDisconnect.addListener(function () {
       void chrome.runtime.lastError;
-      try { chrome.storage.local.set({ enabled: false }); } catch (e) {}
+      _nPanneaux = Math.max(0, _nPanneaux - 1);
+      try { chrome.storage.local.set(_nPanneaux ? { enabled: false } : { enabled: false, omPanneau: false }); } catch (e) {}
     });
   });
 } catch (e) {}
@@ -48,6 +56,20 @@ function panneauOuvert(cb) {
     chrome.runtime.getContexts({ documentUrls: [URL_PANNEAU] }).then(function (c) { cb(!!(c && c.length)); }, function () { cb(null); });
   } catch (e) { cb(null); }
 }
+/* au RÉVEIL du service worker (il a pu dormir pendant que le panneau se fermait) et quand une page qui s'habille le demande
+   (« omdys-panneau? ») : aucun document du panneau → omPanneau s'éteint. Chrome < 116 (pas de getContexts) : on ne touche à rien. */
+function _verifPanneau(cb) {
+  panneauOuvert(function (ouvert) {
+    if (ouvert === false) { try { chrome.storage.local.set({ omPanneau: false }); } catch (e) {} }
+    if (cb) cb(ouvert);
+  });
+}
+_verifPanneau();
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+  if (!msg || msg.type !== 'omdys-panneau?') return;
+  _verifPanneau(function (ouvert) { try { sendResponse({ panneau: ouvert }); } catch (e) {} });
+  return true;   // réponse asynchrone
+});
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || msg.type !== 'omdys-mirror') return;
   panneauOuvert(function (ouvert) {
