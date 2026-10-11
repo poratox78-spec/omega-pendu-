@@ -1336,6 +1336,8 @@ def _aa_locution(T, i):
     if d1 in ('cause', 'partir') and de: return True                     # à cause de, à partir de
     if re.match(u"^l['’](interieur|exterieur)e?$", d1) and de: return True   # à l'intérieur de, à l'extérieur de
     if d1 == 'part': return True                                           # à part
+    if p1 == 'tout' and d1 == 'fait' and i >= 2 and not ((_SEG or {}).get('bb') and i - 1 < len(_SEG['bb']) and _SEG['bb'][i - 1]) and not re.match(u"^(et|mais|car|donc|ou|que|qu['’].*|puisque|parce|quand|si|comme|lorsque|alors|or)$", p2): return True   # ⭐ 11/10/2026 : tout à fait — miroir JS
+    if p1 == 'et' and p2 == 'fur' and d1 == 'mesure': return True        # ⭐ 11/10/2026 : fur et à mesure
     if d1 == 'ne' and d2 in _AA_NEG and p1 != 'y': return True              # à ne pas + … : « ne pas » collés ne précèdent jamais un verbe conjugué
     if d1 == 'qui' and p1 not in ('y', 'en', 'qui', 'ca', 'cela') and p1 not in SUBJ_PRON: return True   # la personne à qui ; « il y en a qui » reste avoir
     if (p1 in ('suite', 'grace') and p2 not in _AA_LOC_DET
@@ -6348,6 +6350,45 @@ def rule_soude(T, i):
     return None
 
 
+_FIG_PL = set('ils elles nous vous on les des ces mes tes ses nos vos leurs'.split())
+_FIG_SURT = set('pas ne quand si parce lorsque lorsqu puisque'.split())
+_FIG_TPIS = set('et mais alors donc bon ben eh oh ah bah ouais oui non ok enfin'.split())
+_FIG_CMM = set('le la les l un une des du de d mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs ce cet cette ces il elle ils elles on je tu nous vous moi toi lui eux ceux celles celui celle si quand lorsque chez'.split())
+_FIG_ENF = set("je j tu il elle on nous vous ils elles ne n y qui que qu".split())
+
+
+def _fig_k(x):
+    return re.sub(u"['’].*$", '', deacc((x or '').lower()))
+
+
+def rule_fige(T, i):
+    """⭐ 11/10/2026 — expressions figées mal coupées (orange) : comme même → quand même ; en faite / enfaite → en fait ; tous le temps
+    → tout le temps ; par(s) que → parce que ; entrain de + infinitif → en train de ; sur tout + pas/ne… → surtout ; temps pis/mieux →
+    tant pis/mieux. Miroir JS rFige."""
+    n = len(T); w = T[i]; d = deacc(w.lower())
+    d1 = deacc(T[i + 1].lower()) if i + 1 < n else ''; d2 = deacc(T[i + 2].lower()) if i + 2 < n else ''
+    p = deacc(T[i - 1].lower()) if i >= 1 else ''; maj = w[:1] != w[:1].lower(); cap = (lambda x: x[:1].upper() + x[1:] if maj else x)
+    bb = (_SEG or {}).get('bb') or []
+    cut = lambda k: k < len(bb) and bool(bb[k]); fin = lambda k: k >= n or cut(k)
+    if d in ('enfaite', 'enfait'): return cap('en fait')
+    if d == 'comme' and d1 == 'meme' and not cut(i + 1) and (fin(i + 2) or _fig_k(T[i + 2]) not in _FIG_CMM): return cap('quand')
+    if d == 'faite' and p == 'en' and not cut(i) and not (i >= 2 and not cut(i - 1) and _fig_k(T[i - 2]) in _FIG_ENF): return 'fait'
+    if d == 'tous' and d1 == 'le' and d2 == 'temps' and not cut(i + 1) and not cut(i + 2):
+        if any(_fig_k(T[k]) in _FIG_PL for k in range(i)): return None
+        return cap('tout')
+    if d in ('par', 'pars') and (d1 == 'que' or re.match(u"^qu['’]", d1)) and not cut(i + 1):
+        if d == 'pars' and (p in ('je', 'tu', 'ne') or re.match(u"^[jn]['’]", p)): return None
+        return cap('parce')
+    if d == 'entrain' and i + 1 < n and not cut(i + 1):
+        inf = None
+        if d1 == 'de' and i + 2 < n and not cut(i + 2): inf = d2
+        elif re.match(u"^d['’]", d1): inf = d1[2:]
+        if inf and re.search(r'(er|ir|re|oir)$', inf) and inf in VERB_LEX: return cap('en train')
+    if d == 'sur' and d1 == 'tout' and not cut(i + 1) and i + 2 < n and not cut(i + 2) and _fig_k(T[i + 2]) in _FIG_SURT: return cap('surtout')
+    if d == 'temps' and d1 in ('pis', 'mieux') and not cut(i + 1) and (i == 0 or cut(i) or p in _FIG_TPIS) and (fin(i + 2) or re.match(u"^(pour|si|que|qu['’].*)$", d2)): return cap('tant')
+    return None
+
+
 _DAV_PREV = {'pas', 'plus', 'point', 'guere', 'aucun', 'sans', 'peu'}
 
 
@@ -6896,7 +6937,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('mot soudé à vérifier', rule_soude), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même

@@ -424,6 +424,28 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 11/10/2026 — lot 9 : expressions figées mal coupées (orange, « expression figée à vérifier ») — comme même → quand même, en faite
+   / enfaite → en fait, tous le temps → tout le temps, par(s) que → parce que, entrain de + infinitif → en train de, sur tout pas →
+   surtout, temps pis / mieux → tant pis / mieux ; « tout a fait », « au fur et a mesure » → à (a/à). Silences : « comme même un
+   enfant », « vous en faites », « ils ont tous le temps », « je pars », « avec entrain », « sur tout le monde », « Tout a fait défaut ».
+   Et la garde « nom homographe » de -e/-é (participe) lit le lexique complet comme Python : « a mesure » ne devient plus « mesuré »
+   (rouge faux), « elle a mesure la table » le devient toujours. Python : rule_fige, _aa_locution, rule_e_ppl. */
+{ let _k9 = 0;
+  for (const [ph, w, sg] of [['Il est venu comme même.', 'comme', 'quand'], ['En faite je suis fatigué.', 'faite', 'fait'], ['Il fait beau, enfaite.', 'enfaite', 'en fait'],
+                             ['Je joue tous le temps dehors.', 'tous', 'tout'], ['Il est en retard pars que le bus était plein.', 'pars', 'parce'],
+                             ["Il est parti par qu'il pleuvait.", 'par', 'parce'], ['Il est entrain de manger.', 'entrain', 'en train'],
+                             ['Ne touche sur tout pas au gâteau.', 'sur', 'surtout'], ['Temps pis pour lui.', 'Temps', 'Tant'], ['Il est parti, temps mieux.', 'temps', 'tant'],
+                             ["Je suis tout a fait d'accord.", 'a', 'à'], ['Il comprend au fur et a mesure.', 'a', 'à'], ['Elle a mesure la table.', 'mesure', 'mesuré']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _k9++; console.log('✗ figée : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [["C'est facile, comme même un enfant le sait.", 'comme'], ['Vous en faites trop.', 'faites'], ['Ils ont tous le temps de finir.', 'tous'],
+                         ['Je pars que demain.', 'pars'], ['Il travaille avec entrain de bon matin.', 'entrain'], ['Il a un avis sur tout le monde.', 'sur'],
+                         ['Tout a fait défaut ce jour-là.', 'a'], ['Il y a mesure et mesure.', 'mesure'], ['Il comprend au fur et a mesure.', 'mesure'],
+                         ['Il comprend a mesure.', 'mesure']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _k9++; console.log('✗ figée : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k9) { console.log('PARITÉ KO — ' + _k9 + ' cas « expression figée ».'); process.exit(1); } }
+
 /* ⭐ 11/10/2026 — lot 8 : faux jumeaux soudés (orange, « mot soudé à vérifier ») — par ce que → parce que, quel que + nom → quelque(s),
    quelque fois → quelquefois, aussi tôt + participe → aussitôt, à bien tôt → à bientôt ; silences : « par » appelé par le mot d'avant
    (passif, commencer), « quel que soit », « quelques fois », « aussi tôt que possible », « bien tôt ce matin ». Python : rule_soude. */
