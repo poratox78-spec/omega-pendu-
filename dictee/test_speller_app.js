@@ -419,6 +419,14 @@ const SP = globalThis.__sp;
     if (dejA.indexOf('📗') >= 0) fail.push('conseil : le 📗 nommé pour « doctolib » déjà au dictionnaire (la carte ne l\'offre plus)');
   }
 
+  // ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux) : mêmes cas que extension/test_speller.js (le site suit l'extension).
+  for (const [t, w, s] of [['Il range certin livres dans le salon.', 'certin', 'certains'], ['Elle lit sertin journaux le soir.', 'sertin', 'certains'],
+      ['Elle a vu serten maisons anciennes.', 'serten', 'certaines'], ['Il vend diver objets au marché.', 'diver', 'divers'],
+      ['Certin enfants jouent dehors.', 'certin', 'Certains'], ['Il a un certin âge.', 'certin', 'certain'], ['Elle cite plusier modéle.', 'plusier', 'plusieurs'],
+      ['Elle cite plusier modéle.', 'modéle', 'modèles'], ['Il a un nonbre de points.', 'nonbre', 'nombre'], ['Il reste certin de gagner.', 'certin', 'certain']]) {
+    const r = SP.spell(t).find(x => x.word.toLowerCase() === w); if (!r || r.sugg !== s) fail.push('quantifieur mal écrit « ' + t + ' » : ' + w + ' → ' + s + ' attendu, eu ' + JSON.stringify(r && [r.sugg, r.tier]));
+  }
+
   // ⚠️ GARDE DE COÛT — le correcteur tourne À LA FRAPPE : tout ce qui alourdit le 1er passage se
   // paie chez l'utilisateur. Vérifiée en la cassant (un plafond de longueur relevé à 12 dans la
   // génération de candidats faisait passer ce même texte de 8 ms à 196 ms → rouge).

@@ -66,6 +66,14 @@ _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restaur
 # ⭐ 04/10/2026 — « mot inconnu » : la FORME s'accorde au mot d'avant (miroir JS _suFlex) — tables fermées
 _SU_PLDET = set('les des ces mes tes ses nos vos leurs aux plusieurs quelques certains certaines divers diverses nombreux nombreuses deux trois quatre cinq six sept huit neuf dix douze vingt trente cent mille'.split())
 _SU_SGDET = set('le la un une ce cet cette mon ma ton ta son sa notre votre leur chaque'.split())
+# ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux) — miroir JS _quantMal : « certin », « sertin » (certains),
+# « serten » (certaines), « diver » (divers), « nombreu » (nombreux), « plusier » (plusieurs). Liste FERMÉE ; mot INCONNU de même son, sans
+# article devant (sinon, pour « certain » seulement, l'ADJECTIF au singulier : « un certin âge »), suivi d'un nom ou d'un mot inconnu.
+_QPL_PAIRES = (('certains', 'certaines'), ('divers', 'diverses'), ('nombreux', 'nombreuses'), ('plusieurs', 'plusieurs'))
+_QPL_AV = set("un une le la l' les ce cet cette ces mon ma ton ta son sa mes tes ses notre votre nos vos leur leurs du au aux d'un d'une chaque quel quelle".split())
+_QPL_SG = set("un une le la l' ce cet cette mon ma ton ta son sa notre votre leur d'un d'une".split())
+_QPL_NX = set('de du des le la les à a au aux et ou que qui dont en y ne pas se ce il elle ils elles on je tu nous vous est sont ont'.split())
+_QPL = {}
 _SU_DETX = set('le la les un une des ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs'.split())
 _SU_NSTOP = set('fois jour matin soir nuit an annee semaine mois heure moment temps'.split())
 _SU_PREP = set("à de d' dans sur sous pour par avec sans chez vers en entre contre après avant depuis pendant".split())
@@ -520,6 +528,31 @@ class Speller:
             if g in ('m', 'f'): return g
         return None
 
+    def _quant_mal(self, toks, idx):
+        """Quantifieur pluriel mal écrit en position idx → sa forme juste (certains/certaines, divers/diverses, nombreux/nombreuses,
+        plusieurs ; certain/certaine après un article), sinon None. Miroir exact de _quantMal (dys-core / app)."""
+        if not toks or idx is None or idx < 0 or idx + 1 >= len(toks): return None
+        low = str(toks[idx]).lower()
+        if not re.match(u'^[a-zàâäéèêëîïôöùûüç]+$', low) or low in self.WORDS: return None
+        av = str(toks[idx - 1]).lower().replace(u'’', "'") if idx > 0 else ''
+        art = av in _QPL_AV
+        nx = str(toks[idx + 1]).lower()
+        if not re.match(u"^[a-zàâäéèêëîïôöùûüçœ'’-]+$", nx) or deacc(nx) in _QPL_NX: return None
+        if nx in self.WORDS and not ('N' in self.POS.get(nx, ()) or 'A' in self.POS.get(nx, ())): return None
+        if not _QPL:
+            for m, f in _QPL_PAIRES:
+                _QPL[phon_key(m)] = (m, f, False)
+                _QPL.setdefault(phon_key(f), (m, f, m != f))
+        q = _QPL.get(phon_key(low)) or (_QPL.get(phon_key(low + 'e')) if low.endswith('n') else None)
+        if not q: return None
+        if q[0] == 'nombreux' and not re.search(r'eu[sx]?$|euse?s?$', low): return None
+        g = self._gender(nx) if nx in self.WORDS else None
+        fem = (g == 'f') if g else q[2]
+        if art:
+            if q[0] != 'certains' or av not in _QPL_SG: return None
+            return 'certaine' if fem else 'certain'
+        return q[1] if fem else q[0]
+
     def _ctx_number(self, toks, idx):
         if not toks or idx is None: return None
         back, bdist = None, 99
@@ -527,6 +560,7 @@ class Speller:
             t = deacc(toks[j].lower())
             if t in self.DET_NUM: back, bdist = self.DET_NUM[t], idx - j; break
         if back is not None and bdist == 1: return back      # déterminant COLLÉ = preuve la plus forte
+        if back is None and idx >= 1 and (deacc(toks[idx - 1].lower()) in _SU_PLDET or self._quant_mal(toks, idx - 1)): return 'p'   # ⭐ 11/10/2026 : cardinal ou quantifieur juste avant, même mal écrit — miroir JS sCtxNumber
         # PREUVE VERS L'AVANT (22/08/2026) : pour un DÉTERMINANT ou un ADJECTIF, la marque de nombre est portée
         # par le NOM QUI SUIT, pas par ce qui précède (« pettits TUYAUX », « leusr TIGES ») — sans elle le
         # classement retombait sur la fréquence brute et le speller enlevait le pluriel.
@@ -692,6 +726,8 @@ class Speller:
         if low in SPELL_KEEP: return None      # mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ni corrigé ni signalé (miroir JS _SPELL_KEEP, même position : après prénom, avant nom-propre)
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
         if tok[:1].isupper() and not at_start: return None
+        _qm = self._quant_mal(toks, idx)   # ⭐ 11/10/2026 : quantifieur pluriel mal écrit (« certin enfants » → certains) — orange, miroir JS
+        if _qm: return ('vigilance', _qm[0].upper() + _qm[1:] if tok[:1].isupper() else _qm)
         d = deacc(low)
         if not re.search(r'[aeiouy]', d):
             # ⭐ LA VOYELLE MANGÉE (09/09/2026) — cette garde écartait le sigle ET la faute dys. On tente
@@ -896,6 +932,10 @@ class Speller:
                 if bs is None or dl < bd or (dl == bd and fc2 > cands[bs][1]): bs, bd = c2, dl
             if bs is not None:
                 w1 = bs; (p1, f1) = cands[w1]
+        if toks and idx is not None and idx > 0 and self._quant_mal(toks, idx - 1) and not re.search(r'[sx]$', deacc(w1)) \
+                and ('N' in self.POS.get(w1, ()) or 'A' in self.POS.get(w1, ())):   # ⭐ 11/10/2026 : le nom au PLURIEL après un quantifieur mal écrit — miroir JS
+            _w1p = w1[:-2] + 'aux' if w1.endswith('al') else w1 + 's'
+            if _w1p in self.WORDS: w1, p1, f1 = _w1p, 1, self.FREQ.get(_w1p, 0)
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
         # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il espere » → espère, pas espéré. Sujet pronom
         # (clitiques traversés) sans auxiliaire ni copule → quand le mot nu a les deux accentuations, c'est le présent (-e).
@@ -1155,6 +1195,7 @@ class Speller:
         ps = self.POS.get(best, ())
         p = toks[idx - 1].lower()
         b2, bf = None, -1.0
+        if p not in _SU_PLDET and p not in _SU_SGDET and self._quant_mal(toks, idx - 1): p = 'les'   # ⭐ 11/10/2026 : quantifieur mal écrit juste avant → pluriel (miroir JS)
         if (p in _SU_PLDET or p in _SU_SGDET) and ('N' in ps or 'A' in ps) and best not in _SU_DETX and not ('V' in ps and p in ('les', 'le', 'la')):
             pl = p in _SU_PLDET
             if bool(re.search(r'[sx]$', deacc(best))) != pl:

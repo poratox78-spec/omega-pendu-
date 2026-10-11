@@ -1,5 +1,5 @@
 {
- "justes": 369,
+ "justes": 370,
  "pointeuses": 220,
  "fatigue": 147,
  "cles_justes": [
@@ -237,6 +237,7 @@
   "piebs→pieds [orthographe] lettre_change",
   "plos→plus [orthographe] autre",
   "plsu→plus [orthographe] inversion",
+  "plusiéurs→plusieurs [orthographe] accent",
   "plu→plus [accord participe] lettre_manque",
   "plu→plus [accord pluriel à vérifier] lettre_manque",
   "point→points [pluriel par le son à vérifier] accord",
