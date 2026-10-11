@@ -155,6 +155,22 @@ const C = globalThis.__C;
                    "Il fallait qu'elle restât.", 'Elle est partie hier.']) {
     const r = pso(s); if (r.length) fail.push(`[personne par le son ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
   }
+  // ⭐ 11/10/2026 — infinitif attendu (lot 3) : formes qui manquaient (pourrait, devrait, puisse, veuillez), participe accordé (-ée), verbe en -yer,
+  // « commencer à », préposition + pronom ; et les silences voulus — ponctuation de l'auteur (rouges faux éteints), « en fait », « fasse signe »,
+  // « de leur côté », « à côté », « a » auxiliaire, « facile a réparer » (l'infinitif est juste : la faute est le « a »). Côté ROUGE : parity_corr.js.
+  const tous = (s) => { C.setSeg(s); return C.spell(s) || []; };
+  for (const [s, w, sg] of [['Il pourrait mangé ce soir.', 'mangé', 'manger'], ['Ils devraient parlé plus fort.', 'parlé', 'parler'], ["Il faut qu'il puisse mangé.", 'mangé', 'manger'],
+                            ['Veuillez patienté un instant.', 'patienté', 'patienter'], ['Il veut vous aidée.', 'aidée', 'aider'], ['Elle commence à chantée.', 'chantée', 'chanter'],
+                            ['Merci de nous envoyée la facture.', 'envoyée', 'envoyer']]) {
+    const r = tous(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[infinitif attendu ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  for (const [s, w] of [['Il pourra, fatigué, rentrer chez lui.', 'fatigué'], ["Il doit, épuisé, s'arrêter.", 'épuisé'], ['Il va, pressé, vers la gare.', 'pressé'],
+                        ['Il voudrait en fait partir plus tôt.', 'fait'], ["Il faut qu'il fasse signe au chauffeur.", 'signe'], ['Les deux équipes restent de leur côté.', 'côté'],
+                        ['Il arrive à côté de la gare.', 'côté'], ['Il arrive à bout de tout.', 'bout'], ['Elle apprend à Paul la musique.', 'Paul'], ['Il arrive à la porte.', 'porte'],
+                        ['Celui qui commence a gagné.', 'gagné'], ['Le plus difficile a été fait.', 'été'], ['Ce qui était facile a changé.', 'changé'],
+                        ["C'est un cadeau pour la soirée.", 'soirée'], ["C'est facile a réparer.", 'réparer'], ['Ce meuble est difficile a ranger.', 'ranger']]) {
+    const r = tous(s).filter(f => f.word === w); if (r.length) fail.push(`[infinitif attendu ${s}] → ${r.map(f => f.word + '→' + f.sugg + ' [' + f.name + ']').join(', ')} (attendu aucun)`);
+  }
   if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe / attribut :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log(`✓ OK : vigilance accord sujet-verbe + participe + attribut après « sont » (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length + AD.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length + AD.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
 })();
