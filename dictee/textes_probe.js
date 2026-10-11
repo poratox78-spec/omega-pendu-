@@ -313,6 +313,26 @@ for (const [nom, src] of [['app', app], ['extension', ext]]) {
   }
 }
 
+// 2 bis) ⭐ 11/10/2026 — LES LEÇONS DE RÈGLE NE SE PERDENT PAS. Deux lots insérés à la même ancre de _RTIP, une fusion n'a gardé
+//    qu'une des deux lignes : la règle retombait sans bruit sur le conseil de sa famille, à l'identique dans l'app et l'extension
+//    (invisible à la comparaison de la couche ci-dessus). Liste des règles qui ONT une leçon : on peut en ajouter, jamais en perdre.
+const LECONS = [
+  "accord grammatical (é/er)", "terminaison -er/-é/-ez/-ai", "nom féminin en -ée", "genre de la personne qui écrit", "vingt/cent",
+  "sujet je", "du/de", "des/dès", "sur/sûr", "près/prêt", "cher/chez", "majuscule", "mot soudé à vérifier",
+  "expression figée à vérifier", "plutôt / plus tôt à vérifier", "davantage", "adjectif en -ant/-ent", "si + conditionnel",
+  "quel que soit", "que/dont", "qui/que", "j'est/j'ai", "j'est/j'ai à vérifier", "c'ai/c'est", "étais après c'/s'",
+  "conjugaison après je à vérifier", "être (ête)", "usage être/avoir", "impératif", "impératif (pronom)", "négation",
+  "élision inversée", "accord tout", "genre déterminant", "nombre du déterminant à vérifier", "pluriel par le son à vérifier",
+  "auxiliaire manquant à vérifier", "forme en -ant à vérifier", "participe présent après « en » à vérifier",
+  "infinitif après semi-auxiliaire à vérifier", "infinitif après pronom sujet à vérifier", "ces/ses à vérifier", "leur/leurs",
+  "sais/sait"];
+{ const i0 = coucheExt.indexOf('var _RTIP={'), blk = coucheExt.slice(i0, coucheExt.indexOf('\n  };', i0));
+  const cles = new Set([...blk.matchAll(/^\s{4}(?:'([^']+)'|"([^"]+)"|([A-Za-zÀ-ÿ_]+)):function/mg)].map((m) => m[1] || m[2] || m[3]));
+  const perdues = LECONS.filter((n) => !cles.has(n));
+  if (i0 < 0 || cles.size < 30) fail('leçons de règle : _RTIP illisible (' + cles.size + ' clés) — le motif ne lit plus la table ?');
+  else if (perdues.length) fail('leçons de règle PERDUES (_RTIP) : ' + perdues.join(' | '));
+  else console.log('  ✓ leçons de règle : les ' + LECONS.length + ' attendues sont là (' + cles.size + ' en tout)'); }
+
 // 3) ROUTAGE règle → famille : _corrFam de l'app (extrait, exécuté tel quel) contre flagsToFacts de l'extension
 const srcDeacc = (app.match(/function deacc\(s\)\{[^\n]*\n/) || [''])[0] + (app.match(/function deaccS\(s\)\{[^\n]*\n/) || [''])[0];   // les deux, pour qu'un retour à deaccS se lise comme une DIVERGENCE et non comme un plantage
 const srcCorrFam = bloc(app, 'function _corrFam(', "return 'homophone';}", '_corrFam');
