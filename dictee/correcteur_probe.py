@@ -5742,6 +5742,22 @@ def rule_ou_ou(T, i):
         return _keepcase(T[i], 'où')                       # F5
     return None
 
+_SA_CA = set('fait plait tous aussi depuis'.split())
+
+
+def _sa_ca_verbe(T, i):
+    """⭐ 11/10/2026 — « sa » pour « ça » devant un VERBE (« sa va », « sa fait », « sa dépend ») : « sa » est un déterminant féminin,
+    jamais devant un verbe qui n'est ni nom ni adjectif (speller : V sans N ni A) ; infinitif ou participe = nom mal écrit → muet.
+    ORANGE (tier_of). Miroir JS _saCaVerbe."""
+    if i + 1 >= len(T): return False
+    nt = T[i + 1].lower(); nd = deacc(nt)
+    if nd in CLITIC or nd in _SA_NONNOUN or "'" in nt: return False   # cas déjà rouge
+    if nd in _SA_CA: return True
+    sp = _spos(nt)
+    return bool(sp) and 'V' in sp and 'N' not in sp and 'A' not in sp and not re.search(r'(er|ir|re|oir)$', nd) \
+        and not re.search(u'(é|ée|és|ées|ie|ies|ue|ues)$', nt) and not _is_ppl(T[i + 1])
+
+
 def rule_ca_sa(T, i):
     # Homophone « ça » (pronom démonstratif) ↔ « sa » (déterminant possessif). DEUX sens FP=0 :
     #  • sa→ça : « sa » précède TOUJOURS un nom ; un PRONOM CLITIQUE ne peut jamais suivre « sa » → c'est « ça »
@@ -5749,7 +5765,7 @@ def rule_ca_sa(T, i):
     #  • ça→sa : « ça » (pronom) ne précède JAMAIS un nom nu (il précède verbe/adverbe/clitique) → « ça » + NOM confiant
     #    = possessif : « ça maison »→sa, « ça vélo »→son, « ça amie »→son (sa+voyelle→son). Garde NOM STRICTE
     #    (P(NOM)≥τ ∧ P(VER)<ε) → « ça marche/change » (verbe) écarté ; frontière/sigle/élision → abstention.
-    # NB : « sa + verbe » (« sa va ») non couvert (noms féminins homographes d'un verbe en -er : marche, banque…).
+    # NB : « sa + verbe » (« sa va ») : _sa_ca_verbe, ORANGE (11/10/2026) ; « sa marche » (nom ET verbe) reste muet (noms féminins homographes d'un verbe en -er : marche, banque…).
     lw = deacc(T[i].lower())
     if lw == 'sa':
         if T[i] == T[i].upper() and T[i] != T[i].lower(): return None   # « SA » (société anonyme…) → abstention
@@ -5759,6 +5775,7 @@ def rule_ca_sa(T, i):
             # (jamais « sa l'/j'/d'… », ni « sa amie » = « son amie ») → ce n'est pas « sa » mais « ça ». FP=0 structurel.
             if nd in CLITIC or nd in _SA_NONNOUN or "'" in nt:
                 return _keepcase(T[i], 'ça')
+            if _sa_ca_verbe(T, i): return _keepcase(T[i], 'ça')   # ⭐ 11/10/2026 : « sa va » → ça (orange, tier_of)
         return None
     if lw == 'ca':                                                    # « ça » (deacc) → sens ça→sa
         if T[i] == T[i].upper() and T[i] != T[i].lower(): return None # « CA » sigle (chiffre d'affaires…) → abstention
@@ -6843,6 +6860,7 @@ def tier_of(T, i, name, sugg):
       · ce/se       → toujours orange (0/2 mesuré).
     Miroir JS : _tierOf dans l'app et dys-core (parité extension/parity_core.js)."""
     if name.endswith(u'à vérifier'): return 'vigilance'   # ⭐ 11/09/2026 : une règle « à vérifier » est ORANGE par construction (miroir spellText JS : tier 'vigilance') — nombre du déterminant, etc.
+    if name == 'ça/sa' and deacc(T[i].lower()) == 'sa' and _sa_ca_verbe(T, i): return 'vigilance'   # ⭐ 11/10/2026 : « sa va » = orange — miroir JS {vig:1}
     if name not in VIG_FAMILIES:
         return 'auto'
     if name == 'a/à':                                     # ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir JS
