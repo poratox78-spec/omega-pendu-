@@ -6465,6 +6465,45 @@ def rule_apres_sujet(T, i):
     return _keepcase(T[i], _APS_MAP[d])
 
 
+_MO_TON = frozenset('moi toi lui elle nous vous eux elles ce cela ca'.split())
+_MO_QESTOP = frozenset('non pas plus point rien personne guere mieux moins si de du des et ou a en la le les un une'.split())
+_MO_QLSTOP = frozenset('soit soient'.split())
+
+
+_MO_MODAL = frozenset(('pouvoir', 'devoir', 'sembler', 'paraitre'))   # « Quelle peut être la taille… »
+
+
+def _mo_inf(x):
+    return bool(x) and re.search(r'(er|ir|re|oir)$', x) is not None and x in VERB_LEX
+
+
+def rule_homophone_mo(T, i):
+    """⭐ 11/10/2026 — homophones de mots-outils (orange) : quand à moi → quant ; quant il → quand ; qu'elle + nom → quelle ;
+    quel + verbe (ni être ni avoir) → qu'elle ; « Peut être qu' » en tête → Peut-être ; « il est tant de » + infinitif → temps.
+    Miroir JS rHomophoneMo."""
+    n = len(T); w = T[i]; lw = w.lower(); d = deacc(lw)
+    d1 = deacc(T[i + 1].lower()) if i + 1 < n else ''; d2 = deacc(T[i + 2].lower()) if i + 2 < n else ''
+    maj = w[:1] != w[:1].lower(); cap = (lambda x: x[:1].upper() + x[1:] if maj else x)
+    bb = (_SEG or {}).get('bb') or []; hyl = (_SEG or {}).get('hy') or []
+    cut = lambda k: k < len(bb) and bool(bb[k]); hy = lambda k: k < len(hyl) and bool(hyl[k])
+    if d == 'quand' and d1 == 'a' and i + 2 < n and not cut(i + 1) and not cut(i + 2) and d2 in _MO_TON: return cap('quant')
+    if d == 'quant' and i + 1 < n and not cut(i + 1) and not hy(i + 1) and d1 not in ('a', 'au', 'aux'): return cap('quand')
+    if re.match(u"^qu['’]elles?$", lw) and i + 1 < n and not cut(i + 1):
+        nx = T[i + 1].lower(); sp = _spos(nx)
+        if sp and 'N' in sp and 'V' not in sp and 'A' not in sp and deacc(nx) in D.GENDER_LEX and deacc(nx) not in CLITIC and deacc(nx) not in _MO_QESTOP:
+            return cap('quelles' if lw.endswith('s') else 'quelle')
+    if re.match(r'^quel(le)?s?$', d) and i + 1 < n and not cut(i + 1) and not hy(i + 1):
+        nx2 = T[i + 1].lower(); nd2 = deacc(nx2); sp2 = _spos(nx2)
+        if sp2 and 'V' in sp2 and 'N' not in sp2 and 'A' not in sp2 and nd2 not in _MO_QLSTOP and nd2 not in FULL_AUX and _reads(nd2) and not any(r[0] in _MO_MODAL for r in _reads(nd2)) and not _is_ppl(T[i + 1]):
+            return cap("qu'elles" if d.endswith('s') else "qu'elle")
+    if d == 'peut' and d1 == 'etre' and (i == 0 or cut(i)) and i + 2 < n and not cut(i + 1) and (d2 == 'que' or re.match(u"^qu['’]", d2)):
+        return cap(u'peut-être')
+    if d == 'tant' and i >= 1 and deacc(T[i - 1].lower()) in ('est', 'etait', 'sera', 'serait') and i + 1 < n and not cut(i + 1) \
+            and ((d1 == 'de' and i + 2 < n and not cut(i + 2) and _mo_inf(d2)) or (re.match(u"^d['’]", d1) and _mo_inf(d1[2:]))):
+        return 'temps'
+    return None
+
+
 _DAV_PREV = {'pas', 'plus', 'point', 'guere', 'aucun', 'sans', 'peu'}
 
 
@@ -7022,7 +7061,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
