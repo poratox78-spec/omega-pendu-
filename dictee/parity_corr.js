@@ -412,6 +412,19 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 11/10/2026 — lot 5 : « été » écrit pour était / étais / étaient — sujet NOM et sujet INVERSÉ (orange) ; silences : « été » nom,
+   auxiliaire présent, ellipse et incise (UD), complément après une préposition. Python : même règle (rule_aux_misspell, _ete_sujet). */
+{ let _k5 = 0;
+  for (const [ph, sg] of [['Le chat été content.', 'était'], ['Les enfants été partis.', 'étaient'], ["L'enfant été malade.", 'était'],
+                          ['Où été tu hier ?', 'étais'], ['Quand été tu là ?', 'étais']]) {
+    const got = corr(ph).filter(f => f.word === 'été');
+    if (!got.length || got[0].sugg !== sg) { _k5++; console.log('✗ été : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const ph of ['Le dernier été fut chaud.', 'Cet été tu viens ?', 'Il a été content.', 'Le moteur a été retiré et le réacteur été monté.',
+                    'Leur raid a, par la suite, été suivi.', 'Une pièce de la maison été vide.']) {
+    const got = corr(ph).filter(f => f.word === 'été');
+    if (got.length) { _k5++; console.log('✗ été : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k5) { console.log('PARITÉ KO — ' + _k5 + ' cas « été ».'); process.exit(1); } }
+
 /* ⭐ VIGILANCE (11/09/2026) — même invariant que parity_core, mais la tranche extraite n'a pas diagnoseAll : on appelle les
    QUATRE jumelles orange (toutes définies AVANT correctText, donc dans la tranche) dans l'ordre et avec la règle « première qui
    parle » de spellText — et la PRÉCÉDENCE DU ROUGE : dans le produit une orange ne sort jamais sur un mot que correctText a
