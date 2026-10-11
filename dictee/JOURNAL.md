@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-10-11 — lot 6 : « a » écrit pour « à » (locutions, avoir droit à, un lieu, une ville après une durée)
+
+- Rem : lot suivant. Parmi les fautes muettes, « a » pour « à » est le plus gros paquet d'un seul type (25 dans le gold). Sur des
+  phrases inventées et PROPRES, plusieurs cadres restaient muets (« par rapport a la France », « il a droit a un contrat », « son
+  papi a l'hôpital », « une semaine a Paris », « a force de travailler ») ; la prudence a une raison : « a » (avoir) après un nom
+  est souvent juste.
+- `_aaLocution` ≡ `_aa_locution` (orange, 3 moteurs) : locutions où avoir n'entre pas (par rapport à, quant à, face à, à travers,
+  à côté de, à la fois, à nouveau, à propos, à condition de / que, à peu près, à force de — « a force de loi » reste avoir) ;
+  avoir droit à ; un LIEU après « a » (liste fermée), sauf après un pronom sujet, « y », « en » ou « qui » ; une ville après une
+  durée (« une semaine a Paris »).
+- Batterie Python : deux témoins de lieu (« les enfants a l'école » et un autre) interdisaient toute marque sur « a » — leur intention
+  était « jamais ont » ; ils deviennent des cas a/à (la préposition rendue, jamais « ont »). Détection 270 → 272 / 285, 0 FP.
+- Mesure : gold −6 muettes (en orange juste), mots justes touchés inchangés ; frgec +1 juste, 1 ambigu ; UD 14 450 : 0 changement.
+- Laissés : « a » + goût ou manière après un nom (« il a la main » existe), un verbe après « a » derrière un nom (« l'après-midi a bronzer » : le
+  correcteur change le verbe ; trancher demande le sens), « a » + nom de lieu mal écrit.
+- Tests : `parity_corr.js` (8 prises, 4 silences) — vus ROUGES sur l'ancienne app ; Python vérifié sur les mêmes phrases.
+
 ## 2026-10-11 — mots faux, lot 4 : le quantifieur pluriel mal écrit (certin, diver, nombreu, plusier, serten)
 
 - Rem : reprendre les corrections. Recensement des 163 mots faux de l'orthographe : 67 « bon mot, mauvaise forme », 96 « autre mot ».
