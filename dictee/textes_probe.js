@@ -325,13 +325,23 @@ const LECONS = [
   "élision inversée", "accord tout", "genre déterminant", "nombre du déterminant à vérifier", "pluriel par le son à vérifier",
   "auxiliaire manquant à vérifier", "forme en -ant à vérifier", "participe présent après « en » à vérifier",
   "infinitif après semi-auxiliaire à vérifier", "infinitif après pronom sujet à vérifier", "ces/ses à vérifier", "leur/leurs",
-  "sais/sait", "petit mot après le sujet à vérifier"];
+  "sais/sait", "petit mot après le sujet à vérifier", "mot-outil à vérifier"];
 { const i0 = coucheExt.indexOf('var _RTIP={'), blk = coucheExt.slice(i0, coucheExt.indexOf('\n  };', i0));
   const cles = new Set([...blk.matchAll(/^\s{4}(?:'([^']+)'|"([^"]+)"|([A-Za-zÀ-ÿ_]+)):function/mg)].map((m) => m[1] || m[2] || m[3]));
   const perdues = LECONS.filter((n) => !cles.has(n));
   if (i0 < 0 || cles.size < 30) fail('leçons de règle : _RTIP illisible (' + cles.size + ' clés) — le motif ne lit plus la table ?');
   else if (perdues.length) fail('leçons de règle PERDUES (_RTIP) : ' + perdues.join(' | '));
   else console.log('  ✓ leçons de règle : les ' + LECONS.length + ' attendues sont là (' + cles.size + ' en tout)'); }
+// 2 ter) ⭐ 11/10/2026 — PAS DE CLÉ EN DOUBLE dans _REGLE_FAM ni _RTIP : dans un objet littéral, la seconde écrase la première sans
+//    bruit. Lot 12 : un nom de règle neuf existait déjà (« homophone à vérifier », speller) — la famille et la leçon de l'autre règle
+//    changeaient ; seule une attente de remède l'a vu, par chance.
+{ const blocDe = (v) => { const i0 = coucheExt.indexOf(v); return i0 < 0 ? '' : coucheExt.slice(i0, coucheExt.indexOf('\n  };', i0)); };
+  const doublons = (blk, re) => { const c = {}; for (const m of blk.matchAll(re)) { const k = m[1] || m[2] || m[3]; c[k] = (c[k] || 0) + 1; } return Object.keys(c).filter((k) => c[k] > 1); };
+  const bF = blocDe('var _REGLE_FAM={'), bR = blocDe('var _RTIP={');
+  const dF = doublons(bF, /(?:'([^']+)'|"([^"]+)"|([A-Za-zÀ-ÿ_]+))\s*:\s*'/g), dR = doublons(bR, /^\s{4}(?:'([^']+)'|"([^"]+)"|([A-Za-zÀ-ÿ_]+)):function/mg);
+  if (!bF || !bR) fail('clés en double : _REGLE_FAM ou _RTIP introuvable dans la couche');
+  else if (dF.length || dR.length) fail('clé en DOUBLE (la seconde écrase la première) — _REGLE_FAM : ' + (dF.join(' | ') || '∅') + ' ; _RTIP : ' + (dR.join(' | ') || '∅'));
+  else console.log('  ✓ aucune clé en double dans _REGLE_FAM ni _RTIP'); }
 
 // 3) ROUTAGE règle → famille : _corrFam de l'app (extrait, exécuté tel quel) contre flagsToFacts de l'extension
 const srcDeacc = (app.match(/function deacc\(s\)\{[^\n]*\n/) || [''])[0] + (app.match(/function deaccS\(s\)\{[^\n]*\n/) || [''])[0];   // les deux, pour qu'un retour à deaccS se lise comme une DIVERGENCE et non comme un plantage

@@ -424,6 +424,24 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 11/10/2026 — lot 12 : homophones de mots-outils (orange, « mot-outil à vérifier ») — quand à moi → quant, quant il → quand,
+   qu'elle heure → quelle, quel viendra → qu'elle, « Peut être qu' » en tête → Peut-être, il est tant de + infinitif → temps ;
+   silences : « quant à / au », « qu'elle viendra », « quelle a été », « quel est », « il peut être que », « tant de monde »,
+   « Quelle peut être la cause », « plus jeune qu'elle de dix ans » (UD). Python : rule_homophone_mo. */
+{ let _k12 = 0;
+  for (const [ph, w, sg] of [['Quand à moi, je reste ici.', 'Quand', 'Quant'], ['Quant il pleut, je reste.', 'Quant', 'Quand'],
+                             ["Je ne sais pas qu'elle heure il est.", "qu'elle", 'quelle'], ["Qu'elle chance tu as !", "Qu'elle", 'Quelle'],
+                             ['Je pense quel viendra demain.', 'quel', "qu'elle"], ['Il faut quelle aille au marché.', 'quelle', "qu'elle"],
+                             ["Peut être qu'il viendra.", 'Peut', 'Peut-être'], ['Il est tant de partir.', 'tant', 'temps']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _k12++; console.log('✗ homophone : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Quant à moi, je reste.', 'Quant'], ['Quant au reste, on verra.', 'Quant'], ["Je pense qu'elle viendra.", "qu'elle"],
+                         ['Quelle a été sa réponse ?', 'Quelle'], ['Quel est ton nom ?', 'Quel'], ['Il peut être que tu as raison.', 'peut'],
+                         ['Il y a tant de monde.', 'tant'], ['Quelle peut être la cause ?', 'Quelle'], ["Elle est plus jeune qu'elle de dix ans.", "qu'elle"]]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _k12++; console.log('✗ homophone : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k12) { console.log('PARITÉ KO — ' + _k12 + ' cas « homophone de mot-outil ».'); process.exit(1); } }
+
 /* ⭐ 11/10/2026 — lot 11 : le petit mot impossible après un pronom sujet, devant un verbe (orange, « petit mot après le sujet à
    vérifier ») — il si est → s'y, il ni a → n'y, il dans mange → en, il cent va → s'en, ils ce sont → se ; silences : « si » adverbe,
    inversion « dit-il si », « dans » + déterminant, « cent ans », « ce matin », ponctuation. Et le sujet COORDONNÉ par un pronom

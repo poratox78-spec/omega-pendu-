@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-11 — lot 12 : homophones de mots-outils (quand / quant, quelle / qu'elle, peut-être, il est temps)
+
+- Même sondage que le lot 11 : « Quand à moi », « quant il pleut », « qu'elle heure », « je pense quel viendra », « Peut être qu'il
+  viendra », « il est tant de partir » étaient muets. `rHomophoneMo` ≡ `rule_homophone_mo` (orange « mot-outil à vérifier ») :
+  « quant » n'existe que devant à / au / aux ; « quand à » + pronom tonique ou cela → quant ; « qu'elle » devant un nom (POS N seul
+  et genre connu) → quelle ; « quel » devant un verbe (ni être, ni avoir, ni semi-auxiliaire) → qu'elle ; « Peut être qu' » en tête
+  (pas de sujet : pas le verbe) → Peut-être ; « est tant de » + infinitif → temps.
+- Gardes vues en mesurant : UD « plus jeune qu'elle de dix ans » (« de » a un genre : « dé » désaccentué) et « Quelle peut être la
+  taille » (interrogatif devant pouvoir) ; frgec « qu'elle et son… » (« et » étiqueté N par le speller).
+- Mesure : 1 « quelle » juste (EcriScol) ; frgec : 2 fautes que sa correction avait laissées (« quand à lui », « quant elle ») ;
+  UD 14 450 : 0 changement.
+- Tests : `parity_corr.js` (8 prises, 9 silences) — 8 échecs sur l'ancienne app ; Python vérifié sur les mêmes phrases.
+
+---
+
 ## 2026-10-11 — lot 11 : le petit mot impossible après le sujet (il si est, il ni a, il dans mange, il cent va, ils ce sont)
 
 - Sondage des homophones fréquents restants : « il si est rendu », « il ni a plus », « il dans mange », « il cent va », « ils ce sont
