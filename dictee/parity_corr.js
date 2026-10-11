@@ -401,6 +401,18 @@ for (const ph of _R8_NON) {
 }
 if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); process.exit(1); }
 
+/* ⭐ 11/10/2026 — lot 6 : « a » écrit pour « à » (orange) — autres locutions (par rapport à, à travers, à la fois, à condition de, à
+   nouveau), avoir droit à, un LIEU après « a », une ville après une durée ; silences : pronom sujet devant, « il y a », « a force de
+   loi », nom sujet après un déterminant (« la face a été »). Python : même liste (_aa_locution). */
+{ let _k6 = 0;
+  const aa = (ph) => corr(ph).filter(f => String(f.word).toLowerCase() === 'a' && f.sugg === 'à');
+  for (const ph of ["Il va voir son papi a l'hôpital.", 'Il part une semaine a Paris.', "Par rapport a la France, c'est petit.", 'Il a droit a un contrat.',
+                    'Il travaille a la fois vite et bien.', 'Il marche a travers la forêt.', 'Elle vient a condition de payer.', 'Il recommence a nouveau.']) {
+    if (aa(ph).length !== 1) { _k6++; console.log('✗ a/à : ' + JSON.stringify(ph) + ' doit donner un seul « à », eu ' + aa(ph).length); } }
+  for (const ph of ['Nous avons gagné, on a la piscine pour nous.', 'Il y a la mer.', 'Cette loi a force de loi.', 'La face a été repeinte.']) {
+    if (aa(ph).length) { _k6++; console.log('✗ a/à : ' + JSON.stringify(ph) + ' doit rester muet'); } }
+  if (_k6) { console.log('PARITÉ KO — ' + _k6 + ' cas « a / à ».'); process.exit(1); } }
+
 /* ⭐ 11/10/2026 — infinitif attendu (lot 3), côté ROUGE : la ponctuation de l'AUTEUR sépare le gouverneur du mot (« il doit, épuisé,
    s'arrêter » recevait « épuiser », « il va, pressé, vers la gare » → presser) ; « facile a réparer » garde son infinitif (la faute est
    le « a », il devenait « réparé ») ; « s'il vous plaît, cherché » → cherchez reste corrigé. Python : mêmes gardes (rule_e_er, rule_flexion_er). */
