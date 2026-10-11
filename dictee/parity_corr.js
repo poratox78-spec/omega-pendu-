@@ -401,6 +401,17 @@ for (const ph of _R8_NON) {
 }
 if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); process.exit(1); }
 
+/* ⭐ 11/10/2026 — infinitif attendu (lot 3), côté ROUGE : la ponctuation de l'AUTEUR sépare le gouverneur du mot (« il doit, épuisé,
+   s'arrêter » recevait « épuiser », « il va, pressé, vers la gare » → presser) ; « facile a réparer » garde son infinitif (la faute est
+   le « a », il devenait « réparé ») ; « s'il vous plaît, cherché » → cherchez reste corrigé. Python : mêmes gardes (rule_e_er, rule_flexion_er). */
+{ let _k3 = 0;
+  for (const [ph, w] of [["Il doit, épuisé, s'arrêter.", 'épuisé'], ['Il va, pressé, vers la gare.', 'pressé'], ["C'est facile a réparer.", 'réparer'], ['Ce meuble est difficile a ranger.', 'ranger']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _k3++; console.log('✗ infinitif attendu : ' + JSON.stringify(ph) + ' doit laisser « ' + w + ' », eu ' + JSON.stringify(got.map(f => f.word + '->' + f.sugg + '[' + f.name + ']'))); } }
+  { const got = corr("S'il vous plaît, cherché la clé.").filter(f => f.word === 'cherché');
+    if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
+
 /* ⭐ VIGILANCE (11/09/2026) — même invariant que parity_core, mais la tranche extraite n'a pas diagnoseAll : on appelle les
    QUATRE jumelles orange (toutes définies AVANT correctText, donc dans la tranche) dans l'ordre et avec la règle « première qui
    parle » de spellText — et la PRÉCÉDENCE DU ROUGE : dans le produit une orange ne sort jamais sur un mot que correctText a

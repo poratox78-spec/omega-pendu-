@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit, initiale et dominance, forme du verbe, a / à devant un verbe, avoir élidé, apostrophe oubliée, t'as / javais, pluriel après chiffres, forme du mot inconnu, ça/cela sujet, lieu + adjectif, quelque, verbe après à / infinitif, genre de l'adjectif antéposé, déterminants pluriels de plus, ce + verbe, présent après « à », chère → chez, quantité + de, petits mots sans leur lettre muette, « ont été » + participe, personne du verbe par le son) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles, formes soudées, déterminants écrits avec é, « cette » mal écrit, initiale et dominance, forme du verbe, a / à devant un verbe, avoir élidé, apostrophe oubliée, t'as / javais, pluriel après chiffres, forme du mot inconnu, ça/cela sujet, lieu + adjectif, quelque, verbe après à / infinitif, genre de l'adjectif antéposé, déterminants pluriels de plus, ce + verbe, présent après « à », chère → chez, quantité + de, petits mots sans leur lettre muette, « ont été » + participe, personne du verbe par le son, infinitif attendu) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **636** (31,6 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **513** (25,5 %) |
-| mot FAUX proposé | 373 (18,5 %) | **305** (15,2 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **517** (25,7 %) |
+| mot FAUX proposé | 373 (18,5 %) | **304** (15,1 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
-| **muette** | **711** (35,3 %) | **535** (26,6 %) |
+| **muette** | **711** (35,3 %) | **532** (26,4 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **52** aujourd'hui (36 / 16, recompté le 04/10/2026 — le rouge de plus : « soiété », coquille laissée par le gold ; 4 oranges de genre du déterminant
@@ -71,7 +71,7 @@ y est lu comme avoir ; les constructions « commencer à », « avoir du mal / d
 peut pas être l'auxiliaire (négation, nom qui appelle « à », verbe + pronom élidé, sujet + verbe) — 5 « à » justes de plus, 4 rouges
 faux retirés ou ramenés en orange, 0 perte.
 
-### B — à mesurer (513)
+### B — à mesurer (517)
 
 | groupe | n | paires | ce qu'il faut regarder |
 |---|---|---|---|
