@@ -239,6 +239,14 @@ for (const b of ['delbrueckii', 'bulgaricus']) {   // témoins : sans candidat d
   if (!r || r.name !== 'mot inconnu' || r.sugg.toLowerCase() !== b)
     fail.push('témoin « ' + b + ' » doit rester souligné SANS suggestion (sugg = mot), eu ' + JSON.stringify(r));
 }
+// ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux) : le quantifieur de même son au pluriel (orange) et le nom qui suit
+// au pluriel ; « un certin âge » → certain (adjectif) ; « nonbre » reste « nombre » ; « certin de » → certain. Vu ROUGE sur l'ancien moteur.
+for (const [t, w, s] of [['Il range certin livres dans le salon.', 'certin', 'certains'], ['Elle lit sertin journaux le soir.', 'sertin', 'certains'],
+    ['Elle a vu serten maisons anciennes.', 'serten', 'certaines'], ['Il vend diver objets au marché.', 'diver', 'divers'],
+    ['Certin enfants jouent dehors.', 'certin', 'Certains'], ['Il a un certin âge.', 'certin', 'certain'], ['Elle cite plusier modéle.', 'plusier', 'plusieurs'],
+    ['Elle cite plusier modéle.', 'modéle', 'modèles'], ['Il a un nonbre de points.', 'nonbre', 'nombre'], ['Il reste certin de gagner.', 'certin', 'certain']]) {
+  const r = find(t, w); if (!r || r.sugg !== s) fail.push('quantifieur mal écrit « ' + t + ' » : ' + w + ' → ' + s + ' attendu, eu ' + JSON.stringify(r && [r.sugg, r.tier]));
+}
 // MAJUSCULE INITIALE (vigilance) — CORRECTEUR SEULEMENT (capital=true) ; OFF en direct/extension (défaut) pour ne pas nagger chaque message minuscule
 const majOn = DC.spellText('les choses sont belles', true).find(x => x.name === 'majuscule initiale à vérifier');
 if (!majOn || majOn.sugg !== 'Les' || majOn.tier !== 'vigilance') fail.push('majuscule (capital=true) « les »→« Les » attendu, eu ' + JSON.stringify(majOn));

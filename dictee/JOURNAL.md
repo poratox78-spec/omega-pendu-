@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-10-11 — mots faux, lot 4 : le quantifieur pluriel mal écrit (certin, diver, nombreu, plusier, serten)
+
+- Rem : reprendre les corrections. Recensement des 163 mots faux de l'orthographe : 67 « bon mot, mauvaise forme », 96 « autre mot ».
+  Mesuré d'abord une idée large, « le son d'abord » dans le tri principal (le bon mot sonne comme l'écrit, la proposition non) :
+  10 cas seulement, chacun particulier — pas un cadre. Le paquet qui ressort : le PLURIEL porté par un quantifieur LUI-MÊME mal
+  écrit (« certin », « sertin », « serten », « diver », « nombreu »…) : le tri à l'œil rendait un autre mot (serein, sertes, dîners,
+  nombre) ou le singulier, et le nom qui suit restait au singulier faute de nombre lisible (`sCtxNumber` ne lit que les
+  déterminants bien écrits) — la grammaire ne voit pas non plus ce quantifieur.
+- `_quantMal` ≡ `_quant_mal` (extension, site, référence Python) : liste FERMÉE (certains/certaines, divers/diverses,
+  nombreux/nombreuses, plusieurs) ; un mot INCONNU de même clé phonétique (le -en final lu aussi -enne : « serten » → certaines),
+  sans article devant, suivi d'un nom ou d'un mot inconnu → le quantifieur au pluriel, genre du nom s'il est connu (orange).
+  Après un article, « certain » seul, l'adjectif au singulier (« un certin âge » rendait « crétin »). « nombre » a la clé de
+  « nombreux » : finale -eu(x) exigée (« un nonbre » reste « nombre »). Le nom qui suit se lit au pluriel (`sCtxNumber`, `_suFlex`,
+  et après le tri principal) ; `sCtxNumber` lit aussi les cardinaux et quantifieurs bien écrits juste avant.
+- Mesure : gold mots faux 304 → 294 (10 → justes : 9 en orange, 1 en rouge), mots justes touchés inchangés (16 / 36) ; 3 corpus :
+  frgec +4 justes (dont « Plusieur » en tête de phrase), rien de faux ni d'inutile ; UD 14 450 : 0 changement. Accord de palier
+  extension ↔ Python sur le gold : 945 / 945 ; parité du correcteur d'orthographe : 0 divergence nouvelle.
+- Piège de mesure : la copie de référence prise par un chemin relatif dans `data_local` (jonction) venait du dossier PRINCIPAL,
+  resté ancien — les écarts des lots 1 à 3 s'y mêlaient. Référence reprise par `git show origin/main:…`.
+- Tests : `extension/test_speller.js` et `dictee/test_speller_app.js` (10 cas, phrases inventées vérifiées contre le gold et les 3
+  corpus) — vus ROUGES sur l'ancien moteur.
+
 ## 2026-10-11 — extension : fermer le panneau retire la police OMEGA Dys et les couleurs des sites
 
 - Rapport de Rem : l'extension fermée, nos polices restaient sur les sites — un problème.

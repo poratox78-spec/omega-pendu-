@@ -28965,9 +28965,33 @@ function estQuestion(t,maxMots){
   function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(SCTX_STOP[t])return null;if(t==='peu'||t==='peux'||(DET_G[t]&&j+1<T.length&&(deaccS(T[j+1].toLowerCase())==='peu'||deaccS(T[j+1].toLowerCase())==='peux')))continue;if(DET_G[t])return DET_G[t];
     if(!SP.WORDS.has(T[j].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')))continue;   // ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GENDER_PURE déacc ← « trés » nom) → on continue vers le déterminant
     var g=GENDER_PURE[t];if((g==='m'||g==='f')&&!(j>0&&DET_G[deaccS(T[j-1].toLowerCase())]))continue;if(g==='m'||g==='f')return g;}return null;}
+  /* ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux). Le scripteur écrit le quantifieur comme il l'entend :
+     « certin », « sertin » (certains), « serten » (certaines), « diver » (divers), « nombreu » (nombreux), « plusier » (plusieurs).
+     Le tri à l'œil rendait un AUTRE mot (serein, sertes, dîner) ou le singulier, et le nom qui suit restait au singulier faute de
+     nombre lisible. Liste FERMÉE ; seulement un mot INCONNU, de même son, SANS article ni déterminant devant (« un certain âge »
+     est singulier), suivi d'un nom (ou d'un mot inconnu). « nombre » a la clé de « nombreux » : pour celui-là, finale -eu(x) exigée.
+     Miroir Python (speller_probe). */
+  var _QPL=null;
+  function _qplKeys(){if(_QPL)return _QPL;_QPL={};[['certains','certaines'],['divers','diverses'],['nombreux','nombreuses'],['plusieurs','plusieurs']].forEach(function(p){
+      _QPL[phonKey(p[0])]={m:p[0],f:p[1],fem:false};var kf=phonKey(p[1]);if(!_QPL[kf])_QPL[kf]={m:p[0],f:p[1],fem:p[0]!==p[1]};});return _QPL;}
+  var _QPL_AV={},_QPL_NX={},_QPL_SG={};
+  "un une le la l' ce cet cette mon ma ton ta son sa notre votre leur d'un d'une".split(' ').forEach(function(w){_QPL_SG[w]=1;});
+  "un une le la l' les ce cet cette ces mon ma ton ta son sa mes tes ses notre votre nos vos leur leurs du au aux d'un d'une chaque quel quelle".split(' ').forEach(function(w){_QPL_AV[w]=1;});
+  'de du des le la les à a au aux et ou que qui dont en y ne pas se ce il elle ils elles on je tu nous vous est sont ont'.split(' ').forEach(function(w){_QPL_NX[w]=1;});
+  function _quantMal(T,idx){if(!T||idx==null||idx<0||idx+1>=T.length||!SP||!SP.WORDS)return null;
+    var low=String(T[idx]).toLowerCase();if(!/^[a-zàâäéèêëîïôöùûüç]+$/.test(low)||SP.WORDS.has(low))return null;
+    var av=idx>0?String(T[idx-1]).toLowerCase().replace(/’/g,"'"):'',art=!!_QPL_AV[av];
+    var nx=String(T[idx+1]).toLowerCase();if(!/^[a-zàâäéèêëîïôöùûüçœ'’-]+$/.test(nx)||_QPL_NX[deaccS(nx)])return null;
+    if(SP.WORDS.has(nx)&&!/[NA]/.test(SP.POS[nx]||''))return null;
+    var K=_qplKeys(),q=K[phonKey(low)]||(/n$/.test(low)?K[phonKey(low+'e')]:null);if(!q)return null;
+    if(q.m==='nombreux'&&!/eu[sx]?$|euse?s?$/.test(low))return null;
+    var g=SP.WORDS.has(nx)?sGender(nx):null,fem=g?g==='f':q.fem;
+    if(art){if(q.m!=='certains'||!_QPL_SG[av])return null;return fem?'certaine':'certain';}   // « un certin âge » : l'ADJECTIF certain, au singulier (le tri rendait « crétin »)
+    return fem?q.f:q.m;}
   function sCtxNumber(T,idx){if(!T||idx==null)return null;var back=null,bdist=99,j;
     for(j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SDET_NUM[t]){back=SDET_NUM[t];bdist=idx-j;break;}}
     if(back!==null&&bdist===1)return back;   // déterminant COLLÉ = preuve la plus forte
+    if(back===null&&idx>=1){var _pq=deaccS(String(T[idx-1]).toLowerCase());if(_SU_PLDET[_pq]||_quantMal(T,idx-1))return 'p';}   // ⭐ 11/10/2026 : cardinal ou quantifieur juste avant (« deux élefant » → éléphants), même mal écrit (« diver revu » → revues)
     // PREUVE VERS L'AVANT (22/08/2026, parité Python _ctx_number) : pour un DÉTERMINANT ou un ADJECTIF, la marque de
     // nombre est portée par le NOM QUI SUIT (« pettits TUYAUX », « leusr TIGES »). Restreinte pour ne créer AUCUN risque :
     // token immédiatement suivant seulement · NOM connu (tag N) au pluriel MORPHOLOGIQUE (singulier attesté au lexique)
@@ -29109,6 +29133,7 @@ function spellTokenCore(tok,atStart,T,idx){
         return ['vigilance','a '+_rsd];}}
     if(_SPELL_KEEP[low])return null;                                   // mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ne pas corriger (FP sur texte FR à mots anglais)
     if(tok[0]!==tok[0].toLowerCase()&&!atStart)return null;            // nom propre (majuscule hors début)
+    {var _qm=_quantMal(T,idx);if(_qm)return['vigilance',tok[0]!==tok[0].toLowerCase()?_qm.charAt(0).toUpperCase()+_qm.slice(1):_qm];}   // ⭐ 11/10/2026 : quantifieur pluriel mal écrit (« certin enfants » → certains) — orange
     var d=deaccS(low);
     if(!/[aeiouy]/.test(d)){/* ⭐ LA VOYELLE MANGÉE (09/09/2026, miroir Python _voyelle_mangee) : cette garde écartait le SIGLE (www, mph, bzh) ET la faute dys — « snt », « frt », « nrd », « dns », « pls ». Mesuré au moteur : 111 jetons sans voyelle lui échappaient, dont 84 FAUTES pour 27 vrais sigles. On rend UNE voyelle et rien d'autre (aucune consonne touchée, aucune substitution : « dns » → dans, jamais « des »), puis un plancher de fréquence — le mot d'un dys est courant, le voisin d'un sigle ne l'est pas. 14 justes, 2 fausses, 2 marques sur mot correct (chf→chef, abréviation), toutes en ORANGE. ⛔ La seule SOUS-SÉQUENCE a été RÉFUTÉE : kms→keums, pqr→piquer (15 justes / 53 fausses). */var _vm=_voyelleMangee(d);return _vm?['vigilance',_vm]:null;}
     if(/(.)\1\1/.test(low)&&!(tok===tok.toUpperCase()&&tok.length>=2)&&!/^[ivxlcdm]+(e|es|eme|emes|er|ers)?$/.test(d)){   // ÉLONGATION (pas acronyme AAA, pas chiffre romain VIII)
@@ -29215,6 +29240,7 @@ function spellTokenCore(tok,atStart,T,idx){
         if(_bs===null||_dl<_bd||(_dl===_bd&&cand[_c2][1]>cand[_bs][1])){_bs=_c2;_bd=_dl;}}
       if(_bs){w1=_bs;p1=cand[w1][0];f1=cand[w1][1];}}
     
+    if(T&&idx>0&&_quantMal(T,idx-1)&&!/[sx]$/.test(deaccS(w1))&&/[NA]/.test(SP.POS[w1]||'')){var _w1p=/al$/.test(w1)?w1.slice(0,-2)+'aux':w1+'s';if(SP.WORDS.has(_w1p)){w1=_w1p;p1=1;f1=SP.FREQ[_w1p]||0;}}   // ⭐ 11/10/2026 : après un quantifieur pluriel mal écrit, le nom au PLURIEL (« plusier modéle » → modèles ; la grammaire ne voit pas ce quantifieur)
     if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent (évite Nathalie→natalité)
     /* ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, colonne accents : « decide » après « il » → le produit écrivait « décidé », le gold veut « décide » —
        3 rouges ailleurs). Symétrique du participe après auxiliaire : quand le mot NU a deux accentuations, présent (-e) et participe
@@ -29377,6 +29403,7 @@ function spellTokenCore(tok,atStart,T,idx){
   "à de d' dans sur sous pour par avec sans chez vers en entre contre après avant depuis pendant".split(' ').forEach(function(w){_SU_PREP[w]=1;});
   function _suLem(w){var r=svReads(w),o={},k;for(k=0;k<r.length;k++)o[r[k][0]]=1;return o;}
   function _suFlex(best,arr,pk,T,idx){if(!T||idx==null||idx<1)return best;var i,w,f,b2=null,bf=-1,ps=SP.POS[best]||'',p=T[idx-1].toLowerCase();
+    if(!_SU_PLDET[p]&&!_SU_SGDET[p]&&_quantMal(T,idx-1))p='les';   // ⭐ 11/10/2026 : quantifieur mal écrit juste avant → pluriel
     if((_SU_PLDET[p]||_SU_SGDET[p])&&(ps.indexOf('N')>=0||ps.indexOf('A')>=0)&&!_SU_DETX[best]&&!(ps.indexOf('V')>=0&&/^(les|le|la)$/.test(p))){var pl=!!_SU_PLDET[p];
       if(/[sx]$/.test(deaccS(best))!==pl){for(i=0;i<arr.length;i++){w=arr[i];if(phonKey(w)!==pk)continue;
           if(pl?(w===best+'s'||(/u$/.test(best)&&w===best+'x')||(/al$/.test(best)&&w===best.slice(0,-2)+'aux')):(best===w+'s'||(/u$/.test(w)&&best===w+'x')||(/al$/.test(w)&&best===w.slice(0,-2)+'aux'))){f=SP.FREQ[w]||0;if(f>bf){bf=f;b2=w;}}}
