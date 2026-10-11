@@ -1340,7 +1340,29 @@ def _aa_locution(T, i):
     if d1 == 'qui' and p1 not in ('y', 'en', 'qui', 'ca', 'cela') and p1 not in SUBJ_PRON: return True   # la personne à qui ; « il y en a qui » reste avoir
     if (p1 in ('suite', 'grace') and p2 not in _AA_LOC_DET
             and (p1 == 'suite' or T[i - 1] == T[i - 1].lower() or u'â' in T[i - 1])): return True   # suite à, grâce à
+    # ⭐ 11/10/2026 — lot 6 : autres locutions, avoir droit à, un LIEU après « a », une ville après une durée — miroir JS _aaLocution
+    d3 = deacc(T[i + 3].lower()) if i + 3 < n else ''
+    if p1 == 'rapport' and p2 == 'par': return True                       # par rapport à
+    if p1 == 'quant': return True                                         # quant à
+    if p1 == 'face' and p2 not in _AA_LOC_DET: return True                # face à
+    if d1 in ('travers', 'propos', 'nouveau'): return True                # à travers, à propos, à nouveau
+    if d1 == 'cote' and de: return True                                   # à côté de
+    if d1 == 'la' and d2 == 'fois': return True                           # à la fois
+    if d1 == 'condition' and (de or d2 == 'que' or re.match(u"^qu['’]", d2)): return True   # à condition de / que
+    if d1 == 'peu' and d2 == 'pres': return True                          # à peu près
+    if d1 == 'force' and de and d3 != 'loi': return True                  # à force de (« a force de loi » : avoir)
+    if p1 == 'droit' and p2 in _AA_AVF: return True                       # avoir droit à
+    if (p1 not in SUBJ_PRON and p1 not in ('y', 'en', 'qui', 'il', 'elle', 'on')
+            and ((d1 == 'la' and d2 in _AA_LIEU_F) or _AA_LIEU_L.match(d1))): return True   # un LIEU
+    if (p1 in _AA_DUREE and i + 1 < n and T[i + 1][:1] != T[i + 1][:1].lower()
+            and not (_SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1])): return True   # « une semaine a Paris »
     return False
+
+
+_AA_LIEU_F = set('plage maison piscine mer montagne campagne gare mairie poste banque boulangerie pharmacie cantine bibliotheque fac messe peche chasse foire fete'.split())
+_AA_LIEU_L = re.compile(u"^l['’]?(hopital|ecole|eglise|hotel|aeroport|universite|usine|ile|infirmerie)$")
+_AA_DUREE = set('semaine semaines mois jour jours vacances an ans annee annees soir matin weekend week-end'.split())
+_AA_AVF = set('a ai as ont avons avez avait avaient avais aura auront aurait avoir'.split())
 
 
 # ⭐ 30/09/2026 — VERBE + ADVERBE + « a » (catalogue des muets) : « il parle souvent a ses amis » — la branche « après un verbe » de la
@@ -7315,8 +7337,8 @@ CASES = [
     ("Le technicien réparait la machine", "réparait", "réparais", "accord sujet-verbe"),       # -ais→-ait
     ("Je gardais le secret", "gardais", "gardait", "accord sujet-verbe"),                      # FP-GUARD : sujet PRONOM « je » → « gardais » correct, NE doit PAS devenir « gardait »
     ("Tu regardais la télévision", "regardais", "regardait", "accord sujet-verbe"),            # FP-GUARD : pronom « tu » → « regardais » correct
-    ("les enfants a l'école", "a", "ont", "accord sujet-verbe"),             # « a l'école » = « à l'école » (locatif, article défini) → a→ont NE doit PAS tirer (ambigu avec la préposition « à »)
-    ("les filles a la maison", "a", "ont", "accord sujet-verbe"),            # idem « à la maison »
+    ("les enfants à l'école", "à", "a", "a/à"),             # « a l'école » = « à l'école » (locatif) : a→ont ne doit JAMAIS tirer ; ⭐ 11/10/2026 (lot 6) le témoin exige aussi la préposition rendue (à)
+    ("les filles à la piscine", "à", "a", "a/à"),           # idem, un autre lieu
     ("Ils sont contents", "ils", "il", "accord sujet-verbe"),               # « il sont »→« ils sont » : le « s » MUET de « ils » est tombé → corriger le PRONOM (pas le verbe → « ils est »)
     ("Paul et elle vont bien", "elle", "elles", "accord sujet-verbe"),      # CONTRÔLE coordination : « et elle vont » = sujet coordonné, pluriel DÉJÀ correct → « elle » ne doit PAS devenir « elles »
     # accord sujet-verbe à sujet ÉLOIGNÉ (mots-écrans « de X » via le vrai parseur _np_subject) — FP=0 sur 14 450 UD
