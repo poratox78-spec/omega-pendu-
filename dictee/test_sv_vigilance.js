@@ -171,6 +171,20 @@ const C = globalThis.__C;
                         ["C'est un cadeau pour la soirée.", 'soirée'], ["C'est facile a réparer.", 'réparer'], ['Ce meuble est difficile a ranger.', 'ranger']]) {
     const r = tous(s).filter(f => f.word === w); if (r.length) fail.push(`[infinitif attendu ${s}] → ${r.map(f => f.word + '→' + f.sugg + ' [' + f.name + ']').join(', ')} (attendu aucun)`);
   }
+  // ⭐ 11/10/2026 — lot 5 : « -ent » écrit pour « -ant » (nom après un déterminant, adjectif après être / très) ; « est » collé par un
+  // trait d'union n'est pas le verbe ; « il plan » ne reçoit plus « plantait » (forme bien plus longue que l'écrit).
+  for (const [s, w, sg] of [['Un étudient arrive.', 'étudient', 'étudiant'], ['Ce film est passionnent.', 'passionnent', 'passionnant'],
+                            ["C'est très importent.", 'importent', 'important'], ['Des étudient arrivent.', 'étudient', 'étudiants'],
+                            ['Ces livres sont passionnent.', 'passionnent', 'passionnants']]) {
+    const r = tous(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[forme en -ant ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  for (const [s, w] of [['Ils le mangent.', 'mangent'], ['Les gens passent devant.', 'passent'], ['Il est souvent absent.', 'absent'],
+                        ['Un résident arrive.', 'résident'], ['Les collines au nord-est recouvrent la vallée.', 'recouvrent'],
+                        ['Les collines au nord-est recouvrent la vallée.', 'est'], ['Les villes du sud-est sont belles.', 'est'],
+                        ["C'est très importent.", "C'est"]]) {
+    const r = tous(s).filter(f => f.word === w); if (r.length) fail.push(`[forme en -ant ${s}] → ${r.map(f => f.word + '→' + f.sugg + ' [' + f.name + ']').join(', ')} (attendu aucun)`);
+  }
+  { const r = tous('Il plan le bus.').filter(f => /plantait/i.test(String(f.sugg))); if (r.length) fail.push('[personne par le son Il plan le bus.] → plantait (forme bien plus longue que l’écrit)'); }
   if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe / attribut :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log(`✓ OK : vigilance accord sujet-verbe + participe + attribut après « sont » (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length + AD.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length + AD.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
 })();
