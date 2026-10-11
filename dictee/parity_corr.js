@@ -475,6 +475,23 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (got.length) { _k5++; console.log('✗ été : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
   if (_k5) { console.log('PARITÉ KO — ' + _k5 + ' cas « été ».'); process.exit(1); } }
 
+/* ⭐ 11/10/2026 — lot 7 : faux jumeaux soudés / détachés (orange) — « d'avantage » après un VERBE → davantage ; plutôt / plus tôt dans
+   leurs cadres sûrs. Silences : le NOM « avantage » (mot de quantité ou déterminant devant, « il n'y a d'avantage que »), « plus tôt
+   que de coutume », « plutôt que » d'opinion. Python : mêmes règles (rule_davantage, rule_plutot). */
+{ let _k7 = 0;
+  for (const [ph, w, sg] of [["Il travaille d'avantage.", "d'avantage", 'davantage'], ["Il veut en savoir d'avantage là-dessus.", "d'avantage", 'davantage'],
+                             ["Elle aide d'avantage les enfants.", "d'avantage", 'davantage'], ["Elle mange d'avantage le soir.", "d'avantage", 'davantage'],
+                             ['Viens le plutôt possible.', 'plutôt', 'plus tôt'], ['Il est arrivé plutôt que prévu.', 'plutôt', 'plus tôt'],
+                             ['Plus tôt que de partir, il reste.', 'Plus', 'Plutôt'], ["Il préfère rester plus tôt que d'attendre.", 'plus', 'plutôt']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _k7++; console.log('✗ faux jumeaux : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [["Ce type d'avantage fiscal compte.", "d'avantage"], ["Elle voit peu d'avantage ici.", "d'avantage"], ["Il n'y a d'avantage que pour lui.", "d'avantage"],
+                         ['Il est venu plus tôt que de coutume.', 'plus'], ['Je pense plutôt que tu as raison.', 'plutôt'], ['Il est parti plus tôt ce matin.', 'plus'],
+                         ['Il est plutôt content.', 'plutôt']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _k7++; console.log('✗ faux jumeaux : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k7) { console.log('PARITÉ KO — ' + _k7 + ' cas « faux jumeaux ».'); process.exit(1); } }
+
 /* ⭐ VIGILANCE (11/09/2026) — même invariant que parity_core, mais la tranche extraite n'a pas diagnoseAll : on appelle les
    QUATRE jumelles orange (toutes définies AVANT correctText, donc dans la tranche) dans l'ordre et avec la règle « première qui
    parle » de spellText — et la PRÉCÉDENCE DU ROUGE : dans le produit une orange ne sort jamais sur un mot que correctText a
