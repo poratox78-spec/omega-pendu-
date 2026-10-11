@@ -424,6 +424,24 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 11/10/2026 — lot 11 : le petit mot impossible après un pronom sujet, devant un verbe (orange, « petit mot après le sujet à
+   vérifier ») — il si est → s'y, il ni a → n'y, il dans mange → en, il cent va → s'en, ils ce sont → se ; silences : « si » adverbe,
+   inversion « dit-il si », « dans » + déterminant, « cent ans », « ce matin », ponctuation. Et le sujet COORDONNÉ par un pronom
+   tonique (« Lui et elle viennent », « Ni lui ni elle ne viennent ») n'est plus « corrigé » au singulier en rouge ; « il dort et elle
+   mangent » l'est toujours. Python : rule_apres_sujet, _coord_tonique. */
+{ let _k11 = 0;
+  for (const [ph, w, sg] of [['Il si est rendu hier.', 'si', "s'y"], ['Il ni a plus de pain.', 'ni', "n'y"], ['Il dans mange beaucoup.', 'dans', 'en'],
+                             ['Il cent va demain.', 'cent', "s'en"], ['Elle cent souvient.', 'cent', "s'en"], ['Ils ce sont battus.', 'ce', 'se'],
+                             ['Il dort et elle mangent.', 'mangent', 'mange']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _k11++; console.log('✗ après le sujet : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Il est si grand.', 'si'], ['Dit-il si fort ?', 'si'], ['Il dans un souffle répond.', 'dans'], ['Il a cent ans.', 'cent'],
+                         ['Il ce matin est parti.', 'ce'], ['Il, si tu veux, viendra.', 'si'], ['Lui et elle viennent.', 'viennent'],
+                         ['Ni lui ni elle ne viennent.', 'viennent'], ['Toi et elle venez.', 'venez']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _k11++; console.log('✗ après le sujet : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k11) { console.log('PARITÉ KO — ' + _k11 + ' cas « après le sujet ».'); process.exit(1); } }
+
 /* ⭐ 11/10/2026 — lot 10 : « sa » écrit pour « ça » devant un verbe (orange, branche de « ça/sa ») — « sa va », « sa fait », « sa
    dépend », « sa tous les jours » ; silences : nom après « sa » (chambre, maison, part, robe), adjectif (nouvelle, propre), mot à la
    fois nom et verbe (marche, passe). Python : _sa_ca_verbe (rule_ca_sa, tier_of). */

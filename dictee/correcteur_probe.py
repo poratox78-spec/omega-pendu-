@@ -3344,6 +3344,20 @@ def _subj_trigger(T, i):
     return (d1, 'que') in _SUBJ_TRIG_2 or (d2, d1) in _SUBJ_TRIG_3
 
 
+_CT_CLIT = frozenset(('ne', 'n', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en'))
+_CT_TON = frozenset(('moi', 'toi', 'lui', 'elle', 'eux', 'elles', 'nous', 'vous'))
+
+
+def _coord_tonique(T, i):
+    """⭐ 11/10/2026 (lot 11) — sujet coordonné par un pronom tonique (« Lui et elle viennent », « Ni lui ni elle ne viennent ») :
+    le pronom sujet suit et / ni / ou, précédé d'un tonique → sujet pluriel. Miroir JS _coordTonique."""
+    k = i - 1
+    while k >= 0 and re.sub(u"['’]$", '', deacc(T[k].lower())) in _CT_CLIT: k -= 1
+    if k < 2: return False
+    if deacc(T[k].lower()) not in ('il', 'elle', 'ils', 'elles'): return False
+    return deacc(T[k - 1].lower()) in ('et', 'ni', 'ou') and deacc(T[k - 2].lower()) in _CT_TON
+
+
 def rule_accord_sv(T, i):
     if not CONJ_LOADED or "'" in T[i].lower(): return None        # forme élidée (j'ai) → hors v1
     if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None   # participe (mangé…) : accord adjectival/temps composé, pas présent (deacc é→e trompe)
@@ -3359,6 +3373,7 @@ def rule_accord_sv(T, i):
             return None   # frame « s'est » (participe) — miroir de la garde JS (conflit « il sait tromper »)
     pn = _subject_before(T, i)
     if pn is None: return None                                    # pas de sujet-pronom net → abstention
+    if _coord_tonique(T, i): return None                          # ⭐ 11/10/2026 : « Lui et elle viennent » — miroir JS
     per, nb = pn
     if per == '3' and nb == 's' and deacc(T[i].lower()) in _V3PL_SURE:   # « il/elle » (sing) + verbe SÛR 3pl (sont/ont/vont/font) : le « s » MUET de ils/elles est tombé → c'est le PRONOM la faute (rule_il_ils), pas le verbe → NE PAS fixer le verbe (sinon « il sont »→« ils est »)
         _pp = deacc(T[i-1].lower()) if i > 0 else ''
@@ -4594,6 +4609,7 @@ def rule_sujet_flexion(T, i):
     if not CONJ_F or not CONJ_C: return None
     w = T[i]; lw = w.lower(); dl = deacc(lw)
     if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # ⭐ 11/10/2026 : mot collé par un trait d'union (« sud-est ») — miroir JS sujFlexVig
+    if _coord_tonique(T, i): return None   # ⭐ 11/10/2026 (lot 11) : « Lui et elle viennent » — sujet coordonné, miroir JS
     if lw.startswith("j'") and len(lw) > 3 and lw.count("'") == 1 and lw[2:].isalpha() and deacc(lw[2:]) not in FULL_AUX:   # être/avoir élidés (« j'est », « j'a ») = famille j'est/j'ai, qui se tait à dessein sur « j'est de Paris »
         # ⭐ 12/09/2026 : « même si j'admet que » → j'admets — le pronom ÉLIDÉ vit dans le token ; on relit la règle sur « je + verbe »
         #    (liste virtuelle, UN pas, comme rule_il_ils lit _ELIDED_PRON) et le préfixe est rendu tel quel. Miroir JS sujFlexVig.
@@ -6429,6 +6445,26 @@ def rule_plutot(T, i):
 
 
 _DAV_DET = set("le la les l' un une des du ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs chaque quel quelle tout toute".split())
+_APS_SUJ = frozenset(('je', 'tu', 'il', 'elle', 'on', 'ils', 'elles'))
+_APS_MAP = {'si': "s'y", 'ni': "n'y", 'dans': 'en', 'cent': "s'en", 'ce': 'se'}
+
+
+def rule_apres_sujet(T, i):
+    """⭐ 11/10/2026 — le petit mot impossible APRÈS UN PRONOM SUJET, devant un verbe conjugué (orange) : il si est → s'y, il ni a
+    → n'y, il dans mange → en, il cent va → s'en, ils ce sont → se. Miroir JS rApresSujet."""
+    n = len(T); d = deacc(T[i].lower())
+    if d not in _APS_MAP or i < 1 or i + 1 >= n: return None
+    p = re.sub(u"^(qu|s|lorsqu|puisqu|quoiqu)['’]", '', deacc(T[i - 1].lower()))
+    if p not in _APS_SUJ: return None
+    if _SEG is not None:
+        bb, hy = _SEG['bb'], _SEG['hy']
+        if (i < len(bb) and bb[i]) or (i + 1 < len(bb) and bb[i + 1]) or (i - 1 < len(hy) and hy[i - 1]) or (i < len(hy) and hy[i]) or (i + 1 < len(hy) and hy[i + 1]): return None
+    nx = T[i + 1].lower(); nd = deacc(nx)
+    if nd in NUM_DET or nd in DET_GENDER or re.match(u"^[ld]['’]", nx) or not _reads(nd): return None
+    if d == 'ce' and nd not in _CE_SE_STOP: return None                 # « il ce lève » : rule_ce_se
+    return _keepcase(T[i], _APS_MAP[d])
+
+
 _DAV_PREV = {'pas', 'plus', 'point', 'guere', 'aucun', 'sans', 'peu'}
 
 
@@ -6986,7 +7022,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même

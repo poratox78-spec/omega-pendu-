@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-11 — lot 11 : le petit mot impossible après le sujet (il si est, il ni a, il dans mange, il cent va, ils ce sont)
+
+- Sondage des homophones fréquents restants : « il si est rendu », « il ni a plus », « il dans mange », « il cent va », « ils ce sont
+  battus » étaient muets. Fait structurel : entre un pronom sujet et son verbe ne tiennent que des clitiques (ne, me, te, se, le,
+  la, les, lui, leur, y, en). `rApresSujet` ≡ `rule_apres_sujet` (orange « petit mot après le sujet à vérifier ») : pronom sujet +
+  si / ni / dans / cent / ce + verbe conjugué → s'y / n'y / en / s'en / se (« ce » seulement devant être, avoir, pouvoir, faire :
+  « il ce lève » est déjà vu par rCe). Gardes : ponctuation, inversion (« dit-il si »), déterminant après, nous / vous exclus.
+- Vu en testant : « Ni lui ni elle ne viennent » et « Lui et elle viennent » recevaient « vient » en ROUGE (Python et JS) — le sujet
+  lu n'était que « elle ». `_coordTonique` ≡ `_coord_tonique` : pronom sujet après et / ni / ou, précédé d'un pronom tonique →
+  abstention, dans `rAccordSV` ET sa jumelle `sujFlexVig` (qui prenait le relais). « il dort et elle mangent » reste corrigé.
+- Mesure : 0 changement sur les 14 322 textes (ces fautes n'y sont pas) ; UD 14 450 : 0.
+- Tests : `parity_corr.js` (7 prises, 9 silences) — 9 échecs sur l'ancienne app ; Python vérifié sur les mêmes phrases.
+
+---
+
 ## 2026-10-11 — lot 10 : « sa » écrit pour « ça » devant un verbe (sa va, sa fait, sa dépend)
 
 - Vu en préparant le lot 9 : « Sa va bien », « sa fait longtemps », « sa dépend » étaient muets. La règle ça/sa ne connaissait que
