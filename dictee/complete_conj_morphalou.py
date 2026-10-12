@@ -20,7 +20,8 @@ règle de la personne (sujFlexVig ≡ rule_sujet_flexion : majuscule au milieu d
 passé simple je / tu derrière un sujet nominal, « nous / vous » complément devant un sujet inversé) — et ici, pour le passé simple :
 seulement je / il / ils (« tu mangeas », « nous mangeâmes », « vous mangeâtes » sont rares à l'écrit et tombaient sur des noms propres :
 « Duras », « Carras »), et seulement pour un verbe courant (fréquence du dictionnaire ≥ 1 000 : « houa », houer, dehors).
-Le passé simple d'être et d'avoir (fut, furent, eut) reste dehors : il donne des « fut / furent » faux quand le sujet est loin.
+⭐ Conjugaison 3 (12/10/2026) : le passé simple d'être et d'avoir entre aussi. Il donnait des « fut / furent » faux quand le sujet est
+loin ; la carte des silences de l'accord sujet-verbe (svTaisCarte, JS) connaît désormais tous les temps d'être et d'avoir.
 
 Sources hors dépôt : data_local/morphalou/Morphalou3.1_CSV.csv (ATILF/CNRS, LGPL-LR — voir donnees.html). Sérialisation identique à
 build_cgram.py (compact, ensure_ascii=False), aller-retour vérifié octet à octet avant d'écrire. Idempotent.
@@ -38,7 +39,7 @@ TEMPS = {('indicative', 'present'): 'ind:pre', ('indicative', 'imperfect'): 'ind
          ('conditional', 'present'): 'cnd:pre', ('subjunctive', 'present'): 'sub:pre', ('indicative', 'simplePast'): 'ind:pas'}
 PS_PERS = {'1s', '3s', '3p'}          # passé simple : je, il, ils
 PS_FMIN = 1000                         # passé simple : verbe courant (fréquence du dictionnaire du produit)
-PS_SANS = {'etre', 'avoir'}            # fut, furent, eut : chantier suivant
+PS_SANS = set()                        # ⭐ conjugaison 3 : être et avoir entrent (fus / fut / furent, eus / eut / eurent) — la carte des silences sait les lire
 PERS = {'firstPerson': '1', 'secondPerson': '2', 'thirdPerson': '3'}
 NOMB = {'singular': 's', 'plural': 'p'}
 ARCH = set('ouir choir echoir dechoir gesir chaloir occire issir seoir messeoir poindre querir ester ferir accroire'.split())
