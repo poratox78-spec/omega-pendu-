@@ -908,6 +908,21 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 2) — produit entier : l'accent seul à la même personne reste ORANGE (« il apercut » → aperçut, « elle
+// placa » → plaça — l'auteur voulait peut-être le présent) ; derrière un sujet nominal, un participe ne devient pas un passé simple
+// (« le jet électronique émis par », « les amis réunis ») ; « les chats fis un bruit » → firent (orange).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c2 = 0;
+  for (const [s, w, sg] of [['Il apercut la mer.', 'apercut', 'aperçut'], ['Elle placa le vase.', 'placa', 'plaça'], ['Les chats fis un bruit.', 'fis', 'firent']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== 'vigilance') { _c2++; console.log('  ✗ conjugaison 2 : « ' + s + ' » → « ' + sg + ' » en ORANGE attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const [s, w] of [['Le jet électronique émis par le canon frappe l\'écran.', 'émis'], ['Les amis réunis chantent.', 'réunis'], ['Marguerite Duras écrit un roman.', 'Duras']]) {
+    if (fl(s).some(x => x.word === w)) { _c2++; console.log('  ✗ conjugaison 2 : « ' + s + ' » : « ' + w + ' » doit rester muet'); }
+  }
+  if (_c2) { console.log('PARITÉ KO — conjugaison 2 : ' + _c2 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 2 : accent seul en orange, participe et nom propre muets, passé simple accordé au sujet nominal"); }
+
 // ⭐ 12/10/2026 (lot 14) — « Elle mes dit de venir » : l'orange « pluriel par le son » rendait « dits » (et « donnés », « vues ») —
 // FAUX : après un pronom sujet, « mes » n'est pas un déterminant, c'est me + avoir → « m'a ». Produit entier : la marque va sur « mes »,
 // jamais un pluriel sur le participe ; « Je mes dit » (auxiliaire incertain) reste sans pluriel.

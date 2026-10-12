@@ -5,6 +5,30 @@
 
 ---
 
+## 2026-10-12 — conjugaison 2 : + subjonctif et passé simple, et cinq gardes dans la règle de la personne
+
+- `complete_conj_morphalou.py` remplit aussi le subjonctif présent (10,0 → 88,2 %) et le passé simple (38,6 → 45,9 %) : je / il / ils
+  seulement (« tu mangeas », « vous mangeâtes » : rares à l'écrit, et les -as tombaient sur des noms propres — Duras, Carras), verbes
+  courants seulement (fréquence ≥ 1 000 : « houa », houer, dehors) ; être et avoir dehors (fut / furent : chantier 3).
+- Mesuré temps par temps : ces ajouts RÉVEILLENT des lectures douteuses. Gardes posées dans `sujFlexVig` ≡ `rule_sujet_flexion` :
+  ① un mot à majuscule au milieu de la phrase n'est pas le verbe (UD : Calais, « Chantons sous la pluie », Duras) ; ② un subjonctif
+  SEUL sans « que » n'est pas le verbe voulu (« les prestations exclues ») ; ③ derrière un sujet nominal, un participe (« les amis
+  réunis », « à prix réduit ») et un passé simple je / tu sans complément (« le jet électronique émis par ») ne sont pas des verbes ;
+  ④ « pour que nous parvienne le texte » : « nous » complément devant un sujet inversé ; ⑤ l'accent SEUL à la même personne
+  (« il apercut » → aperçut, « elle placa » → plaça) devient ORANGE, jamais rouge — le piège de la batterie (l'auteur voulait
+  peut-être le présent) — avec le bon mot : avant, le dictionnaire proposait « aperçu », « réveilla ».
+- Deux gardes trop larges vues par les tests et resserrées : ④ éteignait « nous surveillerait la maison » (→ seulement après
+  « que » devant un subjonctif) ; ③ éteignait « les chats fis un bruit » (→ seulement sans complément derrière, au singulier).
+- Mesure (par rapport à la conjugaison 1) : UD 14 450 : 9 fausses alertes anciennes en moins, 0 de plus ; 3 corpus : ~35 gains (passés
+  simples mal accentués réparés : « apercut », « exerca », « J'appela » → J'appelai, « je rentra » → rentrai) contre 3 pertes (dont
+  une où le corrigé du corpus écrit « couru » pour « courrut », et « se resaisit » → ressaisis) ; noms propres que la règle réécrivait
+  par hasard (« Ecosse » → Écosse) : plus touchés. Batterie Python : détection 270 → 272 / 285, 0 FP, 87 pièges muets ; census :
+  fatigue 147 → 146 (ré-ancré).
+- Tests : `parity_corr.js` (remplissage subjonctif et passé simple + 4 prises + 2 silences ; 7 échecs sur l'ancienne table) ;
+  `parity_core.js` (produit entier : paliers orange, participes et nom propre muets).
+
+---
+
 ## 2026-10-12 — conjugaison 1 : la table des règles complétée par Morphalou (présent, imparfait, futur, conditionnel)
 
 - Question de Rem : « on en est où de la conjugaison ? ». Le dictionnaire d'orthographe (~711 000 formes) est enrichi au

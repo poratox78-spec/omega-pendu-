@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-u"""La table de conjugaison des RÈGLES complétée par Morphalou 3.1 — présent, imparfait, futur, conditionnel (12/10/2026).
+u"""La table de conjugaison des RÈGLES complétée par Morphalou 3.1 — présent, imparfait, futur, conditionnel, subjonctif, passé simple (12/10/2026).
 
 Constat (question de Rem : « on en est où de la conjugaison ? ») : le dictionnaire d'orthographe (~711 000 formes) est enrichi au
 Wiktionnaire et à Morphalou, mais la table qui dit quelle forme va avec quel sujet (cgram_conj.json, référence Python ; cgram_hf.json,
@@ -15,8 +15,12 @@ Ce script REMPLIT LES CASES VIDES des verbes déjà connus, aux quatre temps mes
   · verbes archaïques ou défectifs écartés (ouïr : « orrai » → « orront ») ;
   · une forme déjà lue pour un AUTRE verbe ne reçoit la nouvelle lecture que si ce verbe est plus fréquent (« saurons » : savoir passe
     devant saurer ; « étaient » reste à être, jamais à étayer).
-Le passé simple et le subjonctif ne sont PAS repris ici : ils réveillent des lectures douteuses (« exclues » subjonctif → « excluent »,
-noms propres en -as lus comme des passés simples) — chantier suivant, avec des gardes dans les règles.
+⭐ Conjugaison 2 (12/10/2026) : + subjonctif présent et passé simple. Ils réveillaient des lectures douteuses — gardes posées DANS la
+règle de la personne (sujFlexVig ≡ rule_sujet_flexion : majuscule au milieu de la phrase, subjonctif seul sans « que », participe ou
+passé simple je / tu derrière un sujet nominal, « nous / vous » complément devant un sujet inversé) — et ici, pour le passé simple :
+seulement je / il / ils (« tu mangeas », « nous mangeâmes », « vous mangeâtes » sont rares à l'écrit et tombaient sur des noms propres :
+« Duras », « Carras »), et seulement pour un verbe courant (fréquence du dictionnaire ≥ 1 000 : « houa », houer, dehors).
+Le passé simple d'être et d'avoir (fut, furent, eut) reste dehors : il donne des « fut / furent » faux quand le sujet est loin.
 
 Sources hors dépôt : data_local/morphalou/Morphalou3.1_CSV.csv (ATILF/CNRS, LGPL-LR — voir donnees.html). Sérialisation identique à
 build_cgram.py (compact, ensure_ascii=False), aller-retour vérifié octet à octet avant d'écrire. Idempotent.
@@ -31,7 +35,10 @@ MOR = os.path.join(ROOT, 'data_local', 'morphalou', 'Morphalou3.1_CSV.csv')
 SPELLER = os.path.join(ROOT, 'extension', 'assets', 'speller.tsv.gz')
 DRY = '--dry' in sys.argv
 TEMPS = {('indicative', 'present'): 'ind:pre', ('indicative', 'imperfect'): 'ind:imp', ('indicative', 'future'): 'ind:fut',
-         ('conditional', 'present'): 'cnd:pre'}
+         ('conditional', 'present'): 'cnd:pre', ('subjunctive', 'present'): 'sub:pre', ('indicative', 'simplePast'): 'ind:pas'}
+PS_PERS = {'1s', '3s', '3p'}          # passé simple : je, il, ils
+PS_FMIN = 1000                         # passé simple : verbe courant (fréquence du dictionnaire du produit)
+PS_SANS = {'etre', 'avoir'}            # fut, furent, eut : chantier suivant
 PERS = {'firstPerson': '1', 'secondPerson': '2', 'thirdPerson': '3'}
 NOMB = {'singular': 's', 'plural': 'p'}
 ARCH = set('ouir choir echoir dechoir gesir chaloir occire issir seoir messeoir poindre querir ester ferir accroire'.split())
@@ -75,7 +82,9 @@ def completer(cj, mor, ppl, spos, lfreq):
     C, F = cj['c'], cj['f']; cases = lect = 0
     for l in [x for x in C if x in mor]:
         for k, d in mor[l].items():
+            if k == 'ind:pas' and (l in PS_SANS or lfreq.get(l, 0) < PS_FMIN): continue
             for pn, forms in d.items():
+                if k == 'ind:pas' and pn not in PS_PERS: continue
                 if pn in C[l].get(k, {}): continue                 # case remplie : on n'y touche pas
                 ok = []
                 for fo in forms:
@@ -93,7 +102,7 @@ def completer(cj, mor, ppl, spos, lfreq):
 
 
 def remplissage(C):
-    return {k: round(100.0 * sum(len(C[l].get(k, {})) for l in C) / (6 * len(C)), 1) for k in ('ind:pre', 'ind:imp', 'ind:fut', 'cnd:pre')}
+    return {k: round(100.0 * sum(len(C[l].get(k, {})) for l in C) / (6 * len(C)), 1) for k in ('ind:pre', 'ind:imp', 'ind:fut', 'cnd:pre', 'sub:pre', 'ind:pas')}
 
 
 def main():

@@ -424,6 +424,26 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 2 : + subjonctif et passé simple (je / il / ils, verbes courants) dans la table, et gardes dans la règle
+   de la personne. Prises : « il apercut » → aperçut, « elle révèla » → révéla (accent seul : ORANGE), « ils construisit » →
+   construisirent, « il faut que nous parte » → partions ; silences : nom propre au milieu de la phrase (« Marguerite Duras écrit »),
+   passé simple juste. Garde de remplissage : subjonctif et passé simple. Python : rule_sujet_flexion, tier_of. */
+{ let _kc2 = 0;
+  for (const fn of ['cgram_conj.json', 'cgram_hf.json']) {
+    const d = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')), C = (fn === 'cgram_hf.json' ? d.cj : d).c, L = Object.keys(C);
+    for (const [t, min] of [['sub:pre', 85], ['ind:pas', 45]]) {
+      let n = 0; for (const l of L) n += Object.keys(C[l][t] || {}).length;
+      const pc = 100 * n / (6 * L.length);
+      if (pc < min) { _kc2++; console.log('✗ conjugaison 2 : ' + fn + ' ' + t + ' rempli à ' + pc.toFixed(1) + ' % (< ' + min + ' %) — relancer dictee/complete_conj_morphalou.py'); } } }
+  for (const [ph, w, sg] of [['Il apercut la mer.', 'apercut', 'aperçut'], ['Elle révèla le secret.', 'révèla', 'révéla'],
+                             ['Ils construisit une maison.', 'construisit', 'construisirent'], ['Il faut que nous parte demain.', 'parte', 'partions']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc2++; console.log('✗ conjugaison 2 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Marguerite Duras écrit un roman.', 'Duras'], ['Il construisit une maison.', 'construisit']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc2++; console.log('✗ conjugaison 2 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc2) { console.log('PARITÉ KO — ' + _kc2 + ' cas « conjugaison 2 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 1 : la table des règles complétée par Morphalou (présent, imparfait, futur, conditionnel ;
    dictee/complete_conj_morphalou.py). Une case vide faisait taire la règle de la personne : « nous expliquerait » restait sans
    « expliquerions ». Garde de REMPLISSAGE (les deux tables : référence Python et embarquée) + prises + silences. */

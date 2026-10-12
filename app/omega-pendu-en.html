@@ -27870,6 +27870,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
      donne le TEMPS (on ne réécrit pas au présent). Miroir Python rule_sujet_flexion. */
     if(!CONJ_F||!CONJ_C)return null;
     var w=T[i];if(!w)return null;
+    if(i>0&&w.charAt(0)!==w.charAt(0).toLowerCase()&&!(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i]))return null;   // ⭐ 12/10/2026 (conjugaison 2) : un nom propre au milieu de la phrase n'est pas le verbe (« Marguerite Duras ») — miroir Python
     if(_SEG&&_SEG.hy&&i<_SEG.hy.length&&_SEG.hy[i])return null;   // ⭐ 11/10/2026 : mot collé par un trait d'union (« les villes du sud-est sont » : « est » n'est pas le verbe) — miroir Python
     if(_coordTonique(T,i))return null;   // ⭐ 11/10/2026 (lot 11) : « Lui et elle viennent » — sujet coordonné, miroir Python
     var lw=w.toLowerCase(),dl=deacc(lw),k;
@@ -27914,6 +27915,9 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var sub=_sujetFlexion(T,i,tg);
     if(!sub)return null;
     var per=sub[0],nb=sub[1],src=sub[2];
+    if(src==='nom'&&!(i+1<T.length&&(NUM_DET[deacc(T[i+1].toLowerCase())]||DET_G[deacc(T[i+1].toLowerCase())]))){var _p12=true;for(k=0;k<lec.length;k++)if(!(lec[k][1]==='ind:pas'&&(lec[k][2]==='1'||lec[k][2]==='2')&&lec[k][3]==='s'))_p12=false;if(_p12)return null;}   // ⭐ 12/10/2026 (conjugaison 2) : sujet nominal + forme lisible SEULEMENT en passé simple je / tu, sans complément derrière (« le jet électronique émis par ») : un participe — « les chats fis un bruit » reste corrigé — miroir Python
+    if(src==='nom'&&_avoirPp(w))return null;   // ⭐ 12/10/2026 (conjugaison 2) : derrière un sujet nominal, un PARTICIPE (« le jet électronique émis ») n'est pas un passé simple — miroir Python
+    if(src==='pron'&&nb==='p'&&(per==='1'||per==='2')&&i>=2&&/^(nous|vous)$/.test(deacc(T[i-1].toLowerCase()))&&/^qu(e|['’])?$/.test(deacc(T[i-2].toLowerCase()))&&i+1<T.length&&(NUM_DET[deacc(T[i+1].toLowerCase())]||DET_G[deacc(T[i+1].toLowerCase())])){var _l3=false;for(k=0;k<lec.length;k++)if(lec[k][2]==='3'&&lec[k][1]==='sub:pre')_l3=true;if(_l3)return null;}   // ⭐ 12/10/2026 (conjugaison 2) : « pour que nous parvienne le texte » — « nous » complément, sujet inversé après un SUBJONCTIF — miroir Python
     if(src!==(_ROUGE?'pron':'nom'))return null;   // pronom → ROUGE ; nominal → ORANGE (miroir Python)
     if(nb==='s'&&per==='3'&&_V3PL_SURE[dl])return null;   // « il sont », « Il ont » : c'est le SUJET qui est fauté (rIlIls le répare), pas le verbe — miroir Python
     var _hors=!_spos(lw);   // la forme écrite n'est PAS un mot du lexique → une différence d'ACCENT SEUL est une vraie faute
@@ -27929,6 +27933,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var lec2=[];
     for(k=0;k<lec.length;k++)if((lec[k][1].indexOf('sub')===0)===que)lec2.push(lec[k]);
     if(lec2.length)lec=lec2;                                                // « que » présent → subjonctif ; absent → indicatif
+    else if(!que){var _ts=true;for(k=0;k<lec.length;k++)if(lec[k][1].indexOf('sub')!==0)_ts=false;if(_ts)return null;}   // ⭐ 12/10/2026 (conjugaison 2) : un subjonctif SEUL sans « que » n'est pas le verbe voulu (« les prestations exclues » : participe) — miroir Python
     var cible=null,slot=per+nb,lemc=null,_cands=[];
     for(k=0;k<lec.length;k++){
       var f=_CONJ_FIX[lec[k][0]+'|'+lec[k][1]+'|'+slot]||((CONJ_C[lec[k][0]]||{})[lec[k][1]]||{})[slot];
@@ -27944,7 +27949,8 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     lemc=_cands[0][0];cible=_cands[0][1];
     if(!cible||cible.toLowerCase()===lw)return null;
     if(deacc(cible.toLowerCase())===dl&&!_hors)return null;
-    if(_psSeul&&slot==='3s'&&deacc(cible.toLowerCase())===dl)return null;   // ⭐ 09/10/2026 : « exerca » → exerça n'est qu'un ACCENT à la même personne — l'auteur voulait peut-être le présent (« exerce ») : l'orthographe s'en charge, en orange   // accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
+    if(_psSeul&&slot==='3s'&&deacc(cible.toLowerCase())===dl)return null;
+    if(_ROUGE&&slot==='3s'&&deacc(cible.toLowerCase())===dl){var _rc=svReads(cible),_pc=false;for(k=0;k<_rc.length;k++)if(_rc[k][1]==='ind:pas')_pc=true;if(_pc)return {sugg:ckeepcase(w,cible),vig:1};}   // ⭐ 12/10/2026 (conjugaison 2) : « il placa » → plaça : accent SEUL à la même personne — l'auteur voulait peut-être le présent : ORANGE, jamais rouge — miroir Python tier_of   // ⭐ 09/10/2026 : « exerca » → exerça n'est qu'un ACCENT à la même personne — l'auteur voulait peut-être le présent (« exerce ») : l'orthographe s'en charge, en orange   // accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
     /* ⭐ LEMME RARE À UNE LETTRE D'UN AUXILIAIRE (10/09/2026, cas de Rem) : « nous somme » → sommons, « vous somme » → sommez —
        *sommer* est un verbe que personne n'emploie (0,23/M) et l'écrit est à une lettre de « sommes » (433/M) : la lecture
        « verbe rare » est la mauvaise hypothèse. Abstention ; rAuxMisspell parle s'il peut. ⚠️ On pèse le LEMME (SP.D2A →
