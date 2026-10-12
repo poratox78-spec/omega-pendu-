@@ -4609,6 +4609,7 @@ def rule_sujet_flexion(T, i):
     if not CONJ_F or not CONJ_C: return None
     w = T[i]; lw = w.lower(); dl = deacc(lw)
     if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # ⭐ 11/10/2026 : mot collé par un trait d'union (« sud-est ») — miroir JS sujFlexVig
+    if i > 0 and w[:1] != w[:1].lower() and not (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]): return None   # ⭐ 12/10/2026 (conjugaison 2) : un nom propre au milieu de la phrase n'est pas le verbe (« Marguerite Duras ») — miroir JS
     if _coord_tonique(T, i): return None   # ⭐ 11/10/2026 (lot 11) : « Lui et elle viennent » — sujet coordonné, miroir JS
     if lw.startswith("j'") and len(lw) > 3 and lw.count("'") == 1 and lw[2:].isalpha() and deacc(lw[2:]) not in FULL_AUX:   # être/avoir élidés (« j'est », « j'a ») = famille j'est/j'ai, qui se tait à dessein sur « j'est de Paris »
         # ⭐ 12/09/2026 : « même si j'admet que » → j'admets — le pronom ÉLIDÉ vit dans le token ; on relit la règle sur « je + verbe »
@@ -4709,6 +4710,13 @@ def rule_sujet_flexion(T, i):
     sub = _sujet_flexion(T, i, tg)
     if sub is None: return None
     per, nb, src = sub
+    if src == 'nom' and i + 1 < len(T) and (deacc(T[i + 1].lower()) in PREP or deacc(T[i + 1].lower()) in ('au', 'aux')) \
+            and all(r[1] == 'ind:pas' and r[2] in ('1', '2') and r[3] == 's' for r in lec): return None   # ⭐ 12/10/2026 (conjugaison 2) : sujet nominal + passé simple je / tu seul, devant une préposition (« émis par ») — miroir JS
+    if src == 'nom' and _avoir_pp(w): return None   # ⭐ 12/10/2026 (conjugaison 2) : un PARTICIPE derrière un sujet nominal — miroir JS
+    if src == 'pron' and nb == 'p' and per in ('1', '2') and i >= 2 and deacc(T[i - 1].lower()) in ('nous', 'vous') \
+            and re.match(u"^qu(e|['’])?$", deacc(T[i - 2].lower())) and i + 1 < len(T) \
+            and (deacc(T[i + 1].lower()) in NUM_DET or deacc(T[i + 1].lower()) in DET_GENDER) \
+            and any(r[2] == '3' and r[1] == 'sub:pre' for r in lec): return None   # ⭐ 12/10/2026 (conjugaison 2) : « pour que nous parvienne le texte » — miroir JS
     # LE PALIER SUIT LA FIABILITÉ DU SUJET : pronom → ROUGE ; nominal → ORANGE (règle jumelle ci-dessous).
     # Mesuré le 14/09 sur le corpus dys : en rouge, le sujet nominal fait 3 corrections justes sur 17.
     if src != ('pron' if _ROUGE else 'nom'): return None
@@ -4744,6 +4752,7 @@ def rule_sujet_flexion(T, i):
     _que = any(re.match(r"^(que|qu)$", deacc(T[k].lower()).rstrip("\'\u2019")) for k in range(max(0, i - 5), i))
     _lec2 = [r for r in lec if r[1].startswith('sub')] if _que else [r for r in lec if not r[1].startswith('sub')]
     if _lec2: lec = _lec2                                            # « que » présent → subjonctif ; absent → indicatif
+    elif not _que and all(r[1].startswith('sub') for r in lec): return None   # ⭐ 12/10/2026 (conjugaison 2) : un subjonctif SEUL sans « que » n'est pas le verbe voulu (« les prestations exclues ») — miroir JS
     cible, slot, lemc = None, per + nb, None
     _cands = []
     for (lem, tps, _p, _n) in lec:
@@ -7024,6 +7033,8 @@ def tier_of(T, i, name, sugg):
     Miroir JS : _tierOf dans l'app et dys-core (parité extension/parity_core.js)."""
     if name.endswith(u'à vérifier'): return 'vigilance'   # ⭐ 11/09/2026 : une règle « à vérifier » est ORANGE par construction (miroir spellText JS : tier 'vigilance') — nombre du déterminant, etc.
     if name == 'ça/sa' and deacc(T[i].lower()) == 'sa' and _sa_ca_verbe(T, i): return 'vigilance'   # ⭐ 11/10/2026 : « sa va » = orange — miroir JS {vig:1}
+    if name == 'personne du verbe' and deacc((sugg or '').lower()) == deacc(T[i].lower()) and (sugg or '').lower() != T[i].lower() \
+            and any(r[1] == 'ind:pas' and r[2] == '3' and r[3] == 's' for r in _reads(sugg)): return 'vigilance'   # ⭐ 12/10/2026 (conjugaison 2) : « il placa » → plaça, accent seul à la même personne : orange, jamais rouge — miroir JS {vig:1}
     if name not in VIG_FAMILIES:
         return 'auto'
     if name == 'a/à':                                     # ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir JS
