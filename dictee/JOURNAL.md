@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-10-12 — conjugaison 8 : les lectures fantômes de la table ; « j'as » → j'ai
+
+- Constat (lot 7) : la table `f` (forme → lectures) portait 1 359 lectures que la table `c` (lemme → temps → personne) contredit. La
+  plupart sont légitimes (variantes y/i : paye / paie ; asseoir : assois / assieds ; collisions désaccentuées : repartir / répartir) ;
+  Lexique range aussi plusieurs formes sur une ligne avec un seul champ personne / nombre, d'où de vraies erreurs : « vus » lu « voir,
+  présent je / tu », « dit » futur, « suis » « être, tu », « as » « avoir, je », « -es » lu je. Effet produit : « elles on vus la mer »
+  → « vus → voit » en ROUGE (rAccordSV lit les lectures brutes) ; « il bue » muet.
+- Oracle croisé : Morphalou seul ne suffit pas (il n'écrit qu'UNE fois une forme partagée par deux personnes — « sortais » : tu
+  seulement), la table seule non plus (variantes). Une lecture est retirée quand Morphalou ne la donne pas pour cette case ET que `c` y
+  porte une autre forme, hors variante y/i, peux/puis et verbes à double conjugaison → 81 lectures (Python et table embarquée), étape
+  `fantomes` de dictee/complete_conj_morphalou.py, idempotente (2e passage : 0).
+- « j'as », « j'a » → j'ai (rJest ≡ rule_jest, rouge) : j' + avoir n'existe qu'en « j'ai ».
+- Mesure : gold (catalogue), 3 corpus (14 322 textes) et UD 14 450 : 0 changement. Batterie Python 272 / 285, 0 FP, 87 pièges muets ;
+  couverture de la conjugaison inchangée.
+- Tests : `parity_corr.js` (garde de la table : 5 fantômes absents, 5 lectures justes présentes, dans les deux tables ; 2 prises ;
+  3 silences ; 13 échecs sur l'ancien état) ; `parity_core.js` (plus de « vus → voit », « j'as » rouge, « il bue » → but orange ;
+  3 échecs sur l'ancien état).
+
+---
+
 ## 2026-10-12 — conjugaison 7 : « nous » / « vous » sujets après et, puis, mais
 
 - Sondage après la conjugaison 6 (phrases inventées) : « je range la cuisine puis nous mangeront », « tu lis un livre mais vous

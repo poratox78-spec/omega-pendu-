@@ -23,6 +23,13 @@ seulement je / il / ils (« tu mangeas », « nous mangeâmes », « vous mange�
 ⭐ Conjugaison 3 (12/10/2026) : le passé simple d'être et d'avoir entre aussi. Il donnait des « fut / furent » faux quand le sujet est
 loin ; la carte des silences de l'accord sujet-verbe (svTaisCarte, JS) connaît désormais tous les temps d'être et d'avoir.
 
+⭐ Conjugaison 8 (12/10/2026) : les lectures FANTÔMES retirées. Lexique range plusieurs formes sur une ligne avec un seul champ
+personne / nombre : la table `f` portait des lectures que rien ne confirme — « vus » lu « voir, présent je / tu » (→ « ils on vus le
+film » recevait « vus → voit » en rouge), « dit » lu futur, « j'as », « je parles », « tu suis » lu être. Une lecture est retirée quand
+MORPHALOU (variantes accentuées du lemme réunies) ne donne pas cette forme pour cette case ET que la table `c` y porte une autre forme
+(pas une variante y/i ni peux/puis) — Morphalou n'écrit qu'une fois une forme partagée par deux personnes (« sortais » : tu seulement),
+la table seule ne suffit pas non plus. Verbes à double conjugaison (asseoir : assois / assieds…) jamais touchés.
+
 Sources hors dépôt : data_local/morphalou/Morphalou3.1_CSV.csv (ATILF/CNRS, LGPL-LR — voir donnees.html). Sérialisation identique à
 build_cgram.py (compact, ensure_ascii=False), aller-retour vérifié octet à octet avant d'écrire. Idempotent.
     python3 dictee/complete_conj_morphalou.py [--dry]
@@ -43,6 +50,8 @@ PS_SANS = set()                        # ⭐ conjugaison 3 : être et avoir entr
 PERS = {'firstPerson': '1', 'secondPerson': '2', 'thirdPerson': '3'}
 NOMB = {'singular': 's', 'plural': 'p'}
 ARCH = set('ouir choir echoir dechoir gesir chaloir occire issir seoir messeoir poindre querir ester ferir accroire'.split())
+VARL = set('asseoir rasseoir surseoir messeoir seoir saillir assaillir tressaillir faillir defaillir bruire frire clore eclore gesir ouir '
+           'choir echoir dechoir paitre repaitre braire traire'.split())   # ⭐ conjugaison 8 : double conjugaison (assois / assieds…)
 try: sys.stdout.reconfigure(encoding='utf-8')
 except Exception: pass
 
@@ -58,7 +67,7 @@ def charger():
         if len(q) >= 3: spos[q[0]] = q[2]
         if len(q) >= 2 and q[1].isdigit():
             d = deacc(q[0]); lfreq[d] = max(lfreq.get(d, 0), int(q[1]))
-    mor, ppl, lemmes, lem = {}, set(), {}, None
+    mor, ppl, lemmes, lem, tous = {}, set(), {}, None, {}
     with io.open(MOR, encoding='utf-8') as f:
         for l in f:
             c = l.rstrip('\n').split(';')
@@ -71,12 +80,13 @@ def charger():
             if c[12] == 'participle' and c[14] == 'past': ppl.add(form.lower())
             k = TEMPS.get((c[12], c[14]))
             if not k or c[15] not in PERS or c[11] not in NOMB or not form or ' ' in form: continue
+            tous.setdefault(deacc(lem), {}).setdefault(k, {}).setdefault(PERS[c[15]] + NOMB[c[11]], set()).add(deacc(form.lower()))   # conjugaison 8 : tout Morphalou, collisions comprises
             slot = mor.setdefault(deacc(lem), {}).setdefault(k, {}).setdefault(PERS[c[15]] + NOMB[c[11]], [])
             if form not in slot: slot.append(form)
     for k, v in lemmes.items():
         if len(v) > 1: mor.pop(k, None)                         # collision désaccentuée
     for k in ARCH: mor.pop(k, None)
-    return mor, ppl, spos, lfreq
+    return mor, ppl, spos, lfreq, tous
 
 
 def completer(cj, mor, ppl, spos, lfreq):
@@ -104,13 +114,35 @@ def completer(cj, mor, ppl, spos, lfreq):
     return cases, lect
 
 
+def fantomes(cj, tous):
+    u"""⭐ Conjugaison 8 : retire de `f` les lectures que ni Morphalou ni la table `c` ne confirment (voir l'en-tête). Rend le nombre retiré."""
+    C, F = cj['c'], cj['f']; n = 0
+    for k in list(F):
+        garde = []
+        for r in F[k].split('|'):
+            x = r.split(';')
+            if len(x) != 4: garde.append(r); continue
+            l, t, pp, nb = x
+            m = (tous.get(l) or {}).get(t)
+            slots = [pp + nb] if nb != 'x' else [pp + 's', pp + 'p']
+            cf = [deacc(C[l][t][s_].lower()) for s_ in slots if (C.get(l) or {}).get(t, {}).get(s_)]
+            if (not m or any(k in m.get(s_, ()) for s_ in slots) or not cf or k in cf or l in VARL
+                    or any(f.replace('y', 'i') == k.replace('y', 'i') or {f, k} == {'peux', 'puis'} for f in cf)):
+                garde.append(r)
+            else: n += 1
+        if len(garde) != len(F[k].split('|')):
+            if garde: F[k] = '|'.join(garde)
+            else: del F[k]
+    return n
+
+
 def remplissage(C):
     return {k: round(100.0 * sum(len(C[l].get(k, {})) for l in C) / (6 * len(C)), 1) for k in ('ind:pre', 'ind:imp', 'ind:fut', 'cnd:pre', 'sub:pre', 'ind:pas')}
 
 
 def main():
     if not os.path.exists(MOR): raise SystemExit('Morphalou introuvable : ' + MOR)
-    mor, ppl, spos, lfreq = charger()
+    mor, ppl, spos, lfreq, tous = charger()
     for fn in ('cgram_conj.json', 'cgram_hf.json'):
         p = os.path.join(HERE, fn)
         raw = io.open(p, encoding='utf-8', newline='').read()
@@ -120,8 +152,9 @@ def main():
         cj = d if fn == 'cgram_conj.json' else d['cj']
         avant = remplissage(cj['c'])
         cases, lect = completer(cj, mor, ppl, spos, lfreq)
+        fant = fantomes(cj, tous)
         out = json.dumps(d, ensure_ascii=False, separators=(',', ':'))
-        print('%-16s +%d case(s), +%d lecture(s) · remplissage %s → %s%s' % (fn, cases, lect, avant, remplissage(cj['c']), ' (dry)' if DRY else ''))
+        print('%-16s +%d case(s), +%d lecture(s), -%d fantôme(s) · remplissage %s → %s%s' % (fn, cases, lect, fant, avant, remplissage(cj['c']), ' (dry)' if DRY else ''))
         if out != raw and not DRY:
             io.open(p, 'w', encoding='utf-8', newline='').write(out)
     if not DRY:

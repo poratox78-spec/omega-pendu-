@@ -424,6 +424,24 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 8 : les lectures FANTÔMES retirées de la table (dictee/complete_conj_morphalou.py, fantomes) — « vus » ne
+   se lit plus « voir, présent je / tu », « dit » plus futur, « suis » plus « être, tu », « as » plus « avoir, je » (Python et table embarquée) ;
+   « j'as », « j'a » → j'ai. Python : rule_jest. */
+{ let _kc8 = 0;
+  for (const fn of ['cgram_conj.json', 'cgram_hf.json']) {
+    let J = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')); if (J.cj) J = J.cj;
+    for (const [k, r] of [['vus', 'voir;ind:pre;1;s'], ['vus', 'voir;ind:pre;2;s'], ['dit', 'dire;ind:fut;3;s'], ['suis', 'etre;ind:pre;2;s'], ['as', 'avoir;ind:pre;1;s']])
+      if (String(J.f[k] || '').split('|').includes(r)) { _kc8++; console.log('✗ conjugaison 8 : ' + fn + ' porte encore la lecture fantôme ' + k + ' = ' + r); }
+    for (const [k, r] of [['vois', 'voir;ind:pre;1;s'], ['dit', 'dire;ind:pre;3;s'], ['suis', 'etre;ind:pre;1;s'], ['as', 'avoir;ind:pre;2;s'], ['sortais', 'sortir;ind:imp;1;s']])
+      if (!String(J.f[k] || '').split('|').includes(r)) { _kc8++; console.log('✗ conjugaison 8 : ' + fn + ' a perdu la lecture juste ' + k + ' = ' + r); } }
+  for (const [ph, w, sg] of [["J'as froid ce matin.", "J'as", "J'ai"], ["J'a perdu mon stylo bleu.", "J'a", "J'ai"]]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc8++; console.log('✗ conjugaison 8 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Elles on vus la mer hier.', 'vus'], ['Tu suis le sentier du bois.', 'suis'], ['Je garde le chat du voisin.', 'garde']]) {
+    const got = corr(ph).filter(f => f.word === w && f.name === 'accord sujet-verbe');
+    if (got.length) { _kc8++; console.log('✗ conjugaison 8 : ' + JSON.stringify(ph) + ' : « ' + w + ' » ne doit pas être réaccordé, eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  if (_kc8) { console.log('PARITÉ KO — ' + _kc8 + ' cas « conjugaison 8 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 7 : « nous » / « vous » sujets après et, puis, mais… (« puis nous mangeront » → mangerons), « elles en on » → ont — sauf
    quand la forme écrite s'accorde avec le sujet pronom d'avant (« il nous salue et nous embrasse » : sujet sous-entendu) ou que le
    sujet d'avant est un nom. Python : _ellipse_accorde. */
