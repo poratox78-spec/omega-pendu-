@@ -424,6 +424,22 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — lot 13 : forme finie après ÊTRE écrite pour le participe (orange, « participe après être à vérifier ») — il est
+   partit → parti, elle est sortit → sortie, ils sont partit → partis, c'est finit → fini, je me suis fais mal → fait, c'est permit →
+   permis, il est prit → pris ; silences : « il est déjà nuit » (nom), « le choc est subit » (adjectif), participe déjà juste ou
+   accordé (« sont apparus »). Python : rule_etre_fini. */
+{ let _k13 = 0;
+  for (const [ph, w, sg] of [['Il est partit tôt.', 'partit', 'parti'], ['Elle est sortit hier.', 'sortit', 'sortie'], ['Ils sont partit ensemble.', 'partit', 'partis'],
+                             ["C'est finit pour aujourd'hui.", 'finit', 'fini'], ['Je me suis fais mal.', 'fais', 'fait'], ["C'est permit.", 'permit', 'permis'],
+                             ['Il est prit au piège.', 'prit', 'pris']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _k13++; console.log('✗ après être : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Il est déjà nuit.', 'nuit'], ['Le choc est subit.', 'subit'], ['Elle est partie tôt.', 'partie'], ['Le livre est écrit.', 'écrit'],
+                         ['Ils sont apparus hier.', 'apparus'], ['Ce qui est fait est fait.', 'fait']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _k13++; console.log('✗ après être : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k13) { console.log('PARITÉ KO — ' + _k13 + ' cas « forme finie après être ».'); process.exit(1); } }
+
 /* ⭐ 11/10/2026 — lot 12 : homophones de mots-outils (orange, « mot-outil à vérifier ») — quand à moi → quant, quant il → quand,
    qu'elle heure → quelle, quel viendra → qu'elle, « Peut être qu' » en tête → Peut-être, il est tant de + infinitif → temps ;
    silences : « quant à / au », « qu'elle viendra », « quelle a été », « quel est », « il peut être que », « tant de monde »,

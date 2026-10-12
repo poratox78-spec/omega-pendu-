@@ -6079,6 +6079,38 @@ def _avoir_pp(x):
     d = deacc(x.lower())
     return d in IRREG_PART or d in _PPL_IRR2 or _is_ppl(x)
 
+_EF_MOUV = frozenset('partir sortir repartir ressortir'.split())
+
+
+def rule_etre_fini(T, i):
+    """⭐ 12/10/2026 — forme FINIE après être écrite pour le participe (orange) : il est partit → parti, c'est finit → fini,
+    je me suis fais mal → fait. Miroir JS rEtreFini (même mécanique que rule_avoir_fini)."""
+    if i < 1: return None
+    w = T[i]
+    if w != w.lower() or len(w) < 4: return None
+    pv = T[i - 1].lower().replace(u'’', "'"); ap = pv.rfind("'")
+    if ap >= 0: pv = pv[ap + 1:]
+    if deacc(pv) not in D.AUX_ETRE: return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    rd = _reads(w)
+    if not rd or _avoir_pp(w): return None
+    d = deacc(w); sp = _spos(w)
+    if not sp or 'V' not in sp or 'A' in sp or d in D.GENDER_LEX: return None   # « il est déjà nuit », « le choc est subit »
+    for sx in ('es', 's', 'e'):
+        if d.endswith(sx) and len(d) > len(sx) + 1 and _avoir_pp(w[:-len(sx)]): return None   # participe ACCORDÉ (« sont apparus »)
+    lc = d[-1]
+    if lc not in ('s', 't'): return None
+    pp = None
+    for c in (w[:-1], w[:-1] + ('t' if lc == 's' else 's')):
+        if len(deacc(c)) >= 2 and _avoir_pp(c): pp = _AVOIR_PP_ACC.get(deacc(c), c); break
+    if not pp: return None
+    suf = ''
+    if rd[0][0] in _EF_MOUV:
+        sb = _etre_subject(T, i)[0]
+        if sb is not None: suf = _SUBJ3[sb] if sb in _SUBJ3 else _SUBJ12.get(sb, '')
+    return pp + suf
+
+
 def rule_avoir_fini(T, i):
     # avoir + forme FINIE en -it/-is (jamais participe) dont la troncature EST un participe : « elle a grandit »
     # → grandi. La garde « participe tronqué doit exister » rend le flood propre (1 tir = vraie faute UD « a réagit »).
@@ -7024,7 +7056,7 @@ def correct_tiered(text):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-é/-er', rule_a_inf_e), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_geo), ('accord adjectif antéposé', rule_quelque), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
+         ('-é/-er', rule_e_er), ('-é/-er', rule_a_inf_e), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('participe après être à vérifier', rule_etre_fini), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_geo), ('accord adjectif antéposé', rule_quelque), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
          ('accord adjectif épithète', rule_adj_aux),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
