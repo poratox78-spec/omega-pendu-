@@ -4710,6 +4710,8 @@ def rule_sujet_flexion(T, i):
     sub = _sujet_flexion(T, i, tg)
     if sub is None: return None
     per, nb, src = sub
+    if src == 'nom' and i >= 2 and T[i - 1][:1] != T[i - 1][:1].lower() and deacc(T[i - 2].lower()) in NUM_DET \
+            and (i == 2 or (_SEG is not None and i - 2 < len(_SEG['bb']) and _SEG['bb'][i - 2])): return None   # ⭐ 12/10/2026 (conjugaison 3) : « Les Moujiks fut publiée » — un TITRE en tête — miroir JS
     if src == 'nom' and not (i + 1 < len(T) and (deacc(T[i + 1].lower()) in NUM_DET or deacc(T[i + 1].lower()) in DET_GENDER)) \
             and all(r[1] == 'ind:pas' and r[2] in ('1', '2') and r[3] == 's' for r in lec): return None   # ⭐ 12/10/2026 (conjugaison 2) : sujet nominal + passé simple je / tu seul, sans complément (« émis par ») — miroir JS
     if src == 'nom' and _avoir_pp(w): return None   # ⭐ 12/10/2026 (conjugaison 2) : un PARTICIPE derrière un sujet nominal — miroir JS

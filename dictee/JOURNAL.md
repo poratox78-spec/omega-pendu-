@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-10-12 — conjugaison 3 : le passé simple d'être et d'avoir, et la carte des silences qui connaît tous leurs temps
+
+- Ajouter fut / furent / eut / eurent à la table donnait des « fut → furent » faux quand le sujet est loin (UD : « La structure
+  distincte des grades de l'aviation fut éliminée »). En cherchant : l'IMPARFAIT avait déjà la même fausse alerte (« … était éliminée »
+  → étaient), le futur et le conditionnel aussi (« sera », « seraient »), alors que le présent (« est éliminée ») se taisait.
+- Cause : la carte des silences de l'accord sujet-verbe (`SV_TAIS`, un petit modèle appris, JS seulement) ne connaît que « est / sont »
+  (`tok=…`). On lui présente les autres temps d'être et d'avoir sous leur forme du présent (était, fut, sera → est ; étaient, furent,
+  seront → sont ; avait, eut → a…). Et les deux oranges d'accord se recouvrent : faire taire l'une laissait l'autre (`sujFlexNom`, sujet
+  nominal) lever la même fausse alerte — la carte s'applique donc aux deux, mais pour la seconde seulement quand le sujet est COMPLEXE
+  (pas « Le chat étaient », qui reste corrigé) et jamais dans le bout de chaîne orthographe → orange (« étaint » → était : le mot vient
+  du dictionnaire, pas de l'auteur ; sans cette garde, « étaient » proposé avant devenait « était »).
+- Garde des titres (sujFlexVig ≡ rule_sujet_flexion) : déterminant + nom à majuscule en tête (« Les Moujiks fut publié »).
+- Table (`complete_conj_morphalou.py`) : fus, fut, furent, eut, eurent (« eus » reste dehors : c'est aussi un participe).
+- Mesure (par rapport à la conjugaison 2) : UD 14 450 : 10 fausses alertes anciennes en moins (sera, seraient, étaient, est…), 0 de plus ;
+  frgec : 10 marques inutiles en moins, 0 perte ; batterie Python 272 / 285, 0 FP ; census inchangé.
+- Tests : `parity_corr.js` (passé simple d'être et d'avoir dans les deux tables + 2 prises) ; `parity_core.js` (produit entier : sujet
+  simple corrigé, sujet éloigné / titre / imparfait muets) — 12 échecs sur l'ancien code.
+
+---
+
 ## 2026-10-12 — conjugaison 2 : + subjonctif et passé simple, et cinq gardes dans la règle de la personne
 
 - `complete_conj_morphalou.py` remplit aussi le subjonctif présent (10,0 → 88,2 %) et le passé simple (38,6 → 45,9 %) : je / il / ils

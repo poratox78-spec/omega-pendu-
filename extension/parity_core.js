@@ -908,6 +908,23 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 3) — produit entier : la carte des silences de l'accord sujet-verbe connaît tous les temps d'être et
+// d'avoir, et vaut aussi pour la règle du sujet nominal quand le sujet est COMPLEXE. Prises gardées (sujet simple) ; fausses alertes
+// d'UD éteintes (sujet éloigné, titre). Avant : « La structure distincte des grades de l'aviation était éliminée » → étaient.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c3 = 0;
+  for (const [s, w, sg] of [['Le chat étaient content.', 'étaient', 'était'], ['Les enfants fut contents.', 'fut', 'furent']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg) { _c3++; console.log('  ✗ conjugaison 3 : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const [s, w] of [["La structure distincte des grades de l'aviation fut éliminée.", 'fut'], ["La structure distincte des grades de l'aviation était éliminée.", 'était'],
+                        ['Il travailla plusieurs années puis fut nommé au collège.', 'fut'], ['Les Moujiks fut publié en Russie.', 'fut']]) {
+    const m = fl(s).filter(x => x.word === w);
+    if (m.length) { _c3++; console.log('  ✗ conjugaison 3 : « ' + s + ' » : « ' + w + ' » doit rester muet, obtenu ' + JSON.stringify(m.map(x => x.sugg + '[' + x.name + ']'))); }
+  }
+  if (_c3) { console.log('PARITÉ KO — conjugaison 3 : ' + _c3 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 3 : être / avoir au passé simple ; sujet éloigné, titre et imparfait muets ; sujet simple corrigé"); }
+
 // ⭐ 12/10/2026 (conjugaison 2) — produit entier : l'accent seul à la même personne reste ORANGE (« il apercut » → aperçut, « elle
 // placa » → plaça — l'auteur voulait peut-être le présent) ; derrière un sujet nominal, un participe ne devient pas un passé simple
 // (« le jet électronique émis par », « les amis réunis ») ; « les chats fis un bruit » → firent (orange).

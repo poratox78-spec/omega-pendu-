@@ -424,6 +424,18 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 3 : le passé simple d'être et d'avoir dans la table (fus, fut, furent, eut, eurent). Prises : « ils fut » →
+   furent, « il eurent » → eut. Python : rule_sujet_flexion (+ garde des titres). */
+{ let _kc3 = 0;
+  for (const fn of ['cgram_conj.json', 'cgram_hf.json']) {
+    const d = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')), C = (fn === 'cgram_hf.json' ? d.cj : d).c;
+    for (const [l, pn, f] of [['etre', '3s', 'fut'], ['etre', '3p', 'furent'], ['avoir', '3s', 'eut'], ['avoir', '3p', 'eurent']])
+      if ((((C[l] || {})['ind:pas']) || {})[pn] !== f) { _kc3++; console.log('✗ conjugaison 3 : ' + fn + ' — ' + l + ' passé simple ' + pn + ' ≠ « ' + f + ' » — relancer dictee/complete_conj_morphalou.py'); } }
+  for (const [ph, w, sg] of [['Ils fut contents.', 'fut', 'furent'], ['Il eurent peur.', 'eurent', 'eut']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc3++; console.log('✗ conjugaison 3 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  if (_kc3) { console.log('PARITÉ KO — ' + _kc3 + ' cas « conjugaison 3 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 2 : + subjonctif et passé simple (je / il / ils, verbes courants) dans la table, et gardes dans la règle
    de la personne. Prises : « il apercut » → aperçut, « elle révèla » → révéla (accent seul : ORANGE), « ils construisit » →
    construisirent, « il faut que nous parte » → partions ; silences : nom propre au milieu de la phrase (« Marguerite Duras écrit »),
