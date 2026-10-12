@@ -3217,6 +3217,7 @@ function estQuestion(t,maxMots){
       if(!_QUI_CLIT[w]&&!_QUI_CLIT[T[k].toLowerCase()])return -1;
     }
     return -1; }
+  var _NP_QUANT_UN={};"chacun chacune aucun aucune nul nulle l'un l'une un une".split(' ').forEach(function(w){_NP_QUANT_UN[w]=1;});   // ⭐ 13/10/2026 (conjugaison 11)
   function _npSubject(T,tg,a){if(deacc(String(T[a]||'').toLowerCase()).indexOf("qu'")===0)return null;   /* MARQUEUR FUSIONNE DANS LE VERBE : « les possibilites qu'offrent les domaines » — le token EST « qu'offrent », le balayage part de a-1 et ne le voit jamais. Un verbe en « qu' » est celui d'une RELATIVE/SUBORDONNEE : sujet a DROITE (inversion) ou le relatif lui-meme. Remonter a gauche rend un sujet FAUX → abstention (FP=0). Mesure par dictee/ponct_morpho_probe.py. */var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     /* SUJET = PRÉNOM NU (« Marie est venu » → venue) — miroir app + correcteur_probe. Un prénom n'a pas
        de déterminant : le balayage [dét + nom-tête] ne le voyait jamais. ⚠️ Abstention sur COORDINATION
@@ -3235,6 +3236,7 @@ function estQuestion(t,maxMots){
       var _pj=(PREP[dj]||dj==='en'||(T[j].toLowerCase().indexOf("'")>=0&&dj.charAt(0)==='d'));if(_pj)_sp=true;   // « de/du/des/au/aux/en/d' » : lien qui RATTACHE le GN de gauche à celui de droite. « en » MANQUAIT de PREP — « avec un cercle EN SON CENTRE ont été érigées » prenait « centre » pour sujet.
       if(tgj==='DET'||NUM_DET[dj]){if(detIdx<0||_sp){detIdx=j;_sp=_pj;_elid=false;}}}   // On remonte au déterminant le PLUS À GAUCHE, mais SEULEMENT à travers un lien « de » — c'est POUR ÇA que la remontée existe (« les enfants DE la voisine » a sa tête à GAUCHE). Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet (FP mesuré). Un 2e GN à gauche SANS lien « de » est ADVERBIAL, pas le sujet. Et une préposition CONTRACTÉE (du/des/au/aux) qui sert d'ancre reste « molle » (_sp gardé vrai) : elle ouvre un complément, donc un vrai déterminant plus à gauche doit pouvoir la remplacer (« les autorités DU Sahara ont » → tête « autorités », pas « Sahara »).   // On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ». C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à GAUCHE. Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet → « est arrivé » (FP mesuré). Un second GN à gauche SANS lien « de » est un GN ADVERBIAL (« ce matin », « la semaine dernière »), pas le sujet ⇒ on garde le déterminant le plus PROCHE du verbe.
     if(detIdx<0)return null;
+    if(detIdx-1>=lo&&PREP[deacc(T[detIdx].toLowerCase())]&&_NP_QUANT_UN[deacc(T[detIdx-1].toLowerCase())])return null;   // ⭐ 13/10/2026 (conjugaison 11) : « chacun DES enfants a reçu » — le sujet est le quantifieur (chacun, aucun, l'un…), pas le groupe qui suit « des » (orange faux « ont ») — miroir Python
     if(PREP[deacc(T[detIdx].toLowerCase())]&&detIdx-1>=lo&&tg&&detIdx-1<tg.length&&(tg[detIdx-1]==='NOUN'||tg[detIdx-1]==='PROPN'))return null;   // Un déterminant qui est AUSSI une préposition contractée (du/des/au/aux) et qui suit un NOM ouvre un COMPLÉMENT, pas le sujet : « de nombreux pouvoirs DU GOUVERNEUR ont été délégués », « 50 000 Allemands DU WARTHELAND ont péri ». Aucun vrai déterminant plus à gauche ⇒ la remontée ne peut pas réparer ⇒ abstention.
     if(detIdx-1>=lo&&PREP[deacc(T[detIdx-1].toLowerCase())])return null;
     if(_elid){var _h=_ELID_DET.exec(T[detIdx].toLowerCase())[1];   // « l'équipe » : le déterminant ET la tête sont le MÊME token
@@ -3473,6 +3475,10 @@ function estQuestion(t,maxMots){
     if(g===null)g=fem?'f':'m';
     var tgt=_ppAccord(base,n,g);if(!tgt||tgt===lw)return null;
     return ckeepcase(w,tgt);}
+  /* ⭐ 13/10/2026 (conjugaison 11) — « elle s'est mise à rire », « s'est tue », « s'est reprise » : la forme féminine ou plurielle d'un
+     participe IRRÉGULIER (mis, pris, tu, remis, repris…) n'est pas le présent d'un autre verbe (miser, priser, tuer) — « misée » était un
+     orange faux sur du texte juste. */
+  function _ppIrrInfl(w){var d=deacc(String(w).toLowerCase());if(IRR_PP[d]!==undefined)return true;var b=d.replace(/(es|e|s)$/,'');return b!==d&&(!!IRREG_PART[b]||!!_PP_U_EXTRA[b]);}
   function sestPpVig(T,i){
     /* ORANGE « elle s'est marié » → mariée ? (enquête des 22, texte3 : c'est→s'est corrigé en
        cascade mais l'accord ne suivait pas). PRONOMINAL = zone à pièges, donc JAMAIS rouge :
@@ -3483,7 +3489,7 @@ function estQuestion(t,maxMots){
     if(i<2)return null;
     /* FORME FINIE après « s'est » (03/09/2026) : « elle s'est mariaient » → mariée. Le scripteur a conjugué là où il fallait le
        participe. 1er groupe seulement, lemme unique, sujet elle/il juste avant (négation enjambée), orange. */
-    if(CONJ_F&&deacc(T[i-1].toLowerCase())==="s'est"&&!_isPpl(w)&&_isFinite(w)){var _rf=svReads(w),_lm=null,_k;for(_k=0;_k<_rf.length;_k++){if(_lm&&_lm!==_rf[_k][0]){_lm=null;break;}_lm=_rf[_k][0];}
+    if(CONJ_F&&deacc(T[i-1].toLowerCase())==="s'est"&&!_isPpl(w)&&_isFinite(w)&&!_ppIrrInfl(w)){var _rf=svReads(w),_lm=null,_k;for(_k=0;_k<_rf.length;_k++){if(_lm&&_lm!==_rf[_k][0]){_lm=null;break;}_lm=_rf[_k][0];}
       var _s2=deacc(T[i-2].toLowerCase());if((_s2==='ne'||_s2==="n'")&&i>=3)_s2=deacc(T[i-3].toLowerCase());
       if(_lm&&/er$/.test(_lm)&&(_s2==='elle'||_s2==='il'))return ckeepcase(w,_lm.slice(0,-2)+(_s2==='elle'?'ée':'é'));}
     var lc=lw.charAt(lw.length-1);if(lc!=='é'&&lc!=='i'&&lc!=='u')return null;
@@ -5309,6 +5315,7 @@ function spellUnknown(tok,atStart,T,idx){
         if(_SEG&&_SEG.hy&&_SEG.hy[i])return null;                      // « dix-septième » (ordinal composé au trait d'union)
         if(svReads(T[i]).length)return null;                          // le mot est aussi une forme verbale connue → prudence (mal taggé)
         var plc=_plu(T[i].toLowerCase());return plc!==T[i].toLowerCase()?ckeepcase(T[i],plc):null;}
+      if(/^[nc]'/.test(dj)&&svReads(dj.slice(2)).length)break;   // ⭐ 13/10/2026 (conjugaison 11) : verbe ÉLIDÉ (« n'est », « c'est ») que le tagger lit nom — « aucune des réponses n'est juste » recevait « justes »
       if(tg[j]==='VERB'||tg[j]==='AUX'||tg[j]==='ADP'||tg[j]==='PUNCT'||PREP[dj])break;   // sorti du GN
       if(tg[j]!=='NOUN'&&tg[j]!=='ADJ'&&tg[j]!=='DET')break;
     }
