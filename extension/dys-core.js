@@ -942,6 +942,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(!ci){
       var p=cprev(T,i);var pr=i>0?deacc(T[i-1].toLowerCase()):'';var glued=(pr.indexOf("'")>=0)&&(/ils$/.test(pr)||/elles$/.test(pr));
       if(p==='ils'||p==='elles'||glued||(cpl(T,i-1)&&!_plurSousPrep(T,i)))return 'ont';
+      if(i>=2&&/^(en|y|les|leur|lui|nous|vous|me|te)$/.test(p)&&/^(ils|elles)$/.test(deacc(T[i-2].toLowerCase())))return 'ont';   // ⭐ 12/10/2026 (conjugaison 7) : « ils en on assez » — le pronom « on » ne suit jamais « ils » + un clitique. Miroir Python
       if(i+1<T.length&&_isPpl(T[i+1])){var _rp=svReads(T[i+1]),_pre=false,_nx1=T[i+1].toLowerCase();for(var _q=0;_q<_rp.length;_q++)if(_rp[_q][1]==='ind:pre'&&((((CONJ_C[_rp[_q][0]]||{})['ind:pre']||{})[_rp[_q][2]+_rp[_q][3]])||'').toLowerCase()===_nx1)_pre=true;if(!_pre)return 'ont';}   /* ACCENT-EXACT : svReads lisait « occupés » comme « occupes » et taisait « Sumériens on occupés » → ont */   /* ⭐ 11/09/2026 : « comme on DIT », « duquel on FAIT » — participe MAIS AUSSI présent 3s, sans sujet pluriel à gauche → abstention ; les participes purs (été, occupés, grandi) gardent le rouge. Miroir Python. */
       // ⭐ IDIOME D'AVOIR après sujet pluriel À DISTANCE (31/08, transposition du pilote son/sont) :
       // « Les enfants de Paul on faim » → ont. « on + faim/soif/peur… » n'existe JAMAIS en français
@@ -3599,6 +3600,23 @@ function estQuestion(t,maxMots){
      mieux » → va, « cela pourrais marcher » → pourrait (orange, palier du sujet nominal). La casse est lue telle qu'écrite : « CA » (un sigle) n'en
      est pas un. Mesuré : gold dys 1 faute muette réparée, 0 ailleurs sur les 3 corpus dys ; UD 14 450 : 0 marque. Miroir Python. */
   var _SVN_CA={'ça':1,'ca':1,'cela':1,'ceci':1};
+  /* ⭐ 12/10/2026 (conjugaison 7) — « nous » / « vous » après et, puis, mais, ou, donc, alors, ensuite, car : le mot de liaison ouvre
+     une nouvelle proposition et « nous » peut en être le SUJET (« il part et nous reviendront » → reviendrons) — ou un complément, le
+     sujet de la proposition d'avant étant sous-entendu (« il nous parle et nous écoute »). On tranche par l'accord : si la forme écrite
+     s'accorde avec le sujet pronom d'avant (« il » / écoute), c'est le sujet sous-entendu → abstention ; sinon « nous » est le sujet.
+     Pas de pronom sujet d'avant (sujet nominal, « les enfants partent et nous reviendront » = reviendront à nous) → abstention.
+     Miroir Python _ellipse_accorde. */
+  var _CONJ_COORD={};'et puis mais ou donc alors ensuite car'.split(' ').forEach(function(w){_CONJ_COORD[w]=1;});
+  function _ellipseAccorde(T,i,c){var m,d,me,p=null,rd,z;
+    for(m=c-1;m>=0&&m>=c-12;m--){var lm=T[m].toLowerCase();d=deacc(lm);me=_ELIDED_PRON.exec(lm);if(me)d=deacc(me[1]);
+      if(/^j['’]/.test(lm)){p=['1','s'];break;}
+      if(SUBJ_PRON[d]){p=SUBJ_PRON[d];break;}
+      if(_SUBJ_PRON_PL[d]){var q=m-1;while(q>=0&&(CLITIC[deacc(T[q].toLowerCase())]||deacc(T[q].toLowerCase())==='ne'))q--;
+        if(q>=0){var dq=deacc(T[q].toLowerCase());if(SUBJ_PRON[dq]||_SUBJ_PRON_PL[dq]||dq==='qui'||_ELIDED_PRON.exec(T[q].toLowerCase()))continue;}
+        p=_SUBJ_PRON_PL[d];break;}}
+    if(!p)return true;
+    rd=svReads(T[i]);for(z=0;z<rd.length;z++)if(rd[z][2]===p[0]&&(rd[z][3]===p[1]||rd[z][3]==='x'))return true;
+    return false;}
   function _sujetFlexion(T,i,tg){   /* (personne, nombre) du sujet de T[i] — miroir Python _sujet_flexion. On remonte jusqu'à la
      frontière de proposition en traversant CLITIQUES et ADVERBES, on s'arrête au premier candidat sujet. nous/vous ne sont SUJETS
      que si rien avant eux dans la proposition ne peut l'être (« il nous parle », « qui vous passionnera » = compléments). */
@@ -3617,6 +3635,7 @@ function estQuestion(t,maxMots){
           if(_ELIDED_PRON.exec(T[k].toLowerCase()))return null;
           if(SUBJ_PRON[dk]||_SUBJ_PRON_PL[dk]||dk==='qui')return null;
           if(/^(que|qu)$/.test(dk.replace(/['’]$/,''))||(tg&&k<tg.length&&tg[k]==='SCONJ'))break;   // la subordonnée COMMENCE ici
+          if(_CONJ_COORD[dk]){if(_ellipseAccorde(T,i,k))return null;break;}   // ⭐ 12/10/2026 (conjugaison 7) : « et nous reviendront » — miroir Python
           if(tg&&k<tg.length&&(tg[k]==='NOUN'||tg[k]==='PROPN'||tg[k]==='VERB'||tg[k]==='AUX'))return null;
           if(CLITIC[dk]||(tg&&k<tg.length&&tg[k]==='ADV')){k--;continue;}
           return null;
@@ -5073,6 +5092,7 @@ function spellUnknown(tok,atStart,T,idx){
       if(j>=1&&_psonAux(T[j-1]))return null;}
     if(!per||!/^[a-zà-ÿœ]+$/i.test(x)||x.length<3)return null;
     var dx=deaccS(x.toLowerCase());if(_PSON_STOP[dx])return null;                        // petits mots (pas, lui, vous, pour…) : jamais un verbe à accorder
+    if(SP.WORDS.has(x.toLowerCase())&&!(SP.POS[x.toLowerCase()]||''))return null;         // ⭐ 12/10/2026 (conjugaison 7) : mot connu SANS catégorie au dictionnaire = adverbe ou mot-outil (assez, tard, vite) — jamais un verbe : « on assez » recevait « asseye »
     if(/[âîû]t$/.test(x.toLowerCase()))return null;                                      // subjonctif imparfait (« qu'elle restât ») : correct, absent des tables
     if(/(é|ée|és|ées)$/.test(x.toLowerCase()))return null;                               // participe en -é sans auxiliaire : c'est l'auxiliaire qui manque (autre règle)
     if(per[0]==='1'&&/ai$/.test(dx)&&(SP.WORDS.has(x.toLowerCase())||SP.WORDS.has(dx.slice(0,-2)+'er')||SP.WORDS.has(dx.slice(0,-3)+'er')))return null;          // « je chantai » : passé simple des verbes en -er, absent des tables
@@ -5083,6 +5103,7 @@ function spellUnknown(tok,atStart,T,idx){
     var _rx=svReads(x);if(svAgrees(_rx,per[0],per[1]))return null;
     for(var _q=0;_q<_rx.length;_q++)if(_rx[_q][0]==='etre'||_rx[_q][0]==='avoir')return null;   // « il suis » : être ou suivre ? on ne choisit pas
     var lx=x.toLowerCase(),c=SP.PHON[phonKey(lx)]||[],best=null,lem=null,bd=99,bf=-1,k,q;
+    var _sx=lx.replace(/[sx]$/,'');if(_sx!==lx&&_sx.length>=3&&SP.WORDS.has(_sx)){var _r0=_psonReads(_sx),_ls={};if(svAgrees(_r0,per[0],per[1])){for(q=0;q<_r0.length;q++)if(_r0[q][2]===per[0])_ls[_r0[q][0]]=1;if(Object.keys(_ls).length===1)return pre+(pre?_sx:ckeepcase(x,_sx));}}   // ⭐ 12/10/2026 (conjugaison 7) : « il faits » → fait — la bonne forme + un -s / -x de trop ; un homophone plus long d'un autre verbe (« fêtait ») faisait abstenir
     for(k=0;k<c.length;k++){var w=c[k];if(w===lx||!/^[a-zà-ÿœ]+$/.test(w))continue;var r=_psonReads(w);if(!svAgrees(r,per[0],per[1]))continue;
       if(!_xv&&deaccS(w).slice(0,4)!==dx.slice(0,4))continue;                             // un nom/adjectif écrit : seulement la forme qui en garde le début (envois → envoie)
       if(Math.abs(deaccS(w).length-dx.length)>2)continue;                                  // ⭐ 11/10/2026 : pas une forme bien plus longue que l'écrit — « il plan » (bout de chaîne d'un « pran » mal écrit) recevait « plantait »

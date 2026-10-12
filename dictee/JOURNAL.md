@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-10-12 — conjugaison 7 : « nous » / « vous » sujets après et, puis, mais
+
+- Sondage après la conjugaison 6 (phrases inventées) : « je range la cuisine puis nous mangeront », « tu lis un livre mais vous
+  jouerai », « ils en on assez » étaient muets ; « il faits ses devoirs » aussi ; et « on assez » recevait un orange faux (asseye).
+- Causes : `_sujetFlexion` ≡ `_sujet_flexion` n'acceptait « nous » / « vous » comme sujets que si RIEN ne les précédait dans la
+  proposition — un mot de liaison suffisait à les lire comme compléments (prudence voulue : « il nous salue et nous embrasse »).
+  « faits » : la forme juste (fait) et un homophone plus long d'un autre verbe (fêtait) → deux lemmes → abstention. « assez » : un
+  adverbe passait pour un verbe à conjuguer.
+- Corrections : `_ellipseAccorde` ≡ `_ellipse_accorde` (après et, puis, mais, ou, donc, alors, ensuite, car : si la forme écrite
+  s'accorde avec le sujet pronom d'avant → sujet sous-entendu, abstention ; sinon « nous » est le sujet ; pas de pronom d'avant →
+  abstention) ; rOn ≡ rule_on_ont (ils / elles + clitique + « on » → ont) ; personneSonVig (JS, orange) : mot sans catégorie au
+  dictionnaire → jamais un verbe ; forme juste + -s / -x de trop d'abord.
+- Mesure : gold (catalogue), 3 corpus (14 322 textes) et UD 14 450 : 0 changement — rien de juste touché, ces fautes n'y sont pas. Batterie Python 272 / 285, 0 FP, 87 pièges muets. Tests : parity_corr.js (3 prises, 4 silences ; 3 échecs sur l'ancien code — qui proposait même un orange faux « mangeront → mangera ») ; parity_core.js (rouge, orange « il faits », « assez » sans marque ; 3 échecs sur l'ancien code).
+- Vu au passage (lot suivant) : 1 359 lectures « fantômes » dans la table (`f` porte une lecture que `c` contredit : « vus » lu
+  voir présent 1s / 2s, « dit » futur, « -es » lu je) — « ils on vus le film » reçoit encore « vus → voit » en rouge.
+
+---
+
 ## 2026-10-12 — conjugaison 6 : les auxiliaires et l'antécédent que la règle ne voyait pas
 
 - Sondage après la conjugaison 5 (phrases inventées) : « il y a des lutins qui danse », « je vois des oiseaux qui chante », « les lapins
