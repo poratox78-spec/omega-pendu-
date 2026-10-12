@@ -424,6 +424,25 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 1 : la table des règles complétée par Morphalou (présent, imparfait, futur, conditionnel ;
+   dictee/complete_conj_morphalou.py). Une case vide faisait taire la règle de la personne : « nous expliquerait » restait sans
+   « expliquerions ». Garde de REMPLISSAGE (les deux tables : référence Python et embarquée) + prises + silences. */
+{ let _kc = 0;
+  for (const fn of ['cgram_conj.json', 'cgram_hf.json']) {
+    const d = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')), C = (fn === 'cgram_hf.json' ? d.cj : d).c, L = Object.keys(C);
+    for (const [t, min] of [['ind:pre', 97], ['ind:imp', 92], ['ind:fut', 94], ['cnd:pre', 94]]) {
+      let n = 0; for (const l of L) n += Object.keys(C[l][t] || {}).length;
+      const pc = 100 * n / (6 * L.length);
+      if (pc < min) { _kc++; console.log('✗ conjugaison : ' + fn + ' ' + t + ' rempli à ' + pc.toFixed(1) + ' % (< ' + min + ' %) — relancer dictee/complete_conj_morphalou.py'); } } }
+  for (const [ph, w, sg] of [['Nous expliquerait tout demain.', 'expliquerait', 'expliquerions'], ['Vous bougeait trop hier.', 'bougeait', 'bougiez'],
+                             ['Nous surveillerait la maison.', 'surveillerait', 'surveillerions'], ['Nous convaincrait le jury.', 'convaincrait', 'convaincrions']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc++; console.log('✗ conjugaison : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Nous expliquerions tout demain.', 'expliquerions'], ['Vous bougiez trop hier.', 'bougiez'], ['Nous surveillerions la maison.', 'surveillerions']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc++; console.log('✗ conjugaison : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc) { console.log('PARITÉ KO — ' + _kc + ' cas « conjugaison ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — lot 14 : pronom sujet + mes / tes + participe → m'a, t'a, m'as, m'ont (« petit mot après le sujet à vérifier ») ;
    « voire » dans une place d'infinitif → voir (« mot-outil à vérifier ») ; silences : « il mes amis », « il mange mes frites », « voire »
    après une virgule ou un adjectif. Python : _aps_mes_pp, rule_homophone_mo. */

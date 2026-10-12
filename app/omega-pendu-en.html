@@ -30140,7 +30140,7 @@ function spellTokenCore(tok,atStart,T,idx){
   // ⭐ COLLISION D'ACCENT (02/09). Les lectures verbales (svReads/CONJ) sont keyées DÉSACCENTUÉES : « adhérent »
   // tombe sur la clé de « adhèrent » et passe pour un verbe ; idem côté, gène, mûre, précédent... 24 mots
   // courants mesurés. Table EXACTE générée par dictee/build_non_verbe_acc.py (Morphalou) — ne pas éditer à la main.
-  var _NON_VERBE_ACC={'adhérent':1,'châsse':1,'châsses':1,'côte':1,'côtes':1,'côté':1,'côtés':1,'faîtes':1,'gène':1,'gènes':1,'indifférent':1,'mûre':1,'mûres':1,'précédent':1,'réversions':1,'érigérons':1};
+  var _NON_VERBE_ACC={'adhérent':1,'châsse':1,'châsses':1,'côte':1,'côtes':1,'côté':1,'côtés':1,'faîtes':1,'gène':1,'gènes':1,'indifférent':1,'mâconnais':1,'mûre':1,'mûres':1,'précédent':1,'réversions':1,'érigérons':1};
   function setOsLm(m){
     if(!m||!m.uni){_OSLM=null;return;}
     function sums(tab){var s={},k,w,t;for(k in tab){t=0;for(w in tab[k])t+=tab[k][w];s[k]=t;}return s;}
