@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-10-12 — conjugaison 1 : la table des règles complétée par Morphalou (présent, imparfait, futur, conditionnel)
+
+- Question de Rem : « on en est où de la conjugaison ? ». Le dictionnaire d'orthographe (~711 000 formes) est enrichi au
+  Wiktionnaire et à Morphalou ; mais la table qui dit quelle forme va avec quel sujet (`cgram_conj.json` / `cgram_hf.json`) vient de
+  Lexique 4 seul : 5 948 verbes, remplie à 42,6 % (présent 94,5 · imparfait 42,5 · passé simple 38,6 · futur 41,2 · conditionnel
+  28,8 · subjonctif 10,0). Mesuré au MOTEUR (rustines de chargement comprises) : 41,3 % des formes Morphalou de nos verbes reconnues
+  avec le bon verbe, le bon temps et la bonne personne. Être et avoir n'ont aucun passé simple.
+- Une case vide fait taire la règle de la personne : « nous expliquerait », « vous bougeait », « nous surveillerait », « nous
+  convaincrait » restaient muets.
+- `dictee/complete_conj_morphalou.py` remplit les cases VIDES des verbes connus (jamais une case remplie) aux quatre temps mesurés
+  sans fausse alerte : présent 97,6 · imparfait 92,5 · futur 94,3 · conditionnel 94,8 %. Gardes vues en mesurant temps par temps :
+  forme attestée verbe au dictionnaire et pas un participe ; 191 lemmes désaccentués en collision écartés (réformer / reformer) ;
+  verbes archaïques écartés (ouïr : « orrai ») ; une forme déjà lue pour un autre verbe ne prend la nouvelle lecture que si ce verbe
+  est plus fréquent (« saurons » : savoir devant saurer ; « étaient » reste à être, jamais à étayer).
+- Mesure : 3 corpus (14 322 textes) 0 écart ; UD 14 450 : 0 ; batterie Python 0 FP ; census inchangé.
+- Gardés pour la suite (mesurés) : le subjonctif et le passé simple réveillent des lectures douteuses (« exclues » subjonctif →
+  « excluent », noms propres en -as lus comme passés simples : Duras, Carras) ; le passé simple d'être et d'avoir donne des « fut /
+  furent » faux quand le sujet est loin. Chantiers conjugaison 2 et 3.
+- Coût : vdc-lex.json 6,5 → 9,7 Mo (+0,56 Mo compressé).
+- Tests : `parity_corr.js` — garde de remplissage des deux tables + 4 prises + 3 silences ; 12 échecs sur l'ancienne table.
+
+---
+
 ## 2026-10-12 — lot 14 : « elle mes dit » → m'a dit (plus de « dits ») ; « voire » → voir
 
 - Vu au sondage du 11/10 : « Elle mes dit de venir » recevait l'orange « pluriel par le son » → « dits » (et « donnés », « vues »,
