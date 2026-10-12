@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-10-12 — conjugaison 6 : les auxiliaires et l'antécédent que la règle ne voyait pas
+
+- Sondage après la conjugaison 5 (phrases inventées) : « il y a des lutins qui danse », « je vois des oiseaux qui chante », « les lapins
+  ne son jamais rentrés », « les deux valises son presque pareilles » (orange faux « sons »), « ils n'on pas faim », « nous saura la réponse », « vous
+  faite du bruit », « vous disez la vérité » étaient muets.
+- Causes : « des » est dans PREP (de + les) et la règle de « qui » s'arrêtait dessus ; « n'on » n'était lu par aucune règle ; « saura »
+  est aussi le passé simple de « saurer » (inconnu du dictionnaire) et la garde d'homographe taisait sujFlexVig ; faite / dite ne sont
+  que des participes pour la table.
+- Corrections (3 moteurs, rouge) : `_desArticle` ≡ `_des_article` (« des » article en tête de proposition, après voici / voilà / il y a,
+  ou après un verbe sans déterminant devant lui — ou précédé d'un pronom sujet, car le tagger lit « vois » comme un nom) ; rSon
+  (« ne » + son, son + adverbe + adjectif pluriel, sujet pluriel) ; rOn (« n'on » → n'ont, sujet pluriel) ; `_psRare` ≡ `_ps_rare` ;
+  `rVousIrr` ≡ `rule_vous_irr` (faite, dite, faisez, disez et re- après « vous » sujet).
+- Mesure : gold (catalogue), 3 corpus (14 322 textes) et UD 14 450 : 0 changement — rien de juste touché ; ces fautes n'y sont pas
+  (le seul « ne son » du gold était déjà corrigé par une autre branche). Batterie Python 272 / 285, 0 FP, 87 pièges muets.
+- Tests : `parity_corr.js` (9 prises, 5 silences ; 9 échecs sur l'ancien code) ; `parity_core.js` (palier rouge ; 4 échecs sur
+  l'ancien code).
+
+---
+
 ## 2026-10-12 — conjugaison 5 : le conditionnel attendu (après « si » + imparfait ; « je voudrais »)
 
 - Sondage : « Si j'avais de l'argent, j'achèterai une voiture », « si tu venais, nous irons », « je voudrai un café » étaient muets.

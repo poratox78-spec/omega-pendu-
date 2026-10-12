@@ -424,6 +424,25 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 6 : les auxiliaires et l'antécédent que la règle ne voyait pas — « des » article devant l'antécédent de
+   « qui » (après il y a, voici, un verbe), « ne son » / « n'on » / « son » + adverbe + adjectif pluriel, « nous saura » (homographe d'un
+   verbe rare), « vous faite / disez ». Silences : « des » après un nom, « un des … qui », « vous contredisez », « nous » complément,
+   « son » possessif après la négation. Python : _des_article, rule_son_sont, rule_on_ont, _ps_rare, rule_vous_irr. */
+{ let _kc6 = 0;
+  for (const [ph, w, sg] of [['Il y a des lutins qui danse dans la clairière.', 'danse', 'dansent'], ['Je vois des oiseaux qui chante sur la branche.', 'chante', 'chantent'],
+                             ['Voici des cousins qui arrive de Lille.', 'arrive', 'arrivent'], ['Les lapins ne son jamais rentrés tôt.', 'son', 'sont'],
+                             ['Les deux valises son presque pareilles.', 'son', 'sont'], ["Mes voisins n'on pas de jardin.", "n'on", "n'ont"],
+                             ['Nous saura la réponse demain soir.', 'saura', 'saurons'], ['Vous faite trop de bruit le soir.', 'faite', 'faites'],
+                             ['Vous disez toujours la même chose.', 'disez', 'dites']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc6++; console.log('✗ conjugaison 6 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['La saison des pluies qui durera longtemps commence.', 'durera'], ['Elle parle à un des élèves qui est arrivé hier.', 'est'],
+                         ['Vous contredisez votre frère sans cesse.', 'contredisez'], ['Elle nous saura gré de cette aide.', 'saura'],
+                         ['Il ne perd jamais son calme.', 'son']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc6++; console.log('✗ conjugaison 6 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc6) { console.log('PARITÉ KO — ' + _kc6 + ' cas « conjugaison 6 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 5 : le conditionnel attendu (« conditionnel à vérifier ») — après « si » + imparfait, la principale au
    conditionnel ; « je voudrai un café » → voudrais. Silences : « si » + présent (futur juste), conditionnel déjà juste, « quand » + futur,
    « je voudrai partir » (vrai futur possible), interrogation indirecte. Python : rule_cond_si. */
