@@ -424,6 +424,17 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 9 : un pronom RÉFLÉCHI complément INDIRECT (« nous nous sommes parlé », « ils se sont téléphoné »)
+   laisse le participe invariable — l'accord du participe après être ne le réaccorde plus. Python : _REFL_COI dans rule_pp_etre. */
+{ let _kc9 = 0;
+  for (const [ph, w] of [['Nous nous sommes parlé hier soir.', 'parlé'], ['Ils se sont téléphoné hier soir.', 'téléphoné'],
+                         ['Ils se sont succédé au pouvoir.', 'succédé'], ['Elles se sont lavé les mains.', 'lavé']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc9++; console.log('✗ conjugaison 9 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  { const got = corr('Elle est parti tôt.').filter(f => f.word === 'parti');
+    if (!got.length || got[0].sugg !== 'partie') { _kc9++; console.log('✗ conjugaison 9 : « elle est parti » doit rester corrigé, eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  if (_kc9) { console.log('PARITÉ KO — ' + _kc9 + ' cas « conjugaison 9 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 8 : les lectures FANTÔMES retirées de la table (dictee/complete_conj_morphalou.py, fantomes) — « vus » ne
    se lit plus « voir, présent je / tu », « dit » plus futur, « suis » plus « être, tu », « as » plus « avoir, je » (Python et table embarquée) ;
    « j'as », « j'a » → j'ai. Python : rule_jest. */

@@ -2751,6 +2751,10 @@ def rule_pp_etre(T, i):
         if dk in _PP_MID: continue
         return None
     if a is None: return None
+    _dr1 = deacc(T[a-1].lower()) if a >= 1 else ''; _dr2 = deacc(T[a-2].lower()) if a >= 2 else ''   # ⭐ 12/10/2026 (conjugaison 9) : « nous nous sommes parlé » — réfléchi COMPLÉMENT INDIRECT → invariable (miroir JS)
+    if _dr2 == 'ne' and a >= 3: _dr2 = deacc(T[a-3].lower())
+    if (re.match(u"^[smt]['’]", deacc(T[a].lower())) or _dr1 in ('se', 'me', 'te') or (_dr1 in ('nous', 'vous') and _dr2 == _dr1)) \
+            and (deacc(base) in _PP_COD_STOP or deacc(base) in _REFL_COI): return None
     aux_num = ('p' if deacc(T[a].lower()) in _PP_AVOIR_P else 's') if _compose else ('p' if deacc(T[a].lower()) in _PP_AUX_P else 's')
     _a1ok = deacc(T[a].lower()) in _A1_AUX_PL or (_compose and deacc(T[a].lower()) in _PP_AVOIR_P)   # nombre PLURIEL certain, ancré sur l'auxiliaire audible
     _a1_refl = a >= 1 and any(deacc(T[k].lower()) in ('se', 's') for k in range(max(0, a - 2), a))   # #A1 : verbe PRONOMINAL (« se/s' sont … ») → participe potentiellement INVARIABLE (se succéder/plaire/téléphoner = « se » COI) → A1 s'abstient (nombre plus certain)
@@ -2838,6 +2842,7 @@ _PP_COD_STOP = {'menti', 'ri', 'souri', 'plu', 'deplu', 'nui', 'suffi', 'dormi',
                 'parle', 'repondu', 'telephone', 'obei', 'ressemble', 'renonce', 'participe', 'assiste',
                 'succede', 'procede', 'remedie', 'convenu', 'nui', 'menace', 'songe', 'reve',
                 'fallu', 'pu'}    # TOUJOURS invariables : falloir (impersonnel) + pouvoir (objet = infinitif, jamais COD direct) — cf. « les efforts qu'il a fallu/pu » (pièges Voltaire). PAS du/su/voulu qui, eux, PEUVENT s'accorder.
+_REFL_COI = frozenset('ecrit dit demande promis permis jure souhaite donne'.split())   # ⭐ 12/10/2026 (conjugaison 9) : avec un pronom réfléchi, « se » est complément INDIRECT de ces verbes (« ils se sont écrit », « nous nous sommes dit »)
 _PP_PERCEPTION = {'vu', 'entendu', 'senti', 'regarde', 'ecoute', 'apercu', 'laisse', 'envoye', 'fait'}   # PP de perception/factitif : + INFINITIF = accord ambigu (l'antécédent fait OU subit l'action) → abstention ; « fait »+inf = causatif TOUJOURS invariable (« que j'ai fait venir », « s'est fait avoir »)
 # Noms de PAROLE / PENSÉE / FAIT : « que » après eux peut être COMPLÉTIF (conjonction) ⇒ le nom n'est pas le COD ⇒ abstention.
 _COMPLETIVE_ANT = {'fait', 'faits', 'idee', 'idees', 'preuve', 'preuves', 'nouvelle', 'nouvelles', 'espoir', 'espoirs',
