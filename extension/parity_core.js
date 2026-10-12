@@ -908,6 +908,18 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 8) — produit entier, table embarquée nettoyée : « elles on vus » ne reçoit plus « vus → voit » (rouge faux),
+// « j'as » → j'ai en rouge, « il bue » → but en orange.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c8 = 0;
+  if (fl('Elles on vus la mer hier.').some(x => x.word === 'vus' && x.sugg === 'voit')) { _c8++; console.log('  ✗ conjugaison 8 : « vus → voit » (lecture fantôme) est revenu'); }
+  const j = fl("J'as froid ce matin.").find(x => x.word === "J'as");
+  if (!j || j.sugg !== "J'ai" || j.tier !== 'auto') { _c8++; console.log("  ✗ conjugaison 8 : « J'as » → « J'ai » en ROUGE attendu, obtenu " + JSON.stringify(j || null)); }
+  const b = fl("Il bue de l'eau fraîche.").find(x => x.word === 'bue');
+  if (!b || b.sugg !== 'but' || b.tier !== 'vigilance') { _c8++; console.log('  ✗ conjugaison 8 : « bue » → « but » en ORANGE attendu, obtenu ' + JSON.stringify(b || null)); }
+  if (_c8) { console.log('PARITÉ KO — conjugaison 8 : ' + _c8 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 8 : lectures fantômes retirées (plus de « vus → voit »), « j'as » → j'ai, « il bue » → but"); }
+
 // ⭐ 12/10/2026 (conjugaison 7) — produit entier : « puis nous mangeront » → mangerons en ROUGE ; le sujet sous-entendu reste muet.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
   let _c7 = 0;

@@ -5189,6 +5189,7 @@ def rule_jest(T, i, _vig=False):
       · verbe à double auxiliaire (_JEST_MOUV) : objet derrière → j'ai (rouge) ; nu → je suis ? (orange)
       · participe d'AVOIR (« j'est mangé », « j'est entendu », « j'est perdu mes clés » — _is_ppl OU irrégulier _IRR_PP) → j'ai.
     Miroir JS rJest / jestVig."""
+    if not _vig and deacc(T[i].lower()) in ("j'as", "j'a"): return T[i][:2] + 'ai'   # ⭐ 12/10/2026 (conjugaison 8) : « j'as faim », « j'a vu » → j'ai — miroir JS
     if deacc(T[i].lower()) != "j'est" or i + 1 >= len(T):
         return None
     nxt = T[i + 1]; nl = nxt.lower(); dn = deacc(nl)
