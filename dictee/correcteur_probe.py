@@ -958,7 +958,9 @@ def rule_son_sont(T, i):
         return None
     # lw == 'son' → « sont » : cadre NET « ils/elles son <prédicat> » (FP=0)
     if _prev_pron(T, i) in ('ils', 'elles') and nxt and not nxt_noun_sg:
-        return 'sont'                                                  # « ils son contents » → être 3pl (élidé inclus : « qu'ils son partis »)
+        return 'sont'
+    if lw == 'son' and i >= 1 and deacc(T[i-1].lower()) == 'ne' and (_prev_pron(T, i-1) in ('ils', 'elles') or plural_subj):
+        return 'sont'                                                  # ⭐ 12/10/2026 (conjugaison 6) : « ne » n'est jamais suivi d'un déterminant — miroir JS                                                  # « ils son contents » → être 3pl (élidé inclus : « qu'ils son partis »)
     # PILOTE « analyse » — sujet NOM : groupe pluriel avant + « son » suivi d'une PRÉPOSITION (un déterminant possessif
     # n'est JAMAIS suivi d'une prép ; le NOM « son » l'est mais est alors précédé d'un déterminant/prép, exclu) + AUCUN
     # verbe fini dans la proposition (signal verbe-présence ~94 %) → « son » occupe le créneau verbe → « sont ».
@@ -992,7 +994,17 @@ def rule_son_sont(T, i):
             _ap = _tg[i+2] if (_tg and i + 2 < len(_tg)) else None
             if _ap not in ('NOUN', 'PROPN'):                 # « son ancienne équipe » : un nom suit → possessif
                 return 'sont'
+    # ⭐ 12/10/2026 (conjugaison 6) : « les deux valises son presque pareilles » → sont — un ADVERBE entre « son » et l'adjectif pluriel ne change
+    #    rien au fait structurel (le possessif veut un nom singulier). Miroir JS.
+    if i + 2 < len(T) and plural_subj and nxt in _SON_ADV and prev(T, i) not in NUM_DET and prev(T, i) not in PREP:
+        _n2 = deacc(T[i+2].lower()); _sg2 = _n2[:-3] + 'al' if _n2.endswith('aux') else _n2[:-1]
+        if _n2.endswith(('s', 'x')) and _n2 not in _OS_INVAR and _n2 not in INVAR_NOUN and (_sg2 in WORDS_SET or _sg2 in GENDER_PURE) \
+                and _clause_no_finite_verb(T, i, i + 2):
+            _tg2 = pos_tags(T)
+            if (_tg2[i+3] if (_tg2 and i + 3 < len(_tg2)) else None) not in ('NOUN', 'PROPN'): return 'sont'
     return None
+
+_SON_ADV = frozenset('presque tres trop si aussi plus moins bien vraiment toujours souvent encore deja tellement assez pas jamais parfois egalement'.split())
 
 _PLURAL_CUE = {'et', 'ni', 'ils', 'elles', 'qui', 'ceux', 'celles', 'lesquels', 'lesquelles'}
 def _plural_left(T, i):
@@ -1097,6 +1109,13 @@ def rule_on_ont(T, i):
         _po = T[i+1].lower()
         if _po in ('sur', 'sous', 'contre', 'entre') and _is_ppl(T[i+2]):
             return None   # « ils ont contre attaqué » : composé coupé — miroir JS rOn
+    if i >= 1 and re.match(u"^n['’]on$", deacc(T[i].lower())):   # ⭐ 12/10/2026 (conjugaison 6) : « n'on » n'existe pas (« on ne ») → « n'ont » si le sujet est pluriel — miroir JS
+        _pl2 = _prev_pron(T, i) in ('ils', 'elles') or _plural_before(T, i)
+        if not _pl2:
+            for j in range(i-1, max(-1, i-9), -1):
+                if _SEG is not None and (j+1) < len(_SEG['bb']) and _SEG['bb'][j+1]: break
+                if deacc(T[j].lower()) in PLURAL_DET: _pl2 = True; break
+        return T[i][:2] + 'ont' if _pl2 else None
     lw = deacc(T[i].lower())
     if lw not in ('on', 'ont'): return None
     if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # « avait-on », « peut-on » : trait d'union → pronom inversé, jamais une faute
@@ -4055,6 +4074,24 @@ _REL_ANT = {'moi': ('1', 's'), 'toi': ('2', 's'), 'lui': ('3', 's'), 'elle': ('3
             'nous': ('1', 'p'), 'vous': ('2', 'p'), 'eux': ('3', 'p'), 'elles': ('3', 'p'),
             'ce': ('3', 's'), 'celui': ('3', 's'), 'celle': ('3', 's'), 'ceux': ('3', 'p'), 'celles': ('3', 'p')}
 
+def _des_article(T, tg, m, lo):
+    """⭐ 12/10/2026 (conjugaison 6) — « des » ARTICLE, pas « de + les » : en tête de proposition, après « voici / voilà / il y a », ou après
+    un VERBE sans déterminant devant lui. « des N » est alors le seul antécédent possible de « qui » (« je vois des oiseaux qui chante » →
+    mangent) ; après un nom (« la saison des pluies qui »), abstention comme avant. Miroir JS _desArticle."""
+    if m == lo: return True
+    p = deacc(T[m-1].lower())
+    if p in ('voici', 'voila'): return True
+    if p == 'a' and m >= 2 and deacc(T[m-2].lower()) == 'y': return True
+    vb = tg[m-1] in ('VERB', 'AUX')                 # le tagger lit parfois le verbe comme un nom (« je vois des ») : un pronom sujet devant le prouve
+    if not vb and _reads(p):
+        q = m - 2
+        while q >= 0 and deacc(T[q].lower()) in _SUJ_SAUT: q -= 1
+        if q >= 0 and (deacc(T[q].lower()) in SUBJ_PRON or deacc(T[q].lower()) in _SUBJ_PRON_PL): vb = True
+    if not vb or p in PREP or p in NUM_DET or p in _QUANT_PL or p in _QUANT_SG or not _reads(p): return False
+    if m >= 2 and (tg[m-2] == 'DET' or deacc(T[m-2].lower()) in NUM_DET): return False
+    return True
+
+
 def rule_accord_sv_relatif(T, i):
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None
     if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None          # participe (accord adjectival)
@@ -4076,10 +4113,11 @@ def rule_accord_sv_relatif(T, i):
         if _SEG is not None:
             for jj in range(qk, 0, -1):
                 if jj < len(_SEG['bb']) and _SEG['bb'][jj]: lo = jj; break
-        m = qk - 1
+        m = qk - 1; _dA = False
         while m >= lo:
             dm = deacc(T[m].lower())
             if "'" in T[m].lower(): return None                             # élision (d'un, l', qu'…) — souvent mistaguée (d'un→PROPN) → antécédent ambigu → abstention
+            if dm == 'des' and _des_article(T, tg, m, lo): det = m; _dA = True; break   # ⭐ 12/10/2026 (conjugaison 6) : « des » article — miroir JS
             if dm in PREP: return None                                      # « de techniques qui », « des Mamelouks qui » → antécédent ambigu → abstention
             if tg[m] == 'DET' or dm in NUM_DET or dm in _QUANT_PL or dm in _QUANT_SG: det = m; break
             if tg[m] in ('NOUN', 'PROPN'): noun = m; m -= 1; continue
@@ -4089,7 +4127,7 @@ def rule_accord_sv_relatif(T, i):
         if tg[noun] == 'PROPN' or (noun > 0 and T[noun][:1].isupper()): return None   # antécédent PROPRE/TITRE (« la revue Les Facettes qui », « les Maroons qui ») = nombre non fiable → abstention (même garde que rule_accord_sv_noun)
         mm = det - 1                                                        # token AVANT le déterminant (adverbes antéposés sautés)
         while mm > lo and tg[mm] == 'ADV': mm -= 1
-        if mm >= lo and deacc(T[mm].lower()) in PREP: return None           # « de CE type qui », « à LA musique qui » : GN = COMPLÉMENT → antécédent réel plus à gauche → abstention
+        if mm >= lo and not _dA and deacc(T[mm].lower()) in PREP: return None           # « de CE type qui », « à LA musique qui » : GN = COMPLÉMENT → antécédent réel plus à gauche → abstention
         if mm >= lo and deacc(T[mm].lower()) in ('et', 'ou', 'ni'): return None   # antécédent COORDONNÉ (« le tram ET le métro qui », « … et secondairement le maïs qui ») → pluriel ambigu → abstention
         dd = deacc(T[det].lower())
         if dd in NUM_DET:      nb = 'p' if NUM_DET[dd] == 'pl' else 's'
@@ -4602,6 +4640,36 @@ def _conj_variante(cellule, forme):
     return _CONJ_VAR.get(forme) == cellule or _CONJ_VAR.get(cellule) == forme
 
 
+_VOUS_IRR = {'faite': 'faites', 'dite': 'dites', 'faisez': 'faites', 'disez': 'dites', 'fesez': 'faites', 'refaite': 'refaites', 'redite': 'redites', 'refaisez': 'refaites', 'redisez': 'redites'}
+
+
+def rule_vous_irr(T, i):
+    """⭐ 12/10/2026 (conjugaison 6) — « vous faite / dite / faisez / disez » → faites / dites : présents IRRÉGULIERS de « vous » (faire,
+    dire, refaire, redire ; « vous contredisez » est juste, hors liste). « vous » SUJET : clitiques et négation seulement entre les deux, et
+    rien devant qui en fasse un complément (« à vous », « il vous », « qui vous »). Miroir JS rVousIrr."""
+    w = T[i]; f = _VOUS_IRR.get(deacc(w.lower()))
+    if not f: return None
+    j = i - 1
+    while j >= 0 and re.sub(u"['’]$", '', deacc(T[j].lower())) in _SUJ_SAUT: j -= 1
+    if j < 0 or deacc(T[j].lower()) != 'vous': return None
+    if j >= 1:
+        p = deacc(T[j-1].lower())
+        if p in PREP or p in SUBJ_PRON or p in _SUBJ_PRON_PL or p == 'qui' or p in NUM_DET: return None
+    return _keepcase(w, f)
+
+
+def _ps_rare(h, lec):
+    """⭐ 12/10/2026 (conjugaison 6) — « nous saura » → saurons : l'homographe passé simple (« saura » de saurer) ne vient que de verbes
+    RARES (< 1/M ou inconnus) et toutes les lectures sont d'un verbe courant → il ne fait plus taire la règle. Miroir JS _psRare."""
+    for l, _s in h:
+        q = _lemfreq(l)
+        if q is not None and q >= 1: return False
+    for r in lec:
+        q = _lemfreq(r[0])
+        if q is None or q < 1: return False
+    return True
+
+
 def rule_sujet_flexion(T, i):
     """« nous iriez » → irions · « tu irai » → iras · « le chat mangeons » → mange. Le TEMPS ÉCRIT est gardé
     (c'est la demande : corriger la personne, pas réécrire au présent). Deux lectures qui donneraient deux
@@ -4706,7 +4774,7 @@ def rule_sujet_flexion(T, i):
     # TAIT sur « tu sommes », « il sommes », « tu faites », « tu dites » : le fantôme lui fait croire que c'est
     # accordé. On ne garde que les lectures que la table de génération confirme.
     if _lecC: lec = _lecC
-    if lec and (_PS_INDEX.get(dl) and not any(r[1] == 'ind:pas' for r in lec)): return None   # homographe d'un passé simple (« primes » = primer 2sg ET prendre 1pl)
+    if lec and (_PS_INDEX.get(dl) and not any(r[1] == 'ind:pas' for r in lec)) and not _ps_rare(_PS_INDEX[dl], lec): return None   # homographe d'un passé simple (« primes » = primer 2sg ET prendre 1pl)
     sub = _sujet_flexion(T, i, tg)
     if sub is None: return None
     per, nb, src = sub
@@ -7218,7 +7286,7 @@ RULES = [('élision inversée', rule_deselide),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
          ('davantage', rule_davantage), ('conditionnel à vérifier', rule_cond_si), ('subjonctif à vérifier', rule_subjonctif), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
-         ('personne du verbe', rule_sujet_flexion),
+         ('personne du verbe', rule_vous_irr), ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
          #    correction, palier différent. Trouvé par la parité de vigilance (extension/parity_core.js, dictee/parity_corr.js).

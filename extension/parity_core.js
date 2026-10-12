@@ -908,6 +908,17 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 6) — produit entier : « n'on », « vous faite », « nous saura » et « des » article devant « qui » en ROUGE.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c6 = 0;
+  for (const [s, w, sg] of [['Je vois des oiseaux qui chante sur la branche.', 'chante', 'chantent'], ["Mes voisins n'on pas de jardin.", "n'on", "n'ont"],
+                            ['Vous faite trop de bruit le soir.', 'faite', 'faites'], ['Nous saura la réponse demain soir.', 'saura', 'saurons']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== 'auto') { _c6++; console.log('  ✗ conjugaison 6 : « ' + s + ' » → « ' + sg + ' » en ROUGE attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  if (_c6) { console.log('PARITÉ KO — conjugaison 6 : ' + _c6 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 6 : « des » article, « n'on », « vous faite », « nous saura » en rouge"); }
+
 // ⭐ 12/10/2026 (conjugaison 5) — produit entier : le conditionnel attendu est ORANGE (« si tu venais, nous irons » → irions ;
 // « je voudrai un café » → voudrais).
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
