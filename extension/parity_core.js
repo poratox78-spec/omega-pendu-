@@ -908,6 +908,18 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 7) — produit entier : « puis nous mangeront » → mangerons en ROUGE ; le sujet sous-entendu reste muet.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c7 = 0;
+  const m = fl('Je range la cuisine puis nous mangeront dehors.').find(x => x.word === 'mangeront');
+  if (!m || m.sugg !== 'mangerons' || m.tier !== 'auto') { _c7++; console.log('  ✗ conjugaison 7 : « mangeront » → « mangerons » en ROUGE attendu, obtenu ' + JSON.stringify(m || null)); }
+  if (fl('Il nous salue et nous embrasse.').some(x => x.word === 'embrasse')) { _c7++; console.log('  ✗ conjugaison 7 : « il nous salue et nous embrasse » doit rester muet'); }
+  const f2 = fl('Il faits ses courses le samedi.').find(x => x.word === 'faits');
+  if (!f2 || f2.sugg !== 'fait' || f2.tier !== 'vigilance') { _c7++; console.log('  ✗ conjugaison 7 : « il faits » → « fait » en ORANGE attendu, obtenu ' + JSON.stringify(f2 || null)); }
+  if (fl('On assez couru ce matin.').some(x => x.word === 'assez')) { _c7++; console.log('  ✗ conjugaison 7 : « assez » (adverbe) ne doit recevoir aucune marque'); }
+  if (_c7) { console.log('PARITÉ KO — conjugaison 7 : ' + _c7 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 7 : « nous » sujet après « puis » en rouge, sujet sous-entendu muet, « il faits » en orange, « assez » sans marque"); }
+
 // ⭐ 12/10/2026 (conjugaison 6) — produit entier : « n'on », « vous faite », « nous saura » et « des » article devant « qui » en ROUGE.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
   let _c6 = 0;

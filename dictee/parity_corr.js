@@ -424,6 +424,20 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 7 : « nous » / « vous » sujets après et, puis, mais… (« puis nous mangeront » → mangerons), « elles en on » → ont — sauf
+   quand la forme écrite s'accorde avec le sujet pronom d'avant (« il nous salue et nous embrasse » : sujet sous-entendu) ou que le
+   sujet d'avant est un nom. Python : _ellipse_accorde. */
+{ let _kc7 = 0;
+  for (const [ph, w, sg] of [['Je range la cuisine puis nous mangeront dehors.', 'mangeront', 'mangerons'],
+                             ['Tu lis un livre mais vous jouerai aux cartes.', 'jouerai', 'jouerez'], ['Elles en on assez de la pluie.', 'on', 'ont']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc7++; console.log('✗ conjugaison 7 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Il nous salue et nous embrasse.', 'embrasse'], ['Elle vous attend puis vous accompagne.', 'accompagne'],
+                         ['Les cousins partent et nous rejoindront plus tard.', 'rejoindront'], ['Ils nous regardent et nous sourient.', 'sourient']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc7++; console.log('✗ conjugaison 7 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc7) { console.log('PARITÉ KO — ' + _kc7 + ' cas « conjugaison 7 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 6 : les auxiliaires et l'antécédent que la règle ne voyait pas — « des » article devant l'antécédent de
    « qui » (après il y a, voici, un verbe), « ne son » / « n'on » / « son » + adverbe + adjectif pluriel, « nous saura » (homographe d'un
    verbe rare), « vous faite / disez ». Silences : « des » après un nom, « un des … qui », « vous contredisez », « nous » complément,

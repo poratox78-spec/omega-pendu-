@@ -1172,6 +1172,7 @@ def rule_on_ont(T, i):
         pr = deacc(T[i-1].lower()) if i > 0 else ''
         glued_pl = ("'" in pr) and (pr.endswith('ils') or pr.endswith('elles'))   # pronom collé : qu'ils, s'ils, lorsqu'elles → sujet pluriel
         if p in ('ils', 'elles') or glued_pl or (is_plural_noun(T, i-1) and not _plur_sous_prep(T, i)): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
+        if i >= 2 and p in ('en', 'y', 'les', 'leur', 'lui', 'nous', 'vous', 'me', 'te') and deacc(T[i-2].lower()) in ('ils', 'elles'): return 'ont'   # ⭐ 12/10/2026 (conjugaison 7) : « ils en on assez » — miroir JS
         # ⭐ 11/09/2026 — « comme on DIT », « duquel on FAIT », « et on dit que » : dit/fait sont des participes MAIS AUSSI des
         #    présents 3s. Sans sujet pluriel à gauche (traité juste au-dessus), on ne devine pas → abstention. Les participes
         #    purs (été, occupés, grandi) gardent le rouge : « tortues on été découvertes » → ont.
@@ -4533,6 +4534,30 @@ def _ps_completer():
 _SVN_CA = {u'ça', 'ca', 'cela', 'ceci'}   # ⭐ 04/10/2026 — sujets de 3e personne du singulier (« cela pourrais » → pourrait, « ça vas » → va), casse lue telle qu'écrite — miroir JS _SVN_CA
 
 
+_CONJ_COORD = frozenset('et puis mais ou donc alors ensuite car'.split())
+
+
+def _ellipse_accorde(T, i, c):
+    """⭐ 12/10/2026 (conjugaison 7) — « nous » / « vous » après et, puis, mais… : sujet (« il part et nous reviendront » → reviendrons) ou
+    complément d'un sujet sous-entendu (« il nous parle et nous écoute ») ? Vrai (abstention) si la forme écrite s'accorde avec le sujet
+    pronom d'avant, ou s'il n'y en a pas. Miroir JS _ellipseAccorde."""
+    p = None
+    for m in range(c - 1, max(-1, c - 13), -1):
+        lm = T[m].lower(); d = deacc(lm); me = _ELIDED_PRON.search(lm)
+        if me: d = deacc(me.group(1))
+        if re.match(u"^j['’]", lm): p = ('1', 's'); break
+        if d in SUBJ_PRON: p = SUBJ_PRON[d]; break
+        if d in _SUBJ_PRON_PL:
+            q = m - 1
+            while q >= 0 and (deacc(T[q].lower()) in CLITIC or deacc(T[q].lower()) == 'ne'): q -= 1
+            if q >= 0:
+                dq = deacc(T[q].lower())
+                if dq in SUBJ_PRON or dq in _SUBJ_PRON_PL or dq == 'qui' or _ELIDED_PRON.search(T[q].lower()): continue
+            p = _SUBJ_PRON_PL[d]; break
+    if p is None: return True
+    return any(r[2] == p[0] and (r[3] == p[1] or r[3] == 'x') for r in _reads(T[i]))
+
+
 def _sujet_flexion(T, i, tg):
     """(personne, nombre) du sujet de T[i], ou None. Le contexte tranche, avec les primitives du projet :
     on remonte de i-1 jusqu'à la frontière de proposition (_SEG['bb']), en traversant les CLITIQUES et les
@@ -4564,6 +4589,9 @@ def _sujet_flexion(T, i, tg):
                 if dk in SUBJ_PRON or dk in _SUBJ_PRON_PL or dk == 'qui': return None   # sujet déjà là → nous/vous = objet
                 if re.match(r"^(que|qu)$", dk.rstrip("'’")) or (tg and k < len(tg) and tg[k] == 'SCONJ'):
                     break                                            # « il faut QUE nous mange » : la subordonnée COMMENCE ici → nous est bien son sujet
+                if dk in _CONJ_COORD:                                # ⭐ 12/10/2026 (conjugaison 7) : « et nous reviendront » — miroir JS
+                    if _ellipse_accorde(T, i, k): return None
+                    break
                 if tg and k < len(tg) and tg[k] in ('NOUN', 'PROPN', 'VERB', 'AUX'): return None
                 if dk in CLITIC or (tg and k < len(tg) and tg[k] in _FLEX_ADV_OK): k -= 1; continue
                 return None                                          # inconnu à gauche → prudence
