@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-10-12 — lot 14 : « elle mes dit » → m'a dit (plus de « dits ») ; « voire » → voir
+
+- Vu au sondage du 11/10 : « Elle mes dit de venir » recevait l'orange « pluriel par le son » → « dits » (et « donnés », « vues »,
+  « manques ») — une correction FAUSSE. Après un pronom sujet, « mes » / « tes » devant un participe n'est pas un déterminant : c'est
+  me / te + avoir. `_apsMesPp` ≡ `_aps_mes_pp` (branche de `rApresSujet`) : il / elle / on → m'a, tu → m'as, ils / elles → m'ont
+  (t'… pour « tes ») ; `plurielSonVig` ≡ `rule_pluriel_son` se tait derrière tout pronom sujet + mes / tes (« Je mes dit » : rien,
+  l'auxiliaire est incertain).
+- « voire » dans une place d'infinitif (après pour, aller, venir, un modal, de, à, sans) → voir, branche de `rHomophoneMo`. UD :
+  les 23 « voire » suivent une virgule, un nom ou un adjectif.
+- Mesure : 3 « voir » justes (gold 2, EcriScol 1) ; « mes » : 0 dans les corpus ; UD 14 450 : 0 changement.
+- Tests : `parity_corr.js` (7 prises, 4 silences, 7 échecs sur l'ancienne app) ; `parity_core.js` (produit entier : la marque sur
+  « mes », jamais un pluriel sur le participe — 4 échecs sur l'ancien moteur).
+
+---
+
 ## 2026-10-12 — lot 13 : forme finie après être (il est partit, c'est finit, je me suis fais mal)
 
 - « il a finit » était corrigé (rAvoirFini) ; après être, rien : « il est partit », « c'est finit », « je me suis fais mal », « il est
