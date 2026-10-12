@@ -24699,7 +24699,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'expression figée à vérifier':function(e,a){var x={quand:'quand même',fait:'en fait','en fait':'en fait',tout:'tout le temps',parce:'parce que','en train':'en train de',surtout:'surtout',tant:'tant pis, tant mieux'}[String(a).toLowerCase()];return 'expression toute faite : on écrit « '+(x||a)+' ».';},   // ⭐ 11/10/2026
     'plutôt / plus tôt à vérifier':function(e,a){return String(a).indexOf(' ')>=0?'« plus tôt » (en deux mots) = l’inverse de « plus tard » : « le plus tôt possible », « plus tôt que prévu ».':'« plutôt » (en un mot) = de préférence : « plutôt que de partir ».';},   // ⭐ 11/10/2026
     'petit mot après le sujet à vérifier':function(e,a){var x={"s'y":'« s’y » (se + y : il s’y rend, il s’y trouve)',"n'y":'« n’y » (ne + y : il n’y a plus)',en:'« en » (il en mange, il en parle)',"s'en":'« s’en » (se + en : il s’en va)',se:'« se » (ils se sont battus)'}[String(a).toLowerCase().replace(/’/g,"'")];return 'entre le sujet et son verbe, seul un petit mot comme '+(x||'« '+a+' »')+' trouve sa place.';},   // ⭐ 11/10/2026
-    'mot-outil à vérifier':function(e,a){var x={quant:'« quant à » = en ce qui concerne : quant à moi',quand:'« quand » = au moment où : quand il pleut',quelle:'« quelle » devant un nom : quelle heure',quelles:'« quelles » devant un nom : quelles idées',"qu'elle":'« qu’elle » = que + elle, devant un verbe : je pense qu’elle viendra',"qu'elles":'« qu’elles » = que + elles, devant un verbe',"peut-être":'« peut-être » (sans doute) s’écrit avec un trait d’union',temps:'« il est temps de » : le moment est venu'}[String(a).toLowerCase().replace(/’/g,"'")];return 'même son, autre mot : '+(x||'« '+a+' »')+'.';},   // ⭐ 11/10/2026
+    'mot-outil à vérifier':function(e,a){var x={quant:'« quant à » = en ce qui concerne : quant à moi',quand:'« quand » = au moment où : quand il pleut',quelle:'« quelle » devant un nom : quelle heure',quelles:'« quelles » devant un nom : quelles idées',"qu'elle":'« qu’elle » = que + elle, devant un verbe : je pense qu’elle viendra',"qu'elles":'« qu’elles » = que + elles, devant un verbe',"peut-être":'« peut-être » (sans doute) s’écrit avec un trait d’union',temps:'« il est temps de » : le moment est venu',voir:'« voir » (le verbe) ; « voire » veut dire « et même »'}[String(a).toLowerCase().replace(/’/g,"'")];return 'même son, autre mot : '+(x||'« '+a+' »')+'.';},   // ⭐ 11/10/2026
     'davantage':function(){return '« davantage » (= plus) s’écrit en un seul mot ; « d’avantage » veut dire « d’un avantage ».';},
     'adjectif en -ant/-ent':function(e,a){return 'l’ADJECTIF s’écrit « '+a+' » ; « '+String(e||'').toLowerCase()+' » est la forme du VERBE (en '+String(e||'').toLowerCase()+').';},
     'si + conditionnel':function(e,a){return 'après « si », pas de conditionnel en -rais : on écrit l’imparfait, « '+a+' » (si j’avais su).';},
@@ -28354,7 +28354,14 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
      pas de ponctuation entre les trois mots, pas d'inversion (« dit-il si… »), nous / vous exclus (ils sont aussi compléments).
      « il ce lève » est déjà vu par rCe. ORANGE. Miroir Python rule_apres_sujet. */
   var _APS_SUJ={je:1,tu:1,il:1,elle:1,on:1,ils:1,elles:1},_APS_MAP={si:"s'y",ni:"n'y",dans:'en',cent:"s'en",ce:'se'};
-  function rApresSujet(T,i){var n=T.length,d=deacc(T[i].toLowerCase());if(!_APS_MAP[d]||i<1||i+1>=n)return null;
+  var _APS_AUX={il:'a',elle:'a',on:'a',tu:'as',ils:'ont',elles:'ont'};   // ⭐ 12/10/2026 (lot 14) : « elle mes dit » → m'a dit
+  function _apsMesPp(T,i){var n=T.length,d=deacc(T[i].toLowerCase());if((d!=='mes'&&d!=='tes')||i<1||i+1>=n)return null;
+    var p=deacc(T[i-1].toLowerCase()).replace(/^(qu|s|lorsqu|puisqu|quoiqu)['’]/,''),aux=_APS_AUX[p];if(!aux)return null;
+    if(_SEG&&((i<_SEG.bb.length&&_SEG.bb[i])||(i+1<_SEG.bb.length&&_SEG.bb[i+1])||(i-1<_SEG.hy.length&&_SEG.hy[i-1])||(i<_SEG.hy.length&&_SEG.hy[i])))return null;
+    var nx=T[i+1];if(nx!==nx.toLowerCase()||!_avoirPp(nx))return null;   // un PARTICIPE derrière : « il mes amis » reste
+    return (d==='mes'?"m'":"t'")+aux;}
+  function rApresSujet(T,i){var _mp=_apsMesPp(T,i);if(_mp)return {sugg:ckeepcase(T[i],_mp),vig:1};
+    var n=T.length,d=deacc(T[i].toLowerCase());if(!_APS_MAP[d]||i<1||i+1>=n)return null;
     var p=deacc(T[i-1].toLowerCase()).replace(/^(qu|s|lorsqu|puisqu|quoiqu)['’]/,'');if(!_APS_SUJ[p])return null;
     if(_SEG&&((i<_SEG.bb.length&&_SEG.bb[i])||(i+1<_SEG.bb.length&&_SEG.bb[i+1])||(i-1<_SEG.hy.length&&_SEG.hy[i-1])||(i<_SEG.hy.length&&_SEG.hy[i])||(i+1<_SEG.hy.length&&_SEG.hy[i+1])))return null;
     var nx=T[i+1].toLowerCase(),nd=deacc(nx);if(NUM_DET[nd]||DET_G[nd]||/^[ld]['’]/.test(nx)||!svReads(nd).length)return null;
@@ -28371,6 +28378,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   var _MO_TON={},_MO_QESTOP={},_MO_QLSTOP={};'moi toi lui elle nous vous eux elles ce cela ca'.split(' ').forEach(function(w){_MO_TON[w]=1;});
   'non pas plus point rien personne guere mieux moins si de du des et ou a en la le les un une'.split(' ').forEach(function(w){_MO_QESTOP[w]=1;});'soit soient'.split(' ').forEach(function(w){_MO_QLSTOP[w]=1;});
   var _MO_MODAL={pouvoir:1,devoir:1,sembler:1,paraitre:1};   // « Quelle peut être la taille… » : interrogatif devant un semi-auxiliaire
+  var _MO_VG={};'pour sans de d a aller va vais vas allons allez vont allait allaient alle allee alles allees venir viens vient venons venez viennent venu venue venus venues peux peut pouvons pouvez peuvent pouvait pourrais pourrait veux veut voulons voulez veulent voulait voudrais voudrait faut fallait doit dois devons devez doivent devait'.split(' ').forEach(function(w){_MO_VG[w]=1;});   // ⭐ 12/10/2026 (lot 14) : place d'infinitif
   function _moInf(x){return !!x&&/(er|ir|re|oir)$/.test(x)&&!!COMMON_VERBS[x];}
   function rHomophoneMo(T,i){var n=T.length,w=T[i],lw=w.toLowerCase(),d=deacc(lw),d1=i+1<n?deacc(T[i+1].toLowerCase()):'',d2=i+2<n?deacc(T[i+2].toLowerCase()):'',
       maj=w.charAt(0)!==w.charAt(0).toLowerCase(),cap=function(s){return maj?s.charAt(0).toUpperCase()+s.slice(1):s;},
@@ -28382,6 +28390,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(/^quel(le)?s?$/.test(d)&&i+1<n&&!cut(i+1)&&!hy(i+1)){var nx2=T[i+1].toLowerCase(),nd2=deacc(nx2),sp2=_spos(nx2);
       if(sp2&&sp2.indexOf('V')>=0&&sp2.indexOf('N')<0&&sp2.indexOf('A')<0&&!_MO_QLSTOP[nd2]&&!FULL_AUX[nd2]&&svReads(nd2).length&&!svReads(nd2).some(function(r){return _MO_MODAL[r[0]];})&&!_isPpl(T[i+1]))return {sugg:cap(/s$/.test(d)?"qu'elles":"qu'elle"),vig:1};}
     if(d==='peut'&&d1==='etre'&&(i===0||cut(i))&&i+2<n&&!cut(i+1)&&(d2==='que'||/^qu['’]/.test(d2)))return {sugg:cap('peut-être'),span:2,vig:1};
+    if(d==='voire'&&i>=1&&!cut(i)&&_MO_VG[deacc(T[i-1].toLowerCase()).replace(/['’]$/,'')])return {sugg:'voir',vig:1};   // ⭐ 12/10/2026 (lot 14) : « il est venu voire sa mère » ; UD : « voire » suit une virgule, un nom, un adjectif
     if(d==='tant'&&i>=1&&/^(est|etait|sera|serait)$/.test(deacc(T[i-1].toLowerCase()))&&i+1<n&&!cut(i+1)&&((d1==='de'&&i+2<n&&!cut(i+2)&&_moInf(d2))||(/^d['’]/.test(d1)&&_moInf(d1.slice(2)))))return {sugg:'temps',vig:1};
     return null;}
   var _DAV_PREV={pas:1,plus:1,point:1,guere:1,aucun:1,sans:1,peu:1};
@@ -30295,7 +30304,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var sc=function(x){return (SP.FREQ[x]||0)+(SP.FREQ[x.slice(0,-1)]||0);};   // le pluriel ET son singulier : « murs » (mur) avant « mûres »
     out.sort(function(a,b){var na=(SP.POS[a]||'').indexOf('N')>=0?0:1,nb=(SP.POS[b]||'').indexOf('N')>=0?0:1;if(na!==nb)return na-nb;var d=sc(b)-sc(a);if(d)return d;return a<b?-1:(a>b?1:0);});
     return out;}
-  function plurielSonVig(T,i){if(i>0&&(cesCestVig(T,i-1)||rCesSest(T,i-1)))return null;if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
+  function plurielSonVig(T,i){if(i>0&&(cesCestVig(T,i-1)||rCesSest(T,i-1)))return null;if(i>1&&/^(mes|tes)$/.test(deacc(T[i-1].toLowerCase()))&&_APS_SUJ[deacc(T[i-2].toLowerCase()).replace(/^(qu|s|lorsqu|puisqu|quoiqu)['’]/,'')])return null;   /* ⭐ 12/10/2026 (lot 14) : « elle mes dit » = m'a dit, pas « dits » */if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
     if(!_PSON_DPUR[pd]&&!_PSON_DAMB[pd])return null;
     var n=T[i];if(!/^[a-zà-ÿœæ]+$/i.test(n)||n.charAt(0)!==n.charAt(0).toLowerCase())return null;
     var low=n.toLowerCase(),dn=deaccS(low);if(dn.length<2||_PSON_GRAM[dn]||CARD[dn]||CARDSTOP[dn]||CONJ_C[dn])return null;

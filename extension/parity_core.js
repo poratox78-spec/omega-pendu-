@@ -908,6 +908,19 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (lot 14) — « Elle mes dit de venir » : l'orange « pluriel par le son » rendait « dits » (et « donnés », « vues ») —
+// FAUX : après un pronom sujet, « mes » n'est pas un déterminant, c'est me + avoir → « m'a ». Produit entier : la marque va sur « mes »,
+// jamais un pluriel sur le participe ; « Je mes dit » (auxiliaire incertain) reste sans pluriel.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _mp = 0;
+  for (const [s, pp, sg] of [['Elle mes dit de venir.', 'dit', "m'a"], ['Il mes donné un livre.', 'donné', "m'a"], ['Elle tes vu hier.', 'vu', "t'a"]]) {
+    const f = fl(s), m = f.find(x => x.word === 'mes' || x.word === 'tes'), p = f.find(x => x.word === pp);
+    if (!m || m.sugg !== sg || p) { _mp++; console.log('  ✗ mes + participe : « ' + s + ' » → « ' + sg + ' » sur le pronom, rien sur « ' + pp + ' » ; obtenu ' + JSON.stringify(f.map(x => x.word + '→' + x.sugg))); }
+  }
+  if (fl('Je mes dit que oui.').some(x => x.word === 'dit')) { _mp++; console.log('  ✗ mes + participe : « Je mes dit » ne doit pas mettre un pluriel sur « dit »'); }
+  if (_mp) { console.log('PARITÉ KO — mes + participe : ' + _mp + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ mes / tes + participe après un pronom sujet → m'a / t'a, jamais un pluriel sur le participe"); }
+
 // ⭐ 04/10/2026 — deux accords qui restaient muets : l'adjectif après un nom de lieu qui porte son article (« la Chine entier » → entière),
 // « quelque » + nom pluriel → quelques. Témoins : lieu sans article, nombre, « temps », « fois », verbe.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');

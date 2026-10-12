@@ -5488,6 +5488,7 @@ def _pson_cands(n):
 
 
 def rule_pluriel_son(T, i):
+    if i > 1 and deacc(T[i - 1].lower()) in ('mes', 'tes') and re.sub(u"^(qu|s|lorsqu|puisqu|quoiqu)['’]", '', deacc(T[i - 2].lower())) in _APS_SUJ: return None   # ⭐ 12/10/2026 (lot 14) : « elle mes dit » = m'a dit, pas « dits » — miroir JS
     if i > 0 and (_ces_cest(T, i - 1) or rule_ces_sest(T, i - 1)): return None   # ⭐ 09/10/2026 : et « ces » corrigé en s'est (« elle ces mariée ») ; 30/09/2026 : derrière « ces/ses » lu « c'est » (miroir JS plurielSonVig)
     if i < 1: return None
     ph, fr, po, gram, _k = _pson_tables()
@@ -6481,7 +6482,27 @@ _APS_SUJ = frozenset(('je', 'tu', 'il', 'elle', 'on', 'ils', 'elles'))
 _APS_MAP = {'si': "s'y", 'ni': "n'y", 'dans': 'en', 'cent': "s'en", 'ce': 'se'}
 
 
+_APS_AUX = {'il': 'a', 'elle': 'a', 'on': 'a', 'tu': 'as', 'ils': 'ont', 'elles': 'ont'}   # ⭐ 12/10/2026 (lot 14)
+
+
+def _aps_mes_pp(T, i):
+    """⭐ 12/10/2026 (lot 14) — pronom sujet + mes / tes + PARTICIPE : « elle mes dit » → m'a. Miroir JS _apsMesPp."""
+    n = len(T); d = deacc(T[i].lower())
+    if d not in ('mes', 'tes') or i < 1 or i + 1 >= n: return None
+    p = re.sub(u"^(qu|s|lorsqu|puisqu|quoiqu)['’]", '', deacc(T[i - 1].lower()))
+    aux = _APS_AUX.get(p)
+    if not aux: return None
+    if _SEG is not None:
+        bb, hy = _SEG['bb'], _SEG['hy']
+        if (i < len(bb) and bb[i]) or (i + 1 < len(bb) and bb[i + 1]) or (i - 1 < len(hy) and hy[i - 1]) or (i < len(hy) and hy[i]): return None
+    nx = T[i + 1]
+    if nx != nx.lower() or not _avoir_pp(nx): return None         # un PARTICIPE derrière : « il mes amis » reste
+    return ("m'" if d == 'mes' else "t'") + aux
+
+
 def rule_apres_sujet(T, i):
+    _mp = _aps_mes_pp(T, i)
+    if _mp: return _keepcase(T[i], _mp)
     """⭐ 11/10/2026 — le petit mot impossible APRÈS UN PRONOM SUJET, devant un verbe conjugué (orange) : il si est → s'y, il ni a
     → n'y, il dans mange → en, il cent va → s'en, ils ce sont → se. Miroir JS rApresSujet."""
     n = len(T); d = deacc(T[i].lower())
@@ -6503,6 +6524,9 @@ _MO_QLSTOP = frozenset('soit soient'.split())
 
 
 _MO_MODAL = frozenset(('pouvoir', 'devoir', 'sembler', 'paraitre'))   # « Quelle peut être la taille… »
+
+
+_MO_VG = frozenset('pour sans de d a aller va vais vas allons allez vont allait allaient alle allee alles allees venir viens vient venons venez viennent venu venue venus venues peux peut pouvons pouvez peuvent pouvait pourrais pourrait veux veut voulons voulez veulent voulait voudrais voudrait faut fallait doit dois devons devez doivent devait'.split())   # ⭐ 12/10/2026 (lot 14) : place d'infinitif
 
 
 def _mo_inf(x):
@@ -6530,6 +6554,7 @@ def rule_homophone_mo(T, i):
             return cap("qu'elles" if d.endswith('s') else "qu'elle")
     if d == 'peut' and d1 == 'etre' and (i == 0 or cut(i)) and i + 2 < n and not cut(i + 1) and (d2 == 'que' or re.match(u"^qu['’]", d2)):
         return cap(u'peut-être')
+    if d == 'voire' and i >= 1 and not cut(i) and re.sub(u"['’]$", '', deacc(T[i - 1].lower())) in _MO_VG: return 'voir'   # ⭐ 12/10/2026 (lot 14) — miroir JS
     if d == 'tant' and i >= 1 and deacc(T[i - 1].lower()) in ('est', 'etait', 'sera', 'serait') and i + 1 < n and not cut(i + 1) \
             and ((d1 == 'de' and i + 2 < n and not cut(i + 2) and _mo_inf(d2)) or (re.match(u"^d['’]", d1) and _mo_inf(d1[2:]))):
         return 'temps'

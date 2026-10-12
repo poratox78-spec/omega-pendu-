@@ -424,6 +424,20 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — lot 14 : pronom sujet + mes / tes + participe → m'a, t'a, m'as, m'ont (« petit mot après le sujet à vérifier ») ;
+   « voire » dans une place d'infinitif → voir (« mot-outil à vérifier ») ; silences : « il mes amis », « il mange mes frites », « voire »
+   après une virgule ou un adjectif. Python : _aps_mes_pp, rule_homophone_mo. */
+{ let _k14 = 0;
+  for (const [ph, w, sg] of [['Elle mes dit de venir.', 'mes', "m'a"], ['Il mes donné un livre.', 'mes', "m'a"], ['Tu mes manqué.', 'mes', "m'as"],
+                             ['Ils mes aidé.', 'mes', "m'ont"], ['Elle tes vu hier.', 'tes', "t'a"], ['Il est venu voire sa mère.', 'voire', 'voir'],
+                             ['Il veut voire le match.', 'voire', 'voir']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _k14++; console.log('✗ mes / voire : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Il mes amis sont là.', 'mes'], ['Il mange mes frites.', 'mes'], ['Plusieurs jours, voire des semaines.', 'voire'], ["C'est rare voire unique.", 'voire']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _k14++; console.log('✗ mes / voire : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_k14) { console.log('PARITÉ KO — ' + _k14 + ' cas « mes / voire ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — lot 13 : forme finie après ÊTRE écrite pour le participe (orange, « participe après être à vérifier ») — il est
    partit → parti, elle est sortit → sortie, ils sont partit → partis, c'est finit → fini, je me suis fais mal → fait, c'est permit →
    permis, il est prit → pris ; silences : « il est déjà nuit » (nom), « le choc est subit » (adjectif), participe déjà juste ou
