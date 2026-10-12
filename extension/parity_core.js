@@ -908,6 +908,18 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 4) — produit entier : le subjonctif proposé et le « si » + conditionnel hors être / avoir sont ORANGE
+// (le mode est un choix de sens : on propose, on n'impose pas) ; « si j'aurais » → j'avais reste ROUGE.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c4 = 0;
+  for (const [s, w, sg, t] of [['Il faut que tu viens demain.', 'viens', 'viennes', 'vigilance'], ['Si tu viendrais, on irait au parc.', 'viendrais', 'venais', 'vigilance'],
+                               ["Si j'aurais su, je serais venu.", "j'aurais", "j'avais", 'auto']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== t) { _c4++; console.log('  ✗ conjugaison 4 : « ' + s + ' » → « ' + sg + ' » (' + t + ') attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  if (_c4) { console.log('PARITÉ KO — conjugaison 4 : ' + _c4 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 4 : subjonctif et « si » + conditionnel en orange, « si j'aurais » en rouge"); }
+
 // ⭐ 12/10/2026 (conjugaison 3) — produit entier : la carte des silences de l'accord sujet-verbe connaît tous les temps d'être et
 // d'avoir, et vaut aussi pour la règle du sujet nominal quand le sujet est COMPLEXE. Prises gardées (sujet simple) ; fausses alertes
 // d'UD éteintes (sujet éloigné, titre). Avant : « La structure distincte des grades de l'aviation était éliminée » → étaient.
