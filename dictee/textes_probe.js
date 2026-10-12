@@ -325,7 +325,7 @@ const LECONS = [
   "élision inversée", "accord tout", "genre déterminant", "nombre du déterminant à vérifier", "pluriel par le son à vérifier",
   "auxiliaire manquant à vérifier", "forme en -ant à vérifier", "participe présent après « en » à vérifier",
   "infinitif après semi-auxiliaire à vérifier", "infinitif après pronom sujet à vérifier", "ces/ses à vérifier", "leur/leurs",
-  "sais/sait", "petit mot après le sujet à vérifier", "mot-outil à vérifier", "subjonctif à vérifier"];
+  "sais/sait", "petit mot après le sujet à vérifier", "mot-outil à vérifier", "subjonctif à vérifier", "conditionnel à vérifier"];
 { const i0 = coucheExt.indexOf('var _RTIP={'), blk = coucheExt.slice(i0, coucheExt.indexOf('\n  };', i0));
   const cles = new Set([...blk.matchAll(/^\s{4}(?:'([^']+)'|"([^"]+)"|([A-Za-zÀ-ÿ_]+)):function/mg)].map((m) => m[1] || m[2] || m[3]));
   const perdues = LECONS.filter((n) => !cles.has(n));

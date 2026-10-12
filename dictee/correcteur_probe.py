@@ -6624,6 +6624,39 @@ def rule_subjonctif(T, i):
     return _keepcase(w, f)
 
 
+_COND_POLI = frozenset('un une des du de d bien savoir vous te que qu connaitre avoir parler reserver commander'.split())
+
+
+def rule_cond_si(T, i):
+    """⭐ 12/10/2026 — conditionnel attendu (orange) : « si j'avais…, j'achèterai » → achèterais ; « je voudrai un café » → voudrais.
+    Miroir JS rCondSi."""
+    w = T[i]; lw = w.lower(); d = deacc(lw); pre = ''
+    m = re.match(u"^j['’](.+)$", d)
+    if m: pre = lw[:2]; d = m.group(1)
+    if d == 'voudrai' and not pre and i >= 1 and deacc(T[i - 1].lower()) == 'je' and i + 1 < len(T) \
+            and re.sub(u"['’].*$", '', deacc(T[i + 1].lower())) in _COND_POLI: return _keepcase(w, 'voudrais')
+    rd = [r for r in _reads(d) if r[1] == 'ind:fut']
+    if not rd or len({r[0] for r in rd}) != 1: return None
+    fut = rd[-1]
+    bb = (_SEG or {}).get('bb') or []
+    c = -1
+    for z in range(i, 0, -1):
+        if z < len(bb) and bb[z]: c = z; break
+    if c < 2: return None
+    for z in range(c, i):
+        dz = re.sub(u"['’]$", '', deacc(T[z].lower()))
+        if dz not in _SUBJ_PP and dz not in _SUBJ_CL: return None
+    s0 = 0
+    for z in range(c - 1, 0, -1):
+        if z < len(bb) and bb[z]: s0 = z; break
+    t0 = deacc(T[s0].lower())
+    if not (t0 == 'si' or re.match(u"^s['’]ils?$", t0)): return None
+    if not any(r[1] == 'ind:imp' for z in range(s0, c) for r in _reads(re.sub(u"^[jlmtsn]['’]", '', deacc(T[z].lower())))): return None
+    f = (CONJ_C.get(fut[0]) or {}).get('cnd:pre', {}).get(fut[2] + fut[3])
+    if not f: return None
+    return _keepcase(w, pre + f if pre else f)
+
+
 _DAV_PREV = {'pas', 'plus', 'point', 'guere', 'aucun', 'sans', 'peu'}
 
 
@@ -7184,7 +7217,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('subjonctif à vérifier', rule_subjonctif), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('conditionnel à vérifier', rule_cond_si), ('subjonctif à vérifier', rule_subjonctif), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
