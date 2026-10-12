@@ -424,6 +424,21 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 5 : le conditionnel attendu (« conditionnel à vérifier ») — après « si » + imparfait, la principale au
+   conditionnel ; « je voudrai un café » → voudrais. Silences : « si » + présent (futur juste), conditionnel déjà juste, « quand » + futur,
+   « je voudrai partir » (vrai futur possible), interrogation indirecte. Python : rule_cond_si. */
+{ let _kc5 = 0;
+  for (const [ph, w, sg] of [["Si j'avais de l'argent, j'achèterai une voiture.", "j'achèterai", "j'achèterais"], ['Si tu venais, nous irons au parc.', 'irons', 'irions'],
+                             ["S'il pleuvait, il restera à la maison.", 'restera', 'resterait'], ["Je voudrai un café, s'il vous plaît.", 'voudrai', 'voudrais']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc5++; console.log('✗ conjugaison 5 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [["Si j'ai de l'argent, j'achèterai une voiture.", "j'achèterai"], ['Si tu viens, nous irons au parc.', 'irons'],
+                         ["Si j'avais de l'argent, j'achèterais une voiture.", "j'achèterais"], ['Quand je serai grand, je voudrai partir.', 'voudrai'],
+                         ['Je voudrai partir demain.', 'voudrai'], ['Je me demande si tu venais, mais tu viendras.', 'viendras']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc5++; console.log('✗ conjugaison 5 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc5) { console.log('PARITÉ KO — ' + _kc5 + ' cas « conjugaison 5 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 4 : le MODE du verbe — subjonctif après un déclencheur certain (« subjonctif à vérifier ») et « si » +
    conditionnel → imparfait pour tous les verbes. Silences : subjonctif déjà juste, « je pense que » (indicatif), « il sait bien que »,
    « après que », interrogation indirecte. Python : rule_subjonctif, rule_si_cond. */

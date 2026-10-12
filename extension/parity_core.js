@@ -908,6 +908,17 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 5) — produit entier : le conditionnel attendu est ORANGE (« si tu venais, nous irons » → irions ;
+// « je voudrai un café » → voudrais).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c5 = 0;
+  for (const [s, w, sg] of [['Si tu venais, nous irons au parc.', 'irons', 'irions'], ["Je voudrai un café, s'il vous plaît.", 'voudrai', 'voudrais']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== 'vigilance') { _c5++; console.log('  ✗ conjugaison 5 : « ' + s + ' » → « ' + sg + ' » en ORANGE attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  if (_c5) { console.log('PARITÉ KO — conjugaison 5 : ' + _c5 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 5 : conditionnel attendu en orange (après « si » + imparfait, « je voudrais »)"); }
+
 // ⭐ 12/10/2026 (conjugaison 4) — produit entier : le subjonctif proposé et le « si » + conditionnel hors être / avoir sont ORANGE
 // (le mode est un choix de sens : on propose, on n'impose pas) ; « si j'aurais » → j'avais reste ROUGE.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');

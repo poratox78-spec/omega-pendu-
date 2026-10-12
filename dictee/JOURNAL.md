@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-10-12 — conjugaison 5 : le conditionnel attendu (après « si » + imparfait ; « je voudrais »)
+
+- Sondage : « Si j'avais de l'argent, j'achèterai une voiture », « si tu venais, nous irons », « je voudrai un café » étaient muets.
+- `rCondSi` ≡ `rule_cond_si` (orange « conditionnel à vérifier », 3 moteurs) : ① une protase « si » + IMPARFAIT en tête de phrase, puis,
+  après la virgule, un futur (sujet pronom et clitiques seulement) → le conditionnel du même verbe, même personne (table) ; « si » +
+  présent garde son futur. ② la demande polie : je + voudrai + un, du, bien, savoir, vous, que… → voudrais (« je voudrai partir » reste :
+  un vrai futur est possible).
+- Mesure : 3 corpus et UD 14 450 : 0 changement (ces fautes n'y sont pas). Batterie Python 272 / 285, 0 FP ; couverture et census
+  inchangés ; 48 leçons de règle.
+- Tests : `parity_corr.js` (4 prises, 6 silences ; 4 échecs sur l'ancien code) ; `parity_core.js` (palier orange).
+
+---
+
 ## 2026-10-12 — conjugaison 4 : le mode du verbe (subjonctif après un déclencheur, « si » + conditionnel pour tous les verbes)
 
 - Sondage après les conjugaisons 1 à 3 : la personne et le temps sont corrigés, le MODE ne l'était pas — « il faut que tu viens »,
