@@ -4558,7 +4558,16 @@ def _ellipse_accorde(T, i, c):
             if q >= 0:
                 dq = deacc(T[q].lower())
                 if dq in SUBJ_PRON or dq in _SUBJ_PRON_PL or dq == 'qui' or _ELIDED_PRON.search(T[q].lower()): continue
+            if q >= 0 and deacc(T[q].lower()) not in _CONJ_COORD and not (_SEG is not None and m < len(_SEG['bb']) and _SEG['bb'][m]): return True   # ⭐ 12/10/2026 (conjugaison 10) : « la maîtresse nous parle et nous écoute » — « nous » complément d'un sujet nominal — miroir JS
             p = _SUBJ_PRON_PL[d]; break
+    if p is None:                                                    # ⭐ 12/10/2026 (conjugaison 10) : sujet NOMINAL d'avant — miroir JS
+        _tge = pos_tags(T)
+        if _tge:
+            for m in range(c - 1, max(-1, c - 9), -1):
+                if _reads(T[m]):
+                    _npe = _np_subject(T, _tge, m)
+                    if _npe is not None and _npe.get('n') in ('s', 'p'): p = ('3', _npe['n'])
+                    break
     if p is None: return True
     return any(r[2] == p[0] and (r[3] == p[1] or r[3] == 'x') for r in _reads(T[i]))
 
@@ -6726,6 +6735,58 @@ def rule_subjonctif(T, i):
     return _keepcase(w, f)
 
 
+def _protase_conj(T, s0):
+    t = deacc(T[s0].lower()); n = deacc(T[s0 + 1].lower()) if s0 + 1 < len(T) else ''
+    if t == 'si' or re.match(u"^s['’]ils?$", t): return ('si', s0 + 1)
+    if t in ('quand', 'lorsque') or re.match(u"^lorsqu['’]", t): return ('quand', s0 + 1)
+    if t in ('des', 'aussitot') and (n == 'que' or re.match(u"^qu['’]", n)): return ('quand', s0 + 2)
+    return None
+
+
+def rule_temps_protase(T, i):
+    """⭐ 12/10/2026 — le temps de la protase (orange) : « si tu viendras, » → viens ; « quand je serais grand, je serai » → serai.
+    Miroir JS rTempsProtase."""
+    w = T[i]; lw = w.lower(); d = deacc(lw); pre = ''
+    m = re.match(u"^j['’](.+)$", d)
+    if m: pre = lw[:2]; d = m.group(1)
+    bb = (_SEG or {}).get('bb') or []
+    s0 = 0
+    for z in range(i, 0, -1):
+        if z < len(bb) and bb[z]: s0 = z; break
+    pc = _protase_conj(T, s0)
+    if not pc or pc[1] > i: return None
+    k, v0 = pc
+    c = -1
+    for z in range(i + 1, len(T)):
+        if z < len(bb) and bb[z]: c = z; break
+    if c < 0: return None
+    subj = None
+    e0 = deacc(T[v0 - 1].lower()) if v0 >= 1 else ''
+    me = re.match(u"^(?:s|lorsqu|qu)['’](ils?|elles?|on)$", e0)
+    if me: subj = _SUBJ_PP.get(me.group(1))
+    for z in range(v0, i):
+        dz = re.sub(u"['’]$", '', deacc(T[z].lower()))
+        if dz in _SUBJ_PP and not subj: subj = _SUBJ_PP[dz]; continue
+        if dz in _SUBJ_CL: continue
+        return None
+    if pre: subj = '1s'
+    if not subj: return None
+    tgt, alt = ('ind:fut', 'ind:pre') if k == 'si' else ('cnd:pre', 'ind:fut')
+    rd = _reads(d)
+    hits = [r for r in rd if r[1] == tgt and r[2] + r[3] == subj]
+    if not hits or len({r[0] for r in hits}) != 1: return None
+    if any(r[1] == alt and r[2] + r[3] == subj for r in rd): return None
+    if k == 'quand':
+        v = c
+        while v < len(T) and (re.sub(u"['’]$", '', deacc(T[v].lower())) in _SUBJ_PP or re.sub(u"['’]$", '', deacc(T[v].lower())) in _SUBJ_CL): v += 1
+        if v >= len(T): return None
+        if not any(r[1] == 'ind:fut' for r in _reads(re.sub(u"^[jlmtsn]['’]", '', deacc(T[v].lower())))): return None
+    f = ((CONJ_C.get(hits[-1][0]) or {}).get(alt) or {}).get(subj)
+    if not f: return None
+    if pre and not re.match(u'^[aeiouyéèêh]', f, re.I): return None
+    return _keepcase(w, pre + f if pre else f)
+
+
 _COND_POLI = frozenset('un une des du de d bien savoir vous te que qu connaitre avoir parler reserver commander'.split())
 
 
@@ -7319,7 +7380,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('conditionnel à vérifier', rule_cond_si), ('subjonctif à vérifier', rule_subjonctif), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('conditionnel à vérifier', rule_cond_si), ('temps du verbe à vérifier', rule_temps_protase), ('subjonctif à vérifier', rule_subjonctif), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_vous_irr), ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
