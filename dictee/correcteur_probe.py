@@ -6285,7 +6285,12 @@ _SI_CONJ = {'et', 'mais', 'car', 'alors', 'comme', 'meme', 'ou'}
 def rule_si_cond(T, i):
     lw = T[i].lower(); d = deacc(lw); pre = ''
     if d.startswith("j'"): pre = lw[:2]; d = d[2:]
-    if d not in _SICOND: return None
+    _sg_t = None
+    if d not in _SICOND:   # ⭐ 12/10/2026 (conjugaison 4) : tous les verbes — « si tu viendrais » → venais (orange, tier_of) — miroir JS
+        rc = [r for r in _reads(d) if r[1] == 'cnd:pre']
+        if not rc or len({r[0] for r in rc}) != 1: return None
+        _sg_t = (CONJ_C.get(rc[-1][0]) or {}).get('ind:imp', {}).get(rc[-1][2] + rc[-1][3])
+        if not _sg_t: return None
     for j in range(i - 1, max(-1, i - 4), -1):
         pj = deacc(T[j].lower())
         est_si = (pj == 'si'); est_sil = bool(re.match(r"^s'ils?$", pj))
@@ -6293,7 +6298,7 @@ def rule_si_cond(T, i):
             if j > 0 and deacc(T[j - 1].lower()) in _SI_SAVOIR: return None   # « je ne sais pas si je serais »
             if not ((j == 0) or (_SEG and j < len(_SEG['bb']) and _SEG['bb'][j]) or (j > 0 and deacc(T[j - 1].lower()) in _SI_CONJ)):
                 return None                                      # protase = tête de proposition
-            sg = _SICOND[d]
+            sg = _sg_t or _SICOND[d]
             return _keepcase(T[i], pre + sg if pre else sg)
         if pj not in _NEG_SUJ and pj not in ('ne', 'y', 'en'): return None
     return None
@@ -6570,6 +6575,53 @@ def rule_homophone_mo(T, i):
             and ((d1 == 'de' and i + 2 < n and not cut(i + 2) and _mo_inf(d2)) or (re.match(u"^d['’]", d1) and _mo_inf(d1[2:]))):
         return 'temps'
     return None
+
+
+_SUBJ_DECL = frozenset('faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent'.split())
+_SUBJ_PP = {'je': '1s', 'j': '1s', 'tu': '2s', 'il': '3s', 'elle': '3s', 'on': '3s', 'nous': '1p', 'vous': '2p', 'ils': '3p', 'elles': '3p'}
+_SUBJ_CL = frozenset(('ne', 'n', 'me', 'm', 'te', 't', 'se', 's', 'le', 'la', 'l', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous'))
+
+
+def rule_subjonctif(T, i):
+    """⭐ 12/10/2026 — subjonctif après un déclencheur certain (orange) : il faut que tu viens → viennes, bien qu'il est → soit.
+    Miroir JS rSubjonctif."""
+    if i < 2: return None
+    w = T[i]; lw = w.lower(); dl = deacc(lw)
+    if "'" in lw or u'’' in lw: return None
+    k = i - 1
+    while k >= 1 and re.sub(u"['’]$", '', deacc(T[k].lower())) in _SUBJ_CL and not re.match(u"^qu['’]", T[k].lower()) \
+            and not (deacc(T[k].lower()) in ('nous', 'vous') and deacc(T[k - 1].lower()) == 'que'): k -= 1   # « que nous » : nous est le SUJET
+    tk = deacc(T[k].lower())
+    mq = re.match(u"^qu['’](il|elle|ils|elles|on)$", tk)
+    if mq: pn = _SUBJ_PP[mq.group(1)]; q = k
+    else:
+        pn = _SUBJ_PP.get(re.sub(u"['’]$", '', tk))
+        if not pn or k < 1: return None
+        q = k - 1
+        if deacc(T[q].lower()) != 'que': return None
+    if not pn or q < 1: return None
+    bb = (_SEG or {}).get('bb') or []
+    if (q < len(bb) and bb[q]) or (q + 1 < len(bb) and bb[q + 1]): return None
+    dec = deacc(T[q - 1].lower())
+    if dec == 'bien':
+        b = q - 1
+        if not (b == 0 or (b < len(bb) and bb[b]) or deacc((T[b - 1] if b >= 1 else '').lower()) in ('et', 'mais', 'car', 'or')): return None
+    elif dec == 'quoique': pass
+    elif dec not in _SUBJ_DECL: return None
+    if dec == 'moins' and not (q >= 2 and deacc(T[q - 2].lower()) == 'a'): return None
+    if dec in ('peur', 'crainte') and not (q >= 2 and deacc(T[q - 2].lower()) in ('de', 'ai', 'as', 'a', 'avons', 'avez', 'ont', 'avait', 'avaient')): return None
+    rd = _reads(dl)
+    if not rd: return None
+    lems = set(); sub = False; ind = None
+    for r in rd:
+        if r[2] + r[3] != pn and not (r[3] == 'x' and r[2] == pn[0]): continue
+        lems.add(r[0])
+        if r[1] == 'sub:pre': sub = True
+        if r[1] == 'ind:pre': ind = r
+    if sub or ind is None or len(lems) != 1: return None
+    f = (CONJ_C.get(ind[0]) or {}).get('sub:pre', {}).get(pn)
+    if not f or deacc(f.lower()) == dl: return None
+    return _keepcase(w, f)
 
 
 _DAV_PREV = {'pas', 'plus', 'point', 'guere', 'aucun', 'sans', 'peu'}
@@ -7037,6 +7089,7 @@ def tier_of(T, i, name, sugg):
     if name == 'ça/sa' and deacc(T[i].lower()) == 'sa' and _sa_ca_verbe(T, i): return 'vigilance'   # ⭐ 11/10/2026 : « sa va » = orange — miroir JS {vig:1}
     if name == 'personne du verbe' and deacc((sugg or '').lower()) == deacc(T[i].lower()) and (sugg or '').lower() != T[i].lower() \
             and any(r[1] == 'ind:pas' and r[2] == '3' and r[3] == 's' for r in _reads(sugg)): return 'vigilance'   # ⭐ 12/10/2026 (conjugaison 2) : « il placa » → plaça, accent seul à la même personne : orange, jamais rouge — miroir JS {vig:1}
+    if name == 'si + conditionnel' and deacc(T[i].lower()).split("'")[-1] not in _SICOND: return 'vigilance'   # ⭐ 12/10/2026 (conjugaison 4) : hors être / avoir — miroir JS {vig:1}
     if name not in VIG_FAMILIES:
         return 'auto'
     if name == 'a/à':                                     # ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir JS
@@ -7131,7 +7184,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('subjonctif à vérifier', rule_subjonctif), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même

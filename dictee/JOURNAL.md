@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-10-12 — conjugaison 4 : le mode du verbe (subjonctif après un déclencheur, « si » + conditionnel pour tous les verbes)
+
+- Sondage après les conjugaisons 1 à 3 : la personne et le temps sont corrigés, le MODE ne l'était pas — « il faut que tu viens »,
+  « il faut que je fais », « bien qu'il est malade », « pour que tu peux », « je veux qu'il vient » étaient muets ; « si tu
+  viendrais » aussi (la règle « si + conditionnel » ne connaissait qu'être et avoir).
+- `rSubjonctif` ≡ `rule_subjonctif` (orange « subjonctif à vérifier », 3 moteurs) : après un déclencheur certain (liste fermée du mot
+  devant « que » : il faut, pour, afin, avant, sans, pourvu, à moins, de peur, vouloir, souhaiter, il est important / possible /
+  nécessaire… ; « bien que » seulement en tête de proposition — « il sait bien que tu es là » reste), sujet pronom collé (clitiques
+  permis ; « que nous » : nous est le sujet), un présent de l'indicatif de cette personne qui n'est pas déjà un subjonctif → la forme du
+  subjonctif tirée de la table (remplie par Morphalou, conjugaison 2). Seul le mode change, jamais la personne.
+- `rSiCond` ≡ `rule_si_cond` : hors être / avoir (liste fixe, rouge), l'imparfait de la même personne est tiré de la table, en orange
+  (`tier_of`). Mêmes gardes : interrogation indirecte (« il demande si tu viendrais »), « si » en tête de proposition.
+- Mesure : frgec 2 « a » → « ait » justes, 0 perte ; UD 14 450 : 0 changement (le subjonctif y est déjà juste). Batterie Python
+  272 / 285, 0 FP ; couverture et census inchangés.
+- Tests : `parity_corr.js` (6 prises, 5 silences ; 6 échecs sur l'ancien code) ; `parity_core.js` (paliers : orange, « si j'aurais » rouge).
+
+---
+
 ## 2026-10-12 — conjugaison 3 : le passé simple d'être et d'avoir, et la carte des silences qui connaît tous leurs temps
 
 - Ajouter fut / furent / eut / eurent à la table donnait des « fut → furent » faux quand le sujet est loin (UD : « La structure

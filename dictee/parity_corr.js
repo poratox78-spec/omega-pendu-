@@ -424,6 +424,21 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 4 : le MODE du verbe — subjonctif après un déclencheur certain (« subjonctif à vérifier ») et « si » +
+   conditionnel → imparfait pour tous les verbes. Silences : subjonctif déjà juste, « je pense que » (indicatif), « il sait bien que »,
+   « après que », interrogation indirecte. Python : rule_subjonctif, rule_si_cond. */
+{ let _kc4 = 0;
+  for (const [ph, w, sg] of [['Il faut que tu viens demain.', 'viens', 'viennes'], ['Il faut que je fais mes devoirs.', 'fais', 'fasse'],
+                             ["Bien qu'il est malade, il travaille.", 'est', 'soit'], ["Pour que tu peux venir, je t'attends.", 'peux', 'puisses'],
+                             ['Il faut que nous mangeons tôt.', 'mangeons', 'mangions'], ['Si tu viendrais, on irait au parc.', 'viendrais', 'venais']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc4++; console.log('✗ conjugaison 4 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Il faut que tu viennes demain.', 'viennes'], ["Je pense qu'il vient demain.", 'vient'], ['Il sait bien que tu es là.', 'es'],
+                         ["Après qu'il est parti, on a mangé.", 'est'], ['Il demande si tu viendrais.', 'viendrais']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc4++; console.log('✗ conjugaison 4 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc4) { console.log('PARITÉ KO — ' + _kc4 + ' cas « conjugaison 4 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 3 : le passé simple d'être et d'avoir dans la table (fus, fut, furent, eut, eurent). Prises : « ils fut » →
    furent, « il eurent » → eut. Python : rule_sujet_flexion (+ garde des titres). */
 { let _kc3 = 0;
