@@ -27422,7 +27422,11 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var a=-1,k,_comp=false;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());
       if(dk==='ete'||dk==='etait'){for(var k2=k-1;k2>=0&&k2>k-4;k2--){var d2=deacc(T[k2].toLowerCase());if(AVOIR_AUX[d2]||AVOIR_JE[T[k2].toLowerCase()]){a=k2;_comp=true;break;}if(PPMID[d2])continue;break;}if(_comp)break;if(dk==='ete')return null;}   /* ⭐ 12/09/2026 (lot 2) : « ont été dégoûté », « a était raconté » → l'auxiliaire AVOIR porte le sujet (miroir Python) */
       if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
-    if(a<0)return null;var auxNum=_comp?(PPA_AUXP[deacc(T[a].toLowerCase())]?'p':'s'):(PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s');var _a1ok=!!_A1AUXPL[deacc(T[a].toLowerCase())]||(_comp&&!!PPA_AUXP[deacc(T[a].toLowerCase())]);
+    if(a<0)return null;
+    {var _dr1=a>=1?deacc(T[a-1].toLowerCase()):'',_dr2=a>=2?deacc(T[a-2].toLowerCase()):'';if(_dr2==='ne'&&a>=3)_dr2=deacc(T[a-3].toLowerCase());   /* ⭐ 12/10/2026 (conjugaison 9) : « nous nous sommes parlé » → parlés était un ROUGE FAUX — pronom RÉFLÉCHI devant l'auxiliaire (se, me, te, s'est, nous nous, vous vous) + verbe dont il est le complément INDIRECT (parler, téléphoner, sourire, écrire, dire…) : participe invariable. Miroir Python */
+      var _refl=/^[smt]'/.test(deacc(T[a].toLowerCase()))||_dr1==='se'||_dr1==='me'||_dr1==='te'||((_dr1==='nous'||_dr1==='vous')&&_dr2===_dr1);
+      if(_refl&&(PP_COD_STOP[deacc(base)]||/^(ecrit|dit|demande|promis|permis|jure|souhaite|donne)$/.test(deacc(base))))return null;}
+    var auxNum=_comp?(PPA_AUXP[deacc(T[a].toLowerCase())]?'p':'s'):(PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s');var _a1ok=!!_A1AUXPL[deacc(T[a].toLowerCase())]||(_comp&&!!PPA_AUXP[deacc(T[a].toLowerCase())]);
     var _a1refl=false;for(var _kr=Math.max(0,a-2);_kr<a;_kr++){var _dr=deacc(T[_kr].toLowerCase());if(_dr==='se'||_dr==='s'){_a1refl=true;break;}}   // #A1 : verbe pronominal (« se sont … ») → PP potentiellement invariable → A1 s'abstient
     var info=null,sk=-1;if(_comp&&AVOIR_JE[T[a].toLowerCase()]){info=PPE_SUBJ['je'];sk=a;}   // « j'ai été surpris » : le sujet est dans le token de l'auxiliaire
     if(!info)for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
@@ -27720,6 +27724,44 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var _p1=((CONJ_C[lem]||{})['ind:pre']||{})['1p'],_ppr=(_p1&&/ons$/.test(_p1))?_p1.slice(0,-3)+'ant':(/er$/.test(lem)?lem.slice(0,-2)+'ant':null);
     return _ppr?ckeepcase(w,_ppr):null;}
   var _GER_NONSUJ={il:1,elle:1,ils:1,elles:1,on:1,je:1,j:1,tu:1,nous:1,vous:1,qui:1,que:1,qu:1,ne:1,n:1,comme:1,et:1,ou:1,mais:1,plupart:1,beaucoup:1,peu:1,tous:1,toutes:1,certains:1,certaines:1,plusieurs:1,autres:1,eux:1,dont:1,chacun:1,chacune:1,combien:1,trop:1,assez:1,moins:1,plus:1,si:1,y:1};   // mots avant « en » qui peuvent être (ou annoncer) le SUJET de la forme en -ent — miroir Python _GER_NONSUJ
+  /* ⭐ 12/10/2026 (conjugaison 9) — L'ACCORD DU PARTICIPE DES VERBES PRONOMINAUX, au pluriel : « elles se sont levé » → levées, « ils
+     se sont battu » → battus, « nous nous sommes promené » → promenés (le genre de « nous » : celui que l'auteur a écrit). sestPpVig ne
+     voyait que « elle s'est ». Zone à pièges, donc ORANGE et gardes fermées : verbes dont le pronom est complément INDIRECT, toujours
+     invariables (« ils se sont parlé », « souri », « téléphoné », « succédé », « plu », « écrit », « dit », « demandé »…) ; « fait »,
+     « laissé » ; un infinitif après (« se sont vu refuser ») ; un complément d'objet après (« se sont lavé les mains » : déterminant) ;
+     « ils » + participe écrit au féminin (le sujet est peut-être « elles ») → abstention. ② « s'est rendue compte » → rendu : « compte » est
+     le complément, le participe ne s'accorde jamais. « vous vous êtes levé » (vouvoiement) n'est pas lu. */
+  var _PRON_PP_COI={};'parle souri telephone succede plu deplu complu ri nui menti ressemble suffi convenu survecu ecrit dit demande repondu promis permis jure donne imagine fait laisse voulu souhaite pu du'.split(' ').forEach(function(w){_PRON_PP_COI[w]=1;});
+  var _PRON_PP_DE={};'souvenu apercu moque mefie empare enfui evanoui repenti abstenu efforce occupe servi plaint approche eloigne rejoui'.split(' ').forEach(function(w){_PRON_PP_DE[w]=1;});   // « se souvenir de » : le « de » n'introduit jamais le complément d'objet
+  var _PRON_PP_ADV={pas:1,jamais:1,plus:1,toujours:1,deja:1,bien:1,vite:1,enfin:1,encore:1,souvent:1,tous:1,toutes:1};
+  function _pronPpOk(b){var db=deacc(b);return _isPpl(b)||!!IRREG_PART[db]||!!_PP_U_EXTRA[db];}   // participe : régulier (_isPpl) ou irrégulier en -u / -is / -it (battu, perdu, assis)
+  function pronPpVig(T,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw),k;
+    if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase()||i<2)return null;
+    var a=i-1;if(_PRON_PP_ADV[deacc(T[a].toLowerCase())])a--;if(a<1)return null;
+    var aux=deacc(T[a].toLowerCase()),r,g=null,n;
+    if(aux==="s'est")r=a-1;
+    else if((aux==='sont'||aux==='sommes')&&a>=2){var rf=deacc(T[a-1].toLowerCase());if(!((aux==='sont'&&rf==='se')||(aux==='sommes'&&rf==='nous')))return null;r=a-2;}
+    else return null;
+    if(r>=0&&deacc(T[r].toLowerCase())==='ne')r--;
+    if(r<0)return null;var s=deacc(T[r].toLowerCase());
+    var nx=i+1<T.length?deacc(T[i+1].toLowerCase()):'';
+    if(aux==="s'est"){if(s!=='elle'&&s!=='il'&&s!=='on')return null;}
+    else if(aux==='sont'){if(s!=='elles'&&s!=='ils')return null;g=s==='elles'?'f':'m';}
+    else if(s!=='nous')return null;
+    if(/^rendu(e|s|es)$/.test(d)&&nx==='compte')return ckeepcase(w,'rendu');   // ② « elle s'est rendue compte » → rendu
+    var base=lw;if(/es$/.test(base)&&_pronPpOk(base.slice(0,-2)))base=base.slice(0,-2);else if(/e$/.test(base)&&_pronPpOk(base.slice(0,-1)))base=base.slice(0,-1);else if(/s$/.test(base)&&_pronPpOk(base.slice(0,-1)))base=base.slice(0,-1);
+    if(!_pronPpOk(base))return null;
+    if(aux==="s'est"){if(s!=='elle'||(_isPpl(base)&&/[éiu]$/.test(lw)))return null;g='f';n='s';}   // le singulier régulier reste à sestPpVig (mesuré) ; ici les irréguliers que sestPpVig ignore (« elle s'est assis » → assise)
+    else n='p';
+    if(_PRON_PP_COI[deacc(base)]||nx==='compte')return null;
+    if(nx&&_isInfinitive(T[i+1]))return null;
+    if(NUM_DET[nx]||nx==='un'||nx==='une'||nx==='des'||nx==='du'||/^[l]'/.test(nx))return null;
+    if((nx==='de'||nx==="d'"||/^d'/.test(nx))&&!_PRON_PP_DE[deacc(base)])return null;   // « de » : partitif (complément d'objet) sauf verbe essentiellement pronominal (« s'est souvenue de »)
+    var fem=base!==lw&&/^e/.test(lw.slice(base.length));                       // l'auteur a écrit le féminin (« promenée(s) »)
+    if(g==='m'&&fem)return null;                                               // « ils se sont levées » : le sujet est peut-être « elles »
+    if(g===null)g=fem?'f':'m';
+    var tgt=_ppAccord(base,n,g);if(!tgt||tgt===lw)return null;
+    return ckeepcase(w,tgt);}
   function sestPpVig(T,i){
     /* ORANGE « elle s'est marié » → mariée ? (enquête des 22, texte3 : c'est→s'est corrigé en
        cascade mais l'accord ne suivait pas). PRONOMINAL = zone à pièges, donc JAMAIS rouge :
@@ -30081,7 +30123,7 @@ function spellTokenCore(tok,atStart,T,idx){
       if(dj==='sont'||dj==='etaient'||dj==='furent'||dj==='seront'||dj==='etes'){a=j;break;}
       if(tg[j]!=='ADV')return null;}
     if(a<1)return null;
-    var pvw=T[a-1].toLowerCase();if(deaccS(pvw)==='se'||pvw.indexOf("'")>=0)return null;
+    var pvw=T[a-1].toLowerCase();if(deaccS(pvw)==='se'||pvw.indexOf("'")>=0)return null;if((deaccS(pvw)==='nous'||deaccS(pvw)==='vous')&&a>=2&&deaccS(T[a-2].toLowerCase())===deaccS(pvw)&&(PP_COD_STOP[dd]||/^(ecrit|dit|demande|promis|permis|jure|souhaite|donne)$/.test(dd)))return null;   // ⭐ 12/10/2026 (conjugaison 9) : « vous vous êtes parlé » — réfléchi complément INDIRECT, participe invariable
     var fem=false,_pr=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deaccS(T[k].toLowerCase());if(dk==='elles'){fem=true;_pr=true;break;}if(dk==='ils'){_pr=true;break;}}
     /* ⭐ LE GENRE DU SUJET NOMINAL (11/09/2026, chantier « les fleurs sont fané » → fanés) : cette règle ne lisait le genre que sur un
        « elles »/« ils » LITTÉRAL et retombait au MASCULIN partout ailleurs — une proposition fausse sur une vraie faute, là où la
@@ -30497,6 +30539,7 @@ function spellTokenCore(tok,atStart,T,idx){
     {var av5=antVig(T,i);if(av5&&av5.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:av5,name:'forme en -ant à vérifier',tier:'vigilance'};}}   // ⭐ 11/10/2026 : « un étudient » → étudiant, « c'est très importent » → important (orange)
     {var gv2=gerondifVig(T,i);if(gv2&&gv2.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:gv2,name:'participe présent après « en » à vérifier',tier:'vigilance'};}}
     {var spv=sestPpVig(T,i);if(spv){return {i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'};}}   // « elle s'est marié » → mariée ? (pronominal = orange)
+    {var ppv=pronPpVig(T,i);if(ppv){return {i:i,word:T[i],sugg:ppv,name:'accord participe à vérifier',tier:'vigilance'};}}   // ⭐ 12/10/2026 (conjugaison 9) : « elles se sont levé » → levées ?
     {var siv=semiInfVig(T,i);if(siv){return {i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'};}}   // « je vais mange » → manger ? (orange)
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // OS-sujet : accord de nombre, sujet arbitré OS+LM (résiduel « de N »)

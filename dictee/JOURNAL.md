@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-10-12 — conjugaison 9 : l'accord du participe des verbes pronominaux
+
+- Sondage (phrases inventées) : « elle s'est levé » recevait déjà « levée ? » (sestPpVig, orange) ; « elles se sont levé », « ils se sont
+  battu », « nous nous sommes promené », « elle s'est assis », « elle s'est souvenu de », « elle s'est rendue compte » étaient muets. Et
+  un ROUGE FAUX : « nous nous sommes parlé », « nous nous sommes téléphoné » → parlés, téléphonés (les deux moteurs) — « nous » est
+  complément INDIRECT de parler, le participe est invariable ; « vous vous êtes parlé » recevait le même en orange.
+- `pronPpVig` (JS, orange, nom « accord participe à vérifier ») : elles / ils se sont, nous nous sommes, et « elle s'est » + participe
+  irrégulier que sestPpVig ne voit pas ; « s'est rendue compte » → rendu (« compte » est le complément). Gardes fermées : verbes à pronom
+  complément indirect (parlé, souri, téléphoné, succédé, plu, écrit, dit, demandé, promis, permis…), fait, laissé, infinitif après,
+  complément d'objet après (déterminant ; « de » sauf verbe essentiellement pronominal), « ils » + participe écrit au féminin (le sujet
+  est peut-être « elles »). « vous vous êtes » n'est pas lu (vouvoiement).
+- rPpEtre ≡ rule_pp_etre : pronom réfléchi (se, me, te, s'est, nous nous, vous vous) + participe d'un verbe à complément indirect →
+  abstention (le rouge faux) ; participeEtreVig (JS) : même garde pour « vous vous êtes ».
+- Mesure : gold (catalogue), 3 corpus dys (14 322 textes) et UD 14 450 : 0 changement — rien de juste touché, ces fautes n'y sont pas. Batterie Python 272 / 285, 0 FP, 87 pièges muets.
+
+---
+
 ## 2026-10-12 — conjugaison 8 : les lectures fantômes de la table ; « j'as » → j'ai
 
 - Constat (lot 7) : la table `f` (forme → lectures) portait 1 359 lectures que la table `c` (lemme → temps → personne) contredit. La

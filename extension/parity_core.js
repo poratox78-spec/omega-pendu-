@@ -908,6 +908,21 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 9) — produit entier : l'accord du participe des verbes PRONOMINAUX au pluriel en ORANGE (pronPpVig) ;
+// les réfléchis compléments indirects restent muets, plus de rouge faux.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c9 = 0;
+  for (const [s, w, sg] of [['Elles se sont amusé au parc.', 'amusé', 'amusées'], ['Ils se sont battu dans la cour.', 'battu', 'battus'],
+                            ['Nous nous sommes promené au bord du lac.', 'promené', 'promenés'], ["Elle s'est assis sur le banc.", 'assis', 'assise'],
+                            ["Elle s'est rendue compte de son erreur.", 'rendue', 'rendu']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== 'vigilance') { _c9++; console.log('  ✗ conjugaison 9 : « ' + s + ' » → « ' + sg + ' » en ORANGE attendu, obtenu ' + JSON.stringify(m || null)); } }
+  for (const [s, w] of [['Nous nous sommes parlé hier soir.', 'parlé'], ['Ils se sont téléphoné hier soir.', 'téléphoné'], ['Elles se sont lavé les mains.', 'lavé'],
+                        ['Elles se sont fait couper les cheveux.', 'fait'], ['Vous vous êtes parlé longtemps.', 'parlé']])
+    if (fl(s).some(x => x.word === w)) { _c9++; console.log('  ✗ conjugaison 9 : « ' + s + ' » doit rester muet sur « ' + w + ' »'); }
+  if (_c9) { console.log('PARITÉ KO — conjugaison 9 : ' + _c9 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 9 : participe des pronominaux au pluriel en orange, réfléchis compléments indirects muets"); }
+
 // ⭐ 12/10/2026 (conjugaison 8) — produit entier, table embarquée nettoyée : « elles on vus » ne reçoit plus « vus → voit » (rouge faux),
 // « j'as » → j'ai en rouge, « il bue » → but en orange.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
