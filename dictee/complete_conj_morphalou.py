@@ -87,8 +87,10 @@ def completer(cj, mor, ppl, spos, lfreq):
                 if k == 'ind:pas' and pn not in PS_PERS: continue
                 if pn in C[l].get(k, {}): continue                 # case remplie : on n'y touche pas
                 ok = []
+                pres = {deacc(x.lower()) for x in C[l].get('ind:pre', {}).values()} if k == 'ind:pas' else set()
                 for fo in forms:
                     if 'V' not in spos.get(fo.lower(), '') or fo.lower() in ppl: continue
+                    if deacc(fo.lower()) in pres: continue   # passé simple = présent du même verbe (« dis », « finis », « finit ») : deux lectures → « nous dis » ne serait plus corrigé
                     old = F.get(deacc(fo.lower()))
                     if old is None or all(x.split(';')[0] == l or lfreq.get(x.split(';')[0], 0) < lfreq.get(l, 0) for x in old.split('|')):
                         ok.append(fo)
