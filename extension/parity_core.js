@@ -908,6 +908,18 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 12/10/2026 (conjugaison 10) — produit entier : le temps de la protase en ORANGE ; le sujet nominal d'avant « et » en ROUGE ; plus de
+// rouge faux sur « la voisine nous appelle et nous invite ».
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c10 = 0;
+  for (const [s, w, sg, t] of [['Quand je serais plus grand, je serai vétérinaire.', 'serais', 'serai', 'vigilance'], ['Si tu viendras samedi, nous irons à la piscine.', 'viendras', 'viens', 'vigilance'],
+                               ['Le facteur passe et nous partiront ensuite.', 'partiront', 'partirons', 'auto']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== t) { _c10++; console.log('  ✗ conjugaison 10 : « ' + s + ' » → « ' + sg + ' » (' + t + ') attendu, obtenu ' + JSON.stringify(m || null)); } }
+  if (fl('La voisine nous appelle et nous invite.').some(x => x.word === 'invite')) { _c10++; console.log('  ✗ conjugaison 10 : « la voisine nous appelle et nous invite » doit rester muet'); }
+  if (_c10) { console.log('PARITÉ KO — conjugaison 10 : ' + _c10 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 10 : temps de la protase en orange, sujet nominal d'avant « et » en rouge, « nous » complément muet"); }
+
 // ⭐ 12/10/2026 (conjugaison 9) — produit entier : l'accord du participe des verbes PRONOMINAUX au pluriel en ORANGE (pronPpVig) ;
 // les réfléchis compléments indirects restent muets, plus de rouge faux.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');

@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-10-12 — conjugaison 10 : le temps de la protase ; le sujet nominal d'avant « et »
+
+- Sondage (phrases inventées) : « si tu viendras, nous irons », « quand je serais grand, je serai pompier », « lorsque nous aurions
+  fini, nous partirons », « le train part et nous arriveront » étaient muets. Et un ROUGE FAUX né de la conjugaison 7 : « la maîtresse
+  nous parle et nous écoute » → écoutons — `_ellipseAccorde` prenait le « nous » complément pour le sujet d'avant.
+- `rTempsProtase` ≡ `rule_temps_protase` (orange « temps du verbe à vérifier », 3 moteurs) : ① « si » / « s'il » qui ouvre la phrase +
+  futur → présent (même verbe, même personne, table) ; ② quand / lorsque / dès que / aussitôt que en tête + conditionnel, et la
+  principale (après la virgule) au FUTUR → futur. Muets : la concordance (« il disait que, quand il serait grand, il serait marin » :
+  principale au conditionnel), l'interrogation indirecte (« je me demande si tu viendras » : « si » n'ouvre pas la phrase).
+- `_ellipseAccorde` ≡ `_ellipse_accorde` : sans pronom sujet d'avant, le parseur de sujet sur le premier mot conjugable avant le mot de
+  liaison (le tagger lit « part » comme un nom) — « le facteur passe et nous partiront » → partirons, « les cousins partent et nous
+  rejoindront » reste ; « nous » placé derrière un nom (pas en tête de proposition ni après le mot de liaison) = complément → abstention.
+- Mesure : gold (catalogue), 3 corpus (14 322 textes) et UD 14 450 : 0 changement. Batterie Python 272 / 285, 0 FP, 87 pièges muets ;
+  49 leçons de règle.
+- Tests : `parity_corr.js` (4 prises, 4 silences dont le rouge faux ; 5 échecs sur l'ancien code) ; `parity_core.js` (paliers ; 4 échecs).
+
+---
+
 ## 2026-10-12 — conjugaison 9 : l'accord du participe des verbes pronominaux
 
 - Sondage (phrases inventées) : « elle s'est levé » recevait déjà « levée ? » (sestPpVig, orange) ; « elles se sont levé », « ils se sont

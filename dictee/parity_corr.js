@@ -424,6 +424,21 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 12/10/2026 — conjugaison 10 : le temps de la protase (« temps du verbe à vérifier ») — « si » en tête + futur → présent ; « quand /
+   lorsque » + conditionnel avec une principale au futur → futur ; et le sujet NOMINAL d'avant le mot de liaison (« le facteur passe et nous
+   partiront » → partirons) ; « la voisine nous appelle et nous invite » n'est plus réécrit (rouge faux depuis la conjugaison 7).
+   Silences : concordance au conditionnel, interrogation indirecte. Python : rule_temps_protase, _ellipse_accorde. */
+{ let _kc10 = 0;
+  for (const [ph, w, sg] of [['Quand je serais plus grand, je serai vétérinaire.', 'serais', 'serai'], ['Si tu viendras samedi, nous irons à la piscine.', 'viendras', 'viens'],
+                             ['Lorsque nous aurions mangé, nous partirons.', 'aurions', 'aurons'], ['Le facteur passe et nous partiront ensuite.', 'partiront', 'partirons']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc10++; console.log('✗ conjugaison 10 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Il disait que, quand il serait grand, il serait marin.', 'serait'], ['Je me demande si tu viendras samedi.', 'viendras'],
+                         ['Si tu viens samedi, nous irons à la piscine.', 'irons'], ['La voisine nous appelle et nous invite.', 'invite']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc10++; console.log('✗ conjugaison 10 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc10) { console.log('PARITÉ KO — ' + _kc10 + ' cas « conjugaison 10 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 9 : un pronom RÉFLÉCHI complément INDIRECT (« nous nous sommes parlé », « ils se sont téléphoné »)
    laisse le participe invariable — l'accord du participe après être ne le réaccorde plus. Python : _REFL_COI dans rule_pp_etre. */
 { let _kc9 = 0;
