@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-10-13 — mémoire 2 : le dictionnaire d'orthographe rangé compact (191 → 68 Mo), zéro perte vérifiée
+
+- Rem (paraphrase) : bug ou utile, ces 191 Mo ? Réduis-les — le pire serait des pertes : des gardes partout.
+- Le contenu est utile ; le rangement gaspillait : FREQ 73 Mo, D2A 50 Mo, POS 48 Mo (objets à 700 000 clés) et WORDS 20 Mo (copie
+  de la liste). Désormais : Map mot → n°, fréquence Int32Array (×1000), nature Uint8Array (8 valeurs), accents en Map (le mot seul
+  s'il est unique). Lecture par spF / spP / spD (113 lectures converties dans l'extension, 114 dans l'app) ; SP.WORDS garde
+  son interface. Correctifs vus en mesurant : noun-post construit deux fois ; la petite table « -ent » libérée quand le moteur arrive.
+- Zéro perte : extension/speller_compact_probe.js (dev.sh + CI) reconstruit l'ancien rangement et compare 710 873 mots + 204 046
+  clés sans accent (ordre compris), les absents, et interdit toute lecture à l'ancienne (falsifiée deux fois). Produit entier,
+  ancien contre nouveau : 3 corpus (12 269 marques) et UD (2 147 marques) — sortie identique à l'octet.
+- Mémoire, mesurée dans Chrome (paquet réel, ramasse-miettes forcé, deux passages identiques) : onglet où l'on écrit 168 → 101 Mo ;
+  onglet seulement lu 2 Mo. (Node, sans compression de pointeurs : 297 → 176 Mo.) ⚠️ CORRECTION de la mémoire 1 : le « 329 Mo → 3 Mo »
+  était lu SANS ramasse-miettes (déchets du chargement comptés) ; le vrai chiffre est 168 → 2 Mo par onglet seulement lu. Le banc
+  force désormais le ramasse-miettes et attend aussi le dictionnaire avant de lire le tas. parity_corr.js amorçait le dictionnaire de
+  l'app dans l'ancien format : il passe par les fonctions du produit.
+
+---
+
 ## 2026-10-13 — mémoire : le moteur de l'extension se charge au premier champ ; la police de son garde sa table des « -ent »
 
 - Rem (paraphrase) : le coût mémoire de la table complète — la compression, ça ferait combien ? et les tables doivent correspondre,

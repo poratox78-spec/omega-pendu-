@@ -57,8 +57,10 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    ⭐ 09/10/2026 : + D2A (clé sans accent → formes, fréquence > 0, comme setLex) — _lemFreq en dépend : sans lui, « inconnu »
    partout, et la garde « verbe courant » du passé simple se taisait ici sur « nous mangeames » que le produit corrige. */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
-  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};if(!SP.D2A)SP.D2A={};t.split(String.fromCharCode(10)).forEach(function(l){' +
-  'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[1])SP.FREQ[q[0]]=parseInt(q[1],10)/1000;if(q[2])SP.POS[q[0]]=q[2];if(q[1]&&parseInt(q[1],10)>0){var _d=(typeof deaccS=="function"?deaccS:deacc)(q[0]);(SP.D2A[_d]||(SP.D2A[_d]=[])).push(q[0]);}}});SP.ready=true;};})();';
+  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){var L=t.split(String.fromCharCode(10)).filter(function(l){return l&&l.split(String.fromCharCode(9)).length>=2;});_spReset(L.length);L.forEach(function(l){' +
+  /* ⭐ 13/10/2026 — dictionnaire COMPACT : l'amorce passe par les fonctions MÊMES du produit (_spReset / _spAdd, puis le tri par
+     fréquence de la construction) au lieu d'écrire SP.FREQ[…] à la main — l'ancien format, que le moteur ne lit plus. */
+  'var q=l.split(String.fromCharCode(9));_spAdd(q[0],parseInt(q[1],10),q[2]);});var sf=function(a,b){return spF(b)-spF(a);};SP.D2M.forEach(function(v){if(typeof v!=="string")v.sort(sf);});SP.ready=true;};})();';
 
 // 2) embed vdc-lex pour getElementById
 const m = html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/);

@@ -63,6 +63,7 @@
       prenoms: chrome.runtime.getURL('assets/prenoms.tsv.gz'),   // PRÉNOMS : même trou que le HMM jadis — asset livré, jamais chargé (banc navigateur réel 2026-08-21)
       gacc: chrome.runtime.getURL('assets/gender-acc.json.gz')   // genre ACCENTUÉ complet (Morphalou, 2026-08-24) : additif, indépendant
     }).then(function () { if (active) schedule(active);
+      try { self.__OMEGA_ENT3P = null; } catch (e) {}   // ⭐ 13/10/2026 : le moteur est là — la police de son lit sa table complète ; la petite table des « -ent » (6,8 Mo) se libère
       try { chrome.storage.local.set({ omdysStatus: { ready: !!(DC.isReady && DC.isReady()), words: (DC.lexSize ? DC.lexSize() : null) } }); } catch (e) {}   // état pour le popup
     }).catch(function (e) { try { chrome.storage.local.set({ omdysStatus: { ready: false, error: String(e && e.message || e) } }); } catch (e2) {} });
     if (DC.loadSpellerLex) DC.loadSpellerLex(spellerUrl).then(function () { if (active) schedule(active); });  // re-render quand l'orthographe (non-mots/accents) est prête
