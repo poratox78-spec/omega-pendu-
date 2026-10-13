@@ -46,6 +46,9 @@ const C = globalThis.__C;
   phrases.push('Il vit dans une grande sosiéter.', 'Elle a eu une dificulter à lire.', 'Ce geste est inaproprier ici.',
                'La ville longe les litorau.', 'Les litaurau sont protégés.', 'Le secteur agroalimentére embauche.');
   // ⭐ 13/09/2026, lot 2 : prénom en minuscule, expression collée, mots collés, lettres mélangées (_suPrenom/_suMwe/_suColle/_suAnagram ↔ Python).
+  // ⭐ 13/10/2026 — liste n° 1 : découpe en élision, présent après pronom sujet, accent impossible (phrases INVENTÉES, aucun corpus ne les atteint toutes).
+  phrases.push('Il faut une séléction de fruits.', 'Il a decrit la scène.', 'Il court trois mêtres.', 'Il lave lévier.', 'Il selectionne les fruits.', 'Tu selectionnes les fruits.',
+               "Il l'a decide hier.", 'Une option séléctionnable.', 'La rue est désservie.', 'Un outil façilitant la vie.', 'Il commençe le travail.');
   phrases.push("J'ai vu ludovic au marché.", "Je viendrai biensur demain.", "Il a un rendévous chez le médecin.", "J'aime beaucoupma ville.", "Nous irons pemdatn les vacances.", "Il fait tooujousr beau ici.");
 
   const out = [];

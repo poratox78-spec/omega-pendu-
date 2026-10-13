@@ -24342,6 +24342,7 @@ window.addEventListener('DOMContentLoaded', () => {
     w=w.replace(/(.)\1/g,'$1').replace(/(ent|s|t|d|x|p|e)$/,'').replace(/(.)\1/g,'$1');return w;}
   function toks(s){return (s.match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).map(function(w){return w.replace(/[’ʼ]/g,"'");});}   // apostrophe TYPOGRAPHIQUE ’ (claviers mobiles) ≡ ' : même tokenisation, token normalisé pour le moteur (remplacement 1:1 → les positions/index restent alignés sur le texte original)
   function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}
+  function _accDiff(a,b){if(a.length!==b.length)return 1+Math.abs(a.length-b.length);var n=0;for(var q=0;q<a.length;q++)if(a.charAt(q)!==b.charAt(q))n++;return n;}   // ⭐ 13/10/2026 : nombre de lettres qui diffèrent (accents) entre deux formes de même squelette — liste n° 1, découpe en élision
   function _slipMot(a,b){if(a===b)return false;                                          // GLISSEMENT MOTEUR : les mêmes LETTRES, seul l'ORDRE ou un REDOUBLEMENT diffère (les deux entrées sont DÉACCENTUÉES). Miroir extension.
     if(a.split('').sort().join('')===b.split('').sort().join(''))return true;            // transposition : jmaais→jamais, acceuil→accueil, toujorus→toujours
     if(Math.abs(a.length-b.length)!==1)return false;
@@ -29651,9 +29652,17 @@ function spellTokenCore(tok,atStart,T,idx){
     var _ELC={s:'est etait etaient es',n:'est es as avait avais etait etais aime aimes ont avons avez',t:'aime es as avais avait etais',m:'aime as avait avais es ont',l:'ai as avait avais aime est etait ont',j:'aime avais etais'};
     if(low.length>=3&&_ELC[low[0]]&&(' '+_ELC[low[0]]+' ').indexOf(' '+deaccS(low.slice(1))+' ')>=0){var _rc=deaccS(low.slice(1)),_ra=(spD(_rc)||[]).filter(function(x){return deaccS(x)===_rc&&SVOW[deaccS(x)[0]];});var _rw=SP.WORDS.has(_rc)?_rc:null;for(var _q2=0;_q2<_ra.length;_q2++)if(!_rw||(spF(_ra[_q2])||0)>(spF(_rw)||0))_rw=_ra[_q2];if(_rw)return['flag',low[0]+"'"+_rw];}
     var _isPPacc=(/ées$/.test(low)&&SP.WORDS.has(low.slice(0,-2)))||(/(ée|és)$/.test(low)&&SP.WORDS.has(low.slice(0,-1)));   // participe ACCORDÉ (dallées→dallé connu) = mot valide, PAS une fusion d'élision → ne pas couper en d'/l' (FP « dallées→d'allées »). Miroir extension.
+    /* ⭐ 13/10/2026 (liste n° 1 : « Séléction » → S'élection, en rouge) — LE MOT ENTIER D'ABORD. Si la saisie, accents rétablis, EST un
+       mot du dictionnaire (séléction → sélection, demission → démission, decrit → décrit, legale → légale), ce n'est pas une élision
+       collée : la découpe fabriquait un mot absurde. On ne coupe alors que si la lecture élidée colle STRICTEMENT mieux aux accents
+       écrits (« lévier » → l'évier, « labbé » → l'abbé, « dâmes » → d'âmes) et, pour m'/t'/n'/s'/j', devant un VERBE (« mêtres »
+       n'est pas « m'êtres »). Recensé sur tout le dictionnaire : mots écrits sans leurs accents ou avec un « é » de trop, 176 coupés
+       à tort → 20 (ceux où la lecture élidée colle mieux : « jétais » → j'étais) ; les 19 362 vraies élisions collées (« lécole »,
+       « lâme ») restent coupées à l'identique. Miroir app + Python. */
+    var _motD=-1,_motL=spD(deaccS(low))||[];for(var _mk=0;_mk<_motL.length;_mk++){var _mw=_motL[_mk];if((spF(_mw)||0)>=0.01){var _md=_accDiff(low,_mw);if(_motD<0||_md<_motD)_motD=_md;}}
     if(!_isPPacc&&low.length>2&&SELIDE[low[0]]&&SVOW[deaccS(low[1])[0]]){var rest=low.slice(1),cw=(SP.WORDS.has(rest)&&rest.length>=5&&(spF(rest)||0)>=1.0)?rest:null;   // reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
       if(cw===null&&_SELIDE_ACC[low[0]]&&rest.length>=4){var _acc=spD(deaccS(rest))||[];for(var _k=0;_k<_acc.length;_k++){var _w=_acc[_k];if(SVOW[deaccS(_w)[0]]&&(spF(_w)||0)>=2.0&&(cw===null||spF(_w)>(spF(cw)||0)))cw=_w;}}   // restauration d'accent (lhopital→l'hôpital) — préfixes sûrs
-      if(cw&&!(low[0]==='c'&&'ei'.indexOf(deaccS(cw)[0])<0))return['flag',low[0]+"'"+cw];}   // c' seulement devant e/i
+      if(cw&&!(low[0]==='c'&&'ei'.indexOf(deaccS(cw)[0])<0)&&(_motD<0||(_accDiff(rest,cw)<_motD&&('mtnsj'.indexOf(low[0])<0||(spP(cw)||'').indexOf('V')>=0))))return['flag',low[0]+"'"+cw];}   // c' seulement devant e/i
     /* ⭐ 04/10/2026 — APOSTROPHE OUBLIÉE, route B (après le décollage ci-dessus, qui garde les restes CONNUS) : négation — « n » + voyelle,
        suivi de pas / plus / jamais / rien / guère / point, reste MAL ÉCRIT → « n' » + verbe conjugué de même son, accordé au sujet. */
     if(low.length>=4&&low[0]==='n'&&SVOW[deaccS(low[1])[0]]&&T&&idx+1<T.length&&/^(pas|plus|jamais|rien|guère|guere|point)$/i.test(T[idx+1])){
@@ -29749,12 +29758,26 @@ function spellTokenCore(tok,atStart,T,idx){
        (-é), et que le sujet est un PRONOM (je/tu/il/elle/on/ils/elles/nous/vous/qui, clitiques traversés) sans auxiliaire ni copule
        entre, c'est le présent — « il décidé » n'existe pas. AVANT la bascule de genre : elle lisait « la voiture » deux mots plus haut
        et rendait « décidée ». Recensé (toutes sources : 6 cas, 6 présents) avant d'être posé. Miroir Python. */
-    var _sbj=false;if(T&&/e$/.test(d)){var _y=idx-1;while(_y>=0){var _dy=deaccS(T[_y].toLowerCase()).replace(/'/g,'');if(SAUXAV[_dy]||SCOPULA[_dy])break;if(SSUBJP[_dy]||_dy==='qui'){_sbj=true;break;}
+    var _sbj=false,_sbjTu=false;if(T&&/es?$/.test(d)){var _y=idx-1;while(_y>=0){var _ty=deaccS(T[_y].toLowerCase()),_ta=_ty.indexOf("'");if(_ta>=0&&(SAUXAV[_ty.slice(_ta+1)]||SCOPULA[_ty.slice(_ta+1)]))break;var _dy=_ty.replace(/'/g,'');if(SAUXAV[_dy]||SCOPULA[_dy])break;if(SSUBJP[_dy]||_dy==='qui'){_sbj=true;_sbjTu=_dy==='tu';break;}
       if(_dy==='ne'||_dy==='n'||_dy==='se'||_dy==='s'||_dy==='me'||_dy==='m'||_dy==='te'||_dy==='t'||_dy==='le'||_dy==='la'||_dy==='les'||_dy==='l'||_dy==='lui'||_dy==='leur'||_dy==='y'||_dy==='en'){_y--;continue;}break;}}
-    if(_sbj){var _pr=null,_ppl=false;for(i=0;i<keys.length;i++){var _ck=keys[i];if(deaccS(_ck)!==d)continue;if(/é$/.test(_ck))_ppl=true;else if(/e$/.test(_ck)&&cand[_ck][1]>=0.5&&(!_pr||cand[_ck][1]>cand[_pr][1]))_pr=_ck;}
-      if(_pr&&_ppl&&_pr!==w1)return['flag',_pr];}   // les DEUX accentuations existent (présent -e / participe -é) et le tri a pris le participe → le présent (plancher 0,5 : « trébuche » 0,85/M)
+    /* ⭐ 13/10/2026 (liste n° 1, autour de « sélection ») — « il selectionne » rendait « sélectionné » EN ROUGE : le plancher 0,5/M
+       écartait le présent d'un verbe RARE (sélectionne 0,47/M) et le participe gagnait. Le présent compte désormais s'il a une lecture
+       VERBALE (le nom « gènes » ne passe plus devant le verbe « gênes ») ; « tu » + -es suit la même règle (« tu decedes » → décèdes,
+       pas « décédés ») ; « l'a » n'est plus lu comme le clitique « la » (« il l'a decide » → décidé). Le palier suit la table de
+       conjugaison : présent de l'indicatif connu → auto, comme la règle de grammaire qui faisait le même travail en aval ; sinon flag.
+       Recensé sur tout le dictionnaire (présent écrit sans accents après il / je / tu, 3 462 saisies) : rouge faux 143 → 16. */
+    if(_sbj&&(/e$/.test(d)||_sbjTu)){var _pr=null,_prV=null,_ppl=false;for(i=0;i<keys.length;i++){var _ck=keys[i];if(deaccS(_ck)!==d)continue;if(/és?$/.test(_ck))_ppl=true;else{if((spP(_ck)||'').indexOf('V')>=0&&(!_prV||cand[_ck][1]>cand[_prV][1]))_prV=_ck;if(cand[_ck][1]>=0.5&&(!_pr||cand[_ck][1]>cand[_pr][1]))_pr=_ck;}}_pr=_prV||_pr;
+      if(_pr&&_ppl&&(_pr!==w1||_prV)){var _rd=svReads(_pr),_ip=false;for(var _ri=0;_ri<_rd.length;_ri++)if(_rd[_ri][1]==='ind:pre'){_ip=true;break;}return[_ip?'auto':'flag',_pr];}}   // les DEUX accentuations existent (présent -e / participe -é) et le tri a pris le participe → le présent (plancher 0,5 : « trébuche » 0,85/M)
     if(cg&&(spP(w1)||'').indexOf('A')>=0){var ad=ADJP[deaccS(w1)];if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}  // bascule paire ADJECTIF (premiere→premier ; pas nom « élève »)
-    if(f1<0.1)return null;
+    /* ⭐ 13/10/2026 (liste n° 1, autour de « sélection ») — ACCENT IMPOSSIBLE. « é »/« è » devant x, devant une consonne DOUBLÉE ou
+       devant ct/pt n'existe pas en français (51 formes sur 710 872 au dictionnaire, toutes rares ou parasites) ; « ç » devant e/i/y
+       non plus. Quand la saisie en porte un et que le mot existe accents rétablis, on le propose même RARE, en orange
+       (séléctionnable → sélectionnable, pas « sélectionnables » ; désservie → desservie, façilitant → facilitant), au lieu du silence
+       ou d'une autre forme. Le « ç » à condition qu'il n'y ait qu'UNE restauration d'accent : « commençe » a trois lectures, on n'y touche pas.
+       Mesuré : 3 corpus dys, 36 mots faux deviennent exacts (28 jusque-là muets), 0 perte ; UD 14 450 : 0 marque. */
+    var _nAcc=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)_nAcc++;
+    var _accX=(low!==d&&p1===2&&deaccS(w1)===d&&d.length>=4&&(tok===low||atStart)&&(/[éè](x|([bcdfgjklmnpqrstvz])\2|[cp]t)/.test(low)||(/ç[eiyéèêë]/.test(low)&&_nAcc===1)));
+    if(f1<0.1&&!_accX)return null;
     var f2=keys.length>1?cand[keys[1]][1]:0,accentOnly=(p1===2&&deaccS(w1)===d),dominant=(f1>=1.0&&(f2===0||f1>=5*f2));
     if(d.length>=3&&accentOnly&&dominant)return['auto',w1];
     var na=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)na++;
@@ -29781,7 +29804,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(expPos){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
       if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → la ré-sélection context-first ne re-choisit QUE des candidats à finale AUDIBLE (manjé→mangé, pas mange) — sinon la fréquence réécrasait le tri d'audibilité (12536)
       if(_b&&_bf>=1.0&&!(pm(w1)&&cand[w1][0]>=1&&cand[w1][1]>=20*_bf))return['flag',_b];}   // pri→pris, von→vont, pleu→pleut (plaît/pleure = édit>1, exclus) ; respecte le nombre (« un eleve »→élève). GARDE DE DOMINANCE (2026-08-22) : si le vainqueur du tri colle déjà au POS et est ≫20× plus fréquent, la ré-sélection phonétique ne le détrône pas (« un chein »→chien, pas « chin » 3/M) — même garde que le tri, parité Python (qui rend chien)
-    if(!(d.length>=4&&f1>=1.0))return null;   // trop court ou candidat rare → abstention
+    if(!(d.length>=4&&f1>=1.0))return _accX?['vigilance',w1]:null;   // trop court ou candidat rare → abstention
     // CONFIANCE : n'AFFIRMER (rouge) que si le candidat est sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son
     // rang, et dominant. Sinon VIGILANCE orange « à vérifier » (n'impose pas un mauvais mot : courrir→courrier, ceuille→feuille,
     // fauxcille→fossiles). Mesuré sur les dictées réelles de Rem : supprime les mauvaises corrections sans perdre les sûres.

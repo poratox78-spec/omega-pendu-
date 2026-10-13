@@ -419,6 +419,17 @@ const SP = globalThis.__sp;
     if (dejA.indexOf('📗') >= 0) fail.push('conseil : le 📗 nommé pour « doctolib » déjà au dictionnaire (la carte ne l\'offre plus)');
   }
 
+  // ⭐ 13/10/2026 — LISTE N° 1 (découpe en élision, présent après pronom, accent impossible) : mêmes cas que extension/test_speller.js.
+  for (const [t, w, s, tier] of [['Il faut une séléction de fruits.', 'séléction', 'sélection', 'auto'], ['Séléction de fruits.', 'Séléction', 'Sélection', 'auto'],
+      ['Il a donné sa demission hier.', 'demission', 'démission', 'auto'], ['Il a decrit la scène.', 'decrit', 'décrit', 'auto'], ['Une règle legale.', 'legale', 'légale', 'auto'],
+      ['Il court trois mêtres.', 'mêtres', 'mètres', 'auto'], ['Il lave lévier.', 'lévier', "l'évier", 'flag'], ['Il va à lécole.', 'lécole', "l'école", 'flag'],
+      ['Il selectionne les fruits.', 'selectionne', 'sélectionne', 'auto'], ['Tu selectionnes les fruits.', 'selectionnes', 'sélectionnes', 'auto'],
+      ["Il l'a decide hier.", 'decide', 'décidé', 'flag'], ['Elle congele la viande.', 'congele', 'congèle', 'auto'], ['Il commençe le travail.', 'commençe', 'commence', 'auto'],
+      ['Une option séléctionnable.', 'séléctionnable', 'sélectionnable', 'vigilance'], ['La rue est désservie.', 'désservie', 'desservie', 'vigilance'],
+      ['Un outil façilitant la vie.', 'façilitant', 'facilitant', 'vigilance']]) {
+    const r = SP.spell(t).find(x => x.word === w); if (!r || r.sugg !== s || r.tier !== tier) fail.push('liste n° 1 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(r && [r.sugg, r.tier]));
+  }
+
   // ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux) : mêmes cas que extension/test_speller.js (le site suit l'extension).
   for (const [t, w, s] of [['Il range certin livres dans le salon.', 'certin', 'certains'], ['Elle lit sertin journaux le soir.', 'sertin', 'certains'],
       ['Elle a vu serten maisons anciennes.', 'serten', 'certaines'], ['Il vend diver objets au marché.', 'diver', 'divers'],
