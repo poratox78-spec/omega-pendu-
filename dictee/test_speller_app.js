@@ -430,6 +430,15 @@ const SP = globalThis.__sp;
     const r = SP.spell(t).find(x => x.word === w); if (!r || r.sugg !== s || r.tier !== tier) fail.push('liste n° 1 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(r && [r.sugg, r.tier]));
   }
 
+  // ⭐ 13/10/2026 — LISTES N° 2 ET 3 (majuscules, sigles, noms) : mêmes cas que extension/test_speller.js.
+  for (const [t, w, s, tier] of [['OMEGA est un correcteur.', 'OMEGA', null, null], ['Omega corrige les textes.', 'Omega', null, null],
+      ['COMPETENCES ET EXPERIENCE', 'COMPETENCES', 'COMPÉTENCES', 'vigilance'], ['COMPETENCES ET EXPERIENCE', 'EXPERIENCE', 'EXPÉRIENCE', 'vigilance'],
+      ['Il lit METEO DU JOUR.', 'METEO', 'MÉTÉO', 'vigilance'], ['Apres le repas, il dort.', 'Apres', 'Après', 'flag'], ['Begoña est venue hier.', 'Begoña', null, null],
+      ['Ecole fermée demain.', 'Ecole', 'École', 'auto'], ['Séléction de fruits.', 'Séléction', 'Sélection', 'auto'], ["L'hotel est loin.", "L'hotel", "L'hôtel", 'auto']]) {
+    const r = SP.spell(t).find(x => x.word === w && x.name === 'orthographe');
+    if (s === null ? !!r : (!r || r.sugg !== s || r.tier !== tier)) fail.push('listes n° 2-3 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(r && [r.sugg, r.tier]));
+  }
+
   // ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux) : mêmes cas que extension/test_speller.js (le site suit l'extension).
   for (const [t, w, s] of [['Il range certin livres dans le salon.', 'certin', 'certains'], ['Elle lit sertin journaux le soir.', 'sertin', 'certains'],
       ['Elle a vu serten maisons anciennes.', 'serten', 'certaines'], ['Il vend diver objets au marché.', 'diver', 'divers'],

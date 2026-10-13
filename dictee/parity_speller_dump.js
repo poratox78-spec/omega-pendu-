@@ -49,6 +49,7 @@ const C = globalThis.__C;
   // ⭐ 13/10/2026 — liste n° 1 : découpe en élision, présent après pronom sujet, accent impossible (phrases INVENTÉES, aucun corpus ne les atteint toutes).
   phrases.push('Il faut une séléction de fruits.', 'Il a decrit la scène.', 'Il court trois mêtres.', 'Il lave lévier.', 'Il selectionne les fruits.', 'Tu selectionnes les fruits.',
                "Il l'a decide hier.", 'Une option séléctionnable.', 'La rue est désservie.', 'Un outil façilitant la vie.', 'Il commençe le travail.');
+  phrases.push('OMEGA est un correcteur.', 'Omega corrige les textes.', 'COMPETENCES ET EXPERIENCE', 'Il lit METEO DU JOUR.', 'Apres le repas, il dort.', 'Begoña est venue hier.');   // ⭐ 13/10/2026 — listes n° 2-3
   phrases.push("J'ai vu ludovic au marché.", "Je viendrai biensur demain.", "Il a un rendévous chez le médecin.", "J'aime beaucoupma ville.", "Nous irons pemdatn les vacances.", "Il fait tooujousr beau ici.");
 
   const out = [];

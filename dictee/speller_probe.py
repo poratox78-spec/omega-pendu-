@@ -97,7 +97,7 @@ DOMINANCE = 5.0                               # rapport freq top/2e pour qu'un c
 # NB : le palier « mot inconnu » (spellUnknown JS) est porté ici depuis le 04/09/2026 : `spell_unknown`
 # (action 'inconnu', OPT-IN via correct_text(..., inconnu=True) — défaut OFF, doctrine §1.6 : aucun
 # consommateur existant ne change de comportement sans le demander).
-SPELL_KEEP = set('the and of with is are was were this that from they you your its new world er'.split())
+SPELL_KEEP = set('omega the and of with is are was were this that from they you your its new world er'.split())
 
 _INIT_CONF = ('aeiouy', 'bdpq', 'cskq', 'gj', 'fv', 'mn', 'td')   # ⭐ 30/09/2026 : confusions d'initiale admises pour la dominance de fréquence — miroir JS _INIT_CONF
 
@@ -626,12 +626,25 @@ class Speller:
                     if em.group(2).lower() in self.WORDS or rem in self.WORDS or tok[:1] != tok[:1].lower() or not re.match(r'[aeiouyh]', rem): return None
                     return ('vigilance', em.group(1) + "'" + rc[1])
                 return (rc[0], em.group(1) + "'" + rc[1])
-        return self.correct_token(tok, at_start=at_start, toks=toks, idx=idx)
+        return self._maj_tier(tok, self.correct_token(tok, at_start=at_start, toks=toks, idx=idx))
+
+    def _maj_tier(self, tok, r):
+        """⭐ 13/10/2026 (liste n° 2 et 3) — miroir _majTier : un mot à majuscule peut être un nom. Accent rétabli hors de la capitale
+        initiale → jamais auto (flag) ; mot tout en capitales → orange ; accent impossible (é devant ct, consonne doublée, x) → inchangé."""
+        if not r or r[0] == 'vigilance' or tok == tok.lower(): return r
+        lw, sg = tok.lower(), r[1].lower()
+        if deacc(lw) != deacc(sg) or re.search(u'[éè](x|([bcdfgjklmnpqrstvz])\\2|[cp]t)', lw): return r
+        if len(tok) >= 2 and tok == tok.upper(): return ('vigilance', r[1])
+        if r[0] != 'auto': return r
+        for q in range(1, min(len(lw), len(sg))):
+            if lw[q] != sg[q]: return ('flag', r[1])
+        return r
 
     def correct_token(self, tok, at_start=False, toks=None, idx=None):
         """-> (action 'auto'|'flag', suggestion) ou None. toks/idx = contexte (accord genre/nombre)."""
         low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')   # normalise la ligature (cœur→coeur : lexique en digraphe)
         if len(low) < 2 or not all(deacc(ch) in ALPHA for ch in low): return None
+        if tok != low and re.search(u'[áíóúñãõåøäöìòü]', low): return None   # ⭐ 13/10/2026 (liste n° 2) : NOM à diacritique étranger — miroir JS
         _oel = {'soeur': 'sœur', 'soeurs': 'sœurs', 'coeur': 'cœur', 'coeurs': 'cœurs', 'choeur': 'chœur', 'choeurs': 'chœurs', 'oeuf': 'œuf', 'oeufs': 'œufs', 'oeuvre': 'œuvre', 'oeuvres': 'œuvres', 'boeuf': 'bœuf', 'boeufs': 'bœufs', 'oeil': 'œil', 'voeu': 'vœu', 'voeux': 'vœux', 'noeud': 'nœud', 'noeuds': 'nœuds', 'moeurs': 'mœurs', 'manoeuvre': 'manœuvre', 'manoeuvres': 'manœuvres', 'oeillet': 'œillet', 'oeillets': 'œillets', 'oesophage': 'œsophage', 'foetus': 'fœtus'}
         if low in _oel and 'œ' not in tok and 'Œ' not in tok: return ('flag', _oel[low])   # LIGATURE œ (« soeur »→« sœur »). Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app/ext.
         # ⭐ AUTO-FIX FERMÉS (10/09/2026, décalque de _AFIX l.2948) : huit accents usuels mal posés → auto — AVANT la garde
@@ -733,7 +746,7 @@ class Speller:
                 return ('vigilance', 'a ' + rsd)
         if low in SPELL_KEEP: return None      # mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ni corrigé ni signalé (miroir JS _SPELL_KEEP, même position : après prénom, avant nom-propre)
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
-        if tok[:1].isupper() and not at_start: return None
+        if tok[:1].isupper() and not at_start and not (len(tok) >= 4 and tok == tok.upper()): return None   # ⭐ 13/10/2026 : mot en CAPITALES lu aussi hors début (liste n° 3)
         _qm = self._quant_mal(toks, idx)   # ⭐ 11/10/2026 : quantifieur pluriel mal écrit (« certin enfants » → certains) — orange, miroir JS
         if _qm: return ('vigilance', _qm[0].upper() + _qm[1:] if tok[:1].isupper() else _qm)
         d = deacc(low)

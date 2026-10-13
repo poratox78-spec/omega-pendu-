@@ -71,6 +71,16 @@ for (const [t, w, s, tier] of [['Il faut une séléction de fruits.', 'sélécti
     ['Un outil façilitant la vie.', 'façilitant', 'facilitant', 'vigilance']]) {
   const f = DC.spell(t).find(x => x.word === w);
   if (!f || f.sugg !== s || f.tier !== tier) fail.push('liste n° 1 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+// ⭐ 13/10/2026 — LISTES N° 2 ET 3 : un mot à MAJUSCULE peut être un nom. « OMEGA », « Omega » ne deviennent plus « Oméga » ; un mot tout en
+// capitales garde ses capitales (COMPÉTENCES) et reste en orange ; un accent rétabli au milieu d'un mot à majuscule n'est plus appliqué en
+// silence (rouge) ; un nom à accent étranger n'est pas touché. Témoins : la capitale initiale seule (École), l'accent impossible (Sélection),
+// l'élidé en minuscule (L'hôtel) restent comme avant, le nom à accent étranger aussi. Phrases inventées ; six cas échouent sur le moteur d'avant.
+for (const [t, w, s, tier] of [['OMEGA est un correcteur.', 'OMEGA', null, null], ['Omega corrige les textes.', 'Omega', null, null],
+    ['COMPETENCES ET EXPERIENCE', 'COMPETENCES', 'COMPÉTENCES', 'vigilance'], ['COMPETENCES ET EXPERIENCE', 'EXPERIENCE', 'EXPÉRIENCE', 'vigilance'],
+    ['Il lit METEO DU JOUR.', 'METEO', 'MÉTÉO', 'vigilance'], ['Apres le repas, il dort.', 'Apres', 'Après', 'flag'], ['Begoña est venue hier.', 'Begoña', null, null],
+    ['Ecole fermée demain.', 'Ecole', 'École', 'auto'], ['Séléction de fruits.', 'Séléction', 'Sélection', 'auto'], ["L'hotel est loin.", "L'hotel", "L'hôtel", 'auto']]) {
+  const f = DC.spell(t).find(x => x.word === w && x.name === 'orthographe');
+  if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier)) fail.push('listes n° 2-3 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 // ⭐ 29/09/2026 — ACCENTS MUETS : « ca », « foret », « pole » → ça, forêt, pôle en ORANGE ; « le foret » (l'outil), « les mass media »,
 // « la pole position » et « Ca » (calcium) : rien.
 for (const [t, w, s] of [['je crois que ca marche', 'ca', 'ça'], ['on marche en foret', 'foret', 'forêt'], ['ils vont au pole sud', 'pole', 'pôle']]) {
