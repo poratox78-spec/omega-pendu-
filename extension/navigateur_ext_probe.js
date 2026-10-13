@@ -169,7 +169,8 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
        touché, il se charge. On mesure le tas JS de l'onglet (le monde isolé du script de contenu vit dans le même isolat V8). */
     const enCours = async () => ((await pg.envoyer('Runtime.evaluate', { contextId: ctx, returnByValue: true,
       expression: "(typeof DYSCORE!=='undefined' && DYSCORE.isReady) ? !!DYSCORE.isReady() : false" })).result || {}).value;
-    const tasMo = async () => { const m = await pg.envoyer('Performance.getMetrics');
+    const tasMo = async () => { try { await pg.envoyer('HeapProfiler.collectGarbage'); await pg.envoyer('HeapProfiler.collectGarbage'); } catch (e) {}   // sans ramasse-miettes, le tas compte les déchets du chargement (mesure instable : vu 171 contre 191 Mo à l'envers)
+      const m = await pg.envoyer('Performance.getMetrics');
       const x = (m.metrics || []).find((k) => k.name === 'JSHeapUsedSize'); return x ? x.value / 1048576 : NaN; };
     await pg.envoyer('Performance.enable');
     await attendre(4000);   // plus que le temps de chargement complet (~3 s) : s'il devait venir à l'ouverture, il serait là
@@ -187,6 +188,11 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       if (!pret) await attendre(250);
     }
     if (!pret) throw new Error("DYSCORE.isReady() est resté FAUX 20 s après le focus d'un champ — les assets ne se chargent pas dans l'extension");
+    // ⭐ 13/10/2026 : le dictionnaire d'orthographe se charge APRÈS isReady (tâche à part) — on attend qu'il soit là avant de lire le tas,
+    //    sinon la mesure « 1er champ » oublie le plus gros poste (vu : 228 Mo lus avant la fin du chargement)
+    for (let i = 0; i < 80; i++) { const q = await pg.envoyer('Runtime.evaluate', { contextId: ctx, returnByValue: true,
+      expression: "(typeof DYSCORE!=='undefined' && DYSCORE.spellerReady) ? !!DYSCORE.spellerReady() : true" });
+      if (q.result && q.result.value) break; await attendre(250); }
     const tas1 = await tasMo();
     log('  ' + (lazyOk ? '✓' : '✗') + ' [mémoire ] moteur à la demande : page lue → moteur NON chargé (tas ' + tas0.toFixed(0) + ' Mo) ; '
         + '1er champ → chargé (tas ' + tas1.toFixed(0) + ' Mo, +' + (tas1 - tas0).toFixed(0) + ' Mo évités sur chaque onglet seulement lu)');

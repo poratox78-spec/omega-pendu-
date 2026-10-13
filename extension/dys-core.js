@@ -550,7 +550,7 @@
     if(lw.charAt(lw.length-1)!=='é')return false;
     if(!(SP&&SP.ready&&SP.WORDS&&SP.POS))return false;
     var inf=lw.slice(0,-1)+'er';
-    return SP.WORDS.has(inf)&&(SP.POS[inf]||'').indexOf('V')>=0;}
+    return SP.WORDS.has(inf)&&(spP(inf)||'').indexOf('V')>=0;}
   /* ⭐ 04/10/2026 — ici vivait une SECONDE table PLURAL_DET, « large » (quels quelles plusieurs certains certaines quelques aux), posée le
      30/06/2026 pour son/sont : MORTE dès le premier jour — la déclaration d'origine, plus bas (« classe fermée »), la réécrasait au
      chargement (même portée, `var` relu). Retirée sans rien changer (produit identique à l'octet sur le gold). La table vivante est
@@ -575,7 +575,7 @@
   // moteur fabriquent ainsi une forme ; un seul passait par un canonicaliseur avant ce commit.
   function _canonW(w,supposeFautif){
     if(!supposeFautif&&SP&&SP.ready&&SP.WORDS&&SP.WORDS.has(w.toLowerCase()))return w;   // ⚠ NE JAMAIS TOUCHER UN MOT DÉJÀ CORRECT. Sans ce test, « marché » (correct) est remplacé par « marche » (homographe déaccentué PLUS FRÉQUENT) : mesuré, FP 301 -> 977 et 68 tokens cassés. Le canonicaliseur RÉPARE un accent manquant, il ne rejuge pas une orthographe valide.
-    var a=(SP&&SP.D2A)?SP.D2A[deacc(w.toLowerCase())]:null;   // formes dont la version déaccentuée est celle saisie
+    var a=(SP&&SP.D2A)?spD(deacc(w.toLowerCase())):null;   // formes dont la version déaccentuée est celle saisie
     if(!a||!a.length)return w;
     if(!supposeFautif&&a.length!==1)return w;   // en mode DÉFAUT on exige UNE SEULE candidate : sinon on arbitrerait entre rivaux, ce qui n'est plus de la réparation d'accent (mesuré : « le plus fréquent » y coûte +2 FP sur 14 450). En mode supposeFautif la règle a déjà tranché par le contexte, l'arbitrage par fréquence est légitime.
     var c=a[0];
@@ -732,7 +732,7 @@ var w=T[i],lw=w.toLowerCase();
   var _BUT_STOP={};('et ou mais donc car ni que qu qui quand si parce a as ai ont avons avez avais avait suis es est sommes etes sont etais etait ete').split(' ').forEach(function(w){_BUT_STOP[w]=1;});
   function rInfBut(T,i){var w=T[i],lw=w.toLowerCase();
     if(!SP.ready||lw.indexOf("'")>=0||i===0||!/é$/.test(lw))return null;
-    var pos=SP.POS[lw]||'';                                                      // ① VERBE PUR (ni NOM ni ADJECTIF)
+    var pos=spP(lw)||'';                                                      // ① VERBE PUR (ni NOM ni ADJECTIF)
     if(pos.indexOf('V')<0||pos.indexOf('N')>=0||pos.indexOf('A')>=0)return null;
     var inf=_inf1(w);if(inf===null||deacc(inf)===deacc(lw))return null;
     if(i+1>=T.length||!_BUT_DET[deacc(T[i+1].toLowerCase())])return null;        // ② objet direct derrière
@@ -1258,7 +1258,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
   function _etreSubject(T,i){var tok=T[i-1].toLowerCase(),j=i-2,refl=(tok.indexOf("'")>=0&&["s","m","t"].indexOf(deacc(tok.split("'")[0]))>=0);
     if(j>=0&&_REFL_CL[deacc(T[j].toLowerCase()).replace(/'/g,"")]&&!refl){refl=true;j--;}if(j<0)return [null,refl];if(/^d['’]/.test(T[j].toLowerCase()))return [null,refl];   // « d'elle » = complément, jamais sujet
     var m=_ELIDED_PRON.exec(T[j].toLowerCase()),p=m?deacc(m[1]):deacc(T[j].toLowerCase()).replace(/'/g,"");return [(_SUBJ3[p]!==undefined||_SUBJ12[p]!==undefined)?p:null,refl];}
-  function _spos(w){return (SP&&SP.ready&&SP.POS&&SP.POS[w.toLowerCase()])?SP.POS[w.toLowerCase()]:"";}   // POS accent-exact du speller (miroir Python _spos : même asset)
+  function _spos(w){return (SP&&SP.ready&&SP.POS&&spP(w.toLowerCase()))?spP(w.toLowerCase()):"";}   // POS accent-exact du speller (miroir Python _spos : même asset)
   var _DET_F={la:1,une:1,ma:1,ta:1,sa:1,cette:1},_HOMO_ORANGE=false;   // déterminants féminins sûrs ; _HOMO_ORANGE : orange sur l'homographe adjectif « elle est sèche » (miroir Python — mesuré, Rem tranche)
   function _pplForm(w,suf){var lw=w.toLowerCase(),base=lw.slice(0,-1),c=[base],k=Math.max(base.lastIndexOf("è"),base.lastIndexOf("ê"));   // participe en -é : radical ACCENTUÉ par le lexique (sèche → séché, lève → levé) — miroir Python _ppl_form
     if(k>=0)c.push(base.slice(0,k)+"é"+base.slice(k+1),base.slice(0,k)+"e"+base.slice(k+1));
@@ -2184,7 +2184,8 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   var NOUN_POST=null;   // form_déacc -> [nom‰, ver‰] (depuis FreqMot du TSV) ; remplace nbhomog : tire ssi P(NOM)≥0.5 ∧ P(VER)<0.01
   var PL_TAU_M=500,PL_EPS_M=10,PL_ANCHOR_M=300;   // P(NOM)≥0.5 / P(VER)<0.01 / ancre 0.3 (mesuré ε=0.01 : +3 récup. ami/voiture/faute, +1 FP UD)
   function _applyNounPost(t){NOUN_POST=new Map();var L=t.split('\n');for(var i=0;i<L.length;i++){var p=L[i].split('\t');if(p.length>=3)NOUN_POST.set(p[0],[+p[1],+p[2]]);}}
-  function loadNounPost(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
+  var _NP_L=null;   // ⭐ 13/10/2026 : loadLex ET content.js / sidepanel.js le demandaient — la table était lue et construite DEUX fois
+  function loadNounPost(url){if(_NP_L)return _NP_L;return _NP_L=(async function(){try{var gz=await (await fetch(url)).arrayBuffer();
     var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
     _applyNounPost(await new Response(st).text());return true;}catch(e){return false;}})();}
   // ---------- POS-tagger HMM (bigramme + Viterbi) — NATURE par le CONTEXTE. MÊME modèle + MÊME algo que Python (parité exacte).
@@ -2973,7 +2974,7 @@ function estQuestion(t,maxMots){
   var _ETE_INT={ou:1,'où':1,quand:1,comment:1,pourquoi:1,combien:1},_ETE_INV={tu:'étais',je:'étais',il:'était',elle:'était',on:'était',ils:'étaient',elles:'étaient'};
   var _ETE_DET={le:1,la:1,un:1,une:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,leur:1,ce:1,cet:1,cette:1},_ETE_DETP={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};
   var _ETE_PREP={};'de du des à a au aux sur dans par pour avec sans sous chez vers entre contre en'.split(' ').forEach(function(w){_ETE_PREP[deacc(w)]=1;});   // groupe nominal précédé d'une préposition = complément (miroir Python)
-  function _etePur(x){var ps=(SP&&SP.POS&&SP.POS[x])||'';return ps.indexOf('N')>=0&&ps.indexOf('A')<0&&ps.indexOf('V')<0;}
+  function _etePur(x){var ps=(SP&&SP.POS&&spP(x))||'';return ps.indexOf('N')>=0&&ps.indexOf('A')<0&&ps.indexOf('V')<0;}
   function _eteSujet(T,i){
     if(i+1<T.length){var nx=T[i+1].toLowerCase().replace(/^-/,''),inv=_ETE_INV[nx];
       if(inv&&(i===0||(_SEG&&_SEG.bb&&_SEG.bb[i])||_ETE_INT[T[i-1].toLowerCase()]))return inv;}
@@ -3440,8 +3441,8 @@ function estQuestion(t,maxMots){
   var _ANT_ETRE={est:1,etait:1,"c'est":1,sont:1,etaient:1},_ANT_INT={tres:1,trop:1,si:1,assez:1,tellement:1,vraiment:1};
   function antVig(T,i){if(i<1||!SP||!SP.WORDS)return null;var w=T[i],lw=w.toLowerCase();if(!/^[a-zàâäéèêëîïôöùûüç]+ent$/.test(lw)||lw.length<6)return null;
     if(!svReads(w).length)return null;   // un VERBE conjugué écrit (étudient, importent) — sinon ce n'est pas ce cadre
-    if(/[NA]/.test(SP.POS[lw]||''))return null;   // la forme en -ent est AUSSI un nom ou un adjectif (« un résident », frgec ; agent, parent, patient) : rien à corriger
-    var c=lw.slice(0,-3)+'ant',pc=SP.POS[c]||'',p=T[i-1].toLowerCase().replace(/’/g,"'"),dp=deacc(p),pl=false,want=null;
+    if(/[NA]/.test(spP(lw)||''))return null;   // la forme en -ent est AUSSI un nom ou un adjectif (« un résident », frgec ; agent, parent, patient) : rien à corriger
+    var c=lw.slice(0,-3)+'ant',pc=spP(c)||'',p=T[i-1].toLowerCase().replace(/’/g,"'"),dp=deacc(p),pl=false,want=null;
     if(_ANT_DS[dp])want='N';else if(_ANT_DP[dp]){want='N';pl=true;}
     else{var j=i-1,dj=dp;if(_ANT_INT[dj]&&j>=1){j--;dj=deacc(T[j].toLowerCase().replace(/’/g,"'"));}
       if(_SEG&&_SEG.hy&&j<_SEG.hy.length&&_SEG.hy[j])return null;   // « nord-est recouvrent » (UD) : « est » collé par un trait d'union n'est pas le verbe
@@ -3627,7 +3628,7 @@ function estQuestion(t,maxMots){
     var w=T[i];if(!w)return null;
     var lw=deacc(w.toLowerCase());
     if(!/^[a-z'-]+$/.test(lw)||CLITIC[lw])return null;
-    if(_INF_OUTILS[lw]||_INF_OUTILS[w.toLowerCase()])return null;if(typeof SP!=='undefined'&&SP&&SP.ready&&SP.WORDS.has(w.toLowerCase())&&!(SP.POS[w.toLowerCase()]||''))return null;   // ⭐ 13/10/2026 (conjugaison 14) : mot connu sans catégorie = adverbe ou mot-outil (« allez vite ») — miroir Python
+    if(_INF_OUTILS[lw]||_INF_OUTILS[w.toLowerCase()])return null;if(typeof SP!=='undefined'&&SP&&SP.ready&&SP.WORDS.has(w.toLowerCase())&&!(spP(w.toLowerCase())||''))return null;   // ⭐ 13/10/2026 (conjugaison 14) : mot connu sans catégorie = adverbe ou mot-outil (« allez vite ») — miroir Python
    
     var j=i-1,st=0;
     while(j>=0&&st<3&&(CLITIC[deacc(T[j].toLowerCase())]||_SEMI_NEG[deacc(T[j].toLowerCase())])){j--;st++;}
@@ -3667,7 +3668,7 @@ function estQuestion(t,maxMots){
       if(out&&out!==a[0])return null;                    // plusieurs lemmes → abstention
       out=a[0];}
     var _stE=/^(.*)é(e|es|s)?$/.exec(w.toLowerCase());if(out&&_stE&&deacc(_stE[1]+'er')===deacc(out.toLowerCase()))out=_stE[1]+'er';   /* ⭐ 12/09/2026 : lemme NU dans la table, accent repris de la forme écrite (« démarré » → démarrer) — miroir Python */
-    if(out&&out===deaccS(out)&&typeof SP!=='undefined'&&SP&&SP.ready&&SP.D2A){var _va=SP.D2A[out];if(_va&&_va.length){var _bf=-1,_ba=null;for(var _z=0;_z<_va.length;_z++){var _fz=SP.FREQ[_va[_z]]||0;if(_fz>_bf){_bf=_fz;_ba=_va[_z];}}if(_ba)out=_ba;}}   // ⭐ 29/09/2026 : le lemme de la table est désaccentué → graphie du lexique (« il va réussi » → réussir, plus « reussir » ; « il doit été » → être) — miroir Python
+    if(out&&out===deaccS(out)&&typeof SP!=='undefined'&&SP&&SP.ready&&SP.D2A){var _va=spD(out);if(_va&&_va.length){var _bf=-1,_ba=null;for(var _z=0;_z<_va.length;_z++){var _fz=spF(_va[_z])||0;if(_fz>_bf){_bf=_fz;_ba=_va[_z];}}if(_ba)out=_ba;}}   // ⭐ 29/09/2026 : le lemme de la table est désaccentué → graphie du lexique (« il va réussi » → réussir, plus « reussir » ; « il doit été » → être) — miroir Python
     return out;}
   var _SUBJ_PRON_PL={nous:['1','p'],vous:['2','p']};   // ABSENTS de SUBJ_PRON : ce sont aussi des clitiques OBJETS (miroir Python)
   var _CONJ_VAR={peux:'puis'};   // ⭐ 13/09/2026 : variantes d'une même case de paradigme (la table de génération n'en garde qu'une) — miroir Python
@@ -3733,7 +3734,7 @@ function estQuestion(t,maxMots){
     return null;}
   var _ROUGE=true;   // basculé par la jumelle ORANGE le temps de son appel (miroir Python)
   function sujFlexNom(T,i){_ROUGE=false;try{return sujFlexVig(T,i);}finally{_ROUGE=true;}}
-  function _lemFreq(lem){if(!lem||typeof SP==='undefined'||!SP||!SP.ready||!SP.D2A||!SP.FREQ)return null;var _va=SP.D2A[lem];if(!_va||!_va.length)return null;var _lf=0;for(var _z=0;_z<_va.length;_z++)if((SP.FREQ[_va[_z]]||0)>_lf)_lf=SP.FREQ[_va[_z]]||0;return _lf;}   // fréquence du LEMME (max des variantes accentuées), null = inconnu ≠ rare — miroir _lemfreq
+  function _lemFreq(lem){if(!lem||typeof SP==='undefined'||!SP||!SP.ready||!SP.D2A||!SP.FREQ)return null;var _va=spD(lem);if(!_va||!_va.length)return null;var _lf=0;for(var _z=0;_z<_va.length;_z++)if((spF(_va[_z])||0)>_lf)_lf=spF(_va[_z])||0;return _lf;}   // fréquence du LEMME (max des variantes accentuées), null = inconnu ≠ rare — miroir _lemfreq
   var _SUJ_SAUT={ne:1,n:1,se:1,s:1,me:1,m:1,te:1,t:1,y:1,en:1,le:1,la:1,les:1,lui:1,leur:1};   // clitiques et négation entre le pronom sujet et le verbe (garde d'adjacence, 12/09/2026)
   /* ⭐ 12/10/2026 (conjugaison 6) — « vous faite », « vous dite », « vous faisez », « vous disez » → faites / dites : les présents
      IRRÉGULIERS de « vous » (faire, dire, refaire, redire) écrits comme le participe féminin ou régularisés en -ez (« vous contredisez »
@@ -3843,7 +3844,7 @@ function estQuestion(t,maxMots){
        « verbe rare » est la mauvaise hypothèse. Abstention ; rAuxMisspell parle s'il peut. ⚠️ On pèse le LEMME (SP.D2A →
        max des variantes, comme _lemfreq côté Python), PAS la forme cible : peser la forme taisait « nous fîtes » → fîmes
        (passé simple rare d'un verbe courant, à une lettre de fûmes). Lemme inconnu du speller → on ne change rien. */
-    var _lf;if(lemc&&typeof SP!=='undefined'&&SP&&SP.ready&&SP.D2A&&SP.FREQ){var _va=SP.D2A[lemc];if(_va&&_va.length){_lf=0;for(var _z=0;_z<_va.length;_z++)if((SP.FREQ[_va[_z]]||0)>_lf)_lf=SP.FREQ[_va[_z]]||0;}}
+    var _lf;if(lemc&&typeof SP!=='undefined'&&SP&&SP.ready&&SP.D2A&&SP.FREQ){var _va=spD(lemc);if(_va&&_va.length){_lf=0;for(var _z=0;_z<_va.length;_z++)if((spF(_va[_z])||0)>_lf)_lf=spF(_va[_z])||0;}}
     if(typeof _lf==='number'&&_lf<1){var _vx=_voisinAuxLong(dl);if(_vx){   /* ⭐ 12/09/2026 : plus de silence — l'écrit est à une lettre d'une forme longue d'ÊTRE/AVOIR (« vous somme » ↔ sommes) : c'est CET auxiliaire, conjugué pour le sujet → êtes. Miroir Python. */
       var _rv=svReads(_vx);for(var _y=0;_y<_rv.length;_y++){if(_rv[_y][0]==='etre'||_rv[_y][0]==='avoir'){var _f2=((CONJ_C[_rv[_y][0]]||{})[_rv[_y][1]]||{})[slot];if(_f2&&_f2.toLowerCase()!==lw)return ckeepcase(w,_f2);}}
       return null;}}
@@ -3942,7 +3943,7 @@ function estQuestion(t,maxMots){
     var cible=lw.slice(0,-2)+'ait',rd=svReads(cible),ok=false;
     for(var k=0;k<rd.length;k++)if(rd[k][1].indexOf('ind:imp')===0&&rd[k][2]==='3')ok=true;
     if(!ok)return null;
-    if(!(SP&&SP.ready&&SP.WORDS&&/V/.test(SP.POS[lw]||''))&&!CONJ_C[deacc(lw.slice(0,-2))+'er'])return null;
+    if(!(SP&&SP.ready&&SP.WORDS&&/V/.test(spP(lw)||''))&&!CONJ_C[deacc(lw.slice(0,-2))+'er'])return null;
     return ckeepcase(w,cible);}
   function _verbeFini(lw){var rd=svReads(lw);for(var k=0;k<rd.length;k++){var mt=rd[k][1]||'';if(mt.indexOf('ind')===0||mt.indexOf('cnd')===0||mt.indexOf('sub')===0)return true;}return false;}
   function rPpEpithetFem(T,i){var w=T[i],lw=w.toLowerCase();
@@ -4402,7 +4403,7 @@ function estQuestion(t,maxMots){
        « contribuer d'avantage », « est d'avantage ») ou DEVANT « de » (« d'avantage de temps ») ; la règle ne lisait que la fin de
        proposition et « que ». Le nom « avantage » veut un mot de quantité devant (pas, peu, plus… : gardé ci-dessus) ou un nom
        (« type d'avantage ») ; « il n'y a d'avantage que » reste un nom. Miroir Python rule_davantage. */
-    if(i>=1){var _pv=T[i-1].toLowerCase().replace(/’/g,"'"),_dv=deacc(_pv).replace(/^(d|l|j|n|s|qu)'/,''),_pp=(SP&&SP.POS&&SP.POS[_pv])||'',_nom=_pp.indexOf('N')>=0&&(_pp.indexOf('V')<0||(i>=2&&_DAV_DET[T[i-2].toLowerCase().replace(/’/g,"'")]));   // « ce type d'avantage » : un nom après un déterminant
+    if(i>=1){var _pv=T[i-1].toLowerCase().replace(/’/g,"'"),_dv=deacc(_pv).replace(/^(d|l|j|n|s|qu)'/,''),_pp=(SP&&SP.POS&&spP(_pv))||'',_nom=_pp.indexOf('N')>=0&&(_pp.indexOf('V')<0||(i>=2&&_DAV_DET[T[i-2].toLowerCase().replace(/’/g,"'")]));   // « ce type d'avantage » : un nom après un déterminant
       if(!_nom&&!(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])){
         if(svReads(_dv).length||COMMON_VERBS[_dv])return {sugg:'davantage',vig:1};
         var _nx=i+1<T.length?T[i+1].toLowerCase():'';if(/^(de|des|du)$/.test(deacc(_nx))||/^d['’]/.test(_nx))return {sugg:'davantage',vig:1};}}
@@ -4490,7 +4491,7 @@ function estQuestion(t,maxMots){
   var _SUBJ_PRON={il:1,elle:1,ils:1,elles:1,on:1,je:1,tu:1,nous:1,vous:1};
   var _INVAR_S={};('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars dos os heros marais palais relais jus autobus bus virus refus').split(' ').forEach(function(w){_INVAR_S[w]=1;});
   var _COLL_BARE=null;   // clé nue → nb d'entrées _GCOLL partageant la clé (jumeau accentué) — construit à la 1re demande (après _GCOLL)
-  function _wordKnown(d){return !!(SP&&SP.WORDS&&(SP.WORDS.has(d)||(SP.D2A&&SP.D2A[d]&&SP.D2A[d].length)))||GENDER_PURE[d]==='m'||GENDER_PURE[d]==='f';}
+  function _wordKnown(d){return !!(SP&&SP.WORDS&&(SP.WORDS.has(d)||(SP.D2A&&spD(d)&&spD(d).length)))||GENDER_PURE[d]==='m'||GENDER_PURE[d]==='f';}
   function _tierOf(T,i,name,sugg){   // MIROIR de correcteur_probe.tier_of — sous-cas SÛRS (rouge) des familles à vérifier ; sinon orange
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
     if(name==='a/à')return (_rAbase(T,i)===null&&_rAnouveau(T,i)==='à')?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir Python
@@ -4537,19 +4538,35 @@ function estQuestion(t,maxMots){
     for(var k=0;k<sp.length;k++){a=sp[k][0];b=sp[k][1];if(b)res[a+b.slice(1)]=1;if(b.length>1)res[a+b[1]+b[0]+b.slice(2)]=1;
       for(ci=0;ci<26;ci++){c=String.fromCharCode(97+ci);res[a+c+b]=1;if(b)res[a+c+b.slice(1)]=1;}}return Object.keys(res);}
   var SP={ready:false,loading:null,WORDS:null,FREQ:{},D2A:{},PHON:{},POS:{}};
+
+  /* ⭐ 13/10/2026 — DICTIONNAIRE COMPACT (demande de Rem : la mémoire). Les 710 872 mots tenaient dans trois objets à 700 000 clés
+     (fréquence, nature, accents) plus un Set qui recopiait la liste : 193 Mo mesurés. Ils sont rangés dans UNE table d'index
+     (Map mot → n°) et deux tableaux numériques (fréquence ×1000 en entiers, nature en octet) ; les accents (mot sans accent →
+     mots) dans une Map dont la valeur est le mot seul s'il est unique : 59 Mo, mêmes réponses. On LIT par spF / spP / spD — jamais
+     de crochets sur SP.FREQ / SP.POS / SP.D2A (une Map n'y répond pas : garde extension/speller_compact_probe.js). SP.WORDS garde son
+     interface (.has / .add / .size) ; SP.PLUS tient les mots valides ajoutés hors du fichier. Miroir app ≡ extension. */
+  var _SPN=['','V','N','A','AN','AV','NV','ANV'];
+  function _spReset(n){SP.IDX=new Map();SP.FR=new Int32Array(n);SP.PO=new Uint8Array(n);SP.PLUS=new Set();SP.D2M=new Map();SP._n=0;
+    SP.WORDS={has:function(w){return SP.IDX.has(w)||SP.PLUS.has(w);},add:function(w){if(!SP.IDX.has(w))SP.PLUS.add(w);},get size(){return SP.IDX.size+SP.PLUS.size;}};
+    SP.FREQ=SP.POS=SP.D2A=SP.IDX;}
+  function _spAdd(w,fi,p){var n=SP._n++,c=_SPN.indexOf(p||'');if(c<0){_SPN.push(p);c=_SPN.length-1;}SP.IDX.set(w,n);SP.FR[n]=fi;SP.PO[n]=c;
+    if(fi>0){var d=deaccS(w),o=SP.D2M.get(d);if(o===undefined)SP.D2M.set(d,w);else if(typeof o==='string')SP.D2M.set(d,[o,w]);else o.push(w);}}
+  function spF(w){var n=SP.IDX?SP.IDX.get(w):undefined;return n===undefined?undefined:SP.FR[n]/1000;}
+  function spP(w){var n=SP.IDX?SP.IDX.get(w):undefined;return n===undefined?undefined:(_SPN[SP.PO[n]]||undefined);}
+  function spD(d){var o=SP.D2M?SP.D2M.get(d):undefined;return o===undefined?undefined:(typeof o==='string'?[o]:o);}
   var SELIDE={l:1,m:1,t:1,s:1,n:1,d:1,c:1,j:1},_SELIDE_ACC={l:1,d:1,j:1,c:1,s:1},SVOW={a:1,e:1,i:1,o:1,u:1,y:1,h:1};   // _SELIDE_ACC = préfixes SÛRS pour restauration d'accent (m'/t'/n' exclus)
   // tokens courts NON-FRANÇAIS à ne JAMAIS corriger : mots anglais fréquents dans du texte FR (titres/orgs) que le speller
   // accentuait à tort (the→thé, world→…) + « er » = résidu d'ordinal « 1er » (le chiffre effacé laisse « er »→« ère »).
   // Aucun n'entre en collision avec un mot français (mais/or/on/en/a/ni exclus). Miroir app.
   var _SPELL_KEEP={the:1,and:1,of:1,with:1,is:1,are:1,was:1,were:1,this:1,that:1,from:1,they:1,you:1,your:1,its:1,new:1,world:1,er:1};
-  function _applySpellerTSV(txt){SP.WORDS=new Set();SP.RARE=[];SP.PHONR=null;SP.ANAL=[];SP.ANA=null;var lines=txt.split('\n');
+  function _applySpellerTSV(txt){SP.RARE=[];SP.PHONR=null;SP.ANAL=[];SP.ANA=null;var lines=txt.split('\n');_spReset(lines.length);
     for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var pr=ln.split('\t');if(pr.length<2)continue;
-      var w=pr[0],fr=parseInt(pr[1],10)/1000;SP.WORDS.add(w);SP.FREQ[w]=fr;if(pr[2])SP.POS[w]=pr[2];
-      if(fr>0){var d=deaccS(w);(SP.D2A[d]||(SP.D2A[d]=[])).push(w);}   // porte EXACTE : seule la fréquence 0 (gacc) est connue-seulement ; ≥ 0,01 retirait 26 % du lexique de BASE et cassait les suggestions « mot inconnu » (mesuré en A/B node)   // ⭐ connu-seulement : sous KNOWN_ONLY le mot est dans WORDS (plus « inconnu ») mais JAMAIS candidat — l'A/B navigateur perdait 3 justes par concurrence d'unicité (miroir Python KNOWN_ONLY_FREQ)
+      var w=pr[0],_fi=parseInt(pr[1],10),fr=_fi/1000;_spAdd(w,_fi,pr[2]);
+         // porte EXACTE : seule la fréquence 0 (gacc) est connue-seulement ; ≥ 0,01 retirait 26 % du lexique de BASE et cassait les suggestions « mot inconnu » (mesuré en A/B node)   // ⭐ connu-seulement : sous KNOWN_ONLY le mot est dans WORDS (plus « inconnu ») mais JAMAIS candidat — l'A/B navigateur perdait 3 justes par concurrence d'unicité (miroir Python KNOWN_ONLY_FREQ)
       if(fr>=0.1){var pk=phonKey(w);(SP.PHON[pk]||(SP.PHON[pk]=[])).push(w);if(w.length>=4&&/^[a-zà-ÿœæ]+$/.test(w))SP.ANAL.push(w);}else if(fr>0&&fr!==0.05)SP.RARE.push(w);}   // ⭐ 13/09/2026 : mots RARES relevés au passage (index bâti par tranches, _phonRareStep)
     ['postulée','postulées','entretint','entretinrent','armet','armets'].forEach(function(w){SP.WORDS.add(w);});   // MOTS VALIDES manquants du lexique que le speller éditait à tort (« mauvais candidat sur mot valide » : postulée→postulé, entretint→entretient, armet→arme) → protégés (SP.WORDS.has ⇒ ni correction ni vigilance). FP=0 : vrais mots FR ; liste extensible.
-    var sf=function(a,b){return SP.FREQ[b]-SP.FREQ[a];};
-    for(var dd in SP.D2A)SP.D2A[dd].sort(sf);for(var pp in SP.PHON)SP.PHON[pp].sort(sf);SP.ready=true;}
+    var sf=function(a,b){return spF(b)-spF(a);};
+    SP.D2M.forEach(function(v){if(typeof v!=='string')v.sort(sf);});for(var pp in SP.PHON)SP.PHON[pp].sort(sf);SP.ready=true;}
   function loadSpellerLex(url){          // extension : fetch l'asset gzip (≠ app : bloc DOM). Parse VERBATIM.
     if(SP.ready)return Promise.resolve(true);if(SP.loading)return SP.loading;
     SP.loading=(async function(){try{
@@ -4574,8 +4591,8 @@ function estQuestion(t,maxMots){
      « evec » → avec et « gours » → jours (mesuré, écarté) ; p → s n'en est pas une. Miroir Python _init_conf. */
   var _INIT_CONF=['aeiouy','bdpq','cskq','gj','fv','mn','td'];
   function _initConf(w,d){var a=w.charAt(0),b=d.charAt(0);if(a===b)return true;for(var i=0;i<_INIT_CONF.length;i++)if(_INIT_CONF[i].indexOf(a)>=0&&_INIT_CONF[i].indexOf(b)>=0)return true;return false;}
-  function sGender(w){var dw=deaccS(w);if((SP.POS[w]||'').indexOf('A')>=0){var a=ADJP[dw];if(a)return a[0];}var g=GENDER_PURE[dw]||GENDER_MAP[dw];return (g==='m'||g==='f')?g:null;}
-  function _homophoneEdit1(low){var d=deaccS(low),pk=phonKey(low),e1=sEdits1(d),i,j;for(i=0;i<e1.length;i++){var a=SP.D2A[e1[i]];if(!a)continue;for(j=0;j<a.length;j++){var w=a[j];if(w!==low&&(SP.FREQ[w]||0)>=1.0&&/V/.test(SP.POS[w]||'')&&phonKey(w)===pk)return true;}}return false;}   // un VERBE du lexique à 1 édition et de même clé phonétique existe (aboit→aboie) : la soudure « a + verbe » s'efface devant lui
+  function sGender(w){var dw=deaccS(w);if((spP(w)||'').indexOf('A')>=0){var a=ADJP[dw];if(a)return a[0];}var g=GENDER_PURE[dw]||GENDER_MAP[dw];return (g==='m'||g==='f')?g:null;}
+  function _homophoneEdit1(low){var d=deaccS(low),pk=phonKey(low),e1=sEdits1(d),i,j;for(i=0;i<e1.length;i++){var a=spD(e1[i]);if(!a)continue;for(j=0;j<a.length;j++){var w=a[j];if(w!==low&&(spF(w)||0)>=1.0&&/V/.test(spP(w)||'')&&phonKey(w)===pk)return true;}}return false;}   // un VERBE du lexique à 1 édition et de même clé phonétique existe (aboit→aboie) : la soudure « a + verbe » s'efface devant lui
   var SCTX_STOP={};('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme').split(' ').forEach(function(w){SCTX_STOP[w]=1;});   // frontière de proposition : le genre de « un » ne traverse pas « qui » (« un chien qui aboit »→aboie, pas about). Miroir Python CTX_STOP.
   function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(SCTX_STOP[t])return null;if(t==='peu'||t==='peux'||(DET_G[t]&&j+1<T.length&&(deaccS(T[j+1].toLowerCase())==='peu'||deaccS(T[j+1].toLowerCase())==='peux')))continue;if(DET_G[t])return DET_G[t];
     if(!SP.WORDS.has(T[j].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')))continue;   // ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GENDER_PURE déacc ← « trés » nom) → on continue vers le déterminant
@@ -4597,7 +4614,7 @@ function estQuestion(t,maxMots){
     var low=String(T[idx]).toLowerCase();if(!/^[a-zàâäéèêëîïôöùûüç]+$/.test(low)||SP.WORDS.has(low))return null;
     var av=idx>0?String(T[idx-1]).toLowerCase().replace(/’/g,"'"):'',art=!!_QPL_AV[av];
     var nx=String(T[idx+1]).toLowerCase();if(!/^[a-zàâäéèêëîïôöùûüçœ'’-]+$/.test(nx)||_QPL_NX[deaccS(nx)])return null;
-    if(SP.WORDS.has(nx)&&!/[NA]/.test(SP.POS[nx]||''))return null;
+    if(SP.WORDS.has(nx)&&!/[NA]/.test(spP(nx)||''))return null;
     var K=_qplKeys(),q=K[phonKey(low)]||(/n$/.test(low)?K[phonKey(low+'e')]:null);if(!q)return null;
     if(q.m==='nombreux'&&!/eu[sx]?$|euse?s?$/.test(low))return null;
     var g=SP.WORDS.has(nx)?sGender(nx):null,fem=g?g==='f':q.fem;
@@ -4612,7 +4629,7 @@ function estQuestion(t,maxMots){
     // token immédiatement suivant seulement · NOM connu (tag N) au pluriel MORPHOLOGIQUE (singulier attesté au lexique)
     // · JAMAIS un mot-outil (« il mangee DES pommes » ne doit pas mettre le VERBE au pluriel) · renvoie 'p' seulement.
     if(idx+1<T.length){var nx=T[idx+1].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
-      if(!SDET_NUM[deaccS(nx)]&&SP.WORDS.has(nx)&&(SP.POS[nx]||'').indexOf('N')>=0&&/[sx]$/.test(nx)){
+      if(!SDET_NUM[deaccS(nx)]&&SP.WORDS.has(nx)&&(spP(nx)||'').indexOf('N')>=0&&/[sx]$/.test(nx)){
         var sgs=/aux$/.test(nx)?[nx.slice(0,-3)+'al',nx.slice(0,-1)]:[nx.slice(0,-1)];   // -aux a DEUX singuliers (cheval/tuyau)
         for(j=0;j<sgs.length;j++){if(SP.WORDS.has(sgs[j]))return 'p';}}}
     return back;}
@@ -4636,7 +4653,7 @@ function estQuestion(t,maxMots){
     if(em&&((pk=em[1].toLowerCase()).length===1&&SELIDE[pk]||pk==='qu')){
       var rc=spellTokenCore(em[2],false,T,idx);if(!rc)return null;
       var rem=deaccS(em[2].toLowerCase()),sug=deaccS(rc[1].toLowerCase());
-      if(!SVOW[sug[0]]){var _sd=deaccS((em[1]+em[2]).toLowerCase()),_fz=SP.D2A[_sd];if(pk==='l'&&_fz&&_fz.length&&!SP.WORDS.has(em[2].toLowerCase())&&!SP.WORDS.has(rem))return ['vigilance',_fz[0]];return null;}   // l'/d' exige une voyelle/h après : « l'aramel »→« caramel » casserait l'élision → abstention ; SAUF la soudure au lexique (« l'entement » → lentement, orange)
+      if(!SVOW[sug[0]]){var _sd=deaccS((em[1]+em[2]).toLowerCase()),_fz=spD(_sd);if(pk==='l'&&_fz&&_fz.length&&!SP.WORDS.has(em[2].toLowerCase())&&!SP.WORDS.has(rem))return ['vigilance',_fz[0]];return null;}   // l'/d' exige une voyelle/h après : « l'aramel »→« caramel » casserait l'élision → abstention ; SAUF la soudure au lexique (« l'entement » → lentement, orange)
       if(rc[0]!=='auto'&&rem!==sug&&!sEd1(rem,sug)){if(SP.WORDS.has(em[2].toLowerCase())||SP.WORDS.has(rem)||tok.charAt(0)!==tok.charAt(0).toLowerCase()||!/^[aeiouyh]/.test(rem))return null;return ['vigilance',em[1]+"'"+rc[1]];}   // phonétique distant (othographe→autographe) : abstention sur un reste CONNU ; reste INCONNU → ORANGE (29/09/2026)
       return [rc[0],em[1]+"'"+rc[1]];}
     return spellTokenCore(tok,atStart,T,idx);}
@@ -4648,7 +4665,7 @@ function estQuestion(t,maxMots){
     var combos=[''],nc,a,b; for(k=0;k<g.length;k++){ var ch=g[k][0],c=g[k][1],opts=c>=3?[ch,ch+ch]:[new Array(c+1).join(ch)]; nc=[];
       for(a=0;a<combos.length;a++)for(b=0;b<opts.length;b++)nc.push(combos[a]+opts[b]); combos=nc; if(combos.length>64)return null; }
     var seen={},cs=[]; for(k=0;k<combos.length;k++){ var cw=combos[k]; if(cw!==low&&SP.WORDS.has(cw)&&!seen[cw]){seen[cw]=1;cs.push(cw);} }
-    if(!cs.length)return null; cs.sort(function(x,y){return (SP.FREQ[y]||0)-(SP.FREQ[x]||0);}); return cs;
+    if(!cs.length)return null; cs.sort(function(x,y){return (spF(y)||0)-(spF(x)||0);}); return cs;
   }
 function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}   // a est-il une SOUS-SUITE de b ? (miroir de l'app)
 function _slipMot(a,b){if(a===b)return false;                                          // GLISSEMENT MOTEUR : les mêmes LETTRES, seul l'ORDRE ou un REDOUBLEMENT diffère (entrées DÉACCENTUÉES). Miroir app.
@@ -4661,8 +4678,8 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
   var _VOY_RENDUE='aeiouy',_VOY_FREQ=50;   /* plancher MESURÉ : 0 → 14/7/7 · 50 → 14/2/2 · 200 perd fort et nord */
   function _voyelleMangee(d){var best=null,bf=0,i,k,q,L,f;
     for(i=0;i<=d.length;i++)for(k=0;k<_VOY_RENDUE.length;k++){
-      L=SP.D2A[d.slice(0,i)+_VOY_RENDUE.charAt(k)+d.slice(i)]||[];
-      for(q=0;q<L.length;q++){f=SP.FREQ[L[q]]||0;if(f>bf){best=L[q];bf=f;}}}
+      L=spD(d.slice(0,i)+_VOY_RENDUE.charAt(k)+d.slice(i))||[];
+      for(q=0;q<L.length;q++){f=spF(L[q])||0;if(f>bf){best=L[q];bf=f;}}}
     return bf>=_VOY_FREQ?best:null;}
   /* ⭐ CONSONNES SIMPLIFIÉES QUI POLLUENT LE LEXIQUE (09/09/2026, miroir Python _DBL_MIN) — la sœur de
      _AFIX_MIN, pour les consonnes DOUBLÉES. « je suis à la boure » : le moteur ne corrigeait pas
@@ -4704,7 +4721,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
       if(!_DAN_SUR[_dp]&&!_DAN_VIG[_dp]&&!_DET_E_PRON[_dp]&&!/^[dl]['’]/.test(_dp)){
         if(low==='dé'&&(_dn==='le'||_dn==='les'||_dn==='que'||_dn==='lors'))return["vigilance","dès"];   // « de le », « de les » n'existent pas
         if(low==='dé'&&(_DAN_SUR[_dn]||_DAN_VIG[_dn]||/^l['’]/.test(_dn)||_DET_E_QU[_dp]))return["vigilance","de"];   // « dé la », « beaucoup dé » : de
-        if(/^[a-zà-ÿœæ]+$/.test(T[idx+1])&&!_DAN_SUR[_dn]&&!_DAN_VIG[_dn]){var _nl=T[idx+1].toLowerCase(),_np=SP.POS[_nl]||'',_nk=SP.WORDS.has(_nl),_ninv=sInvarS(_nl),_npl=/[sx]$/.test(_nl)&&!_ninv;   // le NOMBRE du mot suivant choisit : « dé bonne humeur » = de (accent parasite), « dé livres » = des
+        if(/^[a-zà-ÿœæ]+$/.test(T[idx+1])&&!_DAN_SUR[_dn]&&!_DAN_VIG[_dn]){var _nl=T[idx+1].toLowerCase(),_np=spP(_nl)||'',_nk=SP.WORDS.has(_nl),_ninv=sInvarS(_nl),_npl=/[sx]$/.test(_nl)&&!_ninv;   // le NOMBRE du mot suivant choisit : « dé bonne humeur » = de (accent parasite), « dé livres » = des
           if(low==='dé'){if(_np.indexOf('A')>=0||(_nk&&!_npl))return["vigilance","de"];return["vigilance","des"];}
           if(low==='lé'){if(_np.indexOf('N')>=0&&!_ninv)return["vigilance",_npl?"les":"le"];}   // « lé bois » : invariable, le nombre ne se lit pas
           else if(_npl||!_nk)return["vigilance",_DET_E[low]];}}}
@@ -4714,7 +4731,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        jet set, le quatrième set) seulement après un mot-outil (qui, de, dans, car…) et devant un nom (ou un mot inconnu). ORANGE. Miroir Python _CETTE_E. */
     if(T&&idx!=null&&idx+1<T.length&&(_CETTE_E[low]||(low==='set'&&tok===low))&&(tok===low||(atStart&&tok.charAt(0)!==low.charAt(0)&&tok.slice(1)===low.slice(1)))){
       var _cn=T[idx+1],_cnl=_cn.toLowerCase(),_cp=idx>0?deaccS(T[idx-1].toLowerCase()):'';
-      if(/^[a-zà-ÿœæ]+$/.test(_cn)&&!_DAN_SUR[deaccS(_cnl)]&&!_DAN_VIG[deaccS(_cnl)]&&(low!=='set'||((idx===0||_CETTE_AV[_cp])&&/N/.test(SP.POS[_cnl]||'N')))){
+      if(/^[a-zà-ÿœæ]+$/.test(_cn)&&!_DAN_SUR[deaccS(_cnl)]&&!_DAN_VIG[deaccS(_cnl)]&&(low!=='set'||((idx===0||_CETTE_AV[_cp])&&/N/.test(spP(_cnl)||'N')))){
         var _ct=(/^[aeiouyhàâéèêëîïôöùûü]/.test(_cnl)&&sGender(_cnl)==='m')?'cet':'cette';if(tok!==low)_ct=_ct.charAt(0).toUpperCase()+_ct.slice(1);return["vigilance",_ct];}}
     if(tok===low&&low==='vacance'&&T&&idx!=null&&idx>=1&&_VACANCES_AV[deaccS(T[idx-1].toLowerCase())])return["flag","vacances"];   /* ⭐ 13/09/2026 : « en vacance » → vacances (miroir Python) */
     /* ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (audit 11/09/2026, plan ③ : « aujourdhui » restait un inconnu sans réponse alors
@@ -4735,7 +4752,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        n'a PAS ce son ; la reconstruction sonore prime. Radical ≥ 4 (« tetra »→tetera via téter = l'unique
        tir du flood 16 950). L'élision est déballée par spellToken (l'oublirais → oublirais). */
     if(!SP.WORDS.has(low)){var _fm=low.match(/^([a-zà-ÿ]{4,})r(ai|as|a|ons|ez|ont|ais|ait|aient)$/);
-      if(_fm&&CONJ_C[deacc(_fm[1]+'er')]&&(SP.FREQ[_fm[1]+'er']||0)>=1.0&&(SP.POS[_fm[1]+'er']||'').indexOf('V')>=0){   /* ⭐ 13/10/2026 (conjugaison 14) : l'infinitif reconstruit doit être un VERBE au dictionnaire — « center » (nom anglais, verbe archaïque de Morphalou) faisait de « centras » un « centeras » rouge. Miroir Python */var _fc=_fm[1]+'e'+'r'+_fm[2];   // GARDE (11/09/2026, mesurée) : le verbe reconstruit doit être COURANT (≥1/M). Recensement sur tout le dys local : 8 tirs justes (oublirais/oublirait/oublirez, oublier 77/M) contre 2 faux (« revérrons »→revérerons, révérer 0/M, alors que reverrons est à l'accent près ; « fautra »→fautera, fauter 0,05/M) — le seuil sépare parfaitement, 0 tir sur 2 500 UD. Miroir app + Python.
+      if(_fm&&CONJ_C[deacc(_fm[1]+'er')]&&(spF(_fm[1]+'er')||0)>=1.0&&(spP(_fm[1]+'er')||'').indexOf('V')>=0){   /* ⭐ 13/10/2026 (conjugaison 14) : l'infinitif reconstruit doit être un VERBE au dictionnaire — « center » (nom anglais, verbe archaïque de Morphalou) faisait de « centras » un « centeras » rouge. Miroir Python */var _fc=_fm[1]+'e'+'r'+_fm[2];   // GARDE (11/09/2026, mesurée) : le verbe reconstruit doit être COURANT (≥1/M). Recensement sur tout le dys local : 8 tirs justes (oublirais/oublirait/oublirez, oublier 77/M) contre 2 faux (« revérrons »→revérerons, révérer 0/M, alors que reverrons est à l'accent près ; « fautra »→fautera, fauter 0,05/M) — le seuil sépare parfaitement, 0 tir sur 2 500 UD. Miroir app + Python.
         if(CONJ_F[deacc(_fc)])return["auto",_fc];}}
 
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
@@ -4749,7 +4766,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     // des 211 k formes : qu'ils soient en plus un prénom attesté en fait un nom, pas un typo.
     if(low.length>=3&&PRENOMS[low.charAt(0).toUpperCase()+low.slice(1)])return null;
     if((low.charAt(0)==='à'||low.charAt(0)==='a')&&low.length>=3){var _rsd=low.slice(1);
-      if(SP.WORDS.has(_rsd)&&/V/.test(SP.POS[_rsd]||'')&&!/(er|re|ir)$/.test(_rsd)
+      if(SP.WORDS.has(_rsd)&&/V/.test(spP(_rsd)||'')&&!/(er|re|ir)$/.test(_rsd)
          &&!SP.WORDS.has(low.charAt(0)+low.charAt(1)+low.slice(1))   // le REDOUBLEMENT prime : « aporté »→apporté (couche DC), pas « a porté »
          &&!_homophoneEdit1(low)){   // et un VRAI MOT à une édition, de MÊME SON, prime aussi (2026-08-22, texte dys) : « aboit » = aboie /abwa/ (1 édition, verbe), pas « a boit » — Python (sans soudure) rend aboie
         /* SOUDURE à/a+VERBE (enquête des 22, texte3 réel : « àeu »→a eu, « àfinit »→a finit puis
@@ -4763,7 +4780,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     if(!/[aeiouy]/.test(d)){/* ⭐ LA VOYELLE MANGÉE (09/09/2026, miroir Python _voyelle_mangee) : cette garde écartait le SIGLE (www, mph, bzh) ET la faute dys — « snt », « frt », « nrd », « dns », « pls ». Mesuré au moteur : 111 jetons sans voyelle lui échappaient, dont 84 FAUTES pour 27 vrais sigles. On rend UNE voyelle et rien d'autre (aucune consonne touchée, aucune substitution : « dns » → dans, jamais « des »), puis un plancher de fréquence — le mot d'un dys est courant, le voisin d'un sigle ne l'est pas. 14 justes, 2 fausses, 2 marques sur mot correct (chf→chef, abréviation), toutes en ORANGE. ⛔ La seule SOUS-SÉQUENCE a été RÉFUTÉE : kms→keums, pqr→piquer (15 justes / 53 fausses). */var _vm=_voyelleMangee(d);return _vm?['vigilance',_vm]:null;}
     if(/(.)\1\1/.test(low)&&!(tok===tok.toUpperCase()&&tok.length>=2)&&!/^[ivxlcdm]+(e|es|eme|emes|er|ers)?$/.test(d)){   // ÉLONGATION (pas acronyme AAA, pas chiffre romain VIII)
       var _ec=sCollapse(low);if(_ec)return _ec.length===1?['auto',_ec[0]]:['flag',_ec[0]];}
-    var _dw=null,_df=0;for(var _q=1;_q<low.length-1;_q++){if('bcdfglmnprst'.indexOf(deaccS(low[_q]))<0)continue;var _cd=low.slice(0,_q+1)+low[_q]+low.slice(_q+1);var _f=SP.WORDS.has(_cd)?(SP.FREQ[_cd]||0):0;if(_f>=3&&_f>_df){_dw=_cd;_df=_f;}}/* ⭐ GARDE DE L'ACCENT (08/09/2026 circonflexe, 11/09 aigu/grave non verbal ; miroir de _accent_rival) : cette route rendait son verdict AVANT les candidats, donc sans avoir vu la restauration d'accent (priorité 2 du speller). Le circonflexe français est la TRACE d'une consonne DISPARUE (cône < konos, bâton < baston, hôpital < hospital) : circonflexe et consonne doublée sont deux reconstructions RIVALES de la même consonne — doubler ne peut pas affirmer seul. Garde limitée à une saisie SANS accent (sinon le rival serait une DÉ-accentuation : alé→ale, caré→care — et là doubler a raison). Mesuré : 308 jetons sur cette route, 2 changent (cone→cône, batons→bâtons, gold ×2 et ×3), 0 correction perdue, 0 tir sur 354 647 jetons d'UD ; placebo sur l'accent aigu = 5 changements dont 4 faux au gold. */if(_dw){var _cr=false;if(deaccS(low)===low){var _dL=SP.D2A[low]||[];for(var _dk=0;_dk<_dL.length;_dk++){var _drw=_dL[_dk];if(_drw!==low&&deaccS(_drw)===low&&(SP.FREQ[_drw]||0)>=1&&(/[âêîôûÂÊÎÔÛ]/.test(_drw)||((SP.POS[_drw]||'').indexOf('V')<0&&(SP.FREQ[_drw]||0)>=_df))){_cr=true;break;}/* ⭐ 11/09/2026 : l'AIGU/GRAVE compte aussi, si le rival n'est PAS une forme VERBALE (POS sans V) — désert/dessert sont deux noms, la fréquence tranche ; jette/jeté est une alternance verbale que la GRAMMAIRE tranche (« il a jete » → jeté), pas le speller. ET au moins aussi fréquent que le mot doublé : « guere » → guère (9,7/M, adverbe) cédait alors que le dys voulait guerre (184/M, gold ×2) — la batterie l'a vu. Recensé dans toute la table : 4 paires (guere, tele, desert, teles) ; avec la fréquence, désert et télé gagnent, guerre et telles restent au doublement. Miroir _accent_rival. */}}if(!_cr)return['flag',_dw];}   // DOUBLE-CONSONNE simplifiée (laisé→laissé, pome→pomme, carote→carotte) = faute dys fréquente → restauration PRIORITAIRE. FP=0 UD 2500. Miroir Python/app.
+    var _dw=null,_df=0;for(var _q=1;_q<low.length-1;_q++){if('bcdfglmnprst'.indexOf(deaccS(low[_q]))<0)continue;var _cd=low.slice(0,_q+1)+low[_q]+low.slice(_q+1);var _f=SP.WORDS.has(_cd)?(spF(_cd)||0):0;if(_f>=3&&_f>_df){_dw=_cd;_df=_f;}}/* ⭐ GARDE DE L'ACCENT (08/09/2026 circonflexe, 11/09 aigu/grave non verbal ; miroir de _accent_rival) : cette route rendait son verdict AVANT les candidats, donc sans avoir vu la restauration d'accent (priorité 2 du speller). Le circonflexe français est la TRACE d'une consonne DISPARUE (cône < konos, bâton < baston, hôpital < hospital) : circonflexe et consonne doublée sont deux reconstructions RIVALES de la même consonne — doubler ne peut pas affirmer seul. Garde limitée à une saisie SANS accent (sinon le rival serait une DÉ-accentuation : alé→ale, caré→care — et là doubler a raison). Mesuré : 308 jetons sur cette route, 2 changent (cone→cône, batons→bâtons, gold ×2 et ×3), 0 correction perdue, 0 tir sur 354 647 jetons d'UD ; placebo sur l'accent aigu = 5 changements dont 4 faux au gold. */if(_dw){var _cr=false;if(deaccS(low)===low){var _dL=spD(low)||[];for(var _dk=0;_dk<_dL.length;_dk++){var _drw=_dL[_dk];if(_drw!==low&&deaccS(_drw)===low&&(spF(_drw)||0)>=1&&(/[âêîôûÂÊÎÔÛ]/.test(_drw)||((spP(_drw)||'').indexOf('V')<0&&(spF(_drw)||0)>=_df))){_cr=true;break;}/* ⭐ 11/09/2026 : l'AIGU/GRAVE compte aussi, si le rival n'est PAS une forme VERBALE (POS sans V) — désert/dessert sont deux noms, la fréquence tranche ; jette/jeté est une alternance verbale que la GRAMMAIRE tranche (« il a jete » → jeté), pas le speller. ET au moins aussi fréquent que le mot doublé : « guere » → guère (9,7/M, adverbe) cédait alors que le dys voulait guerre (184/M, gold ×2) — la batterie l'a vu. Recensé dans toute la table : 4 paires (guere, tele, desert, teles) ; avec la fréquence, désert et télé gagnent, guerre et telles restent au doublement. Miroir _accent_rival. */}}if(!_cr)return['flag',_dw];}   // DOUBLE-CONSONNE simplifiée (laisé→laissé, pome→pomme, carote→carotte) = faute dys fréquente → restauration PRIORITAIRE. FP=0 UD 2500. Miroir Python/app.
     /* ⭐ 04/10/2026 — APOSTROPHE OUBLIÉE (le petit mot collé au suivant, faute dys fréquente). La route d'élision ci-dessous exige un reste de
        5 lettres (Sabu → S'abu, tai-chi → t'ai) : les formes COURTES très fréquentes lui échappaient (« il sest levé » → est, « il nest pas » →
        nés, « je taime » → aime). A : liste FERMÉE par préfixe (« jai », « nai », « na » restent à « élision fusionnée », en rouge).
@@ -4772,19 +4789,19 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        ORANGE. Mesuré au produit : 3 corpus dys (14 322 textes) 2 mots faux deviennent justes, 0 perte ; UD 14 450 : 0 marque.
        Miroir Python speller_probe (même place). */
     var _ELC={s:'est etait etaient es',n:'est es as avait avais etait etais aime aimes ont avons avez',t:'aime es as avais avait etais',m:'aime as avait avais es ont',l:'ai as avait avais aime est etait ont',j:'aime avais etais'};
-    if(low.length>=3&&_ELC[low[0]]&&(' '+_ELC[low[0]]+' ').indexOf(' '+deaccS(low.slice(1))+' ')>=0){var _rc=deaccS(low.slice(1)),_ra=(SP.D2A[_rc]||[]).filter(function(x){return deaccS(x)===_rc&&SVOW[deaccS(x)[0]];});var _rw=SP.WORDS.has(_rc)?_rc:null;for(var _q2=0;_q2<_ra.length;_q2++)if(!_rw||(SP.FREQ[_ra[_q2]]||0)>(SP.FREQ[_rw]||0))_rw=_ra[_q2];if(_rw)return['flag',low[0]+"'"+_rw];}
+    if(low.length>=3&&_ELC[low[0]]&&(' '+_ELC[low[0]]+' ').indexOf(' '+deaccS(low.slice(1))+' ')>=0){var _rc=deaccS(low.slice(1)),_ra=(spD(_rc)||[]).filter(function(x){return deaccS(x)===_rc&&SVOW[deaccS(x)[0]];});var _rw=SP.WORDS.has(_rc)?_rc:null;for(var _q2=0;_q2<_ra.length;_q2++)if(!_rw||(spF(_ra[_q2])||0)>(spF(_rw)||0))_rw=_ra[_q2];if(_rw)return['flag',low[0]+"'"+_rw];}
     var _isPPacc=(/ées$/.test(low)&&SP.WORDS.has(low.slice(0,-2)))||(/(ée|és)$/.test(low)&&SP.WORDS.has(low.slice(0,-1)));   // participe ACCORDÉ (dallées→dallé connu) = mot valide, PAS une fusion d'élision → ne pas couper en d'/l' (FP « dallées→d'allées »). Miroir app/Python.
-    if(!_isPPacc&&low.length>2&&SELIDE[low[0]]&&SVOW[deaccS(low[1])[0]]){var rest=low.slice(1),cw=(SP.WORDS.has(rest)&&rest.length>=5&&(SP.FREQ[rest]||0)>=1.0)?rest:null;   // reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
-      if(cw===null&&_SELIDE_ACC[low[0]]&&rest.length>=4){var _acc=SP.D2A[deaccS(rest)]||[];for(var _k=0;_k<_acc.length;_k++){var _w=_acc[_k];if(SVOW[deaccS(_w)[0]]&&(SP.FREQ[_w]||0)>=2.0&&(cw===null||SP.FREQ[_w]>(SP.FREQ[cw]||0)))cw=_w;}}   // restauration d'accent (lhopital→l'hôpital) — préfixes sûrs
+    if(!_isPPacc&&low.length>2&&SELIDE[low[0]]&&SVOW[deaccS(low[1])[0]]){var rest=low.slice(1),cw=(SP.WORDS.has(rest)&&rest.length>=5&&(spF(rest)||0)>=1.0)?rest:null;   // reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
+      if(cw===null&&_SELIDE_ACC[low[0]]&&rest.length>=4){var _acc=spD(deaccS(rest))||[];for(var _k=0;_k<_acc.length;_k++){var _w=_acc[_k];if(SVOW[deaccS(_w)[0]]&&(spF(_w)||0)>=2.0&&(cw===null||spF(_w)>(spF(cw)||0)))cw=_w;}}   // restauration d'accent (lhopital→l'hôpital) — préfixes sûrs
       if(cw&&!(low[0]==='c'&&'ei'.indexOf(deaccS(cw)[0])<0))return['flag',low[0]+"'"+cw];}   // c' seulement devant e/i
     /* ⭐ 04/10/2026 — APOSTROPHE OUBLIÉE, route B (après le décollage ci-dessus, qui garde les restes CONNUS) : négation — « n » + voyelle,
        suivi de pas / plus / jamais / rien / guère / point, reste MAL ÉCRIT → « n' » + verbe conjugué de même son, accordé au sujet. */
     if(low.length>=4&&low[0]==='n'&&SVOW[deaccS(low[1])[0]]&&T&&idx+1<T.length&&/^(pas|plus|jamais|rien|guère|guere|point)$/i.test(T[idx+1])){
-      var _nr=deaccS(low.slice(1)),_npn=idx>0?RPRON[deaccS(String(T[idx-1]).toLowerCase())]:null,_nb=null,_nf=0,_nk=[_nr].concat(sEdits1(_nr));_nk.push('#PH');for(var _q3=0;_q3<_nk.length;_q3++){var _na=_nk[_q3]==='#PH'?(SP.PHON[phonKey(_nr)]||[]):(SP.D2A[_nk[_q3]]||[]);for(var _q4=0;_q4<_na.length;_q4++){var _nw=_na[_q4];if(!SVOW[deaccS(_nw)[0]]||(SP.POS[_nw]||'').indexOf('V')<0||phonKey(_nw)!==phonKey(_nr)||!_isFinite(_nw)||(_npn&&!svAgrees(svReads(_nw),_npn[0],_npn[1])))continue;var _nf2=SP.FREQ[_nw]||0;if(_nf2>_nf){_nb=_nw;_nf=_nf2;}}}
+      var _nr=deaccS(low.slice(1)),_npn=idx>0?RPRON[deaccS(String(T[idx-1]).toLowerCase())]:null,_nb=null,_nf=0,_nk=[_nr].concat(sEdits1(_nr));_nk.push('#PH');for(var _q3=0;_q3<_nk.length;_q3++){var _na=_nk[_q3]==='#PH'?(SP.PHON[phonKey(_nr)]||[]):(spD(_nk[_q3])||[]);for(var _q4=0;_q4<_na.length;_q4++){var _nw=_na[_q4];if(!SVOW[deaccS(_nw)[0]]||(spP(_nw)||'').indexOf('V')<0||phonKey(_nw)!==phonKey(_nr)||!_isFinite(_nw)||(_npn&&!svAgrees(svReads(_nw),_npn[0],_npn[1])))continue;var _nf2=spF(_nw)||0;if(_nf2>_nf){_nb=_nw;_nf=_nf2;}}}
       if(_nb&&_nf>=1.0)return['vigilance','n'+"'"+_nb];}
-    var cand={},i,j,w,arr;arr=SP.D2A[d]||[];for(i=0;i<arr.length;i++){w=arr[i];cand[w]=[2,SP.FREQ[w]];}
-    var e1=sEdits1(d);for(i=0;i<e1.length;i++){var a2=SP.D2A[e1[i]];if(a2)for(j=0;j<a2.length;j++){w=a2[j];if(!cand[w]||cand[w][0]<1)cand[w]=[1,SP.FREQ[w]];}}
-    var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(Math.abs(deaccS(w).length-d.length)>2||deaccS(w).charAt(0)!==d.charAt(0))continue;if(!cand[w])cand[w]=[0,SP.FREQ[w]];}   // garde-longueur (Δ≤2)+MÊME initiale : laisse le multi-édit silencieux (ortografe→orthographe) ; bloque trist→tristesse (Δ4)/autent→hautaine (initiale)
+    var cand={},i,j,w,arr;arr=spD(d)||[];for(i=0;i<arr.length;i++){w=arr[i];cand[w]=[2,spF(w)];}
+    var e1=sEdits1(d);for(i=0;i<e1.length;i++){var a2=spD(e1[i]);if(a2)for(j=0;j<a2.length;j++){w=a2[j];if(!cand[w]||cand[w][0]<1)cand[w]=[1,spF(w)];}}
+    var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(Math.abs(deaccS(w).length-d.length)>2||deaccS(w).charAt(0)!==d.charAt(0))continue;if(!cand[w])cand[w]=[0,spF(w)];}   // garde-longueur (Δ≤2)+MÊME initiale : laisse le multi-édit silencieux (ortografe→orthographe) ; bloque trist→tristesse (Δ4)/autent→hautaine (initiale)
     /* ⛔ SECOURS DISTANCE 2 — RETIRÉ le 2026-08-11 : MESURÉ NUISIBLE. NE PAS LE REMETTRE.
      Livré le matin même sur la foi de WiCoPaCo (+26 justes / −4 = +21). Test différentiel le soir,
      moteur AVEC vs SANS (contrôle : « dispaître » diffère bien), sur 1 360 phrases dys/GEC
@@ -4801,10 +4818,10 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     var expPos=null;                                                   // POS attendu (désambiguïse l'accent : élève/élevé)
     if(T&&idx>0){var pt=deaccS(T[idx-1].toLowerCase());if(DET_G[pt]||SDET_NUM[pt])expPos='N';else if(SADVERB[pt])expPos='A';
       else if(SCOPULA[pt])expPos='VA';else if(SAUXAV[pt]||SSUBJP[pt])expPos='V';}   // copule = attribut POSSIBLE : V OU A (« je suis trist »→triste, pas seulement « je suis allé ») — audit 07/2026   // CONTEXTE VERBAL : après aux/copule/pronom-sujet → candidat VERBE (pri→pris, pleu→pleut). Bonus, jamais pénalité → FP-sûr.
-    function pm(x){if(!expPos)return 0;var ps=SP.POS[x]||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
+    function pm(x){if(!expPos)return 0;var ps=spP(x)||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
     function gm(x){var g=sGender(x);return (cg&&g&&g===cg)?1:0;}       // bonus genre (jamais pénalité)
     function sInvarS(x){var w=x.toLowerCase();if(!/[sxz]$/.test(w))return false;   // NOM/ADJ INVARIABLE en -s/-x/-z : sa forme est la MEME au singulier et au pluriel (noix, voix, prix, croix, choix, temps, bras, heureux) => compatible avec un determinant SINGULIER. Sans ca, le filtre de nombre lisait le -x final comme une marque de pluriel et ecartait « noix » apres « la/une » (« la nois »→fois au lieu de noix).
-      var st=w.slice(0,-1);if(SP.WORDS&&SP.WORDS.has(st)&&/[NA]/.test(SP.POS[st]||''))return false;   // le radical est lui-meme un NOM/ADJ => la forme EST un pluriel (chats/chat, bijoux/bijou, boites/boite)
+      var st=w.slice(0,-1);if(SP.WORDS&&SP.WORDS.has(st)&&/[NA]/.test(spP(st)||''))return false;   // le radical est lui-meme un NOM/ADJ => la forme EST un pluriel (chats/chat, bijoux/bijou, boites/boite)
       if(/aux$/.test(w)&&SP.WORDS&&SP.WORDS.has(w.slice(0,-3)+'al'))return false;   // pluriel en -aux d'un nom en -al (journaux/journal, chevaux/cheval)
       if(w==='yeux'||w==='cieux'||w==='aieux'||w==='æieux'||w==='aïeux')return false;   // pluriels irreguliers (radical introuvable)
       return true;}
@@ -4813,7 +4830,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     // personne du SINGULIER (« tu viens »), le bonus de nombre n'a rien à y faire. ⚠️ HONNÊTETÉ : garde MESURÉE
     // INERTE sur le corpus dys réel (chiffres identiques avec et sans) — gardée parce que le raisonnement est
     // FAUX sans elle, pas parce qu'elle gagne. Gains du jour préservés : les/jours/petits/tiges… sont N ou A.
-    function nm(x){if(!cn)return 0;var ps=SP.POS[x]||'';if(ps.indexOf('V')>=0&&ps.indexOf('N')<0&&ps.indexOf('A')<0)return 0;var p=nmP(x);return (p===null||((cn==='p')===p))?1:0;}
+    function nm(x){if(!cn)return 0;var ps=spP(x)||'';if(ps.indexOf('V')>=0&&ps.indexOf('N')<0&&ps.indexOf('A')<0)return 0;var p=nmP(x);return (p===null||((cn==='p')===p))?1:0;}
     function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET — ⭐ 30/09/2026 : + -ès, -et, -êt, -aient (/ɛ/ : « succé » → succès, « foué » → fouet, plus sucré / joué), miroir Python fin_aud
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
@@ -4844,7 +4861,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
         if(_ng&&_dg&&_ng!==_dg&&DET_G[deaccS(_pr)]===_ng){
           var _dl=deaccS(low),_dp=deaccS(_pr);
           var _ana=_dl.split('').sort().join('')===_dp.split('').sort().join('');   // « uen »/« une » : anagramme — la transposition n'est pas dans edits1
-          if(cand[_pr]||_ana||sEd1(_dl,_dp)){w1=_pr;if(cand[_pr]){p1=cand[_pr][0];f1=cand[_pr][1];}else{p1=1;f1=SP.FREQ[_pr]||0;}}}}}
+          if(cand[_pr]||_ana||sEd1(_dl,_dp)){w1=_pr;if(cand[_pr]){p1=cand[_pr][0];f1=cand[_pr][1];}else{p1=1;f1=spF(_pr)||0;}}}}}
 /* OMISSION — NE PAS RACCOURCIR CE QUE L'UTILISATEUR A DÉJÀ RACCOURCI. Miroir exact de l'app.
      La faute dys la plus courante est d'OMETTRE des lettres, et le moteur répondait parfois par un mot
      PLUS COURT que la saisie (« afreuses »→affreux au lieu d'affreuses). Mesuré sur 6 000 non-mots
@@ -4857,7 +4874,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
         if(_bs===null||_dl<_bd||(_dl===_bd&&cand[_c2][1]>cand[_bs][1])){_bs=_c2;_bd=_dl;}}
       if(_bs){w1=_bs;p1=cand[w1][0];f1=cand[w1][1];}}
     
-    if(T&&idx>0&&_quantMal(T,idx-1)&&!/[sx]$/.test(deaccS(w1))&&/[NA]/.test(SP.POS[w1]||'')){var _w1p=/al$/.test(w1)?w1.slice(0,-2)+'aux':w1+'s';if(SP.WORDS.has(_w1p)){w1=_w1p;p1=1;f1=SP.FREQ[_w1p]||0;}}   // ⭐ 11/10/2026 : après un quantifieur pluriel mal écrit, le nom au PLURIEL (« plusier modéle » → modèles ; la grammaire ne voit pas ce quantifieur)
+    if(T&&idx>0&&_quantMal(T,idx-1)&&!/[sx]$/.test(deaccS(w1))&&/[NA]/.test(spP(w1)||'')){var _w1p=/al$/.test(w1)?w1.slice(0,-2)+'aux':w1+'s';if(SP.WORDS.has(_w1p)){w1=_w1p;p1=1;f1=spF(_w1p)||0;}}   // ⭐ 11/10/2026 : après un quantifieur pluriel mal écrit, le nom au PLURIEL (« plusier modéle » → modèles ; la grammaire ne voit pas ce quantifieur)
     if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent
     /* ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, colonne accents : « decide » après « il » → le produit écrivait « décidé », le gold veut « décide » —
        3 rouges ailleurs). Symétrique du participe après auxiliaire : quand le mot NU a deux accentuations, présent (-e) et participe
@@ -4868,7 +4885,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
       if(_dy==='ne'||_dy==='n'||_dy==='se'||_dy==='s'||_dy==='me'||_dy==='m'||_dy==='te'||_dy==='t'||_dy==='le'||_dy==='la'||_dy==='les'||_dy==='l'||_dy==='lui'||_dy==='leur'||_dy==='y'||_dy==='en'){_y--;continue;}break;}}
     if(_sbj){var _pr=null,_ppl=false;for(i=0;i<keys.length;i++){var _ck=keys[i];if(deaccS(_ck)!==d)continue;if(/é$/.test(_ck))_ppl=true;else if(/e$/.test(_ck)&&cand[_ck][1]>=0.5&&(!_pr||cand[_ck][1]>cand[_pr][1]))_pr=_ck;}
       if(_pr&&_ppl&&_pr!==w1)return['flag',_pr];}   // les DEUX accentuations existent (présent -e / participe -é) et le tri a pris le participe → le présent (plancher 0,5 : « trébuche » 0,85/M)
-    if(cg&&(SP.POS[w1]||'').indexOf('A')>=0){var ad=ADJP[deaccS(w1)];if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}
+    if(cg&&(spP(w1)||'').indexOf('A')>=0){var ad=ADJP[deaccS(w1)];if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}
     if(f1<0.1)return null;
     var f2=keys.length>1?cand[keys[1]][1]:0,accentOnly=(p1===2&&deaccS(w1)===d),dominant=(f1>=1.0&&(f2===0||f1>=5*f2));
     if(d.length>=3&&accentOnly&&dominant)return['auto',w1];
@@ -4998,11 +5015,11 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     if(SELIDE[low[0]]&&low.length>=4)heads.push([low[0],low.slice(1)]);
     if(low.slice(0,2)==='qu'&&low.length>=5)heads.push(['qu',low.slice(2)]);
     for(var hi=0;hi<heads.length;hi++){var h=heads[hi][0],rest=heads[hi][1],dr=deaccS(rest),hits={},ord=[],i,j,w,a;
-      a=SP.D2A[dr]||[];for(i=0;i<a.length;i++){w=a[i];if(hits[w]==null){hits[w]=[2,SP.FREQ[w]||0];ord.push(w);}}
-      a=SP.PHON[phonKey(rest)]||[];for(i=0;i<a.length;i++){w=a[i];if(Math.abs(deaccS(w).length-dr.length)<=2&&hits[w]==null){hits[w]=[1,SP.FREQ[w]||0];ord.push(w);}}
-      var e1=sEdits1(dr);for(i=0;i<e1.length;i++){a=SP.D2A[e1[i]];if(a)for(j=0;j<a.length;j++){w=a[j];if(hits[w]==null){hits[w]=[0,SP.FREQ[w]||0];ord.push(w);}}}
+      a=spD(dr)||[];for(i=0;i<a.length;i++){w=a[i];if(hits[w]==null){hits[w]=[2,spF(w)||0];ord.push(w);}}
+      a=SP.PHON[phonKey(rest)]||[];for(i=0;i<a.length;i++){w=a[i];if(Math.abs(deaccS(w).length-dr.length)<=2&&hits[w]==null){hits[w]=[1,spF(w)||0];ord.push(w);}}
+      var e1=sEdits1(dr);for(i=0;i<e1.length;i++){a=spD(e1[i]);if(a)for(j=0;j<a.length;j++){w=a[j];if(hits[w]==null){hits[w]=[0,spF(w)||0];ord.push(w);}}}
       ord.sort(function(x,y){return hits[y][0]-hits[x][0]||hits[y][1]-hits[x][1];});   // tri stable → départage = ordre d'insertion (D2A > phon > edits1), comme le miroir Python
-      for(i=0;i<ord.length;i++){w=ord[i];if(SVOW[deaccS(w).charAt(0)]&&(SP.FREQ[w]||0)>=0.1)return h+"'"+w;}}
+      for(i=0;i<ord.length;i++){w=ord[i];if(SVOW[deaccS(w).charAt(0)]&&(spF(w)||0)>=0.1)return h+"'"+w;}}
     return null;}
   /* ⭐ REPLI PHONÉTIQUE des mots inconnus SANS suggestion (13/09/2026, « les mots soulignés sans suggestion », demande de Rem) : variantes de
      finale -er/-é/-ez (« sosiéter » → société, « dificulter » → difficulté) et index des mots RARES (0 < fréquence < 0,1, hors 0,05 =
@@ -5013,7 +5030,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
      4 000 mots en tâche de fond dès la première analyse (spellText) ; un appel avant la fin le complète d'un coup — même résultat,
      l'ordre de construction ne compte pas (départage alphabétique). Sans liste relevée (harnais qui sème SP), relevé depuis FREQ. */
   function _phonRareStep(n){
-    if(!SP.PHONR){SP.PHONR={};SP._rareI=0;if(!SP.RARE){SP.RARE=[];for(var w0 in SP.FREQ){var f0=SP.FREQ[w0];if(f0>0&&f0<0.1&&f0!==0.05)SP.RARE.push(w0);}}}
+    if(!SP.PHONR){SP.PHONR={};SP._rareI=0;if(!SP.RARE){SP.RARE=[];for(var w0 of (SP.IDX?SP.IDX.keys():[])){var f0=spF(w0);if(f0>0&&f0<0.1&&f0!==0.05)SP.RARE.push(w0);}}}
     var R=SP.RARE,e=Math.min(R.length,SP._rareI+n);
     for(var i=SP._rareI;i<e;i++){var pk=phonKey(R[i]);(SP.PHONR[pk]||(SP.PHONR[pk]=[])).push(R[i]);}
     SP._rareI=e;return e>=R.length;}
@@ -5022,7 +5039,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     var vars=[low];if(/er$/.test(low))vars.push(low.slice(0,-2)+'é');if(/é$/.test(low))vars.push(low.slice(0,-1)+'er');if(/ez$/.test(low))vars.push(low.slice(0,-2)+'é');
     var best=null,bf=-1,dl=deaccS(low).length;
     for(var v=0;v<vars.length;v++){var k=phonKey(vars[v]),fin=deaccS(vars[v]).slice(-2),lists=[SP.PHON[k]||[],SP.PHONR[k]||[]];
-      for(var a=0;a<2;a++)for(var i=0;i<lists[a].length;i++){var w=lists[a][i];if(Math.abs(deaccS(w).length-dl)>3)continue;var sc=(deaccS(w).slice(-2)===fin?1e6:0)+(SP.FREQ[w]||0);if(sc>bf||(sc===bf&&best!==null&&w<best)){bf=sc;best=w;}}}
+      for(var a=0;a<2;a++)for(var i=0;i<lists[a].length;i++){var w=lists[a][i];if(Math.abs(deaccS(w).length-dl)>3)continue;var sc=(deaccS(w).slice(-2)===fin?1e6:0)+(spF(w)||0);if(sc>bf||(sc===bf&&best!==null&&w<best)){bf=sc;best=w;}}}
     return best;}
   /* ⭐ MOTS SOULIGNÉS SANS SUGGESTION, lot 2 (13/09/2026). Quatre voies, tentées seulement quand rien d'autre ne propose (orange AU CLIC,
      jamais appliqué). Mesuré (A/B moteur complet) sur 1 798 textes dys : 67 suggestions neuves, 52 exactes, 6 au bon lemme, 9 fausses
@@ -5043,8 +5060,8 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
   var _PREFX={pro:1,anti:1,sur:1,sous:1,extra:1,ultra:1,'néo':1,neo:1,post:1,'pré':1,pre:1,auto:1,inter:1,super:1,multi:1,semi:1,contre:1,co:1,re:1,'ré':1,mini:1,micro:1,macro:1,'méga':1,mega:1,hyper:1,para:1,poly:1,mono:1,bi:1,tri:1,non:1};
   var _PRSUJ={il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,je:1,tu:1};
   function _suColle(low){var best=null,bs=-1;
-    for(var k=2;k<=low.length-2;k++){var a=low.slice(0,k),b=low.slice(k),fa=SP.FREQ[a]||0,fb=SP.FREQ[b]||0;if(!(fa>0&&fb>0)||_PREFX[a])continue;
-      var ok=_FWC[a]?(b.length>=3&&fb>=0.1):_FWC[b]?(a.length>=3&&fa>=0.1&&(!_PRSUJ[b]||/V/.test(SP.POS[a]||''))):(a.length>=3&&b.length>=3&&fa>=5&&fb>=5);
+    for(var k=2;k<=low.length-2;k++){var a=low.slice(0,k),b=low.slice(k),fa=spF(a)||0,fb=spF(b)||0;if(!(fa>0&&fb>0)||_PREFX[a])continue;
+      var ok=_FWC[a]?(b.length>=3&&fb>=0.1):_FWC[b]?(a.length>=3&&fa>=0.1&&(!_PRSUJ[b]||/V/.test(spP(a)||''))):(a.length>=3&&b.length>=3&&fa>=5&&fb>=5);
       if(!ok)continue;var sc=Math.min(fa,fb),cand=a+' '+b;if(sc>bs||(sc===bs&&best!==null&&cand<best)){bs=sc;best=cand;}}
     return best;}
   // ④ LETTRES MÉLANGÉES : index des mots courants (fréquence ≥ 0,1, ≥ 4 lettres) par lettres TRIÉES, bâti par tranches en tâche de fond
@@ -5066,11 +5083,11 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     var best=null,bp=-1,bl=-1,bf=-1,pk=phonKey(low);
     for(var kk in keys){var L2=SP.ANA[kk];if(!L2)continue;
       for(var j=0;j<L2.length;j++){var w=L2[j],dw=deaccS(w);if(dw===d||dw.charAt(0)!==d.charAt(0)||Math.abs(dw.length-d.length)>1)continue;
-        var l=_lcsLen(d,dw);if(10*l<7*Math.max(d.length,dw.length))continue;var p=phonKey(w)===pk?1:0,f=SP.FREQ[w]||0;
+        var l=_lcsLen(d,dw);if(10*l<7*Math.max(d.length,dw.length))continue;var p=phonKey(w)===pk?1:0,f=spF(w)||0;
         if(p>bp||(p===bp&&(l>bl||(l===bl&&(f>bf||(f===bf&&w<best)))))){bp=p;bl=l;bf=f;best=w;}}}
     return best;}
   function _suPhonE1(low){var hits={},best=null,bf=-1,i,j,e1=sEdits1(phonKey(low));
-    for(i=0;i<e1.length;i++){var a=SP.PHON[e1[i]];if(a)for(j=0;j<a.length;j++){var w=a[j];if(hits[w]==null){hits[w]=1;var f=SP.FREQ[w]||0;if(f>bf){bf=f;best=w;}}}}   // > strict : à fréquence égale le premier inséré gagne (miroir Python)
+    for(i=0;i<e1.length;i++){var a=SP.PHON[e1[i]];if(a)for(j=0;j<a.length;j++){var w=a[j];if(hits[w]==null){hits[w]=1;var f=spF(w)||0;if(f>bf){bf=f;best=w;}}}}   // > strict : à fréquence égale le premier inséré gagne (miroir Python)
     return best;}
   /* ⭐ 04/10/2026 (2e catalogue : le bon mot, pas la bonne FORME) — « mot inconnu » : le tri choisit le mot (homophone, audibilité,
      fréquence) sans regarder le contexte. Quand la forme choisie CONTREDIT le mot juste avant, on prend la forme du MÊME mot qui
@@ -5090,14 +5107,14 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
   'fois jour matin soir nuit an annee semaine mois heure moment temps'.split(' ').forEach(function(w){_SU_NSTOP[w]=1;});
   "à de d' dans sur sous pour par avec sans chez vers en entre contre après avant depuis pendant".split(' ').forEach(function(w){_SU_PREP[w]=1;});
   function _suLem(w){var r=svReads(w),o={},k;for(k=0;k<r.length;k++)o[r[k][0]]=1;return o;}
-  function _suFlex(best,arr,pk,T,idx){if(!T||idx==null||idx<1)return best;var i,w,f,b2=null,bf=-1,ps=SP.POS[best]||'',p=T[idx-1].toLowerCase();
+  function _suFlex(best,arr,pk,T,idx){if(!T||idx==null||idx<1)return best;var i,w,f,b2=null,bf=-1,ps=spP(best)||'',p=T[idx-1].toLowerCase();
     if(!_SU_PLDET[p]&&!_SU_SGDET[p]&&_quantMal(T,idx-1))p='les';   // ⭐ 11/10/2026 : quantifieur mal écrit juste avant → pluriel
     if((_SU_PLDET[p]||_SU_SGDET[p])&&(ps.indexOf('N')>=0||ps.indexOf('A')>=0)&&!_SU_DETX[best]&&!(ps.indexOf('V')>=0&&/^(les|le|la)$/.test(p))){var pl=!!_SU_PLDET[p];
       if(/[sx]$/.test(deaccS(best))!==pl){for(i=0;i<arr.length;i++){w=arr[i];if(phonKey(w)!==pk)continue;
-          if(pl?(w===best+'s'||(/u$/.test(best)&&w===best+'x')||(/al$/.test(best)&&w===best.slice(0,-2)+'aux')):(best===w+'s'||(/u$/.test(w)&&best===w+'x')||(/al$/.test(w)&&best===w.slice(0,-2)+'aux'))){f=SP.FREQ[w]||0;if(f>bf){bf=f;b2=w;}}}
+          if(pl?(w===best+'s'||(/u$/.test(best)&&w===best+'x')||(/al$/.test(best)&&w===best.slice(0,-2)+'aux')):(best===w+'s'||(/u$/.test(w)&&best===w+'x')||(/al$/.test(w)&&best===w.slice(0,-2)+'aux'))){f=spF(w)||0;if(f>bf){bf=f;b2=w;}}}
         if(b2)return b2;}}
     if(_isFinite(best)){var k=idx-1,per=null;while(k>=0&&/^(ne|n'|n’)$/.test(T[k].toLowerCase()))k--;
-      if(k>=0){var tk=T[k].toLowerCase(),me=/^l['’](.+)$/.exec(tk),nn=me?me[1]:tk,pn=SP.POS[nn]||'',kd=k;
+      if(k>=0){var tk=T[k].toLowerCase(),me=/^l['’](.+)$/.exec(tk),nn=me?me[1]:tk,pn=spP(nn)||'',kd=k;
         if(RPRON[deaccS(tk)])per=RPRON[deaccS(tk)];
         else if(pn.indexOf('N')>=0&&pn.indexOf('V')<0&&!_SU_NSTOP[deaccS(nn)]){if(me)per=['3','s'];
           else if(k>=1){var dt=T[k-1].toLowerCase();kd=k-1;if(_SU_SGDET[dt])per=['3','s'];else if(_SU_PLDET[dt]&&dt!=='aux')per=['3','p'];}}
@@ -5105,7 +5122,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
       if(per&&!svAgrees(svReads(best),per[0],per[1])){var lb=_suLem(best);
         for(i=0;i<arr.length;i++){w=arr[i];if(w===best||/é(e?s?)$/.test(w)||phonKey(w)!==pk||!_isFinite(w)||!svAgrees(svReads(w),per[0],per[1]))continue;
           var lw=_suLem(w),same=false;for(var q in lw)if(lb[q])same=true;
-          if(same){f=SP.FREQ[w]||0;if(f>bf){bf=f;b2=w;}}}
+          if(same){f=spF(w)||0;if(f>bf){bf=f;b2=w;}}}
         if(b2)return b2;}}
     return best;}
 function spellUnknown(tok,atStart,T,idx){
@@ -5119,16 +5136,16 @@ function spellUnknown(tok,atStart,T,idx){
     if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale
     var d=deaccS(low);
     if(!/[aeiouy]/.test(d)||/^[ivxlcdm]+$/.test(d))return null;             // sigle sans voyelle / chiffre romain
-    var best=null,bf=-1,ba=-1,arr=(SP.D2A[d]||[]).slice(),i,j,w,a;          // candidat best-effort (accents + phonétique + édit-1), même initiale
+    var best=null,bf=-1,ba=-1,arr=(spD(d)||[]).slice(),i,j,w,a;          // candidat best-effort (accents + phonétique + édit-1), même initiale
     var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length;i++)arr.push(pa[i]);
-    var e1=sEdits1(d);for(i=0;i<e1.length;i++){a=SP.D2A[e1[i]];if(a)for(j=0;j<a.length;j++)arr.push(a[j]);}
+    var e1=sEdits1(d);for(i=0;i<e1.length;i++){a=spD(e1[i]);if(a)for(j=0;j<a.length;j++)arr.push(a[j]);}
     var _iaU=/é$/.test(low);                                               // AUDIBILITÉ (orange) : saisie à finale /e/ (é) → proposer l'audible (afolé→affolé), PAS le muet plus fréquent. Miroir app. Orange hors FP=0.
     /* ⭐ 30/09/2026 (2e catalogue) : les finales audibles comptent aussi -ès, -et, -êt, -aient (/ɛ/) — « apré » recevait « aprés »,
        coquille du lexique (sous-titres) finie en -és, contre « après » 85 fois plus fréquent mais « muet » pour l'ancienne liste.
        Mesuré : « apré » → après ×5 sur le gold (le juge désaccentué comptait « aprés » juste) ; UD inchangé.
        Miroir Python spell_unknown. */
     var _pkU=phonKey(low),_bh=-1;                                          // AUDIBILITÉ (doctrine) : le dys écrit ce qu'il ENTEND. Un candidat HOMOPHONE passe avant un candidat seulement proche à l'œil — sinon « koi » se corrige en « ko » (fréquent, muet) au lieu de « quoi » (homophone). La garde de même première LETTRE écartait justement k/qu, c/qu, f/ph : on l'ouvre quand la clé phonétique est IDENTIQUE.
-    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}
+    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))?1:0,_fq=spF(w)||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}
     /* ⭐ 30/09/2026 (2e catalogue : le tri des candidats) — L'ACCENT SEUL D'ABORD, comme le tri principal (spellTokenCore le classe en
        tête, mais n'y propose rien sous 1/M : « éclairait » 0,2/M tombait ici, où « éclair », homophone 41 fois plus fréquent, gagnait).
        Seulement si le mot écrit n'a AUCUN accent (le dys pose aussi des accents FAUX : « apré » → âpre serait faux), et sauf si un
@@ -5136,8 +5153,8 @@ function spellUnknown(tok,atStart,T,idx){
        gallérie). Mesuré : 44 suggestions deviennent le mot exact
        du gold (accents rendus : persécutions, médiéval, alcaloïdes…), 1 seule perd (« echarpes » → écharpes, le gold met le singulier) ;
        UD 14 450 : aucune marque changée. Miroir Python spell_unknown. */
-    if(low===d){var _ao=null,_aof=-1;for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w)===d&&(SP.FREQ[w]||0)>_aof){_ao=w;_aof=SP.FREQ[w]||0;}}
-      if(_ao&&best!==_ao){var _dom=false;for(i=0;i<arr.length;i++){w=arr[i];var _dw=deaccS(w);if(_dw!==d&&sEd1(d,_dw)&&(SP.FREQ[w]||0)>=20*_aof){_dom=true;break;}}if(!_dom)best=_ao;}}   // clé : audibilité d'abord (si saisie audible), puis fréquenceba=_au;bf=_fq;best=w;}}
+    if(low===d){var _ao=null,_aof=-1;for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w)===d&&(spF(w)||0)>_aof){_ao=w;_aof=spF(w)||0;}}
+      if(_ao&&best!==_ao){var _dom=false;for(i=0;i<arr.length;i++){w=arr[i];var _dw=deaccS(w);if(_dw!==d&&sEd1(d,_dw)&&(spF(w)||0)>=20*_aof){_dom=true;break;}}if(!_dom)best=_ao;}}   // clé : audibilité d'abord (si saisie audible), puis fréquenceba=_au;bf=_fq;best=w;}}
     if(best)best=_suFlex(best,arr,_pkU,T,idx);   // ⭐ 04/10/2026 : la FORME s'accorde au mot d'avant (nombre du déterminant, personne du sujet) — miroir Python _su_flex
     if(best&&T&&idx!=null&&idx+1<T.length){                              // DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — même règle que le noyau, pour la voie best-effort
       var _dp2={un:'une',une:'un',le:'la',la:'le',ce:'cette',cette:'ce',cet:'cette'}[deaccS(best)];
@@ -5232,14 +5249,14 @@ function spellUnknown(tok,atStart,T,idx){
       if(j>=1&&_psonAux(T[j-1]))return null;}
     if(!per||!/^[a-zà-ÿœ]+$/i.test(x)||x.length<3)return null;
     var dx=deaccS(x.toLowerCase());if(_PSON_STOP[dx])return null;                        // petits mots (pas, lui, vous, pour…) : jamais un verbe à accorder
-    if(SP.WORDS.has(x.toLowerCase())&&!(SP.POS[x.toLowerCase()]||''))return null;         // ⭐ 12/10/2026 (conjugaison 7) : mot connu SANS catégorie au dictionnaire = adverbe ou mot-outil (assez, tard, vite) — jamais un verbe : « on assez » recevait « asseye »
+    if(SP.WORDS.has(x.toLowerCase())&&!(spP(x.toLowerCase())||''))return null;         // ⭐ 12/10/2026 (conjugaison 7) : mot connu SANS catégorie au dictionnaire = adverbe ou mot-outil (assez, tard, vite) — jamais un verbe : « on assez » recevait « asseye »
     if(/[âîû]t$/.test(x.toLowerCase()))return null;                                      // subjonctif imparfait (« qu'elle restât ») : correct, absent des tables
     if(/(é|ée|és|ées)$/.test(x.toLowerCase()))return null;                               // participe en -é sans auxiliaire : c'est l'auxiliaire qui manque (autre règle)
     if(per[0]==='1'&&/ai$/.test(dx)&&(SP.WORDS.has(x.toLowerCase())||SP.WORDS.has(dx.slice(0,-2)+'er')||SP.WORDS.has(dx.slice(0,-3)+'er')))return null;          // « je chantai » : passé simple des verbes en -er, absent des tables
-    if(per[0]==='3'&&/t$/.test(dx)&&SP.WORDS.has(x.toLowerCase())&&(SP.POS[x.toLowerCase()]||'').indexOf('V')>=0)return null;   // « il vint » : passé simple 3e pers. absent des tables
+    if(per[0]==='3'&&/t$/.test(dx)&&SP.WORDS.has(x.toLowerCase())&&(spP(x.toLowerCase())||'').indexOf('V')>=0)return null;   // « il vint » : passé simple 3e pers. absent des tables
     if(/(er|ir|re|oir)$/.test(dx)&&!svReads(x).length)return null;                      // infinitif (« faut-il partir »)
     if((i>=1&&_psonAux(T[i-1]))||(i>=2&&_psonAux(T[i-2])))return null;                  // temps composé : participe légitime (« je les ai servis »)
-    var _px=SP.POS[x.toLowerCase()]||'',_xv=!SP.WORDS.has(x.toLowerCase())||_px.indexOf('V')>=0;
+    var _px=spP(x.toLowerCase())||'',_xv=!SP.WORDS.has(x.toLowerCase())||_px.indexOf('V')>=0;
     var _rx=svReads(x);if(svAgrees(_rx,per[0],per[1]))return null;
     for(var _q=0;_q<_rx.length;_q++)if(_rx[_q][0]==='etre'||_rx[_q][0]==='avoir')return null;   // « il suis » : être ou suivre ? on ne choisit pas
     var lx=x.toLowerCase(),c=SP.PHON[phonKey(lx)]||[],best=null,lem=null,bd=99,bf=-1,k,q;
@@ -5249,7 +5266,7 @@ function spellUnknown(tok,atStart,T,idx){
       if(Math.abs(deaccS(w).length-dx.length)>2)continue;                                  // ⭐ 11/10/2026 : pas une forme bien plus longue que l'écrit — « il plan » (bout de chaîne d'un « pran » mal écrit) recevait « plantait »
       var ls={};for(q=0;q<r.length;q++)if(r[q][2]===per[0])ls[r[q][0]]=1;var l1=Object.keys(ls);if(l1.length!==1)return null;
       if(lem&&lem!==l1[0])return null;lem=l1[0];
-      var dd=0,a=deaccS(w),bb2=deaccS(lx);for(q=0;q<Math.max(a.length,bb2.length);q++)if(a[q]!==bb2[q])dd++;var f=SP.FREQ[w]||0;
+      var dd=0,a=deaccS(w),bb2=deaccS(lx);for(q=0;q<Math.max(a.length,bb2.length);q++)if(a[q]!==bb2[q])dd++;var f=spF(w)||0;
       if(dd<bd||(dd===bd&&f>bf)){bd=dd;bf=f;best=w;}}
     if(!best)return null;
     return pre+(pre?best:ckeepcase(x,best));}
@@ -5326,7 +5343,7 @@ function spellUnknown(tok,atStart,T,idx){
     var nx=i+1<T.length?T[i+1]:'';if(nx&&/^[a-zà-ÿœ]+$/.test(nx)){var dnx=deaccS(nx);var pp=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(dnx):NOUN_POST[dnx]):null;
       if(pp&&pp[0]>=PL_TAU_M&&!ADJP[dnx])return null;}             // nom + nom = composé sans trait d'union (« porte avions ») : le pluriel est plus loin
     var pl=_plu(nom.toLowerCase());if(!pl||pl===nom.toLowerCase())return null;
-    if(typeof SP!=='undefined'&&SP&&SP.ready&&SP.FREQ){var _fs=SP.FREQ[nom.toLowerCase()]||0,_fp=SP.FREQ[pl]||0;if(_fs>0&&_fp<0.03*_fs)return null;}   // nom qui ne se compte pas : son pluriel est rare (coordination, argent)
+    if(typeof SP!=='undefined'&&SP&&SP.ready&&SP.FREQ){var _fs=spF(nom.toLowerCase())||0,_fp=spF(pl)||0;if(_fs>0&&_fp<0.03*_fs)return null;}   // nom qui ne se compte pas : son pluriel est rare (coordination, argent)
     return pre+(pre?pl:ckeepcase(nom,pl));}
   function pluralVig(T,tg,i){if(i>0&&(cesCestVig(T,i-1)||rCesSest(T,i-1)))return null;   // ⭐ 09/10/2026 : « elle ces mariée » — « ces » corrigé en s'est (rouge) n'est plus un déterminant : plus de « mariées » en face
     if(!tg||i>=tg.length)return null;
@@ -5705,12 +5722,12 @@ function spellUnknown(tok,atStart,T,idx){
       if(x===low||!/[sx]$/.test(dx)||dx.charAt(0)!==dn.charAt(0)||Math.abs(dx.length-dn.length)>3)continue;
       if(key.length<2&&dx.slice(0,2)!==dn.slice(0,2))continue;                    // clé trop courte (« hais » → '') : deux lettres communes
       if(deaccS(_psonCoda(x))!==cd)continue;
-      var px=SP.POS[x]||'';if(px.indexOf('N')<0&&px.indexOf('A')<0)continue;
+      var px=spP(x)||'';if(px.indexOf('N')<0&&px.indexOf('A')<0)continue;
       var sg=/aux$/.test(dx)?[x.slice(0,-3)+'al',x.slice(0,-1)]:[x.slice(0,-1)],ok=false;
-      for(r=0;r<sg.length;r++){var ps=SP.POS[sg[r]]||'';if(ps.indexOf('N')>=0||ps.indexOf('A')>=0){ok=true;break;}}   // le singulier existe (« hayes » : non)
+      for(r=0;r<sg.length;r++){var ps=spP(sg[r])||'';if(ps.indexOf('N')>=0||ps.indexOf('A')>=0){ok=true;break;}}   // le singulier existe (« hayes » : non)
       if(ok)out.push(x);}
-    var sc=function(x){return (SP.FREQ[x]||0)+(SP.FREQ[x.slice(0,-1)]||0);};   // le pluriel ET son singulier : « murs » (mur) avant « mûres »
-    out.sort(function(a,b){var na=(SP.POS[a]||'').indexOf('N')>=0?0:1,nb=(SP.POS[b]||'').indexOf('N')>=0?0:1;if(na!==nb)return na-nb;var d=sc(b)-sc(a);if(d)return d;return a<b?-1:(a>b?1:0);});
+    var sc=function(x){return (spF(x)||0)+(spF(x.slice(0,-1))||0);};   // le pluriel ET son singulier : « murs » (mur) avant « mûres »
+    out.sort(function(a,b){var na=(spP(a)||'').indexOf('N')>=0?0:1,nb=(spP(b)||'').indexOf('N')>=0?0:1;if(na!==nb)return na-nb;var d=sc(b)-sc(a);if(d)return d;return a<b?-1:(a>b?1:0);});
     return out;}
   function plurielSonVig(T,i){if(i>0&&(cesCestVig(T,i-1)||rCesSest(T,i-1)))return null;if(i>1&&/^(mes|tes)$/.test(deacc(T[i-1].toLowerCase()))&&_APS_SUJ[deacc(T[i-2].toLowerCase()).replace(/^(qu|s|lorsqu|puisqu|quoiqu)['’]/,'')])return null;   /* ⭐ 12/10/2026 (lot 14) : « elle mes dit » = m'a dit, pas « dits » */if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
     if(!_PSON_DPUR[pd]&&!_PSON_DAMB[pd])return null;
@@ -5718,13 +5735,13 @@ function spellUnknown(tok,atStart,T,idx){
     var low=n.toLowerCase(),dn=deaccS(low);if(dn.length<2||_PSON_GRAM[dn]||CARD[dn]||CARDSTOP[dn]||CONJ_C[dn])return null;
     var sg=_SEG||{},hy=sg.hy||[],ss=sg.ss||[],bb=sg.bb||[];if(hy[i]||hy[i+1])return null;
     var nx=T[i+1];if(nx&&nx.charAt(0)!==nx.charAt(0).toLowerCase()&&!ss[i+1])return null;
-    var pos=SP.POS[low]||'';if(!pos)return null;                                                     // inconnu du lexique : c'est le speller
+    var pos=spP(low)||'';if(!pos)return null;                                                     // inconnu du lexique : c'est le speller
     if(/[sxz]$/.test(dn)&&(pos.indexOf('N')>=0||pos.indexOf('A')>=0))return null;                   // déjà pluriel
     if(pos.indexOf('N')<0&&(pd==='ces'||pd==='ses'))return null;                                    // ces/ses ↔ c'est/s'est (« ses fini »)
     if(pos.indexOf('V')>=0&&_PSON_DAMB[pd]&&!(i-1===0||bb[i-1])){
       var p2r=i>=2?T[i-2]:'',ap=p2r.indexOf("'"),p2v=ap>0?p2r.slice(ap+1):p2r,p2=deaccS(p2v.toLowerCase());
       var np=(p2&&NOUN_POST)?(typeof NOUN_POST.get==='function'?NOUN_POST.get(p2):NOUN_POST[p2]):null;
-      var verbe=/^[a-zà-ÿœæ]+$/i.test(p2v)&&(ap>0||p2v.charAt(0)===p2v.charAt(0).toLowerCase())&&!_PSON_GRAM[p2]&&(SP.POS[p2v.toLowerCase()]||'').indexOf('V')>=0&&(!np||np[0]<500);
+      var verbe=/^[a-zà-ÿœæ]+$/i.test(p2v)&&(ap>0||p2v.charAt(0)===p2v.charAt(0).toLowerCase())&&!_PSON_GRAM[p2]&&(spP(p2v.toLowerCase())||'').indexOf('V')>=0&&(!np||np[0]<500);
       if(!PREP[p2]&&!_PSON_AVL[p2]&&!verbe)return null;}
     var cs=_psonCands(n);return cs.length?cs[0]:null;}
   var _ELI_PLEIN={je:"j'",que:"qu'",le:"l'",la:"l'",de:"d'",ce:"c'",ne:"n'",me:"m'",te:"t'",se:"s'",si:"s'"},_ELI_EXC={oui:1,ouais:1,ouistiti:1,ouistitis:1,onze:1,onzieme:1,onziemes:1,ouate:1,uhlan:1},_ELI_CONJ={et:1,ou:1},_ELI_SUJ={il:1,elle:1,ils:1,elles:1,on:1},_ELI_AVANT_CL={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,ne:1,qui:1};   // élision manquante (30/09/2026, voir l'élision-espace de spellText)
@@ -5795,7 +5812,7 @@ function spellUnknown(tok,atStart,T,idx){
            devant il/ils. Mesuré : gold +9 élisions réparées ; EcriScol 3, frgec 17 : de
            vraies élisions que ces golds ne corrigent pas (« que à partir », « dans la armée ») ; UD 14 450 : 12 marques, toutes sur du texte
            fautif — 5 vraies élisions manquantes du corpus, 7 phrases où UD a perdu un nombre ou un mot (« plus de exemplaires »). */
-        else if(vow&&_ELI_PLEIN[a]&&!/^[yh]/.test(deaccS(b))&&(SP.WORDS.has(b)||SP.WORDS.has(deaccS(b))||((b==='a'||b==='à')&&(a==='que'||a==='ne')))&&P[i+1][2].charAt(0)===b.charAt(0)&&!(P[i][0]>0&&/[-\u2011]/.test(text.charAt(P[i][0]-1)))&&!_ELI_EXC[deaccS(b)]&&!(a==='si'&&b!=='il'&&b!=='ils')&&!(a!=='que'&&a!=='si'&&_ELI_SUJ[b])&&!_ELI_CONJ[b]&&!((a==='le'||a==='la'||a==='de')&&(b==='en'||b==='au'||b==='aux'))&&!(P[i][2].charAt(0)!==a.charAt(0)&&i>0&&!(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]))&&!((a==='je'||a==='ne'||a==='me'||a==='te'||a==='se')&&!(b==='a'||svReads(b).length))&&!((a==='le'||a==='la'||a==='de')&&(SP.FREQ[b]||SP.FREQ[deaccS(b)]||0)<1)&&!((a==='le'||a==='la')&&/[sx]$/.test(b)&&(SP.WORDS.has(b.slice(0,-1))||SP.WORDS.has(deaccS(b.slice(0,-1)))))&&!((a==='le'||a==='la')&&_verbeFini(deaccS(b))&&!(i>0&&_ELI_AVANT_CL[deaccS(P[i-1][2].toLowerCase())]))&&!((a==='le'||a==='la'||a==='de')&&(b==='un'||b==='une'))&&!(a==='ce'&&!/^(est|etait|etaient|a|avait|aurait)$/.test(deaccS(b)))&&!(a==='se'&&/^(ai|avais|aurai|aurais|etais|eus|eusse|aie)$/.test(deaccS(b)))){out.push({i:i,word:P[i][2]+' '+P[i+1][2],sugg:ckeepcase(P[i][2],_ELI_PLEIN[a])+P[i+1][2],name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
+        else if(vow&&_ELI_PLEIN[a]&&!/^[yh]/.test(deaccS(b))&&(SP.WORDS.has(b)||SP.WORDS.has(deaccS(b))||((b==='a'||b==='à')&&(a==='que'||a==='ne')))&&P[i+1][2].charAt(0)===b.charAt(0)&&!(P[i][0]>0&&/[-\u2011]/.test(text.charAt(P[i][0]-1)))&&!_ELI_EXC[deaccS(b)]&&!(a==='si'&&b!=='il'&&b!=='ils')&&!(a!=='que'&&a!=='si'&&_ELI_SUJ[b])&&!_ELI_CONJ[b]&&!((a==='le'||a==='la'||a==='de')&&(b==='en'||b==='au'||b==='aux'))&&!(P[i][2].charAt(0)!==a.charAt(0)&&i>0&&!(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]))&&!((a==='je'||a==='ne'||a==='me'||a==='te'||a==='se')&&!(b==='a'||svReads(b).length))&&!((a==='le'||a==='la'||a==='de')&&(spF(b)||spF(deaccS(b))||0)<1)&&!((a==='le'||a==='la')&&/[sx]$/.test(b)&&(SP.WORDS.has(b.slice(0,-1))||SP.WORDS.has(deaccS(b.slice(0,-1)))))&&!((a==='le'||a==='la')&&_verbeFini(deaccS(b))&&!(i>0&&_ELI_AVANT_CL[deaccS(P[i-1][2].toLowerCase())]))&&!((a==='le'||a==='la'||a==='de')&&(b==='un'||b==='une'))&&!(a==='ce'&&!/^(est|etait|etaient|a|avait|aurait)$/.test(deaccS(b)))&&!(a==='se'&&/^(ai|avais|aurai|aurais|etais|eus|eusse|aie)$/.test(deaccS(b)))){out.push({i:i,word:P[i][2]+' '+P[i+1][2],sugg:ckeepcase(P[i][2],_ELI_PLEIN[a])+P[i+1][2],name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
         /* ⭐ 30/09/2026 (catalogue des muets) — « MA / TA / JAIS » + PARTICIPE MASCULIN → m'a / t'a / j'ai (« il ta donné », « ma mère ma
            appelé », « jais pris ») : le possessif « ma/ta » (féminin) ne précède jamais un participe masculin, « jais » (la pierre) jamais un
            participe. ORANGE. Gardes : participe écrit au masculin (pas -e/-es : « ma vue », « ma pensée »), pas un nom féminin (« ma santé »),
@@ -5840,7 +5857,7 @@ function spellUnknown(tok,atStart,T,idx){
         if(fa==='bien'||fa==='mal'){
           // adverbes : B RARE exigé (les légitimes « bien fait/mal intentionnés » ont un B fréquent)
           var _f1=fa+fb;
-          if(SP.ready&&SP.WORDS.has(_f1)&&(SP.FREQ[fb]||0)<=0.05&&(SP.FREQ[_f1]||0)>=(SP.FREQ[fb]||0)*4)ff=_f1;
+          if(SP.ready&&SP.WORDS.has(_f1)&&(spF(fb)||0)<=0.05&&(spF(_f1)||0)>=(spF(fb)||0)*4)ff=_f1;
         }else if(_FUS_PREF[fa]&&fi>=1&&_FUS_AUX[deaccS(P[fi-1][2].toLowerCase())]&&_isPpl(fb)){
           // CADRE aux + préfixe + PARTICIPE (« il a sur estimé ») : une préposition n'existe pas là —
           // composé coupé quasi certain. 0 tir/16 950. Trait d'abord (sous-estimé), soudure sinon
@@ -6233,11 +6250,11 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
   var _compKeys=null;
   function complete(prefix,prev,prev2){
     if(!SP.ready)return [];var p=deaccS(String(prefix).toLowerCase());if(p.length<2||!isAlphaS(p))return [];
-    if(_compKeys===null)_compKeys=Object.keys(SP.D2A).sort();
+    if(_compKeys===null)_compKeys=Array.from(SP.D2M?SP.D2M.keys():[]).sort();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
-    while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=SP.D2A[_compKeys[i]];
-      for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length&&(SP.FREQ[w]||0)>=1)out.push(w);}i++;if(out.length>800)break;}   // PLANCHER FRÉQUENCE (≥1) : l'aide-frappe ne propose que des mots courants ; sur une faute (pome) → vide → la correction prend le relais. Miroir app.
+    while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=spD(_compKeys[i]);
+      for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length&&(spF(w)||0)>=1)out.push(w);}i++;if(out.length>800)break;}   // PLANCHER FRÉQUENCE (≥1) : l'aide-frappe ne propose que des mots courants ; sur une faute (pome) → vide → la correction prend le relais. Miroir app.
     // CLASSEMENT (miroir app) : fréquence, puis bigramme, puis CATÉGORIE et ACCORD. Le bigramme exige
     // d'avoir VU la paire exacte (nul sur les pronoms) ; la catégorie, elle, GÉNÉRALISE.
     var _pw=(prev||'').toLowerCase().replace(/[’ʼ]/g,"'");
@@ -6255,9 +6272,9 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
         _DETN={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,quelques:1,plusieurs:1};
     var _sg=!!_DET1[_pw],_pl=!!_DETN[_pw];
     function _realPl(w){ return /s$/.test(w)&&SP.WORDS.has(w.slice(0,-1)); }   // SP.WORDS est un Set (.has)
-    function _cscore(w){ var s=Math.log(1+(SP.FREQ[w]||0));
+    function _cscore(w){ var s=Math.log(1+(spF(w)||0));
       if(_row){ var b=_row[w]; if(b)s+=Math.log(1+b)*1.5; }
-      if(_expV){ var pos=SP.POS[w]||'';
+      if(_expV){ var pos=spP(w)||'';
         if(pos.indexOf('V')>=0)s+=1.2;
         if(/(er|ir|re)$/.test(w))s-=1.6;                       // « je manger » : impossible
         if(_pers){ if(_pers.test(w))s+=2.2; else if(_sure)s-=1.8; }   // personne : motif NON exhaustif -> souple
@@ -6294,6 +6311,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
     cjRebuild:_cjRebuild,   // ⭐ 13/10/2026 : table de conjugaison compacte (police/parity_son.js, parity_corr.js)
+    _spLire:{F:spF,P:spP,D:spD,W:function(w){return !!(SP.WORDS&&SP.WORDS.has(w));},cles:function(){return SP.D2M?Array.from(SP.D2M.keys()):[];}},   // ⭐ 13/10/2026 : dictionnaire compact — lu par extension/speller_compact_probe.js (zéro perte, mot par mot)
     setAuteur:setAuteur, getAuteur:getAuteur,   // ⭐ 01/10/2026 : réglage « j'écris au féminin / au masculin » (panneau, chrome.storage.local)
     udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel,  // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
     udMot:udMot,  // le mot que le 📗 « ce mot est correct » enregistre (radical d'un mot élidé), ou null — lu par la bulle et le panneau
