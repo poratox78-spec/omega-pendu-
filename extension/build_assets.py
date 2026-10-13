@@ -67,6 +67,10 @@ def main():
     shutil.copyfile(os.path.join(POL, 'son_core.js'), os.path.join(OUT, 'son_core.js'))
     for fn in ('OmegaDys-Regular.ttf', 'OmegaDys-Light.ttf', 'OmegaDys-Heavy.ttf'):
         shutil.copyfile(os.path.join(POL, fn), os.path.join(OUT, fn))
+    # ⭐ 13/10/2026 — la table de phonologie des « -ent » (police de son SANS le moteur) est TIRÉE du moteur qu'on vient d'écrire :
+    #    même table que vdc-lex.json, jamais une copie à part (extension/build_ent3p.js, garde --check dans dev.sh et la CI).
+    import subprocess
+    subprocess.run(['node', os.path.join(HERE, 'build_ent3p.js')], check=True)
     print("[build_assets] OK -> " + OUT)
     return 0
 

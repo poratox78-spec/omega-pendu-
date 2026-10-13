@@ -170,7 +170,19 @@
     H = css = io = mo = null; nettoyage = 0;
     parNoeud = new Map(); vus = new WeakSet(); suivis = new WeakSet();
   }
-  function applique(v) { try { if (v && document.body) allumer(); else eteindre(); } catch (e) {} }
+  /* ⭐ 13/10/2026 — le moteur complet (~300 Mo par onglet) ne se charge plus qu'au premier champ de saisie (content.js) : une page
+     seulement LUE ne l'a pas. La phonologie des « -ent » (« ils mangent » : -ent muet) n'en demande qu'un morceau — les formes lues 3e
+     pluriel, tirées du moteur par build_ent3p.js (assets/ent-3p.txt.gz, quelques Mo). On le charge avant de peindre si le moteur n'est
+     pas là ; sinon g2p lit la table complète, avec la même réponse. */
+  var _ent3p = null;
+  function phono(fin) {
+    if (self.__OMEGA_CJ || self.__OMEGA_ENT3P) return fin();
+    if (!_ent3p) _ent3p = fetch(chrome.runtime.getURL('assets/ent-3p.txt.gz')).then(function (r) { return r.arrayBuffer(); })
+      .then(function (b) { return new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); })
+      .then(function (t) { self.__OMEGA_ENT3P = new Set(t.split('\n').filter(Boolean)); }).catch(function () {});
+    _ent3p.then(fin, fin);
+  }
+  function applique(v) { try { if (v && document.body) phono(function () { try { if (pref && panneau && document.body) allumer(); } catch (e) {} }); else eteindre(); } catch (e) {} }
   // tout() : peint tous les blocs d'un coup (sonde de l'extension, page qu'on va imprimer)
   try { self.__omdysSonPages = { tout: function () { if (!H) return; var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n, P = new Set(); while ((n = w.nextNode())) if (n.parentElement) P.add(n.parentElement); peindreLot(Array.from(P)); },
                                  compte: function () { if (!H) return 0; var n = 0; Object.keys(H).forEach(function (k) { n += H[k].size; }); return n; } }; } catch (e) {}

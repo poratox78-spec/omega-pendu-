@@ -164,7 +164,21 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     if (!ctx) throw new Error("le script de contenu ne s'est pas injecté (aucun monde isolé) — extension non chargée ?");
     log('injectée  : monde isolé du script de contenu');
 
-    // ③ attendre que le moteur ait DÉCOMPRESSÉ ses assets — un ÉTAT, pas un délai
+    /* ③ ⭐ 13/10/2026 — MOTEUR À LA DEMANDE (demande de Rem : le coût mémoire). Le moteur complet pèse ~300 Mo par onglet ; par
+       défaut c'est le panneau qui corrige. Sur une page qu'on ne fait que LIRE, il ne doit donc PAS se charger ; au premier champ
+       touché, il se charge. On mesure le tas JS de l'onglet (le monde isolé du script de contenu vit dans le même isolat V8). */
+    const enCours = async () => ((await pg.envoyer('Runtime.evaluate', { contextId: ctx, returnByValue: true,
+      expression: "(typeof DYSCORE!=='undefined' && DYSCORE.isReady) ? !!DYSCORE.isReady() : false" })).result || {}).value;
+    const tasMo = async () => { const m = await pg.envoyer('Performance.getMetrics');
+      const x = (m.metrics || []).find((k) => k.name === 'JSHeapUsedSize'); return x ? x.value / 1048576 : NaN; };
+    await pg.envoyer('Performance.enable');
+    await attendre(4000);   // plus que le temps de chargement complet (~3 s) : s'il devait venir à l'ouverture, il serait là
+    const lazyOk = !(await enCours()), tas0 = await tasMo();
+    await pg.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true });   // sans ça, aucun `focusin` n'atteint le script de contenu
+    try { await pg.envoyer('Page.bringToFront'); } catch (e) {}
+    await pg.envoyer('Runtime.evaluate', { expression: "(() => { let t = document.getElementById('omdys-a-la-demande');"
+      + " if (!t) { t = document.createElement('textarea'); t.id = 'omdys-a-la-demande'; document.body.appendChild(t); } t.focus(); return 1; })()" });
+    // attendre que le moteur ait DÉCOMPRESSÉ ses assets — un ÉTAT, pas un délai
     let pret = false;
     for (let i = 0; i < 80 && !pret; i++) {
       const q = await pg.envoyer('Runtime.evaluate', { contextId: ctx, returnByValue: true,
@@ -172,7 +186,11 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       pret = !!(q.result && q.result.value);
       if (!pret) await attendre(250);
     }
-    if (!pret) throw new Error("DYSCORE.isReady() est resté FAUX 20 s — les assets ne se chargent pas dans l'extension");
+    if (!pret) throw new Error("DYSCORE.isReady() est resté FAUX 20 s après le focus d'un champ — les assets ne se chargent pas dans l'extension");
+    const tas1 = await tasMo();
+    log('  ' + (lazyOk ? '✓' : '✗') + ' [mémoire ] moteur à la demande : page lue → moteur NON chargé (tas ' + tas0.toFixed(0) + ' Mo) ; '
+        + '1er champ → chargé (tas ' + tas1.toFixed(0) + ' Mo, +' + (tas1 - tas0).toFixed(0) + ' Mo évités sur chaque onglet seulement lu)');
+    const _echecLazy = lazyOk ? null : 'moteur à la demande : le moteur complet (~300 Mo) s\'est chargé sur une page où aucun champ n\'a été touché';
     log('prête     : DYSCORE.isReady() — assets décompressés depuis chrome.runtime.getURL\n');
 
     // ④ interroger le moteur RÉEL, dans le monde de l'extension
@@ -186,6 +204,7 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     const vus = JSON.parse(r.result.value);
 
     const echecs = [];
+    if (_echecLazy) echecs.push(_echecLazy);   // ③ (moteur à la demande), mesuré avant que la liste existe
     CAS.forEach((c, k) => {
       const got = vus[k] || [];
       const trouve = got.some(x => x.split('>')[1] === c.attendu);
@@ -391,6 +410,39 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       if (!okSon) echecs.push('Couleurs sur les sites : ' + JSON.stringify({ s0: { fr: s0.fr, noeuds: s0.noeuds }, s1: { fr: s1.fr, en: s1.en, code: s1.code, ta: s1.ta, span: s1.span, btn: s1.btn, url: s1.url, urlIn: s1.urlIn, noeuds: s1.noeuds, spans: s1.spans, texteIntact: s1.texte === s0.texte }, s2: { fr: s2.fr, ajout: s2.ajout }, s3: s3.fr, c1, c3 }));
     }
 
+    /* ⭐ 13/10/2026 — PAGE LUE, MOTEUR NON CHARGÉ : la phonologie des « -ent » vient de la petite table tirée du moteur
+       (assets/ent-3p.txt.gz, build_ent3p.js). « jappent », « gambadent » ne sont PAS dans la liste de 582 mots de g2p : sans la
+       table, leur « -ent » serait peint prononcé. On vérifie : moteur toujours absent, table chargée, « -ent » peint muet. */
+    {
+      let c3 = 0;
+      const p3 = await connecter(await onglet(dp, 'about:blank'), (d) => {
+        if (d.method === 'Runtime.executionContextCreated' && (d.params.context.auxData || {}).type === 'isolated') c3 = d.params.context.id; });
+      await p3.envoyer('Runtime.enable'); await p3.envoyer('Page.enable');
+      await p3.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + portPage + '/' });
+      for (let i = 0; i < 60 && !c3; i++) await attendre(250);
+      try { await p3.envoyer('Page.bringToFront'); } catch (e) {}
+      await p3.envoyer('Runtime.evaluate', { expression: "(() => { const d = document.createElement('p'); d.id = 'ent3p'; d.textContent = 'Les chiots jappent et gambadent dans la cour.'; document.body.prepend(d); return 1; })()" });
+      await pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 20000,
+        expression: 'new Promise(r => chrome.storage.local.set({ omSonSites: true }, () => setTimeout(() => r(1), 500)))' });
+      const v3 = ((await p3.envoyer('Runtime.evaluate', { contextId: c3, awaitPromise: true, returnByValue: true, timeout: 20000,
+        expression: `(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));
+          const el = document.getElementById('ent3p'), t = el.firstChild;
+          const muet = (mot) => { const a = t.nodeValue.indexOf(mot) + mot.length - 3; let k = 0;
+            for (let q = a; q < a + 3; q++) { let dedans = false;
+              for (const [nom, h] of CSS.highlights) { if (!/^omdys-m/.test(nom)) continue; for (const r of h) if (r.startContainer === t && r.startOffset <= q && r.endOffset > q) dedans = true; }
+              if (dedans) k++; } return k; };
+          for (let k = 0; k < 60; k++) { let n = 0; for (const [nom, h] of CSS.highlights) if (/^omdys-/.test(nom)) for (const r of h) if (r.startContainer === t) n++; if (n) break; await w(100); }
+          return { moteur: (typeof DYSCORE !== 'undefined' && DYSCORE.isReady) ? !!DYSCORE.isReady() : false,
+                   table: self.__OMEGA_ENT3P ? self.__OMEGA_ENT3P.size : 0, jappent: muet('jappent'), gambadent: muet('gambadent') }; })()` })).result || {}).value || {};
+      await pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 20000,
+        expression: 'new Promise(r => chrome.storage.local.set({ omSonSites: false }, () => setTimeout(() => r(1), 300)))' });
+      try { p3.fermer(); } catch (e) {}
+      const ok3 = v3.moteur === false && v3.table > 90000 && v3.jappent === 3 && v3.gambadent === 3;
+      log('  ' + (ok3 ? '✓' : '✗') + ' [mémoire ] page LUE, couleurs : moteur ' + (v3.moteur ? 'CHARGÉ' : 'non chargé') + ', table « -ent » ' + v3.table
+          + ' formes, « jappent » / « gambadent » : -ent muet ' + v3.jappent + '/3 · ' + v3.gambadent + '/3');
+      if (!ok3) echecs.push('page lue sans moteur : la police de son doit lire la table des « -ent » tirée du moteur — eu ' + JSON.stringify(v3));
+    }
+
     /* ⑥ LA BASCULE BULLE ↔ RECOPIE SURVIT-ELLE À UNE FERMETURE ? (rapport de Rem, 09/09/2026)
        Trois symptômes, une seule cause : l'exclusion mutuelle n'était appliquée QU'AU CLIC.
        `#omdys-mirror` porte `checked` en dur dans le HTML et n'était NI écrit NI relu dans le
@@ -489,12 +541,14 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       await pg2.envoyer('Runtime.enable'); await pg2.envoyer('Page.enable');
       await pg2.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + portPage + route });
       for (let i = 0; i < 60 && !ctx2; i++) await attendre(250);
+      try { await pg2.envoyer('Page.bringToFront', {}); } catch (e) {}
+      await pg2.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true });   // ⭐ sans ça, aucun `focusin` n'atteint le content script
+      // ⭐ 13/10/2026 : le moteur se charge au PREMIER CHAMP touché — on donne le focus d'abord, puis on attend qu'il soit prêt
+      await pg2.envoyer('Runtime.evaluate', { expression: '(() => { const el = ' + cibleJs + '; if (el) el.focus(); return 1; })()' });
       for (let i = 0; i < 80; i++) {   // l'ÉTAT « moteur prêt », jamais un délai
         const q = await pg2.envoyer('Runtime.evaluate', { contextId: ctx2, returnByValue: true, expression: "(typeof DYSCORE!=='undefined'&&DYSCORE.isReady)?!!DYSCORE.isReady():false" });
         if (q.result && q.result.value) break; await attendre(250);
       }
-      try { await pg2.envoyer('Page.bringToFront', {}); } catch (e) {}
-      await pg2.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true });   // ⭐ sans ça, aucun `focusin` n'atteint le content script
       const r = await pg2.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 60000,
         expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
           + ' const el = ' + cibleJs + '; if (!el) return { fatal: "champ introuvable" };'
@@ -559,9 +613,11 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       await p.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + portPage + '/' });
       for (let i = 0; i < 60 && !c; i++) await attendre(250);
       if (!c) throw new Error("dictionnaire de la bulle : le script de contenu ne s'est pas injecté dans la page");
-      for (let i = 0; i < 80; i++) { if (await evalue(p, "(typeof DYSCORE!=='undefined'&&DYSCORE.isReady)?!!DYSCORE.isReady():false", c)) break; await attendre(250); }
       try { await p.envoyer('Page.bringToFront', {}); } catch (e) {}
       await p.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true });   // sans ça, aucun `focusin` (cf. ⑦⑧⑨)
+      // ⭐ 13/10/2026 : le moteur se charge au premier CHAMP touché — un champ de la page reçoit le focus, puis on attend qu'il soit prêt
+      await p.envoyer('Runtime.evaluate', { expression: "(() => { const t = document.querySelector('textarea,[contenteditable],input'); if (t) t.focus(); return 1; })()" });
+      for (let i = 0; i < 80; i++) { if (await evalue(p, "(typeof DYSCORE!=='undefined'&&DYSCORE.isReady)?!!DYSCORE.isReady():false", c)) break; await attendre(250); }
       return { p, c };
     };
     const fermerPagesUD = async () => { for (const x of (await cibles()).filter((t) => (t.url || '') === 'http://127.0.0.1:' + portPage + '/')) await fermerCible(x.id); };

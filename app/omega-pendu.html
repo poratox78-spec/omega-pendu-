@@ -6611,6 +6611,11 @@ var _DECL2 = (function () {
         if(_F){ const e=_F[m];
           if(e && String(e).split('|').some(t=>t.endsWith(';3;p'))) return true; }
         if(_build3P().has(m)) return true;
+        /* ⭐ 13/10/2026 — sans le moteur (extension : page seulement LUE, le moteur ne se charge qu'au premier champ ; site : bouton 🔡),
+           la table des « -ent » lus 3e pluriel, TIRÉE du moteur par extension/build_ent3p.js (assets/ent-3p.txt.gz) : même réponse
+           que les deux lectures ci-dessus, au lieu de la liste de 582 mots. Avec le moteur, elle n'ajoute rien (elle en est extraite). */
+        const _S = (typeof self!=='undefined' && self.__OMEGA_ENT3P) || null;
+        if(_S && _S.has(m)) return true;
       }catch(e){}
       return false;
     }

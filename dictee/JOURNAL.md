@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-10-13 — mémoire : le moteur de l'extension se charge au premier champ ; la police de son garde sa table des « -ent »
+
+- Rem (paraphrase) : le coût mémoire de la table complète — la compression, ça ferait combien ? et les tables doivent correspondre,
+  la phonologie comprise.
+- Mesuré (tas JS) : 255 Mo (conjugaison 13) → 297 Mo (conjugaison 15) — dictionnaire d'orthographe 191 Mo, table de conjugaison
+  33 → 81 Mo. La compression ne réduit que les fichiers (2,3 Mo gzippés → 191 Mo en mémoire). Le vrai coût : content.js chargeait
+  ce moteur dans CHAQUE onglet, même seulement lu, alors que par défaut c'est le panneau qui corrige.
+- content.js : moteur au premier champ touché (focusin, champ déjà actif, clic droit — « ⏳ … dictionnaire en chargement » s'il
+  n'est pas prêt ; mode d'emploi complété). La phonologie des « -ent » (police de son) : extension/build_ent3p.js tire du moteur
+  les 91 174 formes en « -ent » lues 3e pluriel → assets/ent-3p.txt.gz (228 Ko), régénéré par build_assets.py, --check dans
+  dev.sh + CI ; g2p la lit sans moteur (même réponse) ; son_pages.js et nav.js (🔡 du site) la chargent. Le site n'avait AUCUNE
+  table (582 mots) : site, extension et app ont désormais la même phonologie des « -ent ».
+- Chrome (paquet réel) : page lue 3 Mo de tas au lieu de 329 ; premier champ → 228 Mo ; page lue + couleurs : moteur absent, table
+  chargée, « jappent » / « gambadent » -ent muet. Tests : navigateur_ext_probe.js, sonsite_probe.js (rouges sur l'ancien code),
+  assets_wired_probe.js (son_pages.js compte comme script de contenu ; la table n'est pas exigée du panneau, qui a le moteur).
+- Reste (lot suivant) : le dictionnaire d'orthographe, 191 Mo dans chaque onglet où l'on écrit ET dans le panneau.
+
+---
+
 ## 2026-10-13 — conjugaison 15 : la table et son index disent la même chose (audit)
 
 - Trouvé par l'audit (la table compacte écrit désormais ses écarts) : 16 929 lectures que la table `c` produit et que l'index `f`

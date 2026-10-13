@@ -64,6 +64,11 @@ const PAQUET = 40;   // on interroge par paquets : un seul Runtime.evaluate par 
     await pg.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + portPage + '/' });
     for (let i = 0; i < 120 && !ctx; i++) await H.attendre(250);
     if (!ctx) throw new Error("le monde isolé du script de contenu n'est jamais apparu");
+    // ⭐ 13/10/2026 : le moteur de l'extension se charge au PREMIER CHAMP touché (plus à l'ouverture de la page, ~300 Mo par onglet
+    //    évités) — on donne le focus à un champ, comme l'utilisateur qui va écrire.
+    await pg.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true });
+    try { await pg.envoyer('Page.bringToFront'); } catch (e) {}
+    await pg.envoyer('Runtime.evaluate', { expression: "(() => { let t = document.querySelector('textarea'); if (!t) { t = document.createElement('textarea'); document.body.appendChild(t); } t.focus(); return 1; })()" });
     // ④ isReady() est FAUX ~3 s (décompression des assets) : on attend un ÉTAT, pas une présence.
     let pret = false;
     for (let i = 0; i < 120 && !pret; i++) {

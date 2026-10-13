@@ -41,7 +41,15 @@
     if (area !== 'local' || !ch.omGenre) return; try { if (DC.setAuteur) DC.setAuteur(ch.omGenre.newValue || null); } catch (e) {}
     if (CFG.enabled && active) schedule(active); }); } catch (e) {}
 
-  // charge les lexiques depuis les assets de l'extension (fetch + DecompressionStream, comme l'app)
+  /* charge les lexiques depuis les assets de l'extension (fetch + DecompressionStream, comme l'app).
+     ⭐ 13/10/2026 — À LA DEMANDE (demande de Rem : le coût mémoire). Mesuré : le moteur complet pèse ~300 Mo par onglet (dictionnaire
+     d'orthographe 191 Mo, table de conjugaison 81 Mo), et il se chargeait dans CHAQUE onglet, même seulement lu. Or par défaut c'est le
+     PANNEAU (son propre moteur) qui corrige le texte recopié ; ici le moteur ne sert qu'à la bulle (désactivée par défaut) et au clic
+     droit — dans un CHAMP. Il se charge donc au premier champ touché (focusin, clic droit), plus à l'ouverture de la page. La police de
+     son des pages lues prend sa petite table à part (son_pages.js, ent-3p.txt.gz, tirée du moteur). */
+  var _moteurDemande = false;
+  function chargerMoteur() {
+    if (_moteurDemande) return; _moteurDemande = true;
   try {
     var spellerUrl = chrome.runtime.getURL('assets/speller.tsv.gz');
     var nomUrl = chrome.runtime.getURL('assets/noun-post.txt.gz');
@@ -61,6 +69,7 @@
     if (DC.loadNounPost) DC.loadNounPost(nomUrl).then(function () { if (active) schedule(active); });  // re-render quand le posterior (genre + pluriel) est prêt
     if (DC.loadConfusables) DC.loadConfusables(chrome.runtime.getURL('assets/confusables.json')).then(function () { if (active) schedule(active); });  // couche VERTE vigilance (confusables)
   } catch (e) {}
+  }
 
   // ===== cible éditable =====
   var INPUT_OK = { text: 1, search: 1, email: 1, url: 1, tel: 1, '': 1 };
@@ -498,7 +507,7 @@
   }
   document.addEventListener('focusin', function (e) {
     var el = vraieCible(e);
-    if (isEditable(el)) { if (_swPeutDormir()) _panneauOk = null; active = el; dismissed.delete(el); observeActive(el); schedule(el); }   // ⭐ nouveau focus → on redemande au SW
+    if (isEditable(el)) { chargerMoteur(); if (_swPeutDormir()) _panneauOk = null; active = el; dismissed.delete(el); observeActive(el); schedule(el); }   // ⭐ nouveau focus → on redemande au SW ; 1er champ → le moteur se charge (13/10/2026)
   }, true);
   try { window.addEventListener('focus', function () { if (_swPeutDormir()) _panneauOk = null; }); } catch (e) {}   // ⭐ la fenêtre reprend la main (le panneau vient d'être fermé) → idem
   document.addEventListener('input', function (e) {
@@ -534,6 +543,7 @@
     _rcFix = null;
     try {
       var el = active;
+      if (el && isEditable(el) && DC.isReady && !DC.isReady()) { chargerMoteur(); rcMenu('⏳ Correcteur dys — dictionnaire en chargement, réessaie dans un instant', false); return; }   // ⭐ 13/10/2026 : moteur à la demande
       if (!el || !isEditable(el) || !DC.isReady || !DC.isReady() || !DC.diagnoseAll) { rcMenu('', false); return; }
       if (el.contains && e.target !== el && !el.contains(e.target)) { rcMenu('', false); return; }   // seulement dans le champ actif
       var off = rcOffset(el, e); if (off == null) { rcMenu('', false); return; }
@@ -552,6 +562,9 @@
      n'ont pas ce script — la recopie ne marchait pas et le panneau restait vide SANS RIEN DIRE. Le panneau
      demande donc à l'onglet s'il est branché ; c'est ici qu'on répond. Sans ce listener, Chrome rend
      « Receiving end does not exist » — mesuré, pas supposé : extension/ordre_chargement_probe.js. */
+  // champ déjà sous le curseur à l'injection (autofocus) : le moteur se charge tout de suite — ICI, après INPUT_OK et isEditable (un
+  // « var » plus bas vaut encore undefined en haut du script)
+  try { var _ae = document.activeElement; if (_ae && isEditable(_ae)) chargerMoteur(); } catch (e) {}
   try { chrome.runtime.onMessage.addListener(function (msg, _snd, rep) {
     if (msg && msg.type === 'omdys-ping') { try { rep({ branche: true }); } catch (e) {} return; }
     if (msg && msg.type === 'omdys-apply-rc' && _rcFix) { applyOne(_rcFix.el, _rcFix.flag); _rcFix = null; }
