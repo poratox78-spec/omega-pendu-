@@ -2167,6 +2167,9 @@ def _qui_rel_avant(T, j, lo):
     return -1
 
 
+_NP_QUANT_UN = frozenset("chacun chacune aucun aucune nul nulle l'un l'une un une".split())   # ⭐ 13/10/2026 (conjugaison 11)
+
+
 def _np_subject(T, tg, a):
     """Sujet [déterminant + nom-tête] placé juste avant le verbe d'indice a. Renvoie {'idx','det','g','n'} ou None.
     Bornes : proposition (_SEG). Abstention sur coordination (et/ou/ni), sujet-pronom (traité ailleurs), sujet-PP/infinitif
@@ -2269,6 +2272,7 @@ def _np_subject(T, tg, a):
                 det_idx = j; _seen_prep = _pj; _elid = False
         j -= 1
     if det_idx is None: return None
+    if det_idx - 1 >= lo and deacc(T[det_idx].lower()) in PREP and deacc(T[det_idx - 1].lower()) in _NP_QUANT_UN: return None   # ⭐ 13/10/2026 (conjugaison 11) : « chacun DES enfants a reçu » — le sujet est le quantifieur — miroir JS
     # Un déterminant qui est AUSSI une préposition contractée (du/des/au/aux) et qui suit un NOM ouvre un
     # COMPLÉMENT, pas le sujet : « de nombreux pouvoirs DU GOUVERNEUR ont été délégués », « 50 000
     # Allemands DU WARTHELAND ont péri ». Aucun vrai déterminant n'existe plus à gauche (le numéral est

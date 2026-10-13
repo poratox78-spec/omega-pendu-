@@ -908,6 +908,16 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 13/10/2026 (conjugaison 11) — chasse aux faux sur des phrases JUSTES : plus d'orange sur « chacun des invités a » (→ ont), « elle s'est
+// mise / tue / reprise » (→ misée, tuée, reprisée), « aucune des copies n'est juste » (→ justes).
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c11 = 0;
+  for (const [s, w] of [['Chacun des invités a apporté un gâteau.', 'a'], ['Chacune des équipes a gagné un match.', 'a'], ["Elle s'est mise à chanter.", 'mise'],
+                        ["Elle s'est tue en voyant le directeur.", 'tue'], ["Elle s'est reprise très vite.", 'reprise'], ["Aucune des copies n'est juste.", 'juste']])
+    if (fl(s).some(x => x.word === w)) { _c11++; console.log('  ✗ conjugaison 11 : « ' + s + ' » doit rester muet sur « ' + w + ' », obtenu ' + JSON.stringify(fl(s).filter(x => x.word === w))); }
+  if (_c11) { console.log('PARITÉ KO — conjugaison 11 : ' + _c11 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 11 : six faux retirés (chacun des, s'est mise / tue / reprise, n'est juste)"); }
+
 // ⭐ 12/10/2026 (conjugaison 10) — produit entier : le temps de la protase en ORANGE ; le sujet nominal d'avant « et » en ROUGE ; plus de
 // rouge faux sur « la voisine nous appelle et nous invite ».
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');

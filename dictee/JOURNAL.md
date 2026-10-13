@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-10-13 — conjugaison 11 : chasse aux faux sur des phrases justes
+
+- Méthode (leçon des lots 8-10, qui avaient chacun trouvé un rouge faux ancien) : ≈ 230 phrases JUSTES inventées, écrites pour piéger les
+  règles des conjugaisons 1 à 10 (sujets nominaux, « nous » complément, coordination, « si » au milieu, concordance, pronominaux,
+  quantifieurs, participes irréguliers…). Six oranges faux, aucun rouge :
+  « chacun / chacune des N a » → ont ; « elle s'est mise / tue / reprise / remise » → misée, tuée, reprisée, remisée ; « aucune des
+  copies n'est juste » → justes.
+- Causes et gardes : `_npSubject` ≡ `_np_subject` prenait « des enfants » pour le sujet derrière chacun / aucun / l'un (le sujet est le
+  quantifieur ; la tolérance de Grevisse pour « chacun des enfants ont » reste à rule_accord_sv_quant, qui s'abstient exprès) ;
+  sestPpVig (« forme conjuguée après s'est ») lisait « mise » comme le présent de miser → `_ppIrrInfl` (forme fléchie d'un participe
+  irrégulier : IRR_PP, IRREG_PART, _PP_U_EXTRA) ; pluralVig remontait jusqu'à « des » à travers « n'est » que le tagger lit nom → un
+  verbe élidé ferme le groupe.
+- Mesure : UD 14 450 — 1 orange faux de moins (« Chacun des bâtiments du campus est pourvu… » → sont) ; 3 corpus — 1 orange inutile de
+  moins (prend → prennent, l'écrit était juste) ; gold 0. Batterie Python 272 / 285, 0 FP, 87 pièges muets.
+- Test : `parity_core.js` (6 silences ; 6 échecs sur l'ancien code).
+
+---
+
 ## 2026-10-12 — conjugaison 10 : le temps de la protase ; le sujet nominal d'avant « et »
 
 - Sondage (phrases inventées) : « si tu viendras, nous irons », « quand je serais grand, je serai pompier », « lorsque nous aurions
