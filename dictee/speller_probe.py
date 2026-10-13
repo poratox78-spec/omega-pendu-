@@ -427,6 +427,8 @@ class Speller:
         self.CONJ_F, self.CONJ_C = {}, {}
         try:
             _cj = (_vd.get('cj') or {}) if isinstance(_vd, dict) else {}
+            if _cj and 'f' not in _cj:                    # ⭐ 13/10/2026 : table COMPACTE — `f` recalculé depuis `c` (dictee/conj_io.py)
+                sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import conj_io; _cj = conj_io.reconstruire(_cj)
             self.CONJ_F, self.CONJ_C = dict(_cj.get('f') or {}), _cj.get('c') or {}
             for lem, slots in self.CONJ_C.items():
                 for mt, s3, p3 in (('ind:imp', 'ait', 'aient'), ('cnd:pre', 'ait', 'aient'), ('ind:fut', 'ra', 'ront')):

@@ -80,6 +80,7 @@ run "p2g mesure (held-out)"        python3 dictee/p2g.py --measure
 run "régression décompo+p2g"       python3 dictee/test_decompose.py
 run "décompo 3 voies (corpus)"     python3 dictee/decompose_corpus.py --show
 run "clôture paradigme conj"       python3 dictee/close_conj_paradigm.py --check
+run "fichiers ≤ 25 Mio (limite Cloudflare Pages)" python3 dictee/taille_fichiers_probe.py
 run "POS-tagger 155k (build_pos)"  python3 dictee/build_pos.py
 run "assets extension (build)"     python3 extension/build_assets.py
 

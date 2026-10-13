@@ -26,6 +26,8 @@ MÊME FORMAT que build_cgram.py, pour rester lisible par correcteur_probe.py SAN
 import os, sys, io, json, csv, lzma
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import conj_io                                     # ⭐ 13/10/2026 : table de conjugaison COMPACTE (index `f` recalculé depuis `c`)
 ROOT = os.path.dirname(HERE)
 MORPH_CSV = os.path.join(ROOT, 'data_local', 'morphalou', 'Morphalou3.1_CSV.csv')
 CONJ_PATH = os.path.join(HERE, 'cgram_conj.json')
@@ -76,7 +78,7 @@ def load_lex4_freq():
 
 
 def main():
-    conj = json.load(open(CONJ_PATH, encoding='utf-8'))
+    conj = conj_io.charger(CONJ_PATH)
     CONJ_F, CONJ_C = conj['f'], conj['c']              # lecture SEULE (collision/membership) — jamais mutés
     NEW_F, NEW_C = {}, {}                               # ce qui sera écrit dans conj_morphalou.json — l'AJOUT seul
     print(f'cgram_conj.json actuel : {len(CONJ_F)} formes / {len(CONJ_C)} lemmes')

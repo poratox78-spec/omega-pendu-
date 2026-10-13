@@ -14,6 +14,8 @@
 import os, sys, json, csv, unicodedata
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import conj_io                                     # ⭐ 13/10/2026 : table de conjugaison COMPACTE (index `f` recalculé depuis `c`)
 LEX_PATH = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 OUT = os.path.join(HERE, 'cgram_verbs.json')
 OUT_GENDER = os.path.join(HERE, 'cgram_gender.json')
@@ -450,8 +452,7 @@ def main():
     # chaque lecture = « lemme;mode:temps;personne;nombre » ; lectures séparées par « | ».
     conj_f = {k: '|'.join(sorted(v)) for k, v in cj_f.items()}
     conj_c = {lem: {mt: {s: v[0] for s, v in slots.items()} for mt, slots in mts.items()} for lem, mts in cj_c.items()}
-    json.dump({'f': conj_f, 'c': conj_c}, open(OUT_CONJ, 'w', encoding='utf-8', newline=''),
-              ensure_ascii=False, separators=(',', ':'))
+    conj_io.ecrire(OUT_CONJ, {'f': conj_f, 'c': conj_c})          # ⭐ 13/10/2026 : forme compacte (≤ 25 Mio par fichier, limite Cloudflare)
     print(f"[conj] {len(conj_f)} formes / {len(conj_c)} lemmes (accord sujet-verbe) → {OUT_CONJ}  ({os.path.getsize(OUT_CONJ)//1024} Ko)")
     for _w, _lem in nom_empty:                            # HÉRITAGE DE GENRE PAR LEMME : Lexique4 laisse le genre VIDE sur ~458
         _gl = nom_lem_g.get(_lem)                         #   formes (soeur, oeuf, oeil…) alors que le lemme est net (soeurs=f).
@@ -520,7 +521,7 @@ def main():
     # On GARDE les homographes verbaux (« boites » = boiter 2sg) : le tagger tranche à l'exécution (dét→NOUN). FP-safe.
     hgp = sorted(w for w in plural if gfreq.get(w, 0.0) >= HF_FREQ and w[:-1] in gender)
     hf = {'v': hv, 'g': hg, 'gn': hgn, 'a': adj, 'cj': {'f': hcf, 'c': hcc}, 'gp': hgp}   # + gp = noms pluriels HF (accord dét↔nom)
-    json.dump(hf, open(OUT_HF, 'w', encoding='utf-8', newline=''), ensure_ascii=False, separators=(',', ':'))
+    conj_io.ecrire(OUT_HF, hf)                                       # ⭐ 13/10/2026 : forme compacte
     sz = os.path.getsize(OUT_HF)
     print(f"[HF] embarquable (freq≥{HF_FREQ}) : {len(hv)} verbes + {len(hg)} noms genrés HF + {len(hgn)} noms purs genrés (gn) + {len(hgp)} pluriels (gp) + {len(hcf)} formes conj → {OUT_HF}  ({sz//1024} Ko)")
     print("        vlike + governor_gender + accord sujet-verbe les chargeront automatiquement.")

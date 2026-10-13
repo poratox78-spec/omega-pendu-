@@ -17,6 +17,7 @@ import os, sys, json, re
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import diag_sentence as D
+import conj_io                                          # ⭐ 13/10/2026 : hors du try du chargement — un import raté doit se VOIR, pas vider la table en silence
 from diag_sentence import deacc, toks, is_verb, is_participle, governor_number, NUM_DET, NUM_PRON, PREP
 
 SENT = json.load(open(os.path.join(HERE, 'sentences.json'), encoding='utf-8'))
@@ -3038,7 +3039,7 @@ CONJ_F, CONJ_C = {}, {}
 CONJ_LOADED = False
 if os.path.exists(_CONJ_PATH):
     try:
-        _cj = json.load(open(_CONJ_PATH, encoding='utf-8'))
+        _cj = conj_io.charger(_CONJ_PATH)                       # ⭐ 13/10/2026 : table COMPACTE — `f` recalculé depuis `c` (dictee/conj_io.py)
         CONJ_F, CONJ_C = _cj.get('f', {}), _cj.get('c', {})
         CONJ_LOADED = bool(CONJ_F)
     except Exception:

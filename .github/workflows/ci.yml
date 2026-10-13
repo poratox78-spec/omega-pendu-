@@ -129,6 +129,8 @@ jobs:
         run: node dictee/imp_probe.js --check
       - name: Clôture de paradigme de la conjugaison embarquée (accord sujet-verbe vérifiable)
         run: python3 dictee/close_conj_paradigm.py --check
+      - name: Aucun fichier au-delà de 25 Mio (limite PAR FICHIER de Cloudflare Pages — sinon le site ne se déploie plus)
+        run: python3 dictee/taille_fichiers_probe.py
       - name: POS-tagger 155k extrait du lexique embarqué (build_pos)
         run: python3 dictee/build_pos.py
       - name: Extension — extraction des lexiques depuis l'app (assets)

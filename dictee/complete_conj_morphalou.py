@@ -46,6 +46,8 @@ build_cgram.py (compact, ensure_ascii=False), aller-retour vérifié octet à oc
     → puis : python3 dictee/inject_vdc.py && python3 extension/build_assets.py
 """
 import gzip, io, json, os, sys, unicodedata
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import conj_io                                   # ⭐ 13/10/2026 : table de conjugaison compacte (index `f` recalculé depuis `c`)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -175,14 +177,14 @@ def main():
     for fn in ('cgram_conj.json', 'cgram_hf.json'):
         p = os.path.join(HERE, fn)
         raw = io.open(p, encoding='utf-8', newline='').read()
-        d = json.loads(raw)
-        if json.dumps(d, ensure_ascii=False, separators=(',', ':')) != raw:
+        d = conj_io.charger(p)                                    # ⭐ 13/10/2026 : table COMPACTE (dictee/conj_io.py) — `f` recalculé à la lecture
+        if conj_io.serialiser(d) != raw:
             raise SystemExit('%s : la sérialisation ne rend pas les mêmes octets — réécrire changerait des octets qu on n a pas touchés' % fn)
         cj = d if fn == 'cgram_conj.json' else d['cj']
         avant = remplissage(cj['c'])
         cases, lect = completer(cj, mor, ppl, spos, lfreq)
         fant = fantomes(cj, tous)
-        out = json.dumps(d, ensure_ascii=False, separators=(',', ':'))
+        out = conj_io.serialiser(d)
         print('%-16s +%d case(s), +%d lecture(s), -%d fantôme(s) · remplissage %s → %s%s' % (fn, cases, lect, fant, avant, remplissage(cj['c']), ' (dry)' if DRY else ''))
         if out != raw and not DRY:
             io.open(p, 'w', encoding='utf-8', newline='').write(out)

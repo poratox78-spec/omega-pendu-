@@ -24,13 +24,20 @@
 - Mesure (produit complet) : UD 14 450 — 3 faux de moins (« Calles » → callent en rouge, « super », « mecha ») ; 3 corpus — 1 orange faux
   et 1 orange inutile de moins ; gold 0. Batterie Python 272 / 285, 0 FP. Gains sur des phrases inventées : « nous rissolent » →
   rissolons, « ils procrastine » → procrastinent, « il fallait que nous vinssent » → vinssions.
-- Coût : la table embarquée passe de 2,2 à 4,9 Mo compressés (app + extension).
+- Poids : la table complète portait trois fichiers à 27-29 Mio. ./dev.sh était vert ; c'est le déploiement de prévisualisation de
+  la PR (Cloudflare Pages, 25 Mio par fichier) qui a échoué. TABLE COMPACTE (dictee/conj_io.py ≡ _cjRebuild dans dys-core et l'app) :
+  l'index des lectures `f` (16 Mio) se recalcule depuis `c` — 372 733 entrées sur 385 916 à l'identique, ordre compris — et le fichier
+  ne garde que les écarts (`fo` 13 183 valeurs exactes, `fd` 13 592 clés retirées). Après chargement, `f` est le même octet pour
+  octet (parité Python ≡ produit par empreinte dans parity_corr.js). Fichiers : 12,1 / 13,8 / 13,8 Mio ; app 15,5 Mo (15,3 avant le
+  lot ; pages du site « ≈ 16 Mo », sw.js) ; zip de l'extension 6,3 Mo. Coût : le recalcul prend ~0,8 s — dans l'extension il se fait PAR TRANCHES de 600 verbes (la page
+  n'est jamais figée plus de ~150 ms), dans l'app et en Python d'un bloc. Garde nouvelle : dictee/taille_fichiers_probe.py (dev.sh +
+  CI) — aucun fichier du dépôt au-delà de 25 Mio.
 - Vu par ./dev.sh, réglé sans seuil de rareté : « patent » (adjectif) lu « pâtent » de pâter → une forme dont la clé désaccentuée
   appartient d'abord à un mot NON verbal plus fréquent ne reçoit pas la lecture (départage, 116 lectures) ; le « e » muet du futur
   de l'orthographe (speller ≡ speller_probe) exige un infinitif VERBE au dictionnaire (« center », nom anglais, faisait de « centras »
   un « centeras » rouge sur une phrase UD) ; couverture_conj_probe : le subjonctif imparfait reçoit son déclencheur (« il fallait
   que »), l'impératif sort de la sonde (pas de sujet) — sur les anciens temps la couverture est égale ou meilleure, ré-ancrée ;
-  non_verbe_acc.json : +2 (préposat, régentat) ; l'app passe de 15 à 19 Mo (pages du site corrigées, sw.js).
+  non_verbe_acc.json : +2 (préposat, régentat).
   Vu dans Chrome (sonde de précision au produit) : « suscita » → suscitèrent sur un texte du corpus frgec — « dés » (pour dès)
   désaccentué devenait l'article « des », le sujet était lu pluriel et, maintenant que « susciter » a son passé simple, la vigilance
   OS-sujet proposait le pluriel ; même cause, rouge faux ANCIEN : « il est parti dés lundi » → lundis. « dés » / « dès » accentué coupe

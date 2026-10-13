@@ -424,18 +424,32 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 13/10/2026 — TABLE COMPACTE (dictee/conj_io.py) : les fichiers ne portent plus l'index `f` en clair, il se recalcule depuis `c`.
+   _cjR = le recalcul du PRODUIT (dys-core), utilisé ici pour lire les tables comme le moteur les lit. */
+const _cjR = (() => { const prev = global.DYSCORE; require(path.join(__dirname, '..', 'extension', 'dys-core.js')); const f = global.DYSCORE.cjRebuild; global.DYSCORE = prev; return f; })();
+
 /* ⭐ 13/10/2026 — conjugaison 14 : la table COMPLÈTE (Rem : un verbe est un verbe, un temps est un temps) — tous les verbes de Morphalou,
    le passé simple à toutes les personnes, le subjonctif imparfait, l'impératif ; ce qui n'entre pas, et pourquoi : une forme que l'usage ne
    lit jamais comme verbe (piétons, habitat), le futur d'ouïr (« orrai » sonne « aurai »). Python : dictee/complete_conj_morphalou.py. */
 { let _kc14 = 0;
   for (const fn of ['cgram_conj.json', 'cgram_hf.json']) {
-    let J = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')); if (J.cj) J = J.cj;
+    let J = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')); if (J.cj) J = J.cj; J = _cjR(J);
     const C = J.c, F = J.f, cel = (l, t, s) => ((C[l] || {})[t] || {})[s];
     if (Object.keys(C).length < 12000) { _kc14++; console.log('✗ conjugaison 14 : ' + fn + ' — ' + Object.keys(C).length + ' verbes seulement (tous ceux de Morphalou attendus)'); }
     for (const [l, t, s, f] of [['rissoler', 'ind:pre', '1p', 'rissolons'], ['manger', 'ind:pas', '2p', 'mangeâtes'], ['venir', 'sub:imp', '1p', 'vinssions'], ['manger', 'imp:pre', '2s', 'mange']])
       if (cel(l, t, s) !== f) { _kc14++; console.log('✗ conjugaison 14 : ' + fn + ' — ' + l + ' ' + t + ' ' + s + ' = ' + JSON.stringify(cel(l, t, s)) + ', attendu ' + f); }
     for (const k of ['pietons', 'habitat', 'contrat', 'orrai'])
       if (F[k] && /pieter|habiter|contrer|ouir/.test(F[k])) { _kc14++; console.log('✗ conjugaison 14 : ' + fn + ' — « ' + k + ' » porte une lecture verbale (' + F[k] + ')'); } }
+  { // TABLE COMPACTE : le recalcul de `f` est le MÊME en Python (conj_io.reconstruire) et dans le produit (dys-core _cjRebuild)
+    const crypto = require('crypto'), cp = require('child_process');
+    const h = (F) => crypto.createHash('sha1').update(JSON.stringify(Object.keys(F).sort().map(k => [k, F[k]]))).digest('hex');
+    for (const fn of ['cgram_conj.json', 'cgram_hf.json']) {
+      let J = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')); if (J.cj) J = J.cj;
+      if (J.f) { _kc14++; console.log('✗ table compacte : ' + fn + " porte encore l'index `f` en clair (plus de 25 Mio : le site ne se déploie plus)"); continue; }
+      const py = cp.execFileSync('python3', ['-c', "import sys,json,hashlib;sys.path.insert(0,sys.argv[1]);import conj_io;d=conj_io.charger(sys.argv[2]);F=(d['cj'] if 'cj' in d else d)['f'];"
+        + "print(hashlib.sha1(json.dumps([[k,F[k]] for k in sorted(F)],ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest())", __dirname, path.join(__dirname, fn)],
+        { encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) }).trim();
+      if (h(_cjR(J).f) !== py) { _kc14++; console.log('✗ table compacte : ' + fn + ' — le recalcul de `f` diffère entre Python (conj_io) et le produit (dys-core)'); } } }
   for (const [ph, w, sg] of [['Nous rissolent les pommes de terre.', 'rissolent', 'rissolons'], ['Ils procrastine toujours devant leurs devoirs.', 'procrastine', 'procrastinent'],
                              ['Il fallait que nous vinssent plus tôt.', 'vinssent', 'vinssions']]) {
     const got = corr(ph).filter(f => f.word === w);
@@ -506,7 +520,7 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
    « j'as », « j'a » → j'ai. Python : rule_jest. */
 { let _kc8 = 0;
   for (const fn of ['cgram_conj.json', 'cgram_hf.json']) {
-    let J = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')); if (J.cj) J = J.cj;
+    let J = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')); if (J.cj) J = J.cj; J = _cjR(J);
     for (const [k, r] of [['vus', 'voir;ind:pre;1;s'], ['vus', 'voir;ind:pre;2;s'], ['dit', 'dire;ind:fut;3;s'], ['suis', 'etre;ind:pre;2;s'], ['as', 'avoir;ind:pre;1;s']])
       if (String(J.f[k] || '').split('|').includes(r)) { _kc8++; console.log('✗ conjugaison 8 : ' + fn + ' porte encore la lecture fantôme ' + k + ' = ' + r); }
     for (const [k, r] of [['vois', 'voir;ind:pre;1;s'], ['dit', 'dire;ind:pre;3;s'], ['suis', 'etre;ind:pre;1;s'], ['as', 'avoir;ind:pre;2;s'], ['sortais', 'sortir;ind:imp;1;s']])

@@ -512,7 +512,7 @@
   var _CONJ_FIX={'vouloir|ind:imp|1s':'voulais'};   // COQUILLE DE LEXIQUE 4 : une ligne source donne « soulais » (un « v » lu « s ») comme 1re du singulier de l'imparfait de VOULOIR. DÉCLARÉE ICI, avec les tables qu'elle répare : plus bas, l'amorce SYNCHRONE de l'app l'aurait lue « undefined » (un var n'est hoisté qu'en nom) et la réparation n'aurait rien fait, sans un mot. Miroir Python _CONJ_FIX.
  
   var _GACC={};   // genre ACCENTUÉ (assets/gender-acc.json.gz, miroir app gacc-lex-gz) — consulté INCONDITIONNELLEMENT par _nounGender, comme GENDER_ACC en Python. Table À PART, jamais unionnée dans GENDER_PURE.
-  function _applyVdc(vd){/* ⭐ 25/09/2026 — PONT VERS LA POLICE DE SON.  est chargé comme script SÉPARÉ par son_panel.js : il ne voit PAS cette fermeture, donc il retombait sur la liste de 582 mots pour le « -ent » des verbes (7 % des cas) alors que la table est déjà chargée ici. On la publie, il la lit si elle est là. */try{ if(typeof self!=="undefined") self.__OMEGA_CJ=(vd&&vd.cj)||null; }catch(e){}BCLF=vd.bclf||null;(vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=vd.g||{};GENDER_PURE=vd.gn||{};ADJP=vd.a||{};var cj=vd.cj||{};CONJ_F=cj.f||{};CONJ_C=cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);NOUN_PLURAL={};(vd.gp||[]).forEach(function(w){NOUN_PLURAL[w]=1;});var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];}   // GENRE noms en œ manquants du lexique gn (débloque « mon soeur »→ma sœur). FP=0, union. Miroir app + Python.
+  function _applyVdc(vd){if(vd&&vd.cj&&!vd.cj.f)vd.cj=_cjRebuild(vd.cj);   /* table compacte : `f` recalculé (13/10/2026) *//* ⭐ 25/09/2026 — PONT VERS LA POLICE DE SON.  est chargé comme script SÉPARÉ par son_panel.js : il ne voit PAS cette fermeture, donc il retombait sur la liste de 582 mots pour le « -ent » des verbes (7 % des cas) alors que la table est déjà chargée ici. On la publie, il la lit si elle est là. */try{ if(typeof self!=="undefined") self.__OMEGA_CJ=(vd&&vd.cj)||null; }catch(e){}BCLF=vd.bclf||null;(vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=vd.g||{};GENDER_PURE=vd.gn||{};ADJP=vd.a||{};var cj=vd.cj||{};CONJ_F=cj.f||{};CONJ_C=cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);NOUN_PLURAL={};(vd.gp||[]).forEach(function(w){NOUN_PLURAL[w]=1;});var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];}   // GENRE noms en œ manquants du lexique gn (débloque « mon soeur »→ma sœur). FP=0, union. Miroir app + Python.
   // PRÉNOMS + GENRE (assets/prenoms.tsv.gz, DÉRIVÉ du blob prenoms-gz de l'app par build_assets).
   // nom -> [genre, tete_de_phrase_interdite]. Débloque « Marie est venu »→venue. Miroir app + Python.
   var PRENOMS={};
@@ -1617,6 +1617,22 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
   var CLITIC={};['ne','me','te','se','le','la','les','lui','leur','y','en','nous','vous',"l'","m'","t'","s'","n'"].forEach(function(w){CLITIC[w]=1;});
   function _verb3pOnly(w){if(!w)return false;var r=svReads(w),k,p=false,s=false;for(k=0;k<r.length;k++){if(r[k][2]==='3'&&r[k][3]==='p')p=true;if(r[k][2]==='3'&&r[k][3]==='s')s=true;}return p&&!s;}   /* ⭐ 11/09/2026 : 3e pluriel sans lecture 3e singulier (« ont », « mangent ») = témoin de pluriel. Miroir Python _verb_3p_only. */
 function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[],a=s.split('|'),k,f;for(k=0;k<a.length;k++){f=a[k].split(';');if(f.length===4)r.push(f);}return r;}
+  /* ⭐ 13/10/2026 (conjugaison 14) — TABLE COMPACTE : la table complète dépassait 25 Mio par fichier (limite de Cloudflare Pages,
+     le site ne se déployait plus). L'index des lectures `f` se RECALCULE depuis `c` (372 733 entrées sur 385 916, ordre compris) ;
+     le fichier ne garde que les écarts : `fo` (valeur exacte) et `fd` (clés retirées). Après chargement, `f` est identique.
+     Miroir Python dictee/conj_io.py (reconstruire) ; parité gardée par dictee/parity_corr.js. */
+  function _cjPas(C,ls,a0,a1,L){var H=Object.prototype.hasOwnProperty,NA=/[^\x00-\x7f]/,n,l,t,s,a,i,k,r,o,tp,sl,fo,f;   // NA LOCALE : l'app charge la table avant d'atteindre un « var » de module (vu : IIFE en échec)   // les lemmes ls[a0..a1) → L (clé → lectures)
+    for(n=a0;n<a1;n++){l=ls[n];tp=C[l];for(t in tp){if(t==='imp:pre')continue;sl=tp[t];for(s in sl){fo=sl[s];a=Array.isArray(fo)?fo:[fo];r=[l,t,s.charAt(0),s.charAt(1)].join(';');   // join : chaîne PLATE (une concaténation laisse un arbre de « cons strings » : +45 Mo mesurés)
+      for(i=0;i<a.length;i++){if(!a[i])continue;f=String(a[i]).toLowerCase();k=NA.test(f)?deacc(f):f;o=H.call(L,k)?L[k]:undefined;   // clé ASCII : déjà sans accent (miroir Python isascii)
+        if(o===undefined)L[k]=[r];else if(o.indexOf(r)<0)o.push(r);}}}}}
+  function _cjFin(cj,L){var H=Object.prototype.hasOwnProperty,D={},k,i;for(k in L)D[k]=L[k].join('|');
+    var fo2=cj.fo||{},fd=cj.fd||[];for(k in fo2)if(H.call(fo2,k))D[k]=fo2[k];for(i=0;i<fd.length;i++)delete D[fd[i]];
+    var out={f:D};for(k in cj)if(H.call(cj,k)&&k!=='fo'&&k!=='fd')out[k]=cj[k];return out;}
+  function _cjRebuild(cj){if(!cj||cj.f||!cj.c)return cj;var L={},ls=Object.keys(cj.c);_cjPas(cj.c,ls,0,ls.length,L);return _cjFin(cj,L);}
+  /* même calcul PAR TRANCHES (~0,8 s en tout, mesuré) : le script de contenu tourne dans chaque page — d'un bloc, il la figeait ; par
+     tranches de 600 verbes, la page reste fluide. Résultat identique (mêmes fonctions, même ordre des lemmes). */
+  function _cjRebuildAsync(cj){if(!cj||cj.f||!cj.c)return Promise.resolve(cj);var L={},ls=Object.keys(cj.c),n=0;
+    return new Promise(function(res){(function pas(){var m=Math.min(ls.length,n+600);_cjPas(cj.c,ls,n,m,L);n=m;if(n<ls.length)setTimeout(pas,0);else res(_cjFin(cj,L));})();});}
   function _fillReg3pl(cjc,cjf){var _REG3PL=[['ind:imp','ait','aient'],['cnd:pre','ait','aient'],['ind:fut','ra','ront']];for(var lem in cjc){for(var t=0;t<_REG3PL.length;t++){var mt=_REG3PL[t][0],s3=_REG3PL[t][1],p3=_REG3PL[t][2],slot=cjc[lem][mt];if(!slot)continue;var f3s=slot['3s'];if(Array.isArray(f3s))f3s=f3s[0];if(!f3s||slot['3p']||f3s.slice(-s3.length)!==s3)continue;var f3p=f3s.slice(0,-s3.length)+p3;slot['3p']=f3p;var key=deacc(f3p.toLowerCase()),rd=lem+';'+mt+';3;p',cur=cjf[key];if(!cur)cjf[key]=rd;else if(cur.indexOf(rd)<0)cjf[key]=cur+'|'+rd;}}
     /* ⛔ COQUILLE DE LA SOURCE, réparée ICI : c'est le SEUL point que toutes les voies de chargement
        traversent (l'app en a deux). Le 14/09 le correctif ne vivait que dans `sujFlexVig` côté JS —
@@ -6199,7 +6215,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     if(_loading)return _loading;
     _loading=(async function(){
       try{
-        var vd=await (await fetch(urls.vdc)).json();_applyVdc(vd);
+        var vd=await (await fetch(urls.vdc)).json();if(vd&&vd.cj&&!vd.cj.f)vd.cj=await _cjRebuildAsync(vd.cj);_applyVdc(vd);   // table compacte : `f` recalculé PAR TRANCHES (13/10/2026)
         if(urls.genderRelaxed){
           var gz=await (await fetch(urls.genderRelaxed)).arrayBuffer();
           var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
@@ -6276,6 +6292,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, setPrenoms:setPrenoms, loadPrenoms:loadPrenoms, setGaccLex:setGaccLex, loadGaccLex:loadGaccLex, osProbe:osProbe, cesProbe:cesProbe,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
+    cjRebuild:_cjRebuild,   // ⭐ 13/10/2026 : table de conjugaison compacte (police/parity_son.js, parity_corr.js)
     setAuteur:setAuteur, getAuteur:getAuteur,   // ⭐ 01/10/2026 : réglage « j'écris au féminin / au masculin » (panneau, chrome.storage.local)
     udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel,  // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
     udMot:udMot,  // le mot que le 📗 « ce mot est correct » enregistre (radical d'un mot élidé), ou null — lu par la bulle et le panneau

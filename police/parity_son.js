@@ -56,6 +56,7 @@ let DECL2;
 globalThis.CONJ_F = {}; globalThis.CONJ_C = {};
 try {
   const _vdc = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'extension', 'assets', 'vdc-lex.json'), 'utf8'));
+  if (_vdc.cj && !_vdc.cj.f) { require(path.join(HERE, '..', 'extension', 'dys-core.js')); _vdc.cj = global.DYSCORE.cjRebuild(_vdc.cj); }   // ⭐ 13/10/2026 : table de conjugaison compacte — `f` recalculé comme dans le produit
   globalThis.CONJ_F = (_vdc.cj && _vdc.cj.f) || {}; globalThis.CONJ_C = (_vdc.cj && _vdc.cj.c) || {};
 } catch (e) { fail.push('vdc-lex.json illisible : les ancres -ent ne mesureraient rien (' + e.message + ')'); }
 try { DECL2 = (0, eval)(html.slice(i0 + 'var _DECL2 = '.length, iEnd)); }
