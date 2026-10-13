@@ -6739,6 +6739,56 @@ def rule_subjonctif(T, i):
     return _keepcase(w, f)
 
 
+_IMPS_INV_ADV = frozenset('ensuite alors enfin puis aussi maintenant bientot deja soudain'.split())
+_IMPS_INV_V = frozenset('venir revenir survenir suivre apparaitre paraitre naitre partir sortir arriver commencer'.split())
+_IMPS2 = frozenset(('ton', 'ta', 'tes', 'toi', 'te'))
+_IMPS2P = frozenset(('votre', 'vos', 'vous'))
+_IMPS_SPEC = {'etre': ('sois', 'soyez'), 'avoir': ('aie', 'ayez'), 'savoir': ('sache', 'sachez'), 'vouloir': ('veuille', 'veuillez'), 'aller': ('va', 'allez')}
+_IMPS_PRON = frozenset(('moi', 'toi', 'lui', 'le', 'la', 'les', 'leur', 'nous', 'vous'))
+
+
+def rule_imperatif_seul(T, i):
+    """⭐ 13/10/2026 — l'impératif sans trait d'union (orange) : « Manges ta soupe » → Mange, « Prend ton manteau » → Prends, « Vas à
+    l'école » → Va, « Mangé vos légumes » → Mangez. Miroir JS rImperatifSeul."""
+    w = T[i]; lw = w.lower(); d = deacc(lw)
+    if "'" in lw or i + 1 >= len(T) or d == 'a': return None   # « a » / « à » : jamais
+    bb = (_SEG or {}).get('bb') or []; hyl = (_SEG or {}).get('hy') or []
+    if not (i == 0 or (i < len(bb) and bb[i])): return None
+    hy = bool(i + 1 < len(hyl) and hyl[i + 1]); n1 = deacc(T[i + 1].lower())
+    if hy and n1 not in _IMPS_PRON: return None
+    if d == 'vas':
+        if n1 == 'y' or hy: return None
+        return _keepcase(w, 'va')
+    c2 = hy; c2p = False
+    for k in range(i + 1, min(len(T), i + 5)):
+        if k < len(bb) and bb[k]: break
+        dk = deacc(T[k].lower())
+        if dk in SUBJ_PRON and not (k == i + 1 and hy): return None
+        if dk in _IMPS2 or re.match(u"^t['’]", T[k].lower()): c2 = True
+        if dk in _IMPS2P: c2p = True
+    if n1 == 'attention': c2 = True
+    if n1 in _IMPS_INV_ADV: return None
+    if c2p:
+        if not lw.endswith(u'é'): return None
+        f2 = ((CONJ_C.get(d[:-1] + 'er') or {}).get('ind:pre') or {}).get('2p')
+        return _keepcase(w, f2) if f2 and f2.lower() != lw else None
+    if not c2: return None
+    _spf = {'soit': 'sois', 'soi': 'sois', 'aies': 'aie', 'ayes': 'aie', 'ait': 'aie', 'ai': 'aie'}.get(d)
+    if _spf: return _keepcase(w, _spf)
+    rd = [r for r in _reads(d) if r[1] == 'ind:pre' and r[3] == 's']
+    lems = {r[0] for r in rd}; pn = {r[2] for r in rd}
+    if len(lems) != 1 or not (pn & {'2', '3'}): return None
+    L = next(iter(lems))
+    if L in _IMPS_INV_V and (n1 in _IMPS2 or n1 in NUM_DET): return None
+    imp = _IMPS_SPEC[L][0] if L in _IMPS_SPEC else None
+    if not imp:
+        f2 = ((CONJ_C.get(L) or {}).get('ind:pre') or {}).get('2s')
+        if not f2: return None
+        imp = f2[:-1] if f2.endswith('es') else f2
+    if imp.lower() == lw or deacc(imp.lower()) == d: return None
+    return _keepcase(w, imp)
+
+
 def _protase_conj(T, s0):
     t = deacc(T[s0].lower()); n = deacc(T[s0 + 1].lower()) if s0 + 1 < len(T) else ''
     if t == 'si' or re.match(u"^s['’]ils?$", t): return ('si', s0 + 1)
@@ -7384,7 +7434,7 @@ RULES = [('élision inversée', rule_deselide),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
-         ('davantage', rule_davantage), ('conditionnel à vérifier', rule_cond_si), ('temps du verbe à vérifier', rule_temps_protase), ('subjonctif à vérifier', rule_subjonctif), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('davantage', rule_davantage), ('conditionnel à vérifier', rule_cond_si), ('temps du verbe à vérifier', rule_temps_protase), ('impératif à vérifier', rule_imperatif_seul), ('subjonctif à vérifier', rule_subjonctif), ('mot-outil à vérifier', rule_homophone_mo), ('petit mot après le sujet à vérifier', rule_apres_sujet), ('expression figée à vérifier', rule_fige), ('mot soudé à vérifier', rule_soude), ('plutôt / plus tôt à vérifier', rule_plutot), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_vous_irr), ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
