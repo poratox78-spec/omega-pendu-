@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-10-13 — conjugaison 13 : le clitique élidé collé au verbe
+
+- Point d'étape (question de Rem) : la table de conjugaison compte 5 926 verbes, remplie par Morphalou à 97,6 % (présent), 92,4
+  (imparfait), 94,3 (futur), 94,8 (conditionnel), 88,2 (subjonctif), 45,7 (passé simple : je / il / ils des verbes courants, voulu) —
+  contre 42,6 % avec Lexique seul. Morphalou compte 13 476 verbes ; les 7 675 absents de la table sont rares ou des noms propres (harper,
+  fraser, escher) : la piste « plus de verbes » est épuisée. Retour aux muets du gold.
+- Sondage (phrases inventées sur le modèle des muets du gold) : « les élèves n'écoute pas », « les rideaux l'abrite », « les gens n'utilise
+  pas » étaient muets alors que « les enfants ne mange pas » était corrigé — rAccordSVnoun saute tout mot à apostrophe.
+- `rAccordSVnounElid` ≡ `rule_accord_sv_noun_elid` (rouge, 3 moteurs) : le verbe seul passe dans rAccordSVnoun (mêmes gardes), le
+  clitique n' / l' / m' / t' / s' est recollé si la correction commence par une voyelle ou un h.
+- Mesure : gold +1 réparé rouge (n'utilise → n'utilisent), le même dans les 3 corpus ; UD 14 450 : 1 marque, une vraie faute du corpus
+  (« l'annulation de ces Jeux l'obligent » → l'oblige). Batterie Python 272 / 285, 0 FP, 87 pièges muets.
+- Tests : `parity_corr.js` (3 prises, 3 silences ; 3 échecs sur l'ancien code) ; `parity_core.js` (rouge ; 1 échec).
+
+---
+
 ## 2026-10-13 — conjugaison 12 : l'impératif sans trait d'union
 
 - Sondage (phrases inventées) : seul « Donnes-moi » était corrigé (rImperatif, trait d'union). « Manges ta soupe », « Prend ton manteau »,

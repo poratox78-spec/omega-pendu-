@@ -908,6 +908,15 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 13/10/2026 (conjugaison 13) — produit entier : le clitique élidé collé au verbe, accord avec le sujet nominal en ROUGE.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c13 = 0;
+  const m = fl("Les pompiers n'arrive pas à temps.").find(x => x.word === "n'arrive");
+  if (!m || m.sugg !== "n'arrivent" || m.tier !== 'auto') { _c13++; console.log("  ✗ conjugaison 13 : « n'arrive » → « n'arrivent » en ROUGE attendu, obtenu " + JSON.stringify(m || null)); }
+  if (fl("Le pompier n'arrive pas à temps.").some(x => x.word === "n'arrive")) { _c13++; console.log("  ✗ conjugaison 13 : « le pompier n'arrive » doit rester muet"); }
+  if (_c13) { console.log('PARITÉ KO — conjugaison 13 : ' + _c13 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 13 : clitique élidé collé au verbe, accord en rouge"); }
+
 // ⭐ 13/10/2026 (conjugaison 12) — produit entier : l'impératif sans trait d'union en ORANGE.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
   let _c12 = 0;
