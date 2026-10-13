@@ -49,13 +49,15 @@ def _phrase(sujet, forme, temps):
     Le subjonctif reçoit son déclencheur (« il faut que »), sinon la forme est jugée à l'indicatif."""
     if temps == 'sub:pre':
         return 'Il faut que ' + sujet + ' ' + forme + ' souvent.'
+    if temps == 'sub:imp':                                                     # ⭐ 13/10/2026 (conjugaison 14) : le subjonctif imparfait, avec son déclencheur au passé
+        return 'Il fallait que ' + sujet + ' ' + forme + ' souvent.'
     return sujet[0].upper() + sujet[1:] + ' ' + forme + ' souvent.'
 
 
 def mesurer(detail=False):
     if not CP.CONJ_C:
         return None, 'tables de conjugaison absentes'
-    temps_tous = sorted({t for d in CP.CONJ_C.values() for t in d},
+    temps_tous = sorted({t for d in CP.CONJ_C.values() for t in d if t != 'imp:pre'},   # ⭐ conjugaison 14 : l'impératif n'a pas de sujet — hors de cette sonde (sujet × temps)
                         key=lambda t: -sum(1 for d in CP.CONJ_C.values() if t in d))
     res = collections.defaultdict(lambda: [0, 0])
     rates = collections.defaultdict(list)

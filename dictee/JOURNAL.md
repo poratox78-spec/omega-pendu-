@@ -5,6 +5,55 @@
 
 ---
 
+## 2026-10-13 — conjugaison 14 : la table complète (tous les verbes, tous les temps)
+
+- Rem (paraphrase), après mon « les 7 675 verbes absents sont rares, piste épuisée » : encore une histoire de rareté, ça nous a déjà coûté
+  cher ; un verbe est un verbe et doit être traité comme tel, idem pour les temps.
+- dictee/complete_conj_morphalou.py : TOUS les verbes de Morphalou (5 926 → 12 925 dans la table), le passé simple à toutes les personnes
+  sans seuil de fréquence (45,7 → 90,8 % des cases), le subjonctif imparfait (96 %) et l'impératif (82,5 %) entrent comme temps ; plus de
+  liste d'archaïques. +347 360 cases, +314 228 lectures ; idempotent.
+- Ce qui reste hors lecture, et pourquoi (jamais la rareté) : une forme que l'usage ne lit jamais comme VERBE (P(verbe) < 1 % dans
+  cgram_noun_post.json — « piétons » de piéter, « habitat » subjonctif imparfait d'habiter, « contrat » : 101 lectures, la fréquence
+  départage nom et verbe, elle n'exclut pas un verbe) ; le futur et le conditionnel d'ouïr (« orrai » sonne « aurai ») ; les formes de
+  l'impératif (déjà lues au présent et au subjonctif) ; un subjonctif imparfait dont la clé désaccentuée existe déjà (« fût » / « fut ») ;
+  deux lemmes à une seule clé désaccentuée (réformer / reformer — la clé ne porte qu'un paradigme).
+- La mesure de la table seule a montré 5 faux nouveaux, chacun réglé par une garde ciblée : « piétons » → piètent et « contrat » (le
+  départage nom / verbe ci-dessus) ; « orrai » (ouïr) ; « allez vite » → voir (semiInfVig ≡ rule_inf_semi_aux : un adverbe n'est pas un
+  verbe, et le repli « + s » ne passe plus par le passé simple — « vîtes ») ; « … yuan houa tchouan » → houèrent (sujFlexVig ≡
+  rule_sujet_flexion : un passé simple seul entouré d'un mot inconnu du dictionnaire est un mot étranger).
+- Mesure (produit complet) : UD 14 450 — 3 faux de moins (« Calles » → callent en rouge, « super », « mecha ») ; 3 corpus — 1 orange faux
+  et 1 orange inutile de moins ; gold 0. Batterie Python 272 / 285, 0 FP. Gains sur des phrases inventées : « nous rissolent » →
+  rissolons, « ils procrastine » → procrastinent, « il fallait que nous vinssent » → vinssions.
+- Coût : la table embarquée passe de 2,2 à 4,9 Mo compressés (app + extension).
+- Vu par ./dev.sh, réglé sans seuil de rareté : « patent » (adjectif) lu « pâtent » de pâter → une forme dont la clé désaccentuée
+  appartient d'abord à un mot NON verbal plus fréquent ne reçoit pas la lecture (départage, 116 lectures) ; le « e » muet du futur
+  de l'orthographe (speller ≡ speller_probe) exige un infinitif VERBE au dictionnaire (« center », nom anglais, faisait de « centras »
+  un « centeras » rouge sur une phrase UD) ; couverture_conj_probe : le subjonctif imparfait reçoit son déclencheur (« il fallait
+  que »), l'impératif sort de la sonde (pas de sujet) — sur les anciens temps la couverture est égale ou meilleure, ré-ancrée ;
+  non_verbe_acc.json : +2 (préposat, régentat) ; l'app passe de 15 à 19 Mo (pages du site corrigées, sw.js).
+  Vu dans Chrome (sonde de précision au produit) : « suscita » → suscitèrent sur un texte du corpus frgec — « dés » (pour dès)
+  désaccentué devenait l'article « des », le sujet était lu pluriel et, maintenant que « susciter » a son passé simple, la vigilance
+  OS-sujet proposait le pluriel ; même cause, rouge faux ANCIEN : « il est parti dés lundi » → lundis. « dés » / « dès » accentué coupe
+  le groupe sujet (_npSubject ≡ _np_subject) et n'est pas un déterminant (rNounPlural ≡ rule_noun_plural, pluralVig, osVerbVig).
+- ⚠️ ERREUR DE MESURE, la mienne : mes bancs du labo (gold, 3 corpus, UD) ne chargeaient PAS le modèle OS-sujet depuis le catalogue du
+  29/09 — la famille orange « accord verbe à vérifier » était invisible à tous mes « 0 changement » ; seul ./dev.sh (précision au
+  produit dans Chrome, par plancher) la voyait. Bancs corrigés et gardés (un banc s'arrête si le produit expose une table que le banc
+  ne charge pas). Re-mesure 28/09 → aujourd'hui, modèle chargé : la famille a gagné 8 marques inutiles sur les corpus et 10 sur UD, 0 juste —
+  des passés simples devenus lisibles (« empêcha » → empêchèrent), décidés par les seuls voisins alors que le modèle de langue n'entend
+  AUCUNE des deux formes. Au passage, défaut ancien : le bout de chaîne remettait la suggestion de l'orange au mot écrit, et le produit
+  affichait « pensent → pensent » (« Certains pensent que… »).
+- Correctifs (audit, 3 moteurs) : osVerbVig ≡ os_subject_probe — modèle de langue muet + voisins seuls → silence ; diagnoseAll — une
+  orange réfutée par le rouge est retirée (miroir dys_precision_probe). Mesure (produit complet, modèle chargé) : 3 corpus — 57 marques
+  inutiles de la famille en moins, 12 marques vides en moins, 2 suggestions d'orthographe fausses → justes ; UD — 51 marques en moins ;
+  0 juste perdue ; banc fp_scale (1 500 phrases correctes) : 15 → 8. Une variante qui gardait la route « N et N » a été rejetée :
+  ses 9 marques en plus étaient toutes fausses.
+- Tests : `parity_corr.js` (garde de la table complète, 3 prises, 2 silences ; 11 échecs sur l'ancien état ; les gardes de remplissage
+  des conjugaisons 1 et 2 passent en nombre de CASES — le pourcentage ne se compare plus depuis que la table a doublé) ; `parity_core.js` ;
+  `parity_os.js` — le SEUL banc qui charge le modèle OS : 4 silences « modèle muet », 2 oranges réfutées, miroir de l'app (7 échecs sur
+  l'ancien état).
+
+---
+
 ## 2026-10-13 — conjugaison 13 : le clitique élidé collé au verbe
 
 - Point d'étape (question de Rem) : la table de conjugaison compte 5 926 verbes, remplie par Morphalou à 97,6 % (présent), 92,4

@@ -100,6 +100,33 @@ for (const [ph, att] of _DOIT_TIRER) {
 }
 if (_pp) { console.log('PARITÉ OS KO — ' + _pp + ' cas de sujet postposé.'); process.exit(1); }
 
+/* ⭐ 13/10/2026 — AUDIT. Ce banc est le SEUL qui charge le modèle OS-sujet (parity_corr.js et parity_core.js ne le chargent pas) :
+   les tests de la famille « accord verbe à vérifier » vivent ICI. Re-mesure faite avec le modèle chargé, 3 corpus dys + UD :
+   ① quand le modèle de langue n'entend AUCUNE des deux formes du verbe, les voisins seuls (le mot à nombre le plus proche) ne prouvent
+     rien — 0 juste sur 61 marques ; ce sont surtout les passés simples que la table complète rend lisibles (« empêcha » → empêchèrent) ;
+   ② une orange que la grammaire rouge ramène au mot ÉCRIT est réfutée : le produit affichait « pensent → pensent » (bout de chaîne). */
+let _au = 0;
+for (const [ph, w] of [['Le roi convoqua les ducs du royaume et même empêcha la guerre.', 'empêcha'],
+                       ['Le comte reçut les envoyés des princes et même baptisa leurs fils.', 'baptisa'],
+                       ['La troupe joua devant les seigneurs du pays et même gagna leurs faveurs.', 'gagna'],
+                       ['Puis, il écrit et co-scénarise un court film.', 'scénarise']]) {
+  const a = appProbe(ph).filter(f => f.word === w).map(f => f.sugg), e = D.osProbe(ph).filter(f => f.word === w).map(f => f.sugg);
+  if (a.length || e.length) { _au++; console.log('✗ AUDIT OS (modèle muet) : ' + JSON.stringify(ph) + ' — « ' + w + ' » est juste, rien ne doit être proposé — app ' + JSON.stringify(a) + ' ext ' + JSON.stringify(e)); }
+}
+{ delete global.DYSCORE; delete require.cache[require.resolve(path.join(EXT, 'dys-core.js'))]; require(path.join(EXT, 'dys-core.js'));
+  const DF = global.DYSCORE, A = (f) => fs.readFileSync(path.join(EXT, 'assets', f)), gz = (f) => zlib.gunzipSync(A(f)).toString('utf8');
+  DF.setLex(JSON.parse(A('vdc-lex.json').toString('utf8')), gz('gender-relaxed.tsv.gz'), gz('speller.tsv.gz'));   // le PRODUIT complet : le bout de chaîne vit dans diagnoseAll
+  DF.setPrenoms(gz('prenoms.tsv.gz')); DF.setNounPost(gz('noun-post.txt.gz')); DF.setPosHmm(JSON.parse(gz('pos-hmm.json.gz')));
+  DF.setGaccLex(gz('gender-acc.json.gz')); DF.setOsLm(JSON.parse(gz('os-subj-lm.json.gz')));
+  for (const [ph, w] of [['Certains pensent que la course est trop dure.', 'pensent'], ['Plusieurs estiment que le pont coûte cher.', 'estiment']]) {
+    const got = DF.diagnoseAll(ph).flags.filter(f => f.word === w).map(f => f.sugg + '[' + f.name + ']');
+    if (got.length) { _au++; console.log('✗ AUDIT orange réfutée : ' + JSON.stringify(ph) + ' — « ' + w + ' » est juste, eu ' + JSON.stringify(got)); } }
+  /* l'app : sa liste s'appelle `list` (pas `flags`) — un premier port copié tel quel y lançait une ReferenceError et la page ne marquait
+     plus rien (vu par navigateur_probe : délai dépassé). Ce banc n'exécute pas _computeCorrs ; navigateur_probe (dev.sh) l'exécute. */
+  if ((html.match(/list=list\.filter\(function\(f\)\{return !f\._refute;\}\)/g) || []).length !== 1 || /flags=flags\.filter\(function\(f\)\{return !f\._refute;\}\)/.test(html)) {
+    _au++; console.log("✗ AUDIT orange réfutée : l'app doit retirer l'orange réfutée de SA liste (`list`), comme dys-core de `flags`"); } }
+if (_au) { console.log('PARITÉ OS KO — ' + _au + ' cas « audit ».'); process.exit(1); }
+
 // comparaison
 const nPy = norm(py), nExt = norm(extFlags), nApp = norm(appFlags);
 const okExt = nPy === nExt, okApp = nPy === nApp;

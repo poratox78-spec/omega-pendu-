@@ -2832,7 +2832,7 @@ function estQuestion(t,maxMots){
   function _auxSur(w,adj){var d=deacc(w.toLowerCase());return /^[aeiouy]/.test(d)||(adj?!!_ADJ_ANTE_M[w.toLowerCase()]:_nounGender(w,'s')==='f');}
   function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
     var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&(PLURAL_DET[deacc(T[i-2].toLowerCase())]||_PL_DET_X[deacc(T[i-2].toLowerCase())]))_pd=deacc(T[i-2].toLowerCase());
-    if(/^(dès|lès)$/i.test(_pd===deacc(T[i-1].toLowerCase())?T[i-1]:T[i-2]))return null;   // ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE (accents ôtés avant la comparaison)   // ⑤-b (13/09/2026) : traversée d'UN adjectif antéposé (« les prochaines demande ») — miroir Python
+    if(/^(dès|dés|lès)$/i.test(_pd===deacc(T[i-1].toLowerCase())?T[i-1]:T[i-2]))return null;   // ⭐ 13/10/2026 (conjugaison 14) : + « dés » (« il est parti dés lundi » → lundis en ROUGE)   // ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE (accents ôtés avant la comparaison)   // ⑤-b (13/09/2026) : traversée d'UN adjectif antéposé (« les prochaines demande ») — miroir Python
     var _card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
     var _px=_PL_DET_X[_pd];if(!PLURAL_DET[_pd]&&!_card&&!_px)return null;
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
@@ -3237,7 +3237,7 @@ function estQuestion(t,maxMots){
       for(j=lo;j<a-1;j++){var _dj=deacc(T[j].toLowerCase());if(_dj==='et'||_dj==='ou'||_dj==='ni'||_dj==='and'){_co=true;break;}}
       var _pv=(a-2>=lo)?deacc(T[a-2].toLowerCase()):'',_nu=(a-2>=lo)&&(PREP[_pv]||NUM_DET[_pv]||(a-2>lo&&/^[A-ZÀ-Þ]/.test(T[a-2])));   /* ⭐ 11/09/2026 : pas un prénom NU derrière une préposition (« de MARS »), un déterminant (« Les DENIS ») ou un autre nom propre (« Di ROSA ») — 3 rouges ont→a sur texte correct. Miroir Python. */
       if(!_co&&!_nu&&!(a-1===lo&&_pg[1]))return{idx:a-1,det:a-1,dtxt:'',htxt:T[a-1],elid:false,g:_pg[0],n:'s'};}
-    var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj]||dj.indexOf("qu'")===0)break;   /* ⭐ TEST DE PRÉFIXE = BUG CORRIGÉ : `toks` ne sépare pas l'élision, « qu'offrent » est UN token, donc _NP_BREAK (que/qu) ne matchait JAMAIS et la coupure de relative était INERTE sur toute forme élidée. Le parseur remontait dans la proposition amont et rendait un sujet FAUX (« les possibilités qu'offrent les domaines » → il répondait « possibilités ») ; toute règle d'accord qui s'y appuie héritait de l'erreur = FP SILENCIEUX. Mesuré par dictee/ponct_morpho_probe.py. Seul « que » s'élide en « qu' » → préfixe exact. */
+    var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj]||dj.indexOf("qu'")===0)break;if(/^d[éè]s$/.test(T[j].toLowerCase()))break;   /* ⭐ 13/10/2026 (conjugaison 14) : « dés » / « dès » ACCENTUÉ n'est jamais l'article « des » — « sa progression dés juillet suscita » donnait un sujet pluriel (dés → des), donc « suscitèrent ». Miroir Python */   /* ⭐ TEST DE PRÉFIXE = BUG CORRIGÉ : `toks` ne sépare pas l'élision, « qu'offrent » est UN token, donc _NP_BREAK (que/qu) ne matchait JAMAIS et la coupure de relative était INERTE sur toute forme élidée. Le parseur remontait dans la proposition amont et rendait un sujet FAUX (« les possibilités qu'offrent les domaines » → il répondait « possibilités ») ; toute règle d'accord qui s'y appuie héritait de l'erreur = FP SILENCIEUX. Mesuré par dictee/ponct_morpho_probe.py. Seul « que » s'élide en « qu' » → préfixe exact. */
       if(_ELID_DET.test(T[j].toLowerCase())){   // DÉCOLLER L'ÉLISION — ce test passe AVANT la frontière VERBALE : sur un token COLLÉ le tagger est contaminé (il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas »). Le GENRE du lexique, sans contexte, décide plus bas. : « l'équipe » est UN SEUL token, donc ni le tagger ni les listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui toutes les règles d'accord. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là, simplement collée.
         if(detIdx<0||_sp){detIdx=j;_sp=false;_elid=true;}
         continue;}
@@ -3611,7 +3611,8 @@ function estQuestion(t,maxMots){
     var w=T[i];if(!w)return null;
     var lw=deacc(w.toLowerCase());
     if(!/^[a-z'-]+$/.test(lw)||CLITIC[lw])return null;
-    if(_INF_OUTILS[lw]||_INF_OUTILS[w.toLowerCase()])return null;
+    if(_INF_OUTILS[lw]||_INF_OUTILS[w.toLowerCase()])return null;if(typeof SP!=='undefined'&&SP&&SP.ready&&SP.WORDS.has(w.toLowerCase())&&!(SP.POS[w.toLowerCase()]||''))return null;   // ⭐ 13/10/2026 (conjugaison 14) : mot connu sans catégorie = adverbe ou mot-outil (« allez vite ») — miroir Python
+   
     var j=i-1,st=0;
     while(j>=0&&st<3&&(CLITIC[deacc(T[j].toLowerCase())]||_SEMI_NEG[deacc(T[j].toLowerCase())])){j--;st++;}
     var _aGov=(j>=1&&(T[j].toLowerCase()==='à'||(T[j].toLowerCase()==='a'&&rA(T,j)==='à'))&&_A_INF_GOV[deacc(T[j-1].toLowerCase())]);   // ⭐ 11/10/2026 : « elle commence à chantée » → chanter (gouverneur + à, liste fermée) ; un « a » seulement si la règle a/à le juge « à » : « le plus difficile a été fait » est juste
@@ -3639,7 +3640,7 @@ function estQuestion(t,maxMots){
     for(_r=j-1;_r>=0&&_r>=j-3;_r--){var _rw=deacc(T[_r].toLowerCase());
       if(_rw==='ou'||_rw==='dont')return null;}
     var rw=(CONJ_F[lw]||'').split('|');
-    if(!CONJ_F[lw])rw=(CONJ_F[lw+'s']||'').split('|');
+    if(!CONJ_F[lw])rw=(CONJ_F[lw+'s']||'').split('|').filter(function(x){return !/;(ind:pas|sub:imp);/.test(x);});   // ⭐ 13/10/2026 (conjugaison 14) : le « -s » oublié n'est pas celui d'un passé simple ou d'un subjonctif imparfait (« vite » n'est pas « vîtes ») — miroir Python
     if(!rw[0]&&/é(e|es)$/.test(w.toLowerCase()))rw=(CONJ_F[lw.replace(/es?$/,'')]||'').split('|');   // ⭐ 11/10/2026 : participe ACCORDÉ (« il veut vous aidée » → aider) — la table n'a pas « aidée », on passe par « aide » ; miroir Python   // le participe passe par sa forme en -s
     if(!rw[0]){var _sE=/^(.*)é(e|es|s)?$/.exec(w.toLowerCase());if(_sE&&_sE[1].length>=2&&COMMON_VERBS[deacc(_sE[1]+'er')])return _sE[1]+'er';}   // ⭐ 11/10/2026 : verbes en -yer (« envoyée » : la table n'a que « envoie ») — infinitif rebâti du mot écrit, s'il est un verbe connu ; miroir Python
     if(!rw.length||!rw[0])return null;
@@ -3782,6 +3783,8 @@ function estQuestion(t,maxMots){
     var sub=_sujetFlexion(T,i,tg);
     if(!sub)return null;
     var per=sub[0],nb=sub[1],src=sub[2];
+    if(src==='nom'&&typeof SP!=='undefined'&&SP&&SP.ready){var _pso=lec.length>0;for(k=0;k<lec.length;k++)if(lec[k][1]!=='ind:pas')_pso=false;   /* ⭐ 13/10/2026 (conjugaison 14) : « les éditions du Kiai tseu yuan houa tchouan » — un passé simple SEUL entouré d'un mot inconnu du dictionnaire est un mot étranger, pas un verbe — miroir Python */
+      if(_pso){for(var _ke=i-1;_ke<=i+1;_ke+=2){if(_ke<0||_ke>=T.length)continue;var _te=T[_ke].toLowerCase();if(/^[a-zà-ÿœ]+$/.test(_te)&&!SP.WORDS.has(_te))return null;}}}
     if(src==='nom'&&i>=2&&T[i-1].charAt(0)!==T[i-1].charAt(0).toLowerCase()&&NUM_DET[deacc(T[i-2].toLowerCase())]&&(i===2||(_SEG&&_SEG.bb&&i-2<_SEG.bb.length&&_SEG.bb[i-2])))return null;   // ⭐ 12/10/2026 (conjugaison 3) : « Les Moujiks fut publiée » — déterminant + nom à majuscule en tête : un TITRE, son nombre ne se lit pas — miroir Python
     if(src==='nom'&&i+1<T.length&&(PREP[deacc(T[i+1].toLowerCase())]||/^(au|aux)$/.test(deacc(T[i+1].toLowerCase())))){var _p12=true;for(k=0;k<lec.length;k++)if(!(lec[k][1]==='ind:pas'&&(lec[k][2]==='1'||lec[k][2]==='2')&&lec[k][3]==='s'))_p12=false;if(_p12)return null;}   // ⭐ 12/10/2026 (conjugaison 2) : sujet nominal + forme lisible SEULEMENT en passé simple je / tu, devant une PRÉPOSITION (« le jet électronique émis par » ; « le chat allai souvent » reste corrigé) : un participe — « les chats fis un bruit » reste corrigé — miroir Python
     if(src==='nom'&&_avoirPp(w))return null;   // ⭐ 12/10/2026 (conjugaison 2) : derrière un sujet nominal, un PARTICIPE (« le jet électronique émis ») n'est pas un passé simple — miroir Python
@@ -4716,7 +4719,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        n'a PAS ce son ; la reconstruction sonore prime. Radical ≥ 4 (« tetra »→tetera via téter = l'unique
        tir du flood 16 950). L'élision est déballée par spellToken (l'oublirais → oublirais). */
     if(!SP.WORDS.has(low)){var _fm=low.match(/^([a-zà-ÿ]{4,})r(ai|as|a|ons|ez|ont|ais|ait|aient)$/);
-      if(_fm&&CONJ_C[deacc(_fm[1]+'er')]&&(SP.FREQ[_fm[1]+'er']||0)>=1.0){var _fc=_fm[1]+'e'+'r'+_fm[2];   // GARDE (11/09/2026, mesurée) : le verbe reconstruit doit être COURANT (≥1/M). Recensement sur tout le dys local : 8 tirs justes (oublirais/oublirait/oublirez, oublier 77/M) contre 2 faux (« revérrons »→revérerons, révérer 0/M, alors que reverrons est à l'accent près ; « fautra »→fautera, fauter 0,05/M) — le seuil sépare parfaitement, 0 tir sur 2 500 UD. Miroir app + Python.
+      if(_fm&&CONJ_C[deacc(_fm[1]+'er')]&&(SP.FREQ[_fm[1]+'er']||0)>=1.0&&(SP.POS[_fm[1]+'er']||'').indexOf('V')>=0){   /* ⭐ 13/10/2026 (conjugaison 14) : l'infinitif reconstruit doit être un VERBE au dictionnaire — « center » (nom anglais, verbe archaïque de Morphalou) faisait de « centras » un « centeras » rouge. Miroir Python */var _fc=_fm[1]+'e'+'r'+_fm[2];   // GARDE (11/09/2026, mesurée) : le verbe reconstruit doit être COURANT (≥1/M). Recensement sur tout le dys local : 8 tirs justes (oublirais/oublirait/oublirez, oublier 77/M) contre 2 faux (« revérrons »→revérerons, révérer 0/M, alors que reverrons est à l'accent près ; « fautra »→fautera, fauter 0,05/M) — le seuil sépare parfaitement, 0 tir sur 2 500 UD. Miroir app + Python.
         if(CONJ_F[deacc(_fc)])return["auto",_fc];}}
 
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
@@ -5344,7 +5347,7 @@ function spellUnknown(tok,atStart,T,idx){
       if(/^(grace|face|suite)$/.test(w)&&i+1<T.length&&/^(à|a|au|aux)$/.test(T[i+1].toLowerCase()))return null;   // « grâce au » : locution
       if(i>=1){var _pc=T[i-1],_dpc=deaccS(_pc.toLowerCase());if(i-1>0&&_pc.charAt(0)!==_pc.charAt(0).toLowerCase())return null;var _npc=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(_dpc):NOUN_POST[_dpc]):null;   /* ⭐ 04/10/2026 : accès TOLÉRANT (Map dans l'extension, objet dans l'app) — dans l'app cette garde ne tirait jamais */if(_npc&&_npc[0]>=500&&!PREP[_dpc]&&!(i>=2&&SUBJ_PRON[deaccS(T[i-2].toLowerCase())]))return null;}
       var _plN=_plu(T[i].toLowerCase());return _plN!==T[i].toLowerCase()?ckeepcase(T[i],_plN):null;}
-    for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());if(/^(dès|lès)$/i.test(T[j]))break;   /* « dès » : préposition, sortie du GN (« dès janvier » → janviers, vu sur UD) */
+    for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());if(/^(dès|dés|lès)$/i.test(T[j]))break;   /* « dès » : préposition, sortie du GN (« dès janvier » → janviers, vu sur UD) */
       if(PLDET[dj]){
         if(svReads(T[i]).length||_COLOR_ADJ[w]||_INVAR_COLOR[w])return null;   // verbe mistagué NOUN (« les chats mangent »→mangents) ou couleur INVARIABLE (« yeux marron », « gants crème ») → jamais pluralisés (miroir garde CARD ci-dessous + sets couleur)
         if((dj==='les'||dj==='ces'||dj==='ses')&&(function(){for(var _q=j+1;_q<=i;_q++)if(CONJ_C[deaccS(T[_q].toLowerCase())])return true;return false;})())return null;   // ⭐ 29/09/2026 (catalogue des muets) : « les acheter », « ces [se] reposer calmement » — un INFINITIF dans le groupe : « les » est un pronom, « ces » un « se » ; jamais « acheters », « calmements »
@@ -5536,7 +5539,7 @@ function spellUnknown(tok,atStart,T,idx){
   // ⭐ COLLISION D'ACCENT (02/09). Les lectures verbales (svReads/CONJ) sont keyées DÉSACCENTUÉES : « adhérent »
   // tombe sur la clé de « adhèrent » et passe pour un verbe ; idem côté, gène, mûre, précédent... 24 mots
   // courants mesurés. Table EXACTE générée par dictee/build_non_verbe_acc.py (Morphalou) — ne pas éditer à la main.
-  var _NON_VERBE_ACC={'adhérent':1,'châsse':1,'châsses':1,'côte':1,'côtes':1,'côté':1,'côtés':1,'faîtes':1,'gène':1,'gènes':1,'indifférent':1,'léva':1,'mâconnais':1,'mûre':1,'mûres':1,'précédent':1,'réversions':1,'érigérons':1};
+  var _NON_VERBE_ACC={'adhérent':1,'châsse':1,'châsses':1,'côte':1,'côtes':1,'côté':1,'côtés':1,'faîtes':1,'gène':1,'gènes':1,'indifférent':1,'léva':1,'mâconnais':1,'mûre':1,'mûres':1,'précédent':1,'préposat':1,'régentat':1,'réversions':1,'érigérons':1};
   function setOsLm(m){
     if(!m||!m.uni){_OSLM=null;return;}
     function sums(tab){var s={},k,w,t;for(k in tab){t=0;for(w in tab[k])t+=tab[k][w];s[k]=t;}return s;}
@@ -5633,7 +5636,7 @@ function spellUnknown(tok,atStart,T,idx){
       if(nbs.s&&!nbs.p)return vn==='s'?null:f3s;if(nbs.p&&!nbs.s)return vn==='p'?null:f3p;return null;}
     return undefined;}
   function osVerbVig(T,i,tg){if(!_OSLM)return null;
-    var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());
+    var F=[],m;for(m=0;m<T.length;m++)F.push(/^d[éè]s$/.test(T[m].toLowerCase())?'·dès':T[m].toLowerCase());   // ⭐ 13/10/2026 (conjugaison 14) : « dés » / « dès » accentué n'est pas l'article « des » — les voisins de l'OS le désaccentuaient (« progression dés juillet suscita » → suscitèrent)
     if(!_osGuardOk(F,i))return null;
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;
     if(!tg||!_osVerbCtx(tg,F,i))return null;   // GATE POS + filet homographe étroit (miroir _verb_ctx)
@@ -5656,6 +5659,7 @@ function spellUnknown(tok,atStart,T,idx){
     var _ant=_osRelAnt(F,i),ds,ws=[],q;
     if(_ant>=0){var _an=_osAntNum(F,_ant);if(!_an)return null;ds=[_osVote(_an,0.9),_osR4(F,i,f3s,f3p)];}   // relative : l'antécédent EST le sujet ; s'il ne porte pas son nombre, on se tait
     else ds=[_osR1(F,i),_osR2(F,i),_osR3(F,i),_osR4(F,i,f3s,f3p)];
+    if(_ant<0&&ds[3][0]===0.5&&ds[3][1]===0.5)return null;   // ⭐ 13/10/2026 (audit) : le modèle de langue n'entend AUCUNE des deux formes — les voisins seuls (le mot à nombre le plus proche) ne prouvent rien : 0 juste / 61 marques sur 3 corpus
     for(q=0;q<ds.length;q++)ws[q]=Math.abs(ds[q][0]-ds[q][1])+1e-6;ws[ds.length-1]*=0.4;   // LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence sing., ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
     if(_osCoordPlural(F,i)){ds.push([0.02,0.98]);var mw=0;for(q=0;q<ws.length;q++)if(ws[q]>mw)mw=ws[q];ws.push(mw+1.0);}   // route COORDINATION : « N et N » → pluriel, poids fort (tue les floods « la suède et la russie signent »→signe)
     var Zw=0,ps=0,pp=0;for(q=0;q<ds.length;q++)Zw+=ws[q];for(q=0;q<ds.length;q++){ps+=ws[q]*ds[q][0];pp+=ws[q]*ds[q][1];}ps/=Zw;pp/=Zw;var rn=ps>=pp?'s':'p',rc=Math.abs(ps-pp);
@@ -6142,7 +6146,8 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
       var _sp=(f.span&&f.span>1)?f.span:1,_st=toks(f.sugg);if(!_st.length)return;
       var _Tv=_Tc.slice();_Tv.splice(f.i,_sp);for(var _q=_st.length-1;_q>=0;_q--)_Tv.splice(f.i,0,_st[_q]);
       _nCh++;var _g=null;try{_SEG=_segInfo(_Tv.join(' '));var _gf=correctTokens(_Tv);for(var _q2=0;_q2<_gf.length;_q2++){var _g2=_gf[_q2];if(_g2.i>=f.i&&_g2.i<f.i+_st.length&&_g2.tier!=='vigilance'&&typeof _g2.sugg==='string'&&(_g2.span==null||_g2.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_g2.sugg)){_g=_g2;break;}}}catch(e){_g=null;}
-      if(_g){_st[_g.i-f.i]=_g.sugg;f.sugg=_st.join(' ');f.chaine=_g.name;}});
+      if(_g){_st[_g.i-f.i]=_g.sugg;f.sugg=_st.join(' ');f.chaine=_g.name;if(f.sugg.toLowerCase()===String(f.word).toLowerCase())f._refute=1;}});
+    flags=flags.filter(function(f){return !f._refute;});   // ⭐ 13/10/2026 (audit) : la grammaire rouge ramène la suggestion de l'orange au mot ÉCRIT → l'orange est réfutée, on la retire (« découvrent » → « découvrent » s'affichait). Miroir Python dys_precision_probe
     _SEG=_segMain;
     /* ⭐ BOUT DE CHAÎNE orthographe → orange (12/09/2026) — les règles orange (vigAt) lisent le mot BRUT : sur « réusie » (participe mal
        écrit après « a »), le speller proposait « réussie » et l'accord du participe n'était jamais consulté. UN PAS : une correction d'orthographe
