@@ -424,6 +424,19 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 13/10/2026 — conjugaison 13 : le clitique ÉLIDÉ collé au verbe (« les pompiers n'arrive pas » → n'arrivent, « les rideaux l'abrite » →
+   l'abritent, « les cahiers s'entasse » → s'entassent) — l'accord sujet-verbe à sujet nominal sautait tout mot à apostrophe. Python :
+   rule_accord_sv_noun_elid. */
+{ let _kc13 = 0;
+  for (const [ph, w, sg] of [["Les pompiers n'arrive pas à temps.", "n'arrive", "n'arrivent"], ["Les rideaux l'abrite du soleil.", "l'abrite", "l'abritent"],
+                             ["Les cahiers s'entasse sur le bureau.", "s'entasse", "s'entassent"]]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc13++; console.log('✗ conjugaison 13 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [["Le pompier n'arrive pas à temps.", "n'arrive"], ["Les rideaux l'abritent du soleil.", "l'abritent"], ["La maîtresse l'écoute en silence.", "l'écoute"]]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc13++; console.log('✗ conjugaison 13 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc13) { console.log('PARITÉ KO — ' + _kc13 + ' cas « conjugaison 13 ».'); process.exit(1); } }
+
 /* ⭐ 13/10/2026 — conjugaison 12 : l'impératif sans trait d'union (« impératif à vérifier ») — verbe en tête, sans sujet, avec un indice de
    la 2e personne (ton, ta, tes, vos…) ; « vas » sans « -y ». Silences : sujet inversé (« vient ensuite ton cousin »), « vas-y », forme
    juste, inversion interrogative, « soit » mathématique, sujet présent. Python : rule_imperatif_seul. */

@@ -3716,6 +3716,16 @@ def _temoin_apres_verbe(T, tg, i, nb):
     return False
 
 
+def rule_accord_sv_noun_elid(T, i):
+    """⭐ 13/10/2026 (conjugaison 13) — clitique élidé collé au verbe : « les élèves n'écoute pas » → n'écoutent. Miroir JS rAccordSVnounElid."""
+    m = re.match(u"^([nlmts])['’](.+)$", T[i] or '', re.I)
+    if not m: return None
+    T2 = list(T); T2[i] = m.group(2)
+    r = rule_accord_sv_noun(T2, i)
+    if not r or not re.match(u'^[aeiouyéèêëàâîïôöûüh]', r, re.I): return None
+    return T[i][:2] + r
+
+
 def rule_accord_sv_noun(T, i):
     """Accord SUJET-VERBE à sujet-NOM, via le VRAI PARSEUR de sujet (_np_subject) : gère le sujet ÉLOIGNÉ (mots-écrans
     « de X ») que l'ancienne version (déterminant pluriel en tête seulement) ratait — « la liste des articles sont »→est,
@@ -7411,7 +7421,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_il_ils),
          ('accord sujet-verbe', rule_accord_sv_recover),
-         ('accord sujet-verbe', rule_accord_sv_noun),
+         ('accord sujet-verbe', rule_accord_sv_noun), ('accord sujet-verbe', rule_accord_sv_noun_elid),
          ('accord sujet-verbe', rule_ais_ait), ('accord sujet-verbe', rule_ai_ait),
          ('accord sujet-verbe', rule_accord_sv_quant),
          ('accord sujet-verbe', rule_accord_sv_relatif),
