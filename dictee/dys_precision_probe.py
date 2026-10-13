@@ -277,7 +277,9 @@ def main():
                 print('  ! speller :', e)
             # ⭐ BOUT DE CHAÎNE (11/09/2026) — miroir du produit (diagnoseAll) : une orange d'orthographe propose l'état final si un rouge
             #    de grammaire tombe dans l'empan de sa suggestion appliquée seule (« àfinit » → « a finit » → « a fini »).
-            _avant = list(flags)
+            #    ⭐ 13/10/2026 (audit) : si le rouge ramène la suggestion au mot ÉCRIT, l'orange est réfutée et retirée (miroir de
+            #    diagnoseAll, `f._refute`) — elle s'affichait « pensent → pensent ».
+            _avant = []
             _ch = []
             for (i, w, sugg, fam, tier, al) in flags:
                 if fam == 'orthographe' and tier == 'vigilance' and isinstance(sugg, str):
@@ -285,8 +287,12 @@ def main():
                     for _k, _t in enumerate(rt_g):
                         if norm(_t) == norm(w): _j = _k; break
                     _fin = CP.bout_de_chaine(raw_n, _j, sugg) if _j is not None else None
+                    if _fin and _fin.lower() == w.lower(): continue
+                    _avant.append((i, w, sugg, fam, tier, al))
                     _ch.append((i, w, _fin if _fin else sugg, fam, tier, al))
-                else: _ch.append((i, w, sugg, fam, tier, al))
+                else:
+                    _avant.append((i, w, sugg, fam, tier, al))
+                    _ch.append((i, w, sugg, fam, tier, al))
             flags = _ch
             # ⭐ BOUT DE CHAÎNE orthographe → orange (12/09/2026) — miroir du produit : une correction d'orthographe (flag ou vigilance) dont la
             #    suggestion, appliquée seule, fait parler une règle « à vérifier » au même index devient ORANGE avec l'état final (« réusie » → réussi).

@@ -17,6 +17,8 @@
 import os, re, json, sys, unicodedata
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import conj_io
 APP = os.path.join(HERE, '..', 'app', 'omega-pendu.html')
 CONJ = os.path.join(HERE, 'cgram_conj.json')
 HF_TENSES = {'ind:pre', 'ind:imp'}   # temps embarqués (cf. build_cgram.py)
@@ -52,8 +54,8 @@ def main(argv):
     if not m:
         print('bloc vdc-lex-gz introuvable dans l\'app'); return 2
     vdc = json.loads(gzip.decompress(base64.b64decode(re.sub(r'\s', '', m.group(2)))).decode('utf-8'))
-    full = json.load(open(CONJ, encoding='utf-8'))
-    cj = vdc.get('cj') or {}
+    full = conj_io.charger(CONJ)                               # ⭐ 13/10/2026 : tables COMPACTES — `f` recalculé depuis `c` (dictee/conj_io.py)
+    cj = conj_io.reconstruire(vdc.get('cj') or {})
     cjf, cjc = cj.get('f') or {}, cj.get('c') or {}
     add = closure_additions(cjf, cjc, full.get('f') or {})
 
@@ -68,7 +70,7 @@ def main(argv):
         print('[close_conj] déjà clôturé — rien à faire.'); return 0
     cjf.update(add)
     cj['f'] = cjf
-    vdc['cj'] = cj
+    vdc['cj'] = conj_io.compacter(cj)                         # l'app embarque la forme compacte
     new_b64 = base64.b64encode(gzip.compress(json.dumps(vdc, ensure_ascii=False, separators=(',', ':')).encode('utf-8'), 9)).decode('ascii')   # #30 : re-gzip
     html2 = html[:m.start(2)] + new_b64 + html[m.end(2):]
     open(APP, 'w', encoding='utf-8', newline='').write(html2)

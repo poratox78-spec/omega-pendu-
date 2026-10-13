@@ -25,6 +25,8 @@ inject_vdc.py puis build_assets.py) par chirurgie de chaîne, format préservé.
 import io, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import conj_io                                     # ⭐ 13/10/2026 : table de conjugaison COMPACTE (index `f` recalculé depuis `c`)
 DIR = HERE
 DRY = '--dry' in sys.argv
 if '--dir' in sys.argv: DIR = sys.argv[sys.argv.index('--dir') + 1]
@@ -90,6 +92,9 @@ def main():
         p = os.path.join(DIR, fn)
         d = json.loads(io.open(p, encoding='utf-8').read())
         cj = d if fn == 'cgram_conj.json' else d.get('cj', {})
+        if 'f' not in cj:                              # ⭐ 13/10/2026 : la chirurgie TEXTUELLE suppose `f` écrit en clair
+            raise SystemExit('%s : table compacte (dictee/conj_io.py) — ce correctif historique (conjugaison 8) est remplacé par '
+                             'fantomes() de complete_conj_morphalou.py' % fn)
         rs_ = (cj.get('c', {}).get('rendre') or {}).get('sub:pre')
         if rs_ is not None and rs_.get('3p') == 'rende': rs_['3p'] = 'rendent'; rs_['3s'] = 'rende'   # même réparation que la chirurgie, pour la règle
         ch = fantomes(cj.get('f', {}), cj.get('c', {}))

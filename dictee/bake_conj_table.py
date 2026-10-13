@@ -17,6 +17,8 @@ Sérialisation identique à build_cgram (compact, ensure_ascii=False) — l'alle
 import io, json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import conj_io                                     # ⭐ 13/10/2026 : table de conjugaison COMPACTE (index `f` recalculé depuis `c`)
 DIR = HERE
 DRY = '--dry' in sys.argv
 if '--dir' in sys.argv: DIR = sys.argv[sys.argv.index('--dir') + 1]
@@ -45,12 +47,12 @@ def main():
     for fn in ('cgram_conj.json', 'cgram_hf.json'):
         p = os.path.join(DIR, fn)
         raw = io.open(p, encoding='utf-8', newline='').read()
-        d = json.loads(raw)
-        if json.dumps(d, ensure_ascii=False, separators=(',', ':')) != raw:
+        d = conj_io.charger(p)
+        if conj_io.serialiser(d) != raw:
             raise SystemExit('%s : la sérialisation ne rend pas les mêmes octets — on ne réécrit pas un fichier qu on ne sait pas reproduire' % fn)
         cj = d if fn == 'cgram_conj.json' else d.get('cj', {})
         n3, nps = completer(cj.get('c', {}), cj.get('f', {}))
-        out = json.dumps(d, ensure_ascii=False, separators=(',', ':'))
+        out = conj_io.serialiser(d)
         change = out != raw
         print('%-16s 3e pluriel régulier : +%d cellule(s) · passé simple pluriel : +%d cellule(s) · %s%s' % (
             fn, n3, nps, 'modifié' if change else 'déjà complet', ' (dry)' if DRY else ''))

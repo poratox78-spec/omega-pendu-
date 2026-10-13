@@ -28,6 +28,7 @@ import os, sys, re, json, random, unicodedata, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import conj_io                                        # ⭐ 13/10/2026 : table de conjugaison compacte (hors du try : un import raté doit se voir)
 from diag_sentence import deacc, toks, norm            # réutilisation (§A2) : pas de réécriture
 
 KEEP = re.compile(r"[^a-zàâäéèêëîïôöùûüÿç]")            # même filtre de lettres que g2p() de l'app
@@ -49,6 +50,7 @@ try:                                                  # formes conjuguées DÉJ�
     import json as _j, io as _io, os as _os
     _vp = _os.path.join(HERE, '..', 'extension', 'assets', 'vdc-lex.json')
     _cjv = _j.load(_io.open(_vp, encoding='utf-8'))['cj'] if _os.path.exists(_vp) else {}
+    if _cjv and 'f' not in _cjv: _cjv = conj_io.reconstruire(_cjv)   # ⭐ 13/10/2026 : table COMPACTE — `f` recalculé depuis `c`
     CONJ_F, CONJ_C = _cjv.get('f') or {}, _cjv.get('c') or {}
 except Exception:
     CONJ_F, CONJ_C = {}, {}

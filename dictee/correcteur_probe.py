@@ -17,6 +17,7 @@ import os, sys, json, re
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import diag_sentence as D
+import conj_io                                          # ⭐ 13/10/2026 : hors du try du chargement — un import raté doit se VOIR, pas vider la table en silence
 from diag_sentence import deacc, toks, is_verb, is_participle, governor_number, NUM_DET, NUM_PRON, PREP
 
 SENT = json.load(open(os.path.join(HERE, 'sentences.json'), encoding='utf-8'))
@@ -2226,6 +2227,7 @@ def _np_subject(T, tg, a):
         # l'erreur : un faux positif SILENCIEUX. Seul « que » s'élide en « qu' » — le préfixe est
         # donc exact, il n'attrape ni « quoi » ni « quel ».
         if dj in _NP_BREAK or dj.startswith("qu'"): break
+        if re.match(u'^d[éè]s$', T[j].lower()): break                # ⭐ 13/10/2026 (conjugaison 14) : « dés » / « dès » accentué n'est jamais l'article « des » (« progression dés juillet suscita ») — miroir JS
         if _ELID_DET.match(T[j].lower()):
             # Ce test passe AVANT la frontière VERBALE ci-dessous : sur un token COLLÉ le tagger est
             # CONTAMINÉ — il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas ».
@@ -3037,7 +3039,7 @@ CONJ_F, CONJ_C = {}, {}
 CONJ_LOADED = False
 if os.path.exists(_CONJ_PATH):
     try:
-        _cj = json.load(open(_CONJ_PATH, encoding='utf-8'))
+        _cj = conj_io.charger(_CONJ_PATH)                       # ⭐ 13/10/2026 : table COMPACTE — `f` recalculé depuis `c` (dictee/conj_io.py)
         CONJ_F, CONJ_C = _cj.get('f', {}), _cj.get('c', {})
         CONJ_LOADED = bool(CONJ_F)
     except Exception:
@@ -4834,6 +4836,10 @@ def rule_sujet_flexion(T, i):
     sub = _sujet_flexion(T, i, tg)
     if sub is None: return None
     per, nb, src = sub
+    if src == 'nom' and lec and all(r[1] == 'ind:pas' for r in lec):   # ⭐ 13/10/2026 (conjugaison 14) : passé simple seul entouré d'un mot inconnu = mot étranger (« yuan houa tchouan ») — miroir JS
+        _spos('a')
+        for _ke in (i - 1, i + 1):
+            if 0 <= _ke < len(T) and re.match(u'^[a-zà-ÿœ]+$', T[_ke].lower()) and T[_ke].lower() not in _SFREQ: return None
     if src == 'nom' and i >= 2 and T[i - 1][:1] != T[i - 1][:1].lower() and deacc(T[i - 2].lower()) in NUM_DET \
             and (i == 2 or (_SEG is not None and i - 2 < len(_SEG['bb']) and _SEG['bb'][i - 2])): return None   # ⭐ 12/10/2026 (conjugaison 3) : « Les Moujiks fut publiée » — un TITRE en tête — miroir JS
     if src == 'nom' and i + 1 < len(T) and (deacc(T[i + 1].lower()) in PREP or deacc(T[i + 1].lower()) in ('au', 'aux')) \
@@ -5519,7 +5525,7 @@ def rule_noun_plural(T, i):
     # (« ces nouveaux fusil Henry », « les meilleurs rang »). Le reste de la règle (gardes, posterior, composé) s'applique tel quel.
     if _pd in _ADJ_ANTE and i >= 2 and (deacc(T[i - 2].lower()) in PLURAL_DET or deacc(T[i - 2].lower()) in _PL_DET_X):
         _pd = deacc(T[i - 2].lower())
-    if (T[i - 1] if _pd == deacc(T[i - 1].lower()) else T[i - 2]).lower() in (u'dès', u'lès'): return None   # ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE
+    if (T[i - 1] if _pd == deacc(T[i - 1].lower()) else T[i - 2]).lower() in (u'dès', u'dés', u'lès'): return None   # ⭐ 13/10/2026 (conjugaison 14) : + « dés »   # ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE
     _card = _pd in CARD                                          # cardinal ≥2 (« cinq kilo ») = déterminant pluriel non ambigu
     _px = _PL_DET_X.get(_pd)
     if _pd not in PLURAL_DET and not _card and not _px: return None   # déterminant pluriel juste avant
@@ -7224,6 +7230,8 @@ def rule_inf_semi_aux(T, i):
     lw = deacc(w.lower())
     if not re.match(r"^[a-z'-]+$", lw): return None
     if lw in CLITIC or lw in _INF_OUTILS or w.lower() in _INF_OUTILS: return None
+    _spos('a')
+    if w.lower() in _SFREQ and not _spos(w.lower()): return None   # ⭐ 13/10/2026 (conjugaison 14) : adverbe ou mot-outil (« allez vite ») — miroir JS
     j, st = i - 1, 0
     while j >= 0 and st < 3 and (deacc(T[j].lower()) in CLITIC or deacc(T[j].lower()) in _SEMI_NEG):
         j -= 1; st += 1
@@ -7260,7 +7268,7 @@ def rule_inf_semi_aux(T, i):
     # ferme la relative, « coute » est le verbe de la principale. FP de la batterie de PARITE.
     for _r in range(j - 1, max(-1, j - 4), -1):
         if deacc(T[_r].lower()) in ('ou', 'dont'): return None
-    src = CONJ_F.get(lw) or CONJ_F.get(lw + 's')
+    src = CONJ_F.get(lw) or '|'.join(r for r in (CONJ_F.get(lw + 's') or '').split('|') if r and r.split(';')[1] not in ('ind:pas', 'sub:imp'))   # ⭐ 13/10/2026 (conjugaison 14) : le « -s » oublié n'est pas celui d'un passé simple (« vite » ≠ « vîtes ») — miroir JS
     if not src and re.search(u'é(e|es)$', w.lower()): src = CONJ_F.get(re.sub('es?$', '', lw))   # ⭐ 11/10/2026 : participe ACCORDÉ (« il veut vous aidée ») — miroir JS
     if not src:   # ⭐ 11/10/2026 : verbes en -yer (« envoyée ») — infinitif rebâti du mot écrit, s'il est un verbe connu ; miroir JS
         _sE = re.match(u'^(.*)é(e|es|s)?$', w.lower())

@@ -908,6 +908,15 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 13/10/2026 (conjugaison 14) — produit entier, table complète : « nous rissolent » → rissolons en ROUGE ; « allez vite » sans marque.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c14 = 0;
+  const m = fl('Nous rissolent les pommes de terre.').find(x => x.word === 'rissolent');
+  if (!m || m.sugg !== 'rissolons' || m.tier !== 'auto') { _c14++; console.log('  ✗ conjugaison 14 : « rissolent » → « rissolons » en ROUGE attendu, obtenu ' + JSON.stringify(m || null)); }
+  if (fl('Allez vite découvrir ce joli coin.').some(x => x.word === 'vite')) { _c14++; console.log('  ✗ conjugaison 14 : « vite » ne doit recevoir aucune marque'); }
+  if (_c14) { console.log('PARITÉ KO — conjugaison 14 : ' + _c14 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 14 : table complète (tous les verbes, tous les temps), « vite » sans marque"); }
+
 // ⭐ 13/10/2026 (conjugaison 13) — produit entier : le clitique élidé collé au verbe, accord avec le sujet nominal en ROUGE.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
   let _c13 = 0;
