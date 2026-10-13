@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-10-13 — conjugaison 15 : la table et son index disent la même chose (audit)
+
+- Trouvé par l'audit (la table compacte écrit désormais ses écarts) : 16 929 lectures que la table `c` produit et que l'index `f`
+  (celui que lit svReads) n'avait pas. Triées par les filtres mêmes de complete_conj_morphalou.py : 3 352 subjonctifs imparfaits sur
+  une clé déjà prise et 24 autres exclusions VOULUES ; 13 552 OUBLIS — tout le passé simple au pluriel (« accusâmes », « accusâtes »,
+  « accusèrent »), en table depuis le 08/09 (bake_conj_table) mais sans lecture : completer saute une case déjà remplie, index compris.
+  La conjugaison 14 annonçait « le passé simple à toutes les personnes » : c'était vrai de la table, pas de la lecture.
+- complete_conj_morphalou.py : lire_cases() — une case remplie reçoit sa lecture, sous les MÊMES filtres qu'une case neuve. +13 555
+  lectures (cgram_conj), +13 605 (cgram_hf) ; idempotent.
+- Vigilance OS-sujet (3 moteurs, osVerbVig ≡ os_subject_probe) : l'inverse de la garde de la conjugaison 14 — quand aucun mot à nombre
+  n'est à gauche (R1-R3 muets), le modèle de langue (biaisé vers le singulier) ne décide pas SEUL : « D'autres chemins mènent au
+  village » → mène, fini (le déterminant élidé « d'autres » n'est pas lu comme pluriel : trou noté pour l'audit). La variante « route
+  relative avec modèle muet » a été REJETÉE : elle perdait les 2 seules vraies prises de la famille sur le gold dys.
+- Mesure (produit complet, modèle OS chargé, contre la conjugaison 14) : 3 corpus — 21 marques inutiles et 1 ambiguë en moins,
+  3 inutiles en plus (des passés simples pluriels désormais lisibles, que les routes OS et sujet-verbe lisent de travers : « permirent »,
+  « engagèrent », « débarquèrent »), 1 orthographe fausse → juste, 0 juste perdue ; UD — 16 marques en moins (dont « purent » →
+  purents) ; banc fp_scale 8 → 7. Les fautes de personne au passé simple (« nous marchèrent » → marchâmes) étaient déjà prises : le
+  moteur compensait l'oubli par un index du passé simple à part.
+- Tests : parity_corr.js (4 lectures, 2 silences ; 8 échecs sur l'ancienne table), parity_os.js (2 silences « modèle seul » ; rouges
+  sans la garde).
+
+---
+
 ## 2026-10-13 — conjugaison 14 : la table complète (tous les verbes, tous les temps)
 
 - Rem (paraphrase), après mon « les 7 675 verbes absents sont rares, piste épuisée » : encore une histoire de rareté, ça nous a déjà coûté

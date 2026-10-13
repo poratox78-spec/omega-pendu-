@@ -5676,6 +5676,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(_ant>=0){var _an=_osAntNum(F,_ant);if(!_an)return null;ds=[_osVote(_an,0.9),_osR4(F,i,f3s,f3p)];}   // relative : l'antécédent EST le sujet ; s'il ne porte pas son nombre, on se tait
     else ds=[_osR1(F,i),_osR2(F,i),_osR3(F,i),_osR4(F,i,f3s,f3p)];
     if(_ant<0&&ds[3][0]===0.5&&ds[3][1]===0.5)return null;   // ⭐ 13/10/2026 (audit) : le modèle de langue n'entend AUCUNE des deux formes — les voisins seuls (le mot à nombre le plus proche) ne prouvent rien : 0 juste / 61 marques sur 3 corpus
+    if(_ant<0&&ds[0][0]===0.5&&ds[1][0]===0.5&&ds[2][0]===0.5)return null;   // ⭐ 13/10/2026 (conjugaison 15) : et l'inverse — aucun mot à nombre à gauche (R1-R3 muets), le modèle de langue (biaisé vers le singulier) ne décide pas SEUL : « D'autres chemins mènent » → mène, 0 juste sur 20 marques (3 corpus), 15 sur UD
     for(q=0;q<ds.length;q++)ws[q]=Math.abs(ds[q][0]-ds[q][1])+1e-6;ws[ds.length-1]*=0.4;   // LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence sing., ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
     if(_osCoordPlural(F,i)){ds.push([0.02,0.98]);var mw=0;for(q=0;q<ws.length;q++)if(ws[q]>mw)mw=ws[q];ws.push(mw+1.0);}   // route COORDINATION : « N et N » → pluriel, poids fort (tue les floods « la suède et la russie signent »→signe)
     var Zw=0,ps=0,pp=0;for(q=0;q<ds.length;q++)Zw+=ws[q];for(q=0;q<ds.length;q++){ps+=ws[q]*ds[q][0];pp+=ws[q]*ds[q][1];}ps/=Zw;pp/=Zw;var rn=ps>=pp?'s':'p',rc=Math.abs(ps-pp);
