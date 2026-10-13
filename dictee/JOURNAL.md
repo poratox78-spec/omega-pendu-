@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-10-13 — conjugaison 12 : l'impératif sans trait d'union
+
+- Sondage (phrases inventées) : seul « Donnes-moi » était corrigé (rImperatif, trait d'union). « Manges ta soupe », « Prend ton manteau »,
+  « Finit ton assiette », « Fait attention », « Dit bonjour à ta tante », « Attend-moi », « Vas à l'école », « Soit sage avec ta sœur »,
+  « Mangé vos légumes » étaient muets.
+- `rImperatifSeul` ≡ `rule_imperatif_seul` (orange « impératif à vérifier », 3 moteurs) : verbe en tête de phrase ou de proposition, sans
+  sujet, au présent (2e ou 3e du singulier, lemme unique) ; indice de la 2e personne dans les quatre mots qui suivent (ton, ta, tes, toi,
+  te, t', votre, vos, vous ; un pronom après trait d'union ; « attention » après faire) — sauf « vas », qui n'ouvre une phrase qu'en
+  « vas-y ». Forme : 2e du présent sans le -s des formes en -es ; sois, aie, sache, veuille, va ; « vos / votre / vous » + participe en
+  -é → 2e du pluriel (« Rangé vos jouets » → Rangez).
+- Gardes vues au sondage et à la mesure : sujet inversé (« Vient ensuite ton frère », « Vient ton tour » : adverbe de suite, ou verbe
+  sans complément d'objet + déterminant) ; « a / à » exclus (UD : « …, à Târgovişte » → aie, un morceau de nom propre lu « te »).
+- Mesure : gold (catalogue), 3 corpus (14 322 textes) et UD 14 450 : 0 changement. Batterie Python 272 / 285, 0 FP, 87 pièges muets ;
+  50 leçons de règle.
+- Tests : `parity_corr.js` (6 prises, 6 silences ; 6 échecs sur l'ancien code) ; `parity_core.js` (palier orange ; 3 échecs).
+
+---
+
 ## 2026-10-13 — conjugaison 11 : chasse aux faux sur des phrases justes
 
 - Méthode (leçon des lots 8-10, qui avaient chacun trouvé un rouge faux ancien) : ≈ 230 phrases JUSTES inventées, écrites pour piéger les

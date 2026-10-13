@@ -424,6 +424,21 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
     if (!got.length || got[0].sugg !== 'cherchez') { _k3++; console.log('✗ infinitif attendu : « cherché » doit donner « cherchez », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
   if (_k3) { console.log('PARITÉ KO — ' + _k3 + ' cas « infinitif attendu ».'); process.exit(1); } }
 
+/* ⭐ 13/10/2026 — conjugaison 12 : l'impératif sans trait d'union (« impératif à vérifier ») — verbe en tête, sans sujet, avec un indice de
+   la 2e personne (ton, ta, tes, vos…) ; « vas » sans « -y ». Silences : sujet inversé (« vient ensuite ton cousin »), « vas-y », forme
+   juste, inversion interrogative, « soit » mathématique, sujet présent. Python : rule_imperatif_seul. */
+{ let _kc12 = 0;
+  for (const [ph, w, sg] of [['Prend ton sac de sport.', 'Prend', 'Prends'], ['Finit ton goûter avant de jouer.', 'Finit', 'Finis'],
+                             ['Rangé vos jouets avant le dîner.', 'Rangé', 'Rangez'], ['Vas chercher le pain.', 'Vas', 'Va'],
+                             ['Manges tes légumes verts.', 'Manges', 'Mange'], ['Soit gentil avec ta cousine.', 'Soit', 'Sois']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (!got.length || got[0].sugg !== sg) { _kc12++; console.log('✗ conjugaison 12 : ' + JSON.stringify(ph) + ' doit donner « ' + sg + ' », eu ' + JSON.stringify(got.map(f => f.sugg))); } }
+  for (const [ph, w] of [['Vient ensuite ton cousin.', 'Vient'], ['Vas-y doucement.', 'Vas'], ['Prends ton sac de sport.', 'Prends'],
+                         ['Dit-il toujours la vérité ?', 'Dit'], ['Soit un carré ABCD.', 'Soit'], ['Tu prends ton sac.', 'prends']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc12++; console.log('✗ conjugaison 12 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc12) { console.log('PARITÉ KO — ' + _kc12 + ' cas « conjugaison 12 ».'); process.exit(1); } }
+
 /* ⭐ 12/10/2026 — conjugaison 10 : le temps de la protase (« temps du verbe à vérifier ») — « si » en tête + futur → présent ; « quand /
    lorsque » + conditionnel avec une principale au futur → futur ; et le sujet NOMINAL d'avant le mot de liaison (« le facteur passe et nous
    partiront » → partirons) ; « la voisine nous appelle et nous invite » n'est plus réécrit (rouge faux depuis la conjugaison 7).

@@ -908,6 +908,16 @@ print(json.dumps(out))
   if (_vi) { console.log('PARITÉ KO — verbe après à / infinitif : ' + _vi + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ verbe après à / infinitif : 8 infinitifs, « à » intact ; « a » après une relative ou un nom, « pouvoir » nom muet"); }
 
+// ⭐ 13/10/2026 (conjugaison 12) — produit entier : l'impératif sans trait d'union en ORANGE.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _c12 = 0;
+  for (const [s, w, sg] of [['Prend ton sac de sport.', 'Prend', 'Prends'], ['Vas chercher le pain.', 'Vas', 'Va'], ['Rangé vos jouets avant le dîner.', 'Rangé', 'Rangez']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.tier !== 'vigilance') { _c12++; console.log('  ✗ conjugaison 12 : « ' + s + ' » → « ' + sg + ' » en ORANGE attendu, obtenu ' + JSON.stringify(m || null)); } }
+  if (fl('Vient ensuite ton cousin.').some(x => x.word === 'Vient')) { _c12++; console.log('  ✗ conjugaison 12 : « Vient ensuite ton cousin » doit rester muet'); }
+  if (_c12) { console.log('PARITÉ KO — conjugaison 12 : ' + _c12 + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log("  ✓ conjugaison 12 : l'impératif sans trait d'union en orange, sujet inversé muet"); }
+
 // ⭐ 13/10/2026 (conjugaison 11) — chasse aux faux sur des phrases JUSTES : plus d'orange sur « chacun des invités a » (→ ont), « elle s'est
 // mise / tue / reprise » (→ misée, tuée, reprisée), « aucune des copies n'est juste » (→ justes).
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
