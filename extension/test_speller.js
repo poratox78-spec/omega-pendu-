@@ -57,6 +57,20 @@ for (const [t, w, s] of [["Il la vu hier.", 'la vu', "l'a vu"], ["On la vu parti
   if (!f || f.sugg !== s || f.tier !== 'vigilance') fail.push('élision « ' + w + ' » : attendu « ' + s + ' » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 for (const t of ["Elle la regarde.", "Il a perdu la vu."])
   if (DC.spell(t).some(x => x.name === 'élision')) fail.push('élision : témoin « ' + t + ' » marqué ' + JSON.stringify(DC.spell(t).map(x => x.word + '→' + x.sugg)));
+// ⭐ 13/10/2026 — LISTE N° 1 : « Séléction » partait en « S'élection » (rouge). ① Le MOT ENTIER d'abord : séléction → sélection, demission →
+// démission, mêtres → mètres ; les vraies élisions collées restent coupées (lévier → l'évier, lécole → l'école). ② Le présent après un pronom
+// sujet, même d'un verbe RARE : « il selectionne » → sélectionne (le moteur rendait « sélectionné » en rouge), « tu » + -es, « l'a » n'est pas
+// « la ». ③ ACCENT IMPOSSIBLE (é devant ct, consonne doublée ; ç devant e/i) : séléctionnable → sélectionnable, pas « sélectionnables ».
+// Phrases inventées ; chacune échoue sur le moteur d'avant.
+for (const [t, w, s, tier] of [['Il faut une séléction de fruits.', 'séléction', 'sélection', 'auto'], ['Séléction de fruits.', 'Séléction', 'Sélection', 'auto'],
+    ['Il a donné sa demission hier.', 'demission', 'démission', 'auto'], ['Il a decrit la scène.', 'decrit', 'décrit', 'auto'], ['Une règle legale.', 'legale', 'légale', 'auto'],
+    ['Il court trois mêtres.', 'mêtres', 'mètres', 'auto'], ['Il lave lévier.', 'lévier', "l'évier", 'flag'], ['Il va à lécole.', 'lécole', "l'école", 'flag'],
+    ['Il selectionne les fruits.', 'selectionne', 'sélectionne', 'auto'], ['Tu selectionnes les fruits.', 'selectionnes', 'sélectionnes', 'auto'],
+    ["Il l'a decide hier.", 'decide', 'décidé', 'flag'], ['Elle congele la viande.', 'congele', 'congèle', 'auto'], ['Il commençe le travail.', 'commençe', 'commence', 'auto'],
+    ['Une option séléctionnable.', 'séléctionnable', 'sélectionnable', 'vigilance'], ['La rue est désservie.', 'désservie', 'desservie', 'vigilance'],
+    ['Un outil façilitant la vie.', 'façilitant', 'facilitant', 'vigilance']]) {
+  const f = DC.spell(t).find(x => x.word === w);
+  if (!f || f.sugg !== s || f.tier !== tier) fail.push('liste n° 1 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 // ⭐ 29/09/2026 — ACCENTS MUETS : « ca », « foret », « pole » → ça, forêt, pôle en ORANGE ; « le foret » (l'outil), « les mass media »,
 // « la pole position » et « Ca » (calcium) : rien.
 for (const [t, w, s] of [['je crois que ca marche', 'ca', 'ça'], ['on marche en foret', 'foret', 'forêt'], ['ils vont au pole sud', 'pole', 'pôle']]) {

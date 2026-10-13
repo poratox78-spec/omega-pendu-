@@ -278,6 +278,11 @@ def subseq(a, b):
     return i == len(a)
 
 
+def _acc_diff(a, b):
+    """⭐ 13/10/2026 (liste n° 1) : nombre de lettres qui diffèrent (accents) entre deux formes de même squelette — miroir _accDiff."""
+    if len(a) != len(b): return 1 + abs(len(a) - len(b))
+    return sum(1 for x, y in zip(a, b) if x != y)
+
 def lev_b(a, b, mx):
     """Décalque de `_levB` (dys-core.js) : distance d'édition BORNÉE (rend mx+1 dès que le plancher de ligne dépasse mx)."""
     if abs(len(a) - len(b)) > mx: return mx + 1
@@ -773,13 +778,21 @@ class Speller:
             for w in self.D2A.get(rc, []):
                 if deacc(w) == rc and deacc(w)[:1] in VOWELS and (rw is None or self.FREQ.get(w, 0) > self.FREQ.get(rw, 0)): rw = w
             if rw: return ('flag', low[0] + "'" + rw)
+        # ⭐ 13/10/2026 (liste n° 1 : « Séléction » → S'élection) — LE MOT ENTIER D'ABORD, miroir de spellTokenCore : la saisie, accents
+        # rétablis, est un mot (séléction → sélection, decrit → décrit) → pas de découpe, sauf si la lecture élidée colle STRICTEMENT mieux
+        # aux accents écrits (« lévier » → l'évier) et, pour m'/t'/n'/s'/j', devant un VERBE (« mêtres » n'est pas « m'êtres »).
+        mot_d = -1
+        for mw in self.D2A.get(deacc(low), []):
+            if self.FREQ.get(mw, 0) >= 0.01:
+                md = _acc_diff(low, mw)
+                if mot_d < 0 or md < mot_d: mot_d = md
         if len(low) > 2 and low[0] in ELIDE and deacc(low[1])[:1] in VOWELS:
             rest = low[1:]; cw = rest if (rest in self.WORDS and len(rest) >= 5 and self.FREQ.get(rest, 0) >= 1.0) else None   # reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
             if cw is None and low[0] in _ELIDE_ACC and len(rest) >= 4:   # restauration d'accent du reste (lhopital→l'hôpital, léconomi→l'économie) — préfixes SÛRS uniquement
                 for w in self.D2A.get(deacc(rest), []):
                     if deacc(w)[:1] in VOWELS and self.FREQ.get(w, 0) >= 2.0 and (cw is None or self.FREQ[w] > self.FREQ.get(cw, 0)):
                         cw = w
-            if cw and not (low[0] == 'c' and deacc(cw)[:1] not in 'ei'):   # « c' » seulement devant e/i (c'est, c'était)
+            if cw and not (low[0] == 'c' and deacc(cw)[:1] not in 'ei') and (mot_d < 0 or (_acc_diff(rest, cw) < mot_d and (low[0] not in 'mtnsj' or 'V' in self.POS.get(cw, ())))):   # « c' » seulement devant e/i (c'est, c'était)
                 return ('flag', low[0] + "'" + cw)                     # élision = FLAG (sûr mais on laisse l'utilisateur valider)
         # ⭐ 04/10/2026 — route B (après le décollage, qui garde les restes CONNUS) : « n… pas », reste mal écrit → « n' » + verbe conjugué de même son
         if (len(low) >= 4 and low[0] == 'n' and deacc(low[1])[:1] in VOWELS and toks and idx is not None and idx + 1 < len(toks)
@@ -943,29 +956,43 @@ class Speller:
         # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il espere » → espère, pas espéré. Sujet pronom
         # (clitiques traversés) sans auxiliaire ni copule → quand le mot nu a les deux accentuations, c'est le présent (-e).
         # AVANT la bascule de genre ci-dessous, qui lisait « la voiture » deux mots plus haut et rendait « décidée ».
-        sbj = False
-        if toks and d.endswith('e'):
+        sbj, sbj_tu = False, False
+        if toks and (d.endswith('e') or d.endswith('es')):
             y = idx - 1
             while y >= 0:
-                dy = deacc(toks[y].lower()).replace("'", '')
+                ty = deacc(toks[y].lower()); ta = ty.find("'")
+                if ta >= 0 and (ty[ta + 1:] in self.AUXAV or ty[ta + 1:] in self.COPULA): break   # ⭐ 13/10/2026 : « l'a » n'est pas le clitique « la »
+                dy = ty.replace("'", '')
                 if dy in self.AUXAV or dy in self.COPULA: break
-                if dy in self.SUBJP or dy == 'qui': sbj = True; break
+                if dy in self.SUBJP or dy == 'qui': sbj = True; sbj_tu = dy == 'tu'; break
                 if dy in ('ne', 'n', 'se', 's', 'me', 'm', 'te', 't', 'le', 'la', 'les', 'l', 'lui', 'leur', 'y', 'en'): y -= 1; continue
                 break
-        if sbj:
-            pr, ppl = None, False
+        # ⭐ 13/10/2026 (liste n° 1) : le présent d'un verbe RARE compte s'il a une lecture VERBALE (« il selectionne » → sélectionne, plus
+        # « sélectionné » en rouge) ; « tu » + -es ; palier = auto si la table de conjugaison connaît ce présent, sinon flag. Miroir JS.
+        if sbj and (d.endswith('e') or sbj_tu):
+            pr, pr_v, ppl = None, None, False
             for ck in cands:                                    # les DEUX accentuations existent (présent -e / participe -é) ?
                 if deacc(ck) != d: continue
-                if ck.endswith('é'): ppl = True
-                elif ck.endswith('e') and cands[ck][1] >= 0.5 and (pr is None or cands[ck][1] > cands[pr][1]): pr = ck
-            if pr and ppl and pr != w1: return ('flag', pr)     # plancher 0,5 pour cette étape : « trébuche » 0,85/M
+                if ck.endswith('é') or ck.endswith('és'): ppl = True
+                else:
+                    if 'V' in self.POS.get(ck, ()) and (pr_v is None or cands[ck][1] > cands[pr_v][1]): pr_v = ck
+                    if cands[ck][1] >= 0.5 and (pr is None or cands[ck][1] > cands[pr][1]): pr = ck
+            pr = pr_v or pr
+            if pr and ppl and (pr != w1 or pr_v):        # un présent sans lecture verbale (« même » / « mémé ») ne fire que s'il n'est pas déjà en tête
+                ip = any(len(r.split(';')) == 4 and r.split(';')[1] == 'ind:pre' for r in (self.CONJ_F.get(deacc(pr)) or '').split('|'))
+                return ('auto' if ip else 'flag', pr)
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
         if cg and 'A' in self.POS.get(w1, ()):                  # bascule réservée aux ADJECTIFS (évite nom « élève » → « élevée »)
             a = self.ADJ.get(deacc(w1))
             if a and a[0] != cg and a[1] in cands and self._gender(a[1]) == cg:
                 return ('flag', a[1])
-        if f1 < FLAG_FREQ: return None                          # meilleur candidat trop rare → abstention
+        # ⭐ 13/10/2026 (liste n° 1) — ACCENT IMPOSSIBLE (é/è devant x, consonne doublée, ct/pt ; ç devant e/i/y si une seule restauration
+        # d'accent) : le mot accents rétablis est proposé même rare, en orange. Miroir _accX de spellTokenCore.
+        n_acc = len([1 for _w, (p, _f) in ranked if p == 2])
+        acc_x = (low != d and p1 == 2 and deacc(w1) == d and len(d) >= 4 and (tok == low or at_start)
+                 and (re.search(u'[éè](x|([bcdfgjklmnpqrstvz])\\2|[cp]t)', low) is not None or (re.search(u'ç[eiyéèêë]', low) is not None and n_acc == 1)))
+        if f1 < FLAG_FREQ and not acc_x: return None            # meilleur candidat trop rare → abstention
         f2 = ranked[1][1][1] if len(ranked) > 1 else 0.0
         # AUTO : accent-only dominant (priorité 2, fréquent, sans rival proche) OU edit-1 vers un mot très dominant
         accent_only = (p1 == 2 and deacc(w1) == d)
@@ -1014,7 +1041,7 @@ class Speller:
                     b, bf = cw, fc
             if b and bf >= 1.0 and not (pmatch(w1) and p1 >= 1 and f1 >= 20 * bf):
                 return ('flag', b)
-        if not (len(d) >= 4 and f1 >= AUTO_FREQ): return None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
+        if not (len(d) >= 4 and f1 >= AUTO_FREQ): return ('vigilance', w1) if acc_x else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
         # ⭐ PALIER VIGILANCE DU SPELLER — porté du produit le 05/09/2026 (5e maillon de « la référence décrit
         # le produit » : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666). Décalque du
         # gate `confident` de spellTokenCore (app + dys-core) : on n'AFFIRME (flag) que si l'on est sûr —
