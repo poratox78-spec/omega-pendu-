@@ -305,6 +305,7 @@ def detect(F, vi, tau=0.85, tg=None):
     else:
         ds = [R1(F, vi), R2(F, vi), R3(F, vi), R4(F, vi, f3s, f3p)]
         if ds[3] == (0.5, 0.5): return None              # ⭐ 13/10/2026 (audit) : le LM n'entend AUCUNE des deux formes — les voisins seuls (le mot à nombre le plus proche) ne prouvent rien : 0 juste / 61 marques sur 3 corpus (miroir JS)
+        if ds[0] == ds[1] == ds[2] == (0.5, 0.5): return None   # ⭐ 13/10/2026 (conjugaison 15) : et l'inverse — voisins muets, le LM ne décide pas SEUL (« D'autres chemins mènent » → mène ; 0 juste / 20 marques, 3 corpus) (miroir JS)
     ws = [_peak(d) + 1e-6 for d in ds]
     ws[-1] *= 0.4                                          # LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence (préfère le sing.), ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
     if _coord_plural(F, vi):                              # route COORDINATION : sujet « N et N » → pluriel, poids fort (tue les floods « la suède et la russie signent »→signe)

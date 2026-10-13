@@ -109,7 +109,9 @@ let _au = 0;
 for (const [ph, w] of [['Le roi convoqua les ducs du royaume et même empêcha la guerre.', 'empêcha'],
                        ['Le comte reçut les envoyés des princes et même baptisa leurs fils.', 'baptisa'],
                        ['La troupe joua devant les seigneurs du pays et même gagna leurs faveurs.', 'gagna'],
-                       ['Puis, il écrit et co-scénarise un court film.', 'scénarise']]) {
+                       ['Puis, il écrit et co-scénarise un court film.', 'scénarise'],
+                       // conjugaison 15 (G1) : aucun mot à nombre à gauche — le modèle de langue SEUL ne décide pas
+                       ["D'autres chemins mènent au village.", 'mènent'], ["D'anciens moulins dominent la vallée.", 'dominent']]) {
   const a = appProbe(ph).filter(f => f.word === w).map(f => f.sugg), e = D.osProbe(ph).filter(f => f.word === w).map(f => f.sugg);
   if (a.length || e.length) { _au++; console.log('✗ AUDIT OS (modèle muet) : ' + JSON.stringify(ph) + ' — « ' + w + ' » est juste, rien ne doit être proposé — app ' + JSON.stringify(a) + ' ext ' + JSON.stringify(e)); }
 }

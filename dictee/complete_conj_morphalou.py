@@ -145,6 +145,31 @@ def completer(cj, mor, ppl, spos, lfreq):
     return cases, lect
 
 
+def lire_cases(cj, ppl, spos, lfreq):
+    u"""⭐ Conjugaison 15 : une case REMPLIE de `c` dont la forme n'a pas sa lecture dans `f` la reçoit, sous les MÊMES filtres qu'une case
+    neuve (completer). Trouvé par l'audit du 13/10/2026 : le passé simple au pluriel (« accusâmes », « accusèrent ») était dans la table
+    depuis le 08/09 (bake_conj_table) mais sans lecture — 13 552 formes que svReads ne lisait pas ; completer saute une case déjà remplie,
+    `f` compris. Rend le nombre de lectures ajoutées."""
+    C, F = cj['c'], cj['f']; n = 0
+    for l, tps in C.items():
+        pres = {deacc(x.lower()) for x in tps.get('ind:pre', {}).values() if isinstance(x, str)}
+        for k, sl in tps.items():
+            if k == 'imp:pre': continue                      # l'impératif sert de table (ses formes sont lues au présent / subjonctif)
+            for pn, fo in sl.items():
+                for f in (fo if isinstance(fo, list) else [fo]):
+                    if not f: continue
+                    fl = f.lower(); key = deacc(fl); r = '%s;%s;%s;%s' % (l, k, pn[0], pn[1]); old = F.get(key)
+                    if old is not None and r in old.split('|'): continue
+                    if 'V' not in spos.get(fl, '') or fl in ppl: continue
+                    if (NPOST.get(key) or [0, 1000])[1] < 10: continue
+                    if any(g != fl and 'V' not in spos.get(g, '') and sfq.get(g, 0) > sfq.get(fl, 0) for g in skey.get(key, ())): continue
+                    if k == 'ind:pas' and key in pres: continue
+                    if old is not None and not all(x.split(';')[0] == l or lfreq.get(x.split(';')[0], 0) < lfreq.get(l, 0) for x in old.split('|')): continue
+                    if k == 'sub:imp' and old is not None: continue
+                    F[key] = r if old is None else old + '|' + r; n += 1
+    return n
+
+
 def fantomes(cj, tous):
     u"""⭐ Conjugaison 8 : retire de `f` les lectures que ni Morphalou ni la table `c` ne confirment (voir l'en-tête). Rend le nombre retiré."""
     C, F = cj['c'], cj['f']; n = 0
@@ -183,9 +208,10 @@ def main():
         cj = d if fn == 'cgram_conj.json' else d['cj']
         avant = remplissage(cj['c'])
         cases, lect = completer(cj, mor, ppl, spos, lfreq)
+        lus = lire_cases(cj, ppl, spos, lfreq)
         fant = fantomes(cj, tous)
         out = conj_io.serialiser(d)
-        print('%-16s +%d case(s), +%d lecture(s), -%d fantôme(s) · remplissage %s → %s%s' % (fn, cases, lect, fant, avant, remplissage(cj['c']), ' (dry)' if DRY else ''))
+        print('%-16s +%d case(s), +%d lecture(s), +%d lecture(s) de cases déjà remplies, -%d fantôme(s) · remplissage %s → %s%s' % (fn, cases, lect, lus, fant, avant, remplissage(cj['c']), ' (dry)' if DRY else ''))
         if out != raw and not DRY:
             io.open(p, 'w', encoding='utf-8', newline='').write(out)
     if not DRY:

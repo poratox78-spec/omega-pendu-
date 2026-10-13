@@ -461,6 +461,19 @@ const _cjR = (() => { const prev = global.DYSCORE; require(path.join(__dirname, 
     if (got.length) { _kc14++; console.log('✗ conjugaison 14 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
   if (_kc14) { console.log('PARITÉ KO — ' + _kc14 + ' cas « conjugaison 14 ».'); process.exit(1); } }
 
+/* ⭐ 13/10/2026 — conjugaison 15 : une case REMPLIE de la table reçoit sa lecture. Le passé simple au pluriel (« accusâmes »,
+   « accusèrent ») était dans `c` depuis le 08/09 mais absent de `f` : 13 555 lectures que svReads ne lisait pas.
+   Python : lire_cases() dans dictee/complete_conj_morphalou.py. */
+{ let _kc15 = 0;
+  for (const fn of ['cgram_conj.json', 'cgram_hf.json']) {
+    let J = JSON.parse(fs.readFileSync(path.join(__dirname, fn), 'utf8')); if (J.cj) J = J.cj; J = _cjR(J);
+    for (const [k, r] of [['accuserent', 'accuser;ind:pas;3;p'], ['accusames', 'accuser;ind:pas;1;p'], ['accusates', 'accuser;ind:pas;2;p'], ['donnerent', 'donner;ind:pas;3;p']])
+      if (!String(J.f[k] || '').split('|').includes(r)) { _kc15++; console.log('✗ conjugaison 15 : ' + fn + ' — « ' + k + ' » sans la lecture ' + r); } }
+  for (const [ph, w] of [['Ils accusèrent le voisin à tort.', 'accusèrent'], ['Nous accusâmes le voisin à tort.', 'accusâmes']]) {
+    const got = corr(ph).filter(f => f.word === w);
+    if (got.length) { _kc15++; console.log('✗ conjugaison 15 : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.sugg + '[' + f.name + ']'))); } }
+  if (_kc15) { console.log('PARITÉ KO — ' + _kc15 + ' cas « conjugaison 15 ».'); process.exit(1); } }
+
 /* ⭐ 13/10/2026 — conjugaison 13 : le clitique ÉLIDÉ collé au verbe (« les pompiers n'arrive pas » → n'arrivent, « les rideaux l'abrite » →
    l'abritent, « les cahiers s'entasse » → s'entassent) — l'accord sujet-verbe à sujet nominal sautait tout mot à apostrophe. Python :
    rule_accord_sv_noun_elid. */
