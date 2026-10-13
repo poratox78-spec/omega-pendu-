@@ -67,6 +67,12 @@ const PAGE_RECHERCHE = `(async () => {${OUTILS}
       .catch(() => echecs.push('② clic : rien ne s habille à l écran (scripts /police/son_core.js, g2p.js, son_site.js ?)'));
     if (b.getAttribute('aria-pressed') !== 'true') echecs.push('② le bouton ne dit pas son état (aria-pressed)');
     if (typeof OmegaSonSite === 'undefined') return { echecs, fatal: 'OmegaSonSite absent' };
+    // ⭐ 13/10/2026 — la phonologie des « -ent » : la table tirée du moteur (extension/assets/ent-3p.txt.gz), pas la liste de 582 mots.
+    //    « jappent » n'est pas dans la liste : sans la table, son -ent serait prononcé.
+    await jusqua('table des « -ent »', () => window.__OMEGA_ENT3P && window.__OMEGA_ENT3P.size > 90000, 10000)
+      .catch(() => echecs.push('② la table des « -ent » (ent-3p.txt.gz) n est pas chargée : la police de son du site retombe sur 582 mots'));
+    { const st = _DECL2.g2p('jappent') || [], en = st.filter((s) => s.g === 'en').pop();
+      if (!en || en.ph !== '∅') echecs.push('② « jappent » : -ent prononcé (' + st.map((s) => s.g + ':' + s.ph).join(' ') + ') — la table des « -ent » n est pas lue'); }
     OmegaSonSite.tout();
     await document.fonts.ready;
     for (const fam of ['OMEGA Dys Heavy', 'OMEGA Dys Light'])

@@ -177,11 +177,20 @@
     // clés que l'app (vdd_son, vdd_syl) : l'allumer ici l'allume dans le correcteur et la dictée, et inversement (événement
     // storage, dans les deux sens). Français seulement (le g2p est français) : pas de bouton sur les pages /en/. Les scripts
     // ne se chargent qu'à la première activation : rien de plus à télécharger pour qui ne s'en sert pas.
+    // ⭐ 13/10/2026 — la phonologie des « -ent » (« ils mangent » : -ent muet) : les pages du site n'ont pas le moteur, la police de son
+    // retombait sur une liste de 582 mots. On charge la table des formes lues 3e pluriel, TIRÉE du moteur (extension/build_ent3p.js,
+    // ~0,2 Mo) : la même phonologie que l'extension et l'app.
+    function chargerEnt3p(fin){
+      if (window.__OMEGA_ENT3P || typeof DecompressionStream === 'undefined' || !window.fetch) return fin();
+      fetch('/extension/assets/ent-3p.txt.gz').then(function(r){ if (!r.ok) throw 0; return r.arrayBuffer(); })
+        .then(function(b){ return new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); })
+        .then(function(t){ window.__OMEGA_ENT3P = new Set(t.split('\n').filter(Boolean)); fin(); }, function(){ fin(); });
+    }
     function chargerSon(fin){
       var L = [['OmegaDysSonCore', '/police/son_core.js'], ['_DECL2', '/extension/assets/g2p.js'], ['OmegaSonSite', '/police/son_site.js']], i = 0;
       (function suivant(){
         while (i < L.length && typeof window[L[i][0]] !== 'undefined') i++;
-        if (i >= L.length) return fin();
+        if (i >= L.length) return chargerEnt3p(fin);
         var sc = document.createElement('script'); sc.src = L[i++][1]; sc.onload = suivant; sc.onerror = function(){};
         document.head.appendChild(sc);
       })();
