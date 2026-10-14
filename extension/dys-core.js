@@ -6202,6 +6202,20 @@ function spellUnknown(tok,atStart,T,idx){
     });
     return out;}
 
+  /* ⭐ 14/10/2026 (liste n° 19) — LE GARDE QUI MENTAIT SUR SA CONDITION. Le commentaire du point final annonce « verbe conjugué » depuis
+     le 01/09/2026 ; le code ne le vérifiait pas (seulement 3 mots). Or l'extension analyse chaque bloc d'un CV ou d'une liste à part :
+     un titre, un numéro de téléphone, une puce, une ligne de dates recevaient chacun « point final ». Un segment n'est une phrase que s'il
+     porte un verbe CONJUGUÉ : lu à un mode personnel (indicatif, conditionnel, subjonctif) par la table de conjugaison, sauf un mot à coup
+     sûr NOM (posterior : P(nom) ≥ 50 % et P(verbe) < 5 % — « équipe » 2,3 %, « travail ») et sauf « à ». PAS l'étiqueteur : il lit « consomment »
+     ADVERBE (finale -ment d'un mot hors de son vocabulaire) — essayé, 431 phrases d'UD perdaient leur point. Les formes en -é/-és ne
+     comptent pas : participes, que la table désaccentuée lit « il ferme ». Cherché sur la DERNIÈRE LIGNE du texte, pas le dernier segment :
+     les points d'abréviation (« B. B. King », « L. casei ») coupaient le segment loin du verbe — 240 phrases d'UD perdaient leur point. */
+  function _aVerbeConj(s){var T=toks(s);if(!T.length)return false;
+    for(var j=0;j<T.length;j++){var t=T[j].toLowerCase().replace(/[’ʼ]/g,"'"),b=t.slice(t.lastIndexOf("'")+1);if(!b||b==='à'||/é(s?)$/.test(b))continue;
+      var r=svReads(b),fin=false;for(var k=0;k<r.length;k++)if(/^(ind|cnd|sub)/.test(r[k][1])){fin=true;break;}if(!fin)continue;
+      var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deacc(b)):NOUN_POST[deacc(b)]):null;if(np&&np[0]>=500&&np[1]<50)continue;
+      return true;}
+    return false;}
   function _questionScan(text){var out=[];
     /* « ? » MANQUANT — la seule ponctuation SYNTAXIQUE qu'on puisse proposer aujourd'hui, parce que
      c'est la seule dont on connaisse le prix : `estQuestion` fait 96,67 % de précision (58/60,
@@ -6238,7 +6252,8 @@ function spellUnknown(tok,atStart,T,idx){
     if(_qcorps.trim()&&!estQuestion(_qcorps.trim(),QMOTS_CORR)&&_qlast!=='.'
         &&_qm.index+_qs.length>=text.length              // DERNIER segment du texte
         &&';:,'.indexOf(_qlast)<0                        // ; : , sont déjà une ponctuation
-        &&_qcorps.trim().split(/\s+/).length>=3){        // pas un fragment d'un mot ou deux
+        &&_qcorps.trim().split(/\s+/).length>=3          // pas un fragment d'un mot ou deux
+        &&_aVerbeConj(text.slice(text.lastIndexOf('\n')+1))){                         // ⭐ 14/10/2026 (liste n° 19) : une PHRASE (verbe conjugué), pas un titre, une puce, un numéro
       var _pe=_qm.index+_qfin.length;
       out.push({cs:_pe,ce:_pe,from:'',sugg:'.',name:'point final',tier:'vigilance',typo:1});
       continue;

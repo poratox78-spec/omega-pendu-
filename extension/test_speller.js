@@ -434,8 +434,19 @@ function testListe12() {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 12, 17 et 18 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier]))); }
 }
+// ⭐ 14/10/2026 — LISTE N° 19 : « point final » n'est proposé qu'à une PHRASE (verbe conjugué sur la dernière ligne). L'extension analyse
+// chaque bloc d'un CV à part : titre, téléphone, puce, ligne de dates recevaient chacun un point. Les quatre premiers échouent sur le
+// moteur d'avant ; les trois derniers sont des témoins (phrase sans ponctuation, et verbe avant des initiales à point).
+function testListe19() {
+  for (const [t, attendu] of [['Technicienne de maintenance', false], ['06 12 34 56 78', false], ['- Accueil des clients', false],
+      ['Esprit d\'équipe, soudure, mécanique de précision', false], ['le chat mange la souris', true], ['je vais bien tu viens demain', true],
+      ['Il a rencontré J. K. Martin hier soir', true]]) {
+    const pf = DC.diagnoseAll(t).flags.some(f => f.name === 'point final');
+    if (pf !== attendu) fail.push('liste n° 19 « ' + t + ' » : point final ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (pf ? 'proposé' : 'rien')); }
+}
 function finish(parityKO) {
   testListe12();
+  testListe19();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {
