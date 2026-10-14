@@ -26887,6 +26887,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       var d=deacc(T[k].toLowerCase());if(GENDER_MAP[d]||ADJP[d])break;                    // vrai nom/adj avant la conj → coordination NOMINALE
     }
     if(v1===null)return null;
+    if(rAccordSV(T,v1)||rAccordSVnoun(T,v1))return null;   // ⭐ 14/10/2026 (liste n° 1d) : le verbe frère est LUI-MÊME corrigé par une autre règle (« Les enfants mange et dorment » recevait « mangent » ET « dort », deux rouges contradictoires) — une ancre déjà corrigée ne gouverne rien. Miroir Python.
     var n1=_vnum3(T[v1]);if(n1===null||n1===vn2)return null;
     var mt='ind:imp';for(k=0;k<r2.length;k++)if(r2[k][1]==='ind:pre'){mt='ind:pre';break;}
     var sl=(CONJ_C[r2[0][0]]||{})[mt]||{},sug=sl['3'+n1];
@@ -30691,6 +30692,7 @@ function spellTokenCore(tok,atStart,T,idx){
       var _p3=false;for(a=0;a<r.length;a++)if(r[a][2]==='3'){_p3=true;break;}if(!_p3)continue;   /* ⭐ 11/09/2026 : un verbe coordonné PARTAGE le sujet — un verbe fini sans lecture de 3e personne (« ETES » = vous êtes) ne peut pas prêter son nombre à « a » : on continue la remontée. Trouvé par la batterie AU PRODUIT quand la table a perdu la lecture fantôme « etes » 2e sg : une phrase où « a fait » suivait « etes » (vous êtes) recevait une orange a→ont. */
       var rv=svReads(F[vi]),a,b,ok=false,nbs={};for(a=0;a<r.length;a++){nbs[r[a][3]]=1;for(b=0;b<rv.length;b++)if(r[a][2]===rv[b][2]&&(r[a][3]===rv[b][3]||r[a][3]==='x'||rv[b][3]==='x'))ok=true;}
       if(ok)return null;                                        // même sujet possible : rien à dire
+      if(rAccordSV(F,q)||rAccordSVnoun(F,q))return null;        // ⭐ 14/10/2026 (liste n° 1d) : le premier verbe est LUI-MÊME fautif (« les enfants mange et dorment ») — il ne prête pas son nombre. Miroir Python _coord_verbe
       if(nbs.s&&!nbs.p)return vn==='s'?null:f3s;if(nbs.p&&!nbs.s)return vn==='p'?null:f3p;return null;}
     return undefined;}
   function osVerbVig(T,i,tg){if(!_OSLM)return null;

@@ -6129,6 +6129,7 @@ def rule_accord_verb_coord(T, i):
         d = deacc(T[k].lower())
         if d in GENDER_FULL or d in ADJ_LEX: break
     if v1 is None: return None
+    if rule_accord_sv(T, v1) or rule_accord_sv_noun(T, v1): return None   # ⭐ 14/10/2026 (liste n° 1d) : verbe frère lui-même fautif — miroir JS
     n1 = _vnum3(T[v1])
     if n1 is None or n1 == vn2: return None
     lem = r2[0][0]; mt = 'ind:pre' if 'ind:pre' in {r[1] for r in r2} else 'ind:imp'

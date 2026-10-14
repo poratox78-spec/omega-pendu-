@@ -451,9 +451,13 @@ function testListe20() {
   for (const [t, w, s] of [['Des stages : avr. 2021', 'avr', null], ['Des équipes motivées, organisation opérationnelle', 'organisation', null],
       ['Les pages produit', 'produit', null], ['Les photos produit et service se renouvellent.', 'renouvellent', null],
       ['Des pommes rouges, juteuse et sucrées.', 'juteuse', 'juteuses'], ['Les usines produit des voitures.', 'produit', 'produisent'],
-      ['Les équipes travaille.', 'travaille', 'travaillent']]) {
+      ['Les équipes travaille.', 'travaille', 'travaillent'],
+      // ⭐ LISTE N° 1d : deux rouges contradictoires — le verbe coordonné s'accordait sur un premier verbe lui-même fautif. Les deux premiers
+      // échouent sur le moteur d'avant ; témoins : premier verbe juste (pronom, sujet nominal).
+      ['Les enfants mange et dorment.', 'dorment', null], ['Les chats miaule et ronronnent.', 'ronronnent', null],
+      ['Il chante et dansent.', 'dansent', 'danse'], ['Les enfants mangent et dort.', 'dort', 'dorment']]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
-    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 20 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20 et 1d « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
 }
 function finish(parityKO) {
   testListe12();
