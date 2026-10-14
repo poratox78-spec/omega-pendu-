@@ -440,13 +440,20 @@ function testListe12() {
 function testListe19() {
   for (const [t, attendu] of [['Technicienne de maintenance', false], ['06 12 34 56 78', false], ['- Accueil des clients', false],
       ['Esprit d\'équipe, soudure, mécanique de précision', false], ['le chat mange la souris', true], ['je vais bien tu viens demain', true],
-      ['Il a rencontré J. K. Martin hier soir', true]]) {
+      ['Il a rencontré J. K. Martin hier soir', true], ['Téléphone : 07 11 22 33 44', false]]) {   // ⭐ liste n° 23 : une ligne-étiquette n'a pas de verbe
     const pf = DC.diagnoseAll(t).flags.some(f => f.name === 'point final');
     if (pf !== attendu) fail.push('liste n° 19 « ' + t + ' » : point final ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (pf ? 'proposé' : 'rien')); }
 }
 // ⭐ 14/10/2026 — LISTE N° 20 : pluriels absurdes sur des fragments (CV, listes). Le pluriel d'un groupe ne traverse plus « : », un retour à la
 // ligne, une fin de phrase, ni une virgule suivie d'un nouveau nom ; « les pages produit » n'est plus lu sujet + verbe. Les quatre premiers
 // échouent sur le moteur d'avant ; témoins : l'adjectif après une virgule, le vrai verbe avec complément, le verbe sans lecture nom.
+// ⭐ 14/10/2026 — LISTE N° 23 : texte espacé (PDF) — « espace double » n'est plus corrigé d'office ENTRE DEUX CHIFFRES (numéro groupé par
+// paires). Le premier échoue sur le moteur d'avant ; témoin : entre deux mots, toujours corrigé.
+function testListe23() {
+  for (const [t, attendu] of [['Tél : 0 7  1 1  2 2  3 3', false], ['Il  mange une pomme.', true]]) {
+    const ed = DC.diagnoseAll(t).flags.some(f => f.name === 'espace double');
+    if (ed !== attendu) fail.push('liste n° 23 « ' + t + ' » : espace double ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (ed ? 'corrigé' : 'rien')); }
+}
 function testListe20() {
   for (const [t, w, s] of [['Des stages : avr. 2021', 'avr', null], ['Des équipes motivées, organisation opérationnelle', 'organisation', null],
       ['Les pages produit', 'produit', null], ['Les photos produit et service se renouvellent.', 'renouvellent', null],
@@ -455,14 +462,24 @@ function testListe20() {
       // ⭐ LISTE N° 1d : deux rouges contradictoires — le verbe coordonné s'accordait sur un premier verbe lui-même fautif. Les deux premiers
       // échouent sur le moteur d'avant ; témoins : premier verbe juste (pronom, sujet nominal).
       ['Les enfants mange et dorment.', 'dorment', null], ['Les chats miaule et ronronnent.', 'ronronnent', null],
-      ['Il chante et dansent.', 'dansent', 'danse'], ['Les enfants mangent et dort.', 'dort', 'dorment']]) {
+      ['Il chante et dansent.', 'dansent', 'danse'], ['Les enfants mangent et dort.', 'dort', 'dorment'],
+      // ⭐ LISTE N° 21 : anglicismes de métier pris pour des fautes (picking → packing, dev → devez, process → proces EN ROUGE, une start-up → un).
+      // Les six premiers échouent sur le moteur d'avant ; témoin : le genre d'un composé français (« une chou-fleur ») reste vérifié.
+      ['Elle prépare les colis au picking.', 'picking', null], ['Il code comme dev web.', 'dev', null], ['Nos apps tournent bien.', 'apps', null],
+      ['Le chatbot répond vite.', 'chatbot', null], ['Un process simple aide l\'équipe.', 'process', null], ['Elle fonde une start-up.', 'une', null],
+      ['Elle mange une chou-fleur.', 'une', 'un'],
+      // ⭐ LISTE N° 22 : les mots d'un courriel, d'un lien ou d'un nom de site ne sont plus corrigés (« velo » → vélo EN ROUGE dans un lien).
+      // Les trois premiers échouent sur le moteur d'avant ; témoin : la faute de la phrase autour reste corrigée.
+      ['Écrivez à lea.durand@gmail.com demain.', 'gmail', null], ['Site : www.atelier-velo-exemple.fr', 'velo', null],
+      ['Mon adresse marcvelo@hotmail.fr est valide.', 'hotmail', null], ['Les enfant joue au parc.', 'enfant', 'enfants']]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
-    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20 et 1d « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20, 1d, 21 et 22 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
 }
 function finish(parityKO) {
   testListe12();
   testListe19();
   testListe20();
+  testListe23();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {
