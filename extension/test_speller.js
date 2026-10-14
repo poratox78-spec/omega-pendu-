@@ -408,7 +408,25 @@ async function gardeIndexRare() {
     if (app.indexOf(s) < 0) fail.push('repli phonétique : l\'app ne porte plus « ' + s + ' » (chargeur ou lancement en tâche de fond)');
 }
 
+// ⭐ 14/10/2026 — LISTE N° 12 : l'adjectif COORDONNÉ (« une voiture rapide et puissant ») n'était jamais vérifié. Phrases inventées ; les cinq
+// premières échouent sur le moteur d'avant. Témoins muets : couleur composée, locution invariable, participe après « avoir », nom coordonné.
+// ⭐ 14/10/2026 — LISTE N° 12 (suite) : la règle lit l'ÉTIQUETEUR et le genre accentué — chargés ICI, en fin de banc, pour ne rien changer
+// aux blocs précédents (ils tournent sans étiqueteur depuis toujours).
+function testListe12() {
+  const A = (f) => zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', f))).toString('utf8');
+  DC.setNounPost(A('noun-post.txt.gz')); DC.setPosHmm(JSON.parse(A('pos-hmm.json.gz'))); DC.setGaccLex(A('gender-acc.json.gz'));
+  for (const [t, w, s] of [['Une voiture rapide et puissant passe devant nous.', 'puissant', 'puissante'], ['Une équipe soudée et motivé gagne souvent.', 'motivé', 'motivée'],
+      ['Des femmes grandes et forts traversent la place.', 'forts', 'fortes'], ['La porte ouverte et fermé claque.', 'fermé', 'fermée'], ['Des salles propres et rangé attendent.', 'rangé', 'rangées'],
+      ['Il a les yeux bleus et vert foncé.', 'vert', null], ['Des produits frais et bon marché attendent sur l\'étal.', 'bon', null],
+      ['J\'ai acheté une robe neuve et payé comptant.', 'payé', null], ['La militante écologiste et fondateur du club parle.', 'fondateur', null],
+      // la TABLE des adjectifs à masculin en -s (mauvais, gris, précis, français : paire jamais construite) — échouent sur les assets d'avant
+      ['Elle a des idées claires et précis.', 'précis', 'précises'], ['Il conduit une voiture français.', 'français', 'française'], ['Elle porte une robe gris.', 'gris', 'grise'],
+      ['Il a les ailes gris argenté.', 'gris', null], ['Le directeur précise sa pensée.', 'précise', null], ['Il envoie une lettre exprès.', 'exprès', null]]) {
+    const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 12 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier]))); }
+}
 function finish(parityKO) {
+  testListe12();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {

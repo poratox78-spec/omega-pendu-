@@ -390,6 +390,9 @@ def _voyelle_mangee(sp, d):
     return best if bf >= _VOY_FREQ else None
 
 
+# ⭐ 14/10/2026 (liste n° 12) — prépositions que la bascule de genre d'un adjectif ne traverse pas (miroir JS : PREP sans « a »).
+_PREP_G = set(u'de du des au aux sur dans par pour avec sans sous chez vers près pres travers malgré malgre dès des entre depuis contre'.split())
+
 class Speller:
     # ⚠️ ALIGNÉ SUR LE PRODUIT le 06/09/2026 : `DET_G` (dys-core.js l.1331, miroir app) ne contient NI « du » NI « au ».
     # La référence les avait en plus, et ça se voyait au PALIER dès que contexte-first est porté : « boulo »,
@@ -1054,7 +1057,8 @@ class Speller:
                 return ('auto' if ip else 'flag', pr)
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
-        if cg and 'A' in self.POS.get(w1, ()):                  # bascule réservée aux ADJECTIFS (évite nom « élève » → « élevée »)
+        _pv = deacc(toks[idx - 1].lower()) if (toks and idx) else ''
+        if cg and 'A' in self.POS.get(w1, ()) and not (_pv in _PREP_G):   # bascule réservée aux ADJECTIFS ; ⭐ 14/10/2026 : pas à travers une préposition (nom + préposition + adjectif)
             a = self.ADJ.get(deacc(w1))
             if a and a[0] != cg and a[1] in cands and self._gender(a[1]) == cg:
                 return ('flag', a[1])

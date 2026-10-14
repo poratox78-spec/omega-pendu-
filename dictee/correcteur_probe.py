@@ -2540,6 +2540,64 @@ def rule_quelque(T, i):
     return _keepcase(T[i], 'quelques')
 
 
+_PP_COORD = re.compile(u'é(e?)(s?)$')
+_AVOIR_F = set('ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient eu eus eut'.split())
+
+
+def _avoir_avant(T, k):
+    """Miroir _avoirAvant : une forme d'« avoir » avant k dans la proposition (bornes de l'auteur)."""
+    bb = (_SEG or {}).get('bb') or []
+    for j in range(k - 1, -1, -1):
+        if j + 1 < len(bb) and bb[j + 1]: return False
+        t = deacc(T[j].lower()); t = t[t.rfind("'") + 1:]
+        if t in _AVOIR_F: return True
+    return False
+
+
+def rule_adj_epithet_coord(T, i):
+    """⭐ 14/10/2026 (liste n° 12) — miroir rAdjEpithetCoord : [article + NOM + ADJ1 + et + ADJ2], ADJ1 accordé au nom, ADJ2 non →
+    ADJ2 accordé au nom (« des idées claires et précis » → précises)."""
+    if i < 4 or deacc(T[i - 1].lower()) != 'et': return None
+    bb = (_SEG or {}).get('bb') or []
+    if any(k < len(bb) and bb[k] for k in (i, i - 1, i - 2)): return None
+    if i + 1 < len(bb) and bb[i + 1] and not T[i + 1][:1].isupper(): return None
+    w = T[i]; lw = w.lower()
+    if "'" in lw or w[:1].isupper(): return None
+    d = deacc(lw)
+    if d not in ADJ_LEX or _adj_estem(lw) is not None or not _adj_acc_ok(lw, d): return None
+    if d in ('tout', 'tous', 'toute', 'toutes'): return None
+    if i + 1 < len(T) and deacc(T[i + 1].lower()) in ('de', 'et', 'ou', 'ni'): return None
+    if i + 1 < len(T) and d in ('bon', 'meilleur') and deacc(T[i + 1].lower()) in ('marche', 'enfant'): return None   # locutions invariables
+    if i + 1 < len(T) and (d + ' ' + deacc(T[i + 1].lower())) in _ADJ_INVAR_LOC: return None
+    tg = pos_tags(T)
+    if not tg or tg[i - 2] != 'ADJ' or tg[i - 3] != 'NOUN': return None
+    if tg[i] != 'ADJ' and not (tg[i] == 'VERB' and _PP_COORD.search(lw) and not _avoir_avant(T, i - 3)): return None   # participe étiqueté verbe
+    if d in _ADV_ADJ_INVAR and i + 1 < len(tg) and (tg[i + 1] in ('DET', 'VERB', 'ADJ') or _elid_kind(T[i + 1]) == 'det'): return None   # emploi adverbial invariable
+    if d in _COLOR_ADJ and i + 1 < len(tg) and tg[i + 1] in ('ADJ', 'NOUN', 'VERB'): return None   # couleur composée invariable : « bleus et vert foncé », « gris argenté »
+    if not re.search(u'é(e?)(s?)$', lw):
+        _np = NOUN_POST.get(d) if NOUN_POST else None
+        if _np and _np[0] >= 500: return None   # 2e mot surtout NOM (« fondateur du mouvement », UD) — miroir JS
+    a1 = T[i - 2]; la1 = a1.lower(); d1 = deacc(la1)
+    if "'" in la1: return None
+    if _head_text(T[i - 3])[:1].isupper(): return None
+    _hd = _head_text(T[i - 3]).lower(); dn = deacc(_hd); g = GENDER_ACC_COLL.get(_hd) or GENDER_PURE.get(dn)
+    if g not in ('m', 'f'):
+        _ga = None if _hd in _GACC_EPICENE else GENDER_ACC.get(_hd)   # « équipe » : la forme accentuée tranche (miroir JS)
+        if _ga in ('m', 'f'): g = _ga
+    if g not in ('m', 'f') or dn in _SG_STOP: return None
+    num = _EPI_ART.get(deacc(T[i - 4].lower()))
+    if num is None: return None
+    _ppm = re.match(u'^(.*[éiu])(e?)(s?)$', la1)   # ADJ1 participe (soudée, choisis) : sa finale dit genre et nombre
+    if _adj_estem(la1) is not None:
+        if (num == 'p') != bool(re.search(r'[sx]$', d1)): return None
+    elif d1 in ADJ_LEX:
+        if _adj_agree(a1, g, num).lower() != la1: return None
+    elif not (_ppm and (_ppm.group(2) == 'e') == (g == 'f') and (_ppm.group(3) == 's') == (num == 'p')): return None
+    if not re.search(u'é(s?)$', lw) and any(p == '3' and n == num for (_l, _mt, p, n) in _reads(w)): return None   # « motivé » ≠ « il motive » (miroir JS)
+    sugg = _adj_agree(w, g, num)
+    return _keepcase(T[i], sugg) if sugg.lower() != lw else None
+
+
 def rule_adj_epithet(T, i):
     """Accord en GENRE×NOMBRE de l'ADJECTIF ÉPITHÈTE avec le nom qu'il suit : [ARTICLE + NOM(genre connu) + ADJ]
     (« la règle présidentiel »→présidentielle, « les domaines industriel »→industriels). Le territoire genre-adjectif
@@ -2575,7 +2633,7 @@ def rule_adj_epithet(T, i):
     if not tg or i >= len(tg) or tg[i] != 'ADJ': return None
     if d in _ADV_ADJ_INVAR and i+1 < len(tg) and (tg[i+1] in ('DET', 'VERB', 'ADJ') or _elid_kind(T[i+1]) == 'det'): return None   # emploi ADVERBIAL invariable : « plein les yeux »/« haut la main » (dét après) OU « haut placées »/« large ouvertes » (participe/adj après)
     if tg[i-1] != 'NOUN' and not _el: return None   # sur un nom ÉLIDÉ le tagger dit PROPN (majuscule de l'article en tête de phrase) : c'est le genre du lexique qui fait foi ci-dessous
-    if d in _COLOR_ADJ and i+1 < len(tg) and tg[i+1] in ('ADJ', 'NOUN'): return None   # COULEUR COMPOSÉE (bleu clair, vert pomme, bleu marine) = INVARIABLE → abstention (piège Voltaire)
+    if d in _COLOR_ADJ and i+1 < len(tg) and tg[i+1] in ('ADJ', 'NOUN', 'VERB'): return None   # ⭐ 14/10/2026 : + VERBE (« les ailes gris argenté »)   # COULEUR COMPOSÉE (bleu clair, vert pomme, bleu marine) = INVARIABLE → abstention (piège Voltaire)
     if _head_text(T[i-1])[:1].isupper(): return None                 # nom propre (capitalisé) → genre non fiable. ÉLISION DÉCOLLÉE : « L'allégation » en tête de phrase porte la majuscule du DÉTERMINANT, pas du nom — la tester ici écartait tout nom commun élidé.
     _hd = _head_text(T[i-1]).lower(); dn = deacc(_hd); g = GENDER_ACC_COLL.get(_hd) or GENDER_PURE.get(dn)   # collisions d'ACCENT d'abord (marché/marche) — PAS la table accentuée brute : elle donne « f » aux épicènes (peintre, architecte, ministre) et faisait un ROUGE faux, « un peintre italien » → italienne (18/09/2026, vu en portant la ligne vers le produit)
     if g not in ('m', 'f') or dn in _SG_STOP: return None            # genre connu (nom pur) ET pas un invariant -s/-x
@@ -7466,7 +7524,7 @@ def correct_tiered(text):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-é/-er', rule_a_inf_e), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('participe après être à vérifier', rule_etre_fini), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_geo), ('accord adjectif antéposé', rule_quelque), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
+         ('-é/-er', rule_e_er), ('-é/-er', rule_a_inf_e), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('participe après être à vérifier', rule_etre_fini), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_epithet_coord), ('accord adjectif épithète', rule_adj_geo), ('accord adjectif antéposé', rule_quelque), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
          ('accord adjectif épithète', rule_adj_aux),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
@@ -7656,6 +7714,10 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    ("Il a les yeux bleus et vert foncé.", "couleur composée invariable après « et » (14/10/2026, liste n° 12)."),
+    ("Il a les ailes gris argenté.", "couleur composée, 2e mot étiqueté verbe (14/10/2026, liste n° 12)."),
+    ("Il envoie une lettre exprès.", "« exprès » invariable dans « lettre exprès » (14/10/2026, liste n° 12)."),
+    ("J'ai acheté une robe neuve et payé comptant.", "participe d'un verbe après « avoir », pas un adjectif du nom (14/10/2026, liste n° 12)."),
     ("Les jantes en chrome brillent au soleil.", "« en chrome » est le complément, le verbe est « brillent » : jamais « chroment » (14/10/2026, liste n° 1c)."),
     ("Elle vit dans le Val-de-Marne depuis un an.", "nom composé déjà bien écrit : rien à dire (14/10/2026, liste n° 16)."),
     ("Le chrome des jantes brille.", "« chrome » le métal, hors contexte de navigateur (14/10/2026, liste n° 16)."),
@@ -7773,6 +7835,10 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Une voiture rapide et puissante passe devant nous.", "puissante", "puissant", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : l'adjectif coordonné
+    ("Une équipe soudée et motivée gagne souvent.", "motivée", "motivé", "accord adjectif épithète"),
+    ("Il conduit une voiture française.", "française", "français", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : masculin en -s, paire absente de la table
+    ("Elle a des idées claires et précises.", "précises", "précis", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : coordonné + table   # ⭐ 14/10/2026 (liste n° 12) : participe étiqueté verbe, « motivé » ≠ « il motive »
     ("Il navigue avec Firefox tous les jours.", "Firefox", "firefox", "majuscule"),   # ⭐ 14/10/2026 (liste n° 16)
     ("Il ouvre le navigateur Chrome.", "Chrome", "chrome", "majuscule"),   # ⭐ 14/10/2026 (liste n° 16) : la marque seulement en contexte
     ("Une gestion à flux tendu.", "flux", "flue", "expression figée à vérifier"),   # ⭐ 14/10/2026 (liste n° 11) : « flue » est un mot (fluer), la locution le dit faux
@@ -8191,7 +8257,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 276   # 14/10/2026 : +2 (liste n° 16 : Firefox, Chrome en contexte) ; 274 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : flux tendu, chiffre d'affaires). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 280   # 14/10/2026 : +4 (liste n° 12 : l'adjectif coordonné, « rapide et puissant », « soudée et motivé » ; masculins en -s, « voiture français », « précis ») ; +2 (liste n° 16 : Firefox, Chrome en contexte) ; 274 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : deux locutions figées). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:
