@@ -6590,6 +6590,10 @@ def rule_fige(T, i):
     bb = (_SEG or {}).get('bb') or []
     cut = lambda k: k < len(bb) and bool(bb[k]); fin = lambda k: k >= n or cut(k)
     if d in ('enfaite', 'enfait'): return cap('en fait')
+    # ⭐ 14/10/2026 (liste n° 11 et 14) — « flue tendu » → flux tendu ; « des milliards de chiffres d'affaires » → chiffre. Miroir JS.
+    if re.match(r'^(flue|flues|flu|flus|flut)$', d) and re.match(r'^tendue?s?$', d1) and not cut(i + 1): return cap('flux')
+    if (d == 'chiffres' and re.match(u"^d['’]affaires?$", d1) and not cut(i + 1) and p == 'de' and i >= 2 and not cut(i - 1)
+            and re.match(u"^(\\d+|millions?|milliards?|milliers?|d['’]euros?|euros?|d['’]dollars?|dollars?|€)$", deacc(T[i - 2].lower()))): return cap('chiffre')
     if d == 'comme' and d1 == 'meme' and not cut(i + 1) and (fin(i + 2) or _fig_k(T[i + 2]) not in _FIG_CMM): return cap('quand')
     if d == 'faite' and p == 'en' and not cut(i) and not (i >= 2 and not cut(i - 1) and _fig_k(T[i - 2]) in _FIG_ENF): return 'fait'
     if d == 'tous' and d1 == 'le' and d2 == 'temps' and not cut(i + 1) and not cut(i + 2):
@@ -7611,10 +7615,13 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    ("Un chiffre d'affaires de 5 millions.", "« chiffre d'affaires » au singulier, sans nombre avant : rien à dire (14/10/2026, liste n° 14)."),
+    ("Les chiffres d'affaires des deux sociétés montent.", "plusieurs chiffres d'affaires : le pluriel est juste (14/10/2026, liste n° 14)."),
+    ("La rivière flue lentement vers la mer.", "« flue » verbe (fluer), hors de la locution « flux tendu » (14/10/2026, liste n° 11)."),
     ("Les décisions prises hier sont bonnes.", "« prises » participe féminin de prendre, pas le verbe « priser » : jamais « prisent » (13/10/2026, liste n° 4)."),
     ("Les promesses faites aux électeurs.", "« faites » participe de faire, pas « vous faites » : jamais « font » (13/10/2026, liste n° 4)."),
     ("Des photos prises au hasard.", "« prises » participe, même sans verbe dans la phrase (13/10/2026, liste n° 4)."),
-    ("Une sélection de produits mise en avant.", "« mise » s'accorde avec « sélection » : juste, rien à dire (13/10/2026, liste n° 4)."),
+    ("Une gamme de livres mise en avant.", "« mise » s'accorde avec « gamme » : juste, rien à dire (13/10/2026, liste n° 4)."),
     ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
     ("Je vois que certains porte un chapeau.", "« certains » aussi pronom : un verbe derrière n'est pas un nom à mettre au pluriel (04/10/2026).", 'rouge'),
     ("Il boit un thé aux citron.", "« aux » se dit comme « au » : devant un masculin, le déterminant peut être la faute (04/10/2026).", 'rouge'),
@@ -7722,6 +7729,8 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Une gestion à flux tendu.", "flux", "flue", "expression figée à vérifier"),   # ⭐ 14/10/2026 (liste n° 11) : « flue » est un mot (fluer), la locution le dit faux
+    ("Une société de 3 milliards de chiffre d'affaires.", "chiffre", "chiffres", "expression figée à vérifier"),   # ⭐ 14/10/2026 (liste n° 14) : le chiffre d'affaires est UN montant
     ("Le chat mangea la souris.", "mangea", "mangeâmes", "accord du verbe au sujet nominal à vérifier"),   # ⭐ 09/10/2026 : 3e du singulier du passé simple des verbes en -er, complétée
     ("Il mangea la soupe.", "mangea", "mangeâmes", "personne du verbe"),
     ("Ils mangèrent la soupe.", "mangèrent", "mangea", "personne du verbe"),
@@ -8136,7 +8145,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 270   # 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 274   # 14/10/2026 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : flux tendu, chiffre d'affaires). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:

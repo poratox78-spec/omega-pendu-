@@ -630,6 +630,8 @@ class Speller:
         contexte des tokens ENTIERS (le voisin de gauche reste « d'une », pas « une »), puis on ré-attache le
         préfixe. Gardes du produit : le reste corrigé doit commencer par voyelle/h (« l'aramel »→caramel casserait
         l'élision → abstention) ; hors auto, un reste phonétiquement distant (othographe→autographe) = faux ami → abstention."""
+        _jq = re.match(u"^(jusqu['’])(a|ou)$", tok, re.I)   # ⭐ 14/10/2026 (liste n° 13) : « jusqu'a », « jusqu'ou » → jusqu'à, jusqu'où (rouge) — miroir JS
+        if _jq: return ('flag', _jq.group(1) + ('à' if _jq.group(2).lower() == 'a' else 'où'))
         em = self._ELI_RE.match(tok)
         if em:
             pk = em.group(1).lower()

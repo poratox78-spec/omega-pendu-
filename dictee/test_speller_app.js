@@ -431,8 +431,8 @@ const SP = globalThis.__sp;
   }
 
   // ⭐ 13/10/2026 — LISTES N° 2 ET 3 (majuscules, sigles, noms) : mêmes cas que extension/test_speller.js.
-  for (const [t, w, s, tier] of [['OMEGA est un correcteur.', 'OMEGA', null, null], ['Omega corrige les textes.', 'Omega', null, null],
-      ['COMPETENCES ET EXPERIENCE', 'COMPETENCES', 'COMPÉTENCES', 'vigilance'], ['COMPETENCES ET EXPERIENCE', 'EXPERIENCE', 'EXPÉRIENCE', 'vigilance'],
+  for (const [t, w, s, tier] of [['OMEGA aide les élèves.', 'OMEGA', null, null], ['Omega corrige les textes.', 'Omega', null, null],
+      ['ETUDES ET CARRIERE', 'ETUDES', 'ÉTUDES', 'vigilance'], ['ETUDES ET CARRIERE', 'CARRIERE', 'CARRIÈRE', 'vigilance'],
       ['Il lit METEO DU JOUR.', 'METEO', 'MÉTÉO', 'vigilance'], ['Apres le repas, il dort.', 'Apres', 'Après', 'flag'], ['Begoña est venue hier.', 'Begoña', null, null],
       ['Ecole fermée demain.', 'Ecole', 'École', 'auto'], ['Séléction de fruits.', 'Séléction', 'Sélection', 'auto'], ["L'hotel est loin.", "L'hotel", "L'hôtel", 'auto']]) {
     const r = SP.spell(t).find(x => x.word === w && x.name === 'orthographe');
@@ -452,6 +452,11 @@ const SP = globalThis.__sp;
       ['Des branches entrecoupes de lumière.', 'entrecoupes', 'entrecoupés', 'vigilance'], ['Il leve la main.', 'leve', 'lève', 'auto']]) {
     const r = SP.spell(t).find(x => x.word === w);
     if (s === null ? !!r : (!r || r.sugg !== s || r.tier !== tier)) fail.push('liste n° 6 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(r && [r.sugg, r.tier, r.name]));
+  }
+
+  // ⭐ 14/10/2026 — LISTE N° 13 (jusqu'a / jusqu'ou) : mêmes cas que extension/test_speller.js.
+  for (const [t, w, s, tier] of [["Jusqu'a demain soir.", "Jusqu'a", "Jusqu'à", 'flag'], ["Il lit jusqu'a minuit.", "jusqu'a", "jusqu'à", 'flag'], ["Va jusqu'ou tu peux.", "jusqu'ou", "jusqu'où", 'flag']]) {
+    const r = SP.spell(t).find(x => x.word === w); if (!r || r.sugg !== s || r.tier !== tier) fail.push('liste n° 13 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(r && [r.sugg, r.tier]));
   }
 
   // ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux) : mêmes cas que extension/test_speller.js (le site suit l'extension).
