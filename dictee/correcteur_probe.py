@@ -3189,9 +3189,17 @@ ABBREV = {'m', 'mme', 'mlle', 'mr', 'dr', 'pr', 'me', 'mgr', 'st', 'ste', 'etc',
 
 _TLD_CAP = {'com', 'net', 'org', 'fr', 'io', 'co', 'eu', 'de', 'uk', 'be', 'ca', 'ch', 'us', 'info', 'edu', 'gov', 'biz', 'tv', 'me', 'app'}  # point de DOMAINE (commentcamarche.net) ≠ fin de phrase → pas de majuscule sur le TLD
 
+_URL_RE = re.compile(u'[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}|(?:https?://|www\\.)[^\\s<>"«»]+|\\b[A-Za-z0-9\\-]+(?:\\.[A-Za-z0-9\\-]+)*\\.(?:com|fr|net|org|io|eu|be|ch|ca|info|app|dev)\\b(?:/[^\\s<>"«»]*)?', re.I)   # ⭐ 14/10/2026 (liste n° 22) — miroir JS _URL_RE
+
+
+def _url_spans(text):
+    return [(m.start(), m.end()) for m in _URL_RE.finditer(text)]
+
+
 def _seg_info(text):
     import re
     ss, bb, hy, cap, dig, raw, prev_end = [], [], [], [], [], [], 0
+    _us = _url_spans(text); url = []   # ⭐ liste n° 22 : mots d'une adresse
     for k, m in enumerate(re.finditer(r"[A-Za-zÀ-ÿœŒ']+", text)):
         gap = text[prev_end:m.start()]
         s = any(c in gap for c in '.!?…')                        # début de phrase = APRÈS . ! ? (pas le 1er token : un fragment ne se capitalise pas)
@@ -3203,8 +3211,9 @@ def _seg_info(text):
         cap.append(_capp and '..' not in gap and not any(c.isdigit() for c in gap) and not _dom)   # MAJUSCULE : vraie fin de phrase (point + espace) — pas une ellipse « .. », un point de nombre/décimale, ni un point de DOMAINE (URL)
         raw.append(m.group())                                    # ⭐ 28/09/2026 : le mot tel que l'AUTEUR l'a écrit (les règles voient les tokens nettoyés par l'orthographe)
         dig.append(any(c.isdigit() for c in gap))                # un NOMBRE (supprimé par toks) précédait ce token : « le 25 mars », « le 100 mètres » → écran, le déterminant ne gouverne pas ce nom
+        url.append(any(a <= m.start() < b for (a, b) in _us))
         prev_end = m.end()
-    return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig, 'raw': raw}
+    return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig, 'raw': raw, 'url': url}
 
 
 # ---------- BORNES DE PROPOSITION PRÉDITES (canal « pb », 31/08/2026) ----------
@@ -7682,6 +7691,7 @@ def correct(text):
     T = toks(text); out = []
     _SEG['pb'] = _pred_bounds(T, _SEG)                            # bornes de proposition PRÉDITES (listes fermées) — consommées par la seule garde verbe-présence
     for i in range(len(T)):
+        if i < len(_SEG.get('url') or []) and _SEG['url'][i]: continue   # ⭐ 14/10/2026 (liste n° 22) : mot d'une adresse — miroir JS
         for name, rule in RULES:
             dec = rule(T, i)
             if dec is not None and dec != T[i] and (name == 'majuscule' or dec.lower() != T[i].lower()):
@@ -7752,6 +7762,8 @@ MUETS = [
     ("Il parle d'autre chose.", "« d'autre » est singulier (14/10/2026, liste n° 18)."),
     ("Un process simple aide l'équipe.", "anglicisme invariable : « process » n'est pas le pluriel de « procès » (14/10/2026, liste n° 21)."),
     ("Elle fonde une start-up.", "composé anglais : son genre ne vient pas de « start » (14/10/2026, liste n° 21)."),
+    ("Site : www.atelier-velo-exemple.fr", "mot d'une adresse de site : rien à corriger (14/10/2026, liste n° 22)."),
+    ("Écrivez à lea.durand@gmail.com demain.", "mot d'un courriel : rien à corriger (14/10/2026, liste n° 22)."),
     ("Les pages produit restent claires.", "nom de métier accolé sans déterminant : « produit » n'est pas un verbe (14/10/2026, liste n° 20)."),
     ("Les photos produit et service se renouvellent.", "le verbe frère de « se renouvellent » n'est pas « produit » (14/10/2026, liste n° 20)."),
     ("Il envoie une lettre exprès.", "« exprès » invariable dans « lettre exprès » (14/10/2026, liste n° 12)."),

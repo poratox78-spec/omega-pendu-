@@ -460,9 +460,13 @@ function testListe20() {
       // Les six premiers échouent sur le moteur d'avant ; témoin : le genre d'un composé français (« une chou-fleur ») reste vérifié.
       ['Elle prépare les colis au picking.', 'picking', null], ['Il code comme dev web.', 'dev', null], ['Nos apps tournent bien.', 'apps', null],
       ['Le chatbot répond vite.', 'chatbot', null], ['Un process simple aide l\'équipe.', 'process', null], ['Elle fonde une start-up.', 'une', null],
-      ['Elle mange une chou-fleur.', 'une', 'un']]) {
+      ['Elle mange une chou-fleur.', 'une', 'un'],
+      // ⭐ LISTE N° 22 : les mots d'un courriel, d'un lien ou d'un nom de site ne sont plus corrigés (« velo » → vélo EN ROUGE dans un lien).
+      // Les trois premiers échouent sur le moteur d'avant ; témoin : la faute de la phrase autour reste corrigée.
+      ['Écrivez à lea.durand@gmail.com demain.', 'gmail', null], ['Site : www.atelier-velo-exemple.fr', 'velo', null],
+      ['Mon adresse marcvelo@hotmail.fr est valide.', 'hotmail', null], ['Les enfant joue au parc.', 'enfant', 'enfants']]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
-    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20, 1d et 21 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20, 1d, 21 et 22 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
 }
 function finish(parityKO) {
   testListe12();

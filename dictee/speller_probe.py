@@ -98,6 +98,12 @@ DOMINANCE = 5.0                               # rapport freq top/2e pour qu'un c
 # (action 'inconnu', OPT-IN via correct_text(..., inconnu=True) — défaut OFF, doctrine §1.6 : aucun
 # consommateur existant ne change de comportement sans le demander).
 SPELL_KEEP = set('omega the and of with is are was were this that from they you your its new world er'.split())
+try:   # ⭐ 14/10/2026 (liste n° 22) : masque des adresses, partagé avec la grammaire
+    import re as _re22
+    _URL_RE22 = _re22.compile(u'[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}|(?:https?://|www\\.)[^\\s<>"«»]+|\\b[A-Za-z0-9\\-]+(?:\\.[A-Za-z0-9\\-]+)*\\.(?:com|fr|net|org|io|eu|be|ch|ca|info|app|dev)\\b(?:/[^\\s<>"«»]*)?', _re22.I)
+    def C_URL_SPANS(text): return [(m.start(), m.end()) for m in _URL_RE22.finditer(text)]
+except Exception:
+    C_URL_SPANS = None
 SPELL_KEEP |= set('picking dev devs app apps dashboard dashboards workflow workflows onboarding offboarding backlog backlogs chatbot chatbots scraping webinar webinars dropshipping backend frontend fullstack devops coworking saas erp seo lead leads growth retargeting checkout wireframe wireframes mockup mockups scrum tracking stories community'.split())   # ⭐ 14/10/2026 (liste n° 21) : anglicismes de métier — miroir JS _SPELL_KEEP
 
 _INIT_CONF = ('aeiouy', 'bdpq', 'cskq', 'gj', 'fv', 'mn', 'td')   # ⭐ 30/09/2026 : confusions d'initiale admises pour la dominance de fréquence — miroir JS _INIT_CONF
@@ -1415,8 +1421,10 @@ class Speller:
         for _j in range(len(toks)):
             for _n in (4, 3, 2):
                 if ' '.join(_cles[_j:_j + _n]) in _LIEUX_COMP_CLES: _couv.update(range(_j, _j + _n)); break
+        _usp = C_URL_SPANS(text) if C_URL_SPANS else []   # ⭐ 14/10/2026 (liste n° 22) : mots d'un courriel / lien / domaine — miroir JS
         for i, m in enumerate(ms):
             if i in _couv: continue
+            if any(a <= m.start() < b for (a, b) in _usp): continue
             r = self.spell_token(m.group(0), at_start=(i == 0), toks=toks, idx=i)
             if r and r[1] != m.group(0).lower():
                 sugg = r[1]
