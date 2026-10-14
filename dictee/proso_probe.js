@@ -35,6 +35,7 @@ const EXT = path.join(RACINE, 'extension', 'sidepanel.js');
    la voie dégradée — c'est-à-dire rien de ce qui vient d'être ajouté, tout en restant verte.
    On charge donc dys-core et le modèle HMM comme le fait parity_pos.js, et on l'injecte dans le
    bac à sable où la fonction extraite est évaluée. */
+// chargeur partiel voulu : banc de la ponctuation vocale (étiqueteur seul) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(RACINE, 'extension', 'dys-core.js'));
 const DC = global.DYSCORE;
 DC.setPosHmm(JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm.json'), 'utf8')));

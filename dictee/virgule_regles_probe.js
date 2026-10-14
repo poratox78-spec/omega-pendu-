@@ -26,6 +26,7 @@
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const RACINE = path.dirname(__dirname);
 
+// chargeur partiel voulu : banc des virgules (étiqueteur seul) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(RACINE, 'extension', 'dys-core.js'));
 const DC = global.DYSCORE;
 DC.setPosHmm(JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm.json'), 'utf8')));

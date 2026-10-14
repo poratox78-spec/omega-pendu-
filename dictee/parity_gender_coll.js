@@ -62,6 +62,7 @@ const corrApp = globalThis.__corrApp;
 if (typeof corrApp !== 'function') { console.error('correctText non exposé'); process.exit(2); }
 
 // ---------- 2) moteur de l'EXTENSION (comme parity_core) ----------
+// chargeur partiel voulu : parité de la table des collisions de genre (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(ROOT, 'extension', 'dys-core.js'));
 const D = global.DYSCORE;
 const A = (f) => path.join(ROOT, 'extension', 'assets', f);

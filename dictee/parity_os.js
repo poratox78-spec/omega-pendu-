@@ -14,6 +14,7 @@ catch (e) { console.error('os_subject_probe.py floodflags échoué : ' + e.messa
 const fp = fs.readFileSync(path.join(HERE, 'fp_scale_corpus.txt'), 'utf8').split('\n').filter(x => x.trim()).slice(0, 1500);
 
 // 2) EXTENSION (dys-core.osProbe)
+// chargeur partiel voulu : parité du modèle OS sur 3 moteurs : toutes ses tables, pas les confusables (sans effet sur lui) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(EXT, 'dys-core.js'));
 const D = global.DYSCORE;
 D.setLex(JSON.parse(fs.readFileSync(path.join(EXT, 'assets', 'vdc-lex.json'), 'utf8')),

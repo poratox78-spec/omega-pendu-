@@ -7,6 +7,7 @@ const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const HERE = __dirname, ROOT = path.join(HERE, '..');
 
 // ---- (1) moteur extension + assets ----
+// chargeur partiel voulu : banc de l'orthographe d'abord ; l'étiqueteur et le genre accentué sont chargés en fin de banc (testListe12) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(HERE, 'dys-core.js'));
 const DC = global.DYSCORE;
 const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json'), 'utf8'));

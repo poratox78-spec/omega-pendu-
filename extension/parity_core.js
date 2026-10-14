@@ -6,6 +6,7 @@ const fs = require('fs'), path = require('path'), cp = require('child_process'),
 const HERE = __dirname, ROOT = path.join(HERE, '..');
 
 // 1) charger le moteur + injecter les lexiques (assets) — setLex synchrone (pas de fetch en Node)
+// chargeur partiel voulu : parité avec la référence Python, qui n'a ni le modèle OS ni les confusables (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(HERE, 'dys-core.js'));
 const DYSCORE = global.DYSCORE;
 const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json'), 'utf8'));

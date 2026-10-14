@@ -27,15 +27,10 @@
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const ROOT = path.join(__dirname, '..'), EXT = path.join(ROOT, 'extension');
 
-require(path.join(EXT, 'dys-core.js'));
-const D = global.DYSCORE;
+// ⭐ 14/10/2026 (liste n° 25) : le CHARGEUR UNIQUE (extension/charger_node.js) — les tables de l'extension, modèle OS et confusables compris.
+const D = require(path.join(EXT, 'charger_node.js'))({ ext: EXT });
 const rd = (f) => fs.readFileSync(path.join(EXT, 'assets', f));
 const gz = (f) => zlib.gunzipSync(rd(f)).toString('utf8');
-D.setLex(JSON.parse(rd('vdc-lex.json').toString('utf8')), gz('gender-relaxed.tsv.gz'), gz('speller.tsv.gz'));
-D.setNounPost(gz('noun-post.txt.gz'));
-D.setPosHmm(JSON.parse(gz('pos-hmm.json.gz')));
-D.setPrenoms(gz('prenoms.tsv.gz'));
-D.setGaccLex(gz('gender-acc.json.gz'));
 
 // Chaque cas : la phrase, puis par mot corrigé ce que le 💡 doit contenir (oui) / ne plus contenir (non),
 // et pour la ligne « remèdes » (toutes familles confondues) les mêmes attentes.
