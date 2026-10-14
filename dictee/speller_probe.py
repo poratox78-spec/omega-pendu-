@@ -605,7 +605,7 @@ class Speller:
             t = deacc(toks[j].lower())
             if t in ("d'un", "d'une"): t = t[2:]          # ⭐ 14/10/2026 (liste n° 24) : « d'une » = « une » — miroir JS
             if t in self.DET_NUM: back, bdist = self.DET_NUM[t], idx - j; break
-            if t in _CTX_PREP or toks[j].lower() in _CTX_PREP or t in CTX_STOP: break   # ⭐ liste n° 24 : préposition (sauf « de ») ou frontière = nouveau groupe — miroir JS
+            if t in _CTX_PREP or toks[j].lower() in _CTX_PREP: break   # ⭐ liste n° 24 : préposition (sauf « de ») = nouveau groupe ; pas « qui » (l'antécédent porte le nombre) — miroir JS
         if back is not None and bdist == 1: return back      # déterminant COLLÉ = preuve la plus forte
         if back is None and idx >= 1 and deacc(toks[idx - 1].lower()) in _COP_NUM: return _COP_NUM[deacc(toks[idx - 1].lower())]   # ⭐ 14/10/2026 (liste n° 24) : « qui sont visiblse » — miroir JS
         if back is None and idx >= 1 and (deacc(toks[idx - 1].lower()) in _SU_PLDET or self._quant_mal(toks, idx - 1)): return 'p'   # ⭐ 11/10/2026 : cardinal ou quantifieur juste avant, même mal écrit — miroir JS sCtxNumber
@@ -1122,7 +1122,7 @@ class Speller:
         if aux and w1.endswith('e') and not w1.endswith('é') and not (toks and idx is not None and re.match(u"^[ld]['’]", toks[idx].lower())):   # ⭐ 03/10/2026 : « l' » / « d' » collé = un NOM, jamais un participe
             pe = w1[:-1] + 'é'
             if pe in cands and cands[pe][1] >= 1.0: return ('flag', pe)
-        if exp_pos:
+        if exp_pos and exp_pos != 'F':   # ⭐ 14/10/2026 (liste n° 24) : « F » (après qui) trie, n'affirme pas — miroir JS
             cgd = self.DET_G.get(deacc(toks[idx - 1].lower())) if (toks and idx) else None   # GENRE du DÉTERMINANT immédiat (audible, fiable) — pas _ctx_gender, qui peut lire un genre pollué sur un mot-outil
             def nm_p(w):                                                    # nombre PORTÉ par la forme : None = invariable (compatible des deux côtés) — décalque de nmP
                 return None if self._invar_s(w) else deacc(w).endswith(('s', 'x'))
