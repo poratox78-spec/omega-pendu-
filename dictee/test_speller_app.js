@@ -445,6 +445,15 @@ const SP = globalThis.__sp;
     const r = SP.spell(t).find(x => x.word === w); if (!r || r.sugg !== s || r.tier !== tier) fail.push('listes n° 1b-5 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(r && [r.sugg, r.tier]));
   }
 
+  // ⭐ 14/10/2026 — LISTE N° 6 (verbes valides : lot de la table de conjugaison + contexte verbal) : mêmes cas que extension/test_speller.js.
+  for (const [t, w, s, tier] of [['Elles outillent leurs ateliers.', 'outillent', null, null], ['Il outille son garage.', 'outille', null, null],
+      ['Le service fiabilise ses chiffres.', 'fiabilise', null, null], ['Les robots indexent le site.', 'indexent', null, null],
+      ['Elle aime prototyper des jeux.', 'prototyper', null, null],
+      ['Des branches entrecoupes de lumière.', 'entrecoupes', 'entrecoupés', 'vigilance'], ['Il leve la main.', 'leve', 'lève', 'auto']]) {
+    const r = SP.spell(t).find(x => x.word === w);
+    if (s === null ? !!r : (!r || r.sugg !== s || r.tier !== tier)) fail.push('liste n° 6 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(r && [r.sugg, r.tier, r.name]));
+  }
+
   // ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux) : mêmes cas que extension/test_speller.js (le site suit l'extension).
   for (const [t, w, s] of [['Il range certin livres dans le salon.', 'certin', 'certains'], ['Elle lit sertin journaux le soir.', 'sertin', 'certains'],
       ['Elle a vu serten maisons anciennes.', 'serten', 'certaines'], ['Il vend diver objets au marché.', 'diver', 'divers'],

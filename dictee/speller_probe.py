@@ -160,7 +160,7 @@ def load_lexicon():
     _HERE = os.path.dirname(os.path.abspath(__file__))
     # SPELLER_EXTRA=0 : base Lexique4 seule (instrument d'A/B : mesurer ce qu'un lot d'ajouts CHANGE, pas seulement ce qu'il apporte)
     _EXTRA = os.environ.get('SPELLER_EXTRA', '1') != '0'
-    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
+    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
     _H = None
     for _src in _SRC:
       with (gzip.open(_src, 'rt', encoding='utf-8') if _src.endswith('.gz') else open(_src, encoding='utf-8')) as f:   # le lot VER est commite gzippe (26,5 Mo en clair)
@@ -649,6 +649,31 @@ class Speller:
                 return (rc[0], em.group(1) + "'" + rc[1])
         return self._maj_tier(tok, self.correct_token(tok, at_start=at_start, toks=toks, idx=idx))
 
+    def _present_regulier(self, low, toks, idx, tok):
+        """⭐ 14/10/2026 (liste n° 6) — miroir _presentRegulier : présent régulier d'un verbe en -er de la table, écrit exactement,
+        en contexte verbal (pronom sujet accordé, se / me / te juste avant, ou élidé)."""
+        m = re.match(r'^(.+?)(e|es|ent)$', low)
+        if not m or len(m.group(1)) < 3 or not self.CONJ_C: return False
+        lem = deacc(m.group(1)) + 'er'; sl = self.CONJ_C.get(lem)
+        if not sl or lem == 'aller' or not isinstance(sl, dict): return False
+        f1 = (sl.get('ind:imp') or {}).get('1p')
+        if isinstance(f1, list): f1 = f1[0] if f1 else None
+        if not f1 or not f1.endswith('ions') or f1[:-4] != m.group(1): return False
+        if re.search(u'[eé][^aeiouyéèêëàâîïôûù]+$', m.group(1)) or re.search(r'(y|el|et)$', m.group(1)): return False
+        sp = self._suj_pron(toks, idx)
+        q = deacc(toks[idx - 1].lower()) if (toks and idx) else ''
+        el = bool(re.match(u"^[smtn]['’]", (tok or ''), re.I))
+        if sp:
+            if m.group(2) == 'ent': return sp in ('ils', 'elles', 'qui')
+            if m.group(2) == 'es': return sp == 'tu'
+            return sp not in ('tu', 'ils', 'elles', 'nous', 'vous')
+        if (q in ('se', 'me', 'te') or el) and m.group(2) != 'es': return True
+        if m.group(2) == 'es' or not toks or idx is None or idx < 2 or idx + 1 >= len(toks): return False   # sujet NOMINAL — miroir JS
+        d2, n1, nx, pl = deacc(toks[idx - 2].lower()), toks[idx - 1].lower(), deacc(toks[idx + 1].lower()), m.group(2) == 'ent'
+        _sg = {'le','la','un','une','ce','cet','cette','mon','ton','son','ma','ta','sa','notre','votre','leur'}; _pl = {'les','des','ces','mes','tes','ses','nos','vos','leurs'}
+        if not (d2 in (_pl if pl else _sg)) or not (nx in _sg or nx in _pl) or 'N' not in self.POS.get(n1, ()): return False
+        return pl == bool(re.search(r'[sx]$', n1))
+
     def _suj_pron(self, toks, idx):
         """⭐ 13/10/2026 (liste n° 1 et 1b) — miroir _sujPron : le pronom sujet juste avant (clitiques traversés, « l'a » arrête), ou ''."""
         if not toks or idx is None: return ''
@@ -770,6 +795,7 @@ class Speller:
         # Risque quasi nul : la garde ne s'applique qu'à un token DÉJÀ inconnu du lexique de 211 k
         # formes ; qu'il soit en plus un prénom attesté en fait un nom, pas un typo.
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
+        if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — miroir JS
         if low in self.PRENOMS_L: return None
         # ⭐ SOUDURE à/a+VERBE (10/09/2026, décalque de spellTokenCore l.2968-2975) : « àeu »→a eu, « aparé »→a paré. Le reste doit
         # être une forme CONJUGUÉE ou un participe (jamais un infinitif : « atendre » = attendre) ; le REDOUBLEMENT prime
@@ -1304,6 +1330,7 @@ class Speller:
         low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')
         if len(low) < 3 or not all(deacc(c) in ALPHA for c in low): return None
         if low in self.WORDS or deacc(low) in self.WORDS: return None       # mot connu (ou connu sans accents)
+        if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) — miroir JS
         if low == 'ête': return None            # réservé à la règle grammaire (rEteEtre) — miroir du court-circuit spellText
         if low in SPELL_KEEP: return None       # mot anglais fréquent / résidu d'ordinal → ni corrigé ni signalé
         if tok[:1] != tok[:1].lower(): return None    # majuscule → possible nom propre, même en début de phrase (prudence)
