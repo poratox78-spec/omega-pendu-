@@ -81,6 +81,13 @@ for (const [t, w, s, tier] of [['OMEGA est un correcteur.', 'OMEGA', null, null]
     ['Ecole fermée demain.', 'Ecole', 'École', 'auto'], ['Séléction de fruits.', 'Séléction', 'Sélection', 'auto'], ["L'hotel est loin.", "L'hotel", "L'hôtel", 'auto']]) {
   const f = DC.spell(t).find(x => x.word === w && x.name === 'orthographe');
   if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier)) fail.push('listes n° 2-3 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+// ⭐ 13/10/2026 — LISTE N° 1b : après un pronom sujet, la route « consonne doublée » proposait un mot sans lecture verbale (« il bele »
+// → belle, « elle cele » → celle) : le verbe rétabli l'emporte. Témoin : sans pronom sujet, le doublement reste (pome → pomme).
+// LISTE N° 5 : une consonne à redoubler et un seul mot qui le permet → rouge même rare (personnalisé : 0,6 par million) ; la forme écrite est gardée (personnalisée).
+for (const [t, w, s, tier] of [['Il bele sans arrêt.', 'bele', 'bêle', 'auto'], ['Elle cele la vérité.', 'cele', 'cèle', 'auto'], ['Je mange une pome.', 'pome', 'pomme', 'flag'],
+    ['Un service personalisé.', 'personalisé', 'personnalisé', 'flag'], ['Une offre personalisée.', 'personalisée', 'personnalisée', 'flag'], ['Un ton impersonel.', 'impersonel', 'impersonnel', 'flag']]) {
+  const f = DC.spell(t).find(x => x.word === w);
+  if (!f || f.sugg !== s || f.tier !== tier) fail.push('listes n° 1b-5 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 // ⭐ 29/09/2026 — ACCENTS MUETS : « ca », « foret », « pole » → ça, forêt, pôle en ORANGE ; « le foret » (l'outil), « les mass media »,
 // « la pole position » et « Ca » (calcium) : rien.
 for (const [t, w, s] of [['je crois que ca marche', 'ca', 'ça'], ['on marche en foret', 'foret', 'forêt'], ['ils vont au pole sud', 'pole', 'pôle']]) {

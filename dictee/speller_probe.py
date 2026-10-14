@@ -123,7 +123,7 @@ TOK_JS = re.compile(r"[A-Za-zÀ-ÿœŒæÆ']+")
 _CIRC = u'âêîôûÂÊÎÔÛ'
 
 
-def _accent_rival(sp, low, dblf=0.0):
+def _accent_rival(sp, low, dblf=0.0, sujet_v=False):
     """La saisie (SANS accent) a-t-elle une restauration d'ACCENT rivale, mot réel et pas rare ?
 
     Garde de la route double-consonne. « la saisie sans accent » est essentiel : si le scripteur a
@@ -143,7 +143,9 @@ def _accent_rival(sp, low, dblf=0.0):
     """
     if deacc(low) != low: return False
     for w in sp.D2A.get(low, []):
-        if w == low or deacc(w) != low or sp.FREQ.get(w, 0.0) < 1.0: continue
+        if w == low or deacc(w) != low: continue
+        if sujet_v and 'V' in sp.POS.get(w, ()): return True   # ⭐ 13/10/2026 (liste n° 1b) : après un pronom sujet, un rival VERBAL l'emporte (« il pele » = pèle)
+        if sp.FREQ.get(w, 0.0) < 1.0: continue
         if any(c in _CIRC for c in w): return True
         if 'V' not in sp.POS.get(w, ()) and sp.FREQ.get(w, 0.0) >= dblf: return True   # aigu/grave : rival NON verbal ET au moins aussi fréquent
     return False
@@ -282,6 +284,25 @@ def _acc_diff(a, b):
     """⭐ 13/10/2026 (liste n° 1) : nombre de lettres qui diffèrent (accents) entre deux formes de même squelette — miroir _accDiff."""
     if len(a) != len(b): return 1 + abs(len(a) - len(b))
     return sum(1 for x, y in zip(a, b) if x != y)
+
+def _redouble_seul(low, d, cands):
+    """⭐ 13/10/2026 (liste n° 5) — miroir _redoubleSeul : candidats à une lettre de même squelette, et UN SEUL qui redonne la saisie
+    (accents compris) en ôtant une consonne redoublée (« personalisée » → personnalisée)."""
+    sk = None
+    for w, (p, _f) in cands.items():
+        if p < 1: continue
+        kd = deacc(w)
+        if sk is None: sk = kd
+        elif kd != sk: return None
+    if not sk or len(sk) != len(d) + 1: return None
+    ex, n = None, 0
+    for w in cands:
+        for k in range(1, len(w)):
+            if deacc(w[k]) != deacc(w[k - 1]): continue
+            if w[:k] + w[k + 1:] == low:
+                if ex != w: ex, n = w, n + 1
+                break
+    return ex if n == 1 else None
 
 def lev_b(a, b, mx):
     """Décalque de `_levB` (dys-core.js) : distance d'édition BORNÉE (rend mx+1 dès que le plancher de ligne dépasse mx)."""
@@ -628,6 +649,20 @@ class Speller:
                 return (rc[0], em.group(1) + "'" + rc[1])
         return self._maj_tier(tok, self.correct_token(tok, at_start=at_start, toks=toks, idx=idx))
 
+    def _suj_pron(self, toks, idx):
+        """⭐ 13/10/2026 (liste n° 1 et 1b) — miroir _sujPron : le pronom sujet juste avant (clitiques traversés, « l'a » arrête), ou ''."""
+        if not toks or idx is None: return ''
+        y = idx - 1
+        while y >= 0:
+            ty = deacc(toks[y].lower()); ta = ty.find("'")
+            if ta >= 0 and (ty[ta + 1:] in self.AUXAV or ty[ta + 1:] in self.COPULA): return ''
+            dy = ty.replace("'", '')
+            if dy in self.AUXAV or dy in self.COPULA: return ''
+            if dy in self.SUBJP or dy == 'qui': return dy
+            if dy in ('ne', 'n', 'se', 's', 'me', 'm', 'te', 't', 'le', 'la', 'les', 'l', 'lui', 'leur', 'y', 'en'): y -= 1; continue
+            return ''
+        return ''
+
     def _maj_tier(self, tok, r):
         """⭐ 13/10/2026 (liste n° 2 et 3) — miroir _majTier : un mot à majuscule peut être un nom. Accent rétabli hors de la capitale
         initiale → jamais auto (flag) ; mot tout en capitales → orange ; accent impossible (é devant ct, consonne doublée, x) → inchangé."""
@@ -781,7 +816,7 @@ class Speller:
         # 354 647 jetons d'UD. Placebo sur l'accent AIGU : 5 changements dont 4 FAUX au gold.
         # ⭐ 11/09/2026 : la garde couvre aussi l'AIGU/GRAVE quand le rival n'est pas verbal — « desert » proposait
         # dessert (orange) alors que désert (23,8/M, nom) attendait. Mesuré : 1 changement sur 41 987 jetons, 0 faux.
-        if _dblw and not _accent_rival(self, low, _dblf): return ('flag', _dblw)
+        if _dblw and not _accent_rival(self, low, _dblf, bool(self._suj_pron(toks, idx)) and 'V' not in self.POS.get(_dblw, ())): return ('flag', _dblw)
         # ⭐ 04/10/2026 — APOSTROPHE OUBLIÉE (miroir de spellTokenCore, même place) : A. fins COURTES très fréquentes, liste fermée par préfixe
         # (« il sest levé » → s'est ; « jai / nai / na » restent à « élision fusionnée ») ; B. NÉGATION : « n » + voyelle, inconnu, suivi de pas /
         # plus / jamais / rien / guère / point → « n' » + verbe CONJUGUÉ de même son, accordé au pronom sujet d'avant (« il nécoute pas ») — ORANGE.
@@ -971,15 +1006,7 @@ class Speller:
         # AVANT la bascule de genre ci-dessous, qui lisait « la voiture » deux mots plus haut et rendait « décidée ».
         sbj, sbj_tu = False, False
         if toks and (d.endswith('e') or d.endswith('es')):
-            y = idx - 1
-            while y >= 0:
-                ty = deacc(toks[y].lower()); ta = ty.find("'")
-                if ta >= 0 and (ty[ta + 1:] in self.AUXAV or ty[ta + 1:] in self.COPULA): break   # ⭐ 13/10/2026 : « l'a » n'est pas le clitique « la »
-                dy = ty.replace("'", '')
-                if dy in self.AUXAV or dy in self.COPULA: break
-                if dy in self.SUBJP or dy == 'qui': sbj = True; sbj_tu = dy == 'tu'; break
-                if dy in ('ne', 'n', 'se', 's', 'me', 'm', 'te', 't', 'le', 'la', 'les', 'l', 'lui', 'leur', 'y', 'en'): y -= 1; continue
-                break
+            spr = self._suj_pron(toks, idx); sbj = bool(spr); sbj_tu = spr == 'tu'
         # ⭐ 13/10/2026 (liste n° 1) : le présent d'un verbe RARE compte s'il a une lecture VERBALE (« il selectionne » → sélectionne, plus
         # « sélectionné » en rouge) ; « tu » + -es ; palier = auto si la table de conjugaison connaît ce présent, sinon flag. Miroir JS.
         if sbj and (d.endswith('e') or sbj_tu):
@@ -1054,6 +1081,9 @@ class Speller:
                     b, bf = cw, fc
             if b and bf >= 1.0 and not (pmatch(w1) and p1 >= 1 and f1 >= 20 * bf):
                 return ('flag', b)
+        if len(d) >= 5 and f1 < AUTO_FREQ:                       # ⭐ 13/10/2026 (liste n° 5) : une consonne à redoubler, un seul mot le permet — miroir JS
+            rd2 = _redouble_seul(low, d, cands)
+            if rd2 and self.FREQ.get(rd2, 0) > 0: return ('flag', rd2)
         if not (len(d) >= 4 and f1 >= AUTO_FREQ): return ('vigilance', w1) if acc_x else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
         # ⭐ PALIER VIGILANCE DU SPELLER — porté du produit le 05/09/2026 (5e maillon de « la référence décrit
         # le produit » : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666). Décalque du
