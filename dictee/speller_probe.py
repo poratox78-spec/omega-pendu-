@@ -151,6 +151,9 @@ def _accent_rival(sp, low, dblf=0.0, sujet_v=False):
     return False
 
 
+_LIEUX_COMP_CLES = {u'ile de france', u'seine saint denis', u'seine et marne', u'val de marne', u"val d'oise", u'hauts de seine', u'hauts de france', u'nouvelle aquitaine', u'auvergne rhone alpes', u'bourgogne franche comte', u'aix en provence', u'clermont ferrand', u'boulogne billancourt', u'seine maritime', u'loire atlantique', u'haute garonne', u'haute savoie', u'bas rhin', u'haut rhin', u'puy de dome', u'saone et loire', u'indre et loire', u'meurthe et moselle', u'ille et vilaine', u'maine et loire', u'eure et loir'}   # ⭐ 14/10/2026 (liste n° 16) — miroir de correcteur_probe._LIEUX_COMP
+
+
 def load_lexicon():
     WORDS, FREQ, DEACC2ACC, POS = set(), {}, defaultdict(list), defaultdict(set)
     # ⭐ LES AJOUTS AU FORMAT Lexique4 (wikt_lex_fr.tsv, gacc_lex_fr.tsv) SONT LUS ICI AUSSI (02/09/2026).
@@ -1403,7 +1406,12 @@ class Speller:
         text = text.replace('’', "'").replace('ʼ', "'")   # apostrophe typographique = droite (1:1)
         out = []                                       # atStart ≡ PREMIER token du TEXTE (i == 0), comme spellText (10/09/2026) — plus les débuts de phrase
         ms = list(TOK_JS.finditer(text)); toks = [m.group(0) for m in ms]   # tokens DU PRODUIT (apostrophe comprise) — voir TOK_JS
+        _cles = [deacc(t.lower()) for t in toks]; _couv = set()   # ⭐ 14/10/2026 (liste n° 16) : nom de lieu composé → la grammaire le porte (miroir JS)
+        for _j in range(len(toks)):
+            for _n in (4, 3, 2):
+                if ' '.join(_cles[_j:_j + _n]) in _LIEUX_COMP_CLES: _couv.update(range(_j, _j + _n)); break
         for i, m in enumerate(ms):
+            if i in _couv: continue
             r = self.spell_token(m.group(0), at_start=(i == 0), toks=toks, idx=i)
             if r and r[1] != m.group(0).lower():
                 sugg = r[1]
