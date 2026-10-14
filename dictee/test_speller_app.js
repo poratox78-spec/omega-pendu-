@@ -439,6 +439,12 @@ const SP = globalThis.__sp;
     if (s === null ? !!r : (!r || r.sugg !== s || r.tier !== tier)) fail.push('listes n° 2-3 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(r && [r.sugg, r.tier]));
   }
 
+  // ⭐ 13/10/2026 — LISTES N° 1b ET 5 (consonne doublée après un pronom sujet ; consonne à redoubler, mot rare) : mêmes cas que extension/test_speller.js.
+  for (const [t, w, s, tier] of [['Il bele sans arrêt.', 'bele', 'bêle', 'auto'], ['Elle cele la vérité.', 'cele', 'cèle', 'auto'], ['Je mange une pome.', 'pome', 'pomme', 'flag'],
+    ['Un service personalisé.', 'personalisé', 'personnalisé', 'flag'], ['Une offre personalisée.', 'personalisée', 'personnalisée', 'flag'], ['Un ton impersonel.', 'impersonel', 'impersonnel', 'flag']]) {
+    const r = SP.spell(t).find(x => x.word === w); if (!r || r.sugg !== s || r.tier !== tier) fail.push('listes n° 1b-5 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(r && [r.sugg, r.tier]));
+  }
+
   // ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux) : mêmes cas que extension/test_speller.js (le site suit l'extension).
   for (const [t, w, s] of [['Il range certin livres dans le salon.', 'certin', 'certains'], ['Elle lit sertin journaux le soir.', 'sertin', 'certains'],
       ['Elle a vu serten maisons anciennes.', 'serten', 'certaines'], ['Il vend diver objets au marché.', 'diver', 'divers'],

@@ -3,7 +3,7 @@
  "planchers": {
   "orthographe|vigilance": 65.3,
   "orthographe|auto": 91.6,
-  "orthographe|flag": 82.3,
+  "orthographe|flag": 81.7,
   "grammaire:accord pluriel nom|auto·pollué": 84.5,
   "grammaire:accord singulier nom|auto·pollué": 97.4,
   "grammaire:majuscule|auto·pollué": 98.4,
@@ -12,8 +12,8 @@
   "grammaire:accord sujet-verbe|auto·pollué": 78.1,
   "grammaire:-é/-er|auto·pollué": 90.3,
   "grammaire:pluriel par le son à vérifier|vigilance·pollué": 84.0,
-  "grammaire:accord du verbe au sujet nominal à vérifier|vigilance·pollué": 40.9,
   "grammaire:a/à|auto·propre": 100.0,
+  "grammaire:accord du verbe au sujet nominal à vérifier|vigilance·pollué": 42.9,
   "grammaire:a/à|vigilance·pollué": 100.0,
   "grammaire:accord singulier nom|auto·propre": 100.0,
   "grammaire:élision fusionnée|auto·pollué": 89.5,

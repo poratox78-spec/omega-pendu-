@@ -4930,6 +4930,12 @@ def rule_sujet_flexion_nom(T, i):
     Même code, même gardes ; seul le palier change. Mesuré le 14/09 : en ROUGE le sujet nominal fait 3 justes
     sur 17 (17,6 %) — il propose, il n'impose pas. Le sujet PRONOM, lui, reste rouge."""
     if (i >= 3 and _rule_est_et_coord(T, i - 3) == 'et') or (i >= 2 and _rule_est_et_coord(T, i - 2) == 'et'): return None   # ⭐ 04/10/2026 : « est » y vaut « et »
+    _m = re.match(r'^(.+?)(e|es)$', deacc(T[i].lower()))
+    if _m and len(_m.group(1)) >= 3 and _m.group(1) in IRREG_PART:   # ⭐ 13/10/2026 (liste n° 4) : participe féminin irrégulier (« les décisions prises ») — miroir _ppFemIrr
+        if _m.group(1) not in ('fait', 'dit', 'refait', 'redit'): return None   # mises, prises : le verbe homographe (miser, priser) est rare
+        if i >= 1:                                                               # faites, dites : participe s'il s'accorde au nom d'avant
+            pv = T[i - 1]; pl = bool(re.search(r'[sx]$', pv.lower()))
+            if (_m.group(2) == 'es') == pl and _noun_gender(pv, 'p' if pl else 's', True) == 'f': return None
     global _ROUGE
     _ROUGE = False
     try: return rule_sujet_flexion(T, i)
@@ -7605,6 +7611,10 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    ("Les décisions prises hier sont bonnes.", "« prises » participe féminin de prendre, pas le verbe « priser » : jamais « prisent » (13/10/2026, liste n° 4)."),
+    ("Les promesses faites aux électeurs.", "« faites » participe de faire, pas « vous faites » : jamais « font » (13/10/2026, liste n° 4)."),
+    ("Des photos prises au hasard.", "« prises » participe, même sans verbe dans la phrase (13/10/2026, liste n° 4)."),
+    ("Une sélection de produits mise en avant.", "« mise » s'accorde avec « sélection » : juste, rien à dire (13/10/2026, liste n° 4)."),
     ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
     ("Je vois que certains porte un chapeau.", "« certains » aussi pronom : un verbe derrière n'est pas un nom à mettre au pluriel (04/10/2026).", 'rouge'),
     ("Il boit un thé aux citron.", "« aux » se dit comme « au » : devant un masculin, le déterminant peut être la faute (04/10/2026).", 'rouge'),
