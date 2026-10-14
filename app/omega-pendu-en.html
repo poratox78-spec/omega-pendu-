@@ -26978,7 +26978,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   // → parité exacte. gn pré-filtré (sans homographe verbe/adjectif) → simple test d'appartenance, FP=0.
   var DET_G={un:'m',une:'f',le:'m',la:'f',ce:'m',cet:'m',cette:'f',mon:'m',ma:'f',ton:'m',ta:'f',son:'m',sa:'f',quel:'m',quelle:'f'};
   var DET_A={'un|f':'une','une|m':'un','le|f':'la','la|m':'le','ce|f':'cette','cet|f':'cette','cette|m':'ce','mon|f':'ma','ma|m':'mon','ton|f':'ta','ta|m':'ton','son|f':'sa','sa|m':'son','quel|f':'quelle','quelle|m':'quel'};
-  function ckeepcase(src,sg){var c=src.charAt(0);return (c!==c.toLowerCase())?sg.charAt(0).toUpperCase()+sg.slice(1):sg;}
+  function ckeepcase(src,sg){var c=src.charAt(0);if(src.length>=2&&src===src.toUpperCase()&&src!==src.toLowerCase())return sg.toUpperCase();return (c!==c.toLowerCase())?sg.charAt(0).toUpperCase()+sg.slice(1):sg;}
   // POS-tagger 155k : RÉUTILISE le gros lexique du pendu (OMEGA_LEX4) déjà chargé — index par forme déaccentuée
   // { forme : [cgram, nbhomog] }, 1re occurrence (la + fréquente). Construit paresseusement, mis en cache. (§5)
   var _POSIDX=null;
@@ -28829,7 +28829,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   var SELIDE={l:1,m:1,t:1,s:1,n:1,d:1,c:1,j:1},_SELIDE_ACC={l:1,d:1,j:1,c:1,s:1},SVOW={a:1,e:1,i:1,o:1,u:1,y:1,h:1};   // _SELIDE_ACC = préfixes SÛRS pour restauration d'accent (m'/t'/n' exclus : « metre »=mètre)
   // tokens courts NON-FRANÇAIS à ne JAMAIS corriger : mots anglais fréquents dans du texte FR (the→thé) + « er » = résidu
   // d'ordinal « 1er » (le chiffre effacé laisse « er »→« ère »). Aucune collision FR (mais/or/on/en/a/ni exclus). Miroir ext.
-  var _SPELL_KEEP={the:1,and:1,of:1,with:1,is:1,are:1,was:1,were:1,this:1,that:1,from:1,they:1,you:1,your:1,its:1,new:1,world:1,er:1};
+  var _SPELL_KEEP={omega:1,the:1,and:1,of:1,with:1,is:1,are:1,was:1,were:1,this:1,that:1,from:1,they:1,you:1,your:1,its:1,new:1,world:1,er:1};
   async function loadSpellerLex(){
     if(SP.ready||SP.loading)return;SP.loading=true;
     try{var el=document.getElementById('speller-lex-gz');if(!el||!el.textContent){SP.loading=false;return;}
@@ -29487,7 +29487,22 @@ function estQuestion(t,maxMots){
       if(!SVOW[sug[0]]){var _sd=deaccS((em[1]+em[2]).toLowerCase()),_fz=spD(_sd);if(pk==='l'&&_fz&&_fz.length&&!SP.WORDS.has(em[2].toLowerCase())&&!SP.WORDS.has(rem))return ['vigilance',_fz[0]];return null;}   // l'/d' exige une voyelle/h après : « l'aramel »→« caramel » casserait l'élision → abstention ; SAUF la soudure au lexique (« l'entement » → lentement, orange)
       if(rc[0]!=='auto'&&rem!==sug&&!sEd1(rem,sug)){if(SP.WORDS.has(em[2].toLowerCase())||SP.WORDS.has(rem)||tok.charAt(0)!==tok.charAt(0).toLowerCase()||!/^[aeiouyh]/.test(rem))return null;return ['vigilance',em[1]+"'"+rc[1]];}   // phonétique distant (othographe→autographe) : abstention sur un reste CONNU ; reste INCONNU → ORANGE (29/09/2026)
       return [rc[0],em[1]+"'"+rc[1]];}
-    return spellTokenCore(tok,atStart,T,idx);}
+    return _majTier(tok,spellTokenCore(tok,atStart,T,idx));}
+  /* ⭐ 13/10/2026 (liste n° 2 et 3 : « OMEGA » / « Omega » → « Oméga » appliqué d'office, « COMPETENCES » → « Compétences ») — UN MOT À
+     MAJUSCULE PEUT ÊTRE UN NOM. Le speller ne touche une majuscule qu'en début de phrase, et seulement pour rétablir un accent ; il le
+     faisait EN SILENCE (auto) même quand l'accent tombait au milieu du mot — c'est là que vivent les noms propres et les marques
+     (une ville, un prénom, un titre d'album). Désormais : accent rétabli sur la seule capitale initiale (Ecole → École) : inchangé ;
+     ailleurs dans un mot à majuscule : jamais en silence, en ROUGE (l'utilisateur décide) ; mot TOUT EN CAPITALES (titre, sigle,
+     marque) : en ORANGE, et la suggestion garde les capitales (ckeepcase). Exception : un accent IMPOSSIBLE (é devant ct, consonne
+     doublée, x) n'existe dans aucun nom — « Séléction » reste corrigé comme avant. Un mot en capitales de 4 lettres ou plus est lu
+     aussi hors début de phrase (COMPETENCES ET EXPERIENCE). Mesuré : 3 corpus dys, noms propres changés en silence 10 → 0 (4 à
+     accent étranger ne sont plus touchés, 6 passent en rouge), 5 corrections fausses ne sont plus appliquées en silence, 3 mots en
+     capitales corrigés au mot exact ; coût assumé : 38 bonnes corrections d'accent passent de auto à rouge (« Apres » → Après : le
+     moteur ne peut pas le distinguer d'un nom). UD 14 450 : 4 noms propres ne sont plus changés en silence, 1 n'est plus touché. */
+  function _majTier(tok,r){if(!r||r[0]==='vigilance'||tok===tok.toLowerCase())return r;var lw=tok.toLowerCase(),sg=r[1].toLowerCase();
+    if(deaccS(lw)!==deaccS(sg)||/[éè](x|([bcdfgjklmnpqrstvz])\2|[cp]t)/.test(lw))return r;
+    if(tok.length>=2&&tok===tok.toUpperCase())return['vigilance',r[1]];if(r[0]!=='auto')return r;
+    for(var q=1;q<lw.length&&q<sg.length;q++)if(lw.charAt(q)!==sg.charAt(q))return['flag',r[1]];return r;}
   // ÉLONGATION (« trèèès »→très) : un run de ≥3 lettres identiques n'existe dans AUCUN mot FR valide → non-mot SÛR.
   // On collapse chaque run ≥3 vers 1 OU 2 lettres et on garde les formes du lexique (triées par fréquence). FP=0 mesuré (UD).
   function sCollapse(low){
@@ -29515,6 +29530,7 @@ function estQuestion(t,maxMots){
 function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                         // mot ajouté par l'utilisateur → valide
+    if(tok!==low&&/[áíóúñãõåøäöìòü]/.test(low))return null;           // ⭐ 13/10/2026 (liste n° 2) : un NOM à diacritique étranger (Martín, María, Türk) n'est pas « dé-accentué » en mot français
     var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
     /* ⭐ FORMES NUES QUI POLLUENT LE LEXIQUE (audit 11/09/2026 : « Ma mere » → orange « Mon », le speller muet). `mere` EST une entrée
        de Lexique4 (NOM m, 6,66/M — sous-titres) à côté de `mère` (630/M) : le speller se tait sur un mot « connu ». Recensé : 13 formes
@@ -29595,7 +29611,7 @@ function spellTokenCore(tok,atStart,T,idx){
            un participe — jamais un infinitif (« atendre » = attendre, pas « a tendre »). */
         return ['vigilance','a '+_rsd];}}
     if(_SPELL_KEEP[low])return null;                                   // mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ne pas corriger (FP sur texte FR à mots anglais)
-    if(tok[0]!==tok[0].toLowerCase()&&!atStart)return null;            // nom propre (majuscule hors début)
+    if(tok[0]!==tok[0].toLowerCase()&&!atStart&&!(tok.length>=4&&tok===tok.toUpperCase()))return null;            // nom propre (majuscule hors début)
     {var _qm=_quantMal(T,idx);if(_qm)return['vigilance',tok[0]!==tok[0].toLowerCase()?_qm.charAt(0).toUpperCase()+_qm.slice(1):_qm];}   // ⭐ 11/10/2026 : quantifieur pluriel mal écrit (« certin enfants » → certains) — orange
     var d=deaccS(low);
     if(!/[aeiouy]/.test(d)){/* ⭐ LA VOYELLE MANGÉE (09/09/2026, miroir Python _voyelle_mangee) : cette garde écartait le SIGLE (www, mph, bzh) ET la faute dys — « snt », « frt », « nrd », « dns », « pls ». Mesuré au moteur : 111 jetons sans voyelle lui échappaient, dont 84 FAUTES pour 27 vrais sigles. On rend UNE voyelle et rien d'autre (aucune consonne touchée, aucune substitution : « dns » → dans, jamais « des »), puis un plancher de fréquence — le mot d'un dys est courant, le voisin d'un sigle ne l'est pas. 14 justes, 2 fausses, 2 marques sur mot correct (chf→chef, abréviation), toutes en ORANGE. ⛔ La seule SOUS-SÉQUENCE a été RÉFUTÉE : kms→keums, pqr→piquer (15 justes / 53 fausses). */var _vm=_voyelleMangee(d);return _vm?['vigilance',_vm]:null;}
