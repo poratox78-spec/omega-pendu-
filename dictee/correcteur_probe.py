@@ -3830,6 +3830,21 @@ def _en_complement(T, i, nb):
     return False
 
 
+_TETES_APPOS = set('equipe equipes fiche fiches page pages photo photos gamme gammes catalogue catalogues reference references description descriptions code codes visuel visuels image images responsable responsables chef chefs manager managers donnees service services bon bons carte cartes point points'.split())
+
+
+def _nom_appose(T, i):
+    """⭐ 14/10/2026 (liste n° 20) — miroir _nomAppose : « les pages produit » — un nom de métier accolé sans déterminant (tête de liste
+    fermée, lecture NOM ≥ 30 %, rien / « et » / « ou » derrière) n'est pas un verbe."""
+    if i < 1 or deacc(T[i - 1].lower()) not in _TETES_APPOS: return False
+    np_ = NOUN_POST.get(deacc(T[i].lower())) if NOUN_POST else None
+    if not np_ or np_[0] < 300: return False
+    bb = (_SEG or {}).get('bb') or []
+    if i + 1 >= len(T) or (i + 1 < len(bb) and bb[i + 1]): return True
+    if deacc(T[i + 1].lower()) in ('et', 'ou'): return True
+    return any(re.match(r'^(ind|cnd|sub)', mt) for (_l, mt, _p, _n) in _reads(T[i + 1])) and not re.search(u'é(s?)$', T[i + 1].lower())   # le VRAI verbe suit (« sont »)
+
+
 def rule_accord_sv_noun(T, i):
     """Accord SUJET-VERBE à sujet-NOM, via le VRAI PARSEUR de sujet (_np_subject) : gère le sujet ÉLOIGNÉ (mots-écrans
     « de X ») que l'ancienne version (déterminant pluriel en tête seulement) ratait — « la liste des articles sont »→est,
@@ -3837,6 +3852,7 @@ def rule_accord_sv_noun(T, i):
     nom-tête et le verbe QUE des compléments prépositionnels ; coordination/relative, ponctuation, verbe/aux intercalé, ou
     un 2e GN non prépositionnel → abstention (autre structure)."""
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
+    if _nom_appose(T, i): return None                                  # ⭐ 14/10/2026 (liste n° 20) : « les pages produit » — miroir JS
     if deacc(T[i].lower()) == 'a' and i + 1 < len(T):                   # « a » + ARTICLE DÉFINI (la/le/les/l') → la préposition « à » est trop plausible (« les enfants a la maison / a l'école » = « à la/à l' », locatif) → a→ont S'ABSTIENT (ambigu). L'INDÉFINI (une/un/des) reste → possession (« ont une pomme »).
         _dn = deacc(T[i + 1].lower())
         if _dn in ('la', 'le', 'les') or _dn[:2] == "l'": return None
@@ -6107,6 +6123,7 @@ def rule_accord_verb_coord(T, i):
         if _ELIDED_PRON.search(T[m].lower()): return None       # PRONOM ÉLIDÉ = un NOUVEAU sujet lui aussi : « … et lorsqu'elle dort » ouvre sa propre proposition (FP mesuré 30/08/2026 sur français CORRECT : dort → dorment) — même motif que la garde 'det', jamais propagée à cette règle sœur
     v1 = None                                                   # V1 = 1er verbe fini avant la conj (filet homographe inclus) ; s'arrête sur un vrai nom/adj (coord nominale)
     for k in range(ci-1, lo-1, -1):
+        if _nom_appose(T, k): break                                # ⭐ 14/10/2026 (liste n° 20) : « les photos produit et service » — miroir JS
         if not T[k].lower().endswith(('é', 'és', 'ée', 'ées')) and _verb_or_homograph(tg, T, k) and _vnum3(T[k]) is not None:
             v1 = k; break
         d = deacc(T[k].lower())
@@ -7724,6 +7741,8 @@ MUETS = [
     ("Il a les ailes gris argenté.", "couleur composée, 2e mot étiqueté verbe (14/10/2026, liste n° 12)."),
     ("D'autres pensent le contraire.", "« d'autres » PRONOM : le veto verbal reste (14/10/2026, liste n° 18)."),
     ("Il parle d'autre chose.", "« d'autre » est singulier (14/10/2026, liste n° 18)."),
+    ("Les pages produit restent claires.", "nom de métier accolé sans déterminant : « produit » n'est pas un verbe (14/10/2026, liste n° 20)."),
+    ("Les photos produit et service se renouvellent.", "le verbe frère de « se renouvellent » n'est pas « produit » (14/10/2026, liste n° 20)."),
     ("Il envoie une lettre exprès.", "« exprès » invariable dans « lettre exprès » (14/10/2026, liste n° 12)."),
     ("J'ai acheté une robe neuve et payé comptant.", "participe d'un verbe après « avoir », pas un adjectif du nom (14/10/2026, liste n° 12)."),
     ("Les jantes en chrome brillent au soleil.", "« en chrome » est le complément, le verbe est « brillent » : jamais « chroment » (14/10/2026, liste n° 1c)."),

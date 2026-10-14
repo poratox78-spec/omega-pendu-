@@ -444,9 +444,21 @@ function testListe19() {
     const pf = DC.diagnoseAll(t).flags.some(f => f.name === 'point final');
     if (pf !== attendu) fail.push('liste n° 19 « ' + t + ' » : point final ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (pf ? 'proposé' : 'rien')); }
 }
+// ⭐ 14/10/2026 — LISTE N° 20 : pluriels absurdes sur des fragments (CV, listes). Le pluriel d'un groupe ne traverse plus « : », un retour à la
+// ligne, une fin de phrase, ni une virgule suivie d'un nouveau nom ; « les pages produit » n'est plus lu sujet + verbe. Les quatre premiers
+// échouent sur le moteur d'avant ; témoins : l'adjectif après une virgule, le vrai verbe avec complément, le verbe sans lecture nom.
+function testListe20() {
+  for (const [t, w, s] of [['Des stages : avr. 2021', 'avr', null], ['Des équipes motivées, organisation opérationnelle', 'organisation', null],
+      ['Les pages produit', 'produit', null], ['Les photos produit et service se renouvellent.', 'renouvellent', null],
+      ['Des pommes rouges, juteuse et sucrées.', 'juteuse', 'juteuses'], ['Les usines produit des voitures.', 'produit', 'produisent'],
+      ['Les équipes travaille.', 'travaille', 'travaillent']]) {
+    const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 20 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+}
 function finish(parityKO) {
   testListe12();
   testListe19();
+  testListe20();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {
