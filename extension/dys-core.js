@@ -4687,7 +4687,7 @@ function estQuestion(t,maxMots){
     if(ta>=0&&(SAUXAV[ty.slice(ta+1)]||SCOPULA[ty.slice(ta+1)]))return '';var dy=ty.replace(/'/g,'');
     if(SAUXAV[dy]||SCOPULA[dy])return '';if(SSUBJP[dy]||dy==='qui')return dy;
     if(dy==='ne'||dy==='n'||dy==='se'||dy==='s'||dy==='me'||dy==='m'||dy==='te'||dy==='t'||dy==='le'||dy==='la'||dy==='les'||dy==='l'||dy==='lui'||dy==='leur'||dy==='y'||dy==='en'){y--;continue;}return '';}return '';}
-  /* ⭐ 14/10/2026 (liste n° 6 : « Il fiabilise les données » → fiabilisée, « Il outille » → outils) — UN PRÉSENT RÉGULIER EN CONTEXTE
+  /* ⭐ 14/10/2026 (liste n° 6 : « il fiabilise ses chiffres » → fiabilisée, « il outille son garage » → outils) — UN PRÉSENT RÉGULIER EN CONTEXTE
      VERBAL. Le lot conj_lex_fr.tsv (build_conj_lex.py) ajoute au dictionnaire les formes valides de la table de conjugaison, mais pas
      celles qui ne diffèrent d'un mot connu que par l'accent (« fiabilise » / fiabilisé, « entrecoupes » / entrecoupés) : sans contexte,
      c'est l'accent oublié — la faute dys la plus fréquente. Ici le contexte tranche : après un pronom sujet ACCORDÉ (il fiabilise, tu

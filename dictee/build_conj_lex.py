@@ -2,8 +2,8 @@
 """build_conj_lex.py — SPELLER : les formes VERBALES valides que la table de conjugaison connaît et que le dictionnaire ignore
 (liste n° 6, 14/10/2026).
 
-Le symptôme (relu dans un texte réel, phrases inventées équivalentes) : « Ils outillent les équipes » → outils, « Les moteurs indexent
-les pages » → indécent, « Nous voulons prototyper » souligné. Le dictionnaire d'orthographe (Lexique 4 + lots) et la table de
+Le symptôme (relu dans un texte réel ; phrases inventées équivalentes) : « elles outillent leurs ateliers » → outils, « les robots
+indexent le site » → indécent, « elle aime prototyper » souligné. Le dictionnaire d'orthographe (Lexique 4 + lots) et la table de
 conjugaison (vdc-lex.json, `cj`) ne sont pas synchronisés : la table a des formes que le dictionnaire n'a pas, et la table elle-même
 a des trous au présent (« outiller » n'y avait que « outillons »).
 
