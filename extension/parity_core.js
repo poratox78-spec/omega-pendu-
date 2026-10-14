@@ -507,9 +507,15 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
   let _vo = 0;
   const f1 = fl('Il commanse a pleurer.'), fa = f1.find(f => f.word === 'a'), fp = f1.find(f => f.word === 'pleurer');
-  // ⭐ 14/10/2026 (liste n° 26) : ici la voie NOUVELLE a/à (« a » + infinitif) trouve « à » SANS le voisin — mesurée 27 justes sur 27, elle est
-  // passée au ROUGE. Le cas du voisin proprement dit (« dificultée a parler », plus bas) reste orange.
-  if (!fa || fa.sugg !== 'à' || fa.tier !== 'auto') { _vo++; console.log('  ✗ « commanse a pleurer » → a/à rouge attendu (voie nouvelle, liste n° 26), obtenu ' + JSON.stringify(fa || null)); }
+  // ⭐ 14/10/2026 (liste n° 26, suite) : la voie NOUVELLE a/à est passée au ROUGE (27 justes sur 27), SAUF quand seul le cas ④ « sujet + mot
+  // plein + a » décide et que le mot plein n'est pas une forme verbale connue : « commanse » (faute) ou « seule » (« elle seule a mangé »). Orange.
+  if (!fa || fa.sugg !== 'à' || fa.tier !== 'vigilance') { _vo++; console.log('  ✗ « commanse a pleurer » → a/à orange attendu (cas ④, mot hors verbe), obtenu ' + JSON.stringify(fa || null)); }
+  // ⭐ (suite) le même cas avec un VRAI verbe est rouge ; « seul » ou un adverbe laisse le créneau du verbe libre : « a » = avoir (pas de « à »)
+  const f1b = fl('Il commence a pleurer.').find(f => f.word === 'a');
+  if (!f1b || f1b.sugg !== 'à' || f1b.tier !== 'auto') { _vo++; console.log('  ✗ « commence a pleurer » → a/à rouge attendu, obtenu ' + JSON.stringify(f1b || null)); }
+  for (const s of ['Elle seule a goûter le plat.', 'Il surtout a laver la vaisselle.', 'Elle ensuite a ranger sa chambre.', 'Il finalement a fermer la porte.']) {
+    const fx = fl(s).find(f => f.word === 'a');
+    if (fx) { _vo++; console.log('  ✗ « ' + s + ' » : « a » est l\'auxiliaire (créneau du verbe libre), marqué ' + JSON.stringify(fx)); } }
   if (fp && fp.tier !== 'vigilance') { _vo++; console.log('  ✗ voisin orange : le rouge « pleuré » (a lu comme avoir) devait passer en orange : ' + JSON.stringify(fp)); }
   const f2 = fl('Elle commence à avancer doucement.');
   if (f2.length) { _vo++; console.log('  ✗ voisin orange : phrase correcte marquée ' + JSON.stringify(f2.map(f => [f.word, f.sugg, f.name]))); }
@@ -520,7 +526,7 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   const f4 = fl('Il éprouve une difficulté à parler.');
   if (f4.length) { _vo++; console.log('  ✗ voisin orange : phrase correcte marquée ' + JSON.stringify(f4.map(f => [f.word, f.sugg, f.name]))); }
   if (_vo) { console.log('PARITÉ KO — voisin orange : ' + _vo + ' attente(s) non tenue(s).'); process.exit(1); }
-  console.log('  ✓ voisin orange : « commanse a pleurer » → à (rouge, voie nouvelle) ; « dificultée a parler » → à ? (orange) sans « parlé » contradictoire ; phrases correctes muettes');
+  console.log('  ✓ voisin orange : « commanse a pleurer » → à ? (orange, cas ④ hors verbe) ; « commence a pleurer » → à (rouge) ; « elle seule a … » laissé à avoir ; « dificultée a parler » → à ? (orange) sans « parlé » contradictoire ; phrases correctes muettes');
 }
 
 // ⭐ 30/09/2026 — GENRE DU DÉTERMINANT CONTREDIT PAR L'ORANGE DU NOM : « la foret » → le (le foret, l'outil) alors que l'orthographe

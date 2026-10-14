@@ -25973,7 +25973,11 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
       if(dv==='a'&&v>=1&&deacc(T[v-1].toLowerCase())==='y'){for(var q=j;q<i;q++)if(_AA_TEMPS[deacc(T[q].toLowerCase()).replace(/^[ld]['’]/,'')])return false;}   // « il y a deux ans a commencé » : une durée, pas un objet
       return true;}
     return false;}
-  function _rAnouveau(T,i){
+  /* ⭐ 14/10/2026 (liste n° 26, suite) — cas ④ « sujet + mot plein + a » : le mot plein doit pouvoir être le VERBE. « elle seule a manger »,
+     « il surtout a chanter » : « seul » ou un adverbe laisse le créneau du verbe LIBRE → « a » est l'auxiliaire (a mangé). Liste fermée
+     + adverbes en -ment (7 lettres et plus : « dément » reste un verbe). Miroir Python _AA_NONVB. */
+  var _AA_NONVB={};"seul seule seuls seules surtout egalement ainsi aussitot cependant neanmoins toutefois maintenant aujourd'hui hier demain ensuite parfois rarement longtemps peu mal puis ici".split(' ').forEach(function(w){_AA_NONVB[w]=1;});
+  function _rAnouveau(T,i,sans4){
     if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase()||i<1)return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(_aaLocution(T,i))return 'à';                                      // ⑤ locution prépositive (sans infinitif)
     if(_aaApresAdverbe(T,i))return 'à';                                  // ⑥ verbe + adverbe + « a »
@@ -25986,7 +25990,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var el=/^(m|t|s|l)['’](.+)$/.exec(T[i-1].toLowerCase());
     if(el){var wv=el[2],dv=deacc(wv);if(!_AA_AUX[dv]&&!_isPpl(wv)){var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(dv):NOUN_POST[dv]):null,T3=T.slice();T3[i-1]=wv;
       if((el[1]!=='l'||!(np&&np[0]>=100))&&(vlike(T3,i-1)||(CONJ_F&&CONJ_F[dv])))return 'à';}}   // ③ verbe collé à un pronom élidé (« m'obligea a fermer ») ; « l'expulsé a », ou « l'Est » devant « a », restent avoir
-    if(i>=2&&SUBJ_PRON[deacc(T[i-2].toLowerCase())]&&!CLITIC[p1]&&!VSTOP[p1]&&!_AA_ADV[p1]&&!_AA_AUX[p1]&&!_isPpl(T[i-1]))return 'à';   // ④ sujet + un mot plein + « a » : le créneau du verbe est pris (« elle continu a avancer »)
+    if(!sans4&&i>=2&&SUBJ_PRON[deacc(T[i-2].toLowerCase())]&&!CLITIC[p1]&&!VSTOP[p1]&&!_AA_ADV[p1]&&!_AA_ADV2[p1]&&!_AA_NONVB[p1]&&!/^.{3,}ment$/.test(p1)&&!_AA_AUX[p1]&&!_isPpl(T[i-1]))return 'à';   // ④ sujet + un mot plein + « a » : le créneau du verbe est pris (« elle continu a avancer »)
     return null;}
   function rA(T,i){var r=_rAbase(T,i);return r!==null?r:_rAnouveau(T,i);}
   /* ⭐ 04/10/2026 — « À » ÉCRIT + PARTICIPE APRÈS UN VERBE QUI APPELLE « À » + INFINITIF (« il apprend à nagé ») : c'est le verbe qui
@@ -28877,7 +28881,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   function _wordKnown(d){return !!(SP&&SP.WORDS&&(SP.WORDS.has(d)||(SP.D2A&&spD(d)&&spD(d).length)))||GENDER_PURE[d]==='m'||GENDER_PURE[d]==='f';}
   function _tierOf(T,i,name,sugg){   // MIROIR de correcteur_probe.tier_of — sous-cas SÛRS (rouge) des familles à vérifier ; sinon orange
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
-    if(name==='a/à')return 'auto';   // ⭐ 14/10/2026 (liste n° 26) : la voie NOUVELLE (29/09, devant un infinitif) était orange EN ATTENDANT LA MESURE. Mesurée : 27 tirs sur les 3 corpus dys et UD 14 450, 27 justes (dont une vraie faute d'UD, « rien a redire »), 0 inutile, 0 fausse → rouge comme la voie de base. Miroir Python
+    if(name==='a/à')return (_rAbase(T,i)===null&&_rAnouveau(T,i,1)===null&&i>=1&&!(vlike(T,i-1)||(CONJ_F&&CONJ_F[deacc(T[i-1].toLowerCase())])))?'vigilance':'auto';   // ⭐ 14/10/2026 (liste n° 26, suite) : seul le cas ④ décide ET le mot d'avant n'est pas une forme verbale connue (« elle continu a avancer ») → orange   // ⭐ 14/10/2026 (liste n° 26) : la voie NOUVELLE (29/09, devant un infinitif) était orange EN ATTENDANT LA MESURE. Mesurée : 27 tirs sur les 3 corpus dys et UD 14 450, 27 justes (dont une vraie faute d'UD, « rien a redire »), 0 inutile, 0 fausse → rouge comme la voie de base. Miroir Python
     if(name==='et/est')return (_rEtBase(T,i)===null&&(_rEtNouveau(T,i)!==null||_rEstEtCoord(T,i)!==null))?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir Python
     if(name==='élision inversée'){var _dz=_deselide(T,i);return (_dz&&_dz[1])?'vigilance':'auto';}   // ⭐ 13/09/2026 : miroir tier_of Python
     if(name==='leur/leurs'){if(i+1>=n)return 'vigilance';var dn=deacc(T[i+1].toLowerCase());

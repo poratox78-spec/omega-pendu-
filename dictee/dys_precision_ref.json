@@ -68,6 +68,7 @@
   "grammaire:participe après être à vérifier|vigilance·propre": 0.0,
   "grammaire:son/sont|auto·propre": 100.0,
   "grammaire:étais après c'/s'|auto·pollué": 100.0,
+  "grammaire:a/à|vigilance·pollué": 100.0,
   "grammaire:accord du participe après avoir à vérifier|vigilance·propre": 100.0,
   "grammaire:aux mal orthographié|auto·propre": 100.0,
   "grammaire:du/dû|auto·pollué": 100.0,

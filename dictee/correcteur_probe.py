@@ -1455,7 +1455,12 @@ def _aa_obj_avoir(T, i):
     return False
 
 
-def _rule_a_aa_nouveau(T, i):
+# ⭐ 14/10/2026 (liste n° 26, suite) — cas ④ : « seul » ou un adverbe entre le sujet et « a » laisse le créneau du verbe libre (« elle seule a manger »
+# = a mangé) ; adverbes en -ment de 7 lettres et plus. Miroir JS _AA_NONVB.
+_AA_NONVB = frozenset(u"seul seule seuls seules surtout egalement ainsi aussitot cependant neanmoins toutefois maintenant aujourd'hui hier demain ensuite parfois rarement longtemps peu mal puis ici".split())
+
+
+def _rule_a_aa_nouveau(T, i, sans4=False):
     if deacc(T[i].lower()) != 'a' or T[i] != T[i].lower() or i < 1: return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
     if _aa_locution(T, i): return u'à'                                    # ⑤ locution prépositive (sans infinitif)
@@ -1477,7 +1482,8 @@ def _rule_a_aa_nouveau(T, i):
             np_ = NOUN_POST.get(dv) if NOUN_POST else None
             T3 = list(T); T3[i - 1] = wv
             if (el.group(1) != 'l' or not (np_ and np_[0] >= 100)) and (vlike(T3, i - 1) or (CONJ_F and dv in CONJ_F)): return u'à'   # ③ verbe + pronom élidé
-    if (i >= 2 and deacc(T[i - 2].lower()) in SUBJ_PRON and p1 not in CLITIC and p1 not in VLIKE_STOP and p1 not in _AA_ADV
+    if (not sans4 and i >= 2 and deacc(T[i - 2].lower()) in SUBJ_PRON and p1 not in CLITIC and p1 not in VLIKE_STOP and p1 not in _AA_ADV
+            and p1 not in _AA_ADV2 and p1 not in _AA_NONVB and not re.match(r'^.{3,}ment$', p1)
             and p1 not in _AA_AUX and not _is_ppl(T[i - 1])): return u'à'   # ④ sujet + un mot plein + « a »
     return None
 
@@ -7511,6 +7517,9 @@ def tier_of(T, i, name, sugg):
     if name not in VIG_FAMILIES:
         return 'auto'
     if name == 'a/à':                                     # ⭐ 14/10/2026 (liste n° 26) : la voie NOUVELLE mesurée (27 tirs, 27 justes, 0 fausse) → rouge — miroir JS
+        if (_rule_a_aa_base(T, i) is None and _rule_a_aa_nouveau(T, i, True) is None and i >= 1
+                and not (vlike(T, i - 1) or (CONJ_F and deacc(T[i - 1].lower()) in CONJ_F))):
+            return 'vigilance'                            # ⭐ (suite) seul le cas ④ décide, mot d'avant hors verbe connu (« elle continu a avancer ») → orange
         return 'auto'
     if name == 'et/est':                                  # ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir JS
         return 'vigilance' if (_rule_et_est_base(T, i) is None and (_rule_et_est_nouveau(T, i) is not None or _rule_est_et_coord(T, i) is not None)) else 'auto'
