@@ -29519,6 +29519,27 @@ function estQuestion(t,maxMots){
     if(ta>=0&&(SAUXAV[ty.slice(ta+1)]||SCOPULA[ty.slice(ta+1)]))return '';var dy=ty.replace(/'/g,'');
     if(SAUXAV[dy]||SCOPULA[dy])return '';if(SSUBJP[dy]||dy==='qui')return dy;
     if(dy==='ne'||dy==='n'||dy==='se'||dy==='s'||dy==='me'||dy==='m'||dy==='te'||dy==='t'||dy==='le'||dy==='la'||dy==='les'||dy==='l'||dy==='lui'||dy==='leur'||dy==='y'||dy==='en'){y--;continue;}return '';}return '';}
+  /* ⭐ 14/10/2026 (liste n° 6 : « il fiabilise ses chiffres » → fiabilisée, « il outille son garage » → outils) — UN PRÉSENT RÉGULIER EN CONTEXTE
+     VERBAL. Le lot conj_lex_fr.tsv (build_conj_lex.py) ajoute au dictionnaire les formes valides de la table de conjugaison, mais pas
+     celles qui ne diffèrent d'un mot connu que par l'accent (« fiabilise » / fiabilisé, « entrecoupes » / entrecoupés) : sans contexte,
+     c'est l'accent oublié — la faute dys la plus fréquente. Ici le contexte tranche : après un pronom sujet ACCORDÉ (il fiabilise, tu
+     fiabilises, ils outillent ; qui échancre), juste après se / me / te, élidé (s'étagent), ou entre un sujet nominal et le
+     déterminant de son complément (« le service fiabilise ses chiffres »), un présent régulier d'un verbe en -er
+     de la table, écrit EXACTEMENT (radical de l'imparfait, accents compris), est valide. Jamais pour un radical à alternance (lève,
+     appelle, paie) : « il leve » reste corrigé. Mesuré au produit avec le lot : 3 corpus dys, aucune correction juste perdue ;
+     UD 14 450 : 4 faux soulignés en moins. Miroir Python _present_regulier. */
+  function _presentRegulier(low,T,idx,tok){var m=/^(.+?)(e|es|ent)$/.exec(low);if(!m||m[1].length<3||!CONJ_C)return false;
+    var lem=deaccS(m[1])+'er',sl=CONJ_C[lem];if(!sl||lem==='aller')return false;var imp=sl['ind:imp'];var f1=imp&&imp['1p'];if(Array.isArray(f1))f1=f1[0];
+    if(!f1||!/ions$/.test(f1)||f1.slice(0,-4)!==m[1])return false;
+    if(/[eé][^aeiouyéèêëàâîïôûù]+$/.test(m[1])||/(y|el|et)$/.test(m[1]))return false;
+    var sp=_sujPron(T,idx),q=T&&idx>0?deaccS(T[idx-1].toLowerCase()):'',el=/^[smtn]['’]/i.test(tok||'');
+    if(sp)return m[2]==='ent'?(sp==='ils'||sp==='elles'||sp==='qui'):(m[2]==='es'?sp==='tu':(sp!=='tu'&&sp!=='ils'&&sp!=='elles'&&sp!=='nous'&&sp!=='vous'));
+    if((q==='se'||q==='me'||q==='te'||el)&&m[2]!=='es')return true;
+    if(m[2]==='es'||!T||idx<2||idx+1>=T.length)return false;   // sujet NOMINAL : déterminant + nom + verbe + déterminant du complément, nombre accordé
+    var d2=deaccS(T[idx-2].toLowerCase()),n1=T[idx-1].toLowerCase(),nx=deaccS(T[idx+1].toLowerCase()),pl=m[2]==='ent';
+    if(!(pl?_PR_DPL[d2]:_PR_DSG[d2])||!(_PR_DSG[nx]||_PR_DPL[nx])||(spP(n1)||'').indexOf('N')<0)return false;
+    return pl===/[sx]$/.test(n1);}
+  var _PR_DSG={le:1,la:1,un:1,une:1,ce:1,cet:1,cette:1,mon:1,ton:1,son:1,ma:1,ta:1,sa:1,notre:1,votre:1,leur:1},_PR_DPL={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};
   function _majTier(tok,r){if(!r||r[0]==='vigilance'||tok===tok.toLowerCase())return r;var lw=tok.toLowerCase(),sg=r[1].toLowerCase();
     if(deaccS(lw)!==deaccS(sg)||/[éè](x|([bcdfgjklmnpqrstvz])\2|[cp]t)/.test(lw))return r;
     if(tok.length>=2&&tok===tok.toUpperCase())return['vigilance',r[1]];if(r[0]!=='auto')return r;
@@ -29617,6 +29638,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur » (le « e dans le o »). Liste FERMÉE de mots où oe=œ → FP=0 (coexister/moelle/poème non touchés). Garde : ne pas re-flaguer un mot DÉJÀ écrit avec œ. Débloque aussi le genre (« mon soeur »→ma sœur via GENDER_PURE oe).
     if(SP.WORDS.has(low))return null;                                  // mot valide (œuf→oeuf normalisé) → couche grammaire
+    if(_presentRegulier(low,T,idx,tok))return null;   // ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal
     // ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08, parité Python speller_probe + dys-core) : la garde « nom propre »
     // exige une MAJUSCULE hors début de phrase — elle ne protège rien chez un scripteur dys, qui n'en met
     // pas. Mesuré sur le pipeline : un prénom en minuscule → « ici » ; mots CASSÉS 26 -> 20 sur texte dys réel, à coût NUL.
@@ -29954,6 +29976,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(low.length<3||!isAlphaS(low))return null;
     if(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;            // mot connu (ou connu sans accents)
     if(udHas(low))return null;                                              // dictionnaire utilisateur (prénom/jargon ajouté) → ne pas signaler
+    if(_presentRegulier(low,T,idx,tok))return null;   // ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — pas « inconnu »
     if(_SPELL_KEEP[low])return null;                                       // mot anglais fréquent / résidu d'ordinal (the/er) → ni corrigé ni signalé « inconnu »
     if(tok[0]!==tok[0].toLowerCase())return null;                          // majuscule → possible nom propre (Nathalie/Bordeaux) même en début de phrase → on ne flague pas (prudence)
     if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale

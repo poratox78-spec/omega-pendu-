@@ -88,6 +88,16 @@ for (const [t, w, s, tier] of [['Il bele sans arrêt.', 'bele', 'bêle', 'auto']
     ['Un service personalisé.', 'personalisé', 'personnalisé', 'flag'], ['Une offre personalisée.', 'personalisée', 'personnalisée', 'flag'], ['Un ton impersonel.', 'impersonel', 'impersonnel', 'flag']]) {
   const f = DC.spell(t).find(x => x.word === w);
   if (!f || f.sugg !== s || f.tier !== tier) fail.push('listes n° 1b-5 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+// ⭐ 14/10/2026 — LISTE N° 6 : des verbes VALIDES étaient soulignés (« ils outillent » → outils, « indexent » → indécent, « prototyper »).
+// Le lot conj_lex_fr.tsv (table de conjugaison → dictionnaire) et, pour les présents qui ne diffèrent d'un mot connu que par l'accent,
+// le contexte verbal (_presentRegulier). Témoins : l'accent oublié reste corrigé hors contexte (entrecoupés), le radical à alternance
+// aussi (lève). Phrases inventées ; les cinq premières échouent sur le moteur et le dictionnaire d'avant.
+for (const [t, w, s, tier] of [['Elles outillent leurs ateliers.', 'outillent', null, null], ['Il outille son garage.', 'outille', null, null],
+    ['Le service fiabilise ses chiffres.', 'fiabilise', null, null], ['Les robots indexent le site.', 'indexent', null, null],
+    ['Elle aime prototyper des jeux.', 'prototyper', null, null],
+    ['Des branches entrecoupes de lumière.', 'entrecoupes', 'entrecoupés', 'vigilance'], ['Il leve la main.', 'leve', 'lève', 'auto']]) {
+  const f = DC.spell(t).find(x => x.word === w);
+  if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier)) fail.push('liste n° 6 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(f && [f.sugg, f.tier, f.name])); }
 // ⭐ 29/09/2026 — ACCENTS MUETS : « ca », « foret », « pole » → ça, forêt, pôle en ORANGE ; « le foret » (l'outil), « les mass media »,
 // « la pole position » et « Ca » (calcium) : rien.
 for (const [t, w, s] of [['je crois que ca marche', 'ca', 'ça'], ['on marche en foret', 'foret', 'forêt'], ['ils vont au pole sud', 'pole', 'pôle']]) {
