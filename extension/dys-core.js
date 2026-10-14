@@ -1042,8 +1042,18 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
      n'entre pas dans ces locutions (UD 14 450 : aucun emploi). Gardes : « il y en a qui » (avoir), « la suite a montré » (déterminant
      devant : le nom est sujet), Grace prénom (capitale sans accent). Voie nouvelle, ORANGE. Miroir Python _aa_locution. */
   var _AA_LOC_DET={la:1,le:1,une:1,un:1,cette:1,ce:1,sa:1,ma:1,ta:1,notre:1,votre:1,leur:1,de:1,du:1,quelle:1,toute:1};
+  /* ⭐ 14/10/2026 (liste n° 1e : « une machine a laver » → « lavé » EN ROUGE) — NOMS COMPOSÉS « N à INFINITIF » : machine à laver, salle
+     à manger, fer à repasser, chambre à coucher… Liste FERMÉE (singulier ; le pluriel en -s est lu). La règle -er/-é s'en remet déjà à a/à
+     (« à » → l'infinitif reste) : il suffit que a/à connaisse le composé. Garde : derrière l'infinitif, rien (fin, ponctuation) ou un mot
+     qui n'ouvre pas son complément (_AA_NI_SUITE) — « la machine a laver le linge » = « a lavé » possible → on ne touche pas. Miroir Python. */
+  var _AA_NOM_INF={},_AA_NI_SUITE={};"machine:laver,coudre,ecrire,calculer salle:manger fer:repasser,souder,friser,lisser planche:repasser,decouper table:repasser chambre:coucher pince:epiler poele:frire creme:raser mousse:raser fil:coudre aiguille:tricoter,coudre pierre:aiguiser cire:cacheter poudre:lever".split(' ').forEach(function(p){var q=p.split(':');_AA_NOM_INF[q[0]]={};q[1].split(',').forEach(function(v){_AA_NOM_INF[q[0]][v]=1;});});
+  "est etait sera fut a avait sont etaient seront furent ont avaient neuf neuve neufs neuves electrique electriques ne n' qui que qu' dont et ou mais dans pour avec sur sous chez en se s'".split(' ').forEach(function(w){_AA_NI_SUITE[w]=1;});
+  function _aaNomInf(T,i){if(i<1||i+1>=T.length)return false;var p=deacc(T[i-1].toLowerCase()),v=deacc(T[i+1].toLowerCase()),N=T[i-1]!==T[i-1].toLowerCase()?null:(_AA_NOM_INF[p]||(p!=='fils'?_AA_NOM_INF[p.replace(/s$/,'')]:null));   // « Pierre a aiguisé » (prénom), « son fils a cousu »
+    if(!N||!N[v])return false;if(i+2>=T.length||(_SEG&&i+2<_SEG.bb.length&&_SEG.bb[i+2]))return true;var s=T[i+2].toLowerCase().replace(/’/g,"'");
+    return !!(_AA_NI_SUITE[deacc(s)]||/^(n|qu|s)'/.test(s)&&_AA_NI_SUITE[deacc(s.split("'")[0])+"'"]);}
   function _aaLocution(T,i){var n=T.length,d1=i+1<n?deacc(T[i+1].toLowerCase()):'',d2=i+2<n?deacc(T[i+2].toLowerCase()):'',p1=deacc(T[i-1].toLowerCase()),p2=i>=2?deacc(T[i-2].toLowerCase()):'';
     var de=/^(de|des|du|d['’].+)$/.test(d2);
+    if(_aaNomInf(T,i))return true;   // ⭐ liste n° 1e : machine à laver, salle à manger… (rien ne suit, ou un mot qui n'ouvre pas de complément)
     if((d1==='cause'||d1==='partir')&&de)return true;                    // à cause de, à partir de
     if(/^l['’](interieur|exterieur)e?$/.test(d1)&&de)return true;       // à l'intérieur de, à l'extérieur de
     if(d1==='part')return true;                                          // à part

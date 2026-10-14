@@ -128,6 +128,10 @@ def _check():
     palier += [("Elle continu a avancer", "a", 'vigilance'), ("On a oublier la clé", "oublier", 'auto')]
     # ⭐ 14/10/2026 (liste n° 26, suite) : avec un VRAI verbe le cas ④ est rouge ; « seule » / un adverbe laisse « a » à avoir (le participe se répare)
     palier += [("Elle continue a avancer", "a", 'auto'), ("Elle seule a goûter le plat", "goûter", 'auto')]
+    # ⭐ 14/10/2026 (liste n° 1e) — noms composés « N à infinitif » : « à », l'infinitif reste ; un complément derrière = « a » avoir possible
+    elide += [("Le fer a repasser est encore chaud", "a", "à"), ("Nous dînons dans la salle a manger", "a", "à"),
+              ("Les machines a coudre sont rangées", "a", "à"), ("La machine a laver le pull", "laver", "lavé")]
+    palier += [("Le fer a repasser est encore chaud", "a", 'auto')]
     elide += [("Elle seule a goûter le plat", "goûter", "goûté"), ("Il surtout a laver la vaisselle", "laver", "lavé")]
     # ⭐ 29/09/2026 — et/est : sujet nominal + et + participe → est (orange) ; « est voilà », « est aussi » + pronom + verbe → et ; contrôles
     elide += [("Le chat et parti ce matin", "et", "est"), ("Le repas et fini depuis une heure", "et", "est"),
