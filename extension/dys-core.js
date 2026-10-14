@@ -6194,6 +6194,7 @@ function spellUnknown(tok,atStart,T,idx){
         var re6=/(\S)[ 	]{2,}(\S)/g;   /* ESPACE DOUBLE ENTRE DEUX MOTS — mesuré 0 occurrence sur 14 450 phrases UD CORRECTES, et 95 cas réels sur 139 593 paires bad/good. FP=0 par construction : le français n'a jamais deux espaces entre deux mots.
        ⚠️ Le `(\S)` initial EXCLUT l'indentation : une ligne qui COMMENCE par des espaces n'est pas touchée. On répare un espacement entre MOTS, pas une mise en page. */
     while((m=re6.exec(text))){
+      if(/\d/.test(m[1])&&/\d/.test(m[2]))continue;   // ⭐ 14/10/2026 (liste n° 23) : entre deux CHIFFRES, c'est une mise en page (numéro groupé par paires, PDF espacé « 0 6  1 2 ») — on n'y touche pas
       out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+' '+m[2],name:'espace double',tier:'auto',typo:1});}
     return out;}
   /* ⭐ SÉPARÉE DE `_typoScan` À DESSEIN. Cette couche-là est MÉCANIQUE (décidable sur la chaîne
@@ -6250,6 +6251,7 @@ function spellUnknown(tok,atStart,T,idx){
   var _DP_PF={};('des du un une au aux ces mes tes ses nos vos cette cet de à pour sur dans par avec sans sous chez vers entre contre depuis').split(' ').forEach(function(w){_DP_PF[w]=1;});   // ⭐ liste n° 20 : jamais devant un verbe conjugué (« le/la/les/l'/en/leur/ce » exclus : aussi pronoms devant le verbe)
   function _aVerbeConj(s){var T=toks(s);if(!T.length)return false;var _sg=_segInfo(s);   // _sg.bb / _sg.dig : ponctuation ou chiffre dans l'intervalle AVANT chaque mot
     for(var j=0;j<T.length;j++){var t=T[j].toLowerCase().replace(/[’ʼ]/g,"'"),b=t.slice(t.lastIndexOf("'")+1);if(!b||b==='à'||/é(s?)$/.test(b)||/^d'/.test(t))continue;
+      if(j===0&&/^\s*[A-Za-zÀ-ÿœŒ'’\-]+\s*:/.test(s))continue;   // ⭐ 14/10/2026 (liste n° 23) : « Téléphone : 06… » — le 1er mot suivi de « : » est une ÉTIQUETTE, pas un verbe
       if(j>0&&!_sg.bb[j]&&!_sg.dig[j]){var _pv=deacc(T[j-1].toLowerCase());if(_DP_PF[_pv]||_DP_PF[T[j-1].toLowerCase()])continue;}   // « des commandes » : un nom — seulement si les deux mots se TOUCHENT (« de 1982 fut » : le chiffre est entre)
       var r=svReads(b),fin=false;for(var k=0;k<r.length;k++)if(/^(ind|cnd|sub)/.test(r[k][1])){fin=true;break;}if(!fin)continue;
       var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deacc(b)):NOUN_POST[deacc(b)]):null;if(np&&np[0]>=500&&np[1]<50)continue;

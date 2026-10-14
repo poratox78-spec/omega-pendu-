@@ -440,13 +440,20 @@ function testListe12() {
 function testListe19() {
   for (const [t, attendu] of [['Technicienne de maintenance', false], ['06 12 34 56 78', false], ['- Accueil des clients', false],
       ['Esprit d\'équipe, soudure, mécanique de précision', false], ['le chat mange la souris', true], ['je vais bien tu viens demain', true],
-      ['Il a rencontré J. K. Martin hier soir', true]]) {
+      ['Il a rencontré J. K. Martin hier soir', true], ['Téléphone : 07 11 22 33 44', false]]) {   // ⭐ liste n° 23 : une ligne-étiquette n'a pas de verbe
     const pf = DC.diagnoseAll(t).flags.some(f => f.name === 'point final');
     if (pf !== attendu) fail.push('liste n° 19 « ' + t + ' » : point final ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (pf ? 'proposé' : 'rien')); }
 }
 // ⭐ 14/10/2026 — LISTE N° 20 : pluriels absurdes sur des fragments (CV, listes). Le pluriel d'un groupe ne traverse plus « : », un retour à la
 // ligne, une fin de phrase, ni une virgule suivie d'un nouveau nom ; « les pages produit » n'est plus lu sujet + verbe. Les quatre premiers
 // échouent sur le moteur d'avant ; témoins : l'adjectif après une virgule, le vrai verbe avec complément, le verbe sans lecture nom.
+// ⭐ 14/10/2026 — LISTE N° 23 : texte espacé (PDF) — « espace double » n'est plus corrigé d'office ENTRE DEUX CHIFFRES (numéro groupé par
+// paires). Le premier échoue sur le moteur d'avant ; témoin : entre deux mots, toujours corrigé.
+function testListe23() {
+  for (const [t, attendu] of [['Tél : 0 7  1 1  2 2  3 3', false], ['Il  mange une pomme.', true]]) {
+    const ed = DC.diagnoseAll(t).flags.some(f => f.name === 'espace double');
+    if (ed !== attendu) fail.push('liste n° 23 « ' + t + ' » : espace double ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (ed ? 'corrigé' : 'rien')); }
+}
 function testListe20() {
   for (const [t, w, s] of [['Des stages : avr. 2021', 'avr', null], ['Des équipes motivées, organisation opérationnelle', 'organisation', null],
       ['Les pages produit', 'produit', null], ['Les photos produit et service se renouvellent.', 'renouvellent', null],
@@ -472,6 +479,7 @@ function finish(parityKO) {
   testListe12();
   testListe19();
   testListe20();
+  testListe23();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {
