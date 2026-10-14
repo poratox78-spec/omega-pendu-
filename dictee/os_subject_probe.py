@@ -257,6 +257,7 @@ def _coord_verbe(F, vi, vn, f3s, f3p, tg):
             for b in rv:
                 if a[2] == b[2] and (a[3] == b[3] or a[3] == 'x' or b[3] == 'x'): ok = True
         if ok: return None
+        if C.rule_accord_sv(F, q) or C.rule_accord_sv_noun(F, q): return None   # ⭐ 14/10/2026 (liste n° 1d) : premier verbe lui-même fautif — miroir JS
         if 's' in nbs and 'p' not in nbs: return None if vn == 's' else (f3s, 0.9)
         if 'p' in nbs and 's' not in nbs: return None if vn == 'p' else (f3p, 0.9)
         return None

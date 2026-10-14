@@ -26693,7 +26693,19 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(d):NOUN_POST[d]):null;if(!np||np[0]<500)return false;
     for(var j=i+1;j<T.length&&j<=i+4;j++){if(_SEG&&_SEG.bb&&j<_SEG.bb.length&&_SEG.bb[j])break;var r=svReads(T[j]);
       for(var k=0;k<r.length;k++)if(r[k][2]==='3'&&(!nb||r[k][3]===nb)&&/^(ind|cnd|sub)/.test(r[k][1]))return true;}return false;}
-  function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;if(i>0&&deacc(T[i-1].toLowerCase())==='en'&&gerondifVig(T,i))return null;
+  /* ⭐ 14/10/2026 (liste n° 20 : « les pages produit », « les photos produit » → produisent EN ROUGE) — le français de métier accole un nom
+     sans déterminant à un autre nom (équipe produit, fiche produit, bon commande). Quand le « verbe » suit une TÊTE de cette liste FERMÉE, a
+     une vraie lecture NOM (posterior ≥ 30 % : produit 41 %, commande 37 %) et que rien ne le suit (fin, « et », « ou », frontière), c'est
+     un nom : le rouge sujet-verbe se tait. « Les usines produit des voitures » (un complément suit) et « les équipes travaille » (pas de
+     lecture nom) restent corrigés. Miroir Python _nom_appose. */
+  var _TETES_APPOS={};('equipe equipes fiche fiches page pages photo photos gamme gammes catalogue catalogues reference references description descriptions code codes visuel visuels image images responsable responsables chef chefs manager managers donnees service services bon bons carte cartes point points').split(' ').forEach(function(w){_TETES_APPOS[w]=1;});
+  function _nomAppose(T,i){if(i<1||!_TETES_APPOS[deacc(T[i-1].toLowerCase())])return false;var d=deacc(T[i].toLowerCase());
+    var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(d):NOUN_POST[d]):null;if(!np||np[0]<300)return false;
+    if(i+1>=T.length||(_SEG&&_SEG.bb&&i+1<_SEG.bb.length&&_SEG.bb[i+1]))return true;var nx=deacc(T[i+1].toLowerCase());if(nx==='et'||nx==='ou')return true;
+    var r=svReads(T[i+1]);for(var k=0;k<r.length;k++)if(/^(ind|cnd|sub)/.test(r[k][1])&&!/é(s?)$/.test(T[i+1].toLowerCase()))return true;   // le VRAI verbe suit (« les pages produit RESTENT claires ») : deux verbes conjugués ne se suivent pas
+    return false;}
+  function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
+    if(i>0&&deacc(T[i-1].toLowerCase())==='en'&&gerondifVig(T,i))return null;
     if(deacc(lw)==='a'&&i+1<T.length){var _dn=deacc(T[i+1].toLowerCase());if(_dn==='la'||_dn==='le'||_dn==='les'||_dn.slice(0,2)==="l'")return null;}   // « a » + ARTICLE DÉFINI (la/le/les/l') → préposition « à » trop plausible (à la/à l', locatif : « les enfants a l'école ») → a→ont s'abstient ; l'indéfini (une/des) reste possession. Miroir Python.
     // vig=true : jumeau ORANGE (retire la seule garde clause-init) pour la vigilance sujet-verbe mid-phrase
     if(/(é|és|ée|ées)$/.test(lw))return null;                                  // participe → accord adjectival, pas verbal
@@ -26910,10 +26922,12 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(_SEG&&ci+1<_SEG.dig.length&&(_SEG.dig[ci]||_SEG.dig[ci+1]))return null;   /* ⭐ 11/09/2026 (restes frgec, lot 2) : « entre 2006 et 2016 sont parues » — un NOMBRE touche la conjonction : « et » coordonne des nombres, pas des verbes. Miroir Python. */
     for(var m=ci+1;m<i;m++){if(NUM_DET[T[m].toLowerCase()]!==undefined||_coordSubjW[deacc(T[m].toLowerCase())])return null;if(_elidKind(T[m])==='det')return null;if(_ELIDED_PRON.test(T[m].toLowerCase()))return null;}   /* PRONOM ÉLIDÉ = un NOUVEAU sujet lui aussi : « … et lorsqu'elle dort » ouvre sa propre proposition (FP mesuré 30/08/2026 sur français CORRECT : dort → dorment) — même motif que la garde 'det', jamais propagée à cette règle sœur */   // nouveau sujet entre conj et V2 → V2 a le sien
     var v1=null;for(k=ci-1;k>=lo;k--){
+      if(_nomAppose(T,k))break;   // ⭐ 14/10/2026 (liste n° 20) : « les photos produit et service se renouvellent » — « produit » est un nom, pas le verbe frère (réunit en ROUGE)
       if(!/(é|és|ée|ées)$/.test(T[k].toLowerCase())&&_verbOrHomograph(tg,T,k)&&_vnum3(T[k])!==null){v1=k;break;}
       var d=deacc(T[k].toLowerCase());if(GENDER_MAP[d]||ADJP[d])break;                    // vrai nom/adj avant la conj → coordination NOMINALE
     }
     if(v1===null)return null;
+    if(rAccordSV(T,v1)||rAccordSVnoun(T,v1))return null;   // ⭐ 14/10/2026 (liste n° 1d) : le verbe frère est LUI-MÊME corrigé par une autre règle (« Les enfants mange et dorment » recevait « mangent » ET « dort », deux rouges contradictoires) — une ancre déjà corrigée ne gouverne rien. Miroir Python.
     var n1=_vnum3(T[v1]);if(n1===null||n1===vn2)return null;
     var mt='ind:imp';for(k=0;k<r2.length;k++)if(r2[k][1]==='ind:pre'){mt='ind:pre';break;}
     var sl=(CONJ_C[r2[0][0]]||{})[mt]||{},sug=sl['3'+n1];
@@ -27144,7 +27158,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
      « au » : le déterminant peut être la faute (« un pain aux chocolat ») — il ne prouve le pluriel que devant un mot FÉMININ (« au » est
      masculin) ou à VOYELLE (« au » y devient « à l' »). « quelques chose / part » : c'est « quelque » qui est faux. Lu par rNounPlural et
      rAdjAntePl. Mesuré : voir REGLES_FR. Miroir Python _PL_DET_X / _aux_sur. */
-  var _PL_DET_X={aux:3,quelques:1,divers:1,diverses:1,plusieurs:2,certains:2,certaines:2};
+  var _PL_DET_X={aux:3,quelques:1,divers:1,diverses:1,plusieurs:2,certains:2,certaines:2,"d'autres":2,"d'anciens":1,"d'anciennes":1,"d'importants":1,"d'importantes":1,"d'eventuels":1,"d'eventuelles":1,"d'enormes":1,"d'immenses":1,"d'innombrables":1,"d'excellents":1,"d'excellentes":1};   /* ⭐ 14/10/2026 (liste n° 18) : « d'autres chemin », « il a d'autres idée » — le déterminant pluriel ÉLIDÉ (un seul token : « d' » + adjectif pluriel) n'était dans aucune liste. Liste FERMÉE, recensée sur UD (d'autres ×129, d'importants, d'anciens, d'éventuels…) ; « d'autres » vaut 2 comme certains/plusieurs (AUSSI pronom : « d'autres pensent », le veto verbal reste) ; les adjectifs valent 1 comme quelques/divers. Miroir Python. */
   function _auxSur(w,adj){var d=deacc(w.toLowerCase());return /^[aeiouy]/.test(d)||(adj?!!_ADJ_ANTE_M[w.toLowerCase()]:_nounGender(w,'s')==='f');}
   function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
     var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&(PLURAL_DET[deacc(T[i-2].toLowerCase())]||_PL_DET_X[deacc(T[i-2].toLowerCase())]))_pd=deacc(T[i-2].toLowerCase());
@@ -27225,7 +27239,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     return null;}
   // === ponctuation/majuscules (sens & contexte) : couche segments + majuscule début de phrase (parité correcteur_probe.py) ===
   var _SEG=null,ABBREV={};'m mme mlle mr dr pr me mgr st ste etc cf ex vs no nos art av bd env fig vol ed p pp al co inc ave apr jc subsp ssp var sp spp gen fam'.split(' ').forEach(function(w){ABBREV[w]=1;});
-  function _segInfo(text){var ss=[],bb=[],hy=[],cap=[],dig=[],rw=[],nm=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));hy.push(gap.indexOf('-')>=0);cap.push((gap.indexOf('.')>=0&&/\s/.test(gap))&&gap.indexOf('..')<0&&!/\d/.test(gap)&&!(gap.indexOf('.')>=0&&!/\s/.test(gap)&&/^(com|net|org|fr|io|co|eu|de|uk|be|ca|ch|us|info|edu|gov|biz|tv|me|app)$/i.test(m[0])))   /* MAJUSCULE : seulement après un POINT + espace ; PAS ! ? … (interjection « Ah! comme », inversion « viendra-t-il? je », suspension = ~100% FP mesuré banc OQLF/BDL) ni domaine collé « oqlf.gouv ». ss/bb gardent s (bornes de proposition). */;dig.push(/\d/.test(gap));rw.push(m[0]);var _gn=/^\s+(\d{1,3}(?:[ \u00a0\u202f]\d{3})*|\d+)\s+$/.exec(gap);nm.push(_gn?parseInt(_gn[1].replace(/\D/g,''),10):null);prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,cap:cap,dig:dig,raw:rw,num:nm};}   // raw (28/09/2026) : le mot tel que l'AUTEUR l'a écrit — les règles voient les tokens nettoyés par l'orthographe
+  function _segInfo(text){var ss=[],bb=[],hy=[],cap=[],dig=[],rw=[],nm=[],sb=[],vg=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));sb.push(/[\n:;]/.test(gap));vg.push(/[,()–—]/.test(gap));hy.push(gap.indexOf('-')>=0);cap.push((gap.indexOf('.')>=0&&/\s/.test(gap))&&gap.indexOf('..')<0&&!/\d/.test(gap)&&!(gap.indexOf('.')>=0&&!/\s/.test(gap)&&/^(com|net|org|fr|io|co|eu|de|uk|be|ca|ch|us|info|edu|gov|biz|tv|me|app)$/i.test(m[0])))   /* MAJUSCULE : seulement après un POINT + espace ; PAS ! ? … (interjection « Ah! comme », inversion « viendra-t-il? je », suspension = ~100% FP mesuré banc OQLF/BDL) ni domaine collé « oqlf.gouv ». ss/bb gardent s (bornes de proposition). */;dig.push(/\d/.test(gap));rw.push(m[0]);var _gn=/^\s+(\d{1,3}(?:[ \u00a0\u202f]\d{3})*|\d+)\s+$/.exec(gap);nm.push(_gn?parseInt(_gn[1].replace(/\D/g,''),10):null);prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,cap:cap,dig:dig,raw:rw,num:nm,sb:sb,vg:vg};}   // sb (14/10/2026, liste n° 20) : frontière FORTE — retour à la ligne, « : », « ; » ; vg : virgule, parenthèse, tiret (PAS les guillemets)   // raw (28/09/2026) : le mot tel que l'AUTEUR l'a écrit — les règles voient les tokens nettoyés par l'orthographe
   // C : run-on (ponctuation manquante entre 2 propositions) — VIGILANCE (vert) ; conservateur, anti-inversion (trait d'union)
   var RPRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],nous:['1','p'],vous:['2','p'],ils:['3','p'],elles:['3','p']},RCONJ={};'et ou ni mais car donc or que qu qui dont quand lorsque comme si puisque quoique lequel laquelle pour sans a'.split(' ').forEach(function(w){RCONJ[w]=1;});
   function _isFinite(w){var r=svReads(w),k;for(k=0;k<r.length;k++){var md=r[k][1].split(':')[0];if(md==='ind'||md==='sub'||md==='cnd'||md==='cond'||md==='imp')return true;}return false;}
@@ -27576,6 +27590,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       if(_ELID_DET.test(T[j].toLowerCase())){   // DÉCOLLER L'ÉLISION — ce test passe AVANT la frontière VERBALE : sur un token COLLÉ le tagger est contaminé (il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas »). Le GENRE du lexique, sans contexte, décide plus bas. : « l'équipe » est UN SEUL token, donc ni le tagger ni les listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui toutes les règles d'accord. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là, simplement collée.
         if(detIdx<0||_sp){detIdx=j;_sp=false;_elid=true;}
         continue;}
+      if(_PL_DET_X[dj]&&dj.indexOf("'")>0){if(detIdx<0||_sp){detIdx=j;_sp=true;_elid=false;}continue;}   // ⭐ 14/10/2026 (liste n° 18) : « D'autres chemins mène » — « d'autres » est un déterminant PLURIEL ; il contient « de », donc lien SOUPLE : un vrai déterminant plus à gauche le remplace (« les enfants d'autres familles »)
      if(tgj==='VERB'||tgj==='AUX'){if(/(é|és|ée|ées)$/.test(T[j].toLowerCase())&&!(j-1>=lo&&tg&&j-1<tg.length&&tg[j-1]==='AUX'))continue;var _qr=_quiRelAvant(T,j,lo);if(_qr>=0){detIdx=-1;_sp=false;_elid=false;j=_qr;continue;}break;}if(NUM_PRON[dj])break;if(T[j].toLowerCase().indexOf("'")>=0&&/(ils|elles|il|elle|on|je|tu|nous|vous)$/.test(dj))break;   // PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
       var _pj=(PREP[dj]||dj==='en'||(T[j].toLowerCase().indexOf("'")>=0&&dj.charAt(0)==='d'));if(_pj)_sp=true;   // « de/du/des/au/aux/en/d' » : lien qui RATTACHE le GN de gauche à celui de droite. « en » MANQUAIT de PREP — « avec un cercle EN SON CENTRE ont été érigées » prenait « centre » pour sujet.
       if(tgj==='DET'||NUM_DET[dj]){if(detIdx<0||_sp){detIdx=j;_sp=_pj;_elid=false;}}}   // On remonte au déterminant le PLUS À GAUCHE, mais SEULEMENT à travers un lien « de » — c'est POUR ÇA que la remontée existe (« les enfants DE la voisine » a sa tête à GAUCHE). Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet (FP mesuré). Un 2e GN à gauche SANS lien « de » est ADVERBIAL, pas le sujet. Et une préposition CONTRACTÉE (du/des/au/aux) qui sert d'ancre reste « molle » (_sp gardé vrai) : elle ouvre un complément, donc un vrai déterminant plus à gauche doit pouvoir la remplacer (« les autorités DU Sahara ont » → tête « autorités », pas « Sahara »).   // On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ». C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à GAUCHE. Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet → « est arrivé » (FP mesuré). Un second GN à gauche SANS lien « de » est un GN ADVERBIAL (« ce matin », « la semaine dernière »), pas le sujet ⇒ on garde le déterminant le plus PROCHE du verbe.
@@ -27594,6 +27609,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(_COLLECTIF[deacc(T[head].toLowerCase())])return null;   // NOM COLLECTIF (« la plupart ONT gardé », « la majorité sont ») : l'accord se fait au SENS, singulier ET pluriel sont corrects ⇒ abstention
     var ddet=deacc(T[detIdx].toLowerCase()),num;
     if(NUM_DET[ddet])num=NUM_DET[ddet]==='pl'?'p':'s';
+    else if(_PL_DET_X[ddet]&&ddet.indexOf("'")>0)num='p';   // ⭐ 14/10/2026 (liste n° 18) : « d'autres », « d'anciens » → pluriel, quel que soit le nom écrit
     else if(_QUANT_PL[ddet])num='p';                                    // plusieurs/quelques/certains/deux…
     else if(_QUANT_SG[ddet])num='s';                                    // chaque/aucun/chacun…
     else{var dh0=deacc(T[head].toLowerCase());if(NOUN_INVAR_S[dh0])return null;num=/[sx]$/.test(dh0)?'p':'s';}   // dét tagué DET hors listes → morpho du nom-tête (invariables -s exclus)
@@ -30321,7 +30337,14 @@ function spellTokenCore(tok,atStart,T,idx){
       if(/^(grace|face|suite)$/.test(w)&&i+1<T.length&&/^(à|a|au|aux)$/.test(T[i+1].toLowerCase()))return null;   // « grâce au » : locution
       if(i>=1){var _pc=T[i-1],_dpc=deaccS(_pc.toLowerCase());if(i-1>0&&_pc.charAt(0)!==_pc.charAt(0).toLowerCase())return null;var _npc=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(_dpc):NOUN_POST[_dpc]):null;   /* ⭐ 04/10/2026 : accès TOLÉRANT (Map dans l'extension, objet dans l'app) — dans l'app cette garde ne tirait jamais */if(_npc&&_npc[0]>=500&&!PREP[_dpc]&&!(i>=2&&SUBJ_PRON[deaccS(T[i-2].toLowerCase())]))return null;}
       var _plN=_plu(T[i].toLowerCase());return _plN!==T[i].toLowerCase()?ckeepcase(T[i],_plN):null;}
-    for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());if(/^(dès|dés|lès)$/i.test(T[j]))break;   /* « dès » : préposition, sortie du GN (« dès janvier » → janviers, vu sur UD) */
+    for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());if(/^(dès|dés|lès)$/i.test(T[j]))break;
+      /* ⭐ 14/10/2026 (liste n° 20 : pluriels absurdes sur un CV) — le pluriel d'un groupe ne traverse plus une frontière de l'auteur : fin de
+         phrase, retour à la ligne, « : », « ; » (« Des stages : avr. 2021 » → avrs), ni une virgule après laquelle commence un NOUVEAU nom
+         (« des équipes motivées, organisation opérationnelle » → organisations, opérationnelles) ; une parenthèse ou un tiret comme la virgule ;
+         les guillemets ne coupent PAS (« Les « fonte Thomas » » → fontes). Une virgule entre adjectifs garde
+         l'accord (« des pommes rouges, juteuse »). Les tokens n'ont pas la ponctuation : on lit _SEG. */
+      if(_SEG&&j+1<_SEG.bb.length&&_SEG.bb[j+1]){if(_SEG.ss[j+1]||(_SEG.sb&&_SEG.sb[j+1]))break;if(_SEG.vg&&_SEG.vg[j+1]){var _nk=false;for(var _k=j+1;_k<=i;_k++){var _npk=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deaccS(T[_k].toLowerCase())):NOUN_POST[deaccS(T[_k].toLowerCase())]):null;if(_npk&&_npk[0]>=500){_nk=true;break;}}if(_nk)break;}}   // les guillemets ne coupent pas (« Les « fonte Thomas » » → fontes, census) ; « nouveau nom » = posterior NOM ≥ 50 % (gestionnaire, organisation) — pas l'étiqueteur, qui lit « juteuse » nom
+   /* « dès » : préposition, sortie du GN (« dès janvier » → janviers, vu sur UD) */
       if(PLDET[dj]){
         if(svReads(T[i]).length||_COLOR_ADJ[w]||_INVAR_COLOR[w])return null;   // verbe mistagué NOUN (« les chats mangent »→mangents) ou couleur INVARIABLE (« yeux marron », « gants crème ») → jamais pluralisés (miroir garde CARD ci-dessous + sets couleur)
         if((dj==='les'||dj==='ces'||dj==='ses')&&(function(){for(var _q=j+1;_q<=i;_q++)if(CONJ_C[deaccS(T[_q].toLowerCase())])return true;return false;})())return null;   // ⭐ 29/09/2026 (catalogue des muets) : « les acheter », « ces [se] reposer calmement » — un INFINITIF dans le groupe : « les » est un pronom, « ces » un « se » ; jamais « acheters », « calmements »
@@ -30709,6 +30732,7 @@ function spellTokenCore(tok,atStart,T,idx){
       var _p3=false;for(a=0;a<r.length;a++)if(r[a][2]==='3'){_p3=true;break;}if(!_p3)continue;   /* ⭐ 11/09/2026 : un verbe coordonné PARTAGE le sujet — un verbe fini sans lecture de 3e personne (« ETES » = vous êtes) ne peut pas prêter son nombre à « a » : on continue la remontée. Trouvé par la batterie AU PRODUIT quand la table a perdu la lecture fantôme « etes » 2e sg : une phrase où « a fait » suivait « etes » (vous êtes) recevait une orange a→ont. */
       var rv=svReads(F[vi]),a,b,ok=false,nbs={};for(a=0;a<r.length;a++){nbs[r[a][3]]=1;for(b=0;b<rv.length;b++)if(r[a][2]===rv[b][2]&&(r[a][3]===rv[b][3]||r[a][3]==='x'||rv[b][3]==='x'))ok=true;}
       if(ok)return null;                                        // même sujet possible : rien à dire
+      if(rAccordSV(F,q)||rAccordSVnoun(F,q))return null;        // ⭐ 14/10/2026 (liste n° 1d) : le premier verbe est LUI-MÊME fautif (« les enfants mange et dorment ») — il ne prête pas son nombre. Miroir Python _coord_verbe
       if(nbs.s&&!nbs.p)return vn==='s'?null:f3s;if(nbs.p&&!nbs.s)return vn==='p'?null:f3p;return null;}
     return undefined;}
   function osVerbVig(T,i,tg){if(!_OSLM)return null;
@@ -31321,6 +31345,22 @@ function spellTokenCore(tok,atStart,T,idx){
     });
     return out;}
 
+  /* ⭐ 14/10/2026 (liste n° 19) — LE GARDE QUI MENTAIT SUR SA CONDITION. Le commentaire du point final annonce « verbe conjugué » depuis
+     le 01/09/2026 ; le code ne le vérifiait pas (seulement 3 mots). Or l'extension analyse chaque bloc d'un CV ou d'une liste à part :
+     un titre, un numéro de téléphone, une puce, une ligne de dates recevaient chacun « point final ». Un segment n'est une phrase que s'il
+     porte un verbe CONJUGUÉ : lu à un mode personnel (indicatif, conditionnel, subjonctif) par la table de conjugaison, sauf un mot à coup
+     sûr NOM (posterior : P(nom) ≥ 50 % et P(verbe) < 5 % — « équipe » 2,3 %, « travail ») et sauf « à ». PAS l'étiqueteur : il lit « consomment »
+     ADVERBE (finale -ment d'un mot hors de son vocabulaire) — essayé, 431 phrases d'UD perdaient leur point. Les formes en -é/-és ne
+     comptent pas : participes, que la table désaccentuée lit « il ferme ». Cherché sur la DERNIÈRE LIGNE du texte, pas le dernier segment :
+     les points d'abréviation (« B. B. King », « L. casei ») coupaient le segment loin du verbe — 240 phrases d'UD perdaient leur point. */
+  var _DP_PF={};('des du un une au aux ces mes tes ses nos vos cette cet de à pour sur dans par avec sans sous chez vers entre contre depuis').split(' ').forEach(function(w){_DP_PF[w]=1;});   // ⭐ liste n° 20 : jamais devant un verbe conjugué (« le/la/les/l'/en/leur/ce » exclus : aussi pronoms devant le verbe)
+  function _aVerbeConj(s){var T=toks(s);if(!T.length)return false;var _sg=_segInfo(s);   // _sg.bb / _sg.dig : ponctuation ou chiffre dans l'intervalle AVANT chaque mot
+    for(var j=0;j<T.length;j++){var t=T[j].toLowerCase().replace(/[’ʼ]/g,"'"),b=t.slice(t.lastIndexOf("'")+1);if(!b||b==='à'||/é(s?)$/.test(b)||/^d'/.test(t))continue;
+      if(j>0&&!_sg.bb[j]&&!_sg.dig[j]){var _pv=deacc(T[j-1].toLowerCase());if(_DP_PF[_pv]||_DP_PF[T[j-1].toLowerCase()])continue;}   // « des commandes » : un nom — seulement si les deux mots se TOUCHENT (« de 1982 fut » : le chiffre est entre)
+      var r=svReads(b),fin=false;for(var k=0;k<r.length;k++)if(/^(ind|cnd|sub)/.test(r[k][1])){fin=true;break;}if(!fin)continue;
+      var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deacc(b)):NOUN_POST[deacc(b)]):null;if(np&&np[0]>=500&&np[1]<50)continue;
+      return true;}
+    return false;}
   function _questionScan(text){var out=[];
     /* « ? » MANQUANT — la seule ponctuation SYNTAXIQUE qu'on puisse proposer aujourd'hui, parce que
      c'est la seule dont on connaisse le prix : `estQuestion` fait 96,67 % de précision (58/60,
@@ -31357,7 +31397,8 @@ function spellTokenCore(tok,atStart,T,idx){
     if(_qcorps.trim()&&!estQuestion(_qcorps.trim(),QMOTS_CORR)&&_qlast!=='.'
         &&_qm.index+_qs.length>=text.length              // DERNIER segment du texte
         &&';:,'.indexOf(_qlast)<0                        // ; : , sont déjà une ponctuation
-        &&_qcorps.trim().split(/\s+/).length>=3){        // pas un fragment d'un mot ou deux
+        &&_qcorps.trim().split(/\s+/).length>=3          // pas un fragment d'un mot ou deux
+        &&_aVerbeConj(text.slice(text.lastIndexOf('\n')+1))){                         // ⭐ 14/10/2026 (liste n° 19) : une PHRASE (verbe conjugué), pas un titre, une puce, un numéro
       var _pe=_qm.index+_qfin.length;
       out.push({cs:_pe,ce:_pe,from:'',sugg:'.',name:'point final',tier:'vigilance',typo:1});
       continue;

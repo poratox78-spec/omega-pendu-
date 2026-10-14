@@ -425,12 +425,44 @@ function testListe12() {
       // ⭐ LISTE N° 17 : verbes absents de la table de conjugaison — le dictionnaire note « procrastine » NOM (Lexique 4), et la table était en
       // retard sur son script (« pétarde »). Échouent sur la table d'avant ; témoins : le singulier juste, le nom « timbre ».
       ['Les voisins de mon oncle procrastine.', 'procrastine', 'procrastinent'], ['Mes cousins procrastine souvent.', 'procrastine', 'procrastinent'],
-      ['Les enfants pétarde dans la cour.', 'pétarde', 'pétardent'], ['Elle procrastine encore.', 'procrastine', null], ['Le timbre coûte cher.', 'timbre', null]]) {
+      ['Les enfants pétarde dans la cour.', 'pétarde', 'pétardent'], ['Elle procrastine encore.', 'procrastine', null], ['Le timbre coûte cher.', 'timbre', null],
+      // ⭐ LISTE N° 18 : le déterminant pluriel ÉLIDÉ (« d'autres », « d'énormes ») n'était lu par personne. Échouent sur le moteur d'avant ;
+      // témoins : « d'autres » pronom, « d'autre » singulier.
+      ['D\'autres chemin mènent à la ville.', 'chemin', 'chemins'], ['Elle cherche d\'autres solution.', 'solution', 'solutions'],
+      ['D\'énormes vague frappent la digue.', 'vague', 'vagues'], ['D\'autres chemins mène à la ville.', 'mène', 'mènent'],
+      ['D\'autres pensent le contraire.', 'pensent', null], ['Il parle d\'autre chose.', 'chose', null]]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
-    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 12 et 17 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier]))); }
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 12, 17 et 18 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier]))); }
+}
+// ⭐ 14/10/2026 — LISTE N° 19 : « point final » n'est proposé qu'à une PHRASE (verbe conjugué sur la dernière ligne). L'extension analyse
+// chaque bloc d'un CV à part : titre, téléphone, puce, ligne de dates recevaient chacun un point. Les quatre premiers échouent sur le
+// moteur d'avant ; les trois derniers sont des témoins (phrase sans ponctuation, et verbe avant des initiales à point).
+function testListe19() {
+  for (const [t, attendu] of [['Technicienne de maintenance', false], ['06 12 34 56 78', false], ['- Accueil des clients', false],
+      ['Esprit d\'équipe, soudure, mécanique de précision', false], ['le chat mange la souris', true], ['je vais bien tu viens demain', true],
+      ['Il a rencontré J. K. Martin hier soir', true]]) {
+    const pf = DC.diagnoseAll(t).flags.some(f => f.name === 'point final');
+    if (pf !== attendu) fail.push('liste n° 19 « ' + t + ' » : point final ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (pf ? 'proposé' : 'rien')); }
+}
+// ⭐ 14/10/2026 — LISTE N° 20 : pluriels absurdes sur des fragments (CV, listes). Le pluriel d'un groupe ne traverse plus « : », un retour à la
+// ligne, une fin de phrase, ni une virgule suivie d'un nouveau nom ; « les pages produit » n'est plus lu sujet + verbe. Les quatre premiers
+// échouent sur le moteur d'avant ; témoins : l'adjectif après une virgule, le vrai verbe avec complément, le verbe sans lecture nom.
+function testListe20() {
+  for (const [t, w, s] of [['Des stages : avr. 2021', 'avr', null], ['Des équipes motivées, organisation opérationnelle', 'organisation', null],
+      ['Les pages produit', 'produit', null], ['Les photos produit et service se renouvellent.', 'renouvellent', null],
+      ['Des pommes rouges, juteuse et sucrées.', 'juteuse', 'juteuses'], ['Les usines produit des voitures.', 'produit', 'produisent'],
+      ['Les équipes travaille.', 'travaille', 'travaillent'],
+      // ⭐ LISTE N° 1d : deux rouges contradictoires — le verbe coordonné s'accordait sur un premier verbe lui-même fautif. Les deux premiers
+      // échouent sur le moteur d'avant ; témoins : premier verbe juste (pronom, sujet nominal).
+      ['Les enfants mange et dorment.', 'dorment', null], ['Les chats miaule et ronronnent.', 'ronronnent', null],
+      ['Il chante et dansent.', 'dansent', 'danse'], ['Les enfants mangent et dort.', 'dort', 'dorment']]) {
+    const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20 et 1d « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
 }
 function finish(parityKO) {
   testListe12();
+  testListe19();
+  testListe20();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {
