@@ -102,6 +102,14 @@ for (const [t, w, s, tier] of [['Elles outillent leurs ateliers.', 'outillent', 
 for (const [t, w, s, tier] of [["Jusqu'a demain soir.", "Jusqu'a", "Jusqu'à", 'flag'], ["Il lit jusqu'a minuit.", "jusqu'a", "jusqu'à", 'flag'], ["Va jusqu'ou tu peux.", "jusqu'ou", "jusqu'où", 'flag']]) {
   const f = DC.spell(t).find(x => x.word === w);
   if (!f || f.sugg !== s || f.tier !== tier) fail.push('liste n° 13 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+// ⭐ 14/10/2026 — LISTE N° 16 : noms de lieu composés et marques en minuscule (grammaire, famille « majuscule »). Phrases inventées ; les cinq
+// premières échouent sur le moteur d'avant (« aix en provence » y recevait « ai » en rouge). Témoin : la graphie officielle reste muette.
+for (const [t, w, s] of [['Elle vit dans le val de marne.', 'val', 'Val-de-Marne'], ['Il part à aix en provence demain.', 'aix', 'Aix-en-Provence'],
+    ['Il habite en Seine Saint Denis.', 'Seine', 'Seine-Saint-Denis'], ['Il ouvre le navigateur chrome.', 'chrome', 'Chrome'], ['Il navigue avec firefox.', 'firefox', 'Firefox'],
+    ['Elle vit dans le Val-de-Marne.', 'Val', null], ['Les jantes en chrome brillent.', 'chrome', null]]) {   // ⭐ 14/10/2026 (liste n° 1c) : « chroment » était appliqué en silence
+  const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
+  if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 16 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier])));
+  if (s && fl.some(x => x !== f && x.i > f.i && x.i < f.i + (f.span || 1))) fail.push('liste n° 16 « ' + t + ' » : un mot du nom composé garde sa propre marque ' + JSON.stringify(fl.map(x => [x.word, x.sugg]))); }
 // ⭐ 29/09/2026 — ACCENTS MUETS : « ca », « foret », « pole » → ça, forêt, pôle en ORANGE ; « le foret » (l'outil), « les mass media »,
 // « la pole position » et « Ca » (calcium) : rien.
 for (const [t, w, s] of [['je crois que ca marche', 'ca', 'ça'], ['on marche en foret', 'foret', 'forêt'], ['ils vont au pole sud', 'pole', 'pôle']]) {

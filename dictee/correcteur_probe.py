@@ -3298,10 +3298,36 @@ _MARQUES = {u'sony': u'Sony', u'microsoft': u'Microsoft', u'nintendo': u'Nintend
             u'tiktok': u'TikTok', u'netflix': u'Netflix', u'whatsapp': u'WhatsApp', u'disney': u'Disney', u'ogm': u'OGM', u'snk': u'SNK',
             u'sncf': u'SNCF', u'ratp': u'RATP', u'onu': u'ONU', u'edf': u'EDF', u'pnb': u'PNB', u'pib': u'PIB', u'svt': u'SVT', u'samu': u'SAMU',
             u'tdah': u'TDAH', u'mdph': u'MDPH', u'aesh': u'AESH'}
+_MARQUES.update({u'firefox': u'Firefox', u'linkedin': u'LinkedIn', u'chatgpt': u'ChatGPT'})   # ⭐ 14/10/2026 (liste n° 16) — miroir JS
 _LIEUX.update(_MARQUES)
+# ⭐ 14/10/2026 (liste n° 16) — noms propres composés à traits d'union (liste fermée) et « chrome » marque en contexte. Miroir _lieuComp.
+_LIEUX_COMP = {u'ile de france': u'Île-de-France', u'seine saint denis': u'Seine-Saint-Denis', u'seine et marne': u'Seine-et-Marne', u'val de marne': u'Val-de-Marne', u"val d'oise": u"Val-d'Oise", u'hauts de seine': u'Hauts-de-Seine', u'hauts de france': u'Hauts-de-France', u'nouvelle aquitaine': u'Nouvelle-Aquitaine', u'auvergne rhone alpes': u'Auvergne-Rhône-Alpes', u'bourgogne franche comte': u'Bourgogne-Franche-Comté', u'aix en provence': u'Aix-en-Provence', u'clermont ferrand': u'Clermont-Ferrand', u'boulogne billancourt': u'Boulogne-Billancourt', u'seine maritime': u'Seine-Maritime', u'loire atlantique': u'Loire-Atlantique', u'haute garonne': u'Haute-Garonne', u'haute savoie': u'Haute-Savoie', u'bas rhin': u'Bas-Rhin', u'haut rhin': u'Haut-Rhin', u'puy de dome': u'Puy-de-Dôme', u'saone et loire': u'Saône-et-Loire', u'indre et loire': u'Indre-et-Loire', u'meurthe et moselle': u'Meurthe-et-Moselle', u'ille et vilaine': u'Ille-et-Vilaine', u'maine et loire': u'Maine-et-Loire', u'eure et loir': u'Eure-et-Loir'}
+_CHROME_AV = {'extension', 'extensions', 'navigateur', 'module', 'plugin', 'onglet', 'google', 'sur'}
+
+
+def _lieu_comp(T, i):
+    for n in (4, 3, 2):
+        if i + n > len(T): continue
+        c = _LIEUX_COMP.get(' '.join(deacc(T[j].lower()) for j in range(i, i + n)))
+        if not c: continue
+        hy = (_SEG or {}).get('hy') or []
+        ecrit = T[i] + ''.join(('-' if (j < len(hy) and hy[j]) else ' ') + T[j] for j in range(i + 1, i + n))
+        return None if ecrit == c else c
+    return None
+
+
+def _lieu_comp_couvre(T, i):
+    for j in range(max(0, i - 3), i):
+        c = _lieu_comp(T, j)
+        if c and j + len(c.split('-')) > i: return True
+    return False
 
 
 def rule_capital(T, i):
+    _lc = _lieu_comp(T, i)
+    if _lc: return _lc
+    if _lieu_comp_couvre(T, i): return None
+    if T[i] == 'chrome' and i > 0 and deacc(T[i - 1].lower()) in _CHROME_AV: return 'Chrome'
     w = T[i]
     if w == w.lower():
         pre, _, reste = w.rpartition("'")
@@ -3728,6 +3754,19 @@ def rule_accord_sv_noun_elid(T, i):
     return T[i][:2] + r
 
 
+def _en_complement(T, i, nb):
+    """⭐ 14/10/2026 (liste n° 1c) — miroir _enComplement : après « en », un mot surtout nominal suivi d'un verbe conjugué (3e personne,
+    au nombre du sujet) est le complément (« les jantes en chrome brillent »), pas le verbe."""
+    if i < 1 or deacc(T[i - 1].lower()) != 'en': return False
+    np_ = NOUN_POST.get(deacc(T[i].lower())) if NOUN_POST else None
+    if not np_ or np_[0] < 500: return False
+    bb = (_SEG or {}).get('bb') or []
+    for j in range(i + 1, min(len(T), i + 5)):
+        if j < len(bb) and bb[j]: break
+        if any(p == '3' and (not nb or n == nb) and re.match(r'^(ind|cnd|sub)', mt) for (_l, mt, p, n) in _reads(T[j])): return True
+    return False
+
+
 def rule_accord_sv_noun(T, i):
     """Accord SUJET-VERBE à sujet-NOM, via le VRAI PARSEUR de sujet (_np_subject) : gère le sujet ÉLOIGNÉ (mots-écrans
     « de X ») que l'ancienne version (déterminant pluriel en tête seulement) ratait — « la liste des articles sont »→est,
@@ -3772,6 +3811,7 @@ def rule_accord_sv_noun(T, i):
     subj = _np_subject(T, tg, _vs)                                     # tête [dét + nom] du sujet, mots-écrans « de X » sautés
     if subj is None: return None
     nb = subj['n']; hk = subj['idx']; dk = subj['det']
+    if _en_complement(T, i, nb): return None                          # ⭐ 14/10/2026 (liste n° 1c) : « les jantes en chrome brillent » — miroir JS
     ddet = deacc(subj['dtxt'].lower())
     # DÉTERMINANT SINGULIER + NOM À FORME PLURIELLE (« LE pilotes sont ») : le déterminant est suspect (dys réel, gold
     # « les pilotes ») → accorder le verbe sur « le » fabriquerait « est ». Conflit → abstention. Le sens inverse (« les
@@ -4930,6 +4970,7 @@ def rule_sujet_flexion_nom(T, i):
     Même code, même gardes ; seul le palier change. Mesuré le 14/09 : en ROUGE le sujet nominal fait 3 justes
     sur 17 (17,6 %) — il propose, il n'impose pas. Le sujet PRONOM, lui, reste rouge."""
     if (i >= 3 and _rule_est_et_coord(T, i - 3) == 'et') or (i >= 2 and _rule_est_et_coord(T, i - 2) == 'et'): return None   # ⭐ 04/10/2026 : « est » y vaut « et »
+    if _en_complement(T, i, None): return None   # ⭐ 14/10/2026 (liste n° 1c) — miroir JS
     _m = re.match(r'^(.+?)(e|es)$', deacc(T[i].lower()))
     if _m and len(_m.group(1)) >= 3 and _m.group(1) in IRREG_PART:   # ⭐ 13/10/2026 (liste n° 4) : participe féminin irrégulier (« les décisions prises ») — miroir _ppFemIrr
         if _m.group(1) not in ('fait', 'dit', 'refait', 'redit'): return None   # mises, prises : le verbe homographe (miser, priser) est rare
@@ -7615,6 +7656,9 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    ("Les jantes en chrome brillent au soleil.", "« en chrome » est le complément, le verbe est « brillent » : jamais « chroment » (14/10/2026, liste n° 1c)."),
+    ("Elle vit dans le Val-de-Marne depuis un an.", "nom composé déjà bien écrit : rien à dire (14/10/2026, liste n° 16)."),
+    ("Le chrome des jantes brille.", "« chrome » le métal, hors contexte de navigateur (14/10/2026, liste n° 16)."),
     ("Un chiffre d'affaires de 5 millions.", "« chiffre d'affaires » au singulier, sans nombre avant : rien à dire (14/10/2026, liste n° 14)."),
     ("Les chiffres d'affaires des deux sociétés montent.", "plusieurs chiffres d'affaires : le pluriel est juste (14/10/2026, liste n° 14)."),
     ("La rivière flue lentement vers la mer.", "« flue » verbe (fluer), hors de la locution « flux tendu » (14/10/2026, liste n° 11)."),
@@ -7729,6 +7773,8 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Il navigue avec Firefox tous les jours.", "Firefox", "firefox", "majuscule"),   # ⭐ 14/10/2026 (liste n° 16)
+    ("Il ouvre le navigateur Chrome.", "Chrome", "chrome", "majuscule"),   # ⭐ 14/10/2026 (liste n° 16) : la marque seulement en contexte
     ("Une gestion à flux tendu.", "flux", "flue", "expression figée à vérifier"),   # ⭐ 14/10/2026 (liste n° 11) : « flue » est un mot (fluer), la locution le dit faux
     ("Une société de 3 milliards de chiffre d'affaires.", "chiffre", "chiffres", "expression figée à vérifier"),   # ⭐ 14/10/2026 (liste n° 14) : le chiffre d'affaires est UN montant
     ("Le chat mangea la souris.", "mangea", "mangeâmes", "accord du verbe au sujet nominal à vérifier"),   # ⭐ 09/10/2026 : 3e du singulier du passé simple des verbes en -er, complétée
@@ -8145,7 +8191,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 274   # 14/10/2026 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : flux tendu, chiffre d'affaires). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 276   # 14/10/2026 : +2 (liste n° 16 : Firefox, Chrome en contexte) ; 274 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : flux tendu, chiffre d'affaires). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:

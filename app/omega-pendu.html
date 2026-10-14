@@ -26684,7 +26684,16 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var sr=svReads(sugg),ok=false;for(k=0;k<sr.length;k++)if(sr[k][2]==='3'&&(sr[k][3]==='p'||sr[k][3]==='x'))ok=true;if(!ok)return null;
     return sugg;}
   function _temoinApresVerbe(T,tg,i,nb){var _dv=deacc(T[i].toLowerCase()),_nx=i+1<T.length?deacc(T[i+1].toLowerCase()):'';if(_dv==='sont'&&nb==='s'){if(_POST_PL[_nx])return true;if(i+2<T.length&&(_isPpl(T[i+1])||/(és|ées)$/.test(T[i+1].toLowerCase())||(tg&&tg[i+1]==='VERB'&&/s$/.test(_nx)))&&_POST_PL[deacc(T[i+2].toLowerCase())])return true;}if(_dv==='est'&&nb==='p'&&(_POST_SG[_nx]||_nx.slice(0,2)==="l'"))return true;return false;}   /* ⭐ 11/09/2026 (restes frgec, lot 2) : ce qui SUIT le verbe témoigne du nombre du VRAI sujet — A « la passion … sont DES thèmes » (attribut pluriel, sujet parsé singulier → énumération à gauche) ; B « Chaque année sont organisés DES milliers » (sujet postposé) ; F « Les impudents est LE premier roman » (attribut singulier, sujet parsé pluriel = titre). Partagée par rAccordSVnoun (rouge) et sujFlexVig (orange). Miroir Python _temoin_apres_verbe. */
-function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;if(i>0&&deacc(T[i-1].toLowerCase())==='en'&&gerondifVig(T,i))return null;
+/* ⭐ 14/10/2026 (liste n° 1c : « les jantes en chrome brillent » → « chroment », appliqué EN SILENCE) — après « en », un mot surtout
+     NOMINAL (P(NOM) ≥ 50 %) suivi, dans la proposition, d'un verbe conjugué à la 3e personne (au nombre du sujet s'il est connu) est le
+     complément (« en chrome »), pas le verbe : le verbe est plus loin (« brillent », lu par la table — le tagger le prend pour un
+     adjectif). « les enfants en mange » et « les élèves en rêve la nuit » (« nuit » n'est pas au pluriel) restent corrigés. Lu par la règle
+     rouge (rAccordSVnoun) et par les deux oranges qui prenaient le relais (sujFlexNom, osVerbVig). Miroir Python _en_complement. */
+  function _enComplement(T,i,nb){if(i<1||deacc(T[i-1].toLowerCase())!=='en')return false;var d=deacc(T[i].toLowerCase());
+    var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(d):NOUN_POST[d]):null;if(!np||np[0]<500)return false;
+    for(var j=i+1;j<T.length&&j<=i+4;j++){if(_SEG&&_SEG.bb&&j<_SEG.bb.length&&_SEG.bb[j])break;var r=svReads(T[j]);
+      for(var k=0;k<r.length;k++)if(r[k][2]==='3'&&(!nb||r[k][3]===nb)&&/^(ind|cnd|sub)/.test(r[k][1]))return true;}return false;}
+  function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;if(i>0&&deacc(T[i-1].toLowerCase())==='en'&&gerondifVig(T,i))return null;
     if(deacc(lw)==='a'&&i+1<T.length){var _dn=deacc(T[i+1].toLowerCase());if(_dn==='la'||_dn==='le'||_dn==='les'||_dn.slice(0,2)==="l'")return null;}   // « a » + ARTICLE DÉFINI (la/le/les/l') → préposition « à » trop plausible (à la/à l', locatif : « les enfants a l'école ») → a→ont s'abstient ; l'indéfini (une/des) reste possession. Miroir Python.
     // vig=true : jumeau ORANGE (retire la seule garde clause-init) pour la vigilance sujet-verbe mid-phrase
     if(/(é|és|ée|ées)$/.test(lw))return null;                                  // participe → accord adjectival, pas verbal
@@ -26707,6 +26716,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux + participe)
     var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;   // T[i]=verbe en contexte ; filet homographe PARTAGÉ (verbe raté par l'émission HMM), borné par les gardes structure ci-dessous
     var _vs=i;while(_vs-1>=0&&CLITIC[deacc(T[_vs-1].toLowerCase())])_vs--;var subj=_npSubject(T,tg,_vs);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;   // sauter les clitiques objets avant le verbe (« nous parviendra ») pour atteindre le sujet
+    if(_enComplement(T,i,nb))return null;   // ⭐ 14/10/2026 (liste n° 1c) : « les jantes en chrome brillent »
     var ddet=deacc(subj.dtxt.toLowerCase());
     if(nb==='s'){var _hn=deacc(T[hk].toLowerCase());if(/[sx]$/.test(_hn)&&!_INVAR_S[_hn]&&_wordKnown(/aux$/.test(_hn)?_hn.slice(0,-3)+'al':_hn.slice(0,-1)))return null;}   // « LE pilotes sont » : déterminant singulier + nom à forme plurielle → déterminant suspect → abstention (miroir Python)
     else if(nb==='p'){var _hp=deacc(T[hk].toLowerCase());if(!/[sx]$/.test(_hp)&&!rNounPlural(T,hk))return null;}   // SYMÉTRIQUE (trouvé par le générateur de fautes) : déterminant PLURIEL contredit par un nom SINGULIER (« Les signe … EST », « les couple A »). Discriminant = la règle du nom sait-elle réparer ? Si oui (« les enfant JOUE » → enfants) le pluriel est confirmé et on continue ; sinon la contradiction reste ouverte → abstention. Miroir Python rule_accord_sv_noun
@@ -27228,8 +27238,20 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
      « usa » (passé simple d'user), « google » et « twitter » (verbes : je google, twitter) aussi. Une marque de la liste est à une lettre
      de « sont » : entre deux mots au pluriel, c'est le verbe (garde ci-dessous). Gold dys : 13 ; UD : 0 tir. */
   var _MARQUES={'sony':'Sony','microsoft':'Microsoft','nintendo':'Nintendo','xbox':'Xbox','playstation':'PlayStation','samsung':'Samsung','youtube':'YouTube','facebook':'Facebook','instagram':'Instagram','snapchat':'Snapchat','tiktok':'TikTok','netflix':'Netflix','whatsapp':'WhatsApp','disney':'Disney','ogm':'OGM','snk':'SNK','sncf':'SNCF','ratp':'RATP','onu':'ONU','edf':'EDF','pnb':'PNB','pib':'PIB','svt':'SVT','samu':'SAMU','tdah':'TDAH','mdph':'MDPH','aesh':'AESH'};
+  _MARQUES.firefox='Firefox';_MARQUES.linkedin='LinkedIn';_MARQUES.chatgpt='ChatGPT';   // ⭐ 14/10/2026 (liste n° 16) : « firefox » recevait « foireux »
   Object.keys(_MARQUES).forEach(function(k){_LIEUX[k]=_MARQUES[k];});
-  function rCapital(T,i){var _w=T[i];if(_w===_w.toLowerCase()){var _ap=_w.lastIndexOf("'"),_pre=_ap>=0?_w.slice(0,_ap+1):'',_cap=_LIEUX[_w.slice(_ap+1)];if(_cap&&!(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1])&&!(_w==='sony'&&((i>0&&/[sx]$/.test(T[i-1].toLowerCase()))||(i+1<T.length&&/[sx]$/.test(T[i+1].toLowerCase())))))return _pre+_cap;}   /* ⭐ 30/09/2026 : la marque à une lettre de « sont », entre deux mots au pluriel, est le verbe */   // « france-israel.org » : le trait d'union coupe
+  /* ⭐ 14/10/2026 (liste n° 16 : une marque de navigateur et une région à traits d'union écrites en minuscule) — NOMS PROPRES COMPOSÉS ET MARQUE EN CONTEXTE. ① Liste FERMÉE
+     des régions, départements et villes dont le nom s'écrit avec des traits d'union (Seine-Saint-Denis, Val-de-Marne, Aix-en-Provence…) :
+     écrits en mots séparés, ou sans capitales, → la graphie officielle, sur toute l'étendue (span) ; noms ambigus écartés (Pas-de-Calais :
+     « pas de calais » ; Alpes-Maritimes ; Lot-et-Garonne ; les saints). Le mot du milieu ne reçoit plus sa propre majuscule (« france »).
+     « aix en provence » recevait « ai » EN ROUGE. ② « chrome » est un métal : la marque seulement après extension, navigateur, module,
+     plugin, onglet, google, sur. UD 14 450 (texte juste) : 0 occurrence de ces cadres en minuscule. Miroir Python. */
+  var _LIEUX_COMP={'ile de france':'Île-de-France','seine saint denis':'Seine-Saint-Denis','seine et marne':'Seine-et-Marne','val de marne':'Val-de-Marne','val d\'oise':'Val-d\'Oise','hauts de seine':'Hauts-de-Seine','hauts de france':'Hauts-de-France','nouvelle aquitaine':'Nouvelle-Aquitaine','auvergne rhone alpes':'Auvergne-Rhône-Alpes','bourgogne franche comte':'Bourgogne-Franche-Comté','aix en provence':'Aix-en-Provence','clermont ferrand':'Clermont-Ferrand','boulogne billancourt':'Boulogne-Billancourt','seine maritime':'Seine-Maritime','loire atlantique':'Loire-Atlantique','haute garonne':'Haute-Garonne','haute savoie':'Haute-Savoie','bas rhin':'Bas-Rhin','haut rhin':'Haut-Rhin','puy de dome':'Puy-de-Dôme','saone et loire':'Saône-et-Loire','indre et loire':'Indre-et-Loire','meurthe et moselle':'Meurthe-et-Moselle','ille et vilaine':'Ille-et-Vilaine','maine et loire':'Maine-et-Loire','eure et loir':'Eure-et-Loir'};
+  var _CHROME_AV={extension:1,extensions:1,navigateur:1,module:1,plugin:1,onglet:1,google:1,sur:1};
+  function _lieuComp(T,i){for(var n=4;n>=2;n--){if(i+n>T.length)continue;var k=[],j;for(j=i;j<i+n;j++)k.push(deacc(T[j].toLowerCase()));var c=_LIEUX_COMP[k.join(' ')];
+      if(!c)continue;var ecrit=T[i];for(j=i+1;j<i+n;j++)ecrit+=((_SEG&&_SEG.hy&&j<_SEG.hy.length&&_SEG.hy[j])?'-':' ')+T[j];return ecrit===c?null:{sugg:c,span:n};}return null;}
+  function _lieuCompCouvre(T,i){for(var j=Math.max(0,i-3);j<i;j++){var c=_lieuComp(T,j);if(c&&j+c.span>i)return true;}return false;}
+  function rCapital(T,i){var _lc=_lieuComp(T,i);if(_lc)return _lc;if(_lieuCompCouvre(T,i))return null;if(T[i]==='chrome'&&i>0&&_CHROME_AV[deacc(T[i-1].toLowerCase())])return 'Chrome';var _w=T[i];if(_w===_w.toLowerCase()){var _ap=_w.lastIndexOf("'"),_pre=_ap>=0?_w.slice(0,_ap+1):'',_cap=_LIEUX[_w.slice(_ap+1)];if(_cap&&!(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1])&&!(_w==='sony'&&((i>0&&/[sx]$/.test(T[i-1].toLowerCase()))||(i+1<T.length&&/[sx]$/.test(T[i+1].toLowerCase())))))return _pre+_cap;}   /* ⭐ 30/09/2026 : la marque à une lettre de « sont », entre deux mots au pluriel, est le verbe */   // « france-israel.org » : le trait d'union coupe
     if(!_SEG||i>=_SEG.cap.length||!_SEG.cap[i])return null;var w=T[i],c=w.charAt(0);if(c.toUpperCase()===c)return null;if(i>0&&ABBREV[deacc(T[i-1].toLowerCase())])return null;if(i>0&&deacc(T[i-1].toLowerCase()).length===1)return null;return c.toUpperCase()+w.slice(1);}
   // === confusion d'USAGE être↔avoir + auxiliaire MAL ORTHOGRAPHIÉ (parité dictee/correcteur_probe.py) ===
   var AVOIR_IDIOM={};'faim soif sommeil raison tort envie besoin peur'.split(' ').forEach(function(w){AVOIR_IDIOM[w]=1;});
@@ -28041,7 +28063,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(!_PP_MEME[m[1]])return true;                  // mises, prises… : le verbe homographe (miser, priser) est rare — participe
     if(i<1)return false;var pv=T[i-1],pl=/[sx]$/i.test(pv);   // faites, dites : participe à condition de s'accorder au nom qui précède (« les promesses faites », pas « le chat faites »)
     return (m[2]==='es')===pl&&_nounGender(pv,pl?'p':'s',true)==='f';}
-  function sujFlexNom(T,i){if(_ppFemIrr(T,i))return null;_ROUGE=false;try{return sujFlexVig(T,i);}finally{_ROUGE=true;}}
+  function sujFlexNom(T,i){if(_ppFemIrr(T,i)||_enComplement(T,i,null))return null;_ROUGE=false;try{return sujFlexVig(T,i);}finally{_ROUGE=true;}}
   function _lemFreq(lem){if(!lem||typeof SP==='undefined'||!SP||!SP.ready||!SP.D2A||!SP.FREQ)return null;var _va=spD(lem);if(!_va||!_va.length)return null;var _lf=0;for(var _z=0;_z<_va.length;_z++)if((spF(_va[_z])||0)>_lf)_lf=spF(_va[_z])||0;return _lf;}   // fréquence du LEMME (max des variantes accentuées), null = inconnu ≠ rare — miroir _lemfreq
   var _SUJ_SAUT={ne:1,n:1,se:1,s:1,me:1,m:1,te:1,t:1,y:1,en:1,le:1,la:1,les:1,lui:1,leur:1};   // clitiques et négation entre le pronom sujet et le verbe (garde d'adjacence, 12/09/2026)
   /* ⭐ 12/10/2026 (conjugaison 6) — « vous faite », « vous dite », « vous faisez », « vous disez » → faites / dites : les présents
@@ -30666,6 +30688,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var F=[],m;for(m=0;m<T.length;m++)F.push(/^d[éè]s$/.test(T[m].toLowerCase())?'·dès':T[m].toLowerCase());   // ⭐ 13/10/2026 (conjugaison 14) : « dés » / « dès » accentué n'est pas l'article « des » — les voisins de l'OS le désaccentuaient (« progression dés juillet suscita » → suscitèrent)
     if(!_osGuardOk(F,i))return null;
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;
+    if(_enComplement(T,i,null))return null;   // ⭐ 14/10/2026 (liste n° 1c) : « en chrome » + verbe plus loin
     if(!tg||!_osVerbCtx(tg,F,i))return null;   // GATE POS + filet homographe étroit (miroir _verb_ctx)
     /* LE PARSEUR DE SUJET D'ABORD (03/09/2026, mesuré dans Chrome : famille 2/15/9 → 2/10/9, 0 fausse en plus, texte correct
        49 → 35 marques sans nouvelle). Si le parseur de la règle rouge (_npSubject : [dét + nom-tête] à gauche du verbe,
@@ -30778,6 +30801,7 @@ function spellTokenCore(tok,atStart,T,idx){
     return null;}
   function spellText(text,capital){if(SP.RARE&&!SP.PHONR&&typeof setTimeout==='function')(function _st(){if(!_phonRareStep(4000)||!_anaStep(4000))setTimeout(_st,0);})();   // ⭐ 13/09/2026 : index des mots rares bâti en tâche de fond dès la première analyse
     text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_vst={tg:null};for(var i=0;i<T.length;i++){
+    if(_lieuComp(T,i)||_lieuCompCouvre(T,i))continue;   // ⭐ 14/10/2026 (liste n° 16) : un nom de lieu composé est porté par la grammaire (« aix en provence » recevait « ai » en rouge)
     if(/^(n')?ête$/i.test(T[i])){continue;}   // « ête » → réservé à la règle grammaire rEteEtre (contexte) ; on court-circuite TOUTES les couches speller (ortho + mot-inconnu) pour éviter le double flag « ête→est ». Miroir extension.
     var _an=_ANGLICISME[T[i].toLowerCase()];if(_an){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],_an),name:'anglicisme',tier:'vigilance'});continue;}   // anglicisme franglais → ORANGE, court-circuite le speller (priorité)
     if(T[i]==='Mr'||T[i]==='Mrs'){out.push({i:i,word:T[i],sugg:T[i]==='Mr'?'M.':'Mme',name:'abréviation',tier:'vigilance'});continue;}   // « Mr/Mrs » (anglais) → « M./Mme » ; forme title-case exacte (pas l'acronyme MR) → ORANGE
