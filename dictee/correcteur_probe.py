@@ -2243,6 +2243,10 @@ def _np_subject(T, tg, a):
             if det_idx is None or _seen_prep:
                 det_idx = j; _seen_prep = False; _elid = True
             j -= 1; continue
+        if dj in _PL_DET_X and "'" in dj:                       # ⭐ 14/10/2026 (liste n° 18) : « d'autres » = déterminant PLURIEL, lien « de » souple — miroir JS
+            if det_idx is None or _seen_prep:
+                det_idx = j; _seen_prep = True; _elid = False
+            j -= 1; continue
         if tgj in ('VERB', 'AUX'):                           # frontière verbale : le GN sujet est à droite de j…
             if T[j].lower().endswith(('é', 'és', 'ée', 'ées')) and not (j-1 >= lo and tg and j-1 < len(tg) and tg[j-1] == 'AUX'):
                 j -= 1; continue                             # …SAUF participe-épithète (relative réduite « cartons EMPILÉS dans… ») non précédé d'un aux = adjectif, pas le verbe → sauter vers le nom-tête
@@ -2306,6 +2310,7 @@ def _np_subject(T, tg, a):
     if deacc(T[head].lower()) in _COLLECTIF: return None   # NOM COLLECTIF (« la plupart ONT gardé », « la majorité sont ») : l'accord se fait au SENS, singulier ET pluriel sont corrects → abstention
     ddet = deacc(T[det_idx].lower())
     if ddet in NUM_DET:     num = 'p' if NUM_DET[ddet] == 'pl' else 's'
+    elif ddet in _PL_DET_X and "'" in ddet: num = 'p'   # ⭐ 14/10/2026 (liste n° 18) : « d'autres », « d'anciens »
     elif ddet in _QUANT_PL: num = 'p'                         # plusieurs/quelques/certains/deux… (quantifieurs pluriels hors NUM_DET)
     elif ddet in _QUANT_SG: num = 's'                         # chaque/aucun/nul → singulier (même si le nom-tête finit en -s : « chaque relais »)
     else:                                                     # déterminant tagué DET mais hors listes → nombre via la morpho du nom-tête (invariables -s exclus)
@@ -5613,7 +5618,8 @@ def _singularize_noun(n):
 # ⭐ 04/10/2026 — DÉTERMINANTS PLURIELS DE PLUS (miroir JS _PL_DET_X / _auxSur) : « plusieurs maison », « quelques jour » → pluriel.
 # 1 = pur déterminant ; 2 = aussi pronom (plusieurs, certains, certaines) → veto verbal, adjectif accordé seulement si un nom suit ;
 # 3 = « aux », qui se dit comme « au » : il ne prouve le pluriel que devant un mot féminin ou à voyelle.
-_PL_DET_X = {'aux': 3, 'quelques': 1, 'divers': 1, 'diverses': 1, 'plusieurs': 2, 'certains': 2, 'certaines': 2}
+_PL_DET_X = {'aux': 3, 'quelques': 1, 'divers': 1, 'diverses': 1, 'plusieurs': 2, 'certains': 2, 'certaines': 2,
+             "d'autres": 2, "d'anciens": 1, "d'anciennes": 1, "d'importants": 1, "d'importantes": 1, "d'eventuels": 1, "d'eventuelles": 1, "d'enormes": 1, "d'immenses": 1, "d'innombrables": 1, "d'excellents": 1, "d'excellentes": 1}   # ⭐ 14/10/2026 (liste n° 18) : déterminants pluriels ÉLIDÉS (« d'autres chemin ») — miroir JS
 
 
 def _aux_sur(w, adj):
@@ -7716,6 +7722,8 @@ def bout_de_chaine_orange(text, i, sugg):
 MUETS = [
     ("Il a les yeux bleus et vert foncé.", "couleur composée invariable après « et » (14/10/2026, liste n° 12)."),
     ("Il a les ailes gris argenté.", "couleur composée, 2e mot étiqueté verbe (14/10/2026, liste n° 12)."),
+    ("D'autres pensent le contraire.", "« d'autres » PRONOM : le veto verbal reste (14/10/2026, liste n° 18)."),
+    ("Il parle d'autre chose.", "« d'autre » est singulier (14/10/2026, liste n° 18)."),
     ("Il envoie une lettre exprès.", "« exprès » invariable dans « lettre exprès » (14/10/2026, liste n° 12)."),
     ("J'ai acheté une robe neuve et payé comptant.", "participe d'un verbe après « avoir », pas un adjectif du nom (14/10/2026, liste n° 12)."),
     ("Les jantes en chrome brillent au soleil.", "« en chrome » est le complément, le verbe est « brillent » : jamais « chroment » (14/10/2026, liste n° 1c)."),
@@ -7840,7 +7848,9 @@ CASES = [
     ("Il conduit une voiture française.", "française", "français", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : masculin en -s, paire absente de la table
     ("Elle a des idées claires et précises.", "précises", "précis", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : coordonné + table
     ("Mes cousins procrastinent souvent.", "procrastinent", "procrastine", "accord sujet-verbe"),   # ⭐ 14/10/2026 (liste n° 17) : « procrastine » noté nom au dictionnaire
-    ("Les enfants pétardent dans la cour.", "pétardent", "pétarde", "accord sujet-verbe"),   # ⭐ 14/10/2026 (liste n° 17) : table en retard sur son script   # ⭐ 14/10/2026 (liste n° 12) : participe étiqueté verbe, « motivé » ≠ « il motive »
+    ("Les enfants pétardent dans la cour.", "pétardent", "pétarde", "accord sujet-verbe"),   # ⭐ 14/10/2026 (liste n° 17) : table en retard sur son script
+    ("D'autres chemins mènent à la ville.", "chemins", "chemin", "accord pluriel nom"),   # ⭐ 14/10/2026 (liste n° 18) : déterminant pluriel élidé
+    ("Elle cherche d'autres solutions.", "solutions", "solution", "accord pluriel nom"),   # ⭐ 14/10/2026 (liste n° 18)   # ⭐ 14/10/2026 (liste n° 12) : participe étiqueté verbe, « motivé » ≠ « il motive »
     ("Il navigue avec Firefox tous les jours.", "Firefox", "firefox", "majuscule"),   # ⭐ 14/10/2026 (liste n° 16)
     ("Il ouvre le navigateur Chrome.", "Chrome", "chrome", "majuscule"),   # ⭐ 14/10/2026 (liste n° 16) : la marque seulement en contexte
     ("Une gestion à flux tendu.", "flux", "flue", "expression figée à vérifier"),   # ⭐ 14/10/2026 (liste n° 11) : « flue » est un mot (fluer), la locution le dit faux
@@ -8259,7 +8269,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 282   # 14/10/2026 : +2 (liste n° 17 : procrastinent, pétardent) ; +4 (liste n° 12 : l'adjectif coordonné, « rapide et puissant », « soudée et motivé » ; masculins en -s, « voiture français », « précis ») ; +2 (liste n° 16 : Firefox, Chrome en contexte) ; 274 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : deux locutions figées). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 284   # 14/10/2026 : +2 (liste n° 18 : d'autres chemins, d'autres solutions) ; +2 (liste n° 17 : procrastinent, pétardent) ; +4 (liste n° 12 : l'adjectif coordonné, « rapide et puissant », « soudée et motivé » ; masculins en -s, « voiture français », « précis ») ; +2 (liste n° 16 : Firefox, Chrome en contexte) ; 274 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : deux locutions figées). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:

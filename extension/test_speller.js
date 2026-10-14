@@ -425,9 +425,14 @@ function testListe12() {
       // ⭐ LISTE N° 17 : verbes absents de la table de conjugaison — le dictionnaire note « procrastine » NOM (Lexique 4), et la table était en
       // retard sur son script (« pétarde »). Échouent sur la table d'avant ; témoins : le singulier juste, le nom « timbre ».
       ['Les voisins de mon oncle procrastine.', 'procrastine', 'procrastinent'], ['Mes cousins procrastine souvent.', 'procrastine', 'procrastinent'],
-      ['Les enfants pétarde dans la cour.', 'pétarde', 'pétardent'], ['Elle procrastine encore.', 'procrastine', null], ['Le timbre coûte cher.', 'timbre', null]]) {
+      ['Les enfants pétarde dans la cour.', 'pétarde', 'pétardent'], ['Elle procrastine encore.', 'procrastine', null], ['Le timbre coûte cher.', 'timbre', null],
+      // ⭐ LISTE N° 18 : le déterminant pluriel ÉLIDÉ (« d'autres », « d'énormes ») n'était lu par personne. Échouent sur le moteur d'avant ;
+      // témoins : « d'autres » pronom, « d'autre » singulier.
+      ['D\'autres chemin mènent à la ville.', 'chemin', 'chemins'], ['Elle cherche d\'autres solution.', 'solution', 'solutions'],
+      ['D\'énormes vague frappent la digue.', 'vague', 'vagues'], ['D\'autres chemins mène à la ville.', 'mène', 'mènent'],
+      ['D\'autres pensent le contraire.', 'pensent', null], ['Il parle d\'autre chose.', 'chose', null]]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
-    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 12 et 17 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier]))); }
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 12, 17 et 18 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier]))); }
 }
 function finish(parityKO) {
   testListe12();
