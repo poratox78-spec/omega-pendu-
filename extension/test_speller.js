@@ -455,6 +455,13 @@ function testListe23() {
     const ed = DC.diagnoseAll(t).flags.some(f => f.name === 'espace double');
     if (ed !== attendu) fail.push('liste n° 23 « ' + t + ' » : espace double ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (ed ? 'corrigé' : 'rien')); }
 }
+// ⭐ 14/10/2026 — LISTE N° 26 : la voie nouvelle a/à (devant un infinitif), mesurée 27 justes sur 27, passe au ROUGE. Échoue sur le moteur
+// d'avant (orange) ; témoin : « il a mangé » reste muet.
+function testListe26() {
+  for (const [t, w, tier] of [['Il n\'y a plus rien a faire ici.', 'a', 'auto'], ['Il a mangé.', 'a', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (tier === null ? !!f : (!f || f.tier !== tier || f.sugg !== 'à')) fail.push('liste n° 26 « ' + t + ' » : attendu ' + (tier ? 'à en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe20() {
   for (const [t, w, s] of [['Des stages : avr. 2021', 'avr', null], ['Des équipes motivées, organisation opérationnelle', 'organisation', null],
       ['Les pages produit', 'produit', null], ['Les photos produit et service se renouvellent.', 'renouvellent', null],
@@ -486,6 +493,7 @@ function finish(parityKO) {
   testListe19();
   testListe20();
   testListe23();
+  testListe26();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {

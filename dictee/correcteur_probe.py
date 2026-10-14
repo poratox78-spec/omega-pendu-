@@ -7510,8 +7510,8 @@ def tier_of(T, i, name, sugg):
     if name == 'si + conditionnel' and deacc(T[i].lower()).split("'")[-1] not in _SICOND: return 'vigilance'   # ⭐ 12/10/2026 (conjugaison 4) : hors être / avoir — miroir JS {vig:1}
     if name not in VIG_FAMILIES:
         return 'auto'
-    if name == 'a/à':                                     # ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir JS
-        return 'vigilance' if (_rule_a_aa_base(T, i) is None and _rule_a_aa_nouveau(T, i) == u'à') else 'auto'
+    if name == 'a/à':                                     # ⭐ 14/10/2026 (liste n° 26) : la voie NOUVELLE mesurée (27 tirs, 27 justes, 0 fausse) → rouge — miroir JS
+        return 'auto'
     if name == 'et/est':                                  # ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir JS
         return 'vigilance' if (_rule_et_est_base(T, i) is None and (_rule_et_est_nouveau(T, i) is not None or _rule_est_et_coord(T, i) is not None)) else 'auto'
     if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge

@@ -28877,7 +28877,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   function _wordKnown(d){return !!(SP&&SP.WORDS&&(SP.WORDS.has(d)||(SP.D2A&&spD(d)&&spD(d).length)))||GENDER_PURE[d]==='m'||GENDER_PURE[d]==='f';}
   function _tierOf(T,i,name,sugg){   // MIROIR de correcteur_probe.tier_of — sous-cas SÛRS (rouge) des familles à vérifier ; sinon orange
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
-    if(name==='a/à')return (_rAbase(T,i)===null&&_rAnouveau(T,i)==='à')?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir Python
+    if(name==='a/à')return 'auto';   // ⭐ 14/10/2026 (liste n° 26) : la voie NOUVELLE (29/09, devant un infinitif) était orange EN ATTENDANT LA MESURE. Mesurée : 27 tirs sur les 3 corpus dys et UD 14 450, 27 justes (dont une vraie faute d'UD, « rien a redire »), 0 inutile, 0 fausse → rouge comme la voie de base. Miroir Python
     if(name==='et/est')return (_rEtBase(T,i)===null&&(_rEtNouveau(T,i)!==null||_rEstEtCoord(T,i)!==null))?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir Python
     if(name==='élision inversée'){var _dz=_deselide(T,i);return (_dz&&_dz[1])?'vigilance':'auto';}   // ⭐ 13/09/2026 : miroir tier_of Python
     if(name==='leur/leurs'){if(i+1>=n)return 'vigilance';var dn=deacc(T[i+1].toLowerCase());
