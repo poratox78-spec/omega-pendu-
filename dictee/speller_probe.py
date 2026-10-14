@@ -98,6 +98,7 @@ DOMINANCE = 5.0                               # rapport freq top/2e pour qu'un c
 # (action 'inconnu', OPT-IN via correct_text(..., inconnu=True) — défaut OFF, doctrine §1.6 : aucun
 # consommateur existant ne change de comportement sans le demander).
 SPELL_KEEP = set('omega the and of with is are was were this that from they you your its new world er'.split())
+SPELL_KEEP |= set('picking dev devs app apps dashboard dashboards workflow workflows onboarding offboarding backlog backlogs chatbot chatbots scraping webinar webinars dropshipping backend frontend fullstack devops coworking saas erp seo lead leads growth retargeting checkout wireframe wireframes mockup mockups scrum tracking stories community'.split())   # ⭐ 14/10/2026 (liste n° 21) : anglicismes de métier — miroir JS _SPELL_KEEP
 
 _INIT_CONF = ('aeiouy', 'bdpq', 'cskq', 'gj', 'fv', 'mn', 'td')   # ⭐ 30/09/2026 : confusions d'initiale admises pour la dominance de fréquence — miroir JS _INIT_CONF
 

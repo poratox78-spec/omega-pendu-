@@ -455,9 +455,14 @@ function testListe20() {
       // ⭐ LISTE N° 1d : deux rouges contradictoires — le verbe coordonné s'accordait sur un premier verbe lui-même fautif. Les deux premiers
       // échouent sur le moteur d'avant ; témoins : premier verbe juste (pronom, sujet nominal).
       ['Les enfants mange et dorment.', 'dorment', null], ['Les chats miaule et ronronnent.', 'ronronnent', null],
-      ['Il chante et dansent.', 'dansent', 'danse'], ['Les enfants mangent et dort.', 'dort', 'dorment']]) {
+      ['Il chante et dansent.', 'dansent', 'danse'], ['Les enfants mangent et dort.', 'dort', 'dorment'],
+      // ⭐ LISTE N° 21 : anglicismes de métier pris pour des fautes (picking → packing, dev → devez, process → proces EN ROUGE, une start-up → un).
+      // Les six premiers échouent sur le moteur d'avant ; témoin : le genre d'un composé français (« une chou-fleur ») reste vérifié.
+      ['Elle prépare les colis au picking.', 'picking', null], ['Il code comme dev web.', 'dev', null], ['Nos apps tournent bien.', 'apps', null],
+      ['Le chatbot répond vite.', 'chatbot', null], ['Un process simple aide l\'équipe.', 'process', null], ['Elle fonde une start-up.', 'une', null],
+      ['Elle mange une chou-fleur.', 'une', 'un']]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
-    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20 et 1d « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20, 1d et 21 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
 }
 function finish(parityKO) {
   testListe12();

@@ -5081,6 +5081,11 @@ def rule_det_number(T, i):
     return _keepcase(T[i], _DET_PL[lw])
 
 
+_PART_EN = {'up', 'down', 'in', 'out', 'off', 'on', 'over', 'back'}   # ⭐ liste n° 21 : particule anglaise après un trait d'union
+_PART_EN2 = {'up', 'down', 'out', 'off', 'over', 'back'}   # ⭐ liste n° 21 : aussi sans trait d'union (« un stand up ») — pas des mots français
+_EPICENE_NOUN |= {'app', 'apps'}   # ⭐ liste n° 21 : « une app » (application) / « un app » (appart) — miroir JS
+
+
 def rule_det_gender(T, i):
     lw = deacc(T[i].lower())
     if lw not in DET_GENDER or "'" in T[i].lower(): return None
@@ -5102,6 +5107,8 @@ def rule_det_gender(T, i):
             hi = i + 2; _pp = NOUN_POST.get(deacc(T[hi].lower()))
     if hi == i + 1 and nd in DET_SKIP: return None                 # adverbe/modifieur (pas le nom-tête) sans saut → abstention (FP)
     if deacc(T[hi].lower()) in _EPICENE_NOUN: return None          # NOM ÉPICÈNE (médecin/juge/artiste…) → 2 genres valides → ne pas forcer le déterminant
+    _hy = (_SEG or {}).get('hy') or []
+    if hi + 1 < len(T) and deacc(T[hi + 1].lower()) in _PART_EN and ((hi + 1 < len(_hy) and _hy[hi + 1]) or deacc(T[hi + 1].lower()) in _PART_EN2): return None   # ⭐ 14/10/2026 (liste n° 21) : « une start-up » — miroir JS
     # ⛔ ANCRE : LE POSTERIOR LEXICAL NE SUFFIT PAS, IL FAUT LE TAGGER (23/08, gold dys réel).
     # « une tré belle maison » → « un » : `tré` est un VRAI mot français (0,038/M) et son
     # posterior dit NOM à 100 % — mais le nom-tête est `maison`, et `tré` n'est qu'un « très »
@@ -5599,7 +5606,8 @@ _SG_STOP = INVAR_NOUN | _NOUN_INVAR_S | {
     'fils', 'cours', 'paix', 'relais', 'taux', 'heros', 'mars', 'gaz', 'ours', 'sas', 'jus', 'mets',
     'remords', 'secours', 'concours', 'discours', 'parcours', 'univers', 'velours', 'fois', 'deces',
     'engrais', 'laps', 'cabas', 'fracas', 'matelas', 'lilas', 'ananas', 'compas', 'faux', 'roux', 'doux',
-    'epoux', 'noix', 'toux', 'flux', 'reflux', 'houx', 'courroux', 'index', 'larynx', 'pharynx', 'silex'}
+    'epoux', 'noix', 'toux', 'flux', 'reflux', 'houx', 'courroux', 'index', 'larynx', 'pharynx', 'silex',
+    'process'}   # ⭐ 14/10/2026 (liste n° 21) : « un process clair » → « proces » en rouge — miroir JS
 _PL_OUX_PL = {'bijoux', 'cailloux', 'choux', 'genoux', 'hiboux', 'joujoux', 'poux'}   # pluriels en -oux (liste close, miroir de _PL_OUX)
 
 
@@ -7742,6 +7750,8 @@ MUETS = [
     ("Il a les ailes gris argenté.", "couleur composée, 2e mot étiqueté verbe (14/10/2026, liste n° 12)."),
     ("D'autres pensent le contraire.", "« d'autres » PRONOM : le veto verbal reste (14/10/2026, liste n° 18)."),
     ("Il parle d'autre chose.", "« d'autre » est singulier (14/10/2026, liste n° 18)."),
+    ("Un process simple aide l'équipe.", "anglicisme invariable : « process » n'est pas le pluriel de « procès » (14/10/2026, liste n° 21)."),
+    ("Elle fonde une start-up.", "composé anglais : son genre ne vient pas de « start » (14/10/2026, liste n° 21)."),
     ("Les pages produit restent claires.", "nom de métier accolé sans déterminant : « produit » n'est pas un verbe (14/10/2026, liste n° 20)."),
     ("Les photos produit et service se renouvellent.", "le verbe frère de « se renouvellent » n'est pas « produit » (14/10/2026, liste n° 20)."),
     ("Il envoie une lettre exprès.", "« exprès » invariable dans « lettre exprès » (14/10/2026, liste n° 12)."),
