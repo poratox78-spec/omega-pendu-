@@ -3733,7 +3733,7 @@ function estQuestion(t,maxMots){
     }
     return null;}
   var _ROUGE=true;   // basculé par la jumelle ORANGE le temps de son appel (miroir Python)
-  /* ⭐ 13/10/2026 (liste n° 4 : « une sélection de produits mises en avant » → « mise ») — UN PARTICIPE FÉMININ IRRÉGULIER N'EST PAS
+  /* ⭐ 13/10/2026 (liste n° 4 : « une gamme de livres mises en avant » → « mise », phrase inventée) — UN PARTICIPE FÉMININ IRRÉGULIER N'EST PAS
      UN VERBE CONJUGUÉ. « mises », « prises », « faites », « dites » se lisent aussi miser, priser, faire, dire (tu mises, vous faites) :
      après un sujet nominal, la règle « corrigeait » le verbe (misent, prisent, font, disent) là où le texte a un participe épithète
      (« les décisions prises », « les allégations faites »). Recensé au produit : 3 corpus dys et UD, 8 marques de cette famille,
@@ -4227,6 +4227,11 @@ function estQuestion(t,maxMots){
       p=i>=1?deacc(T[i-1].toLowerCase()):'',maj=w.charAt(0)!==w.charAt(0).toLowerCase(),cap=function(s){return maj?s.charAt(0).toUpperCase()+s.slice(1):s;},
       cut=function(k){return !!(_SEG&&_SEG.bb&&k<_SEG.bb.length&&_SEG.bb[k]);},fin=function(k){return k>=n||cut(k);};
     if(d==='enfaite'||d==='enfait')return {sugg:cap('en fait'),vig:1};
+    /* ⭐ 14/10/2026 (liste n° 11 et 14) — deux locutions de métier : « flux tendu » écrit « flue tendu » (« flue » est un mot, fluer :
+       l'orthographe se taisait) ; « des milliards de chiffres d'affaires » → chiffre (le chiffre d'affaires, c'est UN montant : après
+       un nombre, millions, milliards ou d'euros + « de », le singulier). Cadres fermés, absents des corpus et d'UD. Orange. */
+    if(/^(flue|flues|flu|flus|flut)$/.test(d)&&/^tendue?s?$/.test(d1)&&!cut(i+1))return {sugg:cap('flux'),vig:1};
+    if(d==='chiffres'&&/^d['’]affaires?$/.test(d1)&&!cut(i+1)&&p==='de'&&i>=2&&!cut(i-1)&&/^(\d+|millions?|milliards?|milliers?|d['’]euros?|euros?|d['’]dollars?|dollars?|€)$/.test(deacc(T[i-2].toLowerCase())))return {sugg:cap('chiffre'),vig:1};
     if(d==='comme'&&d1==='meme'&&!cut(i+1)&&(fin(i+2)||!_FIG_CMM[_figK(T[i+2])]))return {sugg:cap('quand'),vig:1};
     if(d==='faite'&&p==='en'&&!cut(i)&&!(i>=2&&!cut(i-1)&&_FIG_ENF[_figK(T[i-2])]))return {sugg:'fait',vig:1};
     if(d==='tous'&&d1==='le'&&d2==='temps'&&!cut(i+1)&&!cut(i+2)){for(var k=0;k<i;k++)if(_FIG_PL[_figK(T[k])])return null;return {sugg:cap('tout'),vig:1};}
@@ -4661,6 +4666,7 @@ function estQuestion(t,maxMots){
      +14 bons mots en orange sur les 3 corpus dys (gold 9) ; UD 14 450 : 38 oranges de plus (822 « mot inconnu » déjà : mêmes mots rares,
      dont 9 vraies fautes du corpus). Miroir Python : speller_probe.spell_token / correct_text. */
   function spellToken(tok,atStart,T,idx){                                  // élision : « d'othographes » = 1 token → on analyse le RESTE
+    if(/^jusqu['’](a|ou)$/i.test(tok))return['flag',tok.slice(0,-(tok.slice(-2).toLowerCase()==='ou'?2:1))+(tok.slice(-2).toLowerCase()==='ou'?'où':'à')];   // ⭐ 14/10/2026 (liste n° 13) : « jusqu'a », « jusqu'ou » n'existent pas — « jusque » n'est suivi ni du verbe avoir ni de la conjonction (rouge). Miroir Python
     var em=tok.match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),pk;
     if(em&&((pk=em[1].toLowerCase()).length===1&&SELIDE[pk]||pk==='qu')){
       var rc=spellTokenCore(em[2],false,T,idx);if(!rc)return null;
@@ -4676,7 +4682,7 @@ function estQuestion(t,maxMots){
      ailleurs dans un mot à majuscule : jamais en silence, en ROUGE (l'utilisateur décide) ; mot TOUT EN CAPITALES (titre, sigle,
      marque) : en ORANGE, et la suggestion garde les capitales (ckeepcase). Exception : un accent IMPOSSIBLE (é devant ct, consonne
      doublée, x) n'existe dans aucun nom — « Séléction » reste corrigé comme avant. Un mot en capitales de 4 lettres ou plus est lu
-     aussi hors début de phrase (COMPETENCES ET EXPERIENCE). Mesuré : 3 corpus dys, noms propres changés en silence 10 → 0 (4 à
+     aussi hors début de phrase (ETUDES ET CARRIERE). Mesuré : 3 corpus dys, noms propres changés en silence 10 → 0 (4 à
      accent étranger ne sont plus touchés, 6 passent en rouge), 5 corrections fausses ne sont plus appliquées en silence, 3 mots en
      capitales corrigés au mot exact ; coût assumé : 38 bonnes corrections d'accent passent de auto à rouge (« Apres » → Après : le
      moteur ne peut pas le distinguer d'un nom). UD 14 450 : 4 noms propres ne sont plus changés en silence, 1 n'est plus touché. */
@@ -5424,6 +5430,7 @@ function spellUnknown(tok,atStart,T,idx){
     else if(i>=2&&deaccS(T[i-1].toLowerCase())==='de'){q=deaccS(T[i-2].toLowerCase());nom=t;}
     else return null;
     if(!_QUANT_DE[q])return null;
+    if(i+1<T.length&&deaccS(nom.toLowerCase())==='chiffre'&&/^d['’]affaires?$/i.test(T[i+1]))return null;   // ⭐ 14/10/2026 (liste n° 14) : « des milliards de chiffre d'affaires » est juste — un montant, pas des chiffres
     var w=deaccS(nom.toLowerCase());
     if(w.length<3||/[sxz]$/.test(w)||!/^[a-z-]+$/.test(w)||_QUANT_STOP[w]||NOUN_PL_STOP[w]||CARD[w]||CARDINV[w]||CARDSTOP[w])return null;
     var c0=nom.charAt(0);if(c0!==c0.toLowerCase())return null;   // nom propre (« nombre de Mach »)
