@@ -98,6 +98,8 @@ DOMINANCE = 5.0                               # rapport freq top/2e pour qu'un c
 # (action 'inconnu', OPT-IN via correct_text(..., inconnu=True) — défaut OFF, doctrine §1.6 : aucun
 # consommateur existant ne change de comportement sans le demander).
 SPELL_KEEP = set('omega the and of with is are was were this that from they you your its new world er'.split())
+_CTX_PREP = set(u'a à en dans pour sur par avec sans sous chez vers entre contre depuis'.split())   # ⭐ 14/10/2026 (liste n° 24) — miroir JS _CTX_PREP
+_COP_NUM = {'sont': 'p', 'etaient': 'p', 'seront': 'p', 'seraient': 'p', 'furent': 'p', 'semblent': 'p', 'deviennent': 'p', 'restent': 'p', 'paraissent': 'p', 'est': 's', 'etait': 's', 'sera': 's', 'serait': 's', 'fut': 's', 'semble': 's', 'devient': 's', 'reste': 's', 'parait': 's'}   # ⭐ liste n° 24 — miroir JS _COP_NUM
 try:   # ⭐ 14/10/2026 (liste n° 22) : masque des adresses, partagé avec la grammaire
     import re as _re22
     _URL_RE22 = _re22.compile(u'[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}|(?:https?://|www\\.)[^\\s<>"«»]+|\\b[A-Za-z0-9\\-]+(?:\\.[A-Za-z0-9\\-]+)*\\.(?:com|fr|net|org|io|eu|be|ch|ca|info|app|dev)\\b(?:/[^\\s<>"«»]*)?', _re22.I)
@@ -549,8 +551,10 @@ class Speller:
         if not toks or idx is None: return None
         for j in range(idx - 1, max(-1, idx - 5), -1):
             t = deacc(toks[j].lower())
+            if t in ("d'un", "d'une"): t = t[2:]          # ⭐ 14/10/2026 (liste n° 24) : « d'une » = « une » — miroir JS
             if t in self.COPULA: continue
-            if t in CTX_STOP: return None                     # frontière de proposition (« un chien QUI aboit ») : le genre de « un » ne gouverne plus
+            if t in CTX_STOP: return None
+            # ⭐ liste n° 24 : le GENRE n'est PAS arrêté à la préposition (4 pertes mesurées : « une porte en bois peinte ») — miroir JS                     # frontière de proposition (« un chien QUI aboit ») : le genre de « un » ne gouverne plus
             # ⛔ « UN PEU » N'EST PAS UN DÉTERMINANT (23/08, gold dys réel). « elle est un peu trop chere » :
             # le `un` de « un peu » était lu comme un déterminant MASCULIN, et la bascule d'accord
             # d'adjectif retournait `chère` (qui avait pourtant GAGNÉ le classement, priorité 2) en
@@ -599,8 +603,11 @@ class Speller:
         back, bdist = None, 99
         for j in range(idx - 1, max(-1, idx - 5), -1):      # 4 tokens en arrière, comme sCtxNumber (j>=idx-4) — la référence n'en lisait que 3 (09/09/2026 : « aggrée » quatre mots après « une »)
             t = deacc(toks[j].lower())
+            if t in ("d'un", "d'une"): t = t[2:]          # ⭐ 14/10/2026 (liste n° 24) : « d'une » = « une » — miroir JS
             if t in self.DET_NUM: back, bdist = self.DET_NUM[t], idx - j; break
+            if t in _CTX_PREP or toks[j].lower() in _CTX_PREP or t in CTX_STOP: break   # ⭐ liste n° 24 : préposition (sauf « de ») ou frontière = nouveau groupe — miroir JS
         if back is not None and bdist == 1: return back      # déterminant COLLÉ = preuve la plus forte
+        if back is None and idx >= 1 and deacc(toks[idx - 1].lower()) in _COP_NUM: return _COP_NUM[deacc(toks[idx - 1].lower())]   # ⭐ 14/10/2026 (liste n° 24) : « qui sont visiblse » — miroir JS
         if back is None and idx >= 1 and (deacc(toks[idx - 1].lower()) in _SU_PLDET or self._quant_mal(toks, idx - 1)): return 'p'   # ⭐ 11/10/2026 : cardinal ou quantifieur juste avant, même mal écrit — miroir JS sCtxNumber
         # PREUVE VERS L'AVANT (22/08/2026) : pour un DÉTERMINANT ou un ADJECTIF, la marque de nombre est portée
         # par le NOM QUI SUIT, pas par ce qui précède (« pettits TUYAUX », « leusr TIGES ») — sans elle le
@@ -921,8 +928,12 @@ class Speller:
             elif pt in self.ADVERB: exp_pos = 'A'                          # adverbe → adjectif (très élevé)
             elif pt in self.COPULA: exp_pos = 'VA'                         # copule → attribut POSSIBLE : verbe OU adjectif
             elif pt in self.AUXAV or pt in self.SUBJP: exp_pos = 'V'       # auxiliaire avoir / pronom sujet → verbe
+            elif pt == 'qui': exp_pos = 'F'                                # ⭐ 14/10/2026 (liste n° 24) : après « qui » sujet, un verbe CONJUGUÉ — miroir JS
         def pmatch(w):
             if not exp_pos: return 0
+            if exp_pos == 'F':
+                if re.search(u'é(s?)$', w): return 0
+                return 1 if any(len(r.split(';')) == 4 and re.match(r'^(ind|cnd|sub)', r.split(';')[1]) for r in (self.CONJ_F.get(deacc(w)) or '').split('|')) else 0
             ps = self.POS.get(w, ())
             return 1 if any(c in ps for c in exp_pos) else 0               # exp_pos peut être multi-POS ('VA')
         def fin_aud(w):                                                     # finale AUDIBLE /e/ (é/ée/és/er/ez/ai…) vs -e/-es MUET
