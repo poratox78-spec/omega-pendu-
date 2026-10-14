@@ -218,6 +218,7 @@ run "collisions d’accent : JSON == app == extension (non_verbe_acc)" python3 d
 run "toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée)" node dictee/toile_probe.js --check
 run "noms épicènes exclus du genre (liste == Lexique4 ; SAUTÉ sans Lexique4.tsv.xz)" python3 dictee/build_gacc_epicene_excl.py --check
 run "lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz)" python3 dictee/build_morph_lex.py --check
+run "table de conjugaison SANS RETARD sur son script (Morphalou ; SAUTÉ sans data_local)" python3 dictee/complete_conj_morphalou.py --check
 run "lot Morphalou accentué du speller : TSV commité bien formé (morph_acc, « calmât »)" python3 dictee/build_morph_acc_lex.py --check
 run "lot de la table de conjugaison du speller : TSV commité bien formé et câblé (outillent, indexent, prototyper)" python3 dictee/build_conj_lex.py --check
 run "paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise)" python3 build_lexiques.py --check
