@@ -421,9 +421,13 @@ function testListe12() {
       ['J\'ai acheté une robe neuve et payé comptant.', 'payé', null], ['La militante écologiste et fondateur du club parle.', 'fondateur', null],
       // la TABLE des adjectifs à masculin en -s (mauvais, gris, précis, français : paire jamais construite) — échouent sur les assets d'avant
       ['Elle a des idées claires et précis.', 'précis', 'précises'], ['Il conduit une voiture français.', 'français', 'française'], ['Elle porte une robe gris.', 'gris', 'grise'],
-      ['Il a les ailes gris argenté.', 'gris', null], ['Le directeur précise sa pensée.', 'précise', null], ['Il envoie une lettre exprès.', 'exprès', null]]) {
+      ['Il a les ailes gris argenté.', 'gris', null], ['Le directeur précise sa pensée.', 'précise', null], ['Il envoie une lettre exprès.', 'exprès', null],
+      // ⭐ LISTE N° 17 : verbes absents de la table de conjugaison — le dictionnaire note « procrastine » NOM (Lexique 4), et la table était en
+      // retard sur son script (« pétarde »). Échouent sur la table d'avant ; témoins : le singulier juste, le nom « timbre ».
+      ['Les voisins de mon oncle procrastine.', 'procrastine', 'procrastinent'], ['Mes cousins procrastine souvent.', 'procrastine', 'procrastinent'],
+      ['Les enfants pétarde dans la cour.', 'pétarde', 'pétardent'], ['Elle procrastine encore.', 'procrastine', null], ['Le timbre coûte cher.', 'timbre', null]]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
-    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 12 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier]))); }
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 12 et 17 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name, x.tier]))); }
 }
 function finish(parityKO) {
   testListe12();

@@ -7838,7 +7838,9 @@ CASES = [
     ("Une voiture rapide et puissante passe devant nous.", "puissante", "puissant", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : l'adjectif coordonné
     ("Une équipe soudée et motivée gagne souvent.", "motivée", "motivé", "accord adjectif épithète"),
     ("Il conduit une voiture française.", "française", "français", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : masculin en -s, paire absente de la table
-    ("Elle a des idées claires et précises.", "précises", "précis", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : coordonné + table   # ⭐ 14/10/2026 (liste n° 12) : participe étiqueté verbe, « motivé » ≠ « il motive »
+    ("Elle a des idées claires et précises.", "précises", "précis", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : coordonné + table
+    ("Mes cousins procrastinent souvent.", "procrastinent", "procrastine", "accord sujet-verbe"),   # ⭐ 14/10/2026 (liste n° 17) : « procrastine » noté nom au dictionnaire
+    ("Les enfants pétardent dans la cour.", "pétardent", "pétarde", "accord sujet-verbe"),   # ⭐ 14/10/2026 (liste n° 17) : table en retard sur son script   # ⭐ 14/10/2026 (liste n° 12) : participe étiqueté verbe, « motivé » ≠ « il motive »
     ("Il navigue avec Firefox tous les jours.", "Firefox", "firefox", "majuscule"),   # ⭐ 14/10/2026 (liste n° 16)
     ("Il ouvre le navigateur Chrome.", "Chrome", "chrome", "majuscule"),   # ⭐ 14/10/2026 (liste n° 16) : la marque seulement en contexte
     ("Une gestion à flux tendu.", "flux", "flue", "expression figée à vérifier"),   # ⭐ 14/10/2026 (liste n° 11) : « flue » est un mot (fluer), la locution le dit faux
@@ -8257,7 +8259,7 @@ def main():
         err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
     # ⭐ 04/10/2026 — planchers remontés au niveau MESURÉ (223/239, puis 226/242) : à 155, 68 cas pouvaient se perdre sans rougir (vu en falsifiant le lot
     # « ça / cela sujet » : retirer la règle laissait la batterie verte). Un cas ajouté fait monter le compte ; remonter alors le plancher.
-    _PLANCHER = 280   # 14/10/2026 : +4 (liste n° 12 : l'adjectif coordonné, « rapide et puissant », « soudée et motivé » ; masculins en -s, « voiture français », « précis ») ; +2 (liste n° 16 : Firefox, Chrome en contexte) ; 274 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : deux locutions figées). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
+    _PLANCHER = 282   # 14/10/2026 : +2 (liste n° 17 : procrastinent, pétardent) ; +4 (liste n° 12 : l'adjectif coordonné, « rapide et puissant », « soudée et motivé » ; masculins en -s, « voiture français », « précis ») ; +2 (liste n° 16 : Firefox, Chrome en contexte) ; 274 : remonté au mesuré (272) + 2 (listes n° 11 et 14 : deux locutions figées). 09/10/2026 : +3 (passé simple 3s des -er : mangea) ; +2 (passé simple après un sujet nominal) ; +4 (passé simple irrégulier : prîtes, prit, prirent, dûtes) ; +1 (« les filles en ont profite »), +1 (« s'est fier » pronominal) ; 04/10/2026 : +3 cas (lieu + adjectif, quelque), +8 (verbe après à / après un infinitif), +4 (genre de l'adjectif antéposé), +7 (plusieurs / quelques / divers / aux), +5 (ce + verbe : 4 nouveaux, 1 ancien qui passe), +4 (présent après un « à » gouverné), +2 (chère → chez), +2 (infinitif de but, 05/10)
     if det < _PLANCHER:
         err.append(u'DÉTECTION %d/%d < plancher %d' % (det, n, _PLANCHER))
     if corr < _PLANCHER:

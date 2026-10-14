@@ -40,9 +40,17 @@ subjonctif : il sert de table) ; le subjonctif imparfait n'ajoute une lecture qu
 désaccentuée : le passé simple garde la sienne) ; deux lemmes à une seule clé désaccentuée (réformer / reformer) restent hors de la
 table (la clé ne peut porter qu'un paradigme).
 
+⭐ Liste n° 17 (14/10/2026) — « les voisins de mon oncle procrastine » restait muet, « mes cousins procrastine » recevait
+« procrastines » (pluriel de nom). Deux causes, une seule famille : (a) la table était EN RETARD sur ce script — relancé, il remplissait
+encore 4 569 cases (le dictionnaire a gagné des verbes depuis : conjugaison 14, liste n° 6) ; (b) la garde « forme attestée VERBE au
+dictionnaire » croit le dictionnaire, qui note quelques verbes comme noms (« procrastine », « timbre », « homologue » : Lexique 4 range
+« procrastine » en NOM). Une forme que le dictionnaire ne dit pas verbe entre désormais si sa probabilité VERBALE (posterior de
+cgram_noun_post.json) atteint 10 % : « procrastine » 27 % entre, « crise », « article », « bouteille » (< 1 %) restent dehors. Et
+`--check` (dev.sh) échoue si le script remplirait encore une case : le retard ne peut plus revenir en silence.
+
 Sources hors dépôt : data_local/morphalou/Morphalou3.1_CSV.csv (ATILF/CNRS, LGPL-LR — voir donnees.html). Sérialisation identique à
 build_cgram.py (compact, ensure_ascii=False), aller-retour vérifié octet à octet avant d'écrire. Idempotent.
-    python3 dictee/complete_conj_morphalou.py [--dry]
+    python3 dictee/complete_conj_morphalou.py [--dry | --check]
     → puis : python3 dictee/inject_vdc.py && python3 extension/build_assets.py
 """
 import gzip, io, json, os, sys, unicodedata
@@ -53,7 +61,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 MOR = os.path.join(ROOT, 'data_local', 'morphalou', 'Morphalou3.1_CSV.csv')
 SPELLER = os.path.join(ROOT, 'extension', 'assets', 'speller.tsv.gz')
-DRY = '--dry' in sys.argv
+DRY = '--dry' in sys.argv or '--check' in sys.argv
+CHECK = '--check' in sys.argv
+P_VERBE = 100                          # ⭐ liste n° 17 : ‰ de lecture VERBALE qui suffit quand le dictionnaire dit nom (« procrastine » 273 ‰)
 TEMPS = {('indicative', 'present'): 'ind:pre', ('indicative', 'imperfect'): 'ind:imp', ('indicative', 'future'): 'ind:fut',
          ('conditional', 'present'): 'cnd:pre', ('subjunctive', 'present'): 'sub:pre', ('indicative', 'simplePast'): 'ind:pas',
          ('subjunctive', 'imperfect'): 'sub:imp', ('imperative', 'present'): 'imp:pre'}   # ⭐ conjugaison 14 : + subjonctif imparfait, impératif
@@ -113,6 +123,12 @@ def charger():
     return mor, ppl, spos, lfreq, tous
 
 
+def _verbe(fl, key):
+    u"""⭐ Liste n° 17 : la forme est un VERBE — le dictionnaire le dit, ou sa probabilité verbale atteint P_VERBE (le dictionnaire
+    note « procrastine » nom : Lexique 4 se trompe)."""
+    return 'V' in spos.get(fl, '') or (NPOST.get(key) or [0, 0])[1] >= P_VERBE
+
+
 def completer(cj, mor, ppl, spos, lfreq):
     C, F = cj['c'], cj['f']; cases = lect = 0
     for l in mor:                                                  # ⭐ conjugaison 14 : TOUS les verbes de Morphalou
@@ -127,7 +143,7 @@ def completer(cj, mor, ppl, spos, lfreq):
                 ok = []
                 pres = {deacc(x.lower()) for x in C[l].get('ind:pre', {}).values()} if k == 'ind:pas' else set()
                 for fo in forms:
-                    if 'V' not in spos.get(fo.lower(), '') or fo.lower() in ppl: continue
+                    if not _verbe(fo.lower(), deacc(fo.lower())) or fo.lower() in ppl: continue
                     if (NPOST.get(deacc(fo.lower())) or [0, 1000])[1] < 10: continue
                     if any(g != fo.lower() and 'V' not in spos.get(g, '') and sfq.get(g, 0) > sfq.get(fo.lower(), 0) for g in skey.get(deacc(fo.lower()), ())): continue   # ⭐ conjugaison 14 : la clé désaccentuée appartient d'abord à un mot NON verbal plus fréquent (« pâtent » de pâter → « patent », l'adjectif) — la fréquence départage deux mots écrits pareil, elle n'exclut pas un verbe   # ⭐ conjugaison 14 : forme que l'usage ne lit jamais comme VERBE (P(verbe) < 1 %, cgram_noun_post.json) — « piétons » de piéter, « habitat » d'habiter (subjonctif imparfait), « contrat » : un nom, pas une lecture verbale
                     if deacc(fo.lower()) in pres: continue   # passé simple = présent du même verbe (« dis », « finis », « finit ») : deux lectures → « nous dis » ne serait plus corrigé
@@ -160,7 +176,7 @@ def lire_cases(cj, ppl, spos, lfreq):
                     if not f: continue
                     fl = f.lower(); key = deacc(fl); r = '%s;%s;%s;%s' % (l, k, pn[0], pn[1]); old = F.get(key)
                     if old is not None and r in old.split('|'): continue
-                    if 'V' not in spos.get(fl, '') or fl in ppl: continue
+                    if not _verbe(fl, key) or fl in ppl: continue
                     if (NPOST.get(key) or [0, 1000])[1] < 10: continue
                     if any(g != fl and 'V' not in spos.get(g, '') and sfq.get(g, 0) > sfq.get(fl, 0) for g in skey.get(key, ())): continue
                     if k == 'ind:pas' and key in pres: continue
@@ -197,7 +213,10 @@ def remplissage(C):
 
 
 def main():
-    if not os.path.exists(MOR): raise SystemExit('Morphalou introuvable : ' + MOR)
+    if not os.path.exists(MOR):
+        if CHECK: print(u'· table de conjugaison sans retard : SAUTÉ — Morphalou absent (data_local, hors dépôt)'); return 0
+        raise SystemExit('Morphalou introuvable : ' + MOR)
+    reste = 0
     mor, ppl, spos, lfreq, tous = charger()
     for fn in ('cgram_conj.json', 'cgram_hf.json'):
         p = os.path.join(HERE, fn)
@@ -212,8 +231,15 @@ def main():
         fant = fantomes(cj, tous)
         out = conj_io.serialiser(d)
         print('%-16s +%d case(s), +%d lecture(s), +%d lecture(s) de cases déjà remplies, -%d fantôme(s) · remplissage %s → %s%s' % (fn, cases, lect, lus, fant, avant, remplissage(cj['c']), ' (dry)' if DRY else ''))
+        reste += cases + lect + lus + fant
         if out != raw and not DRY:
             io.open(p, 'w', encoding='utf-8', newline='').write(out)
+    if CHECK:
+        if reste:
+            print(u'✗ la table de conjugaison est EN RETARD sur son script : relancer python3 dictee/complete_conj_morphalou.py puis inject_vdc + build_assets')
+            return 1
+        print(u'✓ table de conjugaison sans retard : le script ne remplirait plus rien')
+        return 0
     if not DRY:
         print('→ relancer : python3 dictee/inject_vdc.py && python3 extension/build_assets.py')
     return 0
