@@ -124,6 +124,18 @@ for (const [ph, w] of [['Le roi convoqua les ducs du royaume et même empêcha l
   for (const [ph, w] of [['Certains pensent que la course est trop dure.', 'pensent'], ['Plusieurs estiment que le pont coûte cher.', 'estiment']]) {
     const got = DF.diagnoseAll(ph).flags.filter(f => f.word === w).map(f => f.sugg + '[' + f.name + ']');
     if (got.length) { _au++; console.log('✗ AUDIT orange réfutée : ' + JSON.stringify(ph) + ' — « ' + w + ' » est juste, eu ' + JSON.stringify(got)); } }
+  // ⭐ 15/10/2026 (lignes n° 8 et 9, choix « B + C ») — phrases d'UD (publiques) : la route « voisins » se tait, l'orange ne propose plus le
+  // singulier (« étaient → étaie » !), le pluriel oublié reste proposé ; la relecture de bout de chaîne garde la route complète (phrase
+  // inventée : « devaiet » → devait, pas devaient). Les quatre premières échouent sur le moteur d'avant, la cinquième sans l'exemption.
+  for (const [ph, w, attendu] of [
+      ['La majorité des huîtres élevées en France sont issues du bassin.', 'sont', null],
+      ['Un tiers des 328 noms changés entre 2000 et 2010 étaient à consonances afrikaans contre 3% des nouveaux noms adoptés.', 'étaient', null],
+      ['Son entourage, ses enfants le lui font remarquer.', 'font', null],
+      ["Dans tous les cas, les procédures vont dans le sens de l'intérêt de l'État et ménage sa souveraineté.", 'ménage', 'ménagent'],
+      ['Le gardien était seul et devaiet tout faire.', 'devaiet', 'devait']]) {
+    const f = DF.diagnoseAll(ph).flags.find((x) => x.word === w);
+    const ok = attendu === null ? !(f && f.name === 'accord verbe à vérifier') : !!(f && f.sugg === attendu);
+    if (!ok) { _au++; console.log('✗ B + C : ' + JSON.stringify(ph) + ' — « ' + w + ' » : attendu ' + (attendu || 'aucune orange « accord verbe »') + ', eu ' + JSON.stringify(f || null)); } }
   /* l'app : sa liste s'appelle `list` (pas `flags`) — un premier port copié tel quel y lançait une ReferenceError et la page ne marquait
      plus rien (vu par navigateur_probe : délai dépassé). Ce banc n'exécute pas _computeCorrs ; navigateur_probe (dev.sh) l'exécute. */
   if ((html.match(/list=list\.filter\(function\(f\)\{return !f\._refute;\}\)/g) || []).length !== 1 || /flags=flags\.filter\(function\(f\)\{return !f\._refute;\}\)/.test(html)) {
