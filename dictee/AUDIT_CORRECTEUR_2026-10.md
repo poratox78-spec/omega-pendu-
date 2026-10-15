@@ -112,7 +112,8 @@ Une seule liste numérotée (constats sur de vrais textes + cet audit), traitée
 chaque ligne : la famille autour de l'exemple, la cause, trois moteurs, des tests inventés qui échouent sur le moteur d'avant, la
 mesure produit ancien contre nouveau (3 corpus dys + UD 14 450).
 - Fusionnées : #946 (11, 13, 14), #947 (16, 1c), #948 (12), #949 (17), #950 (18, 19, 20, 1d), #951 (21, 22, 23), #952 (24, 25, 26) ;
-  avant elles, les lignes 1 à 6.
+  avant elles, les lignes 1 à 6. Avec ce rapport : 1e (noms composés « machine à laver »), 5b (l'accent écrit gardé, les métiers après
+  « est », 88 coquilles en « -è » du dictionnaire), 27 (l'inventaire ci-dessus).
 - Oranges → rouge (ligne 26) : la voie nouvelle a/à seulement (27 tirs, 27 justes ; 25 rouges, 2 oranges après la suite). Restent
   orange, faute d'effectif : c'est/ces (8/8), élision inversée (5/5) ; ou/où (15 tirs sur UD).
 - Attendent une décision de Rem : la route « voisins » de l'accord verbe (ligne 8), le Wiktionnaire récent (lignes 7 et 10), le
