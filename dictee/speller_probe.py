@@ -194,7 +194,7 @@ def load_lexicon():
             cgr = (row[cg] or '').strip().upper()
             p = 'N' if cgr.startswith('NOM') else ('V' if (cgr.startswith('VER') or cgr.startswith('AUX')) else ('A' if cgr.startswith('ADJ') else None))
             if p: POS[w].add(p)
-    for w in [w for w in WORDS if w.endswith(u'è') and w[:-1] + u'é' in WORDS]:   # ⭐ 14/10/2026 (liste n° 5b) : « aimè », « donnè »… coquilles de la source
+    for w in [w for w in WORDS if w.endswith(u'è') and w[:-1] + u'é' in WORDS and w != u'burkinabè']:   # burkinabè : vrai mot (les deux graphies)   # ⭐ 14/10/2026 (liste n° 5b) : « aimè », « donnè »… coquilles de la source
         WORDS.discard(w); FREQ.pop(w, None); POS.pop(w, None)                  # (jumeau en « é » présent) : pas des mots — miroir JS _applySpellerTSV
     PHON = defaultdict(list)
     for w in WORDS:

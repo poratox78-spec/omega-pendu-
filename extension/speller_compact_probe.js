@@ -28,6 +28,13 @@ for (const ln of txt.split('\n')) { if (!ln) continue; const pr = ln.split('\t')
   const w = pr[0], fr = parseInt(pr[1], 10) / 1000; WORDS.add(w); FREQ[w] = fr; if (pr[2]) POS[w] = pr[2];
   if (fr > 0) { const d = deaccS(w); (D2A[d] || (D2A[d] = [])).push(w); } }
 ['postulée', 'postulées', 'entretint', 'entretinrent', 'armet', 'armets'].forEach((w) => WORDS.add(w));
+// ⭐ 15/10/2026 (liste n° 5b) — RETRAIT VOULU : une forme en « -è » final dont le jumeau en « -é » existe est une coquille de la source
+// (aimè, donnè… : le correcteur se taisait dessus) — sauf burkinabè. Le banc reproduit ce retrait et vérifie que lui seul a changé : ces formes, aucune autre.
+const RETIRES = [...WORDS].filter((w) => w.endsWith('è') && WORDS.has(w.slice(0, -1) + 'é') && w !== 'burkinabè');
+for (const w of RETIRES) { WORDS.delete(w); const d = deaccS(w); if (D2A[d]) { D2A[d] = D2A[d].filter((x) => x !== w); if (!D2A[d].length) delete D2A[d]; } delete FREQ[w]; delete POS[w]; }
+if (RETIRES.length !== 87) ech('⑤ ' + RETIRES.length + ' coquilles en « -è » retirées, 87 attendues (relevé du 15/10/2026)');
+for (const w of RETIRES) if (L.W(w)) ech('⑤ « ' + w + ' » : coquille en « -è », encore connue du moteur');
+if (!L.W('burkinabè')) ech('⑤ « burkinabè » (vrai mot) n\'est plus connu');
 const sf = (a, b) => FREQ[b] - FREQ[a];
 for (const d in D2A) D2A[d].sort(sf);
 // ① chaque mot
