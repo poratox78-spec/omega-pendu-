@@ -14,6 +14,7 @@ catch (e) { console.error('cesses_probe.py floodflags échoué : ' + e.message);
 const fp = fs.readFileSync(path.join(HERE, 'fp_scale_corpus.txt'), 'utf8').split('\n').filter(x => x.trim()).slice(0, 1500);
 
 // 2) EXTENSION (dys-core.cesProbe) — POS-free, modèle inline, aucun setter requis
+// chargeur partiel voulu : parité d'un seul modèle (ces/ses) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(EXT, 'dys-core.js'));
 const D = global.DYSCORE;
 let extFlags = []; for (const s of fp) for (const f of D.cesProbe(s)) extFlags.push([f.word, f.sugg]);

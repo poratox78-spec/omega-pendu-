@@ -17,6 +17,7 @@
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const EXT = __dirname, OUT = path.join(EXT, 'assets', 'ent-3p.txt.gz');
 global.self = globalThis;                                  // dys-core publie self.__OMEGA_CJ (lu par la police de son)
+// chargeur partiel voulu : construit la table « -ent » depuis la seule conjugaison (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(EXT, 'dys-core.js'));
 global.DYSCORE.setLex(JSON.parse(fs.readFileSync(path.join(EXT, 'assets', 'vdc-lex.json'), 'utf8')));
 const CJ = self.__OMEGA_CJ, S = new Set();

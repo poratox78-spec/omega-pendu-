@@ -112,6 +112,7 @@ if (require.main === module) {
               ' non-questions (dont ' + cas.filter(c => c.src === 'fragment').length + ' fragments)');
 
   // le tagger, comme parity_pos.js le charge
+  // chargeur partiel voulu : banc des questions (étiqueteur seul) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
   require(path.join(RACINE, 'extension', 'dys-core.js'));
   const DC = global.DYSCORE;
   DC.setPosHmm(JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm.json'), 'utf8')));

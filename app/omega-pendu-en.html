@@ -25933,7 +25933,11 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
       if(dv==='a'&&v>=1&&deacc(T[v-1].toLowerCase())==='y'){for(var q=j;q<i;q++)if(_AA_TEMPS[deacc(T[q].toLowerCase()).replace(/^[ld]['’]/,'')])return false;}   // « il y a deux ans a commencé » : une durée, pas un objet
       return true;}
     return false;}
-  function _rAnouveau(T,i){
+  /* ⭐ 14/10/2026 (liste n° 26, suite) — cas ④ « sujet + mot plein + a » : le mot plein doit pouvoir être le VERBE. « elle seule a manger »,
+     « il surtout a chanter » : « seul » ou un adverbe laisse le créneau du verbe LIBRE → « a » est l'auxiliaire (a mangé). Liste fermée
+     + adverbes en -ment (7 lettres et plus : « dément » reste un verbe). Miroir Python _AA_NONVB. */
+  var _AA_NONVB={};"seul seule seuls seules surtout egalement ainsi aussitot cependant neanmoins toutefois maintenant aujourd'hui hier demain ensuite parfois rarement longtemps peu mal puis ici".split(' ').forEach(function(w){_AA_NONVB[w]=1;});
+  function _rAnouveau(T,i,sans4){
     if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase()||i<1)return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(_aaLocution(T,i))return 'à';                                      // ⑤ locution prépositive (sans infinitif)
     if(_aaApresAdverbe(T,i))return 'à';                                  // ⑥ verbe + adverbe + « a »
@@ -25946,7 +25950,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var el=/^(m|t|s|l)['’](.+)$/.exec(T[i-1].toLowerCase());
     if(el){var wv=el[2],dv=deacc(wv);if(!_AA_AUX[dv]&&!_isPpl(wv)){var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(dv):NOUN_POST[dv]):null,T3=T.slice();T3[i-1]=wv;
       if((el[1]!=='l'||!(np&&np[0]>=100))&&(vlike(T3,i-1)||(CONJ_F&&CONJ_F[dv])))return 'à';}}   // ③ verbe collé à un pronom élidé (« m'obligea a fermer ») ; « l'expulsé a », ou « l'Est » devant « a », restent avoir
-    if(i>=2&&SUBJ_PRON[deacc(T[i-2].toLowerCase())]&&!CLITIC[p1]&&!VSTOP[p1]&&!_AA_ADV[p1]&&!_AA_AUX[p1]&&!_isPpl(T[i-1]))return 'à';   // ④ sujet + un mot plein + « a » : le créneau du verbe est pris (« elle continu a avancer »)
+    if(!sans4&&i>=2&&SUBJ_PRON[deacc(T[i-2].toLowerCase())]&&!CLITIC[p1]&&!VSTOP[p1]&&!_AA_ADV[p1]&&!_AA_ADV2[p1]&&!_AA_NONVB[p1]&&!/^.{3,}ment$/.test(p1)&&!_AA_AUX[p1]&&!_isPpl(T[i-1]))return 'à';   // ④ sujet + un mot plein + « a » : le créneau du verbe est pris (« elle continu a avancer »)
     return null;}
   function rA(T,i){var r=_rAbase(T,i);return r!==null?r:_rAnouveau(T,i);}
   /* ⭐ 04/10/2026 — « À » ÉCRIT + PARTICIPE APRÈS UN VERBE QUI APPELLE « À » + INFINITIF (« il apprend à nagé ») : c'est le verbe qui
@@ -28837,7 +28841,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   function _wordKnown(d){return !!(SP&&SP.WORDS&&(SP.WORDS.has(d)||(SP.D2A&&spD(d)&&spD(d).length)))||GENDER_PURE[d]==='m'||GENDER_PURE[d]==='f';}
   function _tierOf(T,i,name,sugg){   // MIROIR de correcteur_probe.tier_of — sous-cas SÛRS (rouge) des familles à vérifier ; sinon orange
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
-    if(name==='a/à')return (_rAbase(T,i)===null&&_rAnouveau(T,i)==='à')?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir Python
+    if(name==='a/à')return (_rAbase(T,i)===null&&_rAnouveau(T,i,1)===null&&i>=1&&!(vlike(T,i-1)||(CONJ_F&&CONJ_F[deacc(T[i-1].toLowerCase())])))?'vigilance':'auto';   // ⭐ 14/10/2026 (liste n° 26, suite) : seul le cas ④ décide ET le mot d'avant n'est pas une forme verbale connue (« elle continu a avancer ») → orange   // ⭐ 14/10/2026 (liste n° 26) : la voie NOUVELLE (29/09, devant un infinitif) était orange EN ATTENDANT LA MESURE. Mesurée : 27 tirs sur les 3 corpus dys et UD 14 450, 27 justes (dont une vraie faute d'UD, « rien a redire »), 0 inutile, 0 fausse → rouge comme la voie de base. Miroir Python
     if(name==='et/est')return (_rEtBase(T,i)===null&&(_rEtNouveau(T,i)!==null||_rEstEtCoord(T,i)!==null))?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir Python
     if(name==='élision inversée'){var _dz=_deselide(T,i);return (_dz&&_dz[1])?'vigilance':'auto';}   // ⭐ 13/09/2026 : miroir tier_of Python
     if(name==='leur/leurs'){if(i+1>=n)return 'vigilance';var dn=deacc(T[i+1].toLowerCase());
@@ -29521,7 +29525,7 @@ function estQuestion(t,maxMots){
   function sGender(w){var dw=deaccS(w);if((spP(w)||'').indexOf('A')>=0){var a=ADJP[dw];if(a)return a[0];}var g=GENDER_PURE[dw]||GENDER_MAP[dw];return (g==='m'||g==='f')?g:null;}  // table adj SEULEMENT si adjectif (évite collision pomme/pommé) ; sinon genre du nom
   function _homophoneEdit1(low){var d=deaccS(low),pk=phonKey(low),e1=sEdits1(d),i,j;for(i=0;i<e1.length;i++){var a=spD(e1[i]);if(!a)continue;for(j=0;j<a.length;j++){var w=a[j];if(w!==low&&(spF(w)||0)>=1.0&&/V/.test(spP(w)||'')&&phonKey(w)===pk)return true;}}return false;}   // un VERBE du lexique à 1 édition et de même clé phonétique existe (aboit→aboie) : la soudure « a + verbe » s'efface devant lui
   var SCTX_STOP={};('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme').split(' ').forEach(function(w){SCTX_STOP[w]=1;});   // frontière de proposition : le genre de « un » ne traverse pas « qui » (« un chien qui aboit »→aboie, pas about). Miroir Python CTX_STOP.
-  function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(SCTX_STOP[t])return null;if(t==='peu'||t==='peux'||(DET_G[t]&&j+1<T.length&&(deaccS(T[j+1].toLowerCase())==='peu'||deaccS(T[j+1].toLowerCase())==='peux')))continue;if(DET_G[t])return DET_G[t];
+  function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(/^d'(un|une)$/.test(t))t=t.slice(2);if(SCOPULA[t])continue;if(SCTX_STOP[t])return null;   /* ⭐ liste n° 24 : « d'une » = « une » */if(t==='peu'||t==='peux'||(DET_G[t]&&j+1<T.length&&(deaccS(T[j+1].toLowerCase())==='peu'||deaccS(T[j+1].toLowerCase())==='peux')))continue;if(DET_G[t])return DET_G[t];
     if(!SP.WORDS.has(T[j].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')))continue;   // ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GENDER_PURE déacc ← « trés » nom) → on continue vers le déterminant
     var g=GENDER_PURE[t];if((g==='m'||g==='f')&&!(j>0&&DET_G[deaccS(T[j-1].toLowerCase())]))continue;if(g==='m'||g==='f')return g;}return null;}
   /* ⭐ 11/10/2026 — QUANTIFIEUR PLURIEL MAL ÉCRIT (lot 4 des mots faux). Le scripteur écrit le quantifieur comme il l'entend :
@@ -29547,9 +29551,19 @@ function estQuestion(t,maxMots){
     var g=SP.WORDS.has(nx)?sGender(nx):null,fem=g?g==='f':q.fem;
     if(art){if(q.m!=='certains'||!_QPL_SG[av])return null;return fem?'certaine':'certain';}   // « un certin âge » : l'ADJECTIF certain, au singulier (le tri rendait « crétin »)
     return fem?q.f:q.m;}
+  /* ⭐ 14/10/2026 (liste n° 24 : 9 régressions connues depuis #568) — LE CONTEXTE DE NOMBRE DÉBORDAIT. Il remontait jusqu'à 4 mots à
+     travers un verbe et une préposition (« les autres moururent en priosn » → prions, fréquence 6, contre prison, 164). Une préposition
+     (sauf « de », qui relie un complément au nom) ouvre un NOUVEAU groupe : le nombre s'y arrête. PAS « qui » : le verbe d'une relative
+     s'accorde à l'antécédent (« trois enfants qui vvient » — essayé, 4 suggestions fausses passaient au palier flag).
+     « d'un »/« d'une » se lisent comme « un »/« une » (« le début d'une guerre civille » prenait le masculin de « le » → civil). Le GENRE,
+     lui, n'est pas arrêté à la préposition : essayé, 4 pertes — le participe s'accorde souvent par-dessus le complément (« une porte
+     en bois peinte »). Miroir Python _ctx_number/_ctx_gender. */
+  var _CTX_PREP={'a':1,'à':1,'en':1,dans:1,pour:1,sur:1,par:1,avec:1,sans:1,sous:1,chez:1,vers:1,entre:1,contre:1,depuis:1};
+  var _COP_NUM={sont:'p',etaient:'p',seront:'p',seraient:'p',furent:'p',semblent:'p',deviennent:'p',restent:'p',paraissent:'p',est:'s',etait:'s',sera:'s',serait:'s',fut:'s',semble:'s',devient:'s',reste:'s',parait:'s'};   // ⭐ liste n° 24 : la copule CONJUGUÉE juste avant porte le nombre de l'attribut (« les miniatures qui sont visiblse »)
   function sCtxNumber(T,idx){if(!T||idx==null)return null;var back=null,bdist=99,j;
-    for(j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SDET_NUM[t]){back=SDET_NUM[t];bdist=idx-j;break;}}
+    for(j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(/^d'(un|une)$/.test(t))t=t.slice(2);if(SDET_NUM[t]){back=SDET_NUM[t];bdist=idx-j;break;}if(_CTX_PREP[t]||_CTX_PREP[T[j].toLowerCase()])break;}
     if(back!==null&&bdist===1)return back;   // déterminant COLLÉ = preuve la plus forte
+    if(back===null&&idx>=1){var _cpn=_COP_NUM[deaccS(T[idx-1].toLowerCase())];if(_cpn)return _cpn;}   // ⭐ 14/10/2026 (liste n° 24) : « qui sont visiblse » — l'arrêt à « qui » coupait l'antécédent, la copule le porte
     if(back===null&&idx>=1){var _pq=deaccS(String(T[idx-1]).toLowerCase());if(_SU_PLDET[_pq]||_quantMal(T,idx-1))return 'p';}   // ⭐ 11/10/2026 : cardinal ou quantifieur juste avant (« deux élefant » → éléphants), même mal écrit (« diver revu » → revues)
     // PREUVE VERS L'AVANT (22/08/2026, parité Python _ctx_number) : pour un DÉTERMINANT ou un ADJECTIF, la marque de
     // nombre est portée par le NOM QUI SUIT (« pettits TUYAUX », « leusr TIGES »). Restreinte pour ne créer AUCUN risque :
@@ -29788,8 +29802,8 @@ function spellTokenCore(tok,atStart,T,idx){
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
     var expPos=null;                                                   // POS attendu (désambiguïse l'accent : élève/élevé)
     if(T&&idx>0){var pt=deaccS(T[idx-1].toLowerCase());if(DET_G[pt]||SDET_NUM[pt])expPos='N';else if(SADVERB[pt])expPos='A';
-      else if(SCOPULA[pt])expPos='VA';else if(SAUXAV[pt]||SSUBJP[pt])expPos='V';}   // copule = attribut POSSIBLE : V OU A (« je suis trist »→triste, pas seulement « je suis allé ») — audit 07/2026   // CONTEXTE VERBAL : après aux/copule (j'ai/été→participe) ou pronom-sujet (il→verbe) → candidat VERBE (pri→pris pas prix ; pleu→pleut pas peu). Bonus, jamais pénalité → FP-sûr.
-    function pm(x){if(!expPos)return 0;var ps=spP(x)||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
+      else if(SCOPULA[pt])expPos='VA';else if(SAUXAV[pt]||SSUBJP[pt])expPos='V';else if(pt==='qui')expPos='F';}   // ⭐ 14/10/2026 (liste n° 24) : après « qui » sujet, un verbe CONJUGUÉ (« qui délenche » → déclenche, pas déclenché)   // copule = attribut POSSIBLE : V OU A (« je suis trist »→triste, pas seulement « je suis allé ») — audit 07/2026   // CONTEXTE VERBAL : après aux/copule (j'ai/été→participe) ou pronom-sujet (il→verbe) → candidat VERBE (pri→pris pas prix ; pleu→pleut pas peu). Bonus, jamais pénalité → FP-sûr.
+    function pm(x){if(!expPos)return 0;if(expPos==='F'){if(/é(s?)$/.test(x))return 0;var _rf=svReads(x);for(var _q=0;_q<_rf.length;_q++)if(/^(ind|cnd|sub)/.test(_rf[_q][1]))return 1;return 0;}var ps=spP(x)||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
     function gm(x){var g=sGender(x);return (cg&&g&&g===cg)?1:0;}       // bonus genre (jamais pénalité)
     function sInvarS(x){var w=x.toLowerCase();if(!/[sxz]$/.test(w))return false;   // NOM/ADJ INVARIABLE en -s/-x/-z : sa forme est la MEME au singulier et au pluriel (noix, voix, prix, croix, choix, temps, bras, heureux) => compatible avec un determinant SINGULIER. Sans ca, le filtre de nombre lisait le -x final comme une marque de pluriel et ecartait « noix » apres « la/une » (« la nois »→fois au lieu de noix).
       var st=w.slice(0,-1);if(SP.WORDS&&SP.WORDS.has(st)&&/[NA]/.test(spP(st)||''))return false;   // le radical est lui-meme un NOM/ADJ => la forme EST un pluriel (chats/chat, bijoux/bijou, boites/boite)
@@ -29902,7 +29916,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var _aux=false;if(T){var _z=idx-1;while(_z>=0){var _dz=deaccS(T[_z].toLowerCase());if((SAUXAV[_dz]||SCOPULA[_dz])&&T[_z].toLowerCase()!=='à'){_aux=true;break;}   /* ⭐ 03/10/2026 : « à » accentué n'est pas l'auxiliaire « a » (deaccS les confondait : « il apprend à rentrre » → « rentré », puis la grammaire changeait « à » en « a » EN ROUGE). Miroir speller_probe */if(_dz==='ne'||_dz==='n'||_dz==='pas'||_dz==='plus'||_dz==='jamais'||_dz==='bien'||_dz==='tres'||_dz==='deja'||_dz==='toujours'||_dz==='y'||_dz==='en'||_dz==='tout'){_z--;continue;}break;}}
     if(_aux&&/e$/.test(w1)&&!/é$/.test(w1)&&!(T&&T[idx]&&/^[ld]['’]/i.test(T[idx]))){var _pe=w1.slice(0,-1)+'é';   /* ⭐ 03/10/2026 : un mot à « l' » / « d' » collé est un NOM, jamais un participe (« il a l'âje » donnait « l'âgé ») */if(cand[_pe]&&cand[_pe][1]>=1.0)return['flag',_pe];}   // PARTICIPE APRÈS AUXILIAIRE avoir/être : le dys écrit le PRÉSENT (-e) là où l'aux impose le PARTICIPE (-é) du MÊME verbe — « il a manje/manjé »→mangé. Ne touche QUE le présent -e (jamais pris/fait/vu en -s/-t/-u) ⇒ FP=0.
     var _cgd=(T&&idx>0)?DET_G[deaccS(T[idx-1].toLowerCase())]:null;   // GENRE du DETERMINANT immediat (audible, fiable) — pas la marche arriere sCtxGender, qui peut lire un genre POLLUE sur un mot-outil (« des » porte un genre dans le lexique relache)
-    if(expPos){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
+    if(expPos&&expPos!=='F'){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // ⭐ liste n° 24 : « F » (après qui) trie, n'affirme pas — CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
       if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → la ré-sélection context-first ne re-choisit QUE des candidats à finale AUDIBLE (manjé→mangé, pas mange) — sinon la fréquence réécrasait le tri d'audibilité (12536)
       if(_b&&_bf>=1.0&&!(pm(w1)&&cand[w1][0]>=1&&cand[w1][1]>=20*_bf))return['flag',_b];}   // pri→pris, von→vont, pleu→pleut (plaît/pleure = édit>1, exclus) ; respecte le nombre (« un eleve »→élève). GARDE DE DOMINANCE (2026-08-22) : si le vainqueur du tri colle déjà au POS et est ≫20× plus fréquent, la ré-sélection phonétique ne le détrône pas (« un chein »→chien, pas « chin » 3/M) — même garde que le tri, parité Python (qui rend chien)
     /* ⭐ 13/10/2026 (liste n° 5 : « personalisé » → personnalisé seulement en orange) — UNE LETTRE REDOUBLÉE MANQUE, ET UN SEUL MOT

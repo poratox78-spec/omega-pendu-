@@ -15,6 +15,7 @@
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const H = __dirname, ROOT = path.join(H, '..');
 const txt = zlib.gunzipSync(fs.readFileSync(path.join(H, 'assets', 'speller.tsv.gz'))).toString('utf8');
+// chargeur partiel voulu : garde du rangement du dictionnaire (orthographe seule) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(H, 'dys-core.js'));
 const D = global.DYSCORE;
 D.setLex({ v: [] }, null, txt);

@@ -30,6 +30,7 @@ print(json.dumps([C.pos_tags(C.toks(s)) for s in B], ensure_ascii=False))
 const pyTags = JSON.parse(py);
 
 // --- extension : DYSCORE.posTags ---
+// chargeur partiel voulu : parité de l'étiqueteur seul (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(ROOT, 'extension', 'dys-core.js'));
 const D = global.DYSCORE;
 D.setPosHmm(model);

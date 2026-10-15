@@ -16,15 +16,8 @@ const ROOT = path.join(__dirname, '..'), EXT = path.join(ROOT, 'extension');
 const SRC = path.join(ROOT, 'data_local', 'casses_contexte.json');
 
 if (!fs.existsSync(SRC)) { console.log('· CASSÉS AU PRODUIT : ' + SRC + ' absent — sauté'); process.exit(0); }
-require(path.join(EXT, 'dys-core.js'));
-const DC = global.DYSCORE;
-const A = (f) => fs.readFileSync(path.join(EXT, 'assets', f));
-DC.setLex(JSON.parse(A('vdc-lex.json').toString('utf8')),
-          zlib.gunzipSync(A('gender-relaxed.tsv.gz')).toString('utf8'),
-          zlib.gunzipSync(A('speller.tsv.gz')).toString('utf8'));
-try { DC.setPrenoms(zlib.gunzipSync(A('prenoms.tsv.gz')).toString('utf8')); } catch (e) {}
-try { DC.setNounPost(zlib.gunzipSync(A('noun-post.txt.gz')).toString('utf8')); } catch (e) {}
-try { DC.setPosHmm(JSON.parse(zlib.gunzipSync(A('pos-hmm.json.gz')).toString('utf8'))); } catch (e) {}
+// ⭐ 14/10/2026 (liste n° 25) : le CHARGEUR UNIQUE — avant, ce banc « au produit » chargeait le moteur sans le genre accentué ni le modèle OS.
+const DC = require(path.join(EXT, 'charger_node.js'))({ ext: EXT });
 if (!DC.spellerReady()) { console.error('lexique speller non chargé'); process.exit(2); }
 
 const cas = JSON.parse(fs.readFileSync(SRC, 'utf8'));
@@ -57,4 +50,4 @@ console.log('· %d cassés rejoués au produit : %d MÊME FAUTE · %d produit in
             cas.length, idem, innocent, autre);
 console.log('  → ' + dst);
 for (const o of out.filter(x => x.verdict === 'MÊME FAUTE').slice(0, 25))
-  console.log('   [%s] %-16s → %-16s (gold %s)', o.corpus, o.mot, o.sortie_ext, o.gold);
+  console.log('   [' + o.corpus + '] ' + String(o.mot).padEnd(16) + ' → ' + String(o.sortie_ext).padEnd(16) + ' (gold ' + o.gold + ')');   // console.log ne connaît pas « %-16s » (format Python) : il l'imprimait tel quel

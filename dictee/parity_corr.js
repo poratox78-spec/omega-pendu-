@@ -432,6 +432,7 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
 
 /* ⭐ 13/10/2026 — TABLE COMPACTE (dictee/conj_io.py) : les fichiers ne portent plus l'index `f` en clair, il se recalcule depuis `c`.
    _cjR = le recalcul du PRODUIT (dys-core), utilisé ici pour lire les tables comme le moteur les lit. */
+// chargeur partiel voulu : parité app ↔ référence Python, qui n'a pas le modèle OS (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 const _cjR = (() => { const prev = global.DYSCORE; require(path.join(__dirname, '..', 'extension', 'dys-core.js')); const f = global.DYSCORE.cjRebuild; global.DYSCORE = prev; return f; })();
 
 /* ⭐ 13/10/2026 — conjugaison 14 : la table COMPLÈTE (Rem : un verbe est un verbe, un temps est un temps) — tous les verbes de Morphalou,

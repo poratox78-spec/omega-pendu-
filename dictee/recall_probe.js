@@ -46,6 +46,7 @@ function loadApp() {
 
 // ---------- moteur EXTENSION (dys-core + assets HF) (cf. parity_core.js) ----------
 function loadExt() {
+  // chargeur partiel voulu : rappel app ↔ extension ↔ Python sur les tables de parity_core (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
   require(path.join(ROOT, 'extension', 'dys-core.js'));
   const D = global.DYSCORE;
   const vdc = JSON.parse(fs.readFileSync(path.join(ROOT, 'extension', 'assets', 'vdc-lex.json'), 'utf8'));

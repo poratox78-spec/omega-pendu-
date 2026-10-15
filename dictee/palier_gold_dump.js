@@ -21,6 +21,7 @@ const EXT = path.join(__dirname, '..', 'extension');
 const [fin, fout] = process.argv.slice(2);
 if (!fin || !fout) { console.error('usage : node dictee/palier_gold_dump.js entree.json sortie.json'); process.exit(2); }
 
+// chargeur partiel voulu : paliers de l'orthographe comparés à la référence Python (le modèle OS ne touche pas l'orthographe) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(EXT, 'dys-core.js'));
 const D = global.DYSCORE, A = p => path.join(EXT, 'assets', p), gz = p => zlib.gunzipSync(fs.readFileSync(A(p))).toString('utf8');
 D.setLex(JSON.parse(fs.readFileSync(A('vdc-lex.json'), 'utf8')), gz('gender-relaxed.tsv.gz'), gz('speller.tsv.gz'));

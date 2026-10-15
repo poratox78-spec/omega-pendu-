@@ -1,7 +1,7 @@
 {
- "justes": 372,
- "pointeuses": 220,
- "fatigue": 146,
+ "justes": 377,
+ "pointeuses": 215,
+ "fatigue": 143,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -53,6 +53,7 @@
   "chque→chaque [orthographe] lettre_manque",
   "cinéastte→cinéaste [orthographe] lettre_trop",
   "cirs→cris [orthographe] inversion",
+  "civille→civile [orthographe] lettre_trop",
   "clartai→clarté [orthographe] terminaison",
   "cloonne→colonne [orthographe] inversion",
   "cocpeteur→concepteur [mot inconnu] autre",
@@ -259,9 +260,11 @@
   "premièra→première [orthographe] lettre_change",
   "premiée→premier [orthographe] terminaison",
   "premié→premier [orthographe] terminaison",
+  "priosn→prison [orthographe] inversion",
   "procédais→procédés [pluriel par le son à vérifier] terminaison",
   "produtis→produits [orthographe] inversion",
   "prolnogation→prolongation [mot inconnu] inversion",
+  "proose→propose [orthographe] lettre_manque",
   "propriétaire→propriétaires [accord pluriel à vérifier] accord",
   "province→provinces [accord pluriel à vérifier] accord",
   "présiser→préciser [orthographe] lettre_change",
@@ -279,6 +282,7 @@
   "qlace→place [orthographe] lettre_change",
   "qlein→plein [orthographe] lettre_change",
   "qoui→qui [orthographe] lettre_change",
+  "quatrai→quatre [mot inconnu] autre",
   "quelqus→quelques [orthographe] terminaison",
   "qulqut→quelque [mot inconnu] autre",
   "quroum→quorum [mot inconnu] inversion",
@@ -301,6 +305,7 @@
   "référendumm→référendum [mot inconnu] lettre_trop",
   "résius→résidus [orthographe] lettre_manque",
   "s'agréjeant→s'agrégeant [mot inconnu] lettre_change",
+  "salless→salles [orthographe] lettre_trop",
   "scientifiqus→scientifique [orthographe] terminaison",
   "scème→scène [orthographe] lettre_change",
   "sdation→station [orthographe] lettre_change",
@@ -385,13 +390,6 @@
    "cle_si_reparee": "tèrs→très [orthographe] inversion"
   },
   {
-   "mot": "priosn",
-   "attendu": "prison",
-   "obtenu": "prions",
-   "depuis": "PR#568",
-   "cle_si_reparee": "priosn→prison [orthographe] inversion"
-  },
-  {
    "mot": "sines",
    "attendu": "signes",
    "obtenu": "mines",
@@ -411,13 +409,6 @@
    "obtenu": "excité",
    "depuis": "PR#568",
    "cle_si_reparee": "êrcite→écrite [orthographe] autre"
-  },
-  {
-   "mot": "civille",
-   "attendu": "civile",
-   "obtenu": "civils",
-   "depuis": "PR#568",
-   "cle_si_reparee": "civille→civile [orthographe] lettre_trop"
   },
   {
    "mot": "préférrées",

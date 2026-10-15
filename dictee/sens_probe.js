@@ -16,6 +16,7 @@ const fs = require('fs'), path = require('path'), zlib = require('zlib');
 
 const R = path.join(__dirname, '..');
 global.self = global;
+// chargeur partiel voulu : jeu Double-Sens : n'utilise que phonKey (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(R, 'extension', 'dys-core.js'));
 const DC = global.DYSCORE;
 

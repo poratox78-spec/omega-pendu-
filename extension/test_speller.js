@@ -7,6 +7,7 @@ const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const HERE = __dirname, ROOT = path.join(HERE, '..');
 
 // ---- (1) moteur extension + assets ----
+// chargeur partiel voulu : banc de l'orthographe d'abord ; l'étiqueteur et le genre accentué sont chargés en fin de banc (testListe12) (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(HERE, 'dys-core.js'));
 const DC = global.DYSCORE;
 const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json'), 'utf8'));
@@ -454,6 +455,13 @@ function testListe23() {
     const ed = DC.diagnoseAll(t).flags.some(f => f.name === 'espace double');
     if (ed !== attendu) fail.push('liste n° 23 « ' + t + ' » : espace double ' + (attendu ? 'attendu' : 'NON attendu') + ', eu ' + (ed ? 'corrigé' : 'rien')); }
 }
+// ⭐ 14/10/2026 — LISTE N° 26 : la voie nouvelle a/à (devant un infinitif), mesurée 27 justes sur 27, passe au ROUGE. Échoue sur le moteur
+// d'avant (orange) ; témoin : « il a mangé » reste muet.
+function testListe26() {
+  for (const [t, w, tier] of [['Il n\'y a plus rien a faire ici.', 'a', 'auto'], ['Il a mangé.', 'a', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (tier === null ? !!f : (!f || f.tier !== tier || f.sugg !== 'à')) fail.push('liste n° 26 « ' + t + ' » : attendu ' + (tier ? 'à en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe20() {
   for (const [t, w, s] of [['Des stages : avr. 2021', 'avr', null], ['Des équipes motivées, organisation opérationnelle', 'organisation', null],
       ['Les pages produit', 'produit', null], ['Les photos produit et service se renouvellent.', 'renouvellent', null],
@@ -471,15 +479,21 @@ function testListe20() {
       // ⭐ LISTE N° 22 : les mots d'un courriel, d'un lien ou d'un nom de site ne sont plus corrigés (« velo » → vélo EN ROUGE dans un lien).
       // Les trois premiers échouent sur le moteur d'avant ; témoin : la faute de la phrase autour reste corrigée.
       ['Écrivez à lea.durand@gmail.com demain.', 'gmail', null], ['Site : www.atelier-velo-exemple.fr', 'velo', null],
-      ['Mon adresse marcvelo@hotmail.fr est valide.', 'hotmail', null], ['Les enfant joue au parc.', 'enfant', 'enfants']]) {
+      ['Mon adresse marcvelo@hotmail.fr est valide.', 'hotmail', null], ['Les enfant joue au parc.', 'enfant', 'enfants'],
+      // ⭐ LISTE N° 24 : le contexte de nombre de l'orthographe ne traverse plus une préposition ni « qui » ; « d'une » se lit « une ».
+      // Les deux premiers échouent sur le moteur d'avant ; témoins (pertes vues en mesurant les variantes) : la copule porte le nombre,
+      // « qui » appelle un verbe conjugué.
+      ['Les deux voleurs finirent en priosn.', 'priosn', 'prison'], ['C\'est le début d\'une guerre civille.', 'civille', 'civile'],
+      ['Les étoiles qui sont visiblse brillent.', 'visiblse', 'visibles'], ['Le bouton qui délenche l\'alarme.', 'délenche', 'déclenche']]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w);
-    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20, 1d, 21 et 22 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('listes n° 20, 1d, 21, 22 et 24 « ' + t + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' »') + ', eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
 }
 function finish(parityKO) {
   testListe12();
   testListe19();
   testListe20();
   testListe23();
+  testListe26();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {

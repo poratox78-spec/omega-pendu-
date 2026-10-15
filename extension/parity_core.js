@@ -6,6 +6,7 @@ const fs = require('fs'), path = require('path'), cp = require('child_process'),
 const HERE = __dirname, ROOT = path.join(HERE, '..');
 
 // 1) charger le moteur + injecter les lexiques (assets) — setLex synchrone (pas de fetch en Node)
+// chargeur partiel voulu : parité avec la référence Python, qui n'a ni le modèle OS ni les confusables (extension/chargeur_probe.js ; le produit complet : extension/charger_node.js)
 require(path.join(HERE, 'dys-core.js'));
 const DYSCORE = global.DYSCORE;
 const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json'), 'utf8'));
@@ -506,7 +507,15 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
   let _vo = 0;
   const f1 = fl('Il commanse a pleurer.'), fa = f1.find(f => f.word === 'a'), fp = f1.find(f => f.word === 'pleurer');
-  if (!fa || fa.sugg !== 'à' || fa.tier !== 'vigilance') { _vo++; console.log('  ✗ voisin orange : « commanse a pleurer » → a/à orange attendu, obtenu ' + JSON.stringify(fa || null)); }
+  // ⭐ 14/10/2026 (liste n° 26, suite) : la voie NOUVELLE a/à est passée au ROUGE (27 justes sur 27), SAUF quand seul le cas ④ « sujet + mot
+  // plein + a » décide et que le mot plein n'est pas une forme verbale connue : « commanse » (faute) ou « seule » (« elle seule a mangé »). Orange.
+  if (!fa || fa.sugg !== 'à' || fa.tier !== 'vigilance') { _vo++; console.log('  ✗ « commanse a pleurer » → a/à orange attendu (cas ④, mot hors verbe), obtenu ' + JSON.stringify(fa || null)); }
+  // ⭐ (suite) le même cas avec un VRAI verbe est rouge ; « seul » ou un adverbe laisse le créneau du verbe libre : « a » = avoir (pas de « à »)
+  const f1b = fl('Il commence a pleurer.').find(f => f.word === 'a');
+  if (!f1b || f1b.sugg !== 'à' || f1b.tier !== 'auto') { _vo++; console.log('  ✗ « commence a pleurer » → a/à rouge attendu, obtenu ' + JSON.stringify(f1b || null)); }
+  for (const s of ['Elle seule a goûter le plat.', 'Il surtout a laver la vaisselle.', 'Elle ensuite a ranger sa chambre.', 'Il finalement a fermer la porte.']) {
+    const fx = fl(s).find(f => f.word === 'a');
+    if (fx) { _vo++; console.log('  ✗ « ' + s + ' » : « a » est l\'auxiliaire (créneau du verbe libre), marqué ' + JSON.stringify(fx)); } }
   if (fp && fp.tier !== 'vigilance') { _vo++; console.log('  ✗ voisin orange : le rouge « pleuré » (a lu comme avoir) devait passer en orange : ' + JSON.stringify(fp)); }
   const f2 = fl('Elle commence à avancer doucement.');
   if (f2.length) { _vo++; console.log('  ✗ voisin orange : phrase correcte marquée ' + JSON.stringify(f2.map(f => [f.word, f.sugg, f.name]))); }
@@ -517,7 +526,7 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   const f4 = fl('Il éprouve une difficulté à parler.');
   if (f4.length) { _vo++; console.log('  ✗ voisin orange : phrase correcte marquée ' + JSON.stringify(f4.map(f => [f.word, f.sugg, f.name]))); }
   if (_vo) { console.log('PARITÉ KO — voisin orange : ' + _vo + ' attente(s) non tenue(s).'); process.exit(1); }
-  console.log('  ✓ voisin orange : « commanse a pleurer » → à ? (orange) ; « dificultée a parler » → à ? sans « parlé » contradictoire ; phrases correctes muettes');
+  console.log('  ✓ voisin orange : « commanse a pleurer » → à ? (orange, cas ④ hors verbe) ; « commence a pleurer » → à (rouge) ; « elle seule a … » laissé à avoir ; « dificultée a parler » → à ? (orange) sans « parlé » contradictoire ; phrases correctes muettes');
 }
 
 // ⭐ 30/09/2026 — GENRE DU DÉTERMINANT CONTREDIT PAR L'ORANGE DU NOM : « la foret » → le (le foret, l'outil) alors que l'orthographe
@@ -616,20 +625,21 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (_ga) { console.log('PARITÉ KO — gardes des règles existantes : ' + _ga + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ gardes : se qu’elle → ce, se sont nos → ce, à tout les → tous ; 3 témoins muets'); }
 
-// ⭐ 30/09/2026 — LOCUTIONS PRÉPOSITIVES (a → à, orange) : à cause du, suite à, à qui, à ne jamais, grâce à, à partir du ; 2 témoins avoir.
+// ⭐ 30/09/2026 — LOCUTIONS PRÉPOSITIVES (a → à) : à cause du, suite à, à qui, à ne jamais, grâce à, à partir du ; 2 témoins avoir.
+// ⭐ 14/10/2026 (liste n° 26) : orange jusqu'ici, ROUGE désormais — la voie nouvelle a/à mesurée 27 justes sur 27 (3 corpus dys + UD).
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
   let _lo = 0;
   for (const s of ['Il est rentré tôt a cause du vent.', 'Suite a cette réunion, tout a changé.', 'Voici le voisin a qui il a prêté son vélo.',
                    'Il s\'applique a ne jamais trembler.', 'Il a réussi grâce a son travail.', 'Les cours a partir du mois prochain seront en ligne.']) {
     const m = fl(s).filter(x => x.word === 'a');
-    if (m.length !== 1 || m[0].name !== 'a/à' || m[0].sugg !== 'à' || m[0].tier !== 'vigilance') { _lo++; console.log('  ✗ locutions : « ' + s + ' » → « à » orange attendu, obtenu ' + JSON.stringify(m)); }
+    if (m.length !== 1 || m[0].name !== 'a/à' || m[0].sugg !== 'à' || m[0].tier !== 'auto') { _lo++; console.log('  ✗ locutions : « ' + s + ' » → « à » rouge attendu (liste n° 26), obtenu ' + JSON.stringify(m)); }
   }
   for (const s of ['Il y en a qui pensent le contraire.', 'La suite a montré qu\'il avait raison.']) {
     const m = fl(s).filter(x => x.name === 'a/à');
     if (m.length) { _lo++; console.log('  ✗ locutions : témoin « ' + s + ' » marqué ' + JSON.stringify(m)); }
   }
   if (_lo) { console.log('PARITÉ KO — locutions prépositives : ' + _lo + ' attente(s) non tenue(s).'); process.exit(1); }
-  console.log('  ✓ locutions : 6 « à » proposés (orange) ; 2 témoins avoir muets'); }
+  console.log('  ✓ locutions : 6 « à » corrigés (rouge) ; 2 témoins avoir muets'); }
 
 // ⭐ 30/09/2026 — PEU/PEUT + DEUX ROUGES FAUX CONSTRUITS : « ça / cela peu » + infinitif → peut (aussi derrière « cela » mal écrit, voisin
 // orange) ; « ça peu » lu « sa/son » + nom (→ Son) ; « ne » sans accent lu « né » après avoir (→ est).
@@ -648,13 +658,13 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (_rf) { console.log('PARITÉ KO — peu/peut et rouges faux construits : ' + _rf + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ peu/peut : ça, cela + infinitif → peut (orange derrière « cela » mal écrit) ; « il a ne en » → est gardé ; 4 témoins sans ça/sa ni « est »'); }
 
-// ⭐ 30/09/2026 — a → à : VERBE + ADVERBE + « a », INTERVALLE « de 10 … a 20 » (orange) ; témoins : relative sujet, participe, âge, « de 1995 a été ».
+// ⭐ 30/09/2026 — a → à : VERBE + ADVERBE + « a », INTERVALLE « de 10 … a 20 » (orange, ROUGE depuis la liste n° 26 : 27 justes sur 27) ; témoins : relative sujet, participe, âge, « de 1995 a été ».
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
   let _av = 0;
   for (const s of ['Il parle souvent a ses amis.', 'Elle pense toujours a son chien.', 'Il donne tout a son frère.', 'Il est encore a la gare.',
                    'Les fermes passent de 10 hectares a 20 hectares cette année.', 'Le prix passe de 5 a 8 euros.']) {
     const m = fl(s).filter(x => x.word === 'a');
-    if (m.length !== 1 || m[0].name !== 'a/à' || m[0].sugg !== 'à' || m[0].tier !== 'vigilance') { _av++; console.log('  ✗ adverbe/intervalle : « ' + s + ' » → « à » orange attendu, obtenu ' + JSON.stringify(m)); }
+    if (m.length !== 1 || m[0].name !== 'a/à' || m[0].sugg !== 'à' || m[0].tier !== 'auto') { _av++; console.log('  ✗ adverbe/intervalle : « ' + s + ' » → « à » rouge attendu (liste n° 26), obtenu ' + JSON.stringify(m)); }
   }
   for (const s of ['Ce qu\'il fait souvent a des effets.', 'Celui qui parle trop a tort.', 'Le train qui roule lentement a longtemps été critiqué.',
                    'Il a 35 ans.', 'La loi de 1995 a été modifiée.']) {
@@ -662,7 +672,7 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
     if (m.length) { _av++; console.log('  ✗ adverbe/intervalle : témoin « ' + s + ' » marqué ' + JSON.stringify(m)); }
   }
   if (_av) { console.log('PARITÉ KO — verbe + adverbe + a, intervalle : ' + _av + ' attente(s) non tenue(s).'); process.exit(1); }
-  console.log('  ✓ adverbe : 4 « à » ; intervalle : 2 « à » (orange) ; 5 témoins avoir muets (relative sujet, participe, âge, loi de 1995)'); }
+  console.log('  ✓ adverbe : 4 « à » ; intervalle : 2 « à » (rouge) ; 5 témoins avoir muets (relative sujet, participe, âge, loi de 1995)'); }
 
 // ⭐ 30/09/2026 — MARQUES ET SIGLES en minuscule → capitale (liste fermée) ; témoins : internet, usa (user), la marque proche de « sont » entre deux pluriels.
 { const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
