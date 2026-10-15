@@ -1,0 +1,15 @@
+# Lot « métier » du dictionnaire d'orthographe — liste CURÉE À LA MAIN (liste n° 7 et 10, 15/10/2026).
+# Néologismes et mots courants de l'écrit professionnel que le dictionnaire ignorait : « agentique » recevait « argentique » en orange,
+# « upcyclées » était souligné, « une rissole » corrigée en rissolée EN ROUGE. Le rafraîchissement en masse du Wiktionnaire a été
+# mesuré (dictee/build_wikt_lex.py) : les gardes qui évitent de masquer des fautes dys bloquent justement ces mots-là — d'où cette liste,
+# chaque entrée relue, validée par build_metier_lex.py (absent du dictionnaire ; pas un jumeau d'accent d'un mot courant ; pas à une lettre
+# d'un mot ≥ 1/M). Colonnes : mot, nature (N/V/A), genre (m/f, noms), domaine.
+agentique	A		IA
+agentiques	A		IA
+upcycler	V		économie circulaire
+upcyclé	V		économie circulaire
+upcyclée	V		économie circulaire
+upcyclés	V		économie circulaire
+upcyclées	V		économie circulaire
+upcyclage	N	m	économie circulaire
+rissole	N	f	cuisine
