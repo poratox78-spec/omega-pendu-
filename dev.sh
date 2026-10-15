@@ -109,6 +109,7 @@ run "parité genre à clé partagée 3 moteurs (âme/amé, affaire/affairé)" no
 run "parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas)" node dictee/parity_diag.js
 run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
 run "textes d'explication (💡 + conseils attendus, anciens textes faux interdits ; couche dys app ≡ ext ; routage de chaque règle ; plus de Stade au correcteur)" node dictee/textes_probe.js
+run "INVENTAIRE du correcteur à jour (règles ext ≡ app ≡ Python, paliers, conseils, tables et qui les lit)" node dictee/inventaire_correcteur.js --check
 run "parité SPELLER Python↔JS (suggestion, auto+flag+inconnu+vigilance)" python3 dictee/parity_speller.py
 run "clé phonétique Python ≡ dys-core ≡ app ≡ app EN (« oeu » : cœur → ker, sœur → ser)" python3 dictee/phonkey_parity_probe.py
 runsh "syntaxe extension (6 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js && node --check extension/aide.js"
