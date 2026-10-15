@@ -1,6 +1,6 @@
 {
- "justes": 380,
- "pointeuses": 212,
+ "justes": 381,
+ "pointeuses": 211,
  "fatigue": 143,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -187,6 +187,7 @@
   "less→les [orthographe] lettre_trop",
   "leurr→leur [orthographe] lettre_trop",
   "le→les [nombre du déterminant à vérifier] lettre_manque",
+  "lignés→lignes [orthographe] accent",
   "localle→locale [orthographe] lettre_trop",
   "lorque→lorsque [orthographe] lettre_manque",
   "lor→lors [mot inconnu] lettre_manque",
