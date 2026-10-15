@@ -525,6 +525,13 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (fp3) { _vo++; console.log('  ✗ voisin orange : « parler » ne doit plus rien porter quand le voisin dit « à » : ' + JSON.stringify(fp3)); }
   const f4 = fl('Il éprouve une difficulté à parler.');
   if (f4.length) { _vo++; console.log('  ✗ voisin orange : phrase correcte marquée ' + JSON.stringify(f4.map(f => [f.word, f.sugg, f.name]))); }
+  // ⭐ 14/10/2026 (liste n° 1e) — noms composés « N à infinitif » (machine à laver, salle à manger…) : « à » ROUGE, l'infinitif ne porte rien ;
+  // avec un complément derrière (« la machine a laver le pull »), « a » reste avoir et le participe se répare.
+  for (const s of ['Le fer a repasser est encore chaud.', 'Nous dînons dans la salle a manger.', 'Les machines a coudre sont rangées.']) {
+    const fx = fl(s), fa = fx.find(f => f.word === 'a'), fv = fx.find(f => /er$/.test(f.word));
+    if (!fa || fa.sugg !== 'à' || fa.tier !== 'auto' || fv) { _vo++; console.log('  ✗ nom composé « ' + s + ' » : « à » rouge seul attendu, obtenu ' + JSON.stringify(fx)); } }
+  { const fx = fl('La machine a laver le pull.'), fv = fx.find(f => f.word === 'laver');
+    if (fx.find(f => f.word === 'a') || !fv || fv.sugg !== 'lavé') { _vo++; console.log('  ✗ « la machine a laver le pull » : « lavé » attendu (a = avoir), obtenu ' + JSON.stringify(fx)); } }
   if (_vo) { console.log('PARITÉ KO — voisin orange : ' + _vo + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ voisin orange : « commanse a pleurer » → à ? (orange, cas ④ hors verbe) ; « commence a pleurer » → à (rouge) ; « elle seule a … » laissé à avoir ; « dificultée a parler » → à ? (orange) sans « parlé » contradictoire ; phrases correctes muettes');
 }

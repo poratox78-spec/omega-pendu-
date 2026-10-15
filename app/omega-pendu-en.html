@@ -25864,8 +25864,18 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
      n'entre pas dans ces locutions (UD 14 450 : aucun emploi). Gardes : « il y en a qui » (avoir), « la suite a montré » (déterminant
      devant : le nom est sujet), Grace prénom (capitale sans accent). Voie nouvelle, ORANGE. Miroir Python _aa_locution. */
   var _AA_LOC_DET={la:1,le:1,une:1,un:1,cette:1,ce:1,sa:1,ma:1,ta:1,notre:1,votre:1,leur:1,de:1,du:1,quelle:1,toute:1};
+  /* ⭐ 14/10/2026 (liste n° 1e : « une machine a laver » → « lavé » EN ROUGE) — NOMS COMPOSÉS « N à INFINITIF » : machine à laver, salle
+     à manger, fer à repasser, chambre à coucher… Liste FERMÉE (singulier ; le pluriel en -s est lu). La règle -er/-é s'en remet déjà à a/à
+     (« à » → l'infinitif reste) : il suffit que a/à connaisse le composé. Garde : derrière l'infinitif, rien (fin, ponctuation) ou un mot
+     qui n'ouvre pas son complément (_AA_NI_SUITE) — « la machine a laver le linge » = « a lavé » possible → on ne touche pas. Miroir Python. */
+  var _AA_NOM_INF={},_AA_NI_SUITE={};"machine:laver,coudre,ecrire,calculer salle:manger fer:repasser,souder,friser,lisser planche:repasser,decouper table:repasser chambre:coucher pince:epiler poele:frire creme:raser mousse:raser fil:coudre aiguille:tricoter,coudre pierre:aiguiser cire:cacheter poudre:lever".split(' ').forEach(function(p){var q=p.split(':');_AA_NOM_INF[q[0]]={};q[1].split(',').forEach(function(v){_AA_NOM_INF[q[0]][v]=1;});});
+  "est etait sera fut a avait sont etaient seront furent ont avaient neuf neuve neufs neuves electrique electriques ne n' qui que qu' dont et ou mais dans pour avec sur sous chez en se s'".split(' ').forEach(function(w){_AA_NI_SUITE[w]=1;});
+  function _aaNomInf(T,i){if(i<1||i+1>=T.length)return false;var p=deacc(T[i-1].toLowerCase()),v=deacc(T[i+1].toLowerCase()),N=T[i-1]!==T[i-1].toLowerCase()?null:(_AA_NOM_INF[p]||(p!=='fils'?_AA_NOM_INF[p.replace(/s$/,'')]:null));   // « Pierre a aiguisé » (prénom), « son fils a cousu »
+    if(!N||!N[v])return false;if(i+2>=T.length||(_SEG&&i+2<_SEG.bb.length&&_SEG.bb[i+2]))return true;var s=T[i+2].toLowerCase().replace(/’/g,"'");
+    return !!(_AA_NI_SUITE[deacc(s)]||/^(n|qu|s)'/.test(s)&&_AA_NI_SUITE[deacc(s.split("'")[0])+"'"]);}
   function _aaLocution(T,i){var n=T.length,d1=i+1<n?deacc(T[i+1].toLowerCase()):'',d2=i+2<n?deacc(T[i+2].toLowerCase()):'',p1=deacc(T[i-1].toLowerCase()),p2=i>=2?deacc(T[i-2].toLowerCase()):'';
     var de=/^(de|des|du|d['’].+)$/.test(d2);
+    if(_aaNomInf(T,i))return true;   // ⭐ liste n° 1e : machine à laver, salle à manger… (rien ne suit, ou un mot qui n'ouvre pas de complément)
     if((d1==='cause'||d1==='partir')&&de)return true;                    // à cause de, à partir de
     if(/^l['’](interieur|exterieur)e?$/.test(d1)&&de)return true;       // à l'intérieur de, à l'extérieur de
     if(d1==='part')return true;                                          // à part
@@ -26131,7 +26141,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
        rend le participe certain. Sans l'exemption, la tombe / le reste / la passe bloquaient 4 des
        5 cas (mesuré). Miroir Python rule_e_ppl. */
     var _sr=(i>0&&AUX_ETRE[deacc(T[i-1].toLowerCase()).split("'").pop()])?_etreSubject(T,i):[null,false],_sbj=_sr[0],_pv=_spos(lw);
-    var _sure=(_pv.indexOf('V')>=0&&_pv.indexOf('A')<0&&_sbj!==null&&_SUBJ3[_sbj]!==undefined&&!(i>=2&&/^(nord|sud)$/.test(deacc(T[i-2].toLowerCase()))));   // brique 2 : forme verbale pure + sujet 3e pers. → participe SÛR
+    var _refl=/^[smt]['’]/i.test(T[i-1])||(i>=2&&/^(se|me|te)$/i.test(T[i-2])),_sure=(_pv.indexOf('V')>=0&&_pv.indexOf('A')<0&&(_pv.indexOf('N')<0||_refl)&&_sbj!==null&&_SUBJ3[_sbj]!==undefined&&!(i>=2&&/^(nord|sud)$/.test(deacc(T[i-2].toLowerCase()))));   // brique 2 : forme verbale pure + sujet 3e pers. → participe SÛR ; ⭐ 14/10/2026 (liste n° 5b) : pas un NOM (« il est juge », « elle est élève » : un métier)
     var _etrePp=(i>0&&AUX_ETRE[deacc(T[i-1].toLowerCase()).split("'").pop()]&&(_PPL_ETRE_VERBES[dl]||_sure));
     var _auxBareA=(i>0&&deacc(T[i-1].toLowerCase()).split("'").pop()==='a');   // « a » NU = homographe de « à » : gardes nom conservées là seulement (miroir Python _aux_bare_a)
     if(!_etrePp&&(_E_PPL_STOP[dl]||(_auxBareA&&dl==='cote')))return null;   // idiomes « avoir + nom nu » ; « a cote » = à côté. Test de Rem : « j'ai pris » → participe
@@ -28936,6 +28946,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       var bin=Uint8Array.from(atob(el.textContent.trim()),function(c){return c.charCodeAt(0);});
       var st=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
       var txt=await new Response(st).text();SP.RARE=[];SP.PHONR=null;SP.ANAL=[];SP.ANA=null;var lines=txt.split('\n');_spReset(lines.length);
+      var _egr={},_eai={};for(var _k0=0;_k0<lines.length;_k0++){var _t0=lines[_k0].indexOf('\t');if(_t0<2)continue;var _c0=lines[_k0].charCodeAt(_t0-1);if(_c0===232)_egr[lines[_k0].slice(0,_t0-1)]=1;else if(_c0===233)_eai[lines[_k0].slice(0,_t0-1)]=1;}   /* ⭐ 14/10/2026 (liste n° 5b) : « aimè », « donnè »… — 88 coquilles de la source dont le jumeau en « é » existe : pas des mots (le correcteur se taisait). Miroir Python load_lexicon */
       /* TRANCHES : cette boucle (214 k lignes) bloquait le thread ~1,3 s d'un seul tenant — le
          spinner gelait pendant l'installation des lexiques (mesuré Node 1 327 ms, revue premier
          utilisateur 2026-08-20). Un yield tous les 16 384 items rend la main au navigateur :
@@ -28943,7 +28954,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       var _yd=function(r){setTimeout(r,0);};
       for(var k=0;k<lines.length;k++){if((k&16383)===16383)await new Promise(_yd);
         var ln=lines[k];if(!ln)continue;var pr=ln.split('\t');if(pr.length<2)continue;
-        var w=pr[0],_fi=parseInt(pr[1],10),fr=_fi/1000;_spAdd(w,_fi,pr[2]);
+        var w=pr[0],_fi=parseInt(pr[1],10),fr=_fi/1000;if(w.charCodeAt(w.length-1)===232&&_egr[w.slice(0,-1)]&&_eai[w.slice(0,-1)]&&w!=='burkinabè')continue;_spAdd(w,_fi,pr[2]);
            // porte EXACTE : seule la fréquence 0 (gacc) est connue-seulement ; ≥ 0,01 retirait 26 % du lexique de BASE et cassait les suggestions « mot inconnu » (mesuré en A/B node)   // ⭐ connu-seulement : sous KNOWN_ONLY le mot est dans WORDS (plus « inconnu ») mais JAMAIS candidat — l'A/B navigateur perdait 3 justes par concurrence d'unicité (miroir Python KNOWN_ONLY_FREQ)
         if(fr>=0.1){var pk=phonKey(w);(SP.PHON[pk]||(SP.PHON[pk]=[])).push(w);if(w.length>=4&&/^[a-zà-ÿœæ]+$/.test(w))SP.ANAL.push(w);}else if(fr>0&&fr!==0.05)SP.RARE.push(w);}   // ⭐ 13/09/2026 : mots RARES relevés au passage (index bâti par tranches, _phonRareStep)
       ['postulée','postulées','entretint','entretinrent','armet','armets'].forEach(function(w){SP.WORDS.add(w);});   // MOTS VALIDES manquants du lexique que le speller éditait à tort (« mauvais candidat sur mot valide » : postulée→postulé, entretint→entretient, armet→arme) → protégés (SP.WORDS.has ⇒ ni correction ni vigilance). FP=0 : vrais mots FR ; liste extensible.
@@ -29817,6 +29828,11 @@ function spellTokenCore(tok,atStart,T,idx){
     // FAUX sans elle, pas parce qu'elle gagne. Gains du jour préservés : les/jours/petits/tiges… sont N ou A.
     function nm(x){if(!cn)return 0;var ps=spP(x)||'';if(ps.indexOf('V')>=0&&ps.indexOf('N')<0&&ps.indexOf('A')<0)return 0;var p=nmP(x);return (p===null||((cn==='p')===p))?1:0;}
     function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET — ⭐ 30/09/2026 : + -ès, -et, -êt, -aient (/ɛ/ : « succé » → succès, « foué » → fouet, plus sucré / joué), miroir Python fin_aud
+    /* ⭐ 14/10/2026 (liste n° 5b : « Elève » → Élevé, « Etonnés » → Étonnes) — L'ACCENT ÉCRIT EST UNE INTENTION : entre deux formes du
+       même squelette, celle qui garde ACCENTUÉES les lettres que la personne a accentuées passe devant (Élève, Étonnés) — é, è, ê comptent
+       pour un : l'accent exact peut être la faute (« posséde » → possède, pas possédé ; « méme » → même). Un rival ≥ 20× plus fréquent
+       laisse décider les critères suivants. Neutre pour une saisie sans accent ou un candidat d'un autre squelette. Miroir Python _kacc. */
+    var _sqL=deaccS(low);function _kAcc(x){if(x.length!==low.length||deaccS(x)!==_sqL)return 1;for(var q=0;q<low.length;q++){var c=low.charAt(q),e=x.charAt(q);if(c!==deaccS(c)&&e===deaccS(e))return 0;}return 1;}   // une lettre accentuée reste accentuée (é/è/ê : même classe — « posséde » → possède)
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
         if(qx>qy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
@@ -29826,6 +29842,7 @@ function spellTokenCore(tok,atStart,T,idx){
         if(gx>gy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
         if(gy>gx&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;
         return gy-gx;}
+      var kx=_kAcc(x),ky=_kAcc(y);if(kx!==ky&&!(kx>ky&&cand[y][1]>=20*cand[x][1])&&!(ky>kx&&cand[x][1]>=20*cand[y][1]))return ky-kx;   // ⭐ liste n° 5b : accents écrits gardés ; un rival ≥ 20× plus fréquent laisse décider la suite
       if(inpAud){var fax=fin_aud(x),fay=fin_aud(y);if(fax!==fay)return fay-fax;}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → préférer un candidat à finale AUDIBLE (mangé) au -e MUET (mange), AVANT la dominance de fréquence
       if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
@@ -29892,7 +29909,8 @@ function spellTokenCore(tok,atStart,T,idx){
        Mesuré : 3 corpus dys, 36 mots faux deviennent exacts (28 jusque-là muets), 0 perte ; UD 14 450 : 0 marque. */
     var _nAcc=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)_nAcc++;
     var _accX=(low!==d&&p1===2&&deaccS(w1)===d&&d.length>=4&&(tok===low||atStart)&&(/[éè](x|([bcdfgjklmnpqrstvz])\2|[cp]t)/.test(low)||(/ç[eiyéèêë]/.test(low)&&_nAcc===1)));
-    if(f1<0.1&&!_accX)return null;
+    var _kV=(low!==d&&p1===2&&deaccS(w1)===d&&d.length>=4&&(tok===low||atStart)&&_kAcc(w1)===1&&keys.some(function(k){return cand[k][0]===2&&_kAcc(k)===0;}));   // ⭐ liste n° 5b : la forme qui GARDE les accents écrits a gagné le tri contre une forme qui les écrasait — rare, elle est proposée en orange plutôt que tue
+    if(f1<0.1&&!_accX&&!_kV)return null;
     var f2=keys.length>1?cand[keys[1]][1]:0,accentOnly=(p1===2&&deaccS(w1)===d),dominant=(f1>=1.0&&(f2===0||f1>=5*f2));
     if(d.length>=3&&accentOnly&&dominant)return['auto',w1];
     var na=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)na++;
@@ -29915,6 +29933,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(keys.length===1&&d.length>=4&&f1>=1.0&&_slipMot(d,deaccS(w1)))return['auto',w1];
     var _aux=false;if(T){var _z=idx-1;while(_z>=0){var _dz=deaccS(T[_z].toLowerCase());if((SAUXAV[_dz]||SCOPULA[_dz])&&T[_z].toLowerCase()!=='à'){_aux=true;break;}   /* ⭐ 03/10/2026 : « à » accentué n'est pas l'auxiliaire « a » (deaccS les confondait : « il apprend à rentrre » → « rentré », puis la grammaire changeait « à » en « a » EN ROUGE). Miroir speller_probe */if(_dz==='ne'||_dz==='n'||_dz==='pas'||_dz==='plus'||_dz==='jamais'||_dz==='bien'||_dz==='tres'||_dz==='deja'||_dz==='toujours'||_dz==='y'||_dz==='en'||_dz==='tout'){_z--;continue;}break;}}
     if(_aux&&/e$/.test(w1)&&!/é$/.test(w1)&&!(T&&T[idx]&&/^[ld]['’]/i.test(T[idx]))){var _pe=w1.slice(0,-1)+'é';   /* ⭐ 03/10/2026 : un mot à « l' » / « d' » collé est un NOM, jamais un participe (« il a l'âje » donnait « l'âgé ») */if(cand[_pe]&&cand[_pe][1]>=1.0)return['flag',_pe];}   // PARTICIPE APRÈS AUXILIAIRE avoir/être : le dys écrit le PRÉSENT (-e) là où l'aux impose le PARTICIPE (-é) du MÊME verbe — « il a manje/manjé »→mangé. Ne touche QUE le présent -e (jamais pris/fait/vu en -s/-t/-u) ⇒ FP=0.
+    if(_aux&&p1===2&&/é$/.test(w1)&&/[èê]$/.test(low)&&!(T&&T[idx]&&/^[ld]['’]/i.test(T[idx]))&&cand[w1][1]>=1.0)return['flag',w1];   // ⭐ 14/10/2026 (liste n° 5b) : le tri a gardé l'accent final écrit è/ê (« il a visitè » → visité) — le participe est déjà là, même palier que ci-dessus ; une finale « é » écrite reste à l'étape d'avant (mesuré)
     var _cgd=(T&&idx>0)?DET_G[deaccS(T[idx-1].toLowerCase())]:null;   // GENRE du DETERMINANT immediat (audible, fiable) — pas la marche arriere sCtxGender, qui peut lire un genre POLLUE sur un mot-outil (« des » porte un genre dans le lexique relache)
     if(expPos&&expPos!=='F'){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // ⭐ liste n° 24 : « F » (après qui) trie, n'affirme pas — CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
       if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → la ré-sélection context-first ne re-choisit QUE des candidats à finale AUDIBLE (manjé→mangé, pas mange) — sinon la fréquence réécrasait le tri d'audibilité (12536)
@@ -29927,7 +29946,7 @@ function spellTokenCore(tok,atStart,T,idx){
        exactes passent de l'orange au rouge (dont 16 dont la forme devient juste), 2 restent d'une autre forme que le corrigé ;
        UD 14 450 : 3 marques, 2 vraies fautes et un mot anglais cité (« carousel »), qui passe d'orange à rouge. Miroir app + Python. */
     if(d.length>=5&&f1<1.0){var _rd2=_redoubleSeul(low,d,keys,cand);if(_rd2&&(spF(_rd2)||0)>0)return['flag',_rd2];}
-    if(!(d.length>=4&&f1>=1.0))return _accX?['vigilance',w1]:null;   // trop court ou candidat rare → abstention
+    if(!(d.length>=4&&f1>=1.0))return (_accX||_kV)?['vigilance',w1]:null;   // trop court ou candidat rare → abstention
     // CONFIANCE : n'AFFIRMER (rouge) que si le candidat est sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son
     // rang, et dominant. Sinon VIGILANCE orange « à vérifier » (n'impose pas un mauvais mot : courrir→courrier, ceuille→feuille,
     // fauxcille→fossiles). Mesuré sur les dictées réelles de Rem : supprime les mauvaises corrections sans perdre les sûres.
