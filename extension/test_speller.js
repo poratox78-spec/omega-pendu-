@@ -483,7 +483,7 @@ function testListe32() {
 function testListe33() {
   for (const [t, w, s] of [["Elle a appris la langue des sines à l'école.", 'sines', 'signes'], ['Voici mes chansons préférrées.', 'préférrées', 'préférées'],
       ['Loin de sonn corps.', 'sonn', 'son'], ['Il parle de sonn temps libre.', 'sonn', 'son'],
-      ['La robe est mois chere.', 'chere', 'chère'], ['Un film tèrs long.', 'tèrs', 'très']]) {
+      ['La robe est mois chere.', 'chere', 'chère'], ['Un film tèrs long.', 'tèrs', 'très'], ['Il vient pour achete du pain.', 'achete', 'acheter']]) {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (!f || f.sugg !== s) fail.push('liste n° 33 « ' + t + ' » : attendu ' + s + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }

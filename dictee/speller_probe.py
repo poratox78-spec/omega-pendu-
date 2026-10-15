@@ -939,6 +939,7 @@ class Speller:
             elif pt in _SPREP_P: exp_prep = pt                             # ⭐ liste n° 33 (B) : après une préposition, pas de verbe conjugué — miroir JS
         def pmatch(w):
             if exp_prep and not exp_pos:                                 # ⭐ liste n° 33 (B) — miroir JS pm
+                if any(pc == 2 for (pc, _f) in cands.values()): return 0   # variante d'accent dans le pool → le tri des accents décide (miroir JS)
                 ps = ''.join(sorted(self.POS.get(w, ())))
                 return 0 if ((ps == 'V' and not (re.search(r'(er|ir|re|oir)$', w) or (exp_prep == 'en' and w.endswith('ant')))) or deacc(w) in _PREP_NO_V) else 1
             if not exp_pos: return 0
