@@ -27981,6 +27981,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   var _A_INF_GOV={commence:1,commences:1,commencent:1,commencait:1,commencaient:1,commencer:1,commencons:1,commencez:1,commencera:1,commenceront:1,commencerait:1,continue:1,continues:1,continuent:1,continuait:1,continuaient:1,continuer:1,apprend:1,apprends:1,apprennent:1,apprenait:1,apprendre:1,appris:1,arrive:1,arrives:1,arrivent:1,arrivait:1,arrivaient:1,arriver:1,reussi:1,reussit:1,reussis:1,reussissent:1,reussir:1,cherche:1,cherches:1,cherchent:1,cherchait:1,chercher:1,hesite:1,hesites:1,hesitent:1,hesitait:1,hesiter:1,parvient:1,parviennent:1,parvenait:1,parvenir:1,parvenu:1,facile:1,faciles:1,difficile:1,difficiles:1,impossible:1,impossibles:1,pret:1,prete:1,prets:1,pretes:1};   /* ⭐ 11/10/2026 — verbes et adjectifs qui veulent « à + INFINITIF » (commencer, continuer, apprendre, arriver, réussir,
      chercher, hésiter, parvenir ; facile, difficile, impossible, prêt) : après eux, « à » (ou « a » écrit pour « à ») + un mot en -é n'est jamais
      un participe. Miroir Python. */
+  var _QUE_REL_ANT={ce:1,tout:1,celui:1,celle:1,ceux:1,celles:1,chose:1,rien:1,autre:1,autres:1};   // ⭐ liste n° 32 : antécédents pronominaux de « que » relatif
   function semiInfVig(T,i){
     if(!CONJ_F)return null;
     var w=T[i];if(!w)return null;
@@ -28013,7 +28014,9 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
        est une vraie faute qu'on veut garder). */
     var _r;
     for(_r=j-1;_r>=0&&_r>=j-3;_r--){var _rw=deacc(T[_r].toLowerCase());
-      if(_rw==='ou'||_rw==='dont')return null;}
+      if(_rw==='ou'||_rw==='dont')return null;
+      if((_rw==='que'||_rw.indexOf("qu'")===0)&&_r>0&&!/(é|ée|és|ées|ez)$/.test(w.toLowerCase())){var _ra=deacc(T[_r-1].toLowerCase()),_tgR=posTags(T);   // ⭐ 15/10/2026 (liste n° 32) : « que » RELATIF (antécédent nominal, « ce que », « celui que ») → le semi-auxiliaire ferme la relative (« la liste que tu fais traîne ») ; « que » après un verbe (« je crois que je vais mange ») reste une conjonction ; un mot qui SONNE comme l'infinitif (-é, -ez : « la lettre que tu veux passé ») garde l'orange, la relative n'a pas d'autre lecture
+        if(_QUE_REL_ANT[_ra]||(_tgR&&_r-1<_tgR.length&&(_tgR[_r-1]==='NOUN'||_tgR[_r-1]==='PROPN')))return null;}}
     var rw=(CONJ_F[lw]||'').split('|');
     if(!CONJ_F[lw])rw=(CONJ_F[lw+'s']||'').split('|').filter(function(x){return !/;(ind:pas|sub:imp);/.test(x);});   // ⭐ 13/10/2026 (conjugaison 14) : le « -s » oublié n'est pas celui d'un passé simple ou d'un subjonctif imparfait (« vite » n'est pas « vîtes ») — miroir Python
     if(!rw[0]&&/é(e|es)$/.test(w.toLowerCase()))rw=(CONJ_F[lw.replace(/es?$/,'')]||'').split('|');   // ⭐ 11/10/2026 : participe ACCORDÉ (« il veut vous aidée » → aider) — la table n'a pas « aidée », on passe par « aide » ; miroir Python   // le participe passe par sa forme en -s

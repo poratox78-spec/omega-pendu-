@@ -7392,6 +7392,9 @@ _A_INF_GOV = set('commence commences commencent commencait commencaient commence
 _EN_FAIT_OBJ = set('un une des le la les du de mon ma mes ton ta tes son sa ses notre votre nos vos leur leurs ce cet cette ces autant plus moins trop beaucoup partie part usage'.split())   # ce qui suit « en faire » — miroir JS
 
 
+_QUE_REL_ANT = frozenset('ce tout celui celle ceux celles chose rien autre autres'.split())   # ⭐ liste n° 32 : antécédents pronominaux de « que » relatif
+
+
 def rule_inf_semi_aux(T, i):
     """« je vais mange » -> manger · « je dois fini » -> finir.
 
@@ -7442,7 +7445,11 @@ def rule_inf_semi_aux(T, i):
     # le semi-auxiliaire est-il DANS une relative ? « les endroits ou on va coute cher » : « va »
     # ferme la relative, « coute » est le verbe de la principale. FP de la batterie de PARITE.
     for _r in range(j - 1, max(-1, j - 4), -1):
-        if deacc(T[_r].lower()) in ('ou', 'dont'): return None
+        _rw = deacc(T[_r].lower())
+        if _rw in ('ou', 'dont'): return None
+        if (_rw == 'que' or _rw.startswith("qu'")) and _r > 0 and not re.search(r'(é|ée|és|ées|ez)$', w.lower()):   # ⭐ 15/10/2026 (liste n° 32) : « que » RELATIF → le semi-auxiliaire ferme la relative, sauf si le mot SONNE comme l'infinitif (miroir JS)
+            _ra = deacc(T[_r - 1].lower()); _tgR = pos_tags(T)
+            if _ra in _QUE_REL_ANT or (_tgR and _r - 1 < len(_tgR) and _tgR[_r - 1] in ('NOUN', 'PROPN')): return None
     src = CONJ_F.get(lw) or '|'.join(r for r in (CONJ_F.get(lw + 's') or '').split('|') if r and r.split(';')[1] not in ('ind:pas', 'sub:imp'))   # ⭐ 13/10/2026 (conjugaison 14) : le « -s » oublié n'est pas celui d'un passé simple (« vite » ≠ « vîtes ») — miroir JS
     if not src and re.search(u'é(e|es)$', w.lower()): src = CONJ_F.get(re.sub('es?$', '', lw))   # ⭐ 11/10/2026 : participe ACCORDÉ (« il veut vous aidée ») — miroir JS
     if not src:   # ⭐ 11/10/2026 : verbes en -yer (« envoyée ») — infinitif rebâti du mot écrit, s'il est un verbe connu ; miroir JS

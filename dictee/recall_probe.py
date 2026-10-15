@@ -131,6 +131,9 @@ def _check():
     # ⭐ 14/10/2026 (liste n° 5b) — un nom de métier après « est » n'est pas un participe (« il est juge » → jugé en rouge avant) ; témoin : « il est tombe »
     nofp += ["Il est juge.", "Elle est élève.", "Il est guide de montagne.", "Elle est interprète.", "Il est garde du corps."]
     palier += [("Il est tombe dans la rue", "tombe", 'auto')]
+    # ⭐ 15/10/2026 (liste n° 32) — « que » relatif + semi-auxiliaire : le mot qui suit est le verbe de la principale (pas d'orange) ; conjonction : l'orange reste
+    nofp += ["La liste des courses que tu fais traîne sur la table.", "Tout ce qu'il fait tombe à l'eau."]
+    elide += [("Je crois que je vais mange", "mange", "manger"), ("Il dit qu'il va mange", "mange", "manger"), ("La lettre que tu veux passé au voisin", "passé", "passer")]
     # ⭐ 14/10/2026 (liste n° 1e) — noms composés « N à infinitif » : « à », l'infinitif reste ; un complément derrière = « a » avoir possible
     elide += [("Le fer a repasser est encore chaud", "a", "à"), ("Nous dînons dans la salle a manger", "a", "à"),
               ("Les machines a coudre sont rangées", "a", "à"), ("La machine a laver le pull", "laver", "lavé")]
