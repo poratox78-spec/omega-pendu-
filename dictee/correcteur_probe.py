@@ -707,7 +707,8 @@ def rule_e_ppl(T, i):
     # bloquaient 4 des 5 cas de la liste (mesuré).
     _sbj, _refl = (_etre_subject(T, i) if (i > 0 and deacc(T[i-1].lower()).split("'")[-1] in D.AUX_ETRE) else (None, False))
     _pv = _spos(lw)
-    _sure = ('V' in _pv and 'A' not in _pv and 'N' not in _pv and _sbj in _SUBJ3 and not (i >= 2 and deacc(T[i-2].lower()) in ('nord', 'sud')))   # brique 2 : forme verbale pure + sujet 3e pers. → participe SÛR ; ⭐ 14/10/2026 (liste n° 5b) : pas un NOM (« il est juge » : un métier)
+    _refl = re.match(u"^[smt]['’]", T[i - 1].lower()) is not None or (i >= 2 and T[i - 2].lower() in ('se', 'me', 'te'))   # ⭐ 5b : pronominal — un nom attribut y est impossible (« elle s'est marie »)
+    _sure = ('V' in _pv and 'A' not in _pv and ('N' not in _pv or _refl) and _sbj in _SUBJ3 and not (i >= 2 and deacc(T[i-2].lower()) in ('nord', 'sud')))   # brique 2 : forme verbale pure + sujet 3e pers. → participe SÛR ; ⭐ 14/10/2026 (liste n° 5b) : pas un NOM (« il est juge » : un métier)
     _etre_pp = (i > 0 and deacc(T[i-1].lower()).split("'")[-1] in D.AUX_ETRE and (dl in _PPL_ETRE_VERBES or _sure))
     _aux_bare_a = (i > 0 and deacc(T[i-1].lower()).split("'")[-1] == 'a')   # « a » NU = homographe de « à » (« a cote », « a cause », « a contrôle ») : gardes nom conservées là seulement
     if not _etre_pp:

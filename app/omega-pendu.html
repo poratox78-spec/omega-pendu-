@@ -26181,7 +26181,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
        rend le participe certain. Sans l'exemption, la tombe / le reste / la passe bloquaient 4 des
        5 cas (mesuré). Miroir Python rule_e_ppl. */
     var _sr=(i>0&&AUX_ETRE[deacc(T[i-1].toLowerCase()).split("'").pop()])?_etreSubject(T,i):[null,false],_sbj=_sr[0],_pv=_spos(lw);
-    var _sure=(_pv.indexOf('V')>=0&&_pv.indexOf('A')<0&&_pv.indexOf('N')<0&&_sbj!==null&&_SUBJ3[_sbj]!==undefined&&!(i>=2&&/^(nord|sud)$/.test(deacc(T[i-2].toLowerCase()))));   // brique 2 : forme verbale pure + sujet 3e pers. → participe SÛR ; ⭐ 14/10/2026 (liste n° 5b) : pas un NOM (« il est juge », « elle est élève » : un métier)
+    var _refl=/^[smt]['’]/i.test(T[i-1])||(i>=2&&/^(se|me|te)$/i.test(T[i-2])),_sure=(_pv.indexOf('V')>=0&&_pv.indexOf('A')<0&&(_pv.indexOf('N')<0||_refl)&&_sbj!==null&&_SUBJ3[_sbj]!==undefined&&!(i>=2&&/^(nord|sud)$/.test(deacc(T[i-2].toLowerCase()))));   // brique 2 : forme verbale pure + sujet 3e pers. → participe SÛR ; ⭐ 14/10/2026 (liste n° 5b) : pas un NOM (« il est juge », « elle est élève » : un métier)
     var _etrePp=(i>0&&AUX_ETRE[deacc(T[i-1].toLowerCase()).split("'").pop()]&&(_PPL_ETRE_VERBES[dl]||_sure));
     var _auxBareA=(i>0&&deacc(T[i-1].toLowerCase()).split("'").pop()==='a');   // « a » NU = homographe de « à » : gardes nom conservées là seulement (miroir Python _aux_bare_a)
     if(!_etrePp&&(_E_PPL_STOP[dl]||(_auxBareA&&dl==='cote')))return null;   // idiomes « avoir + nom nu » ; « a cote » = à côté. Test de Rem : « j'ai pris » → participe
