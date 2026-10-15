@@ -475,6 +475,18 @@ function testListe32() {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 32 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+// ⭐ LISTE N° 33 : « mots faux » connus du speller (#568). Contexte : un déterminant sans genre collé gouverne (« des sines » : plus le
+// féminin de « la langue » → signes, pas mines) ; un nom déterminé qui ferme son groupe donne son genre (« mes chansons préférrées. ») ;
+// après une préposition, pas de verbe conjugué (« de sonn » → son, pas sont). Les quatre premiers échouent sur le moteur d'avant ;
+// témoins : un nom NU ne gouverne pas (« est mois chere » → chère, 23/08), « un film tèrs long » → très. Mesurés et refusés (pertes) :
+// l'adjectif collé comme ancre, l'inversion de lettres, « genre ne bat pas un verbe » — « tèrs » seul reste « terre », « êrcite » reste « excité ».
+function testListe33() {
+  for (const [t, w, s] of [["Elle a appris la langue des sines à l'école.", 'sines', 'signes'], ['Voici mes chansons préférrées.', 'préférrées', 'préférées'],
+      ['Loin de sonn corps.', 'sonn', 'son'], ['Il parle de sonn temps libre.', 'sonn', 'son'],
+      ['La robe est mois chere.', 'chere', 'chère'], ['Un film tèrs long.', 'tèrs', 'très'], ['Il vient pour achete du pain.', 'achete', 'acheter']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (!f || f.sugg !== s) fail.push('liste n° 33 « ' + t + ' » : attendu ' + s + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 // ⭐ LISTES N° 7 ET 10 (lot MÉTIER curé, dictee/metier_curated.tsv) : « agentique » recevait « argentique » en orange, « upcyclées » était
 // souligné, « une rissole » corrigée en rissolée EN ROUGE. Les trois premiers échouent sur l'ancien dictionnaire ; témoins : le vrai mot voisin
 // (« argentique ») reste intact et une vraie faute reste corrigée.
@@ -536,6 +548,7 @@ function finish(parityKO) {
   testListe5b();
   testListe32();
   testListe7();
+  testListe33();
   testListe31();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }

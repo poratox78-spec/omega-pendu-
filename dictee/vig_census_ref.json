@@ -1,6 +1,6 @@
 {
- "justes": 377,
- "pointeuses": 215,
+ "justes": 380,
+ "pointeuses": 212,
  "fatigue": 143,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -267,6 +267,7 @@
   "proose→propose [orthographe] lettre_manque",
   "propriétaire→propriétaires [accord pluriel à vérifier] accord",
   "province→provinces [accord pluriel à vérifier] accord",
+  "préférrées→préférées [orthographe] lettre_trop",
   "présiser→préciser [orthographe] lettre_change",
   "prêcession→précession [mot inconnu] accent",
   "pubbliques→publiques [orthographe] lettre_trop",
@@ -313,6 +314,7 @@
   "semanies→semaines [orthographe] inversion",
   "sess→ses [orthographe] lettre_trop",
   "signés→signé [accord du participe après avoir à vérifier] accord",
+  "sines→signes [orthographe] lettre_manque",
   "sions→soins [orthographe] inversion",
   "sièges→siège [accord singulier nom] accord",
   "sièges→siège [accord singulier nom] accord",
@@ -321,6 +323,7 @@
   "sonmes→sommes [orthographe] lettre_change",
   "sonnt→sont [orthographe] lettre_trop",
   "sonnt→sont [orthographe] lettre_trop",
+  "sonn→son [orthographe] lettre_trop",
   "sotn→sont [mot inconnu] inversion",
   "soulijnant→soulignant [mot inconnu] lettre_change",
   "souverainteé→souveraineté [mot inconnu] inversion",

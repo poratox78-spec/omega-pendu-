@@ -134,6 +134,10 @@ def _check():
     # ⭐ 15/10/2026 (liste n° 32) — « que » relatif + semi-auxiliaire : le mot qui suit est le verbe de la principale (pas d'orange) ; conjonction : l'orange reste
     nofp += ["La liste des courses que tu fais traîne sur la table.", "Tout ce qu'il fait tombe à l'eau."]
     elide += [("Je crois que je vais mange", "mange", "manger"), ("Il dit qu'il va mange", "mange", "manger"), ("La lettre que tu veux passé au voisin", "passé", "passer")]
+    # ⭐ 15/10/2026 (liste n° 33) — mots faux du speller : déterminant sans genre collé, nom déterminé qui ferme le groupe, préposition ; témoins inchangés
+    vig = [("Elle a appris la langue des sines à l'école", "sines", "signes"), ("Voici mes chansons préférrées.", "préférrées", "préférées"),
+           ("Loin de sonn corps", "sonn", "son"), ("Il parle de sonn temps libre", "sonn", "son"),
+           ("La robe est mois chere", "chere", "chère"), ("Un film tèrs long", "tèrs", "très")]   # jugé sur correct_tiered : suggestion du SPELLER, vigilance comprise (correct() ne voit que la grammaire)
     # ⭐ 14/10/2026 (liste n° 1e) — noms composés « N à infinitif » : « à », l'infinitif reste ; un complément derrière = « a » avoir possible
     elide += [("Le fer a repasser est encore chaud", "a", "à"), ("Nous dînons dans la salle a manger", "a", "à"),
               ("Les machines a coudre sont rangées", "a", "à"), ("La machine a laver le pull", "laver", "lavé")]
@@ -165,6 +169,14 @@ def _check():
     for s, wtok, tr in palier:   # le PALIER, pas seulement la suggestion : une orange appliquée en rouge réécrit le texte en silence
         got = [f[4] for f in C.correct_tiered(s) if deacc(f[1].lower()) == deacc(wtok.lower())]
         if got != [tr]: bad.append(f"{s!r} → palier de {wtok!r} attendu {tr}, eu {got}")
+    import speller_probe as _SPm   # ⭐ 15/10/2026 (liste n° 33) : le SPELLER de référence lui-même (correct_tiered du correcteur ne le porte pas)
+    if not os.path.exists(_SPm.LEX):   # Lexique4 est local (gitignoré) : en CI le speller ne se charge pas — garde LOCALE (dev.sh), comme parity_speller
+        print(f"  ⚠ tests speller (liste n° 33) SAUTÉS : Lexique introuvable ({_SPm.LEX}) — garde locale, dev.sh les joue")
+    else:
+        _sp = _SPm.Speller()
+        for s, wtok, sug in vig:   # la SUGGESTION du speller, tous paliers (vigilance comprise)
+            got = [g for (_st, w, g, _a) in _sp.correct_text(s, inconnu=True) if deacc(w.lower()) == deacc(wtok.lower())]
+            if got != [sug]: bad.append(f"{s!r} → speller : {wtok!r} attendu {sug!r}, eu {got}")
     if bad:
         print("✗ recall_probe --check : régression(s) du correcteur :")
         for b in bad: print("    " + b)
