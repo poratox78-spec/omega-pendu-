@@ -194,6 +194,8 @@ def load_lexicon():
             cgr = (row[cg] or '').strip().upper()
             p = 'N' if cgr.startswith('NOM') else ('V' if (cgr.startswith('VER') or cgr.startswith('AUX')) else ('A' if cgr.startswith('ADJ') else None))
             if p: POS[w].add(p)
+    for w in [w for w in WORDS if w.endswith(u'è') and w[:-1] + u'é' in WORDS]:   # ⭐ 14/10/2026 (liste n° 5b) : « aimè », « donnè »… coquilles de la source
+        WORDS.discard(w); FREQ.pop(w, None); POS.pop(w, None)                  # (jumeau en « é » présent) : pas des mots — miroir JS _applySpellerTSV
     PHON = defaultdict(list)
     for w in WORDS:
         if FREQ[w] > 0.0: DEACC2ACC[deacc(w)].append(w)   # connu-seulement (freq EXACTEMENT 0 = gacc) : jamais candidat. ≥ 0,01 retirait 26 % de la base (miroir JS fr>0)
@@ -960,6 +962,13 @@ class Speller:
             return 1 if (p_ is None or ((cn == 'p') == p_)) else 0
         # tri : accent d'abord, puis POS du contexte (élève/élevé), puis accord GENRE, puis DOMINANCE (edits1 ≫ phonétique),
         #       puis phonétique, puis NOMBRE, puis fréquence. cmp (pas key) car la dominance est PAIRWISE.
+        # ⭐ 14/10/2026 (liste n° 5b) — L'ACCENT ÉCRIT EST UNE INTENTION : entre deux formes du même squelette, celle qui garde ACCENTUÉES les
+        # lettres accentuées par la personne passe devant (« Elève » → Élève, « Etonnés » → Étonnés) ; é, è, ê comptent pour un (« posséde » →
+        # possède) ; un rival ≥ 20× plus fréquent laisse décider les critères suivants.
+        _sq_l = deacc(low)
+        def _kacc(w):
+            if len(w) != len(low) or deacc(w) != _sq_l: return 1
+            return 0 if any(c != deacc(c) and w[q] == deacc(w[q]) for q, c in enumerate(low)) else 1   # une lettre accentuée reste accentuée (é/è/ê : même classe)
         def _cmp(a, b):
             (wx, (px_, fx)), (wy, (py_, fy)) = a, b
             ax, ay = (1 if px_ == 2 else 0), (1 if py_ == 2 else 0)
@@ -974,6 +983,9 @@ class Speller:
                 if gx > gy and py_ >= 1 and fy >= 20 * fx: return 1
                 if gy > gx and px_ >= 1 and fx >= 20 * fy: return -1
                 return gy - gx
+            kx, ky = _kacc(wx), _kacc(wy)
+            if kx != ky and not (kx > ky and fy >= 20 * fx) and not (ky > kx and fx >= 20 * fy):   # ⭐ liste n° 5b : accents écrits gardés ; rival ≥ 20× : la suite décide — miroir JS _kAcc
+                return ky - kx
             if inp_aud:                                          # AUDIBILITÉ : saisie à finale /e/ écrite (é) → préférer un candidat à finale AUDIBLE
                 fax, fay = fin_aud(wx), fin_aud(wy)              #   (mangé/donné) au -e MUET (mange/donne), AVANT la dominance de fréquence. Ancrer sur l'entendu.
                 if fax != fay: return fay - fax
@@ -1085,7 +1097,9 @@ class Speller:
         n_acc = len([1 for _w, (p, _f) in ranked if p == 2])
         acc_x = (low != d and p1 == 2 and deacc(w1) == d and len(d) >= 4 and (tok == low or at_start)
                  and (re.search(u'[éè](x|([bcdfgjklmnpqrstvz])\\2|[cp]t)', low) is not None or (re.search(u'ç[eiyéèêë]', low) is not None and n_acc == 1)))
-        if f1 < FLAG_FREQ and not acc_x: return None            # meilleur candidat trop rare → abstention
+        k_v = (low != d and p1 == 2 and deacc(w1) == d and len(d) >= 4 and (tok == low or at_start) and _kacc(w1) == 1
+               and any(p == 2 and _kacc(w) == 0 for w, (p, _f) in ranked))   # ⭐ liste n° 5b : accents écrits gardés, rare → orange (miroir JS _kV)
+        if f1 < FLAG_FREQ and not acc_x and not k_v: return None            # meilleur candidat trop rare → abstention
         f2 = ranked[1][1][1] if len(ranked) > 1 else 0.0
         # AUTO : accent-only dominant (priorité 2, fréquent, sans rival proche) OU edit-1 vers un mot très dominant
         accent_only = (p1 == 2 and deacc(w1) == d)
@@ -1122,6 +1136,8 @@ class Speller:
         if aux and w1.endswith('e') and not w1.endswith('é') and not (toks and idx is not None and re.match(u"^[ld]['’]", toks[idx].lower())):   # ⭐ 03/10/2026 : « l' » / « d' » collé = un NOM, jamais un participe
             pe = w1[:-1] + 'é'
             if pe in cands and cands[pe][1] >= 1.0: return ('flag', pe)
+        if (aux and p1 == 2 and w1.endswith(u'é') and re.search(u'[èê]$', low) and not (toks and idx is not None and re.match(u"^[ld]['’]", toks[idx].lower()))
+                and cands[w1][1] >= 1.0): return ('flag', w1)   # ⭐ 14/10/2026 (liste n° 5b) : le tri a gardé l'accent final écrit (« il a visitè ») — miroir JS
         if exp_pos and exp_pos != 'F':   # ⭐ 14/10/2026 (liste n° 24) : « F » (après qui) trie, n'affirme pas — miroir JS
             cgd = self.DET_G.get(deacc(toks[idx - 1].lower())) if (toks and idx) else None   # GENRE du DÉTERMINANT immédiat (audible, fiable) — pas _ctx_gender, qui peut lire un genre pollué sur un mot-outil
             def nm_p(w):                                                    # nombre PORTÉ par la forme : None = invariable (compatible des deux côtés) — décalque de nmP
@@ -1137,7 +1153,7 @@ class Speller:
         if len(d) >= 5 and f1 < AUTO_FREQ:                       # ⭐ 13/10/2026 (liste n° 5) : une consonne à redoubler, un seul mot le permet — miroir JS
             rd2 = _redouble_seul(low, d, cands)
             if rd2 and self.FREQ.get(rd2, 0) > 0: return ('flag', rd2)
-        if not (len(d) >= 4 and f1 >= AUTO_FREQ): return ('vigilance', w1) if acc_x else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
+        if not (len(d) >= 4 and f1 >= AUTO_FREQ): return ('vigilance', w1) if (acc_x or k_v) else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
         # ⭐ PALIER VIGILANCE DU SPELLER — porté du produit le 05/09/2026 (5e maillon de « la référence décrit
         # le produit » : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666). Décalque du
         # gate `confident` de spellTokenCore (app + dys-core) : on n'AFFIRME (flag) que si l'on est sûr —

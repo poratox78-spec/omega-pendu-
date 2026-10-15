@@ -128,6 +128,9 @@ def _check():
     palier += [("Elle continu a avancer", "a", 'vigilance'), ("On a oublier la clé", "oublier", 'auto')]
     # ⭐ 14/10/2026 (liste n° 26, suite) : avec un VRAI verbe le cas ④ est rouge ; « seule » / un adverbe laisse « a » à avoir (le participe se répare)
     palier += [("Elle continue a avancer", "a", 'auto'), ("Elle seule a goûter le plat", "goûter", 'auto')]
+    # ⭐ 14/10/2026 (liste n° 5b) — un nom de métier après « est » n'est pas un participe (« il est juge » → jugé en rouge avant) ; témoin : « il est tombe »
+    nofp += ["Il est juge.", "Elle est élève.", "Il est guide de montagne.", "Elle est interprète.", "Il est garde du corps."]
+    palier += [("Il est tombe dans la rue", "tombe", 'auto')]
     # ⭐ 14/10/2026 (liste n° 1e) — noms composés « N à infinitif » : « à », l'infinitif reste ; un complément derrière = « a » avoir possible
     elide += [("Le fer a repasser est encore chaud", "a", "à"), ("Nous dînons dans la salle a manger", "a", "à"),
               ("Les machines a coudre sont rangées", "a", "à"), ("La machine a laver le pull", "laver", "lavé")]

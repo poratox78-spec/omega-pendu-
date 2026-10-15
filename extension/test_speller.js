@@ -462,6 +462,19 @@ function testListe26() {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (tier === null ? !!f : (!f || f.tier !== tier || f.sugg !== 'à')) fail.push('liste n° 26 « ' + t + ' » : attendu ' + (tier ? 'à en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+// ⭐ LISTE N° 5b : l'accent écrit n'est plus écrasé (« Elève » → Élevé, « Etonnés » → Étonnes) et un nom de métier après « est » n'est plus
+// un participe (« il est juge » → jugé EN ROUGE). Les six premiers échouent sur le moteur d'avant ; témoins : l'accent exact peut être la
+// faute (« posséde » → possède, « méme » → même), le participe après un auxiliaire reste (« il a visitè » → visité, « il est tombe » → tombé).
+// Puis : « aimè », « donnè »… étaient des ENTRÉES du dictionnaire (coquilles de la source, jumeau en « é » présent) — le correcteur se taisait.
+function testListe5b() {
+  for (const [t, w, s, tier] of [['Elève de troisième.', 'Elève', 'Élève'], ['Etonnés par la nouvelle.', 'Etonnés', 'Étonnés', 'vigilance'],
+      ['Il est juge.', 'juge', null], ['Elle est élève.', 'élève', null], ['Il est guide de montagne.', 'guide', null], ['Elle est interprète.', 'interprète', null],
+      ['Elle a aimè ce livre.', 'aimè', 'aimé'], ['Il a donnè sa parole.', 'donnè', 'donné'],
+      ['Il posséde une maison.', 'posséde', 'possède'], ['Il vient méme demain.', 'méme', 'même'], ['Il a visitè Rome.', 'visitè', 'visité'], ['Il est tombe.', 'tombe', 'tombé']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || (tier && f.tier !== tier)))
+      fail.push('liste n° 5b « ' + t + ' » : attendu ' + (s || 'rien') + (tier ? ' en ' + tier : '') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe20() {
   for (const [t, w, s] of [['Des stages : avr. 2021', 'avr', null], ['Des équipes motivées, organisation opérationnelle', 'organisation', null],
       ['Les pages produit', 'produit', null], ['Les photos produit et service se renouvellent.', 'renouvellent', null],
@@ -494,6 +507,7 @@ function finish(parityKO) {
   testListe20();
   testListe23();
   testListe26();
+  testListe5b();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {
