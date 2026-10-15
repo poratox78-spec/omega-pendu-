@@ -142,6 +142,7 @@ def _check():
     vig = [("Elle a appris la langue des sines à l'école", "sines", "signes"), ("Voici mes chansons préférrées.", "préférrées", "préférées"),
            ("Loin de sonn corps", "sonn", "son"), ("Il parle de sonn temps libre", "sonn", "son"),
            ("La robe est mois chere", "chere", "chère"), ("Un film tèrs long", "tèrs", "très")]   # jugé sur correct_tiered : suggestion du SPELLER, vigilance comprise (correct() ne voit que la grammaire)
+    vig += [("Flue de données", "Flue", "Flux"), ("Le flue continu de la rivière", "flue", "flux"), ("Un gros flue de visiteurs", "flue", "flux")]   # ⭐ liste n° 35
     # ⭐ 14/10/2026 (liste n° 1e) — noms composés « N à infinitif » : « à », l'infinitif reste ; un complément derrière = « a » avoir possible
     elide += [("Le fer a repasser est encore chaud", "a", "à"), ("Nous dînons dans la salle a manger", "a", "à"),
               ("Les machines a coudre sont rangées", "a", "à"), ("La machine a laver le pull", "laver", "lavé")]
