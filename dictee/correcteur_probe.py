@@ -953,6 +953,10 @@ def rule_son_sont(T, i):
         for j in range(i-1, max(-1, i-9), -1):
             if _SEG is not None and (j+1) < len(_SEG['bb']) and _SEG['bb'][j+1]: break
             if deacc(T[j].lower()) in PLURAL_DET: plural_subj = True; break
+    if plural_subj and _prev_pron(T, i) not in ('ils', 'elles'):            # ⭐ 15/10/2026 (liste n° 31, C) : une tête SINGULIÈRE repérée par le parseur commun l'emporte sur la fenêtre (miroir JS)
+        try: _tgS = pos_tags(T); _nps = _np_subject(T, _tgS, i) if _tgS else None
+        except Exception: _nps = None
+        if _nps and _nps.get('n') == 's' and not _nps.get('elid'): plural_subj = False
     if lw == 'sont':
         if _prev_pron(T, i) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous'): return None   # après un PRONOM SUJET (même élidé « qu'il »), « sont » est le VERBE (« il sont là »), JAMAIS le possessif « son » (« il son X » est agrammatical) → ne pas proposer « son » ; le pronom sing (il/elle) est corrigé par rule_il_ils. Fixe « il sont là »→« il son là » et le sont→son de « il et elle sont »
         if plural_subj: return None                                    # sujet pluriel (proche ou à distance) → « sont » correct → ne pas toucher

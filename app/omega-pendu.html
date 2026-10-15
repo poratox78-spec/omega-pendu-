@@ -25709,6 +25709,8 @@ var w=T[i],lw=w.toLowerCase();
     var _pp0=_prevPron(T,i);   // _prevPron : « qu'ils son partis » porte son sujet dans le token élidé (miroir Python)
     var pluralSubj=(_pp0==='ils'||_pp0==='elles')||cplBefore(T,i)||cpl(T,i-1);
     if(!pluralSubj){for(var j=i-1;j>i-9&&j>=0;j--){if(_SEG&&(j+1)<_SEG.bb.length&&_SEG.bb[j+1])break;if(PLURAL_DET[deacc(T[j].toLowerCase())]){pluralSubj=true;break;}}}
+    if(pluralSubj&&_pp0!=='ils'&&_pp0!=='elles'){var _tgS=posTags(T),_nps=null;try{_nps=_tgS?_npSubject(T,_tgS,i):null;}catch(e){_nps=null;}   // ⭐ 15/10/2026 (liste n° 31, C) : une tête SINGULIÈRE repérée par le parseur commun l'emporte sur la fenêtre (« le chien des voisins son parti »)
+      if(_nps&&_nps.n==='s'&&!_nps.elid)pluralSubj=false;}
     if(lw==='sont'){var _sp=_pp0;if(_sp==='il'||_sp==='elle'||_sp==='on'||_sp==='ils'||_sp==='elles'||_sp==='je'||_sp==='tu'||_sp==='nous'||_sp==='vous')return null;   // après un PRONOM SUJET (même élidé « qu'il »), « sont » est le VERBE (« il sont là »), jamais le possessif ; laisse rIlIls corriger il→ils
       if(pluralSubj)return null;if(nxtNounSg)return 'son';return null;}
     if((_pp0==='ils'||_pp0==='elles')&&nxt&&!nxtNounSg)return 'sont';
