@@ -169,10 +169,14 @@ def _check():
     for s, wtok, tr in palier:   # le PALIER, pas seulement la suggestion : une orange appliquée en rouge réécrit le texte en silence
         got = [f[4] for f in C.correct_tiered(s) if deacc(f[1].lower()) == deacc(wtok.lower())]
         if got != [tr]: bad.append(f"{s!r} → palier de {wtok!r} attendu {tr}, eu {got}")
-    import speller_probe as _SPm; _sp = _SPm.Speller()   # ⭐ 15/10/2026 (liste n° 33) : le SPELLER de référence lui-même (correct_tiered du correcteur ne le porte pas)
-    for s, wtok, sug in vig:   # la SUGGESTION du speller, tous paliers (vigilance comprise)
-        got = [g for (_st, w, g, _a) in _sp.correct_text(s, inconnu=True) if deacc(w.lower()) == deacc(wtok.lower())]
-        if got != [sug]: bad.append(f"{s!r} → speller : {wtok!r} attendu {sug!r}, eu {got}")
+    import speller_probe as _SPm   # ⭐ 15/10/2026 (liste n° 33) : le SPELLER de référence lui-même (correct_tiered du correcteur ne le porte pas)
+    if not os.path.exists(_SPm.LEX):   # Lexique4 est local (gitignoré) : en CI le speller ne se charge pas — garde LOCALE (dev.sh), comme parity_speller
+        print(f"  ⚠ tests speller (liste n° 33) SAUTÉS : Lexique introuvable ({_SPm.LEX}) — garde locale, dev.sh les joue")
+    else:
+        _sp = _SPm.Speller()
+        for s, wtok, sug in vig:   # la SUGGESTION du speller, tous paliers (vigilance comprise)
+            got = [g for (_st, w, g, _a) in _sp.correct_text(s, inconnu=True) if deacc(w.lower()) == deacc(wtok.lower())]
+            if got != [sug]: bad.append(f"{s!r} → speller : {wtok!r} attendu {sug!r}, eu {got}")
     if bad:
         print("✗ recall_probe --check : régression(s) du correcteur :")
         for b in bad: print("    " + b)
