@@ -2075,6 +2075,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       if(_verbOrHomograph(tg,T,k)){var rd=svReads(T[k]);for(var z=0;z<rd.length;z++){var mt=rd[z][1];if(mt==='ind:pre'||mt==='ind:imp'||mt==='ind:fut'||mt==='cnd:pre'||mt==='sub:pre')return true;}}}
     return false;
   }
+  var _QUE_CONJ={pour:1,afin:1,parce:1,alors:1,bien:1,tandis:1,pendant:1,avant:1,apres:1,sans:1,des:1,lors:1,puisque:1,quoique:1,ainsi:1,si:1,tant:1,autant:1,plutot:1,encore:1,meme:1,surtout:1,sauf:1,jusqu:1};   // ⭐ liste n° 31 : « X que » = conjonction
   function rAccordRelObj(T,i){   // récupère le sujet via une RELATIVE-OBJET « que » (famille sujet non-adjacent, après #207) — miroir Python rule_accord_rel_obj, FP=0
     var w=T[i].toLowerCase();
     if(w.indexOf("'")>=0||/(é|és|ée|ées)$/.test(w))return null;
@@ -2091,7 +2092,11 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(_SEG&&_SEG.bb){for(var kb=q+1;kb<=i&&kb<_SEG.bb.length;kb++)if(_SEG.bb[kb])return null;}   // #B1 : ancre et verbe dans la MÊME proposition — frontière (virgule) entre les deux = dislocation → abstention
     if(!_relFinBetween(T,tg,q,i))return null;
     var ant=T[q-1].toLowerCase(),det=T[q-2].toLowerCase();
-    if(!PLURAL_DET[det]||_REL_STOP[ant])return null;
+    if(!PLURAL_DET[det]||_REL_STOP[ant]){   // ⭐ 15/10/2026 (liste n° 31) : le gabarit figé ne voit rien → le parseur de sujet commun lit le groupe nominal avant le relatif (adjectif, « de X ») ; « qu' » élidé : il s'abstient
+      if(/^qu['’]/.test(T[q].toLowerCase()))return null;var _tq=tg[q-1],_wq=deacc(T[q-1].toLowerCase());
+      if(!(_tq==='NOUN'||_tq==='PROPN'||_tq==='ADJ')||PREP[_wq]||_QUE_CONJ[_wq])return null;   // le mot avant « que » est le nom antécédent (ou son adjectif), jamais « pour que », « afin que », « parce que »
+      var _np=null;try{_np=_npSubject(T,tg,q);}catch(e){_np=null;}
+      if(!_np||_np.n!=='p'||_REL_STOP[String(_np.htxt||'').toLowerCase()]||_np.idx<q-6)return null;det='';}
     // « DES » est AMBIGU : article pluriel OU « de+les » d'un COMPLÉMENT (« la liste DES choses que… »),
     // où la TÊTE est le nom d'avant, au singulier. FP mesuré sans cette garde. Miroir Python.
     if(det==='des'&&q>=3&&tg&&(tg[q-3]==='NOUN'||tg[q-3]==='PROPN'))return null;                                       // antécédent = dét PLURIEL audible + nom réel
