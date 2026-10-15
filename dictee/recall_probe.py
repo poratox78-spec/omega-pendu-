@@ -131,6 +131,10 @@ def _check():
     # ⭐ 14/10/2026 (liste n° 5b) — un nom de métier après « est » n'est pas un participe (« il est juge » → jugé en rouge avant) ; témoin : « il est tombe »
     nofp += ["Il est juge.", "Elle est élève.", "Il est guide de montagne.", "Elle est interprète.", "Il est garde du corps."]
     palier += [("Il est tombe dans la rue", "tombe", 'auto')]
+    # ⭐ 15/10/2026 (liste n° 34) — rouges sur des mots justes : préfixe détaché, article contracté, « en » + auxiliaire, clitique accentué, « sida »
+    nofp += ["Le suivi de la pré éclampsie est rapide.", "Elle tient au procédé ancien.", "Il faut agir s'il en est besoin.",
+             "Tu me lé dit souvent.", "Les sida progressent."]
+    elide += [("Elle a une problème", "une", "un"), ("Elle est faim", "est", "a"), ("Je te le dit", "dit", "dis"), ("Les cancer progressent", "cancer", "cancers")]
     # ⭐ 15/10/2026 (liste n° 32) — « que » relatif + semi-auxiliaire : le mot qui suit est le verbe de la principale (pas d'orange) ; conjonction : l'orange reste
     nofp += ["La liste des courses que tu fais traîne sur la table.", "Tout ce qu'il fait tombe à l'eau."]
     elide += [("Je crois que je vais mange", "mange", "manger"), ("Il dit qu'il va mange", "mange", "manger"), ("La lettre que tu veux passé au voisin", "passé", "passer")]
