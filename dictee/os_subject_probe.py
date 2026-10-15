@@ -263,6 +263,8 @@ def _coord_verbe(F, vi, vn, f3s, f3p, tg):
         return None
     return False
 
+# ⭐ 15/10/2026 (lignes n° 8 et 9, choix de Rem « B + C ») — B : la route « voisins » (sans sujet repéré) se tait (0 vraie sur 57 dys / 43 UD) ;
+# C : seul le PLURIEL est proposé (les 69 marques dys vers le singulier étaient fausses). Miroir JS osVerbVig.
 def detect(F, vi, tau=0.85, tg=None):
     """rend (forme accordée suggérée, confiance) si le verbe F[vi] désaccorde le sujet-OS au-dessus de τ, sinon None.
     _guard_ok : gardes structurelles (participe/aux/dét/prép/sujet-pronom) — miroir des règles sœurs.
@@ -276,7 +278,7 @@ def detect(F, vi, tau=0.85, tg=None):
     if tg is not None and not _verb_ctx(tg, F, vi): return None
     if tg is not None:                                        # COORDINATION DE VERBES (miroir JS _osCoordVerbe, 03/09/2026)
         cv = _coord_verbe(F, vi, vn, f3s, f3p, tg)
-        if cv is not False: return cv
+        if cv is not False: return cv if (cv and cv[0] == f3p) else None   # C
     np_ = None
     if tg is not None:                                        # LE PARSEUR DE SUJET D'ABORD (miroir JS, 03/09/2026)
         try: np_ = C._np_subject(F, tg, vi)
@@ -287,7 +289,7 @@ def detect(F, vi, tau=0.85, tg=None):
             Z = sum(ws); ps = sum(w * d[0] for w, d in zip(ws, ds)) / Z; pp = sum(w * d[1] for w, d in zip(ws, ds)) / Z
             num = 's' if ps >= pp else 'p'; conf = abs(ps - pp)
             if conf < tau or num == vn: return None
-            return (f3p if num == 'p' else f3s, conf)
+            return (f3p, conf) if num == 'p' else None   # C
     # ⭐ 11/09/2026 — INCISE : une borne de proposition JUSTE AVANT le verbe et pas de sujet trouvé (« Gordon, malgré les offres des Chinois,
     #    rentra ») : le sujet est avant l'incise, les voisins R1-R3 liraient l'incise (« des Chinois » → rentrèrent, FAUX sur texte correct).
     #    Révélé par la table de conjugaison figée (la cellule 3e pluriel du passé simple manquait et taisait la route par accident). Miroir JS.
@@ -297,7 +299,7 @@ def detect(F, vi, tau=0.85, tg=None):
         if pp_ is not None:
             num = 's' if pp_[0] >= pp_[1] else 'p'; conf = abs(pp_[0] - pp_[1])
             if conf < tau or num == vn: return None
-            return (f3p if num == 'p' else f3s, conf)
+            return (f3p, conf) if num == 'p' else None   # C
     ant = _rel_ant(F, vi)
     if ant >= 0:                                          # relative : l'antécédent EST le sujet ; s'il ne porte pas son nombre, on se tait (miroir JS)
         an = _ant_num(F, ant)
@@ -314,8 +316,8 @@ def detect(F, vi, tau=0.85, tg=None):
     Z = sum(ws)
     ps = sum(w * d[0] for w, d in zip(ws, ds)) / Z; pp = sum(w * d[1] for w, d in zip(ws, ds)) / Z
     num = 's' if ps >= pp else 'p'; conf = abs(ps - pp)
-    if conf < tau or num == vn: return None
-    return (f3p if num == 'p' else f3s, conf)
+    if conf < tau or num == vn or ant < 0: return None   # B : sans antécédent, la route « voisins » se tait
+    return (f3p, conf) if num == 'p' else None   # C
 
 if __name__ == '__main__':
     TAU = 0.85

@@ -854,6 +854,8 @@ var w=T[i],lw=w.toLowerCase();
     var _pp0=_prevPron(T,i);   // _prevPron : « qu'ils son partis » porte son sujet dans le token élidé (miroir Python)
     var pluralSubj=(_pp0==='ils'||_pp0==='elles')||cplBefore(T,i)||cpl(T,i-1);
     if(!pluralSubj){for(var j=i-1;j>i-9&&j>=0;j--){if(_SEG&&(j+1)<_SEG.bb.length&&_SEG.bb[j+1])break;if(PLURAL_DET[deacc(T[j].toLowerCase())]){pluralSubj=true;break;}}}
+    if(pluralSubj&&_pp0!=='ils'&&_pp0!=='elles'){var _tgS=posTags(T),_nps=null;try{_nps=_tgS?_npSubject(T,_tgS,i):null;}catch(e){_nps=null;}   // ⭐ 15/10/2026 (liste n° 31, C) : une tête SINGULIÈRE repérée par le parseur commun l'emporte sur la fenêtre (« le chien des voisins son parti »)
+      if(_nps&&_nps.n==='s'&&!_nps.elid)pluralSubj=false;}
     if(lw==='sont'){var _sp=_pp0;if(_sp==='il'||_sp==='elle'||_sp==='on'||_sp==='ils'||_sp==='elles'||_sp==='je'||_sp==='tu'||_sp==='nous'||_sp==='vous')return null;   // après un PRONOM SUJET (même élidé « qu'il »), « sont » est le VERBE (« il sont là »), jamais le possessif ; laisse rIlIls corriger il→ils
       if(pluralSubj)return null;if(nxtNounSg)return 'son';return null;}
     if((_pp0==='ils'||_pp0==='elles')&&nxt&&!nxtNounSg)return 'sont';
@@ -2075,6 +2077,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       if(_verbOrHomograph(tg,T,k)){var rd=svReads(T[k]);for(var z=0;z<rd.length;z++){var mt=rd[z][1];if(mt==='ind:pre'||mt==='ind:imp'||mt==='ind:fut'||mt==='cnd:pre'||mt==='sub:pre')return true;}}}
     return false;
   }
+  var _QUE_CONJ={pour:1,afin:1,parce:1,alors:1,bien:1,tandis:1,pendant:1,avant:1,apres:1,sans:1,des:1,lors:1,puisque:1,quoique:1,ainsi:1,si:1,tant:1,autant:1,plutot:1,encore:1,meme:1,surtout:1,sauf:1,jusqu:1};   // ⭐ liste n° 31 : « X que » = conjonction
   function rAccordRelObj(T,i){   // récupère le sujet via une RELATIVE-OBJET « que » (famille sujet non-adjacent, après #207) — miroir Python rule_accord_rel_obj, FP=0
     var w=T[i].toLowerCase();
     if(w.indexOf("'")>=0||/(é|és|ée|ées)$/.test(w))return null;
@@ -2091,7 +2094,11 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(_SEG&&_SEG.bb){for(var kb=q+1;kb<=i&&kb<_SEG.bb.length;kb++)if(_SEG.bb[kb])return null;}   // #B1 : ancre et verbe dans la MÊME proposition — frontière (virgule) entre les deux = dislocation → abstention
     if(!_relFinBetween(T,tg,q,i))return null;
     var ant=T[q-1].toLowerCase(),det=T[q-2].toLowerCase();
-    if(!PLURAL_DET[det]||_REL_STOP[ant])return null;
+    if(!PLURAL_DET[det]||_REL_STOP[ant]){   // ⭐ 15/10/2026 (liste n° 31) : le gabarit figé ne voit rien → le parseur de sujet commun lit le groupe nominal avant le relatif (adjectif, « de X ») ; « qu' » élidé : il s'abstient
+      if(/^qu['’]/.test(T[q].toLowerCase()))return null;var _tq=tg[q-1],_wq=deacc(T[q-1].toLowerCase());
+      if(!(_tq==='NOUN'||_tq==='PROPN'||_tq==='ADJ')||PREP[_wq]||_QUE_CONJ[_wq])return null;   // le mot avant « que » est le nom antécédent (ou son adjectif), jamais « pour que », « afin que », « parce que »
+      var _np=null;try{_np=_npSubject(T,tg,q);}catch(e){_np=null;}
+      if(!_np||_np.n!=='p'||_REL_STOP[String(_np.htxt||'').toLowerCase()]||_np.idx<q-6)return null;det='';}
     // « DES » est AMBIGU : article pluriel OU « de+les » d'un COMPLÉMENT (« la liste DES choses que… »),
     // où la TÊTE est le nom d'avant, au singulier. FP mesuré sans cette garde. Miroir Python.
     if(det==='des'&&q>=3&&tg&&(tg[q-3]==='NOUN'||tg[q-3]==='PROPN'))return null;                                       // antécédent = dét PLURIEL audible + nom réel
@@ -5884,7 +5891,12 @@ function spellUnknown(tok,atStart,T,idx){
       if(rAccordSV(F,q)||rAccordSVnoun(F,q))return null;        // ⭐ 14/10/2026 (liste n° 1d) : le premier verbe est LUI-MÊME fautif (« les enfants mange et dorment ») — il ne prête pas son nombre. Miroir Python _coord_verbe
       if(nbs.s&&!nbs.p)return vn==='s'?null:f3s;if(nbs.p&&!nbs.s)return vn==='p'?null:f3p;return null;}
     return undefined;}
-  function osVerbVig(T,i,tg){if(!_OSLM)return null;
+  /* ⭐ 15/10/2026 (lignes n° 8 et 9, choix de Rem « B + C ») — MESURÉ sur le moteur du jour (3 corpus dys + UD 14 450) : l'orange OS trouvait
+     2 vraies fautes sur 104 marques dys. B) la route « voisins » (sans sujet repéré, le mot à nombre le plus proche) : 0 vraie sur
+     57 (dys) et 43 (UD) — elle reproduit l'ATTRACTION, mécanisme même de la faute → elle se tait. C) seul le PLURIEL est proposé :
+     sur les textes dys, les 69 marques vers le singulier étaient toutes fausses ; les vraies sont le pluriel oublié (-nt muet).
+     Prix accepté : 2 vraies fautes d'UD (encyclopédie) qui demandaient le singulier. Miroir Python os_subject_probe.detect. */
+  function osVerbVig(T,i,tg,plein){if(!_OSLM)return null;   // plein : relecture de bout de chaîne (forme d'un mot déjà mal écrit) — sans B ni C
     var F=[],m;for(m=0;m<T.length;m++)F.push(/^d[éè]s$/.test(T[m].toLowerCase())?'·dès':T[m].toLowerCase());   // ⭐ 13/10/2026 (conjugaison 14) : « dés » / « dès » accentué n'est pas l'article « des » — les voisins de l'OS le désaccentuaient (« progression dés juillet suscita » → suscitèrent)
     if(!_osGuardOk(F,i))return null;
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;
@@ -5899,13 +5911,13 @@ function spellUnknown(tok,atStart,T,idx){
        empêcherait » — le verbe qui suit et/ou/puis/mais reprend le sujet du verbe fini précédent du même segment. Les voisins
        R1-R3 (et le parseur) lisaient l'objet du premier verbe (« victoires » → pluriel) : faux. Si les deux formes partagent
        une lecture (personne, nombre), on se tait ; sinon on propose la forme du même nombre que le premier verbe. */
-    var _cv=_osCoordVerbe(F,i,vn,f3s,f3p,tg);if(_cv!==undefined)return _cv;
+    var _cv=_osCoordVerbe(F,i,vn,f3s,f3p,tg);if(_cv!==undefined)return (plein||(_cv&&_cv===f3p))?_cv:null;   // C : le pluriel seulement
     if(tg){var _np=null;try{_np=_npSubject(T,tg,i);}catch(e){_np=null;}
       if(_np&&(_np.n==='s'||_np.n==='p')&&!_osCoordPlural(F,i)&&_osRelAnt(F,i)<0){   /* une relative en « qui » entre la tête et le verbe : la route relative parle (03/09/2026) */var _dsn=[_osVote(_np.n,0.9),_osR4(F,i,f3s,f3p)],_wsn=[Math.abs(_dsn[0][0]-_dsn[0][1])+1e-6,(Math.abs(_dsn[1][0]-_dsn[1][1])+1e-6)*0.4];
         var _Zn=_wsn[0]+_wsn[1],_psn=(_wsn[0]*_dsn[0][0]+_wsn[1]*_dsn[1][0])/_Zn,_ppn=(_wsn[0]*_dsn[0][1]+_wsn[1]*_dsn[1][1])/_Zn,_rnn=_psn>=_ppn?'s':'p',_rcn=Math.abs(_psn-_ppn);
-        if(_rcn<_OS_TAU||_rnn===vn)return null;return _rnn==='p'?f3p:f3s;}}
+        if(_rcn<_OS_TAU||_rnn===vn)return null;return _rnn==='p'?f3p:(plein?f3s:null);}}   // C
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]&&!(typeof _np!=='undefined'&&_np))return null;   /* ⭐ 11/09/2026 : INCISE — borne de proposition juste avant le verbe et pas de sujet trouvé (« Gordon, malgré les offres des Chinois, rentra ») : le sujet est avant l'incise, les voisins R1-R3 liraient l'incise (→ rentrèrent, faux). Révélé par la table figée. Miroir os_subject_probe. */
-    if(tg){var _pp=_osRPostpose(F,i,tg);if(_pp!==null){var _pn=_pp[0]>=_pp[1]?'s':'p',_pc=Math.abs(_pp[0]-_pp[1]);if(_pc<_OS_TAU||_pn===vn)return null;return _pn==='p'?f3p:f3s;}}   // sujet postposé : mode dédié DOMINE
+    if(tg){var _pp=_osRPostpose(F,i,tg);if(_pp!==null){var _pn=_pp[0]>=_pp[1]?'s':'p',_pc=Math.abs(_pp[0]-_pp[1]);if(_pc<_OS_TAU||_pn===vn)return null;return _pn==='p'?f3p:(plein?f3s:null);}}   // C   // sujet postposé : mode dédié DOMINE
     var _ant=_osRelAnt(F,i),ds,ws=[],q;
     if(_ant>=0){var _an=_osAntNum(F,_ant);if(!_an)return null;ds=[_osVote(_an,0.9),_osR4(F,i,f3s,f3p)];}   // relative : l'antécédent EST le sujet ; s'il ne porte pas son nombre, on se tait
     else ds=[_osR1(F,i),_osR2(F,i),_osR3(F,i),_osR4(F,i,f3s,f3p)];
@@ -5914,8 +5926,8 @@ function spellUnknown(tok,atStart,T,idx){
     for(q=0;q<ds.length;q++)ws[q]=Math.abs(ds[q][0]-ds[q][1])+1e-6;ws[ds.length-1]*=0.4;   // LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence sing., ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
     if(_osCoordPlural(F,i)){ds.push([0.02,0.98]);var mw=0;for(q=0;q<ws.length;q++)if(ws[q]>mw)mw=ws[q];ws.push(mw+1.0);}   // route COORDINATION : « N et N » → pluriel, poids fort (tue les floods « la suède et la russie signent »→signe)
     var Zw=0,ps=0,pp=0;for(q=0;q<ds.length;q++)Zw+=ws[q];for(q=0;q<ds.length;q++){ps+=ws[q]*ds[q][0];pp+=ws[q]*ds[q][1];}ps/=Zw;pp/=Zw;var rn=ps>=pp?'s':'p',rc=Math.abs(ps-pp);
-    if(rc<_OS_TAU||rn===vn)return null;
-    return rn==='p'?f3p:f3s;}
+    if(rc<_OS_TAU||rn===vn||(_ant<0&&!plein))return null;   // B : sans antécédent, c'est la route « voisins » — elle se tait
+    return rn==='p'?f3p:(plein?f3s:null);}   // C
   function osProbe(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),tg=posTags(T)||[],out=[],i,s;for(i=0;i<T.length;i++){s=osVerbVig(T,i,tg);if(s&&s.toLowerCase()!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:s});}return out;}   // sonde OS-seule (parité vs os_subject_probe.py)
   // ANGLICISMES franglais NON-MOTS (miroir app) → ORANGE, priorité speller. Faux-amis homographes EXCLUS (flood mesuré).
   var _ANGLICISME={checker:'vérifier',booker:'réserver',forwarder:'transférer',canceller:'annuler',uploader:'téléverser',downloader:'télécharger',deadline:'échéance',spoiler:'divulgâcher',brainstorming:'remue-méninges'};
@@ -5983,7 +5995,7 @@ function spellUnknown(tok,atStart,T,idx){
     {var ppv=pronPpVig(T,i);if(ppv){return {i:i,word:T[i],sugg:ppv,name:'accord participe à vérifier',tier:'vigilance'};}}   // ⭐ 12/10/2026 (conjugaison 9) : « elles se sont levé » → levées ?
     {var siv=semiInfVig(T,i);if(siv){return {i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'};}}   // « je vais mange » → manger ? (orange)
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
-    {if(_tg===null)_tg=st.tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // OS-sujet : accord de nombre, sujet arbitré par l'OS + LM (résiduel « de N »)
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg,!!(st&&st.chaine));if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // OS-sujet : accord de nombre, sujet arbitré par l'OS + LM (résiduel « de N »)
     {var ccs=cesCestVig(T,i);if(ccs){return {i:i,word:T[i],sugg:ccs,name:"c'est/ces à vérifier",tier:'vigilance'};}}   // ⭐ 30/09/2026 : « ses dans », « ces une » → c'est ? (avant le modèle ces/ses)
     {var cv=cesVig(T,i);if(cv){return {i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'};}}
     {var sv2=saisVig(T,i);if(sv2){return {i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'};}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne

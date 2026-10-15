@@ -46,7 +46,7 @@ const REGISTRE = {
             pages: { 'en/correcteur-outil.html': 1 },      // 3 jusqu'au 17/09/2026 : deux commentaires de règles ont suivi la chaîne des décisions dans le moteur (analyzeText)
             sonde: { fichier: 'dictee/fp_en_propre_probe.js', portee: 'locale' } },
   14450:  { nom: 'UD FR complet (14 450 phrases correctes) — FP=0 du correcteur',
-            pages: { 'correcteur.html': 1, 'recherche.html': 1, 'saisie-vocale.html': 1 },
+            pages: { 'correcteur.html': 1, 'recherche.html': 1, 'saisie-vocale.html': 1, 'toile.html': 2 },   // toile : 15/10/2026 (liste n° 28)
             sonde: { fichier: 'dictee/fp_scale_probe.py', portee: 'locale',
                      note: 'corpus COMPLET sous data_local ; la CI n en rejoue que l echantillon 2 500' } },
   11304:  { nom: 'phrases écrites par des humains — précision/rappel du speller',
@@ -54,7 +54,7 @@ const REGISTRE = {
             sonde: { fichier: 'dictee/ponct_double_route_probe.js', portee: 'locale',
                      note: 'meme banc 11 304 ; le volet SPELLER (precision/rappel) n a plus de sonde dediee' } },
   2500:   { nom: 'UD 2 500 (échantillon encyclopédique) — FP à l\'échelle + tagger',
-            pages: { 'arbitrage.html': 1, 'recherche.html': 3, 'toile.html': 2, 'correcteur.html': 1 },
+            pages: { 'arbitrage.html': 1, 'recherche.html': 3, 'correcteur.html': 1 },   // toile : passée au corpus complet le 15/10/2026 (liste n° 28)
             sonde: { fichier: 'dictee/fp_scale_probe.py', portee: 'ci' } },
   630500: { nom: 'corpus d\'entraînement du corps mou B2 (UD + exemples Wiktionnaire, held-out fp_scale exclu)',
             pages: { 'recherche.html': 1 },

@@ -475,6 +475,14 @@ function testListe7() {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 7/10 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+// ⭐ LISTE N° 31 (candidat C) : son/sont — le « sujet pluriel » était décidé par un déterminant pluriel à 8 mots en arrière (le mécanisme de
+// l'attraction) : « le chien des voisins son partis » recevait « sont » EN ROUGE. Une tête singulière repérée par le parseur commun l'emporte.
+// Le premier échoue sur le moteur d'avant ; témoins : sujet pluriel réel, pronom ils.
+function testListe31() {
+  for (const [t, w, s] of [['Le chien des voisins son partis en courant.', 'son', null], ['Les voisins son partis.', 'son', 'sont'], ['Ils son contents.', 'son', 'sont']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w && x.sugg === 'sont');
+    if (s === null ? !!f : !f) fail.push('liste n° 31 « ' + t + ' » : attendu ' + (s || 'pas de « sont »') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe5b() {
   for (const [t, w, s, tier] of [['Elève de troisième.', 'Elève', 'Élève'], ['Etonnés par la nouvelle.', 'Etonnés', 'Étonnés', 'vigilance'],
       ['Il est juge.', 'juge', null], ['Elle est élève.', 'élève', null], ['Il est guide de montagne.', 'guide', null], ['Elle est interprète.', 'interprète', null],
@@ -518,6 +526,7 @@ function finish(parityKO) {
   testListe26();
   testListe5b();
   testListe7();
+  testListe31();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {

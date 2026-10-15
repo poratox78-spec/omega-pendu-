@@ -131,11 +131,12 @@ const N = [
   {id:'wikt', f:'source', r:15, label:'Wiktionnaire', desc:"46 018 lignes kaikki (CC BY-SA). Tue 56 % du flood « mot inconnu ». Une passe : mot·POS·genre·IPA·nombre."},
   {id:'argot', f:'source', r:11, label:'Argot / anglicismes', desc:"146 + 52 termes curés (Twitch/Discord + handicap : dys, tdah, aesh). Éthique : pas d'insulte, glose relue une par une."},
   {id:'part', f:'source', r:11, label:'Participes accordés', desc:"3 049 participes fléchis (dallée/dallés) — fin du FP « dallées→d'allées »."},
-  {id:'ud', f:'source', r:12, label:'Treebank UD', desc:"French-GSD : entraîne le tagger HMM (UPOS + deprel). CC BY-SA. 2 500 phrases = garde FP=0 à l'échelle."},
+  {id:'ud', f:'source', r:12, label:'Treebank UD', desc:"French-GSD : entraîne le tagger HMM (UPOS + deprel). CC BY-SA. 14 450 phrases correctes = la garde à l'échelle (2 500 en garde rapide)."},
+  {id:'morph', f:'source', r:14, label:'Morphalou 3.1', desc:"Lexique de l'ATILF (licence LGPL-LR). Donne la table de conjugaison COMPLÈTE — 12 925 verbes, 8 temps simples (indicatif présent, imparfait, passé simple, futur ; conditionnel ; subjonctif présent et imparfait ; impératif) — et des formes ajoutées au dictionnaire (verbes conjugués, formes accentuées)."},
   // structures
   {id:'spw', f:'struct', r:15, label:'SP.WORDS', desc:"~714 000 formes connues. La garde anti-flood du speller : un mot connu n'est jamais « inconnu »."},
   {id:'gn', f:'struct', r:14, label:'GENDER · gn', desc:"68 746 genres (21 847 wikt + 56 argot). Nourrit l'accord genre du déterminant et de l'adjectif."},
-  {id:'conj', f:'struct', r:14, label:'CONJ_C', desc:"Paradigme complet (Bescherelle) : lemme × mode × personne × nombre. Émet les formes de correction verbale."},
+  {id:'conj', f:'struct', r:14, label:'CONJ_C', desc:"Table Morphalou : 12 925 verbes × 8 temps simples × 6 personnes. Émet les formes de correction verbale ; son index (CONJ_F) dit ce qu'une forme peut être (« mangeât » : subjonctif imparfait)."},
   {id:'hmm', f:'struct', r:13, label:'POS-HMM', desc:"Modèle bigramme Viterbi (155 k), ~95 % d'exactitude. Émission apprise + backoff suffixe."},
   {id:'np', f:'struct', r:12, label:'NOUN_POST', desc:"Posterior P(nom)/P(verbe) par forme — gate §3 des accords genre/pluriel."},
   {id:'ipa', f:'struct', r:11, label:'IPA · phon_key', desc:"Clé phonétique approximative (lossy). Le vrai IPA a été mesuré-réfuté : les fautes dys SONT phonétiquement approximatives."},
@@ -143,6 +144,8 @@ const N = [
   // moteurs
   {id:'tag', f:'engine', r:16, label:'Tagger HMM', desc:"Viterbi. Donne la NATURE de chaque mot en contexte. Le sujet plafonne à ~94 % = le mur syntaxique (hors parseur). ⭐ MESURÉ 08/09/2026 : il ne donne JAMAIS la FONCTION. « nous mangeons » (sujet) et « il nous voit » (objet) rendent le MÊME PRON — sujet et objet ne sont pas des catégories de mot, ce sont des relations, et ce modèle n'en produit pas. Demander au tagger de trancher nous/vous, c'était lui demander ce qu'il ne calcule pas. Trois limites de même nature déjà mesurées : clitique préverbal lu DET, « que » relatif lu SCONJ, participe adjectival lu VERB."},
   {id:'spell', f:'engine', r:15, label:'Speller', desc:"Canal bruité (édition + phon_key). Émet ortho (rouge/orange) + spans multi-tokens (répétition, espacement, trait d'union, élision)."},
+  {id:'bout', f:'engine', r:12, label:'Bout de chaîne', desc:"Après la chaîne des règles : on relit la phrase avec les corrections ORANGE appliquées. Ce que les règles rouges y trouvent EN PLUS reste orange (la marque n'existe que si l'on accepte la correction d'à côté) ; une orange que le rouge ramène au mot écrit est retirée."},
+  {id:'expl', f:'engine', r:12, label:'Conseils · 💡', desc:"Chaque règle a une FAMILLE de conseil par son nom (accent, son muet, homophone, accord, personne, participe, découpage…) ; le 💡 dit pourquoi, au mot près. Ponctuation, style et répétition n'ont pas de conseil, voulu. Un conseil contradictoire vaut moins que le silence."},
   {id:'os', f:'engine', r:13, label:'OS-sujet', desc:"Arbitrage μ = r/(1+r) : fiabilité = piqué de la distribution. Trouve le sujet éloigné en ORANGE là où le parseur s'abstient."},
   {id:'filet', f:'engine', r:12, label:'_verb_or_homograph', desc:"Filet partagé : récupère les verbes que l'émission HMM rate (persiste/signale), tout en écartant noms/adj/couleurs connus."},
   // contexte
@@ -157,7 +160,9 @@ const N = [
   {id:'sv', f:'rouge', r:15, label:'Accord sujet-verbe', desc:"Famille : sv_noun, coord (#207), rel_obj que/dont/où (#209/210), incise (#211), quantifieur, relatif qui, postposé, -ais→-ait."},
   {id:'pp', f:'rouge', r:13, label:'Accord participe', desc:"pp_être (sujet), pp_avoir + COD antéposé (que), dont. Perception/factitif + infinitif = INVARIABLE (#212 : s'est vu confisquer)."},
   {id:'genre', f:'rouge', r:12, label:'Accord genre', desc:"Déterminant→nom, adjectif attribut & épithète. Couleurs composées (bleu marine) invariables."},
-  {id:'term', f:'rouge', r:11, label:'Terminaisons', desc:"-é/-er/-ez/-ai (mordre/mordu, marqueurs je/vous), impératif (-s euphonique, va-y)."},
+  {id:'term', f:'rouge', r:11, label:'Terminaisons', desc:"-é/-er/-ez/-ai (mordre/mordu, marqueurs je/vous), « a » + infinitif (« une machine a laver » : à, pas lavé)."},
+  {id:'temps', f:'rouge', r:11, label:'Temps et modes', desc:"« si » + conditionnel (rouge pour être et avoir, orange sinon) ; conditionnel, subjonctif et temps du verbe « à vérifier » (orange). Lisent la table de conjugaison : ce qu'une forme PEUT être."},
+  {id:'imp', f:'rouge', r:11, label:'Impératif', desc:"-s euphonique (va-y), forme de l'impératif, pronom après le verbe (dis-le) ; l'impératif seul, sans indice, reste orange."},
   {id:'homo', f:'rouge', r:14, label:'Homophones', desc:"son/sont, on/ont, a/à, et/est, ce/se, c'est/s'est, ça/sa, met/mais, du/dû, sur/sûr, la/là, peu/peut, leur/leurs, sais/sait…"},
   {id:'nom', f:'rouge', r:11, label:'Accord du nom', desc:"Pluriel (les enfant→enfants) et singulier (le camps→camp) ancrés dans le lexique."},
   {id:'span', f:'rouge', r:12, label:'Spans speller', desc:"Répétition (le le→le), espacement FR (mot,mot), trait d'union (au dessus), élision (l'/d'). Corrections multi-tokens."},
@@ -167,7 +172,7 @@ const N = [
   {id:'homov', f:'orange', r:11, label:'Vigilance homophone', desc:"ces/ses, ou/où, imparfait résiduel : signalés « à vérifier » quand la grammaire seule ne tranche pas."},
   {id:'unk', f:'orange', r:11, label:'Mot inconnu', desc:"Non-mot hors SP.WORDS → candidat orange. 78 % de vrais typos sur le corpus dys réel ; le lexique large éteint le reste."},
   // sortie
-  {id:'ROUGE', f:'out', r:16, label:'ROUGE', desc:"Correction affirmative. Doctrine : FP = 0, mesuré sur 2 500 phrases UD correctes. Une faute de grammaire est rouge, jamais tue par paresse."},
+  {id:'ROUGE', f:'out', r:16, label:'ROUGE', desc:"Correction affirmative. Doctrine : FP = 0 visé, mesuré à chaque changement sur 14 450 phrases UD correctes et 3 corpus dys. Une faute de grammaire est rouge, jamais tue par paresse."},
   {id:'gacc', f:'struct', r:13, label:'GENDER_ACC · collisions', desc:"Genre des formes ACCENTUÉES (59 916 entrées, kaikki + Lexique4 + Morphalou). Son sous-ensemble COLLISION (713 mots dont la clé sans accent est partagée : marché/marche, côté/côte, pêche/péché) est le SEUL que les règles d'accord consultent — la table brute donne « f » aux noms épicènes et fabriquait 8 rouges faux sur 14 450 phrases correctes (19/09/2026)."},
   {id:'epi', f:'struct', r:10, label:'Épicènes exclus', desc:"793 noms que Lexique4 marque à deux genres (un/une peintre, ministre, architecte) : ils ne tranchent AUCUN accord. Sans ce filtre, « Le peintre est italien. » devenait « italienne », en rouge, sur du français juste. Le lexique d'orthographe, lui, les garde : ils cessent d'affirmer un genre, pas d'exister."},
   {id:'pren', f:'struct', r:12, label:'PRENOMS', desc:"8 729 prénoms avec leur genre. C'est ce qui permet « Marie est venu. » → venue. Livrée une fois sans être chargée : le bug fondateur du banc navigateur."},
@@ -197,6 +202,9 @@ const E = [
   ['ROUGE','core'],['ORANGE','core'],
   // cross links (la toile)
   ['gn','genre'],['subjN','seg'],['os','subjN'],['homov','homo'],
+  // 15/10/2026 (liste n° 28) : Morphalou, temps et modes, impératif, bout de chaîne, conseils
+  ['morph','conj'],['morph','spw'],['conj','temps'],['conj','imp'],['pers','imp'],['temps','ROUGE'],['temps','ORANGE'],['imp','ROUGE'],['imp','ORANGE'],
+  ['ROUGE','bout'],['ORANGE','bout'],['bout','core'],['expl','ROUGE'],['expl','ORANGE'],['expl','core'],
 ];
 const byId = Object.fromEntries(N.map(n=>[n.id,n]));
 const adj = {}; N.forEach(n=>adj[n.id]=new Set());

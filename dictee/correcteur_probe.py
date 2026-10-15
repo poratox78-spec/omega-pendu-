@@ -953,6 +953,10 @@ def rule_son_sont(T, i):
         for j in range(i-1, max(-1, i-9), -1):
             if _SEG is not None and (j+1) < len(_SEG['bb']) and _SEG['bb'][j+1]: break
             if deacc(T[j].lower()) in PLURAL_DET: plural_subj = True; break
+    if plural_subj and _prev_pron(T, i) not in ('ils', 'elles'):            # ⭐ 15/10/2026 (liste n° 31, C) : une tête SINGULIÈRE repérée par le parseur commun l'emporte sur la fenêtre (miroir JS)
+        try: _tgS = pos_tags(T); _nps = _np_subject(T, _tgS, i) if _tgS else None
+        except Exception: _nps = None
+        if _nps and _nps.get('n') == 's' and not _nps.get('elid'): plural_subj = False
     if lw == 'sont':
         if _prev_pron(T, i) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous'): return None   # après un PRONOM SUJET (même élidé « qu'il »), « sont » est le VERBE (« il sont là »), JAMAIS le possessif « son » (« il son X » est agrammatical) → ne pas proposer « son » ; le pronom sing (il/elle) est corrigé par rule_il_ils. Fixe « il sont là »→« il son là » et le sont→son de « il et elle sont »
         if plural_subj: return None                                    # sujet pluriel (proche ou à distance) → « sont » correct → ne pas toucher
@@ -6192,6 +6196,9 @@ def _rel_fin_between(T, tg, a, b):
             return True
     return False
 
+_QUE_CONJ = frozenset('pour afin parce alors bien tandis pendant avant apres sans des lors puisque quoique ainsi si tant autant plutot encore meme surtout sauf jusqu'.split())   # ⭐ liste n° 31 : « X que » = conjonction
+
+
 def rule_accord_rel_obj(T, i):
     """Accord SUJET-VERBE par RÉCUPÉRATION du sujet via une RELATIVE à antécédent-avant (famille « sujet non-adjacent » de
     Rem, après #207/coordination). « les enfants QUE je vois joue »→jouent : le sujet de « joue » = l'antécédent « les
@@ -6221,7 +6228,14 @@ def rule_accord_rel_obj(T, i):
     if _SEG is not None and any(_SEG['bb'][k] for k in range(q + 1, i + 1) if k < len(_SEG['bb'])): return None   # #B1 : ancre et verbe DOIVENT être dans la même proposition — une frontière (virgule) entre les deux = dislocation (« les X que S V, NouveauSujet V2 ») → abstention (le sujet réel de V2 n'est PAS l'antécédent)
     if not _rel_fin_between(T, tg, q, i): return None
     ant = T[q-1].lower(); det = T[q-2].lower()
-    if det not in PLURAL_DET or ant in _REL_STOP: return None                # antécédent = dét PLURIEL audible + nom réel
+    if det not in PLURAL_DET or ant in _REL_STOP:                              # ⭐ 15/10/2026 (liste n° 31) : le gabarit figé ne voit rien → parseur de sujet commun (miroir JS)
+        if re.match(u"^qu['’]", T[q].lower()): return None
+        _tq = tg[q-1] if (tg and q - 1 < len(tg)) else ''; _wq = deacc(T[q-1].lower())
+        if _tq not in ('NOUN', 'PROPN', 'ADJ') or _wq in PREP or _wq in _QUE_CONJ: return None   # le mot avant « que » est le nom antécédent, jamais « pour que », « afin que »
+        try: np_ = _np_subject(T, tg, q)
+        except Exception: np_ = None
+        if not np_ or np_.get('n') != 'p' or str(np_.get('htxt') or '').lower() in _REL_STOP or np_.get('idx', 0) < q - 6: return None
+        det = ''
     # « DES » est AMBIGU : article pluriel (« des choses que… ») OU « de + les » d'un COMPLÉMENT
     # (« la liste DES choses que… ») — et là la TÊTE est le nom d'AVANT, au singulier. Sans cette garde
     # on corrigeait « La liste des choses que je dois faire EST longue » -> sont : FP mesuré sur une
@@ -8254,6 +8268,10 @@ CASES = [
     ("Marie est gentille", "est", "es", "accord sujet-verbe"),
     ("La fillette a peur", "a", "as", "accord sujet-verbe"),
     ("ma soeur va au marché", "va", "vas", "accord sujet-verbe"),
+    # ⭐ 15/10/2026 (liste n° 31, candidat A) : antécédent de « que » lu par le parseur de sujet commun — « de X » et adjectif entre le
+    # déterminant et le nom (le gabarit figé dét + nom ne voyait que « les enfants que je garde ») ; les deux échouent sur le moteur d'avant
+    ("Les amis de ma sœur que tu connais arrivent demain", "arrivent", "arrive", "accord sujet-verbe"),
+    ("Les deux chats que la voisine nourrit dorment au soleil", "dorment", "dort", "accord sujet-verbe"),
     # IDIOME D'AVOIR après sujet pluriel à distance (« Les enfants de Paul on faim » — liste fermée)
     ("mes amis ont raison", "ont", "on", "on/ont"),
     # « a » devant NOM NU (31/08/2026) : avoir exige un déterminant → à ; stop-listes idiomes/latins/unités.
