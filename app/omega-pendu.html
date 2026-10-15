@@ -29812,7 +29812,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if((tok===low||atStart)&&low.length>=4&&SP.WORDS.has(low)&&!_RV_LATIN[low]&&(spP(low)||'')==='V'&&(spF(low)||0)<0.01&&!/(er|ir|re|oir)$/.test(low)&&T&&idx!=null){
       var _pvL=idx>0?deaccS(T[idx-1].toLowerCase()).replace(/['’]$/,''):'',_nxL=idx+1<T.length?deaccS(T[idx+1].toLowerCase()):'',_nx2=idx+2<T.length?T[idx+2].toLowerCase():'';
       if(_RV_DET[_pvL]||((_nxL==='de'||_nxL==='du'||_nxL==='des'||_nxL==='d'||_nxL==="d'")&&_nx2&&SP.WORDS.has(_nx2)&&(spP(_nx2)||'').indexOf('N')>=0&&!_RV_DET[deaccS(_nx2)]&&!CLITIC[_nx2])){
-        var _dL=deaccS(low),_e1=sEdits1(_dL),_bn=null,_bf=0;for(var _q=0;_q<_e1.length;_q++){var _a=spD(_e1[_q]);if(!_a)continue;for(var _r2=0;_r2<_a.length;_r2++){var _c=_a[_r2],_cf=spF(_c)||0;if(_c!==low&&(spP(_c)||'').indexOf('N')>=0&&_cf>=1&&_cf>_bf){_bn=_c;_bf=_cf;}}}
+        var _dL=deaccS(low),_e1=sEdits1(_dL).concat([_dL]),_bn=null,_bs=-1,_bf=0,_nbL=SDET_NUM[_pvL]||({aux:'p',au:'s',du:'s'})[_pvL]||null;for(var _q=0;_q<_e1.length;_q++){var _a=spD(_e1[_q]);if(!_a)continue;for(var _r2=0;_r2<_a.length;_r2++){var _c=_a[_r2],_cf=spF(_c)||0;if(_c===low||(spP(_c)||'').indexOf('N')<0||_cf<1)continue;if(_nbL==='p'&&!/[sx]$/.test(_c))continue;if(_nbL==='s'&&/[sx]$/.test(_c)&&!sInvarS(_c))continue;var _sc=(deaccS(_c)===_dL?2:0)+(_c.charAt(0)===low.charAt(0)?1:0);if(_sc>_bs||(_sc===_bs&&_cf>_bf)){_bn=_c;_bs=_sc;_bf=_cf;}}}
         if(_bn)return['vigilance',ckeepcase(tok,_bn)];}}
     if(SP.WORDS.has(low))return null;                                  // mot valide (œuf→oeuf normalisé) → couche grammaire
     if(_presentRegulier(low,T,idx,tok))return null;   // ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal

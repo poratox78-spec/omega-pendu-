@@ -832,11 +832,16 @@ class Speller:
             _nx2 = toks[idx + 2].lower() if idx + 2 < len(toks) else ''
             if _pvL in _RV_DET or (_nxL in ('de', 'du', 'des', 'd', "d'") and _nx2 and _nx2 in self.WORDS and 'N' in self.POS.get(_nx2, ())
                                    and deacc(_nx2) not in _RV_DET and _nx2 not in ('ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous')):   # « de la » : « la » n'est pas le nom (la note)
-                _bn, _bf = None, 0.0
-                for _e in edits1(deacc(low)):
+                _dL = deacc(low); _bn, _bs, _bf = None, -1, 0.0   # même squelette d'abord (lignés → lignes), puis même initiale, puis fréquence — comme le tri du speller
+                _nbL = self.DET_NUM.get(_pvL) or {'aux': 'p', 'au': 's', 'du': 's'}.get(_pvL)   # le nom suit le NOMBRE du déterminant (« aux minerait » → minerais)
+                for _e in list(edits1(_dL)) + [_dL]:
                     for _c in (self.D2A.get(_e) or ()):
                         _cf = self.FREQ.get(_c, 0.0)
-                        if _c != low and 'N' in self.POS.get(_c, ()) and _cf >= 1.0 and _cf > _bf: _bn, _bf = _c, _cf
+                        if _c == low or 'N' not in self.POS.get(_c, ()) or _cf < 1.0: continue
+                        if _nbL == 'p' and not _c.endswith(('s', 'x')): continue
+                        if _nbL == 's' and _c.endswith(('s', 'x')) and not self._invar_s(_c): continue
+                        _sc = (2 if deacc(_c) == _dL else 0) + (1 if _c[:1] == low[:1] else 0)
+                        if _sc > _bs or (_sc == _bs and _cf > _bf): _bn, _bs, _bf = _c, _sc, _cf
                 if _bn: return ('vigilance', (_bn[:1].upper() + _bn[1:]) if tok[:1].isupper() else _bn)
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — miroir JS
