@@ -476,6 +476,7 @@ def rule_e_er(T, i):
         if _t6 and i < len(_t6) and _t6[i] in ('NOUN', 'PROPN') and not (i + 1 < len(T) and deacc(T[i+1].lower()) in _EER_DET): return None
         return forms[1]
     if p in PREP:
+        if p in ('au', 'aux'): return None                     # ⭐ liste n° 34 (b) : article contracté, jamais d'infinitif — miroir JS
         if deacc(forms[0].lower()) in D.GENDER_LEX: return None   # prép + NOM homographe de participe (« par arrêté », « du passé/marché ») → abstention (FP)
         # ⭐ …ET LA TABLE ACCENTUÉE (08/09/2026). `GENDER_LEX` est DÉSACCENTUÉE : elle perd tout
         # nom dont la clé nue est partagée — « trace » (f) et « tracé » (m) s'annulent, donc
@@ -1149,7 +1150,7 @@ def rule_on_ont(T, i):
             if _hn.endswith(('s', 'x')) and _hn not in _INVAR_S and ((_hn[:-3] + 'al' if _hn.endswith('aux') else _hn[:-1]) in WORDS_SET): return None
         # ⭐ 09/10/2026 : « les filles EN ont profite », « les enfants LES ont mange » — un clitique ne coupe pas le sujet (avant : → on, rouge faux)
         _ki = i - 1
-        while _ki > 0 and _ki >= i - 2 and deacc(T[_ki].lower()) in CLITIC and not (_so is not None and _ki <= _so['idx']): _ki -= 1
+        while _ki > 0 and _ki >= i - 2 and T[_ki].lower().replace(u'’', "'") in CLITIC and not (_so is not None and _ki <= _so['idx']): _ki -= 1
         if _ki < i - 1 and _so is None and _tgo: _so = _np_subject(T, _tgo, _ki + 1)
         if _so is not None and _so['idx'] == _ki:
             return None if _so["n"] == "p" else _keepcase(T[i], "a")
@@ -1492,7 +1493,7 @@ def _rule_a_aa_nouveau(T, i, sans4=False):
         for _jd in range(i - 1, max(0, i - 2) - 1, -1):
             if deacc(T[_jd].lower()) == 'de' and _jd + 1 < len(_SEG['dig']) and _SEG['dig'][_jd + 1]: return u'à'
     k = i + 1
-    while k < len(T) and deacc(T[k].lower()) in CLITIC: k += 1
+    while k < len(T) and T[k].lower().replace(u'’', "'") in CLITIC: k += 1
     if k >= len(T) or not re.search(r'(er|ir|re|oir)$', deacc(T[k].lower())): return None
     p1 = deacc(T[i - 1].lower())
     if p1 in _AA_NEG: return u'à'                                     # ① négation AVANT « a »
@@ -3444,11 +3445,12 @@ def rule_capital(T, i):
     if i > 0 and len(deacc(T[i - 1].lower())) == 1: return None   # après une INITIALE (J. R. ou nom latin « L. casei ») → pas une fin de phrase
     return w[0].upper() + w[1:]
 
+# ⭐ liste n° 34 (d) : les marches sur les clitiques lisent la forme ÉCRITE (apostrophe normalisée) — « lé » (l'ai) n'est pas le clitique « le » ; miroir JS
 def _subject_before(T, i):
     """Remonte depuis i-1 en sautant les clitiques objets ; renvoie (personne, nombre) si un PRONOM sujet net précède.
     BORNE (A) : aucune frontière de proposition (ponctuation) entre le sujet et le verbe, sinon c'est une autre proposition."""
     j = i - 1; steps = 0
-    while j >= 0 and steps < 3 and deacc(T[j].lower()) in CLITIC:
+    while j >= 0 and steps < 3 and T[j].lower().replace(u'’', "'") in CLITIC:
         j -= 1; steps += 1
     if j < 0: return None
     if _SEG is not None and any(_SEG['bb'][m] for m in range(j + 1, min(i + 1, len(_SEG['bb'])))):
@@ -3641,6 +3643,7 @@ AUX_ETRE_PP = {'alle', 'allee', 'alles', 'allees', 'venu', 'venue', 'venus', 've
 
 def rule_aux_usage(T, i):
     if not CONJ_LOADED or "'" in T[i].lower(): return None
+    if i > 0 and deacc(T[i - 1].lower()) == 'en': return None       # ⭐ liste n° 34 (c) : « s'il en est besoin » — miroir JS
     reads = _reads(T[i])
     if not reads: return None
     lemmas = {l for (l, _mt, _p, _n) in reads}
@@ -3797,7 +3800,7 @@ def _noun_subject_number(T, i):
     « les » = pronom, pas déterminant pluriel), puis prend le déterminant gouverneur (en sautant les dét. de
     groupe prépositionnel). Renvoie (nombre 's'|'p', index_du_déterminant) ou None. Pronom → None (autre règle)."""
     j = i - 1; steps = 0
-    while j >= 0 and steps < 2 and deacc(T[j].lower()) in CLITIC: j -= 1; steps += 1
+    while j >= 0 and steps < 2 and T[j].lower().replace(u'’', "'") in CLITIC: j -= 1; steps += 1
     for k in range(j, -1, -1):
         w = deacc(T[k].lower())
         if w in NUM_PRON: return None                                  # sujet pronom → règle pronom
@@ -3978,7 +3981,7 @@ def rule_accord_sv_noun(T, i):
         if _ok:
             _vr = None                                                 # ⑤ le verbe de la relative : le 1er verbe fini après « qui »
             for m in range(_q + 1, i):
-                if deacc(T[m].lower()) in CLITIC: continue
+                if T[m].lower().replace(u'’', "'") in CLITIC: continue
                 if tg and m < len(tg) and tg[m] in ('VERB', 'AUX'): _vr = m
                 break
             if _vr is not None:
@@ -4264,7 +4267,7 @@ def _des_article(T, tg, m, lo):
     vb = tg[m-1] in ('VERB', 'AUX')                 # le tagger lit parfois le verbe comme un nom (« je vois des ») : un pronom sujet devant le prouve
     if not vb and _reads(p):
         q = m - 2
-        while q >= 0 and deacc(T[q].lower()) in _SUJ_SAUT: q -= 1
+        while q >= 0 and T[q].lower().replace(u'’', "'") in _SUJ_SAUT: q -= 1
         if q >= 0 and (deacc(T[q].lower()) in SUBJ_PRON or deacc(T[q].lower()) in _SUBJ_PRON_PL): vb = True
     if not vb or p in PREP or p in NUM_DET or p in _QUANT_PL or p in _QUANT_SG or not _reads(p): return False
     if m >= 2 and (tg[m-2] == 'DET' or deacc(T[m-2].lower()) in NUM_DET): return False
@@ -4279,7 +4282,7 @@ def rule_accord_sv_relatif(T, i):
     tg = pos_tags(T)
     if not tg or not _verb_or_homograph(tg, T, i): return None
     j = i - 1                                                                # remonter jusqu'à « qui » (sauter clitiques/négation)
-    while j >= 0 and (deacc(T[j].lower()) in CLITIC or deacc(T[j].lower()) in ('ne', 'n')): j -= 1
+    while j >= 0 and (T[j].lower().replace(u'’', "'") in CLITIC or deacc(T[j].lower()) in ('ne', 'n')): j -= 1
     if j < 0 or deacc(T[j].lower()) != 'qui': return None
     qk = j
     if qk == 0: return None                                                 # « Qui vient ? » (interrogatif, sans antécédent) → abstention
@@ -4727,7 +4730,7 @@ def _ellipse_accorde(T, i, c):
         if d in SUBJ_PRON: p = SUBJ_PRON[d]; break
         if d in _SUBJ_PRON_PL:
             q = m - 1
-            while q >= 0 and (deacc(T[q].lower()) in CLITIC or deacc(T[q].lower()) == 'ne'): q -= 1
+            while q >= 0 and (T[q].lower().replace(u'’', "'") in CLITIC or deacc(T[q].lower()) == 'ne'): q -= 1
             if q >= 0:
                 dq = deacc(T[q].lower())
                 if dq in SUBJ_PRON or dq in _SUBJ_PRON_PL or dq == 'qui' or _ELIDED_PRON.search(T[q].lower()): continue
@@ -4780,7 +4783,7 @@ def _sujet_flexion(T, i, tg):
                     if _ellipse_accorde(T, i, k): return None
                     break
                 if tg and k < len(tg) and tg[k] in ('NOUN', 'PROPN', 'VERB', 'AUX'): return None
-                if dk in CLITIC or (tg and k < len(tg) and tg[k] in _FLEX_ADV_OK): k -= 1; continue
+                if T[k].lower().replace(u'’', "'") in CLITIC or (tg and k < len(tg) and tg[k] in _FLEX_ADV_OK): k -= 1; continue
                 return None                                          # inconnu à gauche → prudence
             return _SUBJ_PRON_PL[d] + ('pron',)
         if d == 'qui': return None                                   # relatif : l'antécédent décide (règle dédiée)
@@ -4806,7 +4809,7 @@ def _sujet_flexion(T, i, tg):
                 if _av >= 0 and (_reads(T[_av]) or (tg and _av < len(tg) and tg[_av] in ('NOUN', 'PROPN', 'VERB', 'AUX'))):
                     return None
             return ('3', np['n'], 'nom')
-        if d in CLITIC or (tg and j < len(tg) and tg[j] in _FLEX_ADV_OK): j -= 1; continue
+        if T[j].lower().replace(u'’', "'") in CLITIC or (tg and j < len(tg) and tg[j] in _FLEX_ADV_OK): j -= 1; continue   # ⭐ liste n° 34 (d) : forme écrite — miroir JS _sujetFlexion
         if d in _ADJ_ANTE or (tg and j < len(tg) and tg[j] == 'ADJ'): j -= 1; continue   # « les petits chats manges » : l'adjectif antéposé se traverse (cas de Rem, 14/09)
         return None
     return None
@@ -4957,7 +4960,7 @@ def rule_sujet_flexion(T, i):
     #    « glace » sont des NOMS homographes de verbes, et c'est précisément ce que les gardes nom/adjectif protègent.
     #    L'ouverture exige donc un pronom sujet ADJACENT (clitiques objets et négation sautés), comme dans tous les cas visés.
     _ja = i - 1
-    while _ja >= 0 and deacc(T[_ja].lower()) in _SUJ_SAUT: _ja -= 1
+    while _ja >= 0 and T[_ja].lower().replace(u'’', "'") in _SUJ_SAUT: _ja -= 1
     _adj = _ja >= 0 and (deacc(T[_ja].lower()) in SUBJ_PRON or deacc(T[_ja].lower()) in _SUBJ_PRON_PL
                          or bool(_ELIDED_PRON.search(T[_ja].lower())))
     _ouvre = bool(_casex) and bool(_sub0) and _sub0[2] == 'pron' and _adj
@@ -5124,6 +5127,9 @@ _PART_EN2 = {'up', 'down', 'out', 'off', 'over', 'back'}   # ⭐ liste n° 21 : 
 _EPICENE_NOUN |= {'app', 'apps'}   # ⭐ liste n° 21 : « une app » (application) / « un app » (appart) — miroir JS
 
 
+_PREFIX_NU = frozenset('pre post anti ex co auto pro ultra micro macro mini multi demi semi neo non sous vice'.split())   # ⭐ liste n° 34 (a) : préfixes écrits détachés — miroir JS _PREFIX_NU
+
+
 def rule_det_gender(T, i):
     lw = deacc(T[i].lower())
     if lw not in DET_GENDER or "'" in T[i].lower(): return None
@@ -5143,6 +5149,9 @@ def rule_det_gender(T, i):
         tgq = pos_tags(T)
         if tgq and i+2 < len(T) and i+1 < len(tgq) and tgq[i+1] == 'ADJ' and "'" not in T[i+2].lower() and not T[i+2][:1].isupper():
             hi = i + 2; _pp = NOUN_POST.get(deacc(T[hi].lower()))
+    if hi == i + 1 and nd in _PREFIX_NU and i + 2 < len(T) and re.match(u'^[a-zà-ÿœ]+$', T[i + 2]):   # ⭐ liste n° 34 (a) : « la pré éclampsie » — miroir JS
+        _ppx = NOUN_POST.get(deacc(T[i + 2].lower()))
+        if _ppx and _ppx[0] >= PL_TAU_M: hi = i + 2; _pp = _ppx
     if hi == i + 1 and nd in DET_SKIP: return None                 # adverbe/modifieur (pas le nom-tête) sans saut → abstention (FP)
     if deacc(T[hi].lower()) in _EPICENE_NOUN: return None          # NOM ÉPICÈNE (médecin/juge/artiste…) → 2 genres valides → ne pas forcer le déterminant
     _hy = (_SEG or {}).get('hy') or []
@@ -5632,7 +5641,7 @@ def _pluralize_noun(n):
         if p and p[0] >= PL_ANCHOR_M: return c                 # forme plurielle majoritairement NOM dans le lexique
     return None
 
-NOUN_PL_STOP = {'minima', 'maxima', 'media', 'data', 'extra', 'intra', 'euros',
+NOUN_PL_STOP = {'sida', 'minima', 'maxima', 'media', 'data', 'extra', 'intra', 'euros',
                 'quanta', 'addenda', 'errata', 'curricula', 'strata'}   # pluriels latins / invariables déjà pluriels
 
 # Sens INVERSE (plur→sing) : déterminant SINGULIER (classe fermée) collé à un nom au pluriel APPARENT.
@@ -7314,7 +7323,7 @@ def rule_personne_verbe(T, i):
     if not re.match(r"^[a-z']+$", lw): return None
     if lw in CLITIC: return None                       # « je lui » n'est pas « je luis » (FP UD)
     j, st = i - 1, 0
-    while j >= 0 and st < 3 and deacc(T[j].lower()) in CLITIC:
+    while j >= 0 and st < 3 and T[j].lower().replace(u'’', "'") in CLITIC:
         j -= 1; st += 1
     if j < 0: return None
     p_ = deacc(T[j].lower())
@@ -7425,7 +7434,7 @@ def rule_inf_semi_aux(T, i):
     _spos('a')
     if w.lower() in _SFREQ and not _spos(w.lower()): return None   # ⭐ 13/10/2026 (conjugaison 14) : adverbe ou mot-outil (« allez vite ») — miroir JS
     j, st = i - 1, 0
-    while j >= 0 and st < 3 and (deacc(T[j].lower()) in CLITIC or deacc(T[j].lower()) in _SEMI_NEG):
+    while j >= 0 and st < 3 and (T[j].lower().replace(u'’', "'") in CLITIC or deacc(T[j].lower()) in _SEMI_NEG):
         j -= 1; st += 1
     _agov = j >= 1 and (T[j].lower() == u'à' or (T[j].lower() == 'a' and rule_a_aa(T, j) == u'à')) and deacc(T[j - 1].lower()) in _A_INF_GOV   # ⭐ 11/10/2026 : gouverneur + à — miroir JS
     _pgov = (j >= 0 and j < i - 1 and deacc(T[j].lower()) in _P_INF_GOV and re.search(u'é(e|es|s)?$', w.lower()) is not None

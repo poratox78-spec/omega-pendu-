@@ -492,6 +492,17 @@ function testListe31() {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w && x.sugg === 'sont');
     if (s === null ? !!f : !f) fail.push('liste n° 31 « ' + t + ' » : attendu ' + (s || 'pas de « sont »') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+// ⭐ LISTE N° 34 : cinq ROUGES sur des mots justes (sonde de précision au produit) — préfixe détaché (« la pré éclampsie »), article
+// contracté devant un nom (« au procédé »), « en » devant l'auxiliaire (« s'il en est besoin »), « lé » lu comme le clitique « le »
+// (« tu me lé dit »), « sida » invariable. Les cinq premiers échouent sur le moteur d'avant ; témoins : les règles corrigent toujours.
+function testListe34() {
+  for (const [t, w, s] of [['Le suivi de la pré éclampsie est rapide.', 'la', null], ['Elle tient au procédé ancien.', 'procédé', null],
+      ["Il faut agir s'il en est besoin.", 'est', null], ['Tu me lé dit souvent.', 'dit', null], ['Les sida progressent.', 'sida', null],
+      ['Elle a une problème.', 'une', 'un'], ['Elle commence à procédé.', 'procédé', 'procéder'], ['Elle est faim.', 'est', 'a'],
+      ['Je te le dit.', 'dit', 'dis'], ['Les cancer progressent.', 'cancer', 'cancers']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 34 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe5b() {
   for (const [t, w, s, tier] of [['Elève de troisième.', 'Elève', 'Élève'], ['Etonnés par la nouvelle.', 'Etonnés', 'Étonnés', 'vigilance'],
       ['Il est juge.', 'juge', null], ['Elle est élève.', 'élève', null], ['Il est guide de montagne.', 'guide', null], ['Elle est interprète.', 'interprète', null],
@@ -534,6 +545,7 @@ function finish(parityKO) {
   testListe23();
   testListe26();
   testListe5b();
+  testListe34();
   testListe32();
   testListe7();
   testListe31();
