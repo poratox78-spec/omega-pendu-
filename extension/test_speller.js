@@ -515,6 +515,15 @@ function testListe34() {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 34 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+// ⭐ LISTE N° 35 : « Flue de données » — « flue » est au dictionnaire (fluer, 0,003/M) : une forme de verbe rarissime à une PLACE DE NOM
+// (déterminant avant, ou « de + nom » après) reçoit en orange le nom courant à une lettre. Les trois premiers échouent sur le moteur
+// d'avant ; témoins : « il flue » (place de verbe) et « un flux » restent muets.
+function testListe35() {
+  for (const [t, w, s] of [['Flue de données.', 'Flue', 'Flux'], ['Le flue continu de la rivière.', 'flue', 'flux'], ['Un gros flue de visiteurs.', 'flue', 'flux'],
+      ['Le temps flue lentement.', 'flue', null], ['Un flux de données.', 'flux', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance')) fail.push('liste n° 35 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe5b() {
   for (const [t, w, s, tier] of [['Elève de troisième.', 'Elève', 'Élève'], ['Etonnés par la nouvelle.', 'Etonnés', 'Étonnés', 'vigilance'],
       ['Il est juge.', 'juge', null], ['Elle est élève.', 'élève', null], ['Il est guide de montagne.', 'guide', null], ['Elle est interprète.', 'interprète', null],
@@ -557,6 +566,7 @@ function finish(parityKO) {
   testListe23();
   testListe26();
   testListe5b();
+  testListe35();
   testListe34();
   testListe32();
   testListe7();

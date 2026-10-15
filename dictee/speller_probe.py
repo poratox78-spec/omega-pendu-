@@ -13,6 +13,8 @@ LEX = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 # Frontières de proposition pour l'ANCRE DE GENRE du contexte : un relatif/conjonction entre le déterminant et
 # le mot fautif = autre proposition (« un chien qui aboit »), le genre ne traverse pas. Miroir JS : SCTX_STOP.
 CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme'.split())
+_RV_DET = set('le la les l un une des du au aux ce cet cette ces mon ma mes ton ta tes son sa ses notre votre leur nos vos leurs quel quelle quels quelles chaque plusieurs quelques'.split())   # ⭐ liste n° 35 : place de nom à gauche — miroir JS _RV_DET
+_RV_LATIN = set('taxa corpora genera data strata errata addenda desiderata curricula media minima maxima'.split())   # ⭐ liste n° 35 : pluriels latins écrits comme noms — miroir JS _RV_LATIN
 _SCTX_NOG = set('les des ces mes tes ses nos vos leurs leur notre votre aux plusieurs quelques chaque'.split())   # ⭐ liste n° 33 : déterminants sans genre (du/au exclus : masculins) — miroir JS _SCTX_NOG
 _SPREP_P = set('de dans pour sur par avec sans sous chez vers entre contre depuis pendant selon malgre apres avant durant parmi'.split())   # ⭐ liste n° 33 : après une préposition, pas de verbe conjugué — miroir JS _SPREP_P
 _PREP_NO_V = set('sont est suis es sommes etes ont ai as avons avez etait etais etaient avait avais avaient sera seront serai seras aura auront fut furent soit soient ait aient vont vais vas va peut peuvent veut veulent doit doivent'.split())   # ⭐ liste n° 33 : formes finies d'être/avoir/aller/modal — miroir JS _PREP_NO_V
@@ -822,6 +824,25 @@ class Speller:
         # les 3 moteurs pour l'accord) — on la RÉUTILISE au lieu d'en ajouter une (doctrine §5).
         # Risque quasi nul : la garde ne s'applique qu'à un token DÉJÀ inconnu du lexique de 211 k
         # formes ; qu'il soit en plus un prénom attesté en fait un nom, pas un typo.
+        # ⭐ 15/10/2026 (liste n° 35) — forme verbale rarissime à une place de nom (« flue de données » → flux) — miroir JS
+        if ((tok == low or at_start) and len(low) >= 4 and low in self.WORDS and low not in _RV_LATIN and ''.join(sorted(self.POS.get(low, ()))) == 'V'
+                and self.FREQ.get(low, 0.0) < 0.01 and not re.search(r'(er|ir|re|oir)$', low) and toks is not None and idx is not None):
+            _pvL = deacc(toks[idx - 1].lower()).rstrip("'’") if idx > 0 else ''
+            _nxL = deacc(toks[idx + 1].lower()) if idx + 1 < len(toks) else ''
+            _nx2 = toks[idx + 2].lower() if idx + 2 < len(toks) else ''
+            if _pvL in _RV_DET or (_nxL in ('de', 'du', 'des', 'd', "d'") and _nx2 and _nx2 in self.WORDS and 'N' in self.POS.get(_nx2, ())
+                                   and deacc(_nx2) not in _RV_DET and _nx2 not in ('ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous')):   # « de la » : « la » n'est pas le nom (la note)
+                _dL = deacc(low); _bn, _bs, _bf = None, -1, 0.0   # même squelette d'abord (lignés → lignes), puis même initiale, puis fréquence — comme le tri du speller
+                _nbL = self.DET_NUM.get(_pvL) or {'aux': 'p', 'au': 's', 'du': 's'}.get(_pvL)   # le nom suit le NOMBRE du déterminant (« aux minerait » → minerais)
+                for _e in list(edits1(_dL)) + [_dL]:
+                    for _c in (self.D2A.get(_e) or ()):
+                        _cf = self.FREQ.get(_c, 0.0)
+                        if _c == low or 'N' not in self.POS.get(_c, ()) or _cf < 1.0: continue
+                        if _nbL == 'p' and not _c.endswith(('s', 'x')): continue
+                        if _nbL == 's' and _c.endswith(('s', 'x')) and not self._invar_s(_c): continue
+                        _sc = (2 if deacc(_c) == _dL else 0) + (1 if _c[:1] == low[:1] else 0)
+                        if _sc > _bs or (_sc == _bs and _cf > _bf): _bn, _bs, _bf = _c, _sc, _cf
+                if _bn: return ('vigilance', (_bn[:1].upper() + _bn[1:]) if tok[:1].isupper() else _bn)
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — miroir JS
         if low in self.PRENOMS_L: return None
