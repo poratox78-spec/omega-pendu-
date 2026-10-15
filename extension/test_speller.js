@@ -466,6 +466,15 @@ function testListe26() {
 // un participe (« il est juge » → jugé EN ROUGE). Les six premiers échouent sur le moteur d'avant ; témoins : l'accent exact peut être la
 // faute (« posséde » → possède, « méme » → même), le participe après un auxiliaire reste (« il a visitè » → visité, « il est tombe » → tombé).
 // Puis : « aimè », « donnè »… étaient des ENTRÉES du dictionnaire (coquilles de la source, jumeau en « é » présent) — le correcteur se taisait.
+// ⭐ LISTES N° 7 ET 10 (lot MÉTIER curé, dictee/metier_curated.tsv) : « agentique » recevait « argentique » en orange, « upcyclées » était
+// souligné, « une rissole » corrigée en rissolée EN ROUGE. Les trois premiers échouent sur l'ancien dictionnaire ; témoins : le vrai mot voisin
+// (« argentique ») reste intact et une vraie faute reste corrigée.
+function testListe7() {
+  for (const [t, w, s] of [['Une démarche agentique.', 'agentique', null], ['Des chaussures upcyclées.', 'upcyclées', null], ['Une rissole chaude.', 'rissole', null],
+      ['Un appareil argentique.', 'argentique', null], ['Une fenetre ouverte.', 'fenetre', 'fenêtre']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 7/10 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe5b() {
   for (const [t, w, s, tier] of [['Elève de troisième.', 'Elève', 'Élève'], ['Etonnés par la nouvelle.', 'Etonnés', 'Étonnés', 'vigilance'],
       ['Il est juge.', 'juge', null], ['Elle est élève.', 'élève', null], ['Il est guide de montagne.', 'guide', null], ['Elle est interprète.', 'interprète', null],
@@ -508,6 +517,7 @@ function finish(parityKO) {
   testListe23();
   testListe26();
   testListe5b();
+  testListe7();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
 }
 function conclure(parityKO) {

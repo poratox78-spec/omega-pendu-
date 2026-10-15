@@ -1,10 +1,10 @@
 {
  "longueurs": {
   "10": {
-   "courants": 29653,
-   "mots": 99445,
-   "octets": 334561,
-   "sha": "36cdd85f01cb9b54"
+   "courants": 29654,
+   "mots": 99446,
+   "octets": 334563,
+   "sha": "6a4df6b57ac8f288"
   },
   "11": {
    "courants": 24199,
@@ -61,23 +61,23 @@
    "sha": "cb52f7a55185ed03"
   },
   "7": {
-   "courants": 21023,
-   "mots": 37741,
-   "octets": 122765,
-   "sha": "16449f20e5b869d3"
+   "courants": 21024,
+   "mots": 37742,
+   "octets": 122768,
+   "sha": "4dbbe40932d68987"
   },
   "8": {
-   "courants": 28110,
-   "mots": 63226,
-   "octets": 209625,
-   "sha": "af8fa55086f54cd4"
+   "courants": 28113,
+   "mots": 63229,
+   "octets": 209635,
+   "sha": "5bdb2a67d0f4206c"
   },
   "9": {
-   "courants": 31253,
-   "mots": 86560,
-   "octets": 288983,
-   "sha": "28a9b8ea6569a6ed"
+   "courants": 31256,
+   "mots": 86563,
+   "octets": 288994,
+   "sha": "134650869ede2fc2"
   }
  },
- "total": 645412
+ "total": 645420
 }
