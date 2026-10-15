@@ -466,6 +466,15 @@ function testListe26() {
 // un participe (« il est juge » → jugé EN ROUGE). Les six premiers échouent sur le moteur d'avant ; témoins : l'accent exact peut être la
 // faute (« posséde » → possède, « méme » → même), le participe après un auxiliaire reste (« il a visitè » → visité, « il est tombe » → tombé).
 // Puis : « aimè », « donnè »… étaient des ENTRÉES du dictionnaire (coquilles de la source, jumeau en « é » présent) — le correcteur se taisait.
+// ⭐ LISTE N° 32 : « que » RELATIF + semi-auxiliaire (« la liste que tu fais traîne ») — le semi-auxiliaire ferme la relative, le mot
+// suivant est le verbe de la principale, pas un infinitif. Les deux premiers échouent sur le moteur d'avant ; témoins : « que » conjonction
+// (« je crois que je vais mange », « il dit qu'il va mange ») garde son orange.
+function testListe32() {
+  for (const [t, w, s] of [['La liste des courses que tu fais traîne sur la table.', 'traîne', null], ["Tout ce qu'il fait tombe à l'eau.", 'tombe', null],
+      ['Je crois que je vais mange.', 'mange', 'manger'], ["Il dit qu'il va mange.", 'mange', 'manger'], ['La lettre que tu veux passé au voisin.', 'passé', 'passer']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 32 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 // ⭐ LISTES N° 7 ET 10 (lot MÉTIER curé, dictee/metier_curated.tsv) : « agentique » recevait « argentique » en orange, « upcyclées » était
 // souligné, « une rissole » corrigée en rissolée EN ROUGE. Les trois premiers échouent sur l'ancien dictionnaire ; témoins : le vrai mot voisin
 // (« argentique ») reste intact et une vraie faute reste corrigée.
@@ -525,6 +534,7 @@ function finish(parityKO) {
   testListe23();
   testListe26();
   testListe5b();
+  testListe32();
   testListe7();
   testListe31();
   gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
