@@ -134,6 +134,10 @@ def _check():
     # ⭐ 15/10/2026 (liste n° 32) — « que » relatif + semi-auxiliaire : le mot qui suit est le verbe de la principale (pas d'orange) ; conjonction : l'orange reste
     nofp += ["La liste des courses que tu fais traîne sur la table.", "Tout ce qu'il fait tombe à l'eau."]
     elide += [("Je crois que je vais mange", "mange", "manger"), ("Il dit qu'il va mange", "mange", "manger"), ("La lettre que tu veux passé au voisin", "passé", "passer")]
+    # ⭐ 15/10/2026 (liste n° 33) — mots faux du speller : déterminant sans genre collé, nom déterminé qui ferme le groupe, préposition ; témoins inchangés
+    elide += [("Elle a appris la langue des sines à l'école", "sines", "signes"), ("Voici mes chansons préférrées.", "préférrées", "préférées"),
+              ("Loin de sonn corps", "sonn", "son"), ("Il parle de sonn temps libre", "sonn", "son"),
+              ("La robe est mois chere", "chere", "chère"), ("Un film tèrs long", "tèrs", "très")]
     # ⭐ 14/10/2026 (liste n° 1e) — noms composés « N à infinitif » : « à », l'infinitif reste ; un complément derrière = « a » avoir possible
     elide += [("Le fer a repasser est encore chaud", "a", "à"), ("Nous dînons dans la salle a manger", "a", "à"),
               ("Les machines a coudre sont rangées", "a", "à"), ("La machine a laver le pull", "laver", "lavé")]

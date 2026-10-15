@@ -13,6 +13,9 @@ LEX = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 # Frontières de proposition pour l'ANCRE DE GENRE du contexte : un relatif/conjonction entre le déterminant et
 # le mot fautif = autre proposition (« un chien qui aboit »), le genre ne traverse pas. Miroir JS : SCTX_STOP.
 CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme'.split())
+_SCTX_NOG = set('les des ces mes tes ses nos vos leurs leur notre votre aux plusieurs quelques chaque'.split())   # ⭐ liste n° 33 : déterminants sans genre (du/au exclus : masculins) — miroir JS _SCTX_NOG
+_SPREP_P = set('de dans pour sur par avec sans sous chez vers entre contre depuis pendant selon malgre apres avant durant parmi'.split())   # ⭐ liste n° 33 : après une préposition, pas de verbe conjugué — miroir JS _SPREP_P
+_PREP_NO_V = set('sont est suis es sommes etes ont ai as avons avez etait etais etaient avait avais avaient sera seront serai seras aura auront fut furent soit soient ait aient vont vais vas va peut peuvent veut veulent doit doivent'.split())   # ⭐ liste n° 33 : formes finies d'être/avoir/aller/modal — miroir JS _PREP_NO_V
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 _AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité'}   # décalque de _AFIX (dys-core.js l.2948)
@@ -564,6 +567,7 @@ class Speller:
             if t in ('peu', 'peux') or (t in self.DET_G and j + 1 < len(toks)
                                         and deacc(toks[j + 1].lower()) in ('peu', 'peux')): continue
             if t in self.DET_G: return self.DET_G[t]
+            if j == idx - 1 and t in _SCTX_NOG: return None            # ⭐ liste n° 33 (A1) : déterminant sans genre collé → on s'arrête (miroir JS)
             if toks[j].lower().replace('œ', 'oe').replace('æ', 'ae') not in self.WORDS: continue   # ancre de genre = un VRAI mot écrit : un token abîmé
             # ⛔ UN NOM NU NE GOUVERNE PAS LE GENRE (23/08, gold dys réel). « la robe est mois chere » :
             # `mois` (= « moins » mal écrit, mais nom MASCULIN attesté) servait d'ancre et retournait
@@ -571,8 +575,8 @@ class Speller:
             # déterminant c'est un adverbe, un fragment, ou un mot d'une autre construction. Abstention
             # pure : on retire une ancre, on n'en ajoute aucune ⇒ le gagnant du classement est conservé.
             g = self.GPURE.get(t)                             # genre PUR seulement, comme sCtxGender (GENDER_PURE) — « vu » n'en a pas, on remonte à « la »
-            if g in ('m', 'f') and not (j > 0 and deacc(toks[j - 1].lower()) in self.DET_G): continue
-            if g in ('m', 'f'): return g
+            _gd = deacc(toks[j - 1].lower()) if j > 0 else ''
+            if g in ('m', 'f') and (_gd in self.DET_G or (j == idx - 1 and _gd in _SCTX_NOG and set(self.POS.get(toks[j].lower(), ())) == {'N'} and (idx + 1 >= len(toks) or not re.match(u'^[a-zA-Zà-ÿÀ-Ÿœæ]', str(toks[idx + 1]))))): return g   # ⭐ liste n° 33 (A2) : nom (N pur) déterminé par un déterminant sans genre, collé — miroir JS
         return None
 
     def _quant_mal(self, toks, idx):
@@ -924,6 +928,7 @@ class Speller:
         # (« ambu »→abu). On aligne donc la référence SUR LE PRODUIT (même geste que _SPELL_KEEP
         # #659 et le palier « mot inconnu » #663). Miroir : `expPos`/`pm` de extension/dys-core.js.
         exp_pos = None
+        exp_prep = None                                                   # ⭐ liste n° 33 (B) : préposition devant le mot — miroir JS expPrep
         if toks and idx:
             pt = deacc(toks[idx - 1].lower())
             if pt in self.DET_G or pt in self.DET_NUM: exp_pos = 'N'       # déterminant → nom
@@ -931,7 +936,11 @@ class Speller:
             elif pt in self.COPULA: exp_pos = 'VA'                         # copule → attribut POSSIBLE : verbe OU adjectif
             elif pt in self.AUXAV or pt in self.SUBJP: exp_pos = 'V'       # auxiliaire avoir / pronom sujet → verbe
             elif pt == 'qui': exp_pos = 'F'                                # ⭐ 14/10/2026 (liste n° 24) : après « qui » sujet, un verbe CONJUGUÉ — miroir JS
+            elif pt in _SPREP_P: exp_prep = pt                             # ⭐ liste n° 33 (B) : après une préposition, pas de verbe conjugué — miroir JS
         def pmatch(w):
+            if exp_prep and not exp_pos:                                 # ⭐ liste n° 33 (B) — miroir JS pm
+                ps = ''.join(sorted(self.POS.get(w, ())))
+                return 0 if ((ps == 'V' and not (re.search(r'(er|ir|re|oir)$', w) or (exp_prep == 'en' and w.endswith('ant')))) or deacc(w) in _PREP_NO_V) else 1
             if not exp_pos: return 0
             if exp_pos == 'F':
                 if re.search(u'é(s?)$', w): return 0
