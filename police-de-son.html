@@ -277,6 +277,13 @@
     } catch (e) {}
   });
 
+  /* ⭐ 16/10/2026 (liste n° 40) — la phonologie des « -ent » (« ils jappent » : -ent muet). Cette page n'a pas le moteur : sans table, le g2p
+     retombait sur une liste de 582 verbes (14,4 % justes sur les mots en -ent de Lexique) — sauf si le bouton 🔡 de l'en-tête l'avait déjà
+     chargée. On charge la table des formes lues 3e pluriel, tirée du moteur (extension/build_ent3p.js), comme nav.js : 95,5 %. Puis on re-colore. */
+  if (!self.__OMEGA_ENT3P && typeof DecompressionStream !== 'undefined' && window.fetch)
+    fetch('extension/assets/ent-3p.txt.gz').then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(function (b) { return new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); })
+      .then(function (t) { if (!self.__OMEGA_ENT3P) self.__OMEGA_ENT3P = new Set(t.split('\n').filter(Boolean)); rendre(); }, function () {});
   IN.addEventListener('input', rendre);
   SYL.addEventListener('change', rendre);
   MUTE.addEventListener('change', rendre);
