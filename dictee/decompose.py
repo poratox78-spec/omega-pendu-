@@ -31,7 +31,7 @@ sys.path.insert(0, HERE)
 import conj_io                                        # ⭐ 13/10/2026 : table de conjugaison compacte (hors du try : un import raté doit se voir)
 from diag_sentence import deacc, toks, norm            # réutilisation (§A2) : pas de réécriture
 
-KEEP = re.compile(r"[^a-zàâäéèêëîïôöùûüÿç]")            # même filtre de lettres que g2p() de l'app
+KEEP = re.compile(r"[^a-zàâäéèêëîïôöùûüÿçœ]")            # même filtre de lettres que g2p() de l'app
 TABLES_PATH = os.path.join(HERE, 'g2p_tables.json')
 LEX_LEARNED = os.path.join(HERE, 'learned_lex.json')
 
@@ -46,6 +46,11 @@ EPRON = set(_T.get('EPRON') or [])                   # e+s final prononcé (extr
 ENTAMBIG = set(_T.get('ENTAMBIG') or [])             # -ent homographes (nom/adj ET 3e p. pluriel)
 CFIN_MUET = set(_T.get('CFIN_MUET') or [])           # « c » final muet (liste fermée)
 GFIN_MUET = set(_T.get('GFIN_MUET') or [])           # « g » final muet (liste fermée)
+ILL_L = set(_T.get('ILL_L') or [])                   # ⭐ liste n° 39 : « ill » après consonne → /il/ (liste fermée)
+ERS_R = set(_T.get('ERS_R') or [])                   # « -ers » final au r prononcé hors RFIN
+GZ_PRE = set(_T.get('GZ_PRE') or [])                 # x + voyelle → /gz/ derrière ces préfixes
+Z6 = set(_T.get('Z6') or [])                         # x → /z/ (deuxième, sixième, dixième)
+IENT_V = set(_T.get('IENT_V') or [])                 # -ient /jɛ̃/ : 3e pers. sing. de venir/tenir (+ bientôt)
 try:                                                  # formes conjuguées DÉJÀ embarquées (vdc-lex.cj.f)
     import json as _j, io as _io, os as _os
     _vp = _os.path.join(HERE, '..', 'extension', 'assets', 'vdc-lex.json')
@@ -57,9 +62,14 @@ except Exception:
 # SEG du moteur (43) ENRICHI de 8 segments mesurés net-positifs en held-out (+2.23 pts d'exactitude ;
 # 'ti'→/sj/ seul vaut +1.4). Le moteur pendu garde SON SEG intact (R66) ; seul le décomposeur l'étend.
 # 'ion','ue','oui'… ont été TESTÉS et ÉCARTÉS (ils dégradent) — cf. build_g2p_corrections.py / DECOMPOSE.md.
-SEG_EXTRA = ['ueil', 'cqu', 'ail', 'sc', 'sh', 'oy', 'ay', 'ti']
+SEG_EXTRA = ['cqu', 'sh']   # ⭐ 16/10/2026 (liste n° 39) : ablation held-out APRÈS les règles de contexte du moteur — ueil −0,08, ail −0,55, sc −0,20,
+                            #   oy 0, ay 0, ti −0,92 (le moteur les traite mieux par contexte) ; cqu +0,08 et sh +0,15 restent. Les 8 valaient +2,3 avant.
 SEG = sorted(set(_T['SEG']) | set(SEG_EXTRA), key=lambda s: -len(s))
 SEG_MOTEUR = sorted(set(_T['SEG']), key=lambda s: -len(s))   # ⭐ 16/10/2026 : les segments du MOTEUR seul (app `_DECL2`, extension/assets/g2p.js)
+# ⭐ 16/10/2026 (liste n° 39) — UNITÉS d'émission du p2g : l'alignement son → graphie garde les 8 segments d'avant (ti, ail, ay, oy,
+#   sc, sh, ueil, cqu) comme unités ; retirés du g2p mesuré (ci-dessus), ils restent des unités utiles pour émettre « tion », « aill », « ay ».
+#   Mesuré : sans eux, top-5 p2g 3 134 → 3 119 sur 4 000 mots held-out (perdus : tion, aill, ay, eill).
+SEG_UNITS = sorted(set(_T['SEG']) | {'ueil', 'cqu', 'ail', 'sc', 'sh', 'oy', 'ay', 'ti'}, key=lambda s: -len(s))
 
 # ── overlay ACCENTS (extension assumée : le g2p de l'app, pensé pour le pendu ASCII, rend '?'
 #    sur é/è/ç… ; on ajoute les valeurs non ambiguës. Effet MESURÉ en ablation, cf. --measure). ──
@@ -168,6 +178,91 @@ def _ent_verbe(w):
     return w in (_3P if _3P is not None else _build_3p())
 
 
+
+# ⭐ 16/10/2026 — LISTE N° 39 : règles de contexte du g2p, miroir EXACT de `_r39` de l'app (_DECL2). Ne change que le phonème.
+_V39 = 'aeiouyàâäéèêëîïôöùûüœ'; _C39 = 'bdfgɡkʒlmnɲŋpʁstvzʃ'
+_CL39 = re.compile(r'^(b|c|d|f|g|k|p|t|v|ch|ph|cc|tt|pp|bb|dd|ff|gg)$'); _CU39 = re.compile(r'^(c|cc|g)$'); _TA39 = re.compile(r'^(l|ll|b|t)$')
+_SC39 = re.compile(r'^(b|c|d|f|g|j|k|l|m|n|p|t|v|ç|qu|ch|ph|th)$'); _OBS39 = re.compile(r'^(b|c|d|f|g|k|p|t|v|ch|ph)$'); _RQ39 = re.compile(r'^(r|rr|q|g)$')
+def _r39(S, w):
+    n = len(S)
+    def G(k): return S[k]['g'] if 0 <= k < n else '#'
+    def vowG(k): return 0 <= k < n and S[k]['g'][0] in _V39
+    def consPh(k):
+        if k < 0 or k >= n: return False
+        p = S[k]['ph']; return bool(p) and p != '∅' and p[-1] in _C39
+    def eMuet(k): return 0 <= k < n and S[k]['g'] == 'e' and (not S[k]['ph'] or S[k]['ph'] == '∅')
+    def fin(k): return k >= n or (k == n - 1 and S[k]['g'] == 's')
+    def cluster(k): return k >= 2 and G(k - 1) in ('l', 'r') and bool(_CL39.match(G(k - 2)))
+    for k in range(n):                                   # passe A — le « e » (miroir JS)
+        s = S[k]
+        if s['g'] != 'e': continue
+        g2 = G(k + 1); g3 = G(k + 2)
+        if g2 == 'rr': s['ph'] = 'ɛ'
+        elif g2 == 'r':
+            if k + 2 >= n:
+                if w in RFIN: s['ph'] = 'ɛ'
+            elif g3 == 's' and k + 3 == n:
+                if w[:-1] in RFIN or w in ERS_R: s['ph'] = 'ɛ'
+                else: s['ph'] = 'e'; S[k + 1]['ph'] = '∅'
+            elif vowG(k + 2): s['ph'] = '∅' if vowG(k - 1) else 'ə'
+            else: s['ph'] = 'ɛ'
+        elif g2 == 'nn':
+            if not w.startswith('ennu'): s['ph'] = 'ɛ'
+        elif g2 == 'mm': s['ph'] = 'ɑ̃' if w.startswith('emm') else ('a' if w.startswith('femm') else 'ɛ')
+        elif g2 == 'ss':
+            if (g3 == 'e' and fin(k + 3)) or (g3 == 'en' and G(k + 3) == 't' and k + 4 == n): s['ph'] = 'ɛ'
+        elif g2 in ('ll', 'tt', 'pp', 'cc', 'dd', 'bb', 'gg'): s['ph'] = 'ɛ'
+        elif g2 == 'm' and g3 == 'en' and vowG(k - 1): s['ph'] = '∅'
+        elif _SC39.match(g2):
+            if k + 2 >= n:
+                if g2 != 'd': s['ph'] = 'ɛ'
+            elif vowG(k + 2):
+                if not vowG(k - 1): s['ph'] = 'ə'
+            elif g2 == 'd': pass
+            elif _OBS39.match(g2) and g3 in ('l', 'r'):
+                if not vowG(k - 1): s['ph'] = 'ə'
+            else: s['ph'] = 'ɛ'
+    pos = 0
+    for k in range(n):                                   # passe B
+        s = S[k]; g = s['g']; g2 = G(k + 1); g3 = G(k + 2)
+        if g == 't' and G(k - 1) not in ('s', 'ss') and g2 == 'ien' and (g3 == 'c' or (g3 == 't' and w not in IENT_V)):
+            s['ph'] = 's'
+        elif g == 't' and g2 == 'i' and G(k - 1) not in ('s', 'ss') and (g3 in ('on', 'om', 'o', 'eu') or (g3 == 'e' and G(k + 3) in ('l', 'll')) or (g3 == 'a' and bool(_TA39.match(G(k + 3))))):
+            s['ph'] = 's'
+        elif g == 'i' and vowG(k + 1):
+            if G(k - 1) == 'gn' and not eMuet(k + 1): s['ph'] = '∅'
+            elif eMuet(k + 1): s['ph'] = 'i'
+            else: s['ph'] = 'ij' if cluster(k) else 'j'
+        elif g == 'ill':
+            if w in ILL_L or k == 0: s['ph'] = 'il'
+            elif s['ph'] == 'j': s['ph'] = 'ij' if consPh(k - 1) else 'j'
+            elif s['ph'] == 'il' and g2 == 'i' and not consPh(k - 1): s['ph'] = 'j'
+        elif g in ('ai', 'ei') and (g2 == 'll' or (g2 == 'l' and fin(k + 2))):
+            if g == 'ei' and G(k - 1) == 'gu': s['ph'] = 'œ'
+            elif g == 'ei' and G(k - 1) == 'u' and bool(_CU39.match(G(k - 2))): S[k - 1]['ph'] = '∅'; s['ph'] = 'œ'
+            elif g == 'ei' and G(k - 1) == 'o': S[k - 1]['ph'] = '∅'; s['ph'] = 'œ'
+            else: s['ph'] = 'a' if g == 'ai' else 'ɛ'
+            S[k + 1]['ph'] = 'j'
+        elif g in ('eu', 'ou', 'œ') and g2 == 'i' and g3 == 'l' and fin(k + 3): S[k + 1]['ph'] = '∅'; S[k + 2]['ph'] = 'j'
+        elif g == 'o' and g2 == 'eu': s['ph'] = '∅'
+        elif g in ('a', 'o', 'u') and g2 == 'y':
+            if g3 == 'e' or vowG(k + 2):
+                S[k + 1]['ph'] = 'j'
+                s['ph'] = 'wa' if g == 'o' else ('ɥi' if g == 'u' else ('e' if (g3 == 'é' or (g3 == 'e' and S[k + 2]['ph'] == 'e')) else 'ɛ'))
+            elif g == 'a': s['ph'] = 'ɛ'; S[k + 1]['ph'] = 'i'
+        elif g == 'ien':
+            if g2 == 'c' or (g2 == 't' and w not in IENT_V): s['ph'] = 'jɑ̃'
+            if cluster(k) and s['ph'][:1] == 'j': s['ph'] = 'i' + s['ph']
+        elif g == 'ou' and g2 == 'e' and eMuet(k + 1): s['ph'] = 'u'
+        elif g == 'ou' and g2 in ('i', 'in') and g3 not in ('l', 'll'): s['ph'] = 'w'
+        elif g == 'u' and (g2 == 'é' or (g2 == 'e' and not eMuet(k + 1))) and not _RQ39.match(G(k - 1)): s['ph'] = 'ɥ'
+        elif g == 's' and g2 == 'c' and g3 != '#' and g3[0] not in 'eiyéèêë': s['ph'] = 's'
+        elif g == 'x' and (vowG(k + 1) or g2 == 'h'):
+            s['ph'] = 'z' if w in Z6 else ('ɡz' if w[:pos] in GZ_PRE else 'ks')
+        pos += len(g)
+    if len(w) > 4 and w.endswith('ient') and w not in ENTAMBIG and (w in ENTSIL or _ent_verbe(w)) and n >= 2 and S[n - 2]['g'] == 'ien':
+        S[n - 2]['ph'] = 'i'
+
 def g2p(word, accents=True, seg=None):
     """graphème→phonème déterministe + hésitation `h` (latent §3). Renvoie la liste des pas
     {g: graphème, ph: phonème IPA, h: hésitation}. `accents` active l'overlay é/è/ç (sinon '?').
@@ -256,6 +351,7 @@ def g2p(word, accents=True, seg=None):
     if w in ('est', 'es'):
         for x in steps:
             x['ph'], x['h'] = ('ɛ' if x['g'] == 'e' else '∅'), 0.05
+    _r39(steps, w)                                    # ⭐ liste n° 39 (phonème seulement, h intact)
     return steps
 
 def sublexical_phon(word, accents=True, correct=True, seg=None):
@@ -271,7 +367,7 @@ def sublexical_phon(word, accents=True, correct=True, seg=None):
         nxt = w[i + len(g)] if i + len(g) < len(w) else '#'; i += len(g)
         sp = ipa_to_sampa(st['ph'])
         if correct and CORR:                             # correction apprise (graphème, contexte droit)
-            sp = CORR.get(g + '\t' + nxt, sp)
+            sp = CORR.get(g + '\t' + nxt + '\t' + sp, sp)   # ⭐ 16/10/2026 : clé conditionnelle à la prédiction (liste n° 39)
         graph.append({'g': g, 'ph': sp, 'ipa': '' if st['ph'] == '∅' else st['ph'], 'h': st['h']})
         sampa_parts.append(sp); ipa_parts.append('' if st['ph'] == '∅' else st['ph']); hs.append(st['h'])
     sampa = ''.join(sampa_parts)
@@ -284,8 +380,15 @@ def g2p_moteur(word):
     (le JS rend '?' sur une lettre accentuée) ; mesuré identique sur 19 785 mots (pools de candidats des 3 corpus dys)."""
     return g2p(word, accents=False, seg=SEG_MOTEUR)
 def g2p_moteur_cle(word):
-    """clé de SON du speller = phonèmes IPA concaténés, muets exclus — miroir exact de `_sonKey` (dys-core.js / app)."""
-    return ''.join(st['ph'] for st in g2p_moteur(word) if st['ph'] not in (u'∅', '', None)).replace(u'ɔ', 'o')   # ɔ → o (toreau / taureau)
+    """clé de SON du speller = phonèmes IPA concaténés, muets exclus — miroir exact de `_sonKey` (dys-core.js / app).
+    ⭐ 16/10/2026 (liste n° 39) : le « e » FAIBLE ne compte pas (schwa ; e/ɛ d'un « e » nu non final) ; le e de -er/-ez finals reste."""
+    st = g2p_moteur(word); o = []
+    for i, s in enumerate(st):
+        p = s['ph']
+        if not p or p == u'∅' or p == u'ə': continue
+        if s['g'] == 'e' and p in (u'e', u'ɛ') and not (i == len(st) - 2 and st[i + 1]['g'] in ('r', 'z')): continue
+        o.append(p)
+    return ''.join(o).replace(u'ɔ', 'o')   # ɔ → o (toreau / taureau)
 
 # ── syllabes (SON) par RÈGLES (principe de l'attaque maximale) : noyaux = voyelles SAMPA ;
 #    nbsyll = nb de noyaux (invariant). La frontière laisse à la syllabe suivante l'attaque LÉGALE
@@ -516,9 +619,9 @@ def _lev(a, b):
     return dp[m]
 
 # ── ALIGNEMENT graphème↔phonème (partagé : boucle descendante + cognition phono→ortho) ──
-def steps_of(word):
-    """[(graphème, caractère-suivant, phonème SAMPA prédit RAW)] via le g2p enrichi (sans correction)."""
-    st = g2p(word, accents=True, seg=SEG)
+def steps_of(word, seg=None):
+    """[(graphème, caractère-suivant, phonème SAMPA prédit RAW)] via le g2p enrichi (sans correction) ; `seg` : SEG par défaut."""
+    st = g2p(word, accents=True, seg=SEG if seg is None else seg)
     w = KEEP.sub('', word.lower()); out = []; i = 0
     for s in st:
         g = s['g']; nxt = w[i + len(g)] if i + len(g) < len(w) else '#'
@@ -549,7 +652,7 @@ def aligned_units(word):
     MUETS (∅) sont repliés sur le graphème prononcé voisin (précédent, sinon suivant). Base du p2g."""
     if word not in W2P:
         return None
-    S = steps_of(word); chunks = align_chunks([s[2] for s in S], W2P[word])
+    S = steps_of(word, seg=SEG_UNITS); chunks = align_chunks([s[2] for s in S], W2P[word])   # unités d'émission (liste n° 39)
     units = []; lead = ''
     for (g, _, _), ch in zip(S, chunks):
         if ch == '':                                     # graphème muet (lettre non prononcée)
@@ -581,8 +684,8 @@ def measure(seed=42, n_test=4000):
         N = len(test)
         print(f"  {tag:46} exact {100*exact/N:5.2f}%  ·  phonémique {100*(1-tot_ed/max(1,tot_ph)):5.2f}%  ·  nbphons {100*nph/N:5.1f}%")
         return 100 * exact / N
-    a = run("(1) g2p moteur brut (SEG=43, sans correction)", False, base_seg)
-    b = run("(2)  + SEG enrichi (+8 segments mesurés)", False, SEG)
+    a = run("(1) g2p moteur brut (SEG=%d, sans correction)" % len(SEG_MOTEUR), False, base_seg)
+    b = run("(2)  + SEG enrichi (+%d segments mesurés)" % len(SEG_EXTRA), False, SEG)
     c = run("(3)  + correction apprise (boucle descendante)", True, SEG)
     cstate = f"chargée, {len(CORR)} règles" if CORR else "ABSENTE → lance build_g2p_corrections.py"
     print(f"  Δ total (3)−(1) : {c-a:+.2f} points d'exactitude   ·   table de correction : {cstate}")

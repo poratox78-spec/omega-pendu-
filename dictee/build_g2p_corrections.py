@@ -7,7 +7,10 @@
 #   1. g2p(mot) → graphèmes + phonème SAMPA prédit (RAW, sans correction) ;
 #   2. alignement MONOTONE (DP) du phono prédit sur le phono gold → chaque graphème reçoit son
 #      « morceau » gold (0..3 caractères) ;
-#   3. on tabule, par clé (graphème, caractère-suivant), la distribution des morceaux gold.
+#   3. on tabule, par clé (graphème, caractère-suivant, PHONÈME PRÉDIT), la distribution des morceaux gold.
+#      ⭐ 16/10/2026 (liste n° 39) : la clé porte la prédiction du moteur. Avant, une règle (g, suivant) → morceau écrasait TOUTES
+#      les réponses du moteur pour ce couple ; depuis que le moteur est contextuel (e ouvert/fermé, glissement i, ill, ti…),
+#      la majorité d'un couple détruisait des réponses justes : mesuré −5 points held-out avec l'ancienne clé, après ré-entraînement.
 # La règle (g,next)→morceau est RETENUE si support ≥ MIN_SUPPORT et pureté ≥ PURITY (garde-fou FP).
 # Mesuré net-positif en held-out (~+2 pts d'exactitude sur le SEG déjà enrichi). Inerte tant que non lancé.
 #
@@ -33,13 +36,13 @@ def main():
     counts = defaultdict(Counter)
     for w in train:
         S = D.steps_of(w); chunks = D.align_chunks([s[2] for s in S], D.W2P[w])  # helpers partagés (decompose)
-        for (g, nxt, _), ch in zip(S, chunks):
-            counts[(g, nxt)][ch] += 1
+        for (g, nxt, pred), ch in zip(S, chunks):
+            counts[(g, nxt, pred)][ch] += 1                  # ⭐ 16/10/2026 (liste n° 39) : clé conditionnelle à la prédiction du moteur
     table = {}; kept = dropped = 0
-    for (g, nxt), cnt in counts.items():
+    for (g, nxt, pred), cnt in counts.items():
         tot = sum(cnt.values()); ch, c = cnt.most_common(1)[0]
-        if tot >= MIN_SUPPORT and c / tot >= PURITY:
-            table[g + '\t' + nxt] = ch; kept += 1
+        if tot >= MIN_SUPPORT and c / tot >= PURITY and ch != pred:   # une règle qui redit le moteur ne sert à rien
+            table[g + '\t' + nxt + '\t' + pred] = ch; kept += 1
         else:
             dropped += 1
     out = {'min_support': MIN_SUPPORT, 'purity': PURITY, 'trained_on': len(train),
