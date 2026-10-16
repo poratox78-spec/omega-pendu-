@@ -6491,8 +6491,89 @@ var _DECL2 = (function () {
   const RFIN = new Set(["acer","after","alter","amer","anticancer","aster","beeper","ber","bestseller","biker","bipper","blazer","blister","blockbuster","boer","bookmaker","boomer","bootlegger","bulldozer","bunker","burger","cancer","cascher","casher","cathéter","charter","cheerleader","cheeseburger","cher","chester","clipper","clubber","cluster","confer","coroner","crooner","cuiller","cutter","cyber","dealer","der","dogger","dragster","drifter","driver","drummer","dumper","enfer","ether","eyeliner","fer","fier","follower","freezer","führer","gamer","gangster","getter","geyser","gyrolaser","hacker","hamburger","hamster","handler","hier","highlander","hiver","holster","hunter","hyper","imper","inter","joker","jumper","junker","karcher","kascher","kasher","keylogger","khmer","kipper","laser","leader","liber","lieder","looser","magister","marker","maser","masséter","master","mer","moder","outremer","outsider","pacemaker","panzer","partner","pater","picker","pier","placer","pointer","poker","polyéther","popper","pullover","quaker","raider","raver","retriever","revolver","rocker","roller","rooter","rottweiler","rover","runner","révolver","scanner","scooter","scraper","setter","shiner","sitter","skater","slasher","speaker","spencer","sphincter","spinnaker","sprinter","squatter","stathouder","steamer","sticker","streamer","subwoofer","super","supertanker","sweater","taser","teaser","tender","ter","thaler","toner","trimmer","truther","turnover","tweeter","ulster","vener","ver","wafer","water","webmaster","winchester","wiper","éther"]);   // -er au r PRONONCÉ (liste fermée, vérité-terrain)
   const ENTSIL = new Set([])
   let _3Pidx = null, _3Psrc = null;   // index des 3e pers. du pluriel (voir _build3P) — au niveau du MODULE, pas de chaque mot
+  /* ⭐ 16/10/2026 — LISTE N° 39 : les tables du g2p relues contre la vérité-terrain Lexique (114 007 mots, exactitude 56,3 % avant).
+     Règles de TABLE (segments aî/oî/eî/oû/où/eû/œu, c et g devant é/è/ê, b devant s/t) et règles de CONTEXTE (_r39, ci-dessous).
+     CONTRAT : on ne change que le PHONÈME (`ph`) ; l'hésitation `h` et le découpage des mots A-Z restent ceux d'avant, donc
+     phonScore (le pendu) est inchangé par construction — vérifié sur tout le lexique. Miroir exact : dictee/decompose.py (_r39) ;
+     parité et batterie en CI : dictee/g2p_parity_probe.py. Recensement et puretés : message de commit de la PR. */
+  const ILL_L = new Set(["ancillaire","ancillaires","armillaire","armillaires","aspergillaire","aspergillaires","aspergille","aspergilles","aspergillome","aspergillomes","aspergillose","aspergilloses","aspergillus","axillaire","axillaires","bacillaire","bacillaires","bacillariées","bacille","bacilles","bacilliforme","bacillifère","bacillogène","bacillophobie","bacilloscopie","bacillose","bacilloses","bacillothérapie","bacillémie","bacillémies","bidonville","bidonvilles","bill","billevesée","billevesées","billiard","billiards","billion","billions","bills","bougainvillier","bougainvilliers","bougainvilléa","bougainvilléas","bougainvillée","bougainvillées","capillacé","capillacée","capillacées","capillacés","capillaire","capillaires","capillarité","capillarités","chille","chinchilla","chinchillas","codicille","codicilles","cyrillique","cyrilliques","distilla","distillai","distillaient","distillais","distillait","distillant","distillas","distillasse","distillassent","distillasses","distillassiez","distillassions","distillat","distillateur","distillateurs","distillation","distillations","distillatoire","distillatoires","distillats","distille","distillent","distiller","distillera","distillerai","distilleraient","distillerais","distillerait","distilleras","distillerez","distillerie","distilleries","distilleriez","distillerions","distillerons","distilleront","distilles","distillez","distilliez","distillions","distillons","distillâmes","distillât","distillâtes","distillèrent","distillé","distillée","distillées","distillés","drill","drille","drills","défibrillassent","défibrillateur","défibrillateurs","défibrillation","défibrillations","défibrillent","défibrillât","défibrillâtes","désillusion","désillusionna","désillusionnai","désillusionnaient","désillusionnais","désillusionnait","désillusionnant","désillusionnas","désillusionnasse","désillusionnassent","désillusionnasses","désillusionnassiez","désillusionnassions","désillusionne","désillusionnent","désillusionner","désillusionnera","désillusionnerai","désillusionneraient","désillusionnerais","désillusionnerait","désillusionneras","désillusionnerez","désillusionneriez","désillusionnerions","désillusionnerons","désillusionneront","désillusionnes","désillusionnez","désillusionniez","désillusionnions","désillusionnons","désillusionnâmes","désillusionnât","désillusionnâtes","désillusionnèrent","désillusionné","désillusionnée","désillusionnées","désillusionnés","désillusions","fibrillation","fibrillations","gill","gille","gilles","gillettes","gills","grill","grills","habilles","imbécillifié","imbécilliser","imbécillité","imbécillités","instilla","instillai","instillais","instillant","instillas","instillasse","instillassent","instillasses","instillassiez","instillassions","instillateur","instillation","instillations","instille","instiller","instillera","instillerai","instilleraient","instillerais","instillerait","instilleras","instillerez","instilleriez","instillerions","instillerons","instilleront","instillez","instilliez","instillions","instillons","instillâmes","instillât","instillâtes","instillèrent","instillé","instillées","kille","krill","krills","lactobacille","lactobacilles","lilliputien","lilliputienne","lilliputiennes","lilliputiens","mamillaire","mamillaires","maxillaire","maxillaires","maxille","maxilles","maxilliforme","maxillifère","maxillipède","maxillite","mille","millefeuille","millefeuilles","millenium","millepatte","millepattes","millepertuis","milleraies","millerandage","millerandages","millerandé","millerole","milleroles","millerolle","millerolles","milles","milli","milliaire","milliaires","milliampère","milliard","milliardaire","milliardaires","milliardième","milliardièmes","milliards","millibar","millibars","millicurie","millier","milliers","milligrade","milligramme","milligrammes","millilitre","millilitres","millimicron","millimole","millimoles","millimètre","millimètres","millimétrique","millimétriques","millimétré","millimétrée","millimétrées","millimétrés","million","millionième","millionièmes","millionnaire","millionnairement","millionnaires","millions","milliroentgen","milliseconde","millithermie","millivolt","milliwatt","milliwatts","millième","millièmes","millénaire","millénaires","millénarisme","millénarismes","millénariste","millénaristes","millénium","milléniums","millépore","millépores","millésima","millésimai","millésimaient","millésimais","millésimait","millésimal","millésimale","millésimales","millésimant","millésimas","millésimasse","millésimassent","millésimasses","millésimassiez","millésimassions","millésimaux","millésime","millésiment","millésimer","millésimera","millésimerai","millésimeraient","millésimerais","millésimerait","millésimeras","millésimerez","millésimeriez","millésimerions","millésimerons","millésimeront","millésimes","millésimez","millésimiez","millésimions","millésimons","millésimâmes","millésimât","millésimâtes","millésimèrent","millésimé","millésimée","millésimées","millésimés","multimilliardaire","multimilliardaires","multimillionnaire","multimillionnaires","multimillénaire","octillion","octillions","oscilla","oscillai","oscillante","oscillantes","oscillas","oscillasse","oscillassent","oscillasses","oscillassiez","oscillassions","oscillateur","oscillateurs","oscillatrice","oscillatrices","oscillement","oscillera","oscillerai","oscilleraient","oscillerais","oscillerait","oscilleras","oscillerez","oscilleriez","oscillerions","oscillerons","oscilleront","oscilles","oscilliez","oscillions","oscillogramme","oscillogrammes","oscillographe","oscillographes","oscillographie","oscillographique","oscillomètre","oscillomètres","oscillons","oscilloscope","oscilloscopes","oscillâmes","oscillât","oscillâtes","oscillèrent","oscillée","oscillées","oscillés","papillaire","papillaires","papilliforme","papillifère","papillite","papillites","papillomateuse","papillomateuses","papillomateux","papillome","papillomes","piccalilli","piccalillis","pupillaire","pupillaires","pupillarité","pusillanime","pusillanimes","pusillanimité","pusillanimités","pénicille","pénicilles","pénicillinase","pénicillinases","pénicilline","pénicillines","pénicillium","pénicilliums","pénicillé","pénicillée","pénicillées","pénicillés","quatrillion","quatrillions","schilling","schillings","scillarène","scille","scilles","scillitique","scillitiques","till","tills","tranquille","tranquillement","tranquilles","tranquillisa","tranquillisai","tranquillisaient","tranquillisais","tranquillisait","tranquillisant","tranquillisante","tranquillisantes","tranquillisants","tranquillisas","tranquillisasse","tranquillisassent","tranquillisasses","tranquillisassiez","tranquillisassions","tranquillisation","tranquillisations","tranquillise","tranquillisent","tranquilliser","tranquillisera","tranquilliserai","tranquilliseraient","tranquilliserais","tranquilliserait","tranquilliseras","tranquilliserez","tranquilliseriez","tranquilliserions","tranquilliserons","tranquilliseront","tranquillises","tranquillisez","tranquillisiez","tranquillisions","tranquillisons","tranquillisâmes","tranquillisât","tranquillisâtes","tranquillisèrent","tranquillisé","tranquillisée","tranquillisées","tranquillisés","tranquillité","tranquillités","trilliard","trilliards","trillion","trillionnaire","trillions","vaudeville","vaudevilles","vaudevillesque","vaudevillesques","vaudevillier","vaudevilliers","vaudevillique","vaudevilliques","vaudevillisme","vaudevilliste","vaudevillistes","villa","village","villageois","villageoise","villageoises","villages","villain","villains","villanelle","villanelles","villas","villasse","ville","villenage","villenages","villes","villette","villettes","villeuse","villeuses","villeux","villosité","villosités","villotier","villotiers","villotière","villotières","villotte","villottes","villégiateur","villégiateurs","villégiatura","villégiaturai","villégiaturaient","villégiaturais","villégiaturait","villégiaturant","villégiaturas","villégiaturasse","villégiaturassent","villégiaturasses","villégiaturassiez","villégiaturassions","villégiature","villégiaturent","villégiaturer","villégiaturera","villégiaturerai","villégiatureraient","villégiaturerais","villégiaturerait","villégiatureras","villégiaturerez","villégiatureriez","villégiaturerions","villégiaturerons","villégiatureront","villégiatures","villégiaturez","villégiaturiez","villégiaturions","villégiaturiser","villégiaturons","villégiaturâmes","villégiaturât","villégiaturâtes","villégiaturèrent","villégiaturé","villégiaturée","villégiaturées","villégiaturés"]);   // « ill » après consonne prononcé /il/ (ville, mille, tranquille, bacille…) — liste fermée, vérité-terrain
+  const ERS_R = new Set(["abers","acquiers","afrikanders","austers","avers","baedekers","bipers","bitters","boxers","calenders","canters","carters","cawchers","cers","challengers","cockers","computers","conquiers","containers","contrefers","convers","corners","crackers","crémasters","câchers","designers","dessers","devers","divers","dockers","dulcimers","dévers","eiders","enquiers","entrefers","envers","esters","feeders","ferouers","fervers","flippers","fraters","gasters","gauleiters","gophers","interviewers","jiggers","joggers","kaisers","keupers","kreutzers","liners","lingers","loaders","managers","mausers","messers","minnesingers","mixers","munsters","mâchefers","népers","obvers","palmers","papavers","pers","pervers","polders","polyesters","porters","posters","quarters","radioreporters","rangers","reconquiers","reporters","requiers","resers","ressers","revers","rewriters","roadsters","samplers","schnauzers","schooners","scrubbers","shakers","shipchandlers","skippers","spalters","spiders","starters","stayers","steppers","stokers","subers","supporters","surfers","sylvaners","tankers","thiers","thrillers","tiers","trackers","trainers","traminers","travers","trochanters","tuners","univers","vomers","vétivers","vétyvers","webers","welters"]);   // « -ers » final au r prononcé hors RFIN (divers, univers, tiers, acquiers…) — liste fermée, vérité-terrain
+  const GZ_PRE = new Set(["e","ine","coe","he","hé","rée","prée"]);   // x + voyelle → /gz/ seulement derrière ex-, inex-, coex-, hex-, réex-, préex- ; sinon /ks/
+  const Z6 = new Set(["deuxième","deuxièmes","deuxièmement","sixième","sixièmes","sixièmement","dixième","dixièmes","dixièmement","dixhuit","dixhuitième","dixhuitièmes"]);   // x → /z/
+  const IENT_V = new Set(["abstient","advient","appartient","autoentretient","bientôt","circonvient","contient","contrevient","convient","detient","devient","disconvient","détient","entretient","intervient","maintient","mesadvient","mesavient","mésadvient","mésavient","obtient","parvient","previent","provient","prévient","redevient","reintervient","reobtient","reprevient","reprévient","ressouvient","retient","revient","réintervient","réobtient","soutient","souvient","subvient","survient","tient","vient"]);   // « -ient » prononcé /jɛ̃/ : 3e pers. sing. de venir/tenir et composés (tables de conjugaison) + bientôt
+  const _V39 = 'aeiouyàâäéèêëîïôöùûüœ', _C39 = 'bdfgɡkʒlmnɲŋpʁstvzʃ';
+  const _SC39 = /^(b|c|d|f|g|j|k|l|m|n|p|t|v|ç|qu|ch|ph|th)$/, _OBS39 = /^(b|c|d|f|g|k|p|t|v|ch|ph)$/;   // consonnes simples ; obstruantes (+ l/r = attaque, syllabe ouverte)
+  function _r39(S, w, entVerbe){
+    const n = S.length, G = (k) => (k >= 0 && k < n) ? S[k].g : '#';
+    const vowG = (k) => k >= 0 && k < n && _V39.indexOf(S[k].g.charAt(0)) >= 0;            // graphème à initiale vocalique (ou, oi, ien, é, y…) ; qu/gu = consonnes
+    const consPh = (k) => { if (k < 0 || k >= n) return false; const p = S[k].ph; return !!p && p !== '∅' && _C39.indexOf(p.charAt(p.length - 1)) >= 0; };
+    const eMuet = (k) => k >= 0 && k < n && S[k].g === 'e' && (!S[k].ph || S[k].ph === '∅');
+    const fin = (k) => k >= n || (k === n - 1 && S[k].g === 's');
+    const cluster = (k) => k >= 2 && (G(k - 1) === 'l' || G(k - 1) === 'r') && /^(b|c|d|f|g|k|p|t|v|ch|ph|cc|tt|pp|bb|dd|ff|gg)$/.test(G(k - 2));   // pl, cr, br… : i + voyelle → /ij/ (plié, ouvrier)
+    /* passe A — le « e » (syllabe ouverte → schwa, fermée → /ɛ/) : e r V → schwa (muet après voyelle) ; e r C, e rr, e nn, e ll/tt/pp… → /ɛ/ ;
+       -er final des RFIN → /ɛ/ ; -ers final → e + r muet sauf RFIN/ERS_R ; emm- → /ɑ̃/, femme → /a/ ; -esse, -essent → /ɛ/ ; -ement après voyelle → muet ;
+       e + consonne simple : + voyelle → schwa (cheval, venir, leçon), + obstruante + l/r → schwa (secret, degré), + consonne → /ɛ/ (espace, veste), finale → /ɛ/ (sec, net) */
+    for (let k = 0; k < n; k++) { const s = S[k]; if (s.g !== 'e') continue; const g2 = G(k + 1), g3 = G(k + 2);
+      if (g2 === 'rr') s.ph = 'ɛ';
+      else if (g2 === 'r') {
+        if (k + 2 >= n) { if (RFIN.has(w)) s.ph = 'ɛ'; }
+        else if (g3 === 's' && k + 3 === n) { if (RFIN.has(w.slice(0, -1)) || ERS_R.has(w)) s.ph = 'ɛ'; else { s.ph = 'e'; S[k + 1].ph = '∅'; } }
+        else if (vowG(k + 2)) s.ph = vowG(k - 1) ? '∅' : 'ə';
+        else s.ph = 'ɛ';
+      }
+      else if (g2 === 'nn') { if (w.indexOf('ennu') !== 0) s.ph = 'ɛ'; }
+      else if (g2 === 'mm') s.ph = w.indexOf('emm') === 0 ? 'ɑ̃' : (w.indexOf('femm') === 0 ? 'a' : 'ɛ');
+      else if (g2 === 'ss') { if ((g3 === 'e' && fin(k + 3)) || (g3 === 'en' && G(k + 3) === 't' && k + 4 === n)) s.ph = 'ɛ'; }
+      else if (/^(ll|tt|pp|cc|dd|bb|gg)$/.test(g2)) s.ph = 'ɛ';
+      else if (g2 === 'm' && g3 === 'en' && vowG(k - 1)) s.ph = '∅';
+      else if (_SC39.test(g2)) {
+        if (k + 2 >= n) { if (g2 !== 'd') s.ph = 'ɛ'; }
+        else if (vowG(k + 2)) { if (!vowG(k - 1)) s.ph = 'ə'; }
+        else if (g2 === 'd') { }
+        else if (_OBS39.test(g2) && (g3 === 'l' || g3 === 'r')) { if (!vowG(k - 1)) s.ph = 'ə'; }
+        else s.ph = 'ɛ';
+      }
+    }
+    /* passe B — ti → /s/ ; i + voyelle → /j/ (/ij/ après pl/cr…, /i/ devant e muet, muet après gn) ; ill ; ail/eil/euil/ueil/ouil/œil ; o+eu ; ay/oy/uy ; x */
+    let pos = 0;
+    for (let k = 0; k < n; k++) { const s = S[k], g = s.g, g2 = G(k + 1), g3 = G(k + 2);
+      if (g === 't' && G(k - 1) !== 's' && G(k - 1) !== 'ss' && g2 === 'ien' && (g3 === 'c' || (g3 === 't' && !IENT_V.has(w)))) s.ph = 's';   // patient, patience, quotient
+      else if (g === 't' && g2 === 'i' && G(k - 1) !== 's' && G(k - 1) !== 'ss' && (g3 === 'on' || g3 === 'om' || g3 === 'o' || g3 === 'eu' || (g3 === 'e' && (G(k + 3) === 'l' || G(k + 3) === 'll')) || (g3 === 'a' && /^(l|ll|b|t)$/.test(G(k + 3))))) s.ph = 's';
+      else if (g === 'i' && vowG(k + 1)) {
+        if (G(k - 1) === 'gn' && !eMuet(k + 1)) s.ph = '∅';
+        else if (eMuet(k + 1)) s.ph = 'i';
+        else s.ph = cluster(k) ? 'ij' : 'j';
+      }
+      else if (g === 'ill') {
+        if (ILL_L.has(w) || k === 0) s.ph = 'il';
+        else if (s.ph === 'j') s.ph = consPh(k - 1) ? 'ij' : 'j';
+        else if (s.ph === 'il' && g2 === 'i' && !consPh(k - 1)) s.ph = 'j';
+      }
+      else if ((g === 'ai' || g === 'ei') && (g2 === 'll' || (g2 === 'l' && fin(k + 2)))) {
+        if (g === 'ei' && G(k - 1) === 'gu') s.ph = 'œ';
+        else if (g === 'ei' && G(k - 1) === 'u' && /^(c|cc|g)$/.test(G(k - 2))) { S[k - 1].ph = '∅'; s.ph = 'œ'; }
+        else if (g === 'ei' && G(k - 1) === 'o') { S[k - 1].ph = '∅'; s.ph = 'œ'; }
+        else s.ph = g === 'ai' ? 'a' : 'ɛ';
+        S[k + 1].ph = 'j';
+      }
+      else if ((g === 'eu' || g === 'ou' || g === 'œ') && g2 === 'i' && g3 === 'l' && fin(k + 3)) { S[k + 1].ph = '∅'; S[k + 2].ph = 'j'; }
+      else if (g === 'o' && g2 === 'eu') s.ph = '∅';
+      else if ((g === 'a' || g === 'o' || g === 'u') && g2 === 'y') {
+        if (g3 === 'e' || vowG(k + 2)) { S[k + 1].ph = 'j'; s.ph = g === 'o' ? 'wa' : g === 'u' ? 'ɥi' : ((g3 === 'é' || (g3 === 'e' && S[k + 2].ph === 'e')) ? 'e' : 'ɛ'); }
+        else if (g === 'a') { s.ph = 'ɛ'; S[k + 1].ph = 'i'; }
+      }
+      else if (g === 'ien') { if (g2 === 'c' || (g2 === 't' && !IENT_V.has(w))) s.ph = 'jɑ̃'; if (cluster(k) && s.ph.charAt(0) === 'j') s.ph = 'i' + s.ph; }   // science, patient, client, orientation ; vient, bientôt gardent /jɛ̃/ ; cl/dr + ien → /ij…/                      // science, patient, client, orientation ; vient, bientôt gardent /jɛ̃/
+      else if (g === 'ou' && g2 === 'e' && eMuet(k + 1)) s.ph = 'u';                                          // joue, avoue, ils jouent
+      else if (g === 'ou' && (g2 === 'i' || g2 === 'in') && g3 !== 'l' && g3 !== 'll') s.ph = 'w';            // oui, Louis, enfouir, pingouin
+      else if (g === 'u' && (g2 === 'é' || (g2 === 'e' && !eMuet(k + 1))) && !/^(r|rr|q|g)$/.test(G(k - 1))) s.ph = 'ɥ';   // actuel, muet, tuer, accentué
+      else if (g === 's' && g2 === 'c' && g3 !== '#' && 'eiyéèêë'.indexOf(g3.charAt(0)) < 0) s.ph = 's';       // escalier, scolaire, muscle, script
+      else if (g === 'x' && (vowG(k + 1) || g2 === 'h')) s.ph = Z6.has(w) ? 'z' : (GZ_PRE.has(w.slice(0, pos)) ? 'ɡz' : 'ks');
+      pos += g.length;
+    }
+    if (w.length > 4 && w.slice(-4) === 'ient' && !ENTAMBIG.has(w) && (ENTSIL.has(w) || entVerbe(w)) && n >= 2 && S[n - 2].g === 'ien') S[n - 2].ph = 'i';   // ils allient, ils crient
+  }
   function g2p(word){
-    const w=word.toLowerCase().replace(/[^a-zàâäéèêëîïôöùûüÿç]/g,'')
+    const w=word.toLowerCase().replace(/[^a-zàâäéèêëîïôöùûüÿçœ]/g,'')
     const steps=[]; let i=0
     while(i<w.length){
       let g=null
@@ -6626,6 +6707,7 @@ var _DECL2 = (function () {
       if(_p && (_p.g==='c' || _p.g==='g')){ _p.ph='∅'; _p.h=0.05; }
     }
     if(w==='est' || w==='es'){ for(const x of steps){ x.ph = x.g==='e' ? 'ɛ' : '∅'; x.h = 0.05; } }
+    _r39(steps, w, _entVerbe);   // ⭐ liste n° 39 (ph seulement, h intact)
     return steps
   }
   function phonScore(word) {
@@ -28933,7 +29015,10 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   /* a/à, branche « a + nom nu » : le squelette sans accent peut être un nom (« ere » = ère) alors que le mot ÉCRIT ne l'est pas
      (« a éré malade » = a été malade), ou le mot peut être un participe accordé à tort (« Marie a dormie »). Abstention dans les deux cas. */
   function _aNuSuspect(w){var lw=String(w).toLowerCase();if(/[àâäéèêëîïôöùûüÿç]/.test(lw)&&SP&&SP.WORDS&&SP.WORDS.size>1000&&!SP.WORDS.has(lw))return true;return _ppSurnum(w);}
-  function _sonKey(w){try{var st=_DECL2.g2p(w),o='',i;for(i=0;i<st.length;i++){var p=st[i].ph;if(p&&p!=='∅')o+=p;}return o.replace(/ɔ/g,'o');}catch(e){return '';}}
+  /* ⭐ 16/10/2026 (liste n° 39) — le « e » FAIBLE ne compte pas dans la clé : schwa, et e/ɛ d'un « e » nu non final (dévellope ≡ développe,
+     peneus ≡ pneus : le scripteur dys double une consonne ou insère un e, le g2p contextuel y lit ɛ ou ə) ; le e de -er / -ez finals reste
+     (parler ≠ parle). Mesuré : sans cela, les règles de contexte du g2p coûtaient 9 corrections justes sur les 3 corpus, 0 gain. */
+  function _sonKey(w){try{var st=_DECL2.g2p(w),o='',i;for(i=0;i<st.length;i++){var p=st[i].ph;if(!p||p==='∅'||p==='ə')continue;if(st[i].g==='e'&&(p==='e'||p==='ɛ')&&!(i===st.length-2&&(st[i+1].g==='r'||st[i+1].g==='z')))continue;o+=p;}return o.replace(/ɔ/g,'o');}catch(e){return '';}}
   function phonKey(s){s=s.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').replace(/ç/g,'s');s=deaccS(s);
     s=s.replace(/oin(?![aeiouy])/g,'w1').replace(/ien(?![aeiouy])/g,'j1').replace(/(?:ain|aim|ein|eim|in|im|yn|ym|un|um)(?![aeiouymn])/g,'1').replace(/(?:an|am|en|em)(?![aeiouymn])/g,'2').replace(/(?:on|om)(?![aeiouymn])/g,'3');   // NASALES → classe unique (in/ain/un→1 /ɛ̃/, an/en→2, on→3) ; +6 pts rappel nasal, FP=0 (MIROIR speller_probe.phon_key)
     s=s.replace(/ph/g,'f').replace(/sch/g,'ch').replace(/th/g,'t').replace(/ch(?=[bcdfgjklmnpqrstvwxz])/g,'k').replace(/ch/g,'§').replace(/gn/g,'¤');

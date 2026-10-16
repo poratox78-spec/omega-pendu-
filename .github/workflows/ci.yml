@@ -107,6 +107,8 @@ jobs:
         run: python3 dictee/decompose_corpus.py --show
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
+      - name: Parité g2p du moteur JS ≡ Python + clé de son du speller + batterie (liste n° 39)
+        run: python3 dictee/g2p_parity_probe.py --check
       - name: Vérif syntaxe du bloc dictée+correcteur intégré (app)
         run: |
           node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('mode PHRASES');if(i<0)throw new Error('bloc dictée introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc dictée+correcteur se compile');"

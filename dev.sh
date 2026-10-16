@@ -72,6 +72,7 @@ run "held-out vocab neuf"          python3 dictee/eval_externe.py
 run "boucle descendante (genre)"   python3 dictee/descending_probe.py
 run "did-you-mean FALSIFIÉ"        python3 dictee/didyoumean_probe.py
 run "tables g2p (depuis l'app)"    python3 dictee/build_g2p_tables.py
+run "parité g2p JS ≡ Python + batterie (liste n° 39)" python3 dictee/g2p_parity_probe.py --check
 run "morpho md/mb (depuis l'app)"  python3 dictee/build_morpho.py
 run "correction g2p (train)"       python3 dictee/build_g2p_corrections.py
 run "décomposeur (held-out)"       python3 dictee/decompose.py --measure

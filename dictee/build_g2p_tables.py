@@ -48,12 +48,17 @@ def main():
     entambig = json.loads(grab(r"const ENTAMBIG = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
     cfin = json.loads(grab(r"const CFIN_MUET = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
     gfin = json.loads(grab(r"const GFIN_MUET = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
+    ill_l = json.loads(grab(r"const ILL_L = new Set\((\[.*?\])\)", re.S))        # ⭐ liste n° 39
+    ers_r = json.loads(grab(r"const ERS_R = new Set\((\[.*?\])\)", re.S))
+    gz_pre = json.loads(grab(r"const GZ_PRE = new Set\((\[.*?\])\)", re.S))
+    z6 = json.loads(grab(r"const Z6 = new Set\((\[.*?\])\)", re.S))
+    ient_v = json.loads(grab(r"const IENT_V = new Set\((\[.*?\])\)", re.S))
 
     # SEG est trié par longueur décroissante dans l'app (maximal munch). On fige ce tri ici.
     seg = sorted(seg, key=lambda s: -len(s))
     tables = {'VOW': vow, 'NASAL': nasal, 'DBL': dbl, 'SEG': seg, 'COND': cond, 'ENTSIL': entsil,
               'RFIN': rfin, 'EPRON': epron, 'ENTAMBIG': entambig,
-              'CFIN_MUET': cfin, 'GFIN_MUET': gfin}
+              'CFIN_MUET': cfin, 'GFIN_MUET': gfin, 'ILL_L': ill_l, 'ERS_R': ers_r, 'GZ_PRE': gz_pre, 'Z6': z6, 'IENT_V': ient_v}
     json.dump(tables, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[g2p] tables extraites de l'app → {OUT}")
     print(f"      VOW={len(vow)} car · NASAL={len(nasal)} · DBL={len(dbl)} · SEG={len(seg)} · "

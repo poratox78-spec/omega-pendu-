@@ -4660,7 +4660,10 @@ function estQuestion(t,maxMots){
   /* a/à, branche « a + nom nu » : le squelette sans accent peut être un nom (« ere » = ère) alors que le mot ÉCRIT ne l'est pas
      (« a éré malade » = a été malade), ou le mot peut être un participe accordé à tort (« Marie a dormie »). Abstention dans les deux cas. */
   function _aNuSuspect(w){var lw=String(w).toLowerCase();if(/[àâäéèêëîïôöùûüÿç]/.test(lw)&&SP&&SP.WORDS&&SP.WORDS.size>1000&&!SP.WORDS.has(lw))return true;return _ppSurnum(w);}
-  function _sonKey(w){try{var st=_DECL2.g2p(w),o='',i;for(i=0;i<st.length;i++){var p=st[i].ph;if(p&&p!=='∅')o+=p;}return o.replace(/ɔ/g,'o');}catch(e){return '';}}
+  /* ⭐ 16/10/2026 (liste n° 39) — le « e » FAIBLE ne compte pas dans la clé : schwa, et e/ɛ d'un « e » nu non final (dévellope ≡ développe,
+     peneus ≡ pneus : le scripteur dys double une consonne ou insère un e, le g2p contextuel y lit ɛ ou ə) ; le e de -er / -ez finals reste
+     (parler ≠ parle). Mesuré : sans cela, les règles de contexte du g2p coûtaient 9 corrections justes sur les 3 corpus, 0 gain. */
+  function _sonKey(w){try{var st=_DECL2.g2p(w),o='',i;for(i=0;i<st.length;i++){var p=st[i].ph;if(!p||p==='∅'||p==='ə')continue;if(st[i].g==='e'&&(p==='e'||p==='ɛ')&&!(i===st.length-2&&(st[i+1].g==='r'||st[i+1].g==='z')))continue;o+=p;}return o.replace(/ɔ/g,'o');}catch(e){return '';}}
   function phonKey(s){s=s.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').replace(/ç/g,'s');s=deaccS(s);
     s=s.replace(/oin(?![aeiouy])/g,'w1').replace(/ien(?![aeiouy])/g,'j1').replace(/(?:ain|aim|ein|eim|in|im|yn|ym|un|um)(?![aeiouymn])/g,'1').replace(/(?:an|am|en|em)(?![aeiouymn])/g,'2').replace(/(?:on|om)(?![aeiouymn])/g,'3');   // NASALES → classe unique (MIROIR speller_probe.phon_key)
     s=s.replace(/ph/g,'f').replace(/sch/g,'ch').replace(/th/g,'t').replace(/ch(?=[bcdfgjklmnpqrstvwxz])/g,'k').replace(/ch/g,'§').replace(/gn/g,'¤');
