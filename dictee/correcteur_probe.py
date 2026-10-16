@@ -3254,7 +3254,7 @@ def _url_spans(text):
 
 def _seg_info(text):
     import re
-    ss, bb, hy, cap, dig, raw, prev_end = [], [], [], [], [], [], 0
+    ss, bb, hy, hyt, cap, dig, raw, prev_end = [], [], [], [], [], [], [], 0
     _us = _url_spans(text); url = []   # ⭐ liste n° 22 : mots d'une adresse
     for k, m in enumerate(re.finditer(r"[A-Za-zÀ-ÿœŒ']+", text)):
         gap = text[prev_end:m.start()]
@@ -3262,6 +3262,7 @@ def _seg_info(text):
         ss.append(s)
         bb.append(s or any(c in gap for c in ',;:()«»"–—\n'))
         hy.append('-' in gap)                                    # trait d'union avant (inversion « dit-il ») → anti-FP run-on
+        hyt.append(gap == '-')                                   # ⭐ liste n° 43 : trait d'union COLLÉ (pas le tiret espacé de ponctuation) — miroir JS
         _dom = ('.' in gap and not any(c.isspace() for c in gap) and m.group().lower() in _TLD_CAP)   # « .net/.com » collé (point de domaine, pas de fin de phrase) → jamais capitaliser le TLD
         _capp = ('.' in gap and any(c.isspace() for c in gap))   # MAJUSCULE = seulement après un POINT suivi d'une espace ; PAS ! ? … (souvent milieu de phrase : interjection « Ah! comme », inversion « viendra-t-il? je », suspension « … », = quasi 100 % de FP mesurés banc OQLF/BDL) ni un point de DOMAINE collé « oqlf.gouv » (pas d'espace)
         cap.append(_capp and '..' not in gap and not any(c.isdigit() for c in gap) and not _dom)   # MAJUSCULE : vraie fin de phrase (point + espace) — pas une ellipse « .. », un point de nombre/décimale, ni un point de DOMAINE (URL)
@@ -3269,7 +3270,7 @@ def _seg_info(text):
         dig.append(any(c.isdigit() for c in gap))                # un NOMBRE (supprimé par toks) précédait ce token : « le 25 mars », « le 100 mètres » → écran, le déterminant ne gouverne pas ce nom
         url.append(any(a <= m.start() < b for (a, b) in _us))
         prev_end = m.end()
-    return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig, 'raw': raw, 'url': url}
+    return {'ss': ss, 'bb': bb, 'hy': hy, 'hyt': hyt, 'cap': cap, 'dig': dig, 'raw': raw, 'url': url}
 
 
 # ---------- BORNES DE PROPOSITION PRÉDITES (canal « pb », 31/08/2026) ----------
@@ -5137,6 +5138,7 @@ def rule_det_number(T, i):
     mal » : le nom (forme plurielle dont le singulier existe) et le verbe (3e pluriel sans lecture singulière) témoignent du pluriel contre
     le déterminant ; rule_noun_singular et rule_on_ont s'abstiennent sur cette évidence (#728) et personne ne proposait « les ». ORANGE sur
     le déterminant : doute → l'auteur tranche. Le genre du déterminant reste à rule_det_gender. Miroir JS : rDetNumber."""
+    if hy_det_skip(T, i): return None   # ⭐ liste n° 43 : le nom suivant ouvre un composé verbe-nom ou préfixé — miroir JS _hyDetSkip
     lw = deacc(T[i].lower())
     if lw not in _DET_PL or "'" in T[i] or i + 2 >= len(T): return None
     if i > 0 and deacc(T[i-1].lower()) in ('et', 'ou', 'ni'): return None   # CONJOINT (« l'hébergement et la restaurations ont ») : le pluriel du verbe vient de la coordination — même exception que rule_noun_singular (#728), trouvée par le différentiel
@@ -5157,6 +5159,7 @@ _PREFIX_NU = frozenset('pre post anti ex co auto pro ultra micro macro mini mult
 
 
 def rule_det_gender(T, i):
+    if hy_det_skip(T, i): return None   # ⭐ liste n° 43 : le nom suivant ouvre un composé verbe-nom ou préfixé — miroir JS _hyDetSkip
     lw = deacc(T[i].lower())
     if lw not in DET_GENDER or "'" in T[i].lower(): return None
     if i + 1 >= len(T): return None
@@ -7778,6 +7781,48 @@ _GER_REGLES_SV = {'accord sujet-verbe', 'accord du verbe au sujet nominal à vé
 RULES = [(n, _sans_gerondif(f) if n in _GER_REGLES_SV else f) for n, f in RULES]   # garde centrale — miroir JS correctTokens
 
 
+# ⭐ 16/10/2026 (liste n° 43) — MOTS À TRAIT D'UNION jugés morceau par morceau : miroir de _hyTrue / _hyInv (dys-core, app). Un élément est dans un
+# VRAI composé s'il est lié par un trait d'union COLLÉ à un voisin qui n'est ni un pronom (inversion, impératif) ni un suffixe d'écriture inclusive.
+# Sur un tel élément : aucune règle sauf la majuscule ; verbe + pronom sujet inversé (« écoulent-ils ») : pas d'accord à un sujet nominal.
+_HY_PRON = {'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles', 't', 'le', 'la', 'les', 'lui', 'leur', 'moi', 'toi', 'y', 'en', 'ce'}
+_HY_SUJ = {'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles'}
+_HY_TETE = {'beau', 'belle', 'beaux', 'belles', 'bel', 'grand', 'grande', 'grands', 'grandes', 'petit', 'petite', 'petits', 'petites', 'demi', 'mi', 'nous', 'vous', 'moi', 'toi', 'lui', 'elle', 'elles', 'eux', 'soi', 'même', 'mêmes', 'saint', 'sainte', 'saints', 'saintes', 'tout', 'toute', 'tous', 'toutes', 'arrière', 'avant', 'après', 'sous', 'sur', 'contre', 'non', 'haut', 'haute', 'bas', 'basse', 'nouveau', 'nouvelle', 'nouveaux', 'nouvelles', 'premier', 'première', 'premiers', 'premières', 'dernier', 'dernière', 'bon', 'bonne', 'bons', 'bonnes', 'nord', 'sud', 'ouest'}   # têtes de composés très fréquentes (liste n° 43) — miroir JS
+_HY_INCL = {'e', 'es', 'ne', 'nes', 'se', 'ses', 'euse', 'euses', 'rice', 'rices', 'trice', 'trices', 'ère', 'ères', 'ive', 'ives', 've', 'ves', 'lle', 'lles', 'te', 'tes'}
+def hy_true(T, i, hyt=None):
+    if hyt is None:
+        if _SEG is None or 'hyt' not in _SEG: return False
+        hyt = _SEG['hyt']
+    lw = lambda k: (T[k] if 0 <= k < len(T) else '').lower()
+    if i + 1 < len(T) and i + 1 < len(hyt) and hyt[i + 1] and lw(i + 1) not in _HY_PRON and lw(i + 1) not in _HY_INCL: return True
+    if 0 < i < len(hyt) and hyt[i] and lw(i) not in _HY_PRON and lw(i) not in _HY_INCL: return True
+    return False
+_HY_VN = {'abat', 'amuse', 'attrape', 'bouche', 'brise', 'cache', 'casse', 'chasse', 'compte', 'coupe', 'couvre', 'croque', 'crève', 'cure', 'essuie', 'fait', 'gagne', 'garde', 'gratte', 'lance', 'lave', 'monte', 'ouvre', 'pare', 'passe', 'perce', 'pince', 'pique', 'porte', 'pousse', 'presse', 'protège', 'pèse', 'ramasse', 'rince', 'serre', 'sèche', 'taille', 'tire', 'tourne', 'traîne', 'trouble', 'vide'}
+_HY_PREP = {'sous', 'sur', 'demi', 'semi', 'mi', 'anti', 'après', 'avant', 'arrière', 'contre', 'entre', 'non', 'quasi', 'vice', 'ex', 'néo', 'pré', 'post', 'pro', 'inter', 'intra', 'extra', 'ultra', 'super', 'hyper', 'auto', 'co', 'mini', 'micro', 'multi'}
+def hy_det_skip(T, i):
+    if _SEG is None or 'hyt' not in _SEG or not (i + 2 < len(T) and i + 2 < len(_SEG['hyt']) and _SEG['hyt'][i + 2] and not _SEG['hyt'][i + 1]): return False
+    w = T[i + 1].lower()
+    return w in _HY_VN or w in _HY_PREP
+_HY_NUM = {'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'cent', 'mille'}
+def hy_first(T, i, hyt=None):
+    if hyt is None: hyt = _SEG.get('hyt') if _SEG is not None else None
+    if not hyt: return i
+    k = i
+    while k > 0 and k < len(hyt) and hyt[k] and T[k].lower() not in _HY_PRON and T[k].lower() not in _HY_INCL: k -= 1
+    return k
+def hy_gram(T, i):
+    """⭐ liste n° 43 — miroir de _hyGram : élément suivi d'un trait d'union → aucune règle ; dernier élément (nom tête) → les règles restent,
+    sauf composé verbe-nom ou nombre."""
+    if not hy_true(T, i): return False
+    hyt = _SEG['hyt']
+    if i + 1 < len(T) and i + 1 < len(hyt) and hyt[i + 1] and T[i + 1].lower() not in _HY_PRON and T[i + 1].lower() not in _HY_INCL: return True
+    f = T[hy_first(T, i)].lower()
+    return f in _HY_VN or f in _HY_NUM
+def hy_skip(T, i, name):
+    if name != 'majuscule' and hy_gram(T, i): return True
+    if (_SEG is not None and 'hyt' in _SEG and i + 1 < len(T) and i + 1 < len(_SEG['hyt']) and _SEG['hyt'][i + 1]
+            and T[i + 1].lower() in _HY_SUJ and re.match(r'^accord (sujet-verbe|verbe|du verbe)', name)): return True
+    return False
+
 def correct(text):
     text = text.replace('’', "'").replace('ʼ', "'")   # apostrophe typographique (claviers mobiles) = apostrophe droite (1:1, offsets intacts)
     """-> liste de (index, mot_tapé, suggestion, nom_règle) pour chaque mot jugé fautif."""
@@ -7788,6 +7833,7 @@ def correct(text):
     for i in range(len(T)):
         if i < len(_SEG.get('url') or []) and _SEG['url'][i]: continue   # ⭐ 14/10/2026 (liste n° 22) : mot d'une adresse — miroir JS
         for name, rule in RULES:
+            if hy_skip(T, i, name): continue   # ⭐ liste n° 43 — miroir JS
             dec = rule(T, i)
             if dec is not None and dec != T[i] and (name == 'majuscule' or dec.lower() != T[i].lower()):
                 out.append((i, T[i], dec, name)); break   # 'majuscule' = changement de CASSE seule (le→Le), légitime
@@ -7851,6 +7897,10 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    ("Le physicien range deux électro-aimants dans le tiroir.", "composé à trait d'union : aucun accord sur le premier élément (16/10/2026, liste n° 43)."),
+    ("Le chasse-neige dégage la route avant l'aube.", "composé : ni accord sur « chasse », ni genre du déterminant lu sur le premier élément (liste n° 43)."),
+    ("Il y a un sous-affluent.", "le nombre du déterminant ne se lit pas sur le premier élément d'un composé (liste n° 43)."),
+    ("Les eaux s'écoulent-elles vers la mer ?", "inversion : le verbe s'accorde au pronom inversé, pas à un sujet nominal (liste n° 43)."),
     ("Il a les yeux bleus et vert foncé.", "couleur composée invariable après « et » (14/10/2026, liste n° 12)."),
     ("Il a les ailes gris argenté.", "couleur composée, 2e mot étiqueté verbe (14/10/2026, liste n° 12)."),
     ("D'autres pensent le contraire.", "« d'autres » PRONOM : le veto verbal reste (14/10/2026, liste n° 18)."),

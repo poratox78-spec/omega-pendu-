@@ -546,6 +546,15 @@ function testListe38() {
   for (const t of ['La pomme qu\'elle a mangée était bonne.', 'Ils ne nous ont pas informées.', 'Elle a été nommée.']) {
     const fl = DC.diagnoseAll(t).flags; if (fl.length) fail.push('ligne 38 témoin « ' + t + ' » : attendu rien, eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
 }
+function testListe43() {   // liste n° 43 : un mot à trait d'union n'est pas jugé morceau par morceau (orthographe : accent seul ; aucun accord)
+  for (const t of ['Nous partons en week-end chez ma tante.', 'Le physicien range deux électro-aimants dans le tiroir.', 'Le chasse-neige dégage la route avant l\'aube.',
+      'Ces porte-monnaie sont trop petits.', 'Les eaux s\'écoulent-elles vers la mer ?', 'Ceux-ci restent dans la cour.', 'Il y a un sous-affluent.']) {
+    const fl = DC.diagnoseAll(t).flags; if (fl.length) fail.push('ligne 43 témoin « ' + t + ' » : attendu rien, eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+  { const f = DC.diagnoseAll('Ma grand-mére tricote un bonnet.').flags.find(x => x.word === 'mére');
+    if (!f || f.sugg !== 'mère') fail.push('ligne 43 : « grand-mére » doit garder sa correction d\'accent (mère), eu ' + (f ? f.sugg : 'rien')); }
+  { const f = DC.diagnoseAll('Le maison est grande.').flags.find(x => x.word === 'Le');
+    if (!f) fail.push('ligne 43 : « Le maison » (hors composé) doit garder sa marque de genre'); }
+}
 function testListe42() {   // liste n° 42 : préfixes savants détachés → « mot coupé » (rouge si le composé est au lexique, orange avec trait d'union sinon)
   for (const [t, w, s, tier] of [['Cette coopérative agro alimentaire embauche au printemps.', 'agro', 'agroalimentaire', 'flag'],
       ['Le musée expose une chapelle néo gothique très sombre.', 'néo', 'néogothique', 'flag'], ['Il répare un vieux robot électro ménager.', 'électro', 'électroménager', 'flag'],
@@ -609,6 +618,7 @@ function finish(parityKO) {
   testListe35();
   testListe36();
   testListe38();
+  testListe43();
   testListe42();
   testListe34();
   testListe32();

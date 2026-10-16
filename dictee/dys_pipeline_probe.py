@@ -128,6 +128,7 @@ def pyramide(txt):
     gd_or = {}                                       # i -> orange « genre déterminant » (garde de contradiction, plus bas)
     for i in range(len(Tc)):
         for nm, rule in CP.RULES:
+            if CP.hy_skip(Tc, i, nm): continue   # ⭐ liste n° 43 : élément de composé à trait d'union — miroir correctTokens
             try:
                 d = rule(Tc, i)
             except Exception:
@@ -175,6 +176,7 @@ def pyramide(txt):
         for i in range(len(Tv)):
             if i in sp_orange or i in orange or i in signale or out[i] != Tc[i]: continue
             for nm, rule in CP.RULES:
+                if CP.hy_skip(Tv, i, nm): continue   # ⭐ liste n° 43
                 try:
                     d = rule(Tv, i)
                 except Exception:
