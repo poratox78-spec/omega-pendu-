@@ -1312,6 +1312,7 @@ def _rule_a_aa_base(T, i):
     if not pb and vlike(T, i-1):                                       # après un verbe (« va à »), même proposition → préposition
         pv = NOUN_POST.get(deacc(T[i-1].lower())) if i > 0 else None   # …SAUF si le mot avant « a » est un NOM confiant (posterior) :
         if pv and pv[0] >= PL_TAU_M and pv[1] < PL_EPS_M: return None  # « l'entreprise a », « la voiture a » → avoir, pas « à » (fixe ~10 FP a→à)
+        if i > 0 and T[i-1][:1] != T[i-1][:1].lower() and (i - 1 > 0 or T[i-1] in PRENOMS): return None   # ⭐ ligne 38 : « Marie a dormie » — un nom propre avant « a » est un SUJET, pas le verbe « marie » (en tête de phrase : prénom connu seulement) — miroir JS
         return 'à'
     # ⭐ « a » devant NOM NU (31/08/2026, chantier a→à) : AVOIR exige un déterminant — « va au
     # travail a vélo », « une semaine a Lyon »… = la forme DOMINANTE des a→à du gold (41 cas nom-nu,
@@ -1327,7 +1328,7 @@ def _rule_a_aa_base(T, i):
         _el2 = _RE_ELIDE_ANCRE.match(_pw2)
         if _el2:
             _pw2 = _el2.group(1)   # miroir JS : l'ancre AVANT doit voir a travers l'elision
-        if (_noun_gate(_dn2) and len(_dn2) >= 3
+        if (_noun_gate(_dn2) and not _a_nu_suspect(_orig_tok(T, i + 1)) and len(_dn2) >= 3
                 and _dn2 not in _AVOIR_IDIOM and _dn2 not in _A_NU_STOP
                 and not T[i+1][:1].isupper()
                 and _pw2 not in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous', 'qui', 'ca', 'c', 'ça', 'y', 'en')
@@ -1511,6 +1512,31 @@ def _rule_a_aa_nouveau(T, i, sans4=False):
             and p1 not in _AA_AUX and not _is_ppl(T[i - 1])): return u'à'   # ④ sujet + un mot plein + « a »
     return None
 
+
+_TORIG = None   # ⭐ ligne 38 : tokens tels qu'ÉCRITS pendant une passe sur un texte nettoyé par l'orthographe (posé par dys_pipeline_probe.pyramide) — miroir _TORIG (JS)
+def _orig_tok(T, j):
+    return _TORIG[j] if (_TORIG is not None and len(_TORIG) == len(T) and j < len(_TORIG)) else T[j]
+
+_SPW = None
+def _speller_words():
+    """⭐ 16/10/2026 (ligne 38) : le dictionnaire ACCENTUÉ du speller (même source que SP.WORDS du produit), chargé une fois ; vide sans Lexique."""
+    global _SPW
+    if _SPW is None:
+        try:
+            import speller_probe as _s; _SPW = _s.Speller().WORDS
+        except Exception:
+            _SPW = set()
+    return _SPW
+def _a_nu_suspect(w):
+    """a/à, branche « a + nom nu » : le squelette sans accent peut être un nom (« ere » = ère) alors que le mot ÉCRIT ne l'est pas (« a éré malade »),
+    ou le mot est un participe accordé à tort (« Marie a dormie ») → abstention — miroir _aNuSuspect (JS)."""
+    lw = w.lower()
+    if re.search(u'[àâäéèêëîïôöùûüÿç]', lw):
+        W = _speller_words()
+        if len(W) > 1000 and lw not in W: return True
+    if not _PPS_MARQUE.search(lw): return False                  # une vraie MARQUE d'accord d'abord : un infinitif (« bronzer ») n'est pas un participe accordé
+    b = _pp_base(w) or _IRR_PP.get(deacc(lw))
+    return bool(b and deacc(b) != deacc(lw))
 
 def rule_a_aa(T, i):
     r = _rule_a_aa_base(T, i)
@@ -6342,6 +6368,16 @@ _PPS_REFL = ('se', 'me', 'te', 'nous', 'vous', 'le', 'la', 'les', 'y', 'en')
 _PPS_MARQUE = re.compile(u'(ée|ées|és|ie|ies|is|ue|ues|us|te|tes|se|ses)$')
 
 
+_PPS_PREPSUJ = set('a apres au aux avant avec chez concernant contre dans de depuis des du durant entre envers hors jusque malgre outre par parmi pendant pour pres sans sauf selon sous sur travers vers via'.split())   # ⭐ ligne 38 : prépositions (liste FERMÉE, identique en JS) — jamais un sujet net
+def _pp_sujet_net(T, a):
+    """⭐ 16/10/2026 (ligne 38) : le mot avant l'auxiliaire est un sujet NET — pronom, nous/vous (le cas COD est écarté avant), nom certifié
+    par le posterior, nom propre — miroir _ppSujetNet (JS)."""
+    if a < 1: return False
+    p1 = deacc(T[a - 1].lower())
+    if p1 in SUBJ_PRON or p1 in ('qui', 'on', 'ce', 'c', 'nous', 'vous'): return True
+    if p1 in _PPS_CLIT or p1 in _PPS_MID or p1 in _PPS_PREPSUJ: return False   # « Pendant a mise au point » : une préposition n'est pas un sujet
+    return bool(_noun_gate(p1) or (T[a - 1][:1] != T[a - 1][:1].lower()))
+
 def rule_pp_avoir_surnum(T, i):
     """⭐ 12/09/2026 — RÈGLE NEUVE, case vide : l'ACCORD SURNUMÉRAIRE du participe après AVOIR, en ORANGE.
     « Boeing a signés un contrat » → signé · « ils ont vue leur médecin » → vu · « elle a réussie son examen » → réussi.
@@ -6376,10 +6412,11 @@ def rule_pp_avoir_surnum(T, i):
         if p1 in _PPS_CLIT:
             if p1 in ('nous', 'vous'):                                                         # « nous avons vue » : SUJET ; « il nous a vus » : COD
                 p2 = deacc(T[a - 2].lower()) if a >= 2 else ''
-                if p2 in SUBJ_PRON or p2 in ('nous', 'vous', 'qui'): return None
+                if p2 in SUBJ_PRON or p2 in ('nous', 'vous', 'qui', 'ne', 'n'): return None   # ⭐ ligne 38 : « ils ne nous ont pas informées » — nous après ne/n' = COD
             else:
                 return None
-    if i + 1 >= len(T): return None
+    _sjn = _pp_sujet_net(T, a)   # ⭐ ligne 38 : sujet NET avant l'auxiliaire → faute même sans témoin après (« Elle a mangée. ») ; miroir JS
+    if i + 1 >= len(T): return _keepcase(w, base) if _sjn else None
     n1 = T[i + 1].lower(); d1 = deacc(n1); temoin = False
     if d1 in ('a', 'de', 'd') or n1 == u'à' or n1.startswith("d'"):
         j = i + 2
@@ -6393,7 +6430,7 @@ def rule_pp_avoir_surnum(T, i):
             if n1.startswith("d'") or nx in ('la', 'le', 'les') or nx[:2] == "l'": temoin = True   # partitif « de l'argent »
     if not temoin and (d1 in NUM_DET or d1 in ('un', 'une', 'des', 'du')) and not _det_de_temps(T, i + 1):
         temoin = True                                                                           # COD qui SUIT
-    if not temoin: return None
+    if not temoin and not _sjn: return None
     return _keepcase(w, base)
 
 
@@ -7943,6 +7980,9 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Elle a mangé.", "mangé", "mangée", "accord du participe après avoir à vérifier"),   # ⭐ 16/10/2026 (ligne 38) : sans complément après le participe
+    ("Nous avons dansé toute la nuit.", "dansé", "dansées", "accord du participe après avoir à vérifier"),   # ⭐ ligne 38 : complément de temps
+    ("Marie a dormi.", "dormi", "dormie", "accord du participe après avoir à vérifier"),   # ⭐ ligne 38 : sujet nom propre
     ("Une voiture rapide et puissante passe devant nous.", "puissante", "puissant", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : l'adjectif coordonné
     ("Une équipe soudée et motivée gagne souvent.", "motivée", "motivé", "accord adjectif épithète"),
     ("Il conduit une voiture française.", "française", "français", "accord adjectif épithète"),   # ⭐ 14/10/2026 (liste n° 12) : masculin en -s, paire absente de la table

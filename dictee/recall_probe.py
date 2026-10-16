@@ -143,6 +143,8 @@ def _check():
            ("Loin de sonn corps", "sonn", "son"), ("Il parle de sonn temps libre", "sonn", "son"),
            ("La robe est mois chere", "chere", "chère"), ("Un film tèrs long", "tèrs", "très")]   # jugé sur correct_tiered : suggestion du SPELLER, vigilance comprise (correct() ne voit que la grammaire)
     vig += [("Flue de données", "Flue", "Flux"), ("Le flue continu de la rivière", "flue", "flux"), ("Un gros flue de visiteurs", "flue", "flux")]   # ⭐ liste n° 35
+    nofp += ["La pomme qu'elle a mangée était bonne.", "Ils ne nous ont pas informées.", "Elle a été nommée."]   # ⭐ ligne 38 : antécédent, COD nous, passif
+    vig += [("Elle a mangeé une pomme", "mangeé", "mangé"), ("Il a mangeèt hier", "mangeèt", "mangé")]   # ⭐ ligne 38 : pas d'accord avec le sujet après avoir
     vig += [("Il a ttreize ans", "ttreize", "treize"), ("Elle a treizze ans", "treizze", "treize"), ("Je vais empployer ce mot", "empployer", "employer"),
             ("Un outil permettan de lire", "permettan", "permettant")]   # ⭐ liste n° 36 : le son départage le palier phonétique (g2p du moteur)
     # ⭐ 14/10/2026 (liste n° 1e) — noms composés « N à infinitif » : « à », l'infinitif reste ; un complément derrière = « a » avoir possible
@@ -181,6 +183,14 @@ def _check():
         print(f"  ⚠ tests speller (liste n° 33) SAUTÉS : Lexique introuvable ({_SPm.LEX}) — garde locale, dev.sh les joue")
     else:
         _sp = _SPm.Speller()
+        import dys_pipeline_probe as _DPp   # ⭐ ligne 38 : a/à devant un participe mal écrit ou un inconnu accentué, y compris après l'orthographe (pipeline)
+        for s in ("Marie a dormie.", "Mon frère a éré malade.", "Son discours a sucisté des rires."):
+            if any(w == 'a' and nm == u'a/à' for (_i, w, _g, nm) in C.correct(s)): bad.append(f"{s!r} → a/à a tiré devant un participe mal écrit ou un inconnu accentué")
+            try:
+                _T0, _out, _appl, _or, _sig = _DPp.pyramide(s)
+                if any(a0 == 'a' and o != 'a' for a0, o in zip(_T0, _out)) or any(_T0[k] == 'a' and k in _or for k in range(len(_T0))): bad.append(f"{s!r} → pipeline : a/à a tiré après l'orthographe")
+            except Exception as _e:
+                bad.append(f"{s!r} → pipeline injouable : {_e}")
         for s, wtok, sug in vig:   # la SUGGESTION du speller, tous paliers (vigilance comprise)
             got = [g for (_st, w, g, _a) in _sp.correct_text(s, inconnu=True) if deacc(w.lower()) == deacc(wtok.lower())]
             if got != [sug]: bad.append(f"{s!r} → speller : {wtok!r} attendu {sug!r}, eu {got}")

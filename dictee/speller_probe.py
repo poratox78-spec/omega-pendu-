@@ -214,6 +214,47 @@ def load_lexicon():
         WORDS.add(w)
     return WORDS, FREQ, DEACC2ACC, PHON, POS
 
+_CPX = None
+def _cpm():
+    """⭐ 16/10/2026 (ligne 38) : la grammaire de référence, chargée une fois (participes, auxiliaires, antécédents)."""
+    global _CPX
+    if _CPX is None:
+        import correcteur_probe as _c; _CPX = _c
+    return _CPX
+def _pp_surnum(w):
+    """forme à marque surnuméraire d'un participe connu (mangée, dormie — pas mangé ni pris) — miroir _ppSurnum (JS)"""
+    C = _cpm(); lw = w.lower(); dw = deacc(lw)
+    if not C._PPS_MARQUE.search(lw): return False              # une vraie MARQUE d'accord d'abord : un infinitif n'est pas un participe accordé
+    b = C._pp_base(w) or C._IRR_PP.get(dw)
+    return bool(b and deacc(b) != dw)
+def _avoir_sans_ante(T, i):
+    """auxiliaire AVOIR juste avant (adverbes traversés) et aucun antécédent possible — miroir _avoirSansAnte (JS)"""
+    C = _cpm()
+    if not T or i is None or i < 1: return False
+    a = None
+    for k in range(i - 1, max(-1, i - 4), -1):
+        tk = T[k].lower(); dk = deacc(tk)
+        if tk == u'à': return False
+        if dk.split("'")[-1] in C._PPS_AVOIR: a = k; break
+        if dk in C._PPS_MID: continue
+        return False
+    if a is None: return False
+    ta = T[a].lower()
+    if "'" in ta and deacc(ta.split("'")[0]) in ('l', 'm', 't', 's', 'd', 'qu') and not re.match(u"^t['’](as|auras)$", ta): return False   # « d'avions » n'est pas l'auxiliaire
+    for k in range(0, a):
+        dk = deacc(T[k].lower()); head = dk.split("'")[0] if "'" in dk else dk
+        if head in C._PPS_ANTE or dk in C._PPS_ANTE: return False
+        if head in C._PPS_CLIT and "'" in dk: return False
+    if a >= 1:
+        p1 = deacc(T[a - 1].lower())
+        if p1 in C._PPS_CLIT:
+            if p1 in ('nous', 'vous'):
+                p2 = deacc(T[a - 2].lower()) if a >= 2 else ''
+                if p2 in C.SUBJ_PRON or p2 in ('nous', 'vous', 'qui', 'ne', 'n'): return False
+            else:
+                return False
+    return True
+
 _DXM = None
 def _son_key(w):
     """⭐ 16/10/2026 (liste n° 36) : clé de SON du moteur (decompose.g2p_moteur_cle — le g2p de l'app/extension, à l'identique) ;
@@ -1130,6 +1171,13 @@ class Speller:
                         if _c5 in (_first + 'e', _first + 's', _first + 'es') and _c5[-2:] == _tail: _best = _c5; break
                     if _bf >= 1.0 and _bf * 5 >= f1:                   # plancher 1/M des portes (sinon null → repli « inconnu », pire) ; fréquence du lemme
                         w1 = _best; p1 = cands[w1][0]; f1 = _bf; _son = True   # vrai palier (p1 ≡ cands[w1] en aval, miroir JS) ; _son force l'orange à la sortie
+        # ⭐ 16/10/2026 — LIGNE 38 : PAS D'ACCORD AVEC LE SUJET APRÈS AVOIR (miroir JS) : avec avoir et sans antécédent, une forme à marque
+        # surnuméraire (« mangée » après « Elle a ») redevient la base masculine singulière si elle est candidate ; les deux portes aval
+        # (bascule de genre, contexte-first) reçoivent la même garde _avA.
+        _avA = bool(toks) and idx is not None and _avoir_sans_ante(toks, idx)
+        if _avA and _pp_surnum(w1):
+            _pbW = _cpm()._pp_base(w1) or _cpm()._IRR_PP.get(deacc(w1.lower()))
+            if _pbW and _pbW in cands: w1 = _pbW; (p1, f1) = cands[w1]
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
         # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il espere » → espère, pas espéré. Sujet pronom
         # (clitiques traversés) sans auxiliaire ni copule → quand le mot nu a les deux accentuations, c'est le présent (-e).
@@ -1154,7 +1202,7 @@ class Speller:
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
         _pv = deacc(toks[idx - 1].lower()) if (toks and idx) else ''
-        if cg and not _son and 'A' in self.POS.get(w1, ()) and not (_pv in _PREP_G):   # ⭐ liste n° 36 : pas sur un choix du son (le tri a déjà pesé le genre) ; bascule réservée aux ADJECTIFS ; ⭐ 14/10/2026 : pas à travers une préposition (nom + préposition + adjectif)
+        if cg and not _son and not _avA and 'A' in self.POS.get(w1, ()) and not (_pv in _PREP_G):   # ⭐ liste n° 36 : pas sur un choix du son (le tri a déjà pesé le genre) ; bascule réservée aux ADJECTIFS ; ⭐ 14/10/2026 : pas à travers une préposition (nom + préposition + adjectif)
             a = self.ADJ.get(deacc(w1))
             if a and a[0] != cg and a[1] in cands and self._gender(a[1]) == cg:
                 return ('flag', a[1])
@@ -1210,7 +1258,7 @@ class Speller:
                 return None if self._invar_s(w) else deacc(w).endswith(('s', 'x'))
             b, bf = None, 0.0
             for cw, (pc, fc) in cands.items():
-                if (pc >= 1 and phon_key(cw) == pk and pmatch(cw) and (not inp_aud or fin_aud(cw))
+                if (pc >= 1 and not (_avA and _pp_surnum(cw)) and phon_key(cw) == pk and pmatch(cw) and (not inp_aud or fin_aud(cw))
                         and ('V' in exp_pos or not cn or nm_p(cw) is None or ((cn == 'p') == nm_p(cw)))
                         and (not cgd or not self._gender(cw) or self._gender(cw) == cgd) and fc > bf):
                     b, bf = cw, fc
