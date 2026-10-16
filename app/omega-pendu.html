@@ -28949,6 +28949,11 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — miroir de dictee/speller_probe.py =====
   function deaccS(s){return s.replace(/œ/g,'oe').replace(/Œ/g,'OE').replace(/æ/g,'ae').replace(/Æ/g,'AE').normalize('NFD').replace(/[̀-ͯ]/g,'');}
   function isAlphaS(s){for(var i=0;i<s.length;i++){var c=deaccS(s[i]).toLowerCase();if(c<'a'||c>'z')return false;}return true;}
+  /* ⭐ 16/10/2026 (liste n° 36, chantier IA n° 2) — CLÉ DE SON du speller : la suite des phonèmes IPA que rend le g2p du moteur
+     (`_DECL2.g2p`, assets/g2p.js = extrait verbatim de l'app ; le même que la police de son et le pendu), muets exclus, lettres
+     accentuées telles que le g2p les rend (« ? »), ɔ ramené à o (le g2p lit « o » devant r comme ɔ et « au / eau » comme o : « toreau »
+     doit retrouver taureau, pas toro). Chaîne vide si le g2p n'est pas chargé. Miroir : dictee/decompose.g2p_moteur_cle. */
+  function _sonKey(w){try{var st=_DECL2.g2p(w),o='',i;for(i=0;i<st.length;i++){var p=st[i].ph;if(p&&p!=='∅')o+=p;}return o.replace(/ɔ/g,'o');}catch(e){return '';}}
   function phonKey(s){s=s.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').replace(/ç/g,'s');s=deaccS(s);
     s=s.replace(/oin(?![aeiouy])/g,'w1').replace(/ien(?![aeiouy])/g,'j1').replace(/(?:ain|aim|ein|eim|in|im|yn|ym|un|um)(?![aeiouymn])/g,'1').replace(/(?:an|am|en|em)(?![aeiouymn])/g,'2').replace(/(?:on|om)(?![aeiouymn])/g,'3');   // NASALES → classe unique (in/ain/un→1 /ɛ̃/, an/en→2, on→3) ; +6 pts rappel nasal, FP=0 (MIROIR speller_probe.phon_key)
     s=s.replace(/ph/g,'f').replace(/sch/g,'ch').replace(/th/g,'t').replace(/ch(?=[bcdfgjklmnpqrstvwxz])/g,'k').replace(/ch/g,'§').replace(/gn/g,'¤');
@@ -29953,6 +29958,24 @@ function spellTokenCore(tok,atStart,T,idx){
       if(_bs){w1=_bs;p1=cand[w1][0];f1=cand[w1][1];}}
     
     if(T&&idx>0&&_quantMal(T,idx-1)&&!/[sx]$/.test(deaccS(w1))&&/[NA]/.test(spP(w1)||'')){var _w1p=/al$/.test(w1)?w1.slice(0,-2)+'aux':w1+'s';if(SP.WORDS.has(_w1p)){w1=_w1p;p1=1;f1=spF(_w1p)||0;}}   // ⭐ 11/10/2026 : après un quantifieur pluriel mal écrit, le nom au PLURIEL (« plusier modéle » → modèles ; la grammaire ne voit pas ce quantifieur)
+    /* ⭐ 16/10/2026 — LE SON DÉPARTAGE LE PALIER PHONÉTIQUE (liste n° 36, chantier IA n° 2). Quand le tri a retenu un candidat du
+       palier 0 (ni édit à distance 1 ni variante d'accent ne l'a emporté), le g2p du moteur compare le SON du mot écrit à celui de
+       chaque candidat : quand des candidats se prononcent exactement comme le mot écrit sans que le retenu en fasse
+       partie, le PREMIER d'entre eux dans l'ordre du tri gagne (le son filtre, le tri classe : contexte de POS, genre, nombre,
+       fréquence) — ou sa flexion à une lettre (+e, +s, +es) si elle garde la finale ÉCRITE accents compris (« ratrappée » →
+       rattrapée ; « mangeèt » reste mangé) —, sauf si le retenu est plus de 5× plus fréquent (garde de dominance, comme les ×10 / ×20 du tri) et seulement
+       s'il atteint le plancher 1/M des portes ; il est rendu en ORANGE (drapeau _son : jamais flag ni auto). Conçu sur les 3 corpus dys
+       (5 902 corrections d'orthographe dont 231 au palier 0, clé du g2p JS : +23 réparés / 0 cassé en variante « plus fréquent »)
+       et mesuré sur le produit (voir la PR) ; la même règle aux paliers 1 et 2 PERD (+70/−19, +45/−80) — elle reste donc
+       cantonnée au palier 0. Les candidats viennent du dictionnaire du speller, jamais du pendu (lexiques différents) ; seule la
+       méthode (comparer des prononciations) est empruntée. Sans g2p chargé la règle se tait — assets_wired_probe.js l'interdit. */
+    var _son=false;
+    if(p1===0&&typeof _DECL2!=='undefined'&&_DECL2&&_DECL2.g2p){var _sk=_sonKey(low);
+      if(_sk){var _E=[],_k4;
+        for(_k4=0;_k4<keys.length;_k4++){var _c4=keys[_k4];if(_sonKey(_c4)!==_sk)continue;if(_c4===w1){_E=null;break;}_E.push(_c4);}   /* les candidats au même son, dans l'ordre du tri ; le retenu en fait partie → rien */
+        if(_E&&_E.length){var _first=_E[0],_bf=cand[_first][1],_best=_first,_tail=low.slice(-2),_k5;
+          for(_k5=1;_k5<_E.length;_k5++){var _c5=_E[_k5];if((_c5===_first+'e'||_c5===_first+'s'||_c5===_first+'es')&&_c5.slice(-2)===_tail){_best=_c5;break;}}   /* la flexion à une lettre du lemme qui garde la finale ÉCRITE, accents compris (« ratrappée » → rattrapée, pas « mangeèt » → mangée) ; portée par la fréquence du lemme */
+          if(_bf>=1.0&&_bf*5>=f1){w1=_best;p1=cand[w1][0];f1=_bf;_son=true;}}}}   /* plancher 1/M = celui des portes (sinon null → repli « mot inconnu », pire qu'avant) ; vrai palier comme toute ré-sélection (p1 ≡ cand[w1][0] en aval) ; _son force l'orange à la sortie */
     if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent (évite Nathalie→natalité)
     /* ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, colonne accents : « decide » après « il » → le produit écrivait « décidé », le gold veut « décide » —
        3 rouges ailleurs). Symétrique du participe après auxiliaire : quand le mot NU a deux accentuations, présent (-e) et participe
@@ -29968,7 +29991,9 @@ function spellTokenCore(tok,atStart,T,idx){
        Recensé sur tout le dictionnaire (présent écrit sans accents après il / je / tu, 3 462 saisies) : rouge faux 143 → 16. */
     if(_sbj&&(/e$/.test(d)||_sbjTu)){var _pr=null,_prV=null,_ppl=false;for(i=0;i<keys.length;i++){var _ck=keys[i];if(deaccS(_ck)!==d)continue;if(/és?$/.test(_ck))_ppl=true;else{if((spP(_ck)||'').indexOf('V')>=0&&(!_prV||cand[_ck][1]>cand[_prV][1]))_prV=_ck;if(cand[_ck][1]>=0.5&&(!_pr||cand[_ck][1]>cand[_pr][1]))_pr=_ck;}}_pr=_prV||_pr;
       if(_pr&&_ppl&&(_pr!==w1||_prV)){var _rd=svReads(_pr),_ip=false;for(var _ri=0;_ri<_rd.length;_ri++)if(_rd[_ri][1]==='ind:pre'){_ip=true;break;}return[_ip?'auto':'flag',_pr];}}   // les DEUX accentuations existent (présent -e / participe -é) et le tri a pris le participe → le présent (plancher 0,5 : « trébuche » 0,85/M)
-    if(cg&&(spP(w1)||'').indexOf('A')>=0&&!(T&&idx>0&&PREP[deaccS(T[idx-1].toLowerCase())]&&deaccS(T[idx-1].toLowerCase())!=='a')){var ad=ADJP[deaccS(w1)];   /* ⭐ 14/10/2026 (liste n° 12) : la bascule de genre ne traverse pas une préposition (nom + préposition + adjectif : l'adjectif ne s'accorde pas avec ce nom) */if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}  // bascule paire ADJECTIF (premiere→premier ; pas nom « élève »)
+    /* ⭐ liste n° 36 : pas de bascule de genre sur un choix du SON — l'ordre du tri parmi les candidats au même son a déjà pesé le genre du contexte ;
+       sans ce garde, « recueili » après « a » devenait recueillie (le participe avec avoir ne s'accorde pas avec le sujet) */
+    if(cg&&!_son&&(spP(w1)||'').indexOf('A')>=0&&!(T&&idx>0&&PREP[deaccS(T[idx-1].toLowerCase())]&&deaccS(T[idx-1].toLowerCase())!=='a')){var ad=ADJP[deaccS(w1)];   /* ⭐ 14/10/2026 (liste n° 12) : la bascule de genre ne traverse pas une préposition (nom + préposition + adjectif : l'adjectif ne s'accorde pas avec ce nom) */if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}  // bascule paire ADJECTIF (premiere→premier ; pas nom « élève »)
     /* ⭐ 13/10/2026 (liste n° 1, autour de « sélection ») — ACCENT IMPOSSIBLE. « é »/« è » devant x, devant une consonne DOUBLÉE ou
        devant ct/pt n'existe pas en français (51 formes sur 710 872 au dictionnaire, toutes rares ou parasites) ; « ç » devant e/i/y
        non plus. Quand la saisie en porte un et que le mot existe accents rétablis, on le propose même RARE, en orange
@@ -29980,9 +30005,9 @@ function spellTokenCore(tok,atStart,T,idx){
     var _kV=(low!==d&&p1===2&&deaccS(w1)===d&&d.length>=4&&(tok===low||atStart)&&_kAcc(w1)===1&&keys.some(function(k){return cand[k][0]===2&&_kAcc(k)===0;}));   // ⭐ liste n° 5b : la forme qui GARDE les accents écrits a gagné le tri contre une forme qui les écrasait — rare, elle est proposée en orange plutôt que tue
     if(f1<0.1&&!_accX&&!_kV)return null;
     var f2=keys.length>1?cand[keys[1]][1]:0,accentOnly=(p1===2&&deaccS(w1)===d),dominant=(f1>=1.0&&(f2===0||f1>=5*f2));
-    if(d.length>=3&&accentOnly&&dominant)return['auto',w1];
+    if(d.length>=3&&accentOnly&&dominant&&!_son)return['auto',w1];
     var na=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)na++;
-    if(d.length>=3&&p1===2&&f1>=1.0&&na===1)return['auto',w1];
+    if(d.length>=3&&p1===2&&f1>=1.0&&na===1&&!_son)return['auto',w1];
     /* GLISSEMENT MOTEUR — quand toutes les LETTRES sont là, le mot n'est pas en doute : on AFFIRME.
        Doctrine de Rem : « une faute est une faute ; il faut maximiser le ROUGE pour diminuer l'ORANGE ».
        Deux conditions CUMULÉES, et c'est leur intersection qui vaut, pas chacune :
@@ -30005,7 +30030,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var _cgd=(T&&idx>0)?DET_G[deaccS(T[idx-1].toLowerCase())]:null;   // GENRE du DETERMINANT immediat (audible, fiable) — pas la marche arriere sCtxGender, qui peut lire un genre POLLUE sur un mot-outil (« des » porte un genre dans le lexique relache)
     if(expPos&&expPos!=='F'){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // ⭐ liste n° 24 : « F » (après qui) trie, n'affirme pas — CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
       if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → la ré-sélection context-first ne re-choisit QUE des candidats à finale AUDIBLE (manjé→mangé, pas mange) — sinon la fréquence réécrasait le tri d'audibilité (12536)
-      if(_b&&_bf>=1.0&&!(pm(w1)&&cand[w1][0]>=1&&cand[w1][1]>=20*_bf))return['flag',_b];}   // pri→pris, von→vont, pleu→pleut (plaît/pleure = édit>1, exclus) ; respecte le nombre (« un eleve »→élève). GARDE DE DOMINANCE (2026-08-22) : si le vainqueur du tri colle déjà au POS et est ≫20× plus fréquent, la ré-sélection phonétique ne le détrône pas (« un chein »→chien, pas « chin » 3/M) — même garde que le tri, parité Python (qui rend chien)
+      if(_b&&_bf>=1.0&&(!_son||_b===w1)&&!(pm(w1)&&cand[w1][0]>=1&&cand[w1][1]>=20*_bf))return['flag',_b];}   /* ⭐ liste n° 36 : un choix du SON n'est jamais remplacé ici (« mangeèt » → mangé, pas mangée), seulement confirmé (« recueili » → recueilli garde son rouge) */   // pri→pris, von→vont, pleu→pleut (plaît/pleure = édit>1, exclus) ; respecte le nombre (« un eleve »→élève). GARDE DE DOMINANCE (2026-08-22) : si le vainqueur du tri colle déjà au POS et est ≫20× plus fréquent, la ré-sélection phonétique ne le détrône pas (« un chein »→chien, pas « chin » 3/M) — même garde que le tri, parité Python (qui rend chien)
     /* ⭐ 13/10/2026 (liste n° 5 : « personalisé » → personnalisé seulement en orange) — UNE LETTRE REDOUBLÉE MANQUE, ET UN SEUL MOT
        LE PERMET. Le palier rouge exigeait un mot d'au moins 1/M : « personnalisé » (0,6/M) tombait au « mot inconnu », en orange, et
        « personalisée » y recevait même « personnalisé » (la forme voisine). Ici : tous les candidats à une lettre ont le MÊME squelette,
@@ -30013,7 +30038,7 @@ function spellTokenCore(tok,atStart,T,idx){
        redoublement — c'est lui, en rouge (« personalisée » → personnalisée). Mesuré au produit : 3 corpus dys, 99 corrections
        exactes passent de l'orange au rouge (dont 16 dont la forme devient juste), 2 restent d'une autre forme que le corrigé ;
        UD 14 450 : 3 marques, 2 vraies fautes et un mot anglais cité (« carousel »), qui passe d'orange à rouge. Miroir app + Python. */
-    if(d.length>=5&&f1<1.0){var _rd2=_redoubleSeul(low,d,keys,cand);if(_rd2&&(spF(_rd2)||0)>0)return['flag',_rd2];}
+    if(d.length>=5&&(f1<1.0||_son)){var _rd2=_redoubleSeul(low,d,keys,cand);if(_rd2&&(spF(_rd2)||0)>0)return['flag',_rd2];}   /* ⭐ liste n° 36 : un choix du SON n'ôte pas son rouge au redoublement seul (« recueili » → recueilli) */
     if(!(d.length>=4&&f1>=1.0))return (_accX||_kV)?['vigilance',w1]:null;   // trop court ou candidat rare → abstention
     // CONFIANCE : n'AFFIRMER (rouge) que si le candidat est sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son
     // rang, et dominant. Sinon VIGILANCE orange « à vérifier » (n'impose pas un mauvais mot : courrir→courrier, ceuille→feuille,
@@ -30027,7 +30052,7 @@ function spellTokenCore(tok,atStart,T,idx){
        démotée sur 14. On retire une AFFIRMATION, pas un signalement : reste en orange. */
     var _wd=deaccS(w1),_subFin=(d.length===_wd.length&&d.length>=4&&d!==_wd
       &&d.slice(0,-1)===_wd.slice(0,-1)&&'aeiouy'.indexOf(d.slice(-1))<0&&'aeiouy'.indexOf(_wd.slice(-1))<0);
-    var confident=accentOnly||finalS||(!_subFin&&p1>=1&&firstOk&&nTop===1&&dominant);
+    var confident=!_son&&(accentOnly||finalS||(!_subFin&&p1>=1&&firstOk&&nTop===1&&dominant));   /* ⭐ liste n° 36 : un choix du SON reste en orange */
     return [confident?'flag':'vigilance',w1];}
   // VIGILANCE : mot alphabétique ABSENT du dictionnaire (≠ nom propre / sigle / romain) → suspect, souligné orange,
   // NON affirmé (on n'impose rien). Rend le correcteur non-muet sur les non-mots dys (« reamné ») que le speller,

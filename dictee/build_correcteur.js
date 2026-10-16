@@ -33,6 +33,9 @@ function blob(id){var i=html.indexOf('id="'+id+'">');if(i<0)return '';i=html.ind
 const LEXIQUES = ['speller-lex-gz','noun-post-gz','gdet-lex-gz','gacc-lex-gz','prenoms-gz','pos-hmm-gz','os-lm-gz'];
 const BLOBS = {}; for (const id of LEXIQUES) { BLOBS[id] = blob(id); if (!BLOBS[id]) { console.error('lexique ABSENT de l app : ' + id); process.exit(2); } }
 const spl = BLOBS['speller-lex-gz'];
+// ⭐ 16/10/2026 (liste n° 36) : le speller lit `_DECL2.g2p` (le son départage le palier 0) — le g2p suit le moteur, avec `self.__OMEGA_CJ`
+// (table des « -ent ») posé comme le fait setLex dans l'extension ; sans lui la règle serait MUETTE dans le bake, sans un mot.
+const g2pSrc = fs.readFileSync(path.join(__dirname, '..', 'extension', 'assets', 'g2p.js'), 'utf8');
 
 const out =
 `// correcteur.standalone.js — GÉNÉRÉ par dictee/build_correcteur.js (ne pas éditer à la main).
@@ -48,7 +51,10 @@ var __stub=new Proxy(function(){},{get:function(t,k){if(k==='style')return{};if(
 var __doc={getElementById:function(id){if(id==='vdc-lex')return{textContent:__VDC__};if(__LEX__[id])return{textContent:__LEX__[id]};return __stub;},createElement:function(){return __stub;},body:__stub,head:__stub,addEventListener:function(){},querySelector:function(){return null;},querySelectorAll:function(){return[];}};
 var __ls={getItem:function(){return null;},setItem:function(){},removeItem:function(){}};
 var __ss={speak:function(){},cancel:function(){},getVoices:function(){return[];}};
-var OMEGA_VDC=JSON.parse(__VDC__);   // #30 : seed sync des maps grammaire (le moteur lit OMEGA_VDC, plus de bloc JSON en clair dans l'app)
+var OMEGA_VDC=JSON.parse(__VDC__);   // #30 (suite ligne suivante)
+if(typeof self==='undefined'){try{root.self=root;}catch(e){}}try{self.__OMEGA_CJ=(OMEGA_VDC&&OMEGA_VDC.cj)||null;}catch(e){}   // ⭐ 16/10/2026 : le g2p lit self.__OMEGA_CJ (« -ent »), comme dans l'extension
+${g2pSrc}
+// #30 : seed sync des maps grammaire (le moteur lit OMEGA_VDC, plus de bloc JSON en clair dans l'app)
 ${slice};root.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,loadNounPost:loadNounPost,loadGenderLex:loadGenderLex,loadPrenoms:loadPrenoms,loadGaccLex:loadGaccLex,loadPosHmm:loadPosHmm,loadOsLm:loadOsLm,ready:function(){return SP.ready;}};})(__doc,__ls,__ss,function(){return __stub;});
 var E=root.__corrEngine;
 var api={
