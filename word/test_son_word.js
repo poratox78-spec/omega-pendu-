@@ -2,8 +2,12 @@
 // partagé, le planificateur rend toujours un texte IDENTIQUE (caractère pour caractère), des polices
 // connues, et une glue Office simulée ré-insère bien le texte sans l'altérer.
 'use strict';
-const fs = require('fs'), path = require('path');
+const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const H = __dirname, R = path.join(H, '..');
+// ⭐ 16/10/2026 (liste n° 40) : le banc a la MÊME portée que le volet — taskpane.js charge la table des « -ent » (ent-3p.txt.gz) ;
+// sans elle, le g2p retombe sur 582 verbes et le banc mesurerait un autre moteur que celui que Word reçoit.
+globalThis.self = globalThis;
+globalThis.__OMEGA_ENT3P = new Set(zlib.gunzipSync(fs.readFileSync(path.join(R, 'extension', 'assets', 'ent-3p.txt.gz'))).toString('utf8').split('\n').filter(Boolean));
 const html = fs.readFileSync(path.join(R, 'app', 'omega-pendu.html'), 'utf8');
 const i0 = html.indexOf('var _DECL2 = (function () {'), iR = html.indexOf('return { g2p: g2p,', i0), iE = html.indexOf('})()', iR) + 4;
 const DECL2 = (0, eval)(html.slice(i0 + 'var _DECL2 = '.length, iE));
@@ -32,6 +36,8 @@ if (!pz.some(x => x.text === 's' && x.font === 'OMEGA Dys Heavy')) fail.push('po
 if (!ps.some(x => x.text === 'ss' && x.font === 'OMEGA Dys Light')) fail.push('poisson : ss attendu en Light, eu ' + JSON.stringify(ps));
 const pc = planner.plan('chats', DECL2.g2p, core, {});
 if (!(pc[pc.length - 1].color === planner.COL.mute && pc[pc.length - 1].text === 'ts')) fail.push('chats : « ts » final attendu muet, eu ' + JSON.stringify(pc));
+const pj = planner.plan('jappent', DECL2.g2p, core, {});   // hors de la liste de 582 verbes : seule la table le sait
+if (!(pj[pj.length - 1].color === planner.COL.mute && pj[pj.length - 1].text === 'ent')) fail.push('jappent : « ent » final attendu muet (table des « -ent »), eu ' + JSON.stringify(pj));
 
 // glue Office SIMULÉE, calquée sur taskpane.js (13/09/2026) : getTextRanges([' '], true) rend des MOTS sans blancs ; chaque mot est
 // remplacé (Replace) puis complété (After) ; les blancs entre les mots — espaces, tabulations, fins de paragraphe — ne sont JAMAIS touchés.
@@ -50,6 +56,8 @@ for (const ph of phrases.concat(['Premier paragraphe.\r\rSecond paragraphe, apr�
   if (fakeWord(ph) !== ph) fail.push('glue simulée : texte altéré pour ' + JSON.stringify(ph));
 }
 const glue = fs.readFileSync(path.join(H, 'taskpane.js'), 'utf8');
+if (glue.indexOf("fetch('../extension/assets/ent-3p.txt.gz')") < 0) fail.push('taskpane.js : la table des « -ent » (../extension/assets/ent-3p.txt.gz) doit être chargée — sinon Word retombe sur 582 verbes');
+if (!fs.existsSync(path.join(R, 'extension', 'assets', 'ent-3p.txt.gz'))) fail.push('extension/assets/ent-3p.txt.gz absent du dépôt');
 if (glue.indexOf("getTextRanges([' '], true)") < 0) fail.push("taskpane.js : la découpe doit être getTextRanges([' '], true) — sinon Word remplace aussi les blancs et les fins de paragraphe");
 
 // MANIFESTE (13/09/2026) : Cloudflare Pages redirige (308) toute URL en .html vers sa forme sans extension — le volet doit être
@@ -65,4 +73,4 @@ for (const m of pane.matchAll(/(?:src|url)\(?=?['"]?([.]{1,2}\/[^'")]+|[a-z_]+\.
 }
 
 if (fail.length) { console.error('COMPLÉMENT WORD — ÉCHEC :'); fail.forEach(f => console.error('  ✗ ' + f)); process.exit(1); }
-console.log('COMPLÉMENT WORD — OK : ' + pieces + ' morceaux planifiés, texte identique partout, ancres poison/poisson/chats, glue simulée intacte');
+console.log('COMPLÉMENT WORD — OK : ' + pieces + ' morceaux planifiés, texte identique partout, ancres poison/poisson/chats/jappent, glue simulée intacte');

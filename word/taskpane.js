@@ -22,6 +22,16 @@
   }
   $('syl').addEventListener('change', apercu);
   apercu();
+  // ⭐ 16/10/2026 (liste n° 40) — la phonologie des « -ent » (« ils jappent » : -ent muet). Le volet n'a pas le moteur : sans table, le g2p
+  // retombait sur une liste de 582 verbes (14,4 % justes sur les mots en -ent de Lexique). On charge la table des formes lues 3e pluriel,
+  // tirée du moteur (extension/build_ent3p.js), comme les pages du site (nav.js) : 95,5 %. Sans DecompressionStream : la liste, rien ne casse.
+  var pret = new Promise(function (fin) {
+    if (self.__OMEGA_ENT3P || typeof DecompressionStream === 'undefined' || !window.fetch) return fin();
+    fetch('../extension/assets/ent-3p.txt.gz').then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(function (b) { return new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); })
+      .then(function (t) { self.__OMEGA_ENT3P = new Set(t.split('\n').filter(Boolean)); fin(); }, function () { fin(); });
+  });
+  pret.then(apercu);
 
   var originalFont = null;
   function cible(context) {                                // sélection non vide, sinon tout le corps
@@ -90,7 +100,7 @@
       });
     }).catch(function (e) { say('erreur Word : ' + (e && e.message ? e.message : e), false); });
   }
-  $('go').addEventListener('click', function () { appliquer($('syl').checked); });
+  $('go').addEventListener('click', function () { var s = $('syl').checked; pret.then(function () { appliquer(s); }); });
   $('seule').addEventListener('click', policeSeule);
   $('undo').addEventListener('click', retirer);
   if (typeof Office !== 'undefined' && Office.onReady) Office.onReady(function () { say('prêt — sélectionne du texte (ou rien = tout le document)', true); });

@@ -6686,7 +6686,9 @@ var _DECL2 = (function () {
     function _entVerbe(m){
       if(ENTAMBIG.has(m)) return false;
       try{
-        /* l app : CONJ_F est global ici. Hors de l app (extension), dys-core publie self.__OMEGA_CJ. */
+        /* CONJ_F global : seulement dans les bancs Node qui le posent (police/parity_son.js). Dans l'app comme dans l'extension, la table
+           vit dans une fermeture : le correcteur de l'app et dys-core publient self.__OMEGA_CJ (liste n° 40 — l'ancien commentaire disait
+           « l app : CONJ_F est global ici », c'était faux : l'app retombait sur 582 verbes). */
         const _F = (typeof CONJ_F!=='undefined' && CONJ_F) ||
           (typeof self!=='undefined' && self.__OMEGA_CJ && self.__OMEGA_CJ.f) || null;
         if(_F){ const e=_F[m];
@@ -25458,7 +25460,7 @@ window.addEventListener('DOMContentLoaded', () => {
  var BCLF=null;   // canal GROUPE : classifieur de bornes 169 poids (clé « bclf » du payload vdc-lex)   // GENDER_PURE=genre noms purs (gn) ; NOUN_PLURAL=formes NOM strictement plurielles (gp) pour « la boites » ; ADJP=paires adjectif (a) ; CONJ_*=conjugaison
   var _GACC={};   // genre ACCENTUÉ (gender_acc.json filtré isalpha, Morphalou inclus, 2026-08-24) — consulté INCONDITIONNELLEMENT par _nounGender, EXACTEMENT comme GENDER_ACC en Python (correcteur_probe.py:1043-1044). Table À PART, jamais unionnée dans GENDER_PURE (ne remplace pas _GCOLL, qui reste le seul accès de rule_det_gender — pas d'antécédent confirmé là-bas, donc table brute interdite).
   var _VDC_LOADED=false;   // #30 : vdc-lex chargé en ASYNC (gzip, −3,93 Mo) via loadVdcLex — maps peuplées à l'ouverture du correcteur (patron loadGenderLex ; re-run après chargement).
-  if(typeof OMEGA_VDC!=='undefined'&&OMEGA_VDC){var _vd0=OMEGA_VDC;BCLF=_vd0.bclf||null;(_vd0.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=_vd0.g||{};ADJP=_vd0.a||{};if(_vd0.cj&&!_vd0.cj.f)_vd0.cj=_cjRebuild(_vd0.cj);var _cj0=_vd0.cj||{};CONJ_F=_cj0.f||{};CONJ_C=_cj0.c||{};_fillReg3pl(CONJ_C,CONJ_F);var _gp0=_vd0.gp||[];for(var _gi0=0;_gi0<_gp0.length;_gi0++)NOUN_PLURAL[_gp0[_gi0]]=1;var _gn0=_vd0.gn||{};for(var _gk0 in _gn0)if(GENDER_PURE[_gk0]===undefined)GENDER_PURE[_gk0]=_gn0[_gk0];_VDC_LOADED=true;}   /* SEED sync du genre RELÂCHÉ (même motif que OMEGA_VDC / OMEGA_POS_HMM). Sans lui, un harnais Node ne voyait que `gn` — 68 746 entrées au lieu de 70 374 — donc il mesurait une app AMPUTÉE : écart de couverture fantôme, et surtout tout faux positif dépendant de cette table restait INVISIBLE en CI. En navigateur c'est loadGenderLex (async) qui remplit la même chose. */
+  if(typeof OMEGA_VDC!=='undefined'&&OMEGA_VDC){var _vd0=OMEGA_VDC;BCLF=_vd0.bclf||null;(_vd0.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=_vd0.g||{};ADJP=_vd0.a||{};if(_vd0.cj&&!_vd0.cj.f)_vd0.cj=_cjRebuild(_vd0.cj);var _cj0=_vd0.cj||{};CONJ_F=_cj0.f||{};CONJ_C=_cj0.c||{};_fillReg3pl(CONJ_C,CONJ_F);try{_pubCj(_vd0.cj);}catch(e){}var _gp0=_vd0.gp||[];for(var _gi0=0;_gi0<_gp0.length;_gi0++)NOUN_PLURAL[_gp0[_gi0]]=1;var _gn0=_vd0.gn||{};for(var _gk0 in _gn0)if(GENDER_PURE[_gk0]===undefined)GENDER_PURE[_gk0]=_gn0[_gk0];_VDC_LOADED=true;}   /* SEED sync du genre RELÂCHÉ (même motif que OMEGA_VDC / OMEGA_POS_HMM). Sans lui, un harnais Node ne voyait que `gn` — 68 746 entrées au lieu de 70 374 — donc il mesurait une app AMPUTÉE : écart de couverture fantôme, et surtout tout faux positif dépendant de cette table restait INVISIBLE en CI. En navigateur c'est loadGenderLex (async) qui remplit la même chose. */
   if(typeof OMEGA_GDET!=='undefined'&&OMEGA_GDET){for(var _gk in OMEGA_GDET)if(GENDER_PURE[_gk]===undefined)GENDER_PURE[_gk]=OMEGA_GDET[_gk];}   // SEED sync (parité harnais, comme OMEGA_POS_HMM) : si le global OMEGA_VDC est posé, peuple les maps sans async ; sinon loadVdcLex (prod navigateur).
   var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];   // GENRE des noms en œ (clé déaccentuée « oe ») manquants du lexique gn (couverture incohérente : cœur présent, sœur/œuf/œuvre/œil absents) → débloque « mon soeur »→ma sœur + accord genre. FP=0 (genres corrects, union sans écrasement). Miroir ext + Python.
   function lexicalGender(T,idx){if(!GENDER_MAP)return null;var j,w,g;   // genre du nom-tête via le lexique (déterminant neutre)
@@ -29168,6 +29170,13 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     }catch(e){}}
   // vdc-lex (verbes + genre + adj + CONJUGAISON, cgram_hf) chargé en ASYNC gzip (#30, −3,93 Mo). Union dans les maps :
   // GENDER_PURE est PARTAGÉ (loadGenderLex y ajoute gdet, _GOE y ajoute œ) → UNION, jamais réassigner. Les autres (g/a/cj/gp) sont exclusifs.
+  /* ⭐ 16/10/2026 (liste n° 40) — PONT VERS LE G2P, comme dys-core (_applyVdc). CONJ_F / CONJ_C vivent dans CETTE fonction : le g2p du
+     moteur (_DECL2, au niveau du module) ne les voit pas. Dans l'app, le « -ent » des verbes retombait donc sur la liste de 582 mots :
+     14,4 % justes sur les 8 863 mots en -ent de Lexique, 95,5 % avec la table (Décompose, police de son, clé de son du speller).
+     On publie la table (self.__OMEGA_CJ, lue par le g2p) et on prévient la police de son et le Décompose (événement « omega-cj ») ;
+     eux demandent le chargement par window.__OMEGA_VDC_LOAD quand on les allume. Garde : dictee/sonsite_probe.js (③, vrai Chrome). */
+  function _pubCj(cj){try{self.__OMEGA_CJ=cj||null;window.dispatchEvent(new Event('omega-cj'));}catch(e){}}
+  try{window.__OMEGA_VDC_LOAD=loadVdcLex;}catch(e){}
   async function loadVdcLex(){
     if(_VDC_LOADED)return;_VDC_LOADED=true;
     try{var el=document.getElementById('vdc-lex-gz');if(!el||!el.textContent){_VDC_LOADED=false;return;}
@@ -29175,7 +29184,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       var st=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
       var _vd=JSON.parse(await new Response(st).text());
       (_vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});
-      BCLF=_vd.bclf||null;GENDER_MAP=_vd.g||{};ADJP=_vd.a||{};if(_vd.cj&&!_vd.cj.f)_vd.cj=_cjRebuild(_vd.cj);var _cj=_vd.cj||{};CONJ_F=_cj.f||{};CONJ_C=_cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);
+      BCLF=_vd.bclf||null;GENDER_MAP=_vd.g||{};ADJP=_vd.a||{};if(_vd.cj&&!_vd.cj.f)_vd.cj=_cjRebuild(_vd.cj);var _cj=_vd.cj||{};CONJ_F=_cj.f||{};CONJ_C=_cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);_pubCj(_vd.cj);
       var _gp=_vd.gp||[];NOUN_PLURAL={};for(var _gpi=0;_gpi<_gp.length;_gpi++)NOUN_PLURAL[_gp[_gpi]]=1;
       var _gn=_vd.gn||{};for(var _gk in _gn)if(GENDER_PURE[_gk]===undefined)GENDER_PURE[_gk]=_gn[_gk];
       if(typeof runCorr==='function')runCorr();
@@ -32306,8 +32315,9 @@ function spellTokenCore(tok,atStart,T,idx){
    +'<div id="vdk-prev" aria-live="polite"></div></div>';
   document.body.appendChild(kov);
   var _kt;
-  kbtn.onclick=function(){kov.classList.add('on');$('vdk-in').focus();preview();$('vdk-stat').textContent=lexCount()+' mot(s) au lexique appris';};
+  kbtn.onclick=function(){try{if(!self.__OMEGA_CJ&&window.__OMEGA_VDC_LOAD)window.__OMEGA_VDC_LOAD();}catch(e){}kov.classList.add('on');$('vdk-in').focus();preview();$('vdk-stat').textContent=lexCount()+' mot(s) au lexique appris';};
   $('vdk-x').onclick=function(){kov.classList.remove('on');};
+  window.addEventListener('omega-cj',function(){if(kov.classList.contains('on'))preview();});   // ⭐ liste n° 40 : la table des verbes est arrivée → « -ent » juste
   kov.addEventListener('click',function(e){if(e.target===kov)kov.classList.remove('on');});
   $('vdk-in').addEventListener('input',function(){clearTimeout(_kt);_kt=setTimeout(preview,250);});
   $('vdk-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();learnAll();}});
@@ -32623,8 +32633,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
   }
   var controls = [], refreshers = [];
   function refreshAll() { refreshers.forEach(function (f) { f(); }); }
+  // ⭐ 16/10/2026 (liste n° 40) : la table des verbes (« -ent » muet de « ils jappent ») vient du correcteur ; on la demande à l'allumage,
+  // et à son arrivée le cache des mots est vidé puis tout est ré-habillé.
+  function _askCj() { try { if (!self.__OMEGA_CJ && window.__OMEGA_VDC_LOAD) window.__OMEGA_VDC_LOAD(); } catch (e) {} }
+  window.addEventListener('omega-cj', function () { cache = {}; if (on) refreshAll(); });
+  if (on) _askCj();
   function setOn(v) {
     on = !!v;
+    if (on) _askCj();
     try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
     try { document.body.classList.toggle('son-actif', on); } catch (e) {}
     controls.forEach(function (c) { c(on, syl); });

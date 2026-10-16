@@ -10,7 +10,8 @@
  *   ③ /correcteur : le choix est RETENU, et l'app dans le cadre l'a pris (mêmes clés vdd_son / vdd_syl) ;
  *   ④ second clic : la page redevient elle-même (texte identique), le cadre s'éteint SANS recharger ;
  *   ⑤ sens inverse : le bouton « Police de son » du correcteur rallume l'en-tête et la page, sans recharger ;
- *   ⑥ /en/ : pas de bouton (le g2p est français).
+ *   ⑥ /en/ : pas de bouton (le g2p est français) ;
+ *   ⑦ /police-de-son (l'outil), 🔡 ÉTEINT : la page charge elle-même la table des « -ent » (« jappent » muet) — liste n° 40.
  *
  *   node dictee/sonsite_probe.js            # verbeux
  *   node dictee/sonsite_probe.js --check    # CI : silencieux si vert, sort 1 si rouge
@@ -104,6 +105,13 @@ const PAGE_CORRECTEUR = `(async () => {${OUTILS}
     const d = await jusqua('app chargée dans le cadre', () => { try { return fr.contentDocument && fr.contentDocument.getElementById('vdc-son') ? fr.contentDocument : null; } catch (e) { return null; } }, 90000);
     const bc = d.getElementById('vdc-son');
     if (bc.getAttribute('aria-pressed') !== 'true' || !d.body.classList.contains('son-actif')) echecs.push('③ l app intégrée n a pas pris le choix de l en-tête');
+    // ⭐ 16/10/2026 (liste n° 40) — dans l'app, la table des verbes vit dans la fermeture du correcteur : le g2p ne la voyait pas (582 verbes).
+    //    Police de son allumée → l'app charge et PUBLIE sa table (self.__OMEGA_CJ) ; « jappent » (hors liste) doit y être muet.
+    { const W = fr.contentWindow;
+      await jusqua('table des verbes publiée par l app', () => W.__OMEGA_CJ && W.__OMEGA_CJ.c, 30000)
+        .catch(() => echecs.push('③ l app n a pas publié sa table des verbes (self.__OMEGA_CJ) : sa police de son retombe sur 582 verbes'));
+      const st = (W._DECL2 && W._DECL2.g2p('jappent')) || [], en = st.filter((s) => s.g === 'en').pop();
+      if (!en || en.ph !== '∅') echecs.push('③ app : « jappent » -ent prononcé (' + st.map((s) => s.g + ':' + s.ph).join(' ') + ') — la table des verbes n atteint pas le g2p'); }
     await jusqua('page habillée', () => document.querySelector('main .son-txt'), 20000).catch(() => echecs.push('③ la page /correcteur n est pas habillée'));
     OmegaSonSite.tout();
     const main = document.querySelector('main') || document.body;
@@ -124,6 +132,17 @@ const PAGE_CORRECTEUR = `(async () => {${OUTILS}
     if (main.textContent !== texteOff) echecs.push('④ le texte de la page n est pas revenu à l identique');
     return { echecs };
   } catch (e) { return { echecs, fatal: e.message }; }
+})()`;
+
+const PAGE_POLICE = `(async () => {${OUTILS}
+  const echecs = [];
+  const b = await jusqua('bouton 🔡', () => document.querySelector('.a11y-son'), 15000);
+  if (b.getAttribute('aria-pressed') !== 'false') echecs.push('⑦ /police-de-son : 🔡 déjà allumé — la table viendrait de l en-tête, pas de la page');
+  await jusqua('table des « -ent » chargée par la page', () => window.__OMEGA_ENT3P && window.__OMEGA_ENT3P.size > 90000, 15000)
+    .catch(() => echecs.push('⑦ /police-de-son : la page ne charge pas la table des « -ent » (ent-3p.txt.gz) — l outil retombe sur 582 verbes'));
+  const st = (window._DECL2 && _DECL2.g2p('jappent')) || [], en = st.filter((s) => s.g === 'en').pop();
+  if (!en || en.ph !== '∅') echecs.push('⑦ /police-de-son : « jappent » -ent prononcé (' + st.map((s) => s.g + ':' + s.ph).join(' ') + ')');
+  return { echecs };
 })()`;
 
 const PAGE_EN = `(async () => {${OUTILS}
@@ -163,10 +182,11 @@ async function main() {
     sess = await connecter(await onglet(dbg, 'about:blank'));
     await sess.envoyer('Page.enable'); await sess.envoyer('Runtime.enable');
     try { await sess.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true }); } catch (e) {}
+    const p = await evalPage(sess, base + '/police-de-son.html', PAGE_POLICE, 'police-de-son');   // EN PREMIER : profil neuf, 🔡 éteint
     const a = await evalPage(sess, base + '/recherche.html', PAGE_RECHERCHE, 'recherche');
     const b = await evalPage(sess, base + '/correcteur.html', PAGE_CORRECTEUR, 'correcteur');
     const c = await evalPage(sess, base + '/en/recherche.html', PAGE_EN, 'en/recherche');
-    const echecs = [].concat(a.echecs || [], b.echecs || [], c.echecs || []);
+    const echecs = [].concat(p.echecs || [], a.echecs || [], b.echecs || [], c.echecs || []);
     if (a.fatal) echecs.push('recherche : ' + a.fatal);
     if (b.fatal) echecs.push('correcteur : ' + b.fatal);
     if (echecs.length) { console.error('✗ POLICE DE SON (site) — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
