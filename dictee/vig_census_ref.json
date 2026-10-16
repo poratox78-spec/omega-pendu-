@@ -1,7 +1,7 @@
 {
- "justes": 382,
- "pointeuses": 211,
- "fatigue": 143,
+ "justes": 384,
+ "pointeuses": 209,
+ "fatigue": 131,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -325,6 +325,7 @@
   "sonnt→sont [orthographe] lettre_trop",
   "sonnt→sont [orthographe] lettre_trop",
   "sonn→son [orthographe] lettre_trop",
+  "sosu→sous [mot inconnu] inversion",
   "sotn→sont [mot inconnu] inversion",
   "soulijnant→soulignant [mot inconnu] lettre_change",
   "souverainteé→souveraineté [mot inconnu] inversion",
@@ -333,6 +334,7 @@
   "stupde→stupide [orthographe] lettre_manque",
   "supre→super [orthographe] inversion",
   "surfece→surface [orthographe] lettre_change",
+  "surr→sur [mot inconnu] lettre_trop",
   "surr→sur [orthographe] lettre_trop",
   "sushies→sushis [orthographe] terminaison",
   "sêrums→sérum [mot inconnu] autre",

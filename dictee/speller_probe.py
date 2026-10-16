@@ -1563,10 +1563,16 @@ class Speller:
             for _n in (4, 3, 2):
                 if ' '.join(_cles[_j:_j + _n]) in _LIEUX_COMP_CLES: _couv.update(range(_j, _j + _n)); break
         _usp = C_URL_SPANS(text) if C_URL_SPANS else []   # ⭐ 14/10/2026 (liste n° 22) : mots d'un courriel / lien / domaine — miroir JS
+        # ⭐ 16/10/2026 (liste n° 43) : trait d'union COLLÉ entre deux jetons (hyt[k] : l'écart avant le jeton k est exactement « - ») — miroir _SEG.hyt
+        _hyt = [False] + [text[ms[k - 1].end():ms[k].start()] == '-' for k in range(1, len(ms))]
         for i, m in enumerate(ms):
             if i in _couv: continue
             if any(a <= m.start() < b for (a, b) in _usp): continue
+            _hc = _cpm().hy_true(toks, i, _hyt)   # élément d'un composé (« week-end ») : accent seul, pas de « mot inconnu » — miroir spellText
             r = self.spell_token(m.group(0), at_start=(i == 0), toks=toks, idx=i)
+            _hf = _cpm().hy_first(toks, i, _hyt) if _hc else i
+            _hok = _hc and _hf < i and toks[_hf].lower() in _cpm()._HY_TETE   # composé ouvert par une tête fréquente (« grand-mrèe ») — miroir JS
+            if _hc and not _hok and r and deacc(r[1].lower()) != deacc(m.group(0).lower()) and r[1].lower() not in _cpm()._HY_TETE: r = None
             if r and r[1] != m.group(0).lower():
                 sugg = r[1]
                 if m.group(0)[:1].isupper() and sugg[:1].islower():   # préserver la MAJUSCULE d'origine (« Ecole »→« École », pas « école »)
@@ -1575,7 +1581,7 @@ class Speller:
             elif inconnu:
                 u = self.spell_unknown(m.group(0), at_start=(i == 0), toks=toks, idx=i)
                 if u is None: u = self.spell_unknown_elide(m.group(0), toks=toks, idx=i)   # ⭐ 29/09/2026 : mot ÉLIDÉ inconnu — miroir JS
-                if u is not None:
+                if u is not None and (not _hc or _hok or u.lower() in _cpm()._HY_TETE):
                     out.append((m.start(), m.group(0), u, 'inconnu'))
         return out
 
