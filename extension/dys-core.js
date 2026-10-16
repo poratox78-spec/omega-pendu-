@@ -6184,12 +6184,18 @@ function spellUnknown(tok,atStart,T,idx){
       // soudure ≥ 4× plus fréquente que B. Avec ces gardes : 0 tir/16 950 phrases correctes.
       var _FUS_AUX={a:1,as:1,ont:1,ai:1,avons:1,avez:1,avait:1,avais:1,avaient:1,aura:1,auront:1,aurait:1,auraient:1,est:1,sont:1,etait:1,etaient:1,suis:1,es:1,sommes:1,etes:1};
       var _FUS_PREF={sur:1,sous:1,contre:1,entre:1};
+      /* ⭐ 16/10/2026 (liste n° 42) — PRÉFIXES SAVANTS DÉTACHÉS (« agro alimentaire », « néo gothique », « électro ménager ») : aucun de ces
+         préfixes n'est écrit seul devant un mot dans les 14 450 phrases d'UD ; le gold dys les recolle (42 jetons, tous muets avant).
+         _FUS_SAV : composé au LEXIQUE → ROUGE (soudure, sinon trait d'union : la forme du lexique). _FUS_SAVB (préfixes qui ne sont
+         JAMAIS des mots : pas « gastro », « cardio », « géo », « bio », « télé ») : composé absent → ORANGE avec trait d'union, devant un
+         nom ou un adjectif connu seulement (« une gastro depuis lundi », « du cardio chaque matin » restent muets). */
+      var _FUS_SAV={'néo':1,'agro':1,'électro':1,'éco':1,'socio':1,'intra':1,'inter':1,'gastro':1,'quadri':1,'proto':1,'sado':1,'mono':1,'anté':1,'exo':1,'hyper':1,'hypo':1,'pseudo':1,'psycho':1,'hydro':1,'thermo':1,'paléo':1,'archéo':1,'macro':1,'micro':1,'poly':1,'pluri':1,'supra':1,'méta':1,'rétro':1,'cyber':1,'franco':1,'anglo':1,'afro':1,'indo':1,'sino':1,'gréco':1,'judéo':1,'austro':1,'ibéro':1,'tchéco':1,'giga':1,'nano':1,'omni':1,'cardio':1,'neuro':1,'onco':1,'pneumo':1,'dermato':1,'multi':1,'semi':1,'géo':1,'bio':1,'mini':1,'maxi':1,'ultra':1,'infra':1,'extra':1,'anti':1,'tri':1,'auto':1,'télé':1},_FUS_SAVB={'néo':1,'agro':1,'électro':1,'éco':1,'socio':1,'intra':1,'inter':1,'quadri':1,'proto':1,'sado':1,'mono':1,'anté':1,'hyper':1,'hypo':1,'pseudo':1,'hydro':1,'thermo':1,'paléo':1,'archéo':1,'macro':1,'poly':1,'pluri':1,'supra':1,'méta':1,'cyber':1,'franco':1,'anglo':1,'indo':1,'sino':1,'gréco':1,'judéo':1,'austro':1,'ibéro':1,'tchéco':1,'nano':1,'omni':1,'neuro':1,'onco':1,'multi':1,'semi':1};
       for(var fi=0;fi<P.length-1;fi++){if(done[fi]||done[fi+1])continue;
         if(!/^\s+$/.test(text.slice(P[fi][1],P[fi+1][0])))continue;
         var fa=P[fi][2],fb=P[fi+1][2];
         if(fa!==fa.toLowerCase()||fb!==fb.toLowerCase())continue;
         if(!/^[a-zà-ÿ]{4,}$/.test(fb))continue;
-        var ff=null;
+        var ff=null,ftier='flag';
         if(fa==='bien'||fa==='mal'){
           // adverbes : B RARE exigé (les légitimes « bien fait/mal intentionnés » ont un B fréquent)
           var _f1=fa+fb;
@@ -6200,9 +6206,14 @@ function spellUnknown(tok,atStart,T,idx){
           // (surestimé). Cadre DET+préfixe RÉFUTÉ (« la contre culture » légitime, 3 tirs lus).
           var _ft=fa+'-'+fb,_fs=fa+fb;
           if(SP.ready&&SP.WORDS.has(_ft))ff=_ft;else if(SP.ready&&SP.WORDS.has(_fs))ff=_fs;
+        }else if(_FUS_SAV[fa]){
+          // liste n° 42 : soudure (agroalimentaire) ou trait d'union (forme du lexique) ; composé absent du lexique : orange, trait d'union
+          var _sf=fa+fb,_st=fa+'-'+fb;
+          if(SP.ready&&SP.WORDS.has(_sf))ff=_sf;else if(SP.ready&&SP.WORDS.has(_st))ff=_st;
+          else if(SP.ready&&_FUS_SAVB[fa]&&/[AN]/.test(spP(fb)||'')){ff=_st;ftier='vigilance';}
         }
         if(!ff)continue;
-        out.push({i:fi,word:fa,sugg:ff,name:'mot coupé',tier:'flag',span:2});done[fi]=done[fi+1]=1;}
+        out.push({i:fi,word:fa,sugg:ff,name:'mot coupé',tier:ftier,span:2});done[fi]=done[fi+1]=1;}
       // ESPACEMENT français : deux mots COLLÉS par une ponctuation → on insère l'espace. FP=0 mesuré (0/2500 UD). Le POINT « . » est EXCLU (URLs « Zappos.com », abréviations) ; les chiffres ne sont pas capturés par le regex-mot → nombres/heures (« 1,2 », « 17:30 ») saufs d'office. Virgule = espace APRÈS ; « ; : ? ! » = espace AVANT+APRÈS (typo FR).
       for(var si=0;si<P.length-1;si++){if(done[si]||done[si+1])continue;
         var sgap=text.slice(P[si][1],P[si+1][0]);if(!/^[,;:?!]$/.test(sgap))continue;var sw1=P[si][2],sw2=P[si+1][2];

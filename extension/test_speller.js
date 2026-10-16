@@ -555,6 +555,16 @@ function testListe43() {   // liste n° 43 : un mot à trait d'union n'est pas j
   { const f = DC.diagnoseAll('Le maison est grande.').flags.find(x => x.word === 'Le');
     if (!f) fail.push('ligne 43 : « Le maison » (hors composé) doit garder sa marque de genre'); }
 }
+function testListe42() {   // liste n° 42 : préfixes savants détachés → « mot coupé » (rouge si le composé est au lexique, orange avec trait d'union sinon)
+  for (const [t, w, s, tier] of [['Cette coopérative agro alimentaire embauche au printemps.', 'agro', 'agroalimentaire', 'flag'],
+      ['Le musée expose une chapelle néo gothique très sombre.', 'néo', 'néogothique', 'flag'], ['Il répare un vieux robot électro ménager.', 'électro', 'électroménager', 'flag'],
+      ['Son groupe joue du néo métal le samedi.', 'néo', 'néo-métal', 'vigilance'], ['Ce logiciel mono utilisateur suffit pour la maison.', 'mono', 'mono-utilisateur', 'vigilance']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w && x.name === 'mot coupé');
+    if (!f || f.sugg !== s || f.tier !== tier || f.span !== 2) fail.push('ligne 42 « ' + t + ' » : attendu ' + s + ' en ' + tier + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+  for (const t of ['Ma cousine a une gastro depuis lundi.', 'Il fait du cardio chaque matin.', 'Le son passe en mono quand le câble glisse.']) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.name === 'mot coupé');
+    if (f) fail.push('ligne 42 témoin « ' + t + ' » : attendu rien, eu ' + f.word + ' → ' + f.sugg + ' (' + f.tier + ')'); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -609,6 +619,7 @@ function finish(parityKO) {
   testListe36();
   testListe38();
   testListe43();
+  testListe42();
   testListe34();
   testListe32();
   testListe7();
