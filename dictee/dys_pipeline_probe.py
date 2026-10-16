@@ -122,6 +122,7 @@ def pyramide(txt):
     # (sinon _seg_info, dont le motif n'a pas les apostrophes typographiques, désaligne les indices).
     sp_orange = {i: list(s) for i, s in orange.items()}   # ⭐ 29/09/2026 (lot B1) : les oranges de l'ORTHOGRAPHE seules, avant la grammaire
     CP._SEG = CP._seg_info(txt.replace('’', "'").replace('ʼ', "'"))
+    CP._TORIG = T   # ⭐ ligne 38 : la grammaire lit le mot suivant de a/à tel qu'ÉCRIT (miroir _TORIG de diagnoseAll)
     CP._SEG['pb'] = CP._pred_bounds(Tc, CP._SEG)   # bornes prédites (canal pb) : la sonde équipe la grammaire COMME LE PRODUIT (diagnoseAll pose pb sur les tokens nettoyés)
     out = Tc[:]
     gd_or = {}                                       # i -> orange « genre déterminant » (garde de contradiction, plus bas)
@@ -194,6 +195,7 @@ def pyramide(txt):
                             elif out[j] != Tc[j] and out[j].lower().endswith(u'é'):   # à → a : le rouge passe en orange, l'auteur tranche
                                 orange.setdefault(j, []).append(out[j]); out[j] = Tc[j]
                     break
+    CP._TORIG = None
     # ⭐ 01/10/2026 — GENRE DE LA PERSONNE QUI ÉCRIT (réglage ; miroir de auteurPasse) : une marque déjà posée dans le cadre « je + être »
     # prend le genre du réglage (orange, plus appliquée) ; un mot juste en soi mais au genre contraire reçoit une orange. Sans réglage : rien.
     if CP.AUTEUR:

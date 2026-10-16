@@ -1,7 +1,7 @@
 {
  "paires": 1798,
  "planchers": {
-  "orthographe|vigilance": 66.6,
+  "orthographe|vigilance": 66.7,
   "orthographe|auto": 91.8,
   "orthographe|flag": 82.3,
   "grammaire:accord pluriel nom|auto·pollué": 84.5,
@@ -69,6 +69,7 @@
   "grammaire:son/sont|auto·propre": 100.0,
   "grammaire:étais après c'/s'|auto·pollué": 100.0,
   "grammaire:a/à|vigilance·pollué": 100.0,
+  "grammaire:accord du participe après avoir à vérifier|vigilance·pollué": 100.0,
   "grammaire:accord du participe après avoir à vérifier|vigilance·propre": 100.0,
   "grammaire:aux mal orthographié|auto·propre": 100.0,
   "grammaire:du/dû|auto·pollué": 100.0,
@@ -80,7 +81,6 @@
   "grammaire:personne du verbe à vérifier|vigilance·pollué": 50.0,
   "grammaire:sais/sait|auto·pollué": 100.0,
   "grammaire:ça/sa|vigilance·pollué": 100.0,
-  "grammaire:accord du participe après avoir à vérifier|vigilance·pollué": 100.0,
   "grammaire:accord participe|auto·propre": 100.0,
   "grammaire:accord participe (COD avoir)|auto·pollué": 100.0,
   "grammaire:accord participe épithète|auto·propre": 100.0,

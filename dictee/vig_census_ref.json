@@ -1,5 +1,5 @@
 {
- "justes": 381,
+ "justes": 382,
  "pointeuses": 211,
  "fatigue": 143,
  "cles_justes": [
@@ -361,6 +361,7 @@
   "visiblse→visibles [orthographe] inversion",
   "vizzir→vizir [mot inconnu] lettre_trop",
   "voltiggeur→voltigeur [mot inconnu] lettre_trop",
+  "volés→volé [accord du participe après avoir à vérifier] accord",
   "vor→voir [mot inconnu] lettre_manque",
   "votrre→votre [orthographe] lettre_trop",
   "vou→vous [mot inconnu] lettre_manque",

@@ -528,6 +528,24 @@ function testListe35() {
 // permettent), le candidat qui se prononce comme le mot écrit (g2p du moteur, assets/g2p.js) gagne, en orange. Les quatre premiers
 // échouent sur le moteur d'avant ; témoins : « ddos » (édit à distance 1 : la règle ne touche pas au palier 1), « ccontrôlait »
 // (déjà juste, en flag : rien ne bouge). Le g2p doit être chargé ici comme dans le navigateur (dys-core le charge sous Node).
+// ⭐ LIGNE 38 : « Elle a mangée » — avec AVOIR le participe ne s'accorde jamais avec le sujet. (1) speller : « mangeé » après « Elle a » donnait
+// « mangée » en AUTO (bascule de genre), « mangeèt » donnait « mangée » en rouge (porte contexte-first) → la base masculine ; (2) grammaire :
+// la règle « accord du participe après avoir » exigeait un complément après le participe, « Elle a mangée. » était muet → orange sans témoin
+// quand le sujet est net ; (3) a/à : « Marie a dormie » et un mot accentué inconnu (« éré ») faisaient basculer « a » en « à » en auto → le mot
+// suivant est jugé tel qu'ÉCRIT (participe accordé, inconnu accentué) ; témoins : antécédent (qu'elle a mangée), COD nous, passif (a été
+// nommée), « il va a vélo » garde son à. Les huit premiers échouent sur le moteur d'avant.
+function testListe38() {
+  for (const [t, w, s, tier] of [['Elle a mangeé une pomme.', 'mangeé', 'mangé'], ['Il a mangeèt hier.', 'mangeèt', 'mangé'],
+      ['Elle a mangée.', 'mangée', 'mangé', 'vigilance'], ['Nous avons dansées toute la nuit.', 'dansées', 'dansé', 'vigilance'],
+      ['Marie a dormie.', 'dormie', 'dormi', 'vigilance'], ['Il va a vélo.', 'a', 'à']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (!f || f.sugg !== s || (tier && f.tier !== tier)) fail.push('ligne 38 « ' + t + ' » : attendu ' + s + (tier ? ' en ' + tier : '') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+  for (const t of ['Marie a dormie.', 'Mon frère a éré malade.', 'Son discours a sucisté des rires.']) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === 'a' && x.name === 'a/à');
+    if (f) fail.push('ligne 38 « ' + t + ' » : a → ' + f.sugg + ' (' + f.tier + ') devant un participe mal écrit ou un inconnu accentué'); }
+  for (const t of ['La pomme qu\'elle a mangée était bonne.', 'Ils ne nous ont pas informées.', 'Elle a été nommée.']) {
+    const fl = DC.diagnoseAll(t).flags; if (fl.length) fail.push('ligne 38 témoin « ' + t + ' » : attendu rien, eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -580,6 +598,7 @@ function finish(parityKO) {
   testListe5b();
   testListe35();
   testListe36();
+  testListe38();
   testListe34();
   testListe32();
   testListe7();
