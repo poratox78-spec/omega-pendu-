@@ -28,3 +28,18 @@ for (const a of assets) {
 }
 if (echecs.length) { console.error('✗ ASSETS EXTENSION — livrés mais jamais chargés :\n  ' + echecs.join('\n  ')); process.exit(1); }
 console.log('✓ assets extension : ' + verifies + ' câblages vérifiés (sidepanel.js + content.js), aucun asset livré-mais-muet.');
+
+/* ⭐ 16/10/2026 — LE G2P SUIT LE MOTEUR. Le speller lit `_DECL2.g2p` (liste n° 36 : le son départage le palier 0) ; une surface qui
+ * charge dys-core.js sans assets/g2p.js a une règle MUETTE sans aucun message (« c'est pas branché »). Statique : chaque page HTML
+ * (extension + site) qui référence dys-core.js doit référencer g2p.js ; le manifest (scripts de contenu) aussi ; le bake autonome
+ * et la CLI (dictee/build_correcteur.js, dictee/correcteur.js) doivent lire assets/g2p.js ; dys-core.js le charge lui-même sous Node. */
+const ROOT = path.join(H, '..');
+const pages = [].concat(fs.readdirSync(H).filter(f => f.endsWith('.html')).map(f => path.join(H, f)), fs.readdirSync(ROOT).filter(f => f.endsWith('.html')).map(f => path.join(ROOT, f)));
+const sans = [];
+for (const p of pages) { const s = fs.readFileSync(p, 'utf8'); if (/<script[^>]*dys-core\.js/.test(s) && !/<script[^>]*g2p\.js/.test(s)) sans.push(path.relative(ROOT, p)); }
+const man = JSON.parse(fs.readFileSync(path.join(H, 'manifest.json'), 'utf8'));
+for (const cs of man.content_scripts || []) if ((cs.js || []).indexOf('dys-core.js') >= 0 && (cs.js || []).indexOf('assets/g2p.js') < 0) sans.push('manifest.json (content_scripts sans assets/g2p.js)');
+for (const f of ['build_correcteur.js', 'correcteur.js']) if (fs.readFileSync(path.join(ROOT, 'dictee', f), 'utf8').indexOf('g2p.js') < 0) sans.push('dictee/' + f);
+if (fs.readFileSync(path.join(H, 'dys-core.js'), 'utf8').indexOf("'assets','g2p.js'") < 0) sans.push('dys-core.js (chargement Node du g2p)');
+if (sans.length) { console.error('✗ G2P NON CÂBLÉ (le speller lit _DECL2.g2p, liste n° 36) :\n  ' + sans.join('\n  ')); process.exit(1); }
+console.log('✓ g2p câblé partout où dys-core tourne : ' + pages.length + ' pages lues, manifest, bake, CLI, Node.');

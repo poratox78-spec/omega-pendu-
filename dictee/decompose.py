@@ -59,6 +59,7 @@ except Exception:
 # 'ion','ue','oui'… ont été TESTÉS et ÉCARTÉS (ils dégradent) — cf. build_g2p_corrections.py / DECOMPOSE.md.
 SEG_EXTRA = ['ueil', 'cqu', 'ail', 'sc', 'sh', 'oy', 'ay', 'ti']
 SEG = sorted(set(_T['SEG']) | set(SEG_EXTRA), key=lambda s: -len(s))
+SEG_MOTEUR = sorted(set(_T['SEG']), key=lambda s: -len(s))   # ⭐ 16/10/2026 : les segments du MOTEUR seul (app `_DECL2`, extension/assets/g2p.js)
 
 # ── overlay ACCENTS (extension assumée : le g2p de l'app, pensé pour le pendu ASCII, rend '?'
 #    sur é/è/ç… ; on ajoute les valeurs non ambiguës. Effet MESURÉ en ablation, cf. --measure). ──
@@ -276,6 +277,15 @@ def sublexical_phon(word, accents=True, correct=True, seg=None):
     sampa = ''.join(sampa_parts)
     hmean = sum(hs) / len(hs) if hs else 0.0
     return sampa, ''.join(ipa_parts), graph, hmean
+
+# ── ⭐ 16/10/2026 (liste n° 36) — le g2p EXACT du moteur JS, pour le speller de référence ──
+def g2p_moteur(word):
+    """g2p tel que le produit le rend (app `_DECL2.g2p` ≡ extension/assets/g2p.js) : segments du moteur, SANS overlay d'accents
+    (le JS rend '?' sur une lettre accentuée) ; mesuré identique sur 19 785 mots (pools de candidats des 3 corpus dys)."""
+    return g2p(word, accents=False, seg=SEG_MOTEUR)
+def g2p_moteur_cle(word):
+    """clé de SON du speller = phonèmes IPA concaténés, muets exclus — miroir exact de `_sonKey` (dys-core.js / app)."""
+    return ''.join(st['ph'] for st in g2p_moteur(word) if st['ph'] not in (u'∅', '', None)).replace(u'ɔ', 'o')   # ɔ → o (toreau / taureau)
 
 # ── syllabes (SON) par RÈGLES (principe de l'attaque maximale) : noyaux = voyelles SAMPA ;
 #    nbsyll = nb de noyaux (invariant). La frontière laisse à la syllabe suivante l'attaque LÉGALE

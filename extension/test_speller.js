@@ -524,6 +524,18 @@ function testListe35() {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance')) fail.push('liste n° 35 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+// ⭐ LISTE N° 36 (chantier IA n° 2) : LE SON DÉPARTAGE LE PALIER PHONÉTIQUE — quand le tri retient un phonétique (tresses, employeur,
+// permettent), le candidat qui se prononce comme le mot écrit (g2p du moteur, assets/g2p.js) gagne, en orange. Les quatre premiers
+// échouent sur le moteur d'avant ; témoins : « ddos » (édit à distance 1 : la règle ne touche pas au palier 1), « ccontrôlait »
+// (déjà juste, en flag : rien ne bouge). Le g2p doit être chargé ici comme dans le navigateur (dys-core le charge sous Node).
+function testListe36() {
+  if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
+  for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
+      ['Je vais empployer ce mot.', 'empployer', 'employer', 'vigilance'], ['Un outil permettan de lire.', 'permettan', 'permettant', 'vigilance'],
+      ['Il a mal au ddos.', 'ddos', 'dos', 'vigilance'], ['Il ccontrôlait tout.', 'ccontrôlait', 'contrôlait', 'flag']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (!f || f.sugg !== s || f.tier !== tier) fail.push('liste n° 36 « ' + t + ' » : attendu ' + s + ' en ' + tier + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe5b() {
   for (const [t, w, s, tier] of [['Elève de troisième.', 'Elève', 'Élève'], ['Etonnés par la nouvelle.', 'Etonnés', 'Étonnés', 'vigilance'],
       ['Il est juge.', 'juge', null], ['Elle est élève.', 'élève', null], ['Il est guide de montagne.', 'guide', null], ['Elle est interprète.', 'interprète', null],
@@ -567,6 +579,7 @@ function finish(parityKO) {
   testListe26();
   testListe5b();
   testListe35();
+  testListe36();
   testListe34();
   testListe32();
   testListe7();

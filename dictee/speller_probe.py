@@ -214,6 +214,20 @@ def load_lexicon():
         WORDS.add(w)
     return WORDS, FREQ, DEACC2ACC, PHON, POS
 
+_DXM = None
+def _son_key(w):
+    """⭐ 16/10/2026 (liste n° 36) : clé de SON du moteur (decompose.g2p_moteur_cle — le g2p de l'app/extension, à l'identique) ;
+    chaîne vide si decompose ne peut pas se charger (la règle se tait, comme le JS sans assets/g2p.js). Miroir de `_sonKey` (JS)."""
+    global _DXM
+    if _DXM is None:
+        try:
+            import decompose as _dx; _DXM = _dx
+        except Exception:
+            _DXM = False
+    if not _DXM: return ''
+    try: return _DXM.g2p_moteur_cle(w)
+    except Exception: return ''
+
 def phon_key(s):
     """Clé phonétique française approximative : deux mots qui SONNENT pareil → même clé.
     But : rapprocher « fote »≈« faute », « leson »≈« leçon », « ortografe »≈« orthographe ». Approximatif
@@ -1095,6 +1109,27 @@ class Speller:
                 and ('N' in self.POS.get(w1, ()) or 'A' in self.POS.get(w1, ())):   # ⭐ 11/10/2026 : le nom au PLURIEL après un quantifieur mal écrit — miroir JS
             _w1p = w1[:-2] + 'aux' if w1.endswith('al') else w1 + 's'
             if _w1p in self.WORDS: w1, p1, f1 = _w1p, 1, self.FREQ.get(_w1p, 0)
+        # ⭐ 16/10/2026 — LE SON DÉPARTAGE LE PALIER PHONÉTIQUE (liste n° 36, chantier IA n° 2) — miroir JS (dys-core.js / app). Quand le tri a
+        # retenu un candidat du palier 0, le g2p du moteur compare le son du mot écrit à celui de chaque candidat (ordre du tri, comme
+        # `keys` côté JS) : si des candidats sonnent exactement comme le mot écrit et que le retenu n'en fait pas partie, le PREMIER dans
+        # l'ordre du tri gagne (en orange) — ou sa flexion à une lettre (+e/+s/+es) qui garde la finale ÉCRITE accents compris —, sauf si le
+        # retenu est plus de 5× plus fréquent. Conçu sur les 3 corpus dys (+23/0 au palier 0 en
+        # variante « plus fréquent »), mesuré sur le produit (PR) ; la même règle perd aux paliers 1 et 2 → cantonnée au palier 0.
+        _son = False
+        if p1 == 0:
+            _sk = _son_key(low)
+            if _sk:
+                _E = []
+                for _c4, (_p4, _f4) in ranked:                     # les candidats au même son, dans l'ordre du tri ; le retenu en fait partie → rien
+                    if _son_key(_c4) != _sk: continue
+                    if _c4 == w1: _E = None; break
+                    _E.append(_c4)
+                if _E:
+                    _first = _E[0]; _bf = cands[_first][1]; _best = _first; _tail = low[-2:]
+                    for _c5 in _E[1:]:                                 # la flexion à une lettre du lemme qui garde la finale ÉCRITE, accents compris
+                        if _c5 in (_first + 'e', _first + 's', _first + 'es') and _c5[-2:] == _tail: _best = _c5; break
+                    if _bf >= 1.0 and _bf * 5 >= f1:                   # plancher 1/M des portes (sinon null → repli « inconnu », pire) ; fréquence du lemme
+                        w1 = _best; p1 = cands[w1][0]; f1 = _bf; _son = True   # vrai palier (p1 ≡ cands[w1] en aval, miroir JS) ; _son force l'orange à la sortie
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
         # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il espere » → espère, pas espéré. Sujet pronom
         # (clitiques traversés) sans auxiliaire ni copule → quand le mot nu a les deux accentuations, c'est le présent (-e).
@@ -1119,7 +1154,7 @@ class Speller:
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
         _pv = deacc(toks[idx - 1].lower()) if (toks and idx) else ''
-        if cg and 'A' in self.POS.get(w1, ()) and not (_pv in _PREP_G):   # bascule réservée aux ADJECTIFS ; ⭐ 14/10/2026 : pas à travers une préposition (nom + préposition + adjectif)
+        if cg and not _son and 'A' in self.POS.get(w1, ()) and not (_pv in _PREP_G):   # ⭐ liste n° 36 : pas sur un choix du son (le tri a déjà pesé le genre) ; bascule réservée aux ADJECTIFS ; ⭐ 14/10/2026 : pas à travers une préposition (nom + préposition + adjectif)
             a = self.ADJ.get(deacc(w1))
             if a and a[0] != cg and a[1] in cands and self._gender(a[1]) == cg:
                 return ('flag', a[1])
@@ -1135,8 +1170,8 @@ class Speller:
         # AUTO : accent-only dominant (priorité 2, fréquent, sans rival proche) OU edit-1 vers un mot très dominant
         accent_only = (p1 == 2 and deacc(w1) == d)
         dominant = (f1 >= AUTO_FREQ and (f2 == 0 or f1 >= DOMINANCE * f2))
-        if len(d) >= 3 and accent_only and dominant: return ('auto', w1)
-        if len(d) >= 3 and p1 == 2 and f1 >= AUTO_FREQ and len([1 for _w,(p,_f) in ranked if p == 2]) == 1:
+        if len(d) >= 3 and accent_only and dominant and not _son: return ('auto', w1)
+        if len(d) >= 3 and p1 == 2 and f1 >= AUTO_FREQ and len([1 for _w,(p,_f) in ranked if p == 2]) == 1 and not _son:
             return ('auto', w1)                                 # une seule restauration d'accent possible → sûr
         # ⭐ RÉ-SÉLECTION « CONTEXTE-FIRST » — portée du produit le 06/09/2026 (6e maillon de « la référence décrit
         # le produit » : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666 · palier vigilance
@@ -1179,9 +1214,9 @@ class Speller:
                         and ('V' in exp_pos or not cn or nm_p(cw) is None or ((cn == 'p') == nm_p(cw)))
                         and (not cgd or not self._gender(cw) or self._gender(cw) == cgd) and fc > bf):
                     b, bf = cw, fc
-            if b and bf >= 1.0 and not (pmatch(w1) and p1 >= 1 and f1 >= 20 * bf):
+            if b and bf >= 1.0 and (not _son or b == w1) and not (pmatch(w1) and p1 >= 1 and f1 >= 20 * bf):   # ⭐ liste n° 36 : un choix du son n'est jamais remplacé ici, seulement confirmé — miroir JS
                 return ('flag', b)
-        if len(d) >= 5 and f1 < AUTO_FREQ:                       # ⭐ 13/10/2026 (liste n° 5) : une consonne à redoubler, un seul mot le permet — miroir JS
+        if len(d) >= 5 and (f1 < AUTO_FREQ or _son):            # ⭐ 13/10/2026 (liste n° 5) : une consonne à redoubler, un seul mot le permet — miroir JS ; liste n° 36 : un choix du son n'ôte pas ce rouge
             rd2 = _redouble_seul(low, d, cands)
             if rd2 and self.FREQ.get(rd2, 0) > 0: return ('flag', rd2)
         if not (len(d) >= 4 and f1 >= AUTO_FREQ): return ('vigilance', w1) if (acc_x or k_v) else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
@@ -1202,7 +1237,7 @@ class Speller:
         final_s = (p1 >= 1 and len(wd) == len(d) + 1 and wd[:len(d)] == d and wd[-1:] in ('s', 'x'))
         sub_fin = (len(d) == len(wd) and len(d) >= 4 and d != wd and d[:-1] == wd[:-1]
                    and d[-1] not in 'aeiouy' and wd[-1] not in 'aeiouy')
-        confident = accent_only or final_s or (not sub_fin and p1 >= 1 and first_ok and n_top == 1 and dominant)
+        confident = (not _son) and (accent_only or final_s or (not sub_fin and p1 >= 1 and first_ok and n_top == 1 and dominant))   # ⭐ liste n° 36 : un choix du SON reste en orange
         return ('flag' if confident else 'vigilance', w1)
 
     # ----- PALIER « MOT INCONNU » — décalque de `spellUnknown` (app + extension/dys-core.js) -----

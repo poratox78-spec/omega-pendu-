@@ -21,7 +21,10 @@ function _extract(html) {
   const spIdx = html.indexOf('function spellText', start);
   const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
   if (start < 0 || spIdx < 0 || cut < 0) throw new Error('correcteur.js : extraction du moteur échouée');
-  const code = html.slice(start, cut) +
+  // ⭐ 16/10/2026 (liste n° 36) : le speller lit `_DECL2.g2p` — le g2p (extension/assets/g2p.js, extrait verbatim de l'app) précède la tranche,
+  // et `self.__OMEGA_CJ` (table des « -ent ») est posé depuis OMEGA_VDC comme le fait setLex dans l'extension.
+  const g2pSrc = fs.readFileSync(path.join(__dirname, '..', 'extension', 'assets', 'g2p.js'), 'utf8');
+  const code = "if(typeof self==='undefined'){try{globalThis.self=globalThis;}catch(e){}}try{self.__OMEGA_CJ=(globalThis.OMEGA_VDC&&globalThis.OMEGA_VDC.cj)||null;}catch(e){}\n" + g2pSrc + ';\n' + html.slice(start, cut) +
     ';globalThis.__corrEngine={correctText:correctText,correctTokens:correctTokens,toks:toks,setSeg:function(s){_SEG=_segInfo(s);},spellText:spellText,loadSpellerLex:loadSpellerLex,' +
     'loadNounPost:loadNounPost,loadGenderLex:loadGenderLex,loadPosHmm:loadPosHmm,loadPrenoms:loadPrenoms,' +
     'equipe:function(){return !!(SP.ready&&NOUN_POST);},ready:function(){return SP.ready;}};})();';
