@@ -147,8 +147,14 @@
   }
   var controls = [], refreshers = [];
   function refreshAll() { refreshers.forEach(function (f) { f(); }); }
+  // ⭐ 16/10/2026 (liste n° 40) : la table des verbes (« -ent » muet de « ils jappent ») vient du correcteur ; on la demande à l'allumage,
+  // et à son arrivée le cache des mots est vidé puis tout est ré-habillé.
+  function _askCj() { try { if (!self.__OMEGA_CJ && window.__OMEGA_VDC_LOAD) window.__OMEGA_VDC_LOAD(); } catch (e) {} }
+  window.addEventListener('omega-cj', function () { cache = {}; if (on) refreshAll(); });
+  if (on) _askCj();
   function setOn(v) {
     on = !!v;
+    if (on) _askCj();
     try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
     try { document.body.classList.toggle('son-actif', on); } catch (e) {}
     controls.forEach(function (c) { c(on, syl); });

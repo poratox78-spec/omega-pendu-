@@ -170,7 +170,9 @@ var _DECL2 = (function () {
     function _entVerbe(m){
       if(ENTAMBIG.has(m)) return false;
       try{
-        /* l app : CONJ_F est global ici. Hors de l app (extension), dys-core publie self.__OMEGA_CJ. */
+        /* CONJ_F global : seulement dans les bancs Node qui le posent (police/parity_son.js). Dans l'app comme dans l'extension, la table
+           vit dans une fermeture : le correcteur de l'app et dys-core publient self.__OMEGA_CJ (liste n° 40 — l'ancien commentaire disait
+           « l app : CONJ_F est global ici », c'était faux : l'app retombait sur 582 verbes). */
         const _F = (typeof CONJ_F!=='undefined' && CONJ_F) ||
           (typeof self!=='undefined' && self.__OMEGA_CJ && self.__OMEGA_CJ.f) || null;
         if(_F){ const e=_F[m];
