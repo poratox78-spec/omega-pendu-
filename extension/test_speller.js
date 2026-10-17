@@ -623,6 +623,13 @@ function testListe50() {   // liste n° 50 : impératif écrit à la 3e personne
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 50 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe51() {   // liste n° 51 : accents faux entrés dans le lexique (« aprés », « déja ») — plus jamais acceptés comme des mots
+  for (const [t, w, s] of [['Nous partirons aprés le déjeuner.', 'aprés', 'après'], ['Elle est déja arrivée au bureau.', 'déja', 'déjà'],
+      ['Il faut refléchir avant de signer.', 'refléchir', 'réfléchir'], ["Le livre parle d'une écriture genrée.", 'genrée', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'auto'))
+      fail.push('ligne 51 « ' + t + ' » : attendu ' + (s ? s + ' en auto' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -682,6 +689,7 @@ function finish(parityKO) {
   testListe49();
   testListe50();
   testListe47();
+  testListe51();
   testListe42();
   testListe44();
   testListe46();
