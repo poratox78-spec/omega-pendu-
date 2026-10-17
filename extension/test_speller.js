@@ -578,6 +578,15 @@ function testListe44() {   // liste n° 44 : après un auxiliaire, la finale de 
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (!f || f.sugg !== s || f.tier !== tier) fail.push('ligne 44 « ' + t + ' » : attendu ' + s + ' en ' + tier + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe47() {   // liste n° 47 : « a » qui ne peut pas être avoir → « à », sans réécrire l'infinitif qui suit
+  for (const [t, bon] of [['Mon voisin est prêt a me prêter sa voiture.', 'prêter'], ['Bonne soirée a tous.', null], ['C\'est simple a utiliser.', 'utiliser'],
+      ['Il est prêt a nous aider.', 'aider'], ['Ce texte est long a lire.', 'lire']]) {
+    const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === 'a'), v = bon && fl.find(x => x.word === bon);
+    if (!f || f.sugg !== 'à' || f.tier !== 'auto' || v) fail.push('ligne 47 « ' + t + ' » : attendu a → à seul, eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.tier]))); }
+  for (const t of ['Le prêt a été accordé.', 'Il a tous les atouts.', 'Ce prêt a un taux bas.']) {   // témoins : avoir
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === 'a');
+    if (f) fail.push('ligne 47 témoin « ' + t + ' » : attendu rien, eu a → ' + f.sugg); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -633,6 +642,7 @@ function finish(parityKO) {
   testListe38();
   testListe43();
   testListe45();
+  testListe47();
   testListe42();
   testListe44();
   testListe34();

@@ -1486,11 +1486,42 @@ def _aa_obj_avoir(T, i):
 _AA_NONVB = frozenset(u"seul seule seuls seules surtout egalement ainsi aussitot cependant neanmoins toutefois maintenant aujourd'hui hier demain ensuite parfois rarement longtemps peu mal puis ici".split())
 
 
+# ⭐ 17/10/2026 (liste n° 47) — trois cadres où « a » ne peut pas être avoir (UD 14 450 : 0 « a » dans chacun) — miroir JS _aaPronVerbe /
+# _aaSalut / branche ⑪ : ⑨ « a » + pronom préverbal + verbe (avec avoir le pronom précède l'auxiliaire) ; ⑩ salutation + « a tous » ;
+# ⑪ adjectif qui appelle « à » + infinitif (« simple a utiliser » → « utilisé » EN ROUGE avant), pas après un déterminant (« le prêt a »).
+_AA_PRV = frozenset(u'me te se nous vous lui leur'.split())
+_AA_DET9 = frozenset(u'le la les un une des ce cet cette ces mon ton son ma ta sa mes tes ses notre votre nos vos leur leurs du au aux'.split())
+_AA_SAL = frozenset(u'merci bravo bienvenue bonjour bonsoir salut coucou bisous bisou courage felicitations'.split())
+_AA_SAL2 = frozenset(u'soiree journee annee fete chance continuation nuit semaine route'.split())
+def _aa_vb9(w):
+    d = deacc(w.lower())
+    return (d in COMMON_VERBS and re.search(r'(er|ir|re|oir)$', d) is not None) or _is_ppl(w)
+def _aa_pron_verbe(T, i):
+    if i + 1 >= len(T): return False
+    dc = deacc(T[i + 1].lower().replace(u'’', "'")); m = re.match(r"^[mts]'(.+)$", dc)
+    if m:
+        if m.group(1) in ('en', 'y'): return i + 2 < len(T) and _aa_vb9(T[i + 2])
+        return _aa_vb9(m.group(1))
+    if dc not in _AA_PRV: return False
+    k = i + 2
+    if k < len(T) and deacc(T[k].lower()) in ('en', 'y'): k += 1
+    if k >= len(T): return False
+    if dc == 'leur' and not _is_infinitive(T[k]): return False
+    return _aa_vb9(T[k])
+def _aa_salut(T, i):
+    if i < 1 or i + 1 >= len(T): return False
+    if deacc(T[i + 1].lower()) not in ('tous', 'toutes', 'toute'): return False
+    p = deacc(T[i - 1].lower()); p2 = deacc(T[i - 2].lower()) if i >= 2 else ''
+    if p2 in _AA_DET9: return False
+    return p in _AA_SAL or (p in _AA_SAL2 and p2 in ('bonne', 'belle', 'excellente', 'joyeuse', 'bon'))
+
 def _rule_a_aa_nouveau(T, i, sans4=False):
     if deacc(T[i].lower()) != 'a' or T[i] != T[i].lower() or i < 1: return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
     if _aa_locution(T, i): return u'à'                                    # ⑤ locution prépositive (sans infinitif)
     if _aa_apres_adverbe(T, i): return u'à'                                # ⑥ verbe + adverbe + « a »
+    if _aa_pron_verbe(T, i): return u'à'                                   # ⑨ « a » + pronom préverbal + verbe (liste n° 47)
+    if _aa_salut(T, i): return u'à'                                        # ⑩ salutation + « a tous » (liste n° 47)
     if _SEG is not None and i + 1 < len(_SEG['dig']) and _SEG['dig'][i + 1]:   # ⑦ intervalle « de 10 hectares a 20 hectares » : un chiffre après « de », un autre après « a »
         for _jd in range(i - 1, max(0, i - 2) - 1, -1):
             if deacc(T[_jd].lower()) == 'de' and _jd + 1 < len(_SEG['dig']) and _SEG['dig'][_jd + 1]: return u'à'
@@ -1498,6 +1529,7 @@ def _rule_a_aa_nouveau(T, i, sans4=False):
     while k < len(T) and T[k].lower().replace(u'’', "'") in CLITIC: k += 1
     if k >= len(T) or not re.search(r'(er|ir|re|oir)$', deacc(T[k].lower())): return None
     p1 = deacc(T[i - 1].lower())
+    if p1 in _AA_ADJ_INF and not (i >= 2 and deacc(T[i - 2].lower()) in _AA_DET9): return u'à'   # ⑪ adjectif + « a » + infinitif (liste n° 47)
     if p1 in _AA_NEG: return u'à'                                     # ① négation AVANT « a »
     if _aa_obj_avoir(T, i): return u'à'                                # ⑧ avoir + groupe nominal OBJET + « a » (« j'ai un livre a terminer »)
     if p1 in _AA_NOM or re.sub(r'ee(s?)$', r'e\1', p1) in _AA_NOM: return u'à'   # ② nom qui appelle « à » ; ⭐ 03/10/2026 : aussi écrit en -ée (« une facilitée a dessiner »)
@@ -7904,6 +7936,9 @@ MUETS = [
     ("Les eaux s'écoulent-elles vers la mer ?", "inversion : le verbe s'accorde au pronom inversé, pas à un sujet nominal (liste n° 43)."),
     ("Faites-le vous-même.", "« faites » = 2e pers. du pluriel de faire, pas un présent en -e + s (16/10/2026, liste n° 45)."),
     ("Dites-moi la vérité.", "« dites » = 2e pers. du pluriel de dire (liste n° 45)."),
+    ("Le prêt a été accordé.", "« prêt » NOM après un déterminant : « a » reste avoir (17/10/2026, liste n° 47)."),
+    ("Ce prêt a un taux bas.", "« prêt » nom, « a » + déterminant : avoir (liste n° 47)."),
+    ("Il a tous les atouts.", "« a tous » sans salutation devant : avoir (liste n° 47)."),
     ("Il a les yeux bleus et vert foncé.", "couleur composée invariable après « et » (14/10/2026, liste n° 12)."),
     ("Il a les ailes gris argenté.", "couleur composée, 2e mot étiqueté verbe (14/10/2026, liste n° 12)."),
     ("D'autres pensent le contraire.", "« d'autres » PRONOM : le veto verbal reste (14/10/2026, liste n° 18)."),
@@ -8133,6 +8168,10 @@ CASES = [
     ("L'aide a été précieuse.", "a", "à", "a/à"),   # un NOM n'est pas un gouverneur de « à »
     ("Le reste a été vendu.", "a", "à", "a/à"),
     ("L'aide a changé sa vie.", "a", "à", "a/à"),
+    ("Mon voisin est prêt à me prêter sa voiture.", "à", "a", "a/à"),   # ⭐ 17/10/2026 (liste n° 47) ⑨ : pronom préverbal entre « a » et le verbe
+    ("Bonne soirée à tous.", "à", "a", "a/à"),                          # ⑩ salutation + « à tous »
+    ("C'est simple à utiliser.", "à", "a", "a/à"),                      # ⑪ adjectif qui appelle « à » + infinitif
+    ("Ce texte est long à lire.", "à", "a", "a/à"),
     # ⭐ 04/10/2026 — l'adjectif après un nom de lieu qui porte son article ; « quelque » + nom pluriel
     ("La Chine entière dort.", "entière", "entier", "accord adjectif épithète"),
     ("L'Europe occidentale est riche.", "occidentale", "occidental", "accord adjectif épithète"),
