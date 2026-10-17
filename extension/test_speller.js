@@ -723,6 +723,14 @@ function testListe87() {   // liste n° 87 : la table de conjugaison garde les d
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 87 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe91() {   // lignes 91 et 95 (6e tour) : « peind » → peint ; « Manges ce gâteau » → Mange (orange)
+  for (const [t, w, s] of [['Il peind le mur du salon.', 'peind', 'peint'], ['Manges ce gâteau.', 'Manges', 'Mange'], ['Chantes une chanson.', 'Chantes', 'Chante'],
+      // témoins : rien (un nom en tête de phrase, la forme juste)
+      ['Il peint le mur du salon.', 'peint', null], ['Restes du repas.', 'Restes', null], ['Mange ce gâteau.', 'Mange', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 91-95 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe88() {   // lignes 88-90 : trois rouges faux du 6e tour (grammaire du verbe)
   for (const [t, w, s] of [["Les chaleurs qu'il a fait cet été étaient fortes.", 'fait', null],   // 88 : « il » impersonnel, participe invariable
       ['Toi et moi somme amis depuis longtemps.', 'somme', 'sommes'],                                   // 89 : pas « sommons » (sommer)
@@ -808,6 +816,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe91();
   testListe88();
   testListe59();
   testListe52();

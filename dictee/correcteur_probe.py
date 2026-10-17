@@ -7136,6 +7136,9 @@ _IMPS_SPEC = {'etre': ('sois', 'soyez'), 'avoir': ('aie', 'ayez'), 'savoir': ('s
 _IMPS_PRON = frozenset(('moi', 'toi', 'lui', 'le', 'la', 'les', 'leur', 'nous', 'vous'))
 
 
+_DET95 = frozenset('ce cet cette ces le la les un une des du mon ma mes son sa ses notre nos leur leurs'.split())   # ⭐ liste n° 95
+
+
 def rule_imperatif_seul(T, i):
     """⭐ 13/10/2026 — l'impératif sans trait d'union (orange) : « Manges ta soupe » → Mange, « Prend ton manteau » → Prends, « Vas à
     l'école » → Va, « Mangé vos légumes » → Mangez. Miroir JS rImperatifSeul."""
@@ -7158,6 +7161,13 @@ def rule_imperatif_seul(T, i):
         if dk in _IMPS2 or re.match(u"^t['’]", T[k].lower()): c2 = True
         if dk in _IMPS2P: c2p = True
     if n1 == 'attention': c2 = True
+    if not c2 and i == 0 and not hy and d.endswith('es') and not lw.endswith(u'és') and n1 in _DET95 and GENDER_FULL.get(d) is None and GENDER_PURE.get(d) is None:   # ⭐ liste n° 95 — miroir JS
+        er95 = any(r[1] == 'ind:pre' and r[2] == '2' and r[0].endswith('er') for r in _reads(d)); tg95 = pos_tags(T)
+        if er95 and tg95:
+            for k in range(i + 2, len(T)):
+                if k < len(bb) and bb[k]: break
+                if k < len(tg95) and tg95[k] in ('VERB', 'AUX'): er95 = False; break
+        if er95: c2 = True
     if n1 in _IMPS_INV_ADV: return None
     if c2p:
         if not lw.endswith(u'é'): return None
