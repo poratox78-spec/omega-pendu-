@@ -1178,6 +1178,21 @@ class Speller:
         if _avA and _pp_surnum(w1):
             _pbW = _cpm()._pp_base(w1) or _cpm()._IRR_PP.get(deacc(w1.lower()))
             if _pbW and _pbW in cands: w1 = _pbW; (p1, f1) = cands[w1]
+        # ⭐ 16/10/2026 (liste n° 44) — après un auxiliaire, la finale de participe ÉCRITE se garde (« éré » → été, pas ère ; « appellé » → appelé) :
+        # saisie en -é/-ée/-és/-ées, gagnant sans finale de participe → le candidat le plus fréquent (≥ 1/M) qui garde la finale écrite. Miroir JS.
+        _ppE = re.search(u'(é|ée|és|ées)$', low); _pp44 = False; _pp44c = False
+        if _ppE and toks and idx is not None:
+            _z44 = idx - 1
+            while _z44 >= 0:
+                _d44 = deacc(toks[_z44].lower())
+                if (_d44 in self.AUXAV or _d44 in self.COPULA) and toks[_z44].lower() != u'à': _pp44 = True; break
+                if _d44 in ('ne', 'n', 'pas', 'plus', 'jamais', 'bien', 'tres', 'deja', 'toujours', 'y', 'en', 'tout'): _z44 -= 1; continue
+                break
+            if _pp44 and not re.search(u'(é|ée|és|ées)$', w1):
+                _fin = _ppE.group(1); _pb44 = None; _pf44 = 0
+                for _k44, (_p44, _f44) in ranked:
+                    if _k44.endswith(_fin) and _f44 >= 1.0 and _f44 > _pf44: _pb44 = _k44; _pf44 = _f44
+                if _pb44: w1 = _pb44; (p1, f1) = cands[w1]; _pp44c = True
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
         # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il espere » → espère, pas espéré. Sujet pronom
         # (clitiques traversés) sans auxiliaire ni copule → quand le mot nu a les deux accentuations, c'est le présent (-e).
@@ -1258,7 +1273,7 @@ class Speller:
                 return None if self._invar_s(w) else deacc(w).endswith(('s', 'x'))
             b, bf = None, 0.0
             for cw, (pc, fc) in cands.items():
-                if (pc >= 1 and not (_avA and _pp_surnum(cw)) and phon_key(cw) == pk and pmatch(cw) and (not inp_aud or fin_aud(cw))
+                if (pc >= 1 and not (_avA and _pp_surnum(cw)) and (not _pp44 or re.search(u'(é|ée|és|ées)$', cw)) and phon_key(cw) == pk and pmatch(cw) and (not inp_aud or fin_aud(cw))
                         and ('V' in exp_pos or not cn or nm_p(cw) is None or ((cn == 'p') == nm_p(cw)))
                         and (not cgd or not self._gender(cw) or self._gender(cw) == cgd) and fc > bf):
                     b, bf = cw, fc
@@ -1267,7 +1282,7 @@ class Speller:
         if len(d) >= 5 and (f1 < AUTO_FREQ or _son):            # ⭐ 13/10/2026 (liste n° 5) : une consonne à redoubler, un seul mot le permet — miroir JS ; liste n° 36 : un choix du son n'ôte pas ce rouge
             rd2 = _redouble_seul(low, d, cands)
             if rd2 and self.FREQ.get(rd2, 0) > 0: return ('flag', rd2)
-        if not (len(d) >= 4 and f1 >= AUTO_FREQ): return ('vigilance', w1) if (acc_x or k_v) else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
+        if not (len(d) >= 4 and f1 >= AUTO_FREQ): return ('vigilance', w1) if (acc_x or k_v or (_pp44c and f1 >= 1.0)) else None   # ⭐ liste n° 44 : « éré » → été (orange)   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
         # ⭐ PALIER VIGILANCE DU SPELLER — porté du produit le 05/09/2026 (5e maillon de « la référence décrit
         # le produit » : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666). Décalque du
         # gate `confident` de spellTokenCore (app + dys-core) : on n'AFFIRME (flag) que si l'on est sûr —
