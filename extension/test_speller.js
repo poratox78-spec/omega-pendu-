@@ -676,6 +676,13 @@ function testListe73() {   // listes n° 73 à 76 : 4e tour des textes de genre 
   const fp = DC.diagnoseAll('Il aide sa tante a ranger le garage.').flags.find(x => x.word === 'ranger');
   if (fp) fail.push('ligne 73 : « ranger » (infinitif juste) ne doit plus être réécrit, eu ' + fp.sugg + ' en ' + fp.tier);
 }
+function testListe64() {   // liste n° 64 : « et » entre deux propositions — le sujet nominal après « et » est lu
+  for (const [t, w, s] of [['Il pleut fort et le colis étais trempé.', 'étais', 'était'], ['Le vent souffle et les arbres plie.', 'plie', 'plient'],
+      ['Le chat et le chien mangent.', 'mangent', null], ['La chanteuse et son fils chantent ensemble.', 'chantent', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
+      fail.push('ligne 64 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -738,6 +745,7 @@ function finish(parityKO) {
   testListe63();
   testListe73();
   testListe52();
+  testListe64();
   testListe47();
   testListe51();
   testListe42();
