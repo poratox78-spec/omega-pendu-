@@ -66,6 +66,7 @@ _DET_E_QU = set('beaucoup peu trop assez plus moins tant autant combien pas jama
 _APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il", "dabord": "d'abord", "daccord": "d'accord", "javais": "j'avais"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
 _SOUDE_VIG = {"dabor": "d'abord", "dacor": "d'accord", "dacord": "d'accord", "daccor": "d'accord", "ducou": "du coup"}   # ⭐ 30/09/2026 : formes soudées TRONQUÉES, orange (« ducou » : du cou ?) — miroir JS
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
+_D_LOC = {'abord': 'abord', 'accord': 'accord', 'ailleurs': 'ailleurs', 'apres': 'après', 'autant': 'autant', 'avance': 'avance', 'habitude': 'habitude', 'emblee': 'emblée', 'office': 'office', 'urgence': 'urgence'}   # ⭐ liste n° 53 — miroir JS _D_LOC
 # ⭐ liste n° 46 : noms propres connus du début de phrase — dictee/noms_tete.txt (build_noms_tete.js), miroir du littéral NP46 de dys-core
 try:
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'noms_tete.txt'), encoding='utf-8') as _fnt:
@@ -733,6 +734,11 @@ class Speller:
             pk = em.group(1).lower()
             if (len(pk) == 1 and pk in ELIDE) or pk == 'qu':
                 rc = self.correct_token(em.group(2), at_start=False, toks=toks, idx=idx)
+                if pk == 'd' and em.group(2)[:1] == em.group(2)[:1].lower() and not (rc and deacc(rc[1].lower()) in _D_LOC):   # ⭐ liste n° 53 : « d'abort » → d'abord ; « d'acord » garde d'accord — miroir JS
+                    _rl53 = deacc(em.group(2).lower())
+                    if em.group(2).lower() not in self.WORDS and _rl53 not in self.WORDS:
+                        for _lk53, _lv53 in _D_LOC.items():
+                            if _rl53 != _lk53 and sed1(_rl53, _lk53): return ('flag', em.group(1) + "'" + _lv53)
                 if not rc: return None
                 rem, sug = deacc(em.group(2).lower()), deacc(rc[1].lower())
                 if sug[:1] not in VOWELS:

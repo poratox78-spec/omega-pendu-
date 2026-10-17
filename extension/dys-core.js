@@ -614,7 +614,7 @@
      mais/puis compris) : « il a un grand pouvoir caché » devenait « cacher » en ROUGE sur main. Miroir Python _eer_minf_v / _eer_du. */
   function _eerMinfV(T,k){if(!_eerMinf(T,k))return false;if(k<1)return true;var q=T[k-1].toLowerCase(),dq=deacc(q);return !!(svReads(q).length||_EER_PINF[q]||dq==='d'||MODAL[dq]||_EER_ADV[dq]||_EER_CLIT[dq]||dq==='et'||dq==='ou'||dq==='mais'||dq==='puis'||(_SEG&&k<_SEG.bb.length&&_SEG.bb[k]));}
   function _eerDu(T,k){if(k<1)return false;var d=T[k].toLowerCase();if(d!=='dû'&&d!=='du')return false;var a=deacc(T[k-1].toLowerCase()).replace(/^[jn]['’]/,'');return !!_EER_AVOIR[a];}
-  function _eerGouvInf(T,k){if(k<0)return false;var r=T[k].toLowerCase(),d=deacc(r);if(r==='à'&&k>0&&/^(quant|grace)$/.test(deacc(T[k-1].toLowerCase())))return false;   /* « quant à lui », « grâce à elle » : locutions, le pronom n'annonce pas un verbe */var _dd=d.replace(/^(j|n|qu)'/,'');if(_dd!==d&&_dd!=='a'&&MODAL[_dd])return true;   /* « j'aime m'habillé » : le modal collé à son pronom */return _EER_PINF[r]||(d!=='a'&&MODAL[d])||_eerMinf(T,k);}
+  function _eerGouvInf(T,k){if(k<0)return false;var r=T[k].toLowerCase(),d=deacc(r);if(r==='à'&&k>0&&/^(quant|grace)$/.test(deacc(T[k-1].toLowerCase())))return false;   /* « quant à lui », « grâce à elle » : locutions, le pronom n'annonce pas un verbe */var _dd=d.replace(/^(j|n|qu)'/,'');if(_dd!==d&&_dd!=='a'&&(MODAL[_dd]||_EER_COND[_dd]))return true;   /* « j'aime m'habillé » : le modal collé à son pronom */return _EER_PINF[r]||(d!=='a'&&MODAL[d])||!!_EER_COND[d]||_eerMinf(T,k);}   // ⭐ liste n° 61 : + futurs et conditionnels (_EER_COND), aussi à travers un pronom
   /* ⭐ 09/10/2026 — ÊTRE + mot en -er, que rEer et rFlexionEr mettaient au PARTICIPE en rouge : « il est fier de lui » → « fié »,
      « il est boulanger » → « boulangé » (UD : 4 rouges faux sur 6 de cette forme). Deux lectures que le participe écrasait :
      · l'ADJECTIF (lecture A du speller : fier) est un attribut → la règle se tait ;
@@ -632,6 +632,7 @@
   /* ⭐ 17/10/2026 (liste n° 49) — conditionnels des verbes de souhait et des modaux : ils gouvernent l'infinitif comme MODAL (« j'aimerais
      travaillé » → travailler). Liste LOCALE à rEer : MODAL est lu par d'autres règles. UD 14 450 : aucun mot en -é après ces formes. Miroir Python. */
   var _EER_COND={};'aimerais aimerait aimerions aimeriez aimeraient voudrais voudrait voudrions voudriez voudraient souhaiterais souhaiterait souhaiterions souhaiteriez souhaiteraient pourrais pourrait pourrions pourriez pourraient devrais devrait devrions devriez devraient prefererais prefererait adorerais adorerait'.split(' ').forEach(function(w){_EER_COND[w]=1;});
+  'passerai passeras passera passerons passerez passeront passerais passerait viendrai viendras viendra viendrons viendrez viendront viendrais viendrait irai iras ira irons irez iront irais irait'.split(' ').forEach(function(w){_EER_COND[w]=1;});   // ⭐ 17/10/2026 (liste n° 61) : « je passerai les cherché », « il viendra te cherché » → infinitif
   function rEer(T,i){
     if(i>=2){var _pse=deacc(T[i-1].toLowerCase());
       if((_pse==='sais'||_pse==='sait')&&(function(){var _p2=deacc(T[i-2].toLowerCase());return _p2==='il'||_p2==='elle'||_p2==='on';})()&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}   // « il sais trompé » = frame s'est (orange saisVig) — ne pas fabriquer « sait tromper » ; « je sais nagé »→nager reste corrigé
@@ -690,11 +691,11 @@ var w=T[i],lw=w.toLowerCase();
       // alors que c'est une PRÉPOSITION. Les DEUX règles partageaient l'angle mort ; mesuré sur le
       // PIPELINE complet (dictee/dys_pipeline_probe.py) : mots CASSÉS 30 -> 26 sur texte dys réel.
       if(i>0&&deacc(T[i-1].toLowerCase())==='a'&&rA(T,i-1)==='à')tgt='inf';else{if(i>1&&deacc(T[i-1].toLowerCase())==='a'&&_A_INF_ADJ[deacc(T[i-2].toLowerCase())]&&cur==='inf')return null;tgt='part';}}   // ⭐ 11/10/2026 : « facile a réparer » — même garde que rEer
-    else if(_INF_GOV[p]||MODAL[p]||_CAUS[p]){/* ⭐ …SAUF UN NOM QUE SEULE LA TABLE ACCENTUÉE CONNAÎT (08/09/2026, miroir Python) : les trois listes de noms homographes de cette règle (NOUN_E, _FLEX_STOP, NOUN_EE) sont DÉSACCENTUÉES — « trace » (f) et « tracé » (m) s'y annulent, donc « et de tracé (y compris…) » devenait « tracer ». La graphie ACCENTUÉE est sous la main : _GACC sait que c'est un nom. Même geste que dans la règle sœur rEer. Mesuré : 0 correction perdue, 12 FP éteints (« le droit de cité »→citer, « la charge de juré »→jurer, « pour mission de protégé »→protéger…), 0 tir sur 14 450 phrases d'UD. */if(_INF_GOV[p]&&/(é|és|ée|ées)$/.test(lw)){var _g5=_GACC[lw];if(_g5==='m'||_g5==='f'){/* ⚠️ RESSERRÉ le 08/09 par la BATTERIE (cf. règle sœur rEer) : intersection avec le tagger, sinon « de rentré » perdait sa correction. */var _t5=posTags(T);if(_t5&&i<_t5.length&&(_t5[i]==='NOUN'||_t5[i]==='PROPN'))return null;}}tgt='inf';}
+    else if(_INF_GOV[p]||MODAL[p]||_CAUS[p]||_EER_COND[p]){/* ⭐ …SAUF UN NOM QUE SEULE LA TABLE ACCENTUÉE CONNAÎT (08/09/2026, miroir Python) : les trois listes de noms homographes de cette règle (NOUN_E, _FLEX_STOP, NOUN_EE) sont DÉSACCENTUÉES — « trace » (f) et « tracé » (m) s'y annulent, donc « et de tracé (y compris…) » devenait « tracer ». La graphie ACCENTUÉE est sous la main : _GACC sait que c'est un nom. Même geste que dans la règle sœur rEer. Mesuré : 0 correction perdue, 12 FP éteints (« le droit de cité »→citer, « la charge de juré »→jurer, « pour mission de protégé »→protéger…), 0 tir sur 14 450 phrases d'UD. */if(_INF_GOV[p]&&/(é|és|ée|ées)$/.test(lw)){var _g5=_GACC[lw];if(_g5==='m'||_g5==='f'){/* ⚠️ RESSERRÉ le 08/09 par la BATTERIE (cf. règle sœur rEer) : intersection avec le tagger, sinon « de rentré » perdait sa correction. */var _t5=posTags(T);if(_t5&&i<_t5.length&&(_t5[i]==='NOUN'||_t5[i]==='PROPN'))return null;}}tgt='inf';}
     else if(praw==='vous'){var subj=(i===1)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])||(i>=2&&deacc(T[i-2].toLowerCase())==='que');if(!subj)return null;tgt='p2pl';}
     else if(praw==='je'){var _fm={demain:1,bientot:1,prochain:1,prochaine:1,prochains:1,prochaines:1,ulterieurement:1,dorenavant:1,desormais:1,tantot:1};if(!T.some(function(t){return _fm[deacc(t.toLowerCase())];}))return null;tgt='fut1';}
     else if(p==='plait'&&i>=2&&deacc(T[i-2].toLowerCase())==='vous')tgt='p2pl';   // « s'il vous plaît, cherché »→cherchez
-    else{var g=i-1;while(g>0&&(_FLEX_ADV[deacc(T[g].toLowerCase())]||_FLEX_CLITIC[deacc(T[g].toLowerCase())]))g--;if(g<0)return null;var dg=deacc(T[g].toLowerCase()),graw=T[g].toLowerCase();if(graw!=='à'&&(_AUX_AV[dg]||graw==="j'ai"))tgt=(dg==='a'&&rA(T,g)==='à')?'inf':'part';   /* ⭐ 12/09/2026 : MÊME garde a/à qu'en position immédiate (« a réussi a se lever » → lever, plus levé) — miroir Python */else if(_INF_GOV[dg]||MODAL[dg]||_CAUS[dg])tgt='inf';else return null;}
+    else{var g=i-1;while(g>0&&(_FLEX_ADV[deacc(T[g].toLowerCase())]||_FLEX_CLITIC[deacc(T[g].toLowerCase())]))g--;if(g<0)return null;var dg=deacc(T[g].toLowerCase()),graw=T[g].toLowerCase();if(graw!=='à'&&(_AUX_AV[dg]||graw==="j'ai"))tgt=(dg==='a'&&rA(T,g)==='à')?'inf':'part';   /* ⭐ 12/09/2026 : MÊME garde a/à qu'en position immédiate (« a réussi a se lever » → lever, plus levé) — miroir Python */else if(_INF_GOV[dg]||MODAL[dg]||_CAUS[dg]||_EER_COND[dg])tgt='inf';else return null;}
     if(tgt==='inf'&&_SEG&&_SEG.bb&&_SEG.bb[i])return null;   // ⭐ 11/10/2026 : ponctuation de l'auteur juste avant (« il va, pressé, vers la gare ») — le mot de gauche ne gouverne pas ; miroir Python
     if(cur===tgt)return null;
     if(/(és|ées)$/.test(lw)&&(tgt==='inf'||tgt==='p2pl'||tgt==='fut1'))return null;
@@ -1483,10 +1484,12 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
      PRÉPOSITION. Sans elle « une maison DE retraite » passait — « retraite » se lit comme le verbe
      « retraiter ». C'est la garde qui a fait tomber le dernier faux positif. */
   function _ouClauseVerbe(T,i){var k,fin=Math.min(T.length,i+7);for(k=i+1;k<fin;k++){if(_ouFini(T[k].toLowerCase())&&!(k>0&&_OU_PREP[deacc(T[k-1].toLowerCase())]))return true;}return false;}
+  var _OU_ETRE62={est:1,sont:1,etait:1,etaient:1,sera:1,seront:1,ai:1,es:1,etes:1,sommes:1};   // ⭐ liste n° 62
   function rOuOu(T,i){
     if(deacc(T[i].toLowerCase())!=='ou'||T[i].toLowerCase()==='où')return null;
     var n=T.length;
     if(i+1<n&&_OU_PRON[T[i+1].toLowerCase()]&&!_ouCorrel(T,i))return {sugg:ckeepcase(T[i],'où'),vig:1};
+    if(i+2<n&&deacc(T[i+1].toLowerCase())==='en'&&_OU_ETRE62[deacc(T[i+2].toLowerCase())])return {sugg:ckeepcase(T[i],'où'),vig:1};   // ⭐ 17/10/2026 (liste n° 62) : « dis-moi ou en est le dossier » → où (UD 14 450 : 0 « ou en » + être)
     /* ⛔ GARDE 1 (FP mesuré) : le nom de lieu doit porter SON déterminant. « camarade DE classe ou
        une personne » est une coordination, pas une relative — « de » n'est pas un déterminant. */
     if(i>=2&&_OU_NOM[deacc(T[i-1].toLowerCase())]&&_OU_DET[T[i-2].toLowerCase()]&&_ouClauseVerbe(T,i))return {sugg:ckeepcase(T[i],'où'),vig:1};
@@ -1614,7 +1617,10 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
   'descendu descendue descendus descendues monte montee montes montees reste restee restes restees rentre rentree rentres rentrees sorti sortie sortis sorties retourne retournee retournes retournees passe passee passes passees entre entree entres entrees'.split(' ').forEach(function(w){_JEST_MOUV[w]=1;});   // double auxiliaire : l'objet tranche
   'mon ma mes ton ta tes son sa ses notre votre leur leurs ce cet cette ces du des de quelques plusieurs'.split(' ').forEach(function(w){_JEST_POSS[w]=1;});
   function _jestObjet(T,i,mouv){if(i+2>=T.length)return false;var n2=T[i+2].toLowerCase(),d2=deacc(n2);if(_detDeTemps(T,i+2))return false;if(mouv&&(d2==='de'||d2==='du'||d2==='des'||n2.slice(0,2)==="d'"))return false;return !!(NUM_DET[n2]||_JEST_POSS[d2]||n2.slice(0,2)==="l'"||n2.slice(0,2)==="d'"||/^[0-9]+$/.test(T[i+2]));}   // un OBJET suit le participe → AVOIR certain ; ni complément de TEMPS (« fatigué ce soir »), ni PROVENANCE d'un verbe de mouvement (« descendu du train »)
+  var _NEG55={pas:1,plus:1,jamais:1,rien:1,guere:1,point:1};   // ⭐ liste n° 55
   function rJest(T,i,vig){if(!vig){var _dj=deacc(T[i].toLowerCase());if(_dj==="j'as"||_dj==="j'a")return T[i].slice(0,2)+'ai';}   // ⭐ 12/10/2026 (conjugaison 8) : « j'as faim », « j'a vu » — j' + avoir n'existe qu'en « j'ai » (FP=0 structurel). Miroir Python
+    if(!vig&&deacc(T[i].toLowerCase())==="n'est"&&i>0&&deacc(T[i-1].toLowerCase())==='je'&&i+1<T.length){var _k55=i+1;if(_NEG55[deacc(T[_k55].toLowerCase())]&&_k55+1<T.length)_k55++;var _w55=T[_k55].toLowerCase(),_d55=deacc(_w55);   /* ⭐ 17/10/2026 (liste n° 55) : « je n'est » jamais valide ; le mot suivant tranche (« je n'est reçu » → n'ai, « je n'est pas content » → ne suis) */
+      if(_d55==='ete'||_d55==='eu')return ckeepcase(T[i],"n'ai");if(CADJ[_d55]||ETRE_PP[_d55]||_JEST_LIEU[_d55]||_w55==='là')return ckeepcase(T[i],'ne suis');if(_isPpl(_w55)||NUM_DET[_w55]||_d55==='de'||/^d['’]/.test(_w55))return ckeepcase(T[i],"n'ai");return null;}
     if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;   // « j'est » jamais valide → FP=0 structurel ; le VOISIN tranche j'ai / je suis, plus d'abstention (12/09/2026, miroir Python rule_jest)
     var nl=T[i+1].toLowerCase(),dn=deacc(nl);
     if(vig){if(_JEST_LIEU_VIG[dn])return ckeepcase(T[i],"je suis");if(_JEST_MOUV[dn]&&!ETRE_PP[dn]&&!_jestObjet(T,i,true))return ckeepcase(T[i],"je suis");return null;}   // JUMELLE ORANGE : les deux lectures incertaines
@@ -2229,16 +2235,20 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   var _PART_EN={up:2,down:2,'in':1,out:2,off:2,on:1,over:2,back:2};   // ⭐ liste n° 21 : particule anglaise après un trait d'union (2 = aussi sans trait d'union, « un stand up » : pas un mot français)
   _EPICENE_NOUN.app=1;_EPICENE_NOUN.apps=1;   // ⭐ liste n° 21 : « une app » (application) / « un app » (appart) — la table dit masculin
   var _PREFIX_NU={};('pre post anti ex co auto pro ultra micro macro mini multi demi semi neo non sous vice').split(' ').forEach(function(w){_PREFIX_NU[w]=1;});   // ⭐ liste n° 34 (a) : préfixes écrits détachés (« la pré éclampsie ») — le genre se lit sur le nom qui suit
+  /* ⭐ 17/10/2026 (liste n° 56) — « cette » devant un nom masculin à voyelle : « cet ». Noms que la table de genre lit mal (été : aussi participe ;
+     an, instant, endroit) et noms à h MUET (pas de table du h aspiré : liste fermée, « ce héros » reste « ce »). Miroir Python. */
+  var _CET_TOT56={ete:1,hiver:1,automne:1,endroit:1,an:1,instant:1};
+  var _H_MUET56={homme:1,hopital:1,hotel:1,hiver:1,hommage:1,horaire:1,honneur:1,horizon:1,habitant:1,habit:1,hebergement:1,heritage:1,humour:1,hymne:1};
   function rDetGenre(T,i){if(_hyDetSkip(T,i))return null;   /* ⭐ liste n° 43 : le nom suivant ouvre un composé verbe-nom ou préfixé : son genre/nombre ne s'y lit pas */var lw=deacc(T[i].toLowerCase());if(!DET_G[lw]||T[i].toLowerCase().indexOf("'")>=0)return null;if(i+1>=T.length)return null;
     if(_POSS_DET[lw]&&_ART_BLOCK[cprev(T,i)])return null;   // possessif précédé d'un article = NOM homographe (« un son », « le ton », « du son ») → jamais possessif → abstention (FP WiCoPaCo « un son stéréo »→sa)
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     if((lw==='son'||lw==='mon'||lw==='ton')&&/^[aeiouyh]/.test(nd))return null;   // son/mon/ton OBLIGATOIRES devant voyelle/h (son amie, son Histoire) — pas un FP
-    var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase())return null;var hi=i+1;   // nom propre/étranger capitalisé → abstention (FP) ; hi = indice du NOM-TÊTE (défaut = mot suivant)
+    var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase())return null;var hi=i+1;if(lw==='cette'&&(_CET_TOT56[nd]||_H_MUET56[nd]))return ckeepcase(T[i],'cet');   /* ⭐ liste n° 56 : « cette été » (été lu aussi participe), « cette homme » */   // nom propre/étranger capitalisé → abstention (FP) ; hi = indice du NOM-TÊTE (défaut = mot suivant)
     var _pp=NOUN_POST&&NOUN_POST.get(nd);if((lw==='quel'||lw==='quelle')&&!(_pp&&_pp[0]>=PL_TAU_M)){var tgq=posTags(T);if(tgq&&i+2<T.length&&i+1<tgq.length&&tgq[i+1]==='ADJ'&&T[i+2].toLowerCase().indexOf("'")<0&&T[i+2].charAt(0)===T[i+2].charAt(0).toLowerCase()){hi=i+2;_pp=NOUN_POST&&NOUN_POST.get(deacc(T[hi].toLowerCase()));}}if(hi===i+1&&DET_SKIP[nd])return null;var _tgd=posTags(T);if(_tgd&&hi<_tgd.length&&_tgd[hi]==='ADJ'&&((hi+1<_tgd.length&&_tgd[hi+1]==='NOUN')||(hi+2<_tgd.length&&_tgd[hi+2]==='NOUN')))return null;if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // « quel/quelle + ADJECTIF antéposé + nom » : saut d'un adjectif sûr → nom-tête. GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée (sans toucher _nounGate, partagé pluriel) — mot après déterminant = NOM même si verbe-homographe (recall +6 pts, FP 0,09→0,10/1000, gender_levers_ud.py)
     if(hi===i+1&&_PREFIX_NU[nd]&&i+2<T.length&&/^[a-zà-ÿœ]+$/.test(T[i+2])){var _kx2=deacc(T[i+2].toLowerCase()),_ppx=NOUN_POST&&(typeof NOUN_POST.get==='function'?NOUN_POST.get(_kx2):NOUN_POST[_kx2]);if(_ppx&&_ppx[0]>=PL_TAU_M){hi=i+2;_pp=_ppx;}}   // ⭐ liste n° 34 (a) : « la pré éclampsie » — le préfixe n'est pas le nom-tête
     if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;
     if(hi+1<T.length&&_PART_EN[deacc(T[hi+1].toLowerCase())]&&((_SEG&&_SEG.hy&&hi+1<_SEG.hy.length&&_SEG.hy[hi+1])||_PART_EN[deacc(T[hi+1].toLowerCase())]===2))return null;   // ⭐ 14/10/2026 (liste n° 21) : « une start-up », « un stand-up », « un check-in » — le genre du composé anglais ne vient pas de son 1er mot
-    var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
+    var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];if(sg==='ce'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))sg='cet';return sg?ckeepcase(T[i],sg):null;}   // ⭐ liste n° 56 : devant voyelle ou h muet, « cet » (« Cette homme » proposait « Ce »)
   var TOUT_EXTRA={avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
   var _TOUS_DETSG={le:1,la:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,se:1},_TOUS_PLANTE={ils:1,elles:1,nous:1,vous:1,les:1,leur:1,leurs:1,eux:1,ces:1,des:1,mes:1,tes:1,ses:1,nos:1,vos:1};   // ⭐ 13/09/2026 — « tous » → « tout » (miroir Python _tous_tout)
   function _tousTout(T,i){var nx=deacc(T[i+1].toLowerCase());if(!(_TOUS_DETSG[nx]||nx.slice(0,2)==="l'"))return null;if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;
@@ -2924,11 +2934,15 @@ function estQuestion(t,maxMots){
      rAdjAntePl. Mesuré : voir REGLES_FR. Miroir Python _PL_DET_X / _aux_sur. */
   var _PL_DET_X={aux:3,quelques:1,divers:1,diverses:1,plusieurs:2,certains:2,certaines:2,"d'autres":2,"d'anciens":1,"d'anciennes":1,"d'importants":1,"d'importantes":1,"d'eventuels":1,"d'eventuelles":1,"d'enormes":1,"d'immenses":1,"d'innombrables":1,"d'excellents":1,"d'excellentes":1};   /* ⭐ 14/10/2026 (liste n° 18) : « d'autres chemin », « il a d'autres idée » — le déterminant pluriel ÉLIDÉ (un seul token : « d' » + adjectif pluriel) n'était dans aucune liste. Liste FERMÉE, recensée sur UD (d'autres ×129, d'importants, d'anciens, d'éventuels…) ; « d'autres » vaut 2 comme certains/plusieurs (AUSSI pronom : « d'autres pensent », le veto verbal reste) ; les adjectifs valent 1 comme quelques/divers. Miroir Python. */
   function _auxSur(w,adj){var d=deacc(w.toLowerCase());return /^[aeiouy]/.test(d)||(adj?!!_ADJ_ANTE_M[w.toLowerCase()]:_nounGender(w,'s')==='f');}
+  /* ⭐ 17/10/2026 (liste n° 57) — noms qui sont aussi des infinitifs : après un déterminant pluriel la règle les lisait verbes (muette), et la
+     vigilance ces/c'est proposait « c'est devoir ». 2 = aussi après « les » (devoir, dîner… : jamais pronom + infinitif sans autre verbe). */
+  var _NOM_INF57={devoir:2,diner:2,dejeuner:2,souper:2,pouvoir:1,savoir:1,rire:1,sourire:1};
   function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
     var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&(PLURAL_DET[deacc(T[i-2].toLowerCase())]||_PL_DET_X[deacc(T[i-2].toLowerCase())]))_pd=deacc(T[i-2].toLowerCase());
     if(/^(dès|dés|lès)$/i.test(_pd===deacc(T[i-1].toLowerCase())?T[i-1]:T[i-2]))return null;   // ⭐ 13/10/2026 (conjugaison 14) : + « dés » (« il est parti dés lundi » → lundis en ROUGE)   // ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE (accents ôtés avant la comparaison)   // ⑤-b (13/09/2026) : traversée d'UN adjectif antéposé (« les prochaines demande ») — miroir Python
     var _card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
     var _px=_PL_DET_X[_pd];if(!PLURAL_DET[_pd]&&!_card&&!_px)return null;
+    {var _n57=deacc(T[i].toLowerCase());if(_NOM_INF57[_n57]&&T[i]===T[i].toLowerCase()&&(_pd!=='les'||_NOM_INF57[_n57]===2)&&(i+1>=T.length||!_isInfinitive(T[i+1])))return T[i]+'s';}   // ⭐ liste n° 57 : « ses devoir » → devoirs ; « les » seulement pour devoir / dîner (« pour les savoir par cœur » : pronom + verbe)
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null;
     if(_px===3&&!_auxSur(n,false))return null;if(_pd==='quelques'&&(dn==='chose'||dn==='part'))return null;   // « aux » ≡ « au » à l'oreille ; « quelques chose » = quelque chose
@@ -4877,11 +4891,16 @@ function estQuestion(t,maxMots){
      forme nue : « L'Atalaya ») ou reste à consonne (pas une élision française : « N'golo ») → abstention. Mesuré (produit) :
      +14 bons mots en orange sur les 3 corpus dys (gold 9) ; UD 14 450 : 38 oranges de plus (822 « mot inconnu » déjà : mêmes mots rares,
      dont 9 vraies fautes du corpus). Miroir Python : speller_probe.spell_token / correct_text. */
+  /* ⭐ 17/10/2026 (liste n° 53) — « d'abort » devenait « d'abhorre » : le reste élidé se corrigeait SEUL, et « abord » seul est rare dans le
+     lexique (« d'abord » se dit presque toujours élidé). Locutions en « d' » : un reste inconnu à UNE lettre de l'une d'elles → la locution. */
+  var _D_LOC={abord:'abord',accord:'accord',ailleurs:'ailleurs',apres:'après',autant:'autant',avance:'avance',habitude:'habitude',emblee:'emblée',office:'office',urgence:'urgence'};
   function spellToken(tok,atStart,T,idx){                                  // élision : « d'othographes » = 1 token → on analyse le RESTE
     if(/^jusqu['’](a|ou)$/i.test(tok))return['flag',tok.slice(0,-(tok.slice(-2).toLowerCase()==='ou'?2:1))+(tok.slice(-2).toLowerCase()==='ou'?'où':'à')];   // ⭐ 14/10/2026 (liste n° 13) : « jusqu'a », « jusqu'ou » n'existent pas — « jusque » n'est suivi ni du verbe avoir ni de la conjonction (rouge). Miroir Python
     var em=tok.match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),pk;
     if(em&&((pk=em[1].toLowerCase()).length===1&&SELIDE[pk]||pk==='qu')){
-      var rc=spellTokenCore(em[2],false,T,idx);if(!rc)return null;
+      var rc=spellTokenCore(em[2],false,T,idx);
+      if(pk==='d'&&em[2].charAt(0)===em[2].charAt(0).toLowerCase()&&!(rc&&_D_LOC[deaccS(String(rc[1]).toLowerCase())])){var _rl53=deaccS(em[2].toLowerCase());if(!SP.WORDS.has(em[2].toLowerCase())&&!SP.WORDS.has(_rl53)&&!udHas(_rl53)){for(var _lk53 in _D_LOC){if(_rl53!==_lk53&&sEd1(_rl53,_lk53))return['flag',em[1]+"'"+_D_LOC[_lk53]];}}}   // ⭐ liste n° 53 : seulement si la correction normale n'est pas déjà une locution (« d'acord » → d'accord)
+      if(!rc)return null;
       var rem=deaccS(em[2].toLowerCase()),sug=deaccS(rc[1].toLowerCase());
       if(!SVOW[sug[0]]){var _sd=deaccS((em[1]+em[2]).toLowerCase()),_fz=spD(_sd);if(pk==='l'&&_fz&&_fz.length&&!SP.WORDS.has(em[2].toLowerCase())&&!SP.WORDS.has(rem))return ['vigilance',_fz[0]];return null;}   // l'/d' exige une voyelle/h après : « l'aramel »→« caramel » casserait l'élision → abstention ; SAUF la soudure au lexique (« l'entement » → lentement, orange)
       if(rc[0]!=='auto'&&rem!==sug&&!sEd1(rem,sug)){if(SP.WORDS.has(em[2].toLowerCase())||SP.WORDS.has(rem)||tok.charAt(0)!==tok.charAt(0).toLowerCase()||!/^[aeiouyh]/.test(rem))return null;return ['vigilance',em[1]+"'"+rc[1]];}   // phonétique distant (othographe→autographe) : abstention sur un reste CONNU ; reste INCONNU → ORANGE (29/09/2026)
@@ -5360,6 +5379,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
   function _impNeg(pros,verb,neg2){pros=pros.map(function(p){p=p.toLowerCase();return p==='moi'?'me':p==='toi'?'te':p;}).sort(function(a,b){function k(p){return _IMPWEAK[p]?0:_IMPCOD3[p]?1:_IMPCOI3[p]?2:p==='y'?3:4;}return k(a)-k(b);});
     var seq=pros.concat([verb]),res=[];for(var i=0;i<seq.length;i++){var t=seq[i],nx=seq[i+1],l=t.toLowerCase();res.push((nx&&_IMPVOW.test(deacc(nx.charAt(0)))&&(l==='me'||l==='te'||l==='se'||l==='le'||l==='la'))?l.charAt(0)+"'":t);}
     var ne=_IMPVOW.test(deacc(res[0].charAt(0)))?"n'":"ne",s=ne;for(i=0;i<res.length;i++)s+=(s.slice(-1)==="'")?res[i]:' '+res[i];return s+' '+neg2;}
+  var _IMP_SUJ54={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1};   // ⭐ liste n° 54
   function _impMoves(text){var out=[],taken=[],q=text.indexOf('?')>=0,rx,m;
     function free(a,b){for(var k=a;k<b;k++)if(taken[k])return false;return true;}
     function mark(a,b){for(var k=a;k<b;k++)taken[k]=true;}
@@ -5369,7 +5389,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     rx=new RegExp("\\b([A-Za-zÀ-ÿ]+)((?:-"+_IMPCLI+"){2,3})(?![A-Za-zÀ-ÿ'])","g");
     while((m=rx.exec(text))){var verb=m[1],chain=m[2];if(!_impV(verb))continue;var pros=[];chain.split('-').filter(Boolean).forEach(function(p){pros=pros.concat(_impUn(p));});push(m.index,m.index+m[0].length,_impCap(m[0],_impAff(verb,pros)),'impératif (pronom)');}
     rx=new RegExp("\\b([A-Za-zÀ-ÿ]+)\\s+(les|le|la)\\s+(moi|toi|lui|nous)\\b","g");
-    while((m=rx.exec(text))){var verb=m[1],dv=deacc(verb.toLowerCase());if(!_impV(verb)||/ant$/.test(verb.toLowerCase())||_IMPNOTV[dv]||dv.length<3)continue;push(m.index,m.index+m[0].length,_impCap(m[0],_impAff(verb,[m[2],m[3]])),'impératif (pronom)');}
+    while((m=rx.exec(text))){var verb=m[1],dv=deacc(verb.toLowerCase());if(!_impV(verb)||/ant$/.test(verb.toLowerCase())||_IMPNOTV[dv]||dv.length<3)continue;var _pre54=/([A-Za-zÀ-ÿ'’]+)\s*$/.exec(text.slice(0,m.index));if(_pre54&&_IMP_SUJ54[deacc(_pre54[1].toLowerCase())])continue;if(m[3].toLowerCase()==='moi'&&/^\s+(prochain|dernier|suivant|précédent|precedent|passé|passe|entier|courant)\b/i.test(text.slice(m.index+m[0].length)))continue;push(m.index,m.index+m[0].length,_impCap(m[0],_impAff(verb,[m[2],m[3]])),'impératif (pronom)');}   // ⭐ liste n° 54 : un impératif n'a pas de sujet ; « le moi prochain » = le mois
     rx=/(^|[.!?…]\s+)([A-Za-zÀ-ÿ]+)\s+(moi|toi)\b(?![-'’]?\s*(?:même|meme))/g;
     while((m=rx.exec(text))){var verb=m[2],dv=deacc(verb.toLowerCase());if(!_impV(verb)||/ant$/.test(verb.toLowerCase())||_IMPNOTV[dv]||dv.length<3)continue;var a=m.index+m[1].length,b=m.index+m[0].length,repl=_impCap(verb,verb+'-'+m[3].toLowerCase());push(a,b,repl,'impératif (pronom)');}
     rx=/(^|[.!?…]\s+)([Mm]e|[Tt]e)\s+([A-Za-zà-ÿ]+)\b/g;
@@ -5576,6 +5596,12 @@ function spellUnknown(tok,atStart,T,idx){
      Recensé : gold dys 11 justes ; corpus EcriScol et frgec : 0 marque après la garde « en cour martiale » ; UD (14 450 phrases
      correctes) : 0 marque. */
   var _MUET_DET={le:1,la:1,les:1,l:1,un:1,une:1,des:1,du:1,au:1,aux:1,mon:1,ma:1,mes:1,ton:1,ta:1,tes:1,son:1,sa:1,ses:1,notre:1,votre:1,nos:1,vos:1,leur:1,leurs:1,ce:1,cet:1,cette:1,ces:1,chaque:1,quel:1,quelle:1};
+  /* ⭐ 17/10/2026 (listes n° 54, 58, 60) — trois cadres fermés de plus, ORANGE : « le moi prochain », « la fin du moi », « trois moi » → mois
+     (« le moi profond » : rien) ; forme d'avoir + « lieux » → lieu (« avoir lieu » est invariable) ; formule de politesse + « est » + bonne /
+     bon / belle → et (« merci beaucoup est bonne journée »). UD 14 450 : 0 dans chacun. */
+  var _MOIS54={janvier:1,fevrier:1,mars:1,avril:1,mai:1,juin:1,juillet:1,aout:1,septembre:1,octobre:1,novembre:1,decembre:1};
+  var _AV58={a:1,ai:1,as:1,avons:1,avez:1,ont:1,aura:1,aurai:1,auras:1,aurons:1,aurez:1,auront:1,aurait:1,auraient:1,avait:1,avaient:1,ait:1,aient:1,eu:1,avoir:1,ayant:1};
+  var _POLI60={merci:1,beaucoup:1,bonjour:1,bonsoir:1,salut:1,coucou:1,bisous:1,bisou:1,bravo:1},_BON60={bonne:1,bon:1,belle:1,excellente:1,excellent:1,joyeuse:1,joyeux:1};
   var _MUET_NOM={avi:'avis',tapi:'tapis',coli:'colis'};   // ⭐ 17/10/2026 (liste n° 48) : « ton coli » → colis (« E. coli » : pas de déterminant)
   function lettreMuetteVig(T,i){var t=T[i],w=deaccS(t.toLowerCase()).replace(/’/g,"'");
     var pv=i>0?deaccS(T[i-1].toLowerCase()).replace(/’/g,"'").replace(/'$/,''):'',nx=i+1<T.length?deaccS(T[i+1].toLowerCase()).replace(/’/g,"'"):'';
@@ -5588,6 +5614,9 @@ function spellUnknown(tok,atStart,T,idx){
       return (/^\d/.test(nx)||CARD[nx]||_MUET_DET[nx0]||nx0==='l'||/^(midi|minuit|heures?|chez)$/.test(nx))?'vers':null;}
     if(w==='cour'&&pv==='en'){if(/^(d'|de$)/.test(nx)||ADJP[nx]||/^(martiale|supreme|royale|imperiale)$/.test(nx))return null;return 'cours';}   // « en cour d'appel », « en cour martiale »
     if(_MUET_NOM[w]&&_MUET_DET[pv])return _MUET_NOM[w];
+    if(w==='moi'){var _p54=i>1?deaccS(T[i-2].toLowerCase()):'';if(CARD[pv]||pv==='quelques'||pv==='plusieurs'||(pv==='les'&&_p54==='tous')||(pv==='du'&&/^(fin|debut|milieu|courant)$/.test(_p54))||(/^(le|ce|chaque|un|du|au)$/.test(pv)&&(/^(prochain|dernier|suivant|precedent|passe|entier|courant)$/.test(nx)||(nx==='de'&&i+2<T.length&&_MOIS54[deaccS(T[i+2].toLowerCase())]))))return 'mois';return null;}   // ⭐ liste n° 54
+    if(w==='lieux'&&_AV58[pv])return 'lieu';   // ⭐ liste n° 58
+    if(w==='est'&&_POLI60[pv]&&_BON60[nx])return 'et';   // ⭐ liste n° 60
     if(w==='tan'&&!_MUET_DET[pv]&&(nx==='de'||nx==='que'||nx==='pis'||nx==='mieux'||/^(d|qu)'/.test(nx)))return 'tant';   // ⭐ 17/10/2026 (liste n° 48) : « tan de choses », « tan que » → tant ; « le tan », « un pull tan » : rien
     return null;}
   /* ⭐ 10/10/2026 — PERSONNE DU VERBE PAR LE SON (orange) : « il servi le repas » → servit, « je dormie bien » → dormis, « je le
@@ -5817,7 +5846,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(_CEST_SUIV[nl]&&PREP[nl]&&i+2<T.length){var _n2=deacc(T[i+2].toLowerCase()),_p2=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(_n2):NOUN_POST[_n2]):null;if(/[sx]$/.test(_n2)&&_p2&&_p2[0]>=PL_TAU_M)return null;}
     if(_CEST_SUIV[nl]||/^[ld]'/.test(nlw))return ckeepcase(T[i],"c'est");
     var pp=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(nl):NOUN_POST[nl]):null;if(pp&&pp[0]>=PL_TAU_M)return null;
-    if(/(er|ir|re|oir)$/.test(nl)&&CONJ_C[nl])return ckeepcase(T[i],"c'est");
+    if(/(er|ir|re|oir)$/.test(nl)&&CONJ_C[nl]&&!_NOM_INF57[nl])return ckeepcase(T[i],"c'est");   // ⭐ liste n° 57 : « ses devoir » = le NOM sans s, pas « c'est devoir »
     if(!/[sx]$/.test(nl)&&(_ADJ_ANTE_PL[nl]||_isPpl(nx))){var fin=(i+2>=T.length)||(_SEG&&i+2<_SEG.bb.length&&_SEG.bb[i+2]),n2=fin?'':deacc(T[i+2].toLowerCase()).split("'")[0];
       if(fin||_CEST_SUIV[n2])return ckeepcase(T[i],"c'est");}
     return null;}
