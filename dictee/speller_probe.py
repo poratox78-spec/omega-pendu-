@@ -132,6 +132,11 @@ SPELL_KEEP |= set('picking dev devs app apps dashboard dashboards workflow workf
 _INIT_CONF = ('aeiouy', 'bdpq', 'cskq', 'gj', 'fv', 'mn', 'td')   # ⭐ 30/09/2026 : confusions d'initiale admises pour la dominance de fréquence — miroir JS _INIT_CONF
 
 
+def _indre91(c, d, fin='t'):
+    """⭐ liste n° 91 : « peind » → peint (peindre), pas « peine » — le -d écrit pour le -t muet des verbes en -indre (miroir JS)."""
+    return bool(re.search(r'[aeo]ind$', d)) and deacc(c) == d[:-1] + fin
+
+
 def _init_conf(w, d):
     a, b = w[:1], d[:1]
     return a == b or any(a in g and b in g for g in _INIT_CONF)
@@ -1091,6 +1096,7 @@ class Speller:
         def _kacc(w):
             if len(w) != len(low) or deacc(w) != _sq_l: return 1
             return 0 if any(c != deacc(c) and w[q] == deacc(w[q]) for q, c in enumerate(low)) else 1   # une lettre accentuée reste accentuée (é/è/ê : même classe)
+        f91 = 's' if (toks and re.search(r'[aeo]ind$', d) and self._suj_pron(toks, idx) in ('je', 'tu')) else 't'   # ⭐ liste n° 91 : « je peins » — miroir JS
         def _cmp(a, b):
             (wx, (px_, fx)), (wy, (py_, fy)) = a, b
             ax, ay = (1 if px_ == 2 else 0), (1 if py_ == 2 else 0)
@@ -1113,6 +1119,8 @@ class Speller:
                 if fax != fay: return fay - fax
             if px_ == 1 and py_ == 0 and fx >= 10 * fy: return -1   # dominance : edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
             if py_ == 1 and px_ == 0 and fy >= 10 * fx: return 1
+            i9x, i9y = (1 if _indre91(wx, d, f91) else 0), (1 if _indre91(wy, d, f91) else 0)   # ⭐ liste n° 91 : « peind » → peint avant « peine » — miroir JS
+            if i9x != i9y: return i9y - i9x
             phx, phy = (1 if phon_key(wx) == pk else 0), (1 if phon_key(wy) == pk else 0)
             if phx != phy:                                   # AUDIBILITÉ finale muette : garde de dominance (miroir pmatch/gmatch).
                 # phon_key strippe les finales muettes 'est' mais PAS 'd' → « accort »(0) phon-matche « accor », pas « accord »(975).
