@@ -599,6 +599,30 @@ function testListe46() {   // liste n° 46 : un mot capitalisé en début de phr
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 46 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe48() {   // liste n° 48 : mots réels mis pour un homophone (des/dès, prés/près, -ient/-ien, tan/tant, coli/colis)
+  for (const [t, w, s, tier] of [['Les inscriptions ouvrent des le premier lundi du mois.', 'des', 'dès', 'auto'], ['Des lors, le projet avance vite.', 'Des', 'Dès', 'auto'],
+      ['La gare est prés du centre.', 'prés', 'près', 'vigilance'], ['Nous attendons un entretient avec la directrice.', 'entretient', 'entretien', 'vigilance'],
+      ['Le facteur a laissé un coli devant la porte.', 'coli', 'colis', 'vigilance'], ['Il reste tan de travail.', 'tan', 'tant', 'vigilance'],
+      // témoins : le nom « prés », la couleur « tan », la bactérie, le verbe après un pronom — rien
+      ['Les prés de la ferme sont verts.', 'prés', null], ['Il porte un pull tan.', 'tan', null], ['La bactérie E. coli se développe.', 'coli', null],
+      ['Il le soutient chaque jour.', 'soutient', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('ligne 48 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
+function testListe49() {   // liste n° 49 : participe écrit pour l'infinitif après « j'aime » (pronom élidé) ou un conditionnel de souhait
+  for (const [t, w, s] of [["J'aime cuisiné pour mes amis.", 'cuisiné', 'cuisiner'], ['Je souhaiterais participé au projet.', 'participé', 'participer'],
+      ['Elle voudrait visité le musée.', 'visité', 'visiter'], ["J'aime le travail bien fait.", 'fait', null], ['Je voudrais un café sucré.', 'sucré', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'auto'))
+      fail.push('ligne 49 « ' + t + ' » : attendu ' + (s ? s + ' en auto' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
+function testListe50() {   // liste n° 50 : impératif écrit à la 3e personne avant un pronom (« Dit-moi si tu… », « Sort-le »)
+  for (const [t, w, s] of [['Dit-moi si tu viens ce soir.', 'Dit', 'Dis'], ['Sort-le de la boîte.', 'Sort', 'Sors'], ['Dit-il si tu viens ?', 'Dit', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
+      fail.push('ligne 50 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -654,6 +678,9 @@ function finish(parityKO) {
   testListe38();
   testListe43();
   testListe45();
+  testListe48();
+  testListe49();
+  testListe50();
   testListe47();
   testListe42();
   testListe44();

@@ -387,6 +387,8 @@ def _etre_attr_er(T, i):
     return 'N' if (np_ and np_[0] >= PL_TAU_M) else None
 
 
+_EER_COND = frozenset(u'aimerais aimerait aimerions aimeriez aimeraient voudrais voudrait voudrions voudriez voudraient souhaiterais souhaiterait souhaiterions souhaiteriez souhaiteraient pourrais pourrait pourrions pourriez pourraient devrais devrait devrions devriez devraient prefererais prefererait adorerais adorerait'.split())   # ⭐ liste n° 49 : conditionnels qui gouvernent l'infinitif (local à rule_e_er) — miroir JS
+
 def rule_e_er(T, i):
     if i >= 2:
         _pse = deacc(T[i-1].lower())
@@ -495,7 +497,8 @@ def rule_e_er(T, i):
             _tge = pos_tags(T)
             if _tge and i < len(_tge) and _tge[i] in ('NOUN', 'PROPN'): return None
         return forms[1]                              # préposition → infinitif -er
-    if p in MODAL:               return forms[1]
+    _pm49 = re.sub(u"^(j|n|qu)['’]", '', p or '')   # ⭐ 17/10/2026 (liste n° 49) : « j'aime simplifié », « j'aimerais travaillé » — miroir JS
+    if p in MODAL or (_pm49 != p and _pm49 != 'a' and _pm49 in MODAL) or _pm49 in _EER_COND: return forms[1]
     _kc = i - 1; _nc = 0; _det_pos = False             # préposition / modal + pronoms (≤ 2) + participe → infinitif
     while _kc >= 0 and _nc < 2 and deacc(T[_kc].lower()) in _EER_CLIT:
         if deacc(T[_kc].lower()) in ('le', 'la', 'les'): _det_pos = True
@@ -1836,6 +1839,7 @@ def rule_des_des(T, i):
     nxt = T[i+1]; nd = deacc(nxt.lower())
     if nd == 'que': return _keepcase(T[i], 'dès')
     if re.match(r"^l['’].", nxt.lower()): return _keepcase(T[i], 'dès')
+    if (nd == 'lors' or nxt in ('le', 'la')) and not (T[i].lower() == u'dés' and i > 0 and (deacc(T[i - 1].lower()) in NUM_DET or deacc(T[i - 1].lower()) in CARD or T[i - 1][:1].isdigit())): return _keepcase(T[i], 'dès')   # ⭐ 17/10/2026 (liste n° 48) : « des le 3 novembre », « des lors » — miroir JS
     return None
 
 
@@ -6790,6 +6794,16 @@ def rule_cher_chez(T, i):
 
 def rule_pres_pret(T, i):
     lw = T[i].lower()
+    if lw == u'prés':   # ⭐ 17/10/2026 (liste n° 48) : « prés de trois heures » → près ; « les prés de la ferme » = le nom — miroir JS
+        if i + 1 >= len(T): return None
+        n48 = deacc(T[i + 1].lower())
+        if n48 not in ('de', 'du', 'des') and not re.match(u"^d['’].", n48): return None
+        if i > 0:
+            p48 = deacc(T[i - 1].lower())
+            if p48 in _PRET_DET or p48 in ('aux', 'au', 'ces', 'nos', 'vos', 'quelques', 'plusieurs'): return None
+            tg = pos_tags(T)
+            if tg and i - 1 < len(tg) and tg[i - 1] == 'ADJ': return None
+        return u'près'
     dur = lw in ('prêt', 'prêts'); mou = lw in ('prête', 'prêtes')
     if not dur and not mou: return None
     if mou and (i < 1 or deacc(T[i - 1].lower()) not in _PRET_COP): return None   # « elle prête de l'argent » = verbe prêter
@@ -7029,6 +7043,7 @@ def rule_subjonctif(T, i):
 _IMPS_INV_ADV = frozenset('ensuite alors enfin puis aussi maintenant bientot deja soudain'.split())
 _IMPS_INV_V = frozenset('venir revenir survenir suivre apparaitre paraitre naitre partir sortir arriver commencer'.split())
 _IMPS2 = frozenset(('ton', 'ta', 'tes', 'toi', 'te'))
+_IMPS_SUB = frozenset('si que quand lorsque comme parce pourquoi comment combien puisque'.split())   # ⭐ 17/10/2026 (liste n° 50) — miroir JS
 _IMPS2P = frozenset(('votre', 'vos', 'vous'))
 _IMPS_SPEC = {'etre': ('sois', 'soyez'), 'avoir': ('aie', 'ayez'), 'savoir': ('sache', 'sachez'), 'vouloir': ('veuille', 'veuillez'), 'aller': ('va', 'allez')}
 _IMPS_PRON = frozenset(('moi', 'toi', 'lui', 'le', 'la', 'les', 'leur', 'nous', 'vous'))
@@ -7050,6 +7065,7 @@ def rule_imperatif_seul(T, i):
     for k in range(i + 1, min(len(T), i + 5)):
         if k < len(bb) and bb[k]: break
         dk = deacc(T[k].lower())
+        if k > i + 1 and (dk in _IMPS_SUB or re.match(u"^(qu|lorsqu|puisqu)['’]", T[k].lower())): break   # ⭐ liste n° 50 : « Dit-moi si tu veux » — miroir JS
         if dk in SUBJ_PRON and not (k == i + 1 and hy): return None
         if dk in _IMPS2 or re.match(u"^t['’]", T[k].lower()): c2 = True
         if dk in _IMPS2P: c2p = True
@@ -7066,7 +7082,7 @@ def rule_imperatif_seul(T, i):
     lems = {r[0] for r in rd}; pn = {r[2] for r in rd}
     if len(lems) != 1 or not (pn & {'2', '3'}): return None
     L = next(iter(lems))
-    if L in _IMPS_INV_V and (n1 in _IMPS2 or n1 in NUM_DET): return None
+    if L in _IMPS_INV_V and not hy and (n1 in _IMPS2 or n1 in NUM_DET): return None   # ⭐ liste n° 50 : « Sort-le » — miroir JS
     imp = _IMPS_SPEC[L][0] if L in _IMPS_SPEC else None
     if not imp:
         f2 = ((CONJ_C.get(L) or {}).get('ind:pre') or {}).get('2s')
@@ -7936,6 +7952,10 @@ MUETS = [
     ("Les eaux s'écoulent-elles vers la mer ?", "inversion : le verbe s'accorde au pronom inversé, pas à un sujet nominal (liste n° 43)."),
     ("Faites-le vous-même.", "« faites » = 2e pers. du pluriel de faire, pas un présent en -e + s (16/10/2026, liste n° 45)."),
     ("Dites-moi la vérité.", "« dites » = 2e pers. du pluriel de dire (liste n° 45)."),
+    ("Les prés de la ferme sont verts.", "« prés » NOM après un déterminant : pas « près » (17/10/2026, liste n° 48)."),
+    ("Les verts prés de la vallée.", "« prés » nom après un adjectif (liste n° 48)."),
+    ("J'aime le travail bien fait.", "« fait » participe épithète, pas l'infinitif (17/10/2026, liste n° 49)."),
+    ("Dit-il si tu viens ?", "inversion « dit-il » : pas un impératif (liste n° 50)."),
     ("Le prêt a été accordé.", "« prêt » NOM après un déterminant : « a » reste avoir (17/10/2026, liste n° 47)."),
     ("Ce prêt a un taux bas.", "« prêt » nom, « a » + déterminant : avoir (liste n° 47)."),
     ("Il a tous les atouts.", "« a tous » sans salutation devant : avoir (liste n° 47)."),
@@ -8168,6 +8188,11 @@ CASES = [
     ("L'aide a été précieuse.", "a", "à", "a/à"),   # un NOM n'est pas un gouverneur de « à »
     ("Le reste a été vendu.", "a", "à", "a/à"),
     ("L'aide a changé sa vie.", "a", "à", "a/à"),
+    ("Les inscriptions ouvrent dès le premier lundi du mois.", "dès", "des", "des/dès"),   # ⭐ 17/10/2026 (liste n° 48)
+    ("Dès lors, le projet avance vite.", "Dès", "Des", "des/dès"),
+    ("La gare est près du centre.", "près", "prés", "près/prêt"),
+    ("J'aime cuisiner pour mes amis.", "cuisiner", "cuisiné", "-é/-er"),   # ⭐ 17/10/2026 (liste n° 49) : pronom élidé dans le jeton
+    ("Je souhaiterais participer au projet.", "participer", "participé", "-é/-er"),   # conditionnel de souhait
     ("Mon voisin est prêt à me prêter sa voiture.", "à", "a", "a/à"),   # ⭐ 17/10/2026 (liste n° 47) ⑨ : pronom préverbal entre « a » et le verbe
     ("Bonne soirée à tous.", "à", "a", "a/à"),                          # ⑩ salutation + « à tous »
     ("C'est simple à utiliser.", "à", "a", "a/à"),                      # ⑪ adjectif qui appelle « à » + infinitif
