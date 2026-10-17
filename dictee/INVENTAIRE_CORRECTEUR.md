@@ -87,7 +87,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 68 | accord tout | `rTout` | `rule_tout_det` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post |
 | 69 | infinitif après pronom sujet à vérifier | `rPronInf` | `rule_pron_inf` | orange | personne | vdc-lex (conjugaison, genre, pluriels) |
 | 70 | accord adjectif antéposé | `rAdjAntePl` | `rule_adj_ante_plural` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM, genre accentué |
-| 71 | accord adjectif antéposé | `rAdjAnteGenre` | `rule_adj_ante_genre` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
+| 71 | accord adjectif antéposé | `rAdjAnteGenre` | `rule_adj_ante_genre` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM |
 | 72 | nom féminin en -ée | `rFemEe` | `rule_fem_ee` | rouge | muette | — |
 | 73 | accord pluriel nom | `rNounPlural` | `rule_noun_plural` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, genre accentué |
 | 74 | accord singulier nom | `rNounSing` | `rule_noun_singular` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM |
@@ -184,7 +184,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 96 / 103 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `rImperatif` … (103) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 78 / 103 | `rEPplVig` `rEPpl` `rCaSa` `rAccordIncise` `rDetGenre` `rTout` `rNounSing` `_deselide` … (21) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 28 / 103 | `_isPplWideEr` `_canonW` `_emit` `rInfBut` `_spos` `_pplForm` `_infForm` `rAInfE` … (55) |
-| noun-post | `_applyNounPost` | `NOUN_POST` | 23 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (31) |
+| noun-post | `_applyNounPost` | `NOUN_POST` | 24 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (31) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 43 / 103 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 103 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
 | prénoms | `_applyPrenoms` | `PRENOMS` | 15 / 103 | `_rAbase` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
