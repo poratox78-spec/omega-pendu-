@@ -578,6 +578,15 @@ function testListe44() {   // liste n° 44 : après un auxiliaire, la finale de 
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (!f || f.sugg !== s || f.tier !== tier) fail.push('ligne 44 « ' + t + ' » : attendu ' + s + ' en ' + tier + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe47() {   // liste n° 47 : « a » qui ne peut pas être avoir → « à », sans réécrire l'infinitif qui suit
+  for (const [t, bon] of [['Mon voisin est prêt a me prêter sa voiture.', 'prêter'], ['Bonne soirée a tous.', null], ['C\'est simple a utiliser.', 'utiliser'],
+      ['Il est prêt a nous aider.', 'aider'], ['Ce texte est long a lire.', 'lire']]) {
+    const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === 'a'), v = bon && fl.find(x => x.word === bon);
+    if (!f || f.sugg !== 'à' || f.tier !== 'auto' || v) fail.push('ligne 47 « ' + t + ' » : attendu a → à seul, eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.tier]))); }
+  for (const t of ['Le prêt a été accordé.', 'Il a tous les atouts.', 'Ce prêt a un taux bas.']) {   // témoins : avoir
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === 'a');
+    if (f) fail.push('ligne 47 témoin « ' + t + ' » : attendu rien, eu a → ' + f.sugg); }
+}
 function testListe46() {   // liste n° 46 : un mot capitalisé en début de phrase, inconnu, qui ne peut pas être un nom propre connu → orange
   for (const [t, w, s] of [['Le train part tard. Ensuitte nous marchons vers le port.', 'Ensuitte', 'Ensuite'],
       ['La réunion finit à midi\nToujorus la même salle au deuxième étage.', 'Toujorus', 'Toujours'], ['Il fait beau ce matin. Pourtnat la route reste glissante.', 'Pourtnat', 'Pourtant'],
@@ -672,6 +681,7 @@ function finish(parityKO) {
   testListe48();
   testListe49();
   testListe50();
+  testListe47();
   testListe42();
   testListe44();
   testListe46();
