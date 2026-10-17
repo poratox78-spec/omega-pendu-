@@ -665,6 +665,17 @@ function testListe52() {   // liste n° 52 : coquilles entrées dans le lexique 
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 52 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe73() {   // listes n° 73 à 76 : 4e tour des textes de genre réel
+  for (const [t, w, s, tier] of [['Il aide sa tante a ranger le garage.', 'a', 'à', 'auto'], ['Nous avons hâte de te voire bientôt.', 'voire', 'voir', 'vigilance'],
+      ["L'accueille de l'hôtel était parfait.", "L'accueille", "L'accueil", 'vigilance'], ['Elle a surtout aimer la fin du film.', 'aimer', 'aimé', 'auto'],
+      // témoins : rien
+      ["Ce qu'il a appris a changé sa vie.", 'a', null], ["Le roi l'accueille chez lui.", "l'accueille", null], ['Il viendra, voire plus tard.', 'voire', null]]) {
+    const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w && (s === null || x.sugg === s)) || fl.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('lignes 73-76 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+  const fp = DC.diagnoseAll('Il aide sa tante a ranger le garage.').flags.find(x => x.word === 'ranger');
+  if (fp) fail.push('ligne 73 : « ranger » (infinitif juste) ne doit plus être réécrit, eu ' + fp.sugg + ' en ' + fp.tier);
+}
 function testListe64() {   // liste n° 64 : « et » entre deux propositions — le sujet nominal après « et » est lu
   for (const [t, w, s] of [['Il pleut fort et le colis étais trempé.', 'étais', 'était'], ['Le vent souffle et les arbres plie.', 'plie', 'plient'],
       ['Le chat et le chien mangent.', 'mangent', null], ['La chanteuse et son fils chantent ensemble.', 'chantent', null]]) {
@@ -732,6 +743,7 @@ function finish(parityKO) {
   testListe50();
   testListe53();
   testListe63();
+  testListe73();
   testListe52();
   testListe64();
   testListe47();
