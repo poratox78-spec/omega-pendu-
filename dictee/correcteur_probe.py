@@ -2266,6 +2266,18 @@ def _qui_rel_avant(T, j, lo):
 _NP_QUANT_UN = frozenset("chacun chacune aucun aucune nul nulle l'un l'une un une".split())   # ⭐ 13/10/2026 (conjugaison 11)
 
 
+def _et_propo64(T, tg, lo, j, det_idx, sp):
+    """⭐ 17/10/2026 (liste n° 64) — « et » / « ou » qui relie deux propositions (miroir JS _etPropo64)."""
+    if det_idx is None or sp or j - 1 < lo or not tg: return False
+    wp = T[j - 1]
+    if tg[j - 1] not in ('ADV', 'VERB', 'AUX', 'ADJ') or wp != wp.lower() or re.search(u"[\\d'’]", wp): return False   # liste POSITIVE (mesure)
+    v = False
+    for k in range(lo, j):
+        dk = deacc(T[k].lower())
+        if dk in ('qui', 'que', 'dont', 'ou', 'lequel', 'laquelle') or re.match(u"^qu['’]", dk): return False
+        if k < len(tg) and tg[k] in ('VERB', 'AUX') and T[k] == T[k].lower() and not re.search(u"[\\d'’]", T[k]): v = True
+    return v
+
 def _np_subject(T, tg, a):
     """Sujet [déterminant + nom-tête] placé juste avant le verbe d'indice a. Renvoie {'idx','det','g','n'} ou None.
     Bornes : proposition (_SEG). Abstention sur coordination (et/ou/ni), sujet-pronom (traité ailleurs), sujet-PP/infinitif
@@ -2311,7 +2323,9 @@ def _np_subject(T, tg, a):
     j = a - 1
     while j >= lo:
         dj = deacc(T[j].lower()); tgj = tg[j] if (tg and j < len(tg)) else None
-        if dj in ('et', 'ou', 'ni'): return None             # sujet coordonné → genre/nombre mixtes → abstention
+        if dj in ('et', 'ou', 'ni'):                         # sujet coordonné → genre/nombre mixtes → abstention…
+            if dj != 'ni' and _et_propo64(T, tg, lo, j, det_idx, _seen_prep): break   # ⭐ liste n° 64 : … sauf « et » entre deux PROPOSITIONS — miroir JS
+            return None
         # relative/subordonnée (que/qui/dont…) → GN sujet à droite (ne pas remonter dans la proposition amont)
         # ⭐ TEST DE PRÉFIXE, et c'est un BUG CORRIGÉ, pas une précaution. `TOK` ne sépare pas
         # l'élision : « qu'offrent » est UN token, donc `dj in _NP_BREAK` (qui contient « que »,
@@ -7999,6 +8013,8 @@ MUETS = [
     ("Il est malade ou en voyage.", "« ou en » sans verbe être : conjonction (liste n° 62)."),
     ("Lui a lui aussi répondu.", "« a » entre deux pronoms : avoir, pas une locution (17/10/2026, liste n° 70)."),
     ("Je n'ai pas faim.", "« n'ai » après « je » : juste (liste n° 69)."),
+    ("Le chat et le chien mangent.", "sujets coordonnés : pluriel juste (17/10/2026, liste n° 64)."),
+    ("La chanteuse et son fils chantent ensemble.", "sujets coordonnés, nom propre ou non (liste n° 64)."),
     ("Le prêt a été accordé.", "« prêt » NOM après un déterminant : « a » reste avoir (17/10/2026, liste n° 47)."),
     ("Ce prêt a un taux bas.", "« prêt » nom, « a » + déterminant : avoir (liste n° 47)."),
     ("Il a tous les atouts.", "« a tous » sans salutation devant : avoir (liste n° 47)."),
