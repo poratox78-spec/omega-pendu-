@@ -693,6 +693,28 @@ function testListe78() {   // listes n° 78 à 83 (sauf 80 et 82) : 5e tour des 
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
       fail.push('lignes 78-83 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe84() {   // liste n° 84 : participe d'un verbe sans complément d'objet direct — jamais accordé avec le « que » qui précède (avoir)
+  for (const [t, w, s] of [["La plateforme qu'ils ont accédé hier est fermée.", 'accédé', null], ["La route qu'ils ont abouti était longue.", 'abouti', null],
+      // témoin : un verbe transitif direct garde son accord
+      ["La lettre qu'il a écrit hier est arrivée.", 'écrit', 'écrite']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w && x.name === 'accord participe (COD avoir)');
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('ligne 84 « ' + t + ' » : attendu ' + (s ? s : 'aucun accord') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
+function testListe85() {   // liste n° 85 : retomber, provenir, advenir ne se conjuguent qu'avec être
+  for (const [t, w, s] of [['Il a retombé dans ses vieilles habitudes.', 'a', 'est'], ['Il est retombé dans ses vieilles habitudes.', 'est', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('ligne 85 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
+function testListe82() {   // liste n° 82 : « sa meilleur amie » — un nom aussi adjectif (amie, voisine) manquait au genre pur
+  for (const [t, w, s] of [["C'est sa meilleur amie depuis l'école.", 'meilleur', 'meilleure'], ['Elle passe la soirée chez sa grand voisine.', 'grand', 'grande'],
+      // témoins : rien
+      ["C'est sa meilleure amie depuis l'école.", 'meilleure', null], ['Une nation amie nous aide.', 'amie', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('ligne 82 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe87() {   // liste n° 87 : la table de conjugaison garde les deux graphies d'un même verbe (connaître / connaitre) — le passé simple de connaître, paraître, reconnaître
   for (const [t, w, s] of [['Il connu des jours difficiles.', 'connu', 'connut'], ['Elle reconnu sa voix au téléphone.', 'reconnu', 'reconnut'], ['Il paru fatigué ce soir-là.', 'paru', 'parut'],
       // témoins : rien
@@ -772,6 +794,9 @@ function finish(parityKO) {
   testListe63();
   testListe73();
   testListe78();
+  testListe82();
+  testListe84();
+  testListe85();
   testListe87();
   testListe59();
   testListe52();
