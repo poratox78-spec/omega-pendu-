@@ -1,5 +1,5 @@
 {
- "justes": 390,
+ "justes": 391,
  "pointeuses": 207,
  "fatigue": 132,
  "cles_justes": [
@@ -275,6 +275,7 @@
   "préentés→présentés [orthographe] lettre_manque",
   "préférrées→préférées [orthographe] lettre_trop",
   "présiser→préciser [orthographe] lettre_change",
+  "prés→près [près/prêt] accent",
   "prêcession→précession [mot inconnu] accent",
   "pubbliques→publiques [orthographe] lettre_trop",
   "pubilé→publié [mot inconnu] inversion",
