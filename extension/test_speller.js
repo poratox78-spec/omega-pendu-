@@ -646,6 +646,18 @@ function testListe53() {   // listes n° 53 à 62 (sauf 59) : 2e tour des textes
   const fi = DC.diagnoseAll('Je pars le moi prochain.').flags.find(x => x.name === 'impératif (pronom)');
   if (fi) fail.push('ligne 54 : « Je pars le moi prochain » ne doit pas devenir un impératif, eu ' + fi.sugg);
 }
+function testListe63() {   // listes n° 63 à 72 (sauf 64 et 71) : 3e tour des textes de genre réel
+  for (const [t, w, s, tier] of [["Faite chauffer l'eau dans une casserole.", 'Faite', 'Faites', 'vigilance'],
+      ["Le repas est bon, mes l'addition est salée.", 'mes', 'mais', 'auto'], ['Le garage ma rendu la voiture hier.', 'ma rendu', "m'a rendu", 'vigilance'],
+      ["Avec ma sœur, on a fini en moin d'une semaine.", 'moin', 'moins', 'flag'], ['Je la recommende à mes voisins.', 'recommende', 'recommande', 'vigilance'],
+      ["Personne n'ai venu ce matin.", "n'ai", "n'est", 'auto'], ["Dommage que le magasin n'ai pas ouvert.", "n'ai", "n'ait", 'auto'],
+      ['Petit a petit, la neige fond.', 'a', 'à', 'auto'], ['Laissez cuir le riz dix minutes.', 'cuir', 'cuire', 'vigilance'],
+      // témoins : rien
+      ['Lui a lui aussi répondu.', 'a', null], ['Une porte en bois peinte.', 'peinte', null], ['Il a un menu varié.', 'menu', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('lignes 63-72 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -705,6 +717,7 @@ function finish(parityKO) {
   testListe49();
   testListe50();
   testListe53();
+  testListe63();
   testListe47();
   testListe51();
   testListe42();
