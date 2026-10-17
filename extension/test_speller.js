@@ -630,6 +630,22 @@ function testListe51() {   // liste n° 51 : accents faux entrés dans le lexiqu
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'auto'))
       fail.push('ligne 51 « ' + t + ' » : attendu ' + (s ? s + ' en auto' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe53() {   // listes n° 53 à 62 (sauf 59) : 2e tour des textes de genre réel
+  for (const [t, w, s, tier] of [["Il faut d'abort lire la notice.", "d'abort", "d'abord", 'flag'], ["D'acord, je viens.", "D'acord", "D'accord", 'flag'],
+      ['Je commence le moi prochain.', 'moi', 'mois', 'vigilance'], ["Je n'est reçu aucun courrier.", "n'est", "n'ai", 'auto'],
+      ["Je n'est pas content.", "n'est", 'ne suis', 'auto'], ['Nous partons cette été.', 'cette', 'cet', 'auto'], ['Cette homme parle fort.', 'Cette', 'Cet', 'vigilance'],
+      ['Il fait ses devoir le soir.', 'devoir', 'devoirs', 'auto'], ['La fête aura lieux samedi.', 'lieux', 'lieu', 'vigilance'],
+      ['Merci beaucoup est bonne soirée.', 'est', 'et', 'vigilance'], ['Il viendra te cherché à la gare.', 'cherché', 'chercher', 'auto'],
+      ['Dis-moi ou en est le projet.', 'ou', 'où', 'vigilance'],
+      // témoins : rien
+      ['Le moi profond de chacun.', 'moi', null], ['Ce héros parle fort.', 'Ce', null], ['Il faut les savoir par cœur.', 'savoir', null],
+      ['Il a visité les lieux hier.', 'lieux', null], ['Le repas est bon.', 'est', null], ['Il est malade ou en voyage.', 'ou', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('lignes 53-62 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+  const fi = DC.diagnoseAll('Je pars le moi prochain.').flags.find(x => x.name === 'impératif (pronom)');
+  if (fi) fail.push('ligne 54 : « Je pars le moi prochain » ne doit pas devenir un impératif, eu ' + fi.sugg);
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -688,6 +704,7 @@ function finish(parityKO) {
   testListe48();
   testListe49();
   testListe50();
+  testListe53();
   testListe47();
   testListe51();
   testListe42();

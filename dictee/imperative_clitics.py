@@ -122,6 +122,11 @@ def moves(text, isverb):
         verb = m.group(1)
         if not isverb(verb) or verb.lower().endswith('ant') or _deacc(verb.lower()) in _NOTIMP or len(_deacc(verb.lower())) < 3:
             continue
+        _pre54 = re.search(r"([A-Za-zÀ-ÿ'’]+)\s*$", text[:m.start()])   # ⭐ liste n° 54 : un impératif n'a pas de sujet — miroir JS
+        if _pre54 and _deacc(_pre54.group(1).lower()) in ('je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles'):
+            continue
+        if m.group(3).lower() == 'moi' and re.match(r'\s+(prochain|dernier|suivant|précédent|precedent|passé|passe|entier|courant)\b', text[m.end():], re.I):
+            continue   # « le moi prochain » = le mois
         add(m, _cap(m.group(0), _build_aff(verb, [m.group(2), m.group(3)])), 'impératif (pronom)')
 
     # 4) TRAIT D'UNION manquant, ancré sur moi/toi (jamais article) : (début) verbe moi/toi → verbe-moi

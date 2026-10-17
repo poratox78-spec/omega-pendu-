@@ -365,8 +365,8 @@ def _eer_gouv_inf(T, k):
     r = T[k].lower(); d = deacc(r)
     if r == u'à' and k > 0 and deacc(T[k-1].lower()) in ('quant', 'grace'): return False   # « quant à lui », « grâce à elle »
     _dd = re.sub(r"^(j|n|qu)'", '', d)
-    if _dd != d and _dd != 'a' and _dd in MODAL: return True   # « j'aime m'habillé » : le modal collé à son pronom (⭐ 04/10/2026)
-    return r in _EER_PINF or (d != 'a' and d in MODAL) or _eer_minf(T, k)
+    if _dd != d and _dd != 'a' and (_dd in MODAL or _dd in _EER_COND): return True   # « j'aime m'habillé » : le modal collé à son pronom (⭐ 04/10/2026)
+    return r in _EER_PINF or (d != 'a' and d in MODAL) or d in _EER_COND or _eer_minf(T, k)   # ⭐ liste n° 61
 
 
 # ⭐ 09/10/2026 — ÊTRE + mot en -er que rule_e_er / rule_flexion_er mettaient au participe en rouge : « il est fier de » → fié,
@@ -387,7 +387,7 @@ def _etre_attr_er(T, i):
     return 'N' if (np_ and np_[0] >= PL_TAU_M) else None
 
 
-_EER_COND = frozenset(u'aimerais aimerait aimerions aimeriez aimeraient voudrais voudrait voudrions voudriez voudraient souhaiterais souhaiterait souhaiterions souhaiteriez souhaiteraient pourrais pourrait pourrions pourriez pourraient devrais devrait devrions devriez devraient prefererais prefererait adorerais adorerait'.split())   # ⭐ liste n° 49 : conditionnels qui gouvernent l'infinitif (local à rule_e_er) — miroir JS
+_EER_COND = frozenset(u'aimerais aimerait aimerions aimeriez aimeraient voudrais voudrait voudrions voudriez voudraient souhaiterais souhaiterait souhaiterions souhaiteriez souhaiteraient pourrais pourrait pourrions pourriez pourraient devrais devrait devrions devriez devraient prefererais prefererait adorerais adorerait passerai passeras passera passerons passerez passeront passerais passerait viendrai viendras viendra viendrons viendrez viendront viendrais viendrait irai iras ira irons irez iront irais irait'.split())   # + liste n° 61   # ⭐ liste n° 49 : conditionnels qui gouvernent l'infinitif (local à rule_e_er) — miroir JS
 
 def rule_e_er(T, i):
     if i >= 2:
@@ -808,7 +808,7 @@ def rule_flexion_er(T, i):
         else:
             if i > 1 and deacc(T[i - 1].lower()) == 'a' and deacc(T[i - 2].lower()) in _A_INF_ADJ and cur == 'inf': return None   # ⭐ 11/10/2026 : « facile a réparer » — miroir JS rFlexionEr
             tgt = 'part'
-    elif p in _INF_GOV or p in MODAL or p in _CAUS:   # prépo (de/pour/sans/afin)/modal/causatif (faire+inf) → infinitif
+    elif p in _INF_GOV or p in MODAL or p in _CAUS or p in _EER_COND:   # prépo (de/pour/sans/afin)/modal/causatif (faire+inf) → infinitif
         # ⭐ …SAUF UN NOM QUE SEULE LA TABLE ACCENTUÉE CONNAÎT (08/09/2026). Les trois listes de
         # noms homographes de cette règle (NOUN_E, _FLEX_STOP, NOUN_EE) sont DÉSACCENTUÉES : « trace »
         # (f) et « tracé » (m) s'y annulent, donc « et de tracé (y compris…) » devenait « tracer ».
@@ -840,7 +840,7 @@ def rule_flexion_er(T, i):
         dg = deacc(T[g].lower()); graw = T[g].lower()
         if graw != 'à' and (dg in _AUX_AV or graw == "j'ai"):
             tgt = 'inf' if (dg == 'a' and rule_a_aa(T, g) == 'à') else 'part'   # ⭐ 12/09/2026 : la MÊME garde a/à qu'en position immédiate — « a réussi a se lever » : « a » + clitique + verbe est un « à » (rule_a_aa tranche) → infinitif, plus « levé » (mot juste cassé, gold dys). Miroir JS.                          # avoir/être (+ clitique/adverbe) → participe (« a déjà écouter »→écouté). « à » désaccentué = « a » → NON
-        elif dg in _INF_GOV or dg in MODAL or dg in _CAUS:
+        elif dg in _INF_GOV or dg in MODAL or dg in _CAUS or dg in _EER_COND:
             tgt = 'inf'                           # prépo/modal/causatif (+ clitique) → infinitif (« veut se séparé »→séparer, « fait déclaré »→déclarer)
         else:
             return None
@@ -1950,7 +1950,7 @@ def _ces_cest(T, i):
     if nl in _CEST_SUIV or re.match(r"[ld]'", nlw): return _keepcase(T[i], "c'est")
     pp = NOUN_POST.get(nl) if NOUN_POST else None
     if pp and pp[0] >= PL_TAU_M: return None
-    if re.search(r'(er|ir|re|oir)$', nl) and nl in CONJ_C: return _keepcase(T[i], "c'est")
+    if re.search(r'(er|ir|re|oir)$', nl) and nl in CONJ_C and nl not in _NOM_INF57: return _keepcase(T[i], "c'est")   # ⭐ liste n° 57 — miroir JS
     if not re.search(r'[sx]$', nl) and (nl in _ADJ_ANTE_PL or _is_ppl(nx)):
         fin = i + 2 >= len(T) or (_SEG is not None and i + 2 < len(_SEG['bb']) and _SEG['bb'][i + 2])
         n2 = '' if fin else deacc(T[i + 2].lower()).split("'")[0]
@@ -5195,6 +5195,8 @@ _EPICENE_NOUN |= {'app', 'apps'}   # ⭐ liste n° 21 : « une app » (applicati
 _PREFIX_NU = frozenset('pre post anti ex co auto pro ultra micro macro mini multi demi semi neo non sous vice'.split())   # ⭐ liste n° 34 (a) : préfixes écrits détachés — miroir JS _PREFIX_NU
 
 
+_CET_TOT56 = frozenset('ete hiver automne endroit an instant'.split())   # ⭐ 17/10/2026 (liste n° 56) — miroir JS
+_H_MUET56 = frozenset('homme hopital hotel hiver hommage horaire honneur horizon habitant habit hebergement heritage humour hymne'.split())
 def rule_det_gender(T, i):
     if hy_det_skip(T, i): return None   # ⭐ liste n° 43 : le nom suivant ouvre un composé verbe-nom ou préfixé — miroir JS _hyDetSkip
     lw = deacc(T[i].lower())
@@ -5209,6 +5211,7 @@ def rule_det_gender(T, i):
     if lw in ('son', 'mon', 'ton') and nd[:1] in 'aeiouyh':        # son/mon/ton OBLIGATOIRES devant voyelle/h (son amie,
         return None                                                # son Histoire) — correct même au féminin → JAMAIS un FP
     if T[i+1][:1].isupper(): return None                           # nom propre/étranger (capitalisé) → abstention (FP)
+    if lw == 'cette' and (nd in _CET_TOT56 or nd in _H_MUET56): return _keepcase(T[i], 'cet')   # ⭐ liste n° 56 — miroir JS
     hi = i + 1                                                      # indice du NOM-TÊTE (défaut = mot suivant)
     _pp = NOUN_POST.get(nd)                                        # GARDE §3 (posterior fréquentiel) : le NOM-TÊTE doit être CONFIDEMMENT un NOM
     if lw in ('quel', 'quelle') and not (_pp and _pp[0] >= PL_TAU_M):   # « quel/quelle + ADJECTIF antéposé + nom » : sauter UN adjectif sûr (tagger) → nom-tête (« quel belle journée »→quelle)
@@ -5253,6 +5256,7 @@ def rule_det_gender(T, i):
     g_noun = GENDER_ACC_COLL.get(T[hi].lower()) or GENDER_PURE.get(deacc(T[hi].lower()))  # (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
     if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
     sugg = DET_ALT.get((lw, g_noun))
+    if sugg == 'ce' and (re.match('[aeiou]', deacc(T[i + 1].lower())) or deacc(T[i + 1].lower()) in _H_MUET56): sugg = 'cet'   # ⭐ liste n° 56
     return _keepcase(T[i], sugg) if sugg else None
 
 
@@ -5470,6 +5474,14 @@ def rule_jest(T, i, _vig=False):
       · participe d'AVOIR (« j'est mangé », « j'est entendu », « j'est perdu mes clés » — _is_ppl OU irrégulier _IRR_PP) → j'ai.
     Miroir JS rJest / jestVig."""
     if not _vig and deacc(T[i].lower()) in ("j'as", "j'a"): return T[i][:2] + 'ai'   # ⭐ 12/10/2026 (conjugaison 8) : « j'as faim », « j'a vu » → j'ai — miroir JS
+    if not _vig and deacc(T[i].lower()) == "n'est" and i > 0 and deacc(T[i - 1].lower()) == 'je' and i + 1 < len(T):   # ⭐ liste n° 55 — miroir JS
+        k55 = i + 1
+        if deacc(T[k55].lower()) in ('pas', 'plus', 'jamais', 'rien', 'guere', 'point') and k55 + 1 < len(T): k55 += 1
+        w55 = T[k55].lower(); d55 = deacc(w55)
+        if d55 in ('ete', 'eu'): return _keepcase(T[i], "n'ai")
+        if d55 in CADJ or d55 in ETRE_PP or d55 in _JEST_LIEU or w55 == u'là': return _keepcase(T[i], 'ne suis')
+        if _is_ppl(w55) or w55 in NUM_DET or d55 == 'de' or re.match(u"^d['’]", w55): return _keepcase(T[i], "n'ai")
+        return None
     if deacc(T[i].lower()) != "j'est" or i + 1 >= len(T):
         return None
     nxt = T[i + 1]; nl = nxt.lower(); dn = deacc(nl)
@@ -5764,6 +5776,7 @@ def _aux_sur(w, adj):
     return bool(re.match(u'^[aeiouy]', d)) or (w.lower() in _ADJ_ANTE_M if adj else _noun_gender(w, 's') == 'f')
 
 
+_NOM_INF57 = {'devoir': 2, 'diner': 2, 'dejeuner': 2, 'souper': 2, 'pouvoir': 1, 'savoir': 1, 'rire': 1, 'sourire': 1}   # ⭐ liste n° 57 — miroir JS
 def rule_noun_plural(T, i):
     if i == 0: return None
     _pd = deacc(T[i - 1].lower())
@@ -5777,6 +5790,8 @@ def rule_noun_plural(T, i):
     _card = _pd in CARD                                          # cardinal ≥2 (« cinq kilo ») = déterminant pluriel non ambigu
     _px = _PL_DET_X.get(_pd)
     if _pd not in PLURAL_DET and not _card and not _px: return None   # déterminant pluriel juste avant
+    _n57 = deacc(T[i].lower())   # ⭐ liste n° 57 : nom qui est aussi un infinitif (« ses devoir » → devoirs) — miroir JS
+    if _n57 in _NOM_INF57 and T[i] == T[i].lower() and (_pd != 'les' or _NOM_INF57[_n57] == 2) and (i + 1 >= len(T) or not _is_infinitive(T[i + 1])): return T[i] + 's'
     n = T[i]
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
     dn = deacc(n.lower())
@@ -6139,6 +6154,8 @@ def rule_ou_ou(T, i):
     n = len(T)
     if i + 1 < n and T[i + 1].lower() in _OU_PRON and not _ou_correlative(T, i):
         return _keepcase(T[i], 'où')                       # F1
+    if i + 2 < n and deacc(T[i + 1].lower()) == 'en' and deacc(T[i + 2].lower()) in ('est', 'sont', 'etait', 'etaient', 'sera', 'seront', 'ai', 'es', 'etes', 'sommes'):
+        return _keepcase(T[i], 'où')                       # ⭐ liste n° 62 : « ou en est » — miroir JS
     # ⛔ GARDE 1 (FP mesuré) : le nom de lieu doit porter SON déterminant. « camarade DE classe ou
     # une personne » est une coordination, pas une relative — « de » n'est pas un déterminant.
     if (i >= 2 and deacc(T[i - 1].lower()) in _OU_NOM and T[i - 2].lower() in _OU_DET
@@ -7956,6 +7973,9 @@ MUETS = [
     ("Les verts prés de la vallée.", "« prés » nom après un adjectif (liste n° 48)."),
     ("J'aime le travail bien fait.", "« fait » participe épithète, pas l'infinitif (17/10/2026, liste n° 49)."),
     ("Dit-il si tu viens ?", "inversion « dit-il » : pas un impératif (liste n° 50)."),
+    ("Ce héros parle fort.", "h aspiré : « ce » reste (17/10/2026, liste n° 56)."),
+    ("Il faut les savoir par cœur.", "« les » pronom + infinitif : pas « savoirs » (liste n° 57)."),
+    ("Il est malade ou en voyage.", "« ou en » sans verbe être : conjonction (liste n° 62)."),
     ("Le prêt a été accordé.", "« prêt » NOM après un déterminant : « a » reste avoir (17/10/2026, liste n° 47)."),
     ("Ce prêt a un taux bas.", "« prêt » nom, « a » + déterminant : avoir (liste n° 47)."),
     ("Il a tous les atouts.", "« a tous » sans salutation devant : avoir (liste n° 47)."),
@@ -8191,6 +8211,11 @@ CASES = [
     ("Les inscriptions ouvrent dès le premier lundi du mois.", "dès", "des", "des/dès"),   # ⭐ 17/10/2026 (liste n° 48)
     ("Dès lors, le projet avance vite.", "Dès", "Des", "des/dès"),
     ("La gare est près du centre.", "près", "prés", "près/prêt"),
+    ("Je n'ai reçu aucun courrier.", "n'ai", "n'est", "j'est/j'ai"),   # ⭐ 17/10/2026 (liste n° 55)
+    ("Nous partons cet été.", "cet", "cette", "genre déterminant"),   # liste n° 56
+    ("Il fait ses devoirs le soir.", "devoirs", "devoir", "accord pluriel nom"),   # liste n° 57
+    ("Dis-moi où en est le projet.", "où", "ou", "ou/où"),   # liste n° 62
+    ("Il viendra te chercher à la gare.", "chercher", "cherché", "terminaison -er/-é/-ez/-ai"),   # liste n° 61
     ("J'aime cuisiner pour mes amis.", "cuisiner", "cuisiné", "-é/-er"),   # ⭐ 17/10/2026 (liste n° 49) : pronom élidé dans le jeton
     ("Je souhaiterais participer au projet.", "participer", "participé", "-é/-er"),   # conditionnel de souhait
     ("Mon voisin est prêt à me prêter sa voiture.", "à", "a", "a/à"),   # ⭐ 17/10/2026 (liste n° 47) ⑨ : pronom préverbal entre « a » et le verbe
