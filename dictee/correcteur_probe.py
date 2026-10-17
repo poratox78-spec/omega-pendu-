@@ -1376,12 +1376,14 @@ def _aa_nom_inf(T, i):
     return deacc(s) in _AA_NI_SUITE or bool(re.match(r"^(n|qu|s)'", s) and deacc(s.split("'")[0]) + "'" in _AA_NI_SUITE)
 
 
+_AA_REP70 = frozenset('petit peu pas mot goutte coude bout tete un deux jour nez dos bras corps main porte face cote'.split())   # ⭐ liste n° 70
 def _aa_locution(T, i):
     n = len(T)
     d1 = deacc(T[i + 1].lower()) if i + 1 < n else ''
     d2 = deacc(T[i + 2].lower()) if i + 2 < n else ''
     p1 = deacc(T[i - 1].lower()); p2 = deacc(T[i - 2].lower()) if i >= 2 else ''
     de = re.match(u"^(de|des|du|d['’].+)$", d2) is not None
+    if p1 == d1 and p1 in _AA_REP70: return True   # ⭐ liste n° 70 : « petit a petit » — miroir JS
     if _aa_nom_inf(T, i): return True                                    # ⭐ liste n° 1e : machine à laver, salle à manger…
     if d1 in ('cause', 'partir') and de: return True                     # à cause de, à partir de
     if re.match(u"^l['’](interieur|exterieur)e?$", d1) and de: return True   # à l'intérieur de, à l'extérieur de
@@ -5357,6 +5359,7 @@ def rule_met_mais(T, i):
 def rule_mais_mes(T, i):
     """« mais » devant un NOM (≠ prép/dét/pronom/verbe) → « mes » (« mais lunettes »→« mes lunettes »). FP=0 mesuré
     (garde PREP : « Mais, sous… » abstenu car sous=préposition). Homophone dys fréquent, hors des 8 d'origine."""
+    if deacc(T[i].lower()) == 'mes' and i + 1 < len(T) and re.match(u"^[ld]['’].", T[i + 1].lower()): return _keepcase(T[i], 'mais')   # ⭐ liste n° 65 — miroir JS
     if deacc(T[i].lower()) != 'mais' or i + 1 >= len(T):
         return None
     # « Mais … » en tête de phrase est presque toujours une CONJONCTION — mais pas quand un NOM PLURIEL
@@ -5461,6 +5464,20 @@ def _jest_objet(T, i, mouv=False):
     return n2 in NUM_DET or d2 in _JEST_POSS or n2[:2] in ("l'", "d'") or T[i + 2].isdigit()
 
 
+def _nai69(T, i):
+    """⭐ 17/10/2026 (liste n° 69) — « n'ai » sans « je » devant : n'as (tu), n'ait (après que), n'est (participe d'être), sinon n'a. Miroir JS _nai69."""
+    if deacc(T[i].lower()) != "n'ai" or i < 1 or i + 1 >= len(T): return None
+    p = deacc(T[i - 1].lower())
+    if p in ('je', 'nous', 'vous', 'ils', 'elles'): return None
+    if p == 'tu': return _keepcase(T[i], "n'as")
+    for q in range(i - 1, max(0, i - 4) - 1, -1):
+        dq = deacc(T[q].lower())
+        if dq == 'que' or re.match(u"^qu['’]", dq): return _keepcase(T[i], "n'ait")
+    k = i + 1
+    if deacc(T[k].lower()) in ('pas', 'plus', 'jamais', 'rien', 'guere', 'point') and k + 1 < len(T): k += 1
+    if deacc(T[k].lower()) in ETRE_PP: return _keepcase(T[i], "n'est")
+    return _keepcase(T[i], "n'a")
+
 def rule_jest(T, i, _vig=False):
     """« j'est » (j' + est) n'est JAMAIS valide → la règle ne se déclenche que sur « j'est », donc FP=0 STRUCTUREL.
     Le VOISIN tranche entre les deux lectures — j'ai (avoir) / je suis (être) — et depuis le 12/09/2026 il n'y a plus
@@ -5474,6 +5491,9 @@ def rule_jest(T, i, _vig=False):
       · participe d'AVOIR (« j'est mangé », « j'est entendu », « j'est perdu mes clés » — _is_ppl OU irrégulier _IRR_PP) → j'ai.
     Miroir JS rJest / jestVig."""
     if not _vig and deacc(T[i].lower()) in ("j'as", "j'a"): return T[i][:2] + 'ai'   # ⭐ 12/10/2026 (conjugaison 8) : « j'as faim », « j'a vu » → j'ai — miroir JS
+    if not _vig:
+        _r69 = _nai69(T, i)
+        if _r69: return _r69
     if not _vig and deacc(T[i].lower()) == "n'est" and i > 0 and deacc(T[i - 1].lower()) == 'je' and i + 1 < len(T):   # ⭐ liste n° 55 — miroir JS
         k55 = i + 1
         if deacc(T[k55].lower()) in ('pas', 'plus', 'jamais', 'rien', 'guere', 'point') and k55 + 1 < len(T): k55 += 1
@@ -7075,6 +7095,7 @@ def rule_imperatif_seul(T, i):
     if not (i == 0 or (i < len(bb) and bb[i])): return None
     hy = bool(i + 1 < len(hyl) and hyl[i + 1]); n1 = deacc(T[i + 1].lower())
     if hy and n1 not in _IMPS_PRON: return None
+    if d == 'faite' and not hy and w[:1].isupper() and (n1 == 'attention' or _is_infinitive(T[i + 1])): return _keepcase(w, 'faites')   # ⭐ liste n° 63 — miroir JS
     if d == 'vas':
         if n1 == 'y' or hy: return None
         return _keepcase(w, 'va')
@@ -7976,6 +7997,8 @@ MUETS = [
     ("Ce héros parle fort.", "h aspiré : « ce » reste (17/10/2026, liste n° 56)."),
     ("Il faut les savoir par cœur.", "« les » pronom + infinitif : pas « savoirs » (liste n° 57)."),
     ("Il est malade ou en voyage.", "« ou en » sans verbe être : conjonction (liste n° 62)."),
+    ("Lui a lui aussi répondu.", "« a » entre deux pronoms : avoir, pas une locution (17/10/2026, liste n° 70)."),
+    ("Je n'ai pas faim.", "« n'ai » après « je » : juste (liste n° 69)."),
     ("Le prêt a été accordé.", "« prêt » NOM après un déterminant : « a » reste avoir (17/10/2026, liste n° 47)."),
     ("Ce prêt a un taux bas.", "« prêt » nom, « a » + déterminant : avoir (liste n° 47)."),
     ("Il a tous les atouts.", "« a tous » sans salutation devant : avoir (liste n° 47)."),
@@ -8216,6 +8239,9 @@ CASES = [
     ("Il fait ses devoirs le soir.", "devoirs", "devoir", "accord pluriel nom"),   # liste n° 57
     ("Dis-moi où en est le projet.", "où", "ou", "ou/où"),   # liste n° 62
     ("Il viendra te chercher à la gare.", "chercher", "cherché", "terminaison -er/-é/-ez/-ai"),   # liste n° 61
+    ("Le repas est bon, mais l'addition est salée.", "mais", "mes", "mais/mes"),   # ⭐ 17/10/2026 (liste n° 65)
+    ("Personne n'est venu ce matin.", "n'est", "n'ai", "j'est/j'ai"),   # liste n° 69
+    ("Petit à petit, la neige fond.", "à", "a", "a/à"),   # liste n° 70
     ("J'aime cuisiner pour mes amis.", "cuisiner", "cuisiné", "-é/-er"),   # ⭐ 17/10/2026 (liste n° 49) : pronom élidé dans le jeton
     ("Je souhaiterais participer au projet.", "participer", "participé", "-é/-er"),   # conditionnel de souhait
     ("Mon voisin est prêt à me prêter sa voiture.", "à", "a", "a/à"),   # ⭐ 17/10/2026 (liste n° 47) ⑨ : pronom préverbal entre « a » et le verbe

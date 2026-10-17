@@ -67,6 +67,8 @@ _APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun"
 _SOUDE_VIG = {"dabor": "d'abord", "dacor": "d'accord", "dacord": "d'accord", "daccor": "d'accord", "ducou": "du coup"}   # ⭐ 30/09/2026 : formes soudées TRONQUÉES, orange (« ducou » : du cou ?) — miroir JS
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 _D_LOC = {'abord': 'abord', 'accord': 'accord', 'ailleurs': 'ailleurs', 'apres': 'après', 'autant': 'autant', 'avance': 'avance', 'habitude': 'habitude', 'emblee': 'emblée', 'office': 'office', 'urgence': 'urgence'}   # ⭐ liste n° 53 — miroir JS _D_LOC
+_STOP67 = frozenset('en dans pour sur par avec sans sous chez vers entre contre depuis'.split())   # ⭐ liste n° 67 — miroir JS
+_SUJ68 = frozenset('je j tu il elle on nous vous ils elles ne n'.split())   # ⭐ liste n° 68 — miroir JS _SCTX_SUJ68
 # ⭐ liste n° 46 : noms propres connus du début de phrase — dictee/noms_tete.txt (build_noms_tete.js), miroir du littéral NP46 de dys-core
 try:
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'noms_tete.txt'), encoding='utf-8') as _fnt:
@@ -632,6 +634,8 @@ class Speller:
         for j in range(idx - 1, max(-1, idx - 5), -1):
             t = deacc(toks[j].lower())
             if t in ("d'un", "d'une"): t = t[2:]          # ⭐ 14/10/2026 (liste n° 24) : « d'une » = « une » — miroir JS
+            if j == idx - 1 and t in _STOP67: return None   # ⭐ 17/10/2026 (liste n° 67) : préposition COLLÉE — miroir JS
+            if t in ('la', 'le', 'les') and j > 0 and deacc(toks[j - 1].lower()).rstrip("'’") in _SUJ68: return None   # ⭐ liste n° 68 : pronom après un sujet — miroir JS
             if t in self.COPULA: continue
             if t in CTX_STOP: return None
             # ⭐ liste n° 24 : le GENRE n'est PAS arrêté à la préposition (4 pertes mesurées : « une porte en bois peinte ») — miroir JS                     # frontière de proposition (« un chien QUI aboit ») : le genre de « un » ne gouverne plus
@@ -1245,15 +1249,15 @@ class Speller:
         if sbj and (d.endswith('e') or sbj_tu):
             pr, pr_v, ppl = None, None, False
             for ck in cands:                                    # les DEUX accentuations existent (présent -e / participe -é) ?
-                if deacc(ck) != d: continue
+                if deacc(ck) != d and not (deacc(ck) == deacc(w1) and sed1(d, deacc(w1))): continue   # ⭐ liste n° 68 : aussi le squelette d'une suggestion à UNE édition — miroir JS
                 if ck.endswith('é') or ck.endswith('és'): ppl = True
                 else:
                     if 'V' in self.POS.get(ck, ()) and (pr_v is None or cands[ck][1] > cands[pr_v][1]): pr_v = ck
                     if cands[ck][1] >= 0.5 and (pr is None or cands[ck][1] > cands[pr][1]): pr = ck
             pr = pr_v or pr
-            if pr and ppl and (pr != w1 or pr_v):        # un présent sans lecture verbale (« même » / « mémé ») ne fire que s'il n'est pas déjà en tête
+            if pr and ppl and ((pr != w1) if deacc(pr) != d else (pr != w1 or pr_v)):   # ⭐ liste n° 68 : par le squelette, uniquement quand la suggestion change — miroir JS        # un présent sans lecture verbale (« même » / « mémé ») ne fire que s'il n'est pas déjà en tête
                 ip = any(len(r.split(';')) == 4 and r.split(';')[1] == 'ind:pre' for r in (self.CONJ_F.get(deacc(pr)) or '').split('|'))
-                return ('auto' if ip else 'flag', pr)
+                return ((('auto' if ip else 'flag') if deacc(pr) == d else 'vigilance'), pr)   # ⭐ liste n° 68 : par le squelette → ORANGE (mesuré)
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
         _pv = deacc(toks[idx - 1].lower()) if (toks and idx) else ''
