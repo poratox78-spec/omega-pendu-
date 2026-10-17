@@ -70,11 +70,29 @@ if not table.get('Pierre', ('', False))[1]:
 if table.get('Marie', ('', True))[1]:
     echec.append('« Marie » ne doit PAS être marqué (aucun homographe de genre opposé)')
 
+# ⭐ 17/10/2026 (liste n° 46) — LA TABLE DES NOMS PROPRES DU DÉBUT DE PHRASE, même principe : `dictee/noms_tete.txt` (moteur Python) et le
+# littéral NP46 de `extension/dys-core.js` et de l'app doivent être LA MÊME liste (dictee/build_noms_tete.js écrit les trois ; son dump
+# est gitignoré, donc la CI ne vérifie que les copies). Une copie vide = des noms propres (« Forbes », « Holmes ») marqués en orange.
+NT = os.path.join(HERE, 'noms_tete.txt')
+CORE = os.path.join(RACINE, 'extension', 'dys-core.js')
+noms = [l for l in io.open(NT, encoding='utf-8').read().split('\n') if l] if os.path.exists(NT) else []
+for nom_f, src in (('extension/dys-core.js', io.open(CORE, encoding='utf-8').read()), ('app/omega-pendu.html', html)):
+    m46 = re.search(r"/\*NP46<\*/'([^']*)'/\*>NP46\*/", src)
+    if not m46:
+        echec.append('littéral NP46 ABSENT de %s — la table des noms du début de phrase ne peut pas tourner' % nom_f)
+    elif m46.group(1) != ' '.join(noms):
+        echec.append('le littéral NP46 de %s DIFFÈRE de dictee/noms_tete.txt — lancer node dictee/build_noms_tete.js' % nom_f)
+if len(noms) < 1000:
+    echec.append('table des noms du début de phrase trop courte : %d (attendu ≥ 1 000)' % len(noms))
+for nom in ('Forbes', 'Holmes'):
+    if nom not in noms:
+        echec.append('« %s » devrait être dans dictee/noms_tete.txt (nom propre pris pour un mot en tête de phrase)' % nom)
+
 if echec:
     print('  ✗ TABLE DES PRÉNOMS :')
     for e in echec:
         print('      ' + e)
     sys.exit(1)
 n_mark = sum(1 for v in table.values() if v[1])
-print('  ✓ prénoms : %d entrées identiques dans les 3 moteurs (%d marqués « pas en tête de phrase »)'
-      % (len(table), n_mark))
+print('  ✓ prénoms : %d entrées identiques dans les 3 moteurs (%d marqués « pas en tête de phrase ») · noms du début de phrase : %d'
+      % (len(table), n_mark, len(noms)))
