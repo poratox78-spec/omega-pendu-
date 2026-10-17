@@ -66,6 +66,19 @@ _DET_E_QU = set('beaucoup peu trop assez plus moins tant autant combien pas jama
 _APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il", "dabord": "d'abord", "daccord": "d'accord", "javais": "j'avais"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
 _SOUDE_VIG = {"dabor": "d'abord", "dacor": "d'accord", "dacord": "d'accord", "daccor": "d'accord", "ducou": "du coup"}   # ⭐ 30/09/2026 : formes soudées TRONQUÉES, orange (« ducou » : du cou ?) — miroir JS
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
+# ⭐ liste n° 46 : noms propres connus du début de phrase — dictee/noms_tete.txt (build_noms_tete.js), miroir du littéral NP46 de dys-core
+try:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'noms_tete.txt'), encoding='utf-8') as _fnt:
+        NOMS_TETE = set(l.strip() for l in _fnt if l.strip())
+except IOError:
+    NOMS_TETE = set()
+def _np46_suiv(toks, idx, words):
+    """⭐ liste n° 46 — décalque de _np46Suiv (dys-core.js) : le mot suivant dit « nom complet » (capitalisé, sans apostrophe, pas un mot en minuscules)."""
+    nx = toks[idx + 1] if toks and idx is not None and idx + 1 < len(toks) else ''
+    return bool(re.match(u"^[A-ZÀ-ÖØ-Þ][^'’]*$", nx)) and (nx == nx.upper() or nx.lower() not in words)
+def _np46_sugg(low, w1):
+    """⭐ liste n° 46 — décalque de _np46Sugg : la suggestion garde la 1re lettre et ne coupe pas le mot."""
+    return ' ' not in w1 and deacc(w1[:1].lower()) == deacc(low[:1])
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
 _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restauration d'accent du reste (m'/t'/n' EXCLUS : « metre »=mètre≠m'être, mesuré FP)
 # ⭐ 04/10/2026 — « mot inconnu » : la FORME s'accorde au mot d'avant (miroir JS _suFlex) — tables fermées
@@ -911,7 +924,16 @@ class Speller:
                 return ('vigilance', 'a ' + rsd)
         if low in SPELL_KEEP: return None      # mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ni corrigé ni signalé (miroir JS _SPELL_KEEP, même position : après prénom, avant nom-propre)
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
-        if tok[:1].isupper() and not at_start and not (len(tok) >= 4 and tok == tok.upper()): return None   # ⭐ 13/10/2026 : mot en CAPITALES lu aussi hors début (liste n° 3)
+        _deb46 = False
+        if tok[:1].isupper() and not at_start and not (len(tok) >= 4 and tok == tok.upper()):   # nom propre (majuscule hors début)…
+            # ⭐ liste n° 46 : … sauf un début de phrase qui ne peut pas être un nom propre connu → orange plus bas (miroir JS _deb46)
+            _l46 = tok.lower().replace('œ', 'oe').replace('æ', 'ae')
+            if (idx is not None and idx in getattr(self, '_debs', ()) and len(tok) >= 6 and tok[1:] == tok[1:].lower() and tok not in self.PRENOMS_C and tok not in NOMS_TETE
+                    and _l46 not in self.PRENOMS_L and _l46 not in _cpm()._LIEUX and deacc(_l46) not in _cpm()._LIEUX
+                    and _l46 not in self.WORDS and deacc(_l46) not in self.WORDS
+                    and not _np46_suiv(toks, idx, self.WORDS)
+                    and not (toks and idx > 0 and re.match(u'^[A-Z]$', toks[idx - 1]))): _deb46 = True   # prénom ; nom complet ; initiale avant
+            else: return None
         _qm = self._quant_mal(toks, idx)   # ⭐ 11/10/2026 : quantifieur pluriel mal écrit (« certin enfants » → certains) — orange, miroir JS
         if _qm: return ('vigilance', _qm[0].upper() + _qm[1:] if tok[:1].isupper() else _qm)
         d = deacc(low)
@@ -1193,7 +1215,15 @@ class Speller:
                 for _k44, (_p44, _f44) in ranked:
                     if _k44.endswith(_fin) and _f44 >= 1.0 and _f44 > _pf44: _pb44 = _k44; _pf44 = _f44
                 if _pb44: w1 = _pb44; (p1, f1) = cands[w1]; _pp44c = True
-        if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
+        if _deb46: return ('vigilance', w1) if f1 >= 20.0 and _np46_sugg(low, w1) else None   # ⭐ liste n° 46 — miroir JS
+        if tok[:1].isupper() and deacc(w1) != d:   # mot capitalisé : SEULE la restauration d'accent…
+            # ⭐ 17/10/2026 (liste n° 46) — … sauf en début de phrase, pour un mot qui ne peut pas être un nom propre connu (miroir JS)
+            if (at_start and len(tok) >= 6 and tok[1:] == tok[1:].lower() and tok not in NOMS_TETE
+                    and not _np46_suiv(toks, idx, self.WORDS)
+                    and tok not in self.PRENOMS_C and low not in self.PRENOMS_L and low not in _cpm()._LIEUX and d not in _cpm()._LIEUX
+                    and low not in self.WORDS and d not in self.WORDS and f1 >= 20.0 and _np46_sugg(low, w1)):
+                return ('vigilance', w1)
+            return None
         # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il espere » → espère, pas espéré. Sujet pronom
         # (clitiques traversés) sans auxiliaire ni copule → quand le mot nu a les deux accentuations, c'est le présent (-e).
         # AVANT la bascule de genre ci-dessous, qui lisait « la voiture » deux mots plus haut et rendait « décidée ».
@@ -1577,7 +1607,9 @@ class Speller:
         for _j in range(len(toks)):
             for _n in (4, 3, 2):
                 if ' '.join(_cles[_j:_j + _n]) in _LIEUX_COMP_CLES: _couv.update(range(_j, _j + _n)); break
-        _usp = C_URL_SPANS(text) if C_URL_SPANS else []   # ⭐ 14/10/2026 (liste n° 22) : mots d'un courriel / lien / domaine — miroir JS
+        _usp = C_URL_SPANS(text) if C_URL_SPANS else []
+        # ⭐ liste n° 46 : débuts de phrase (1er mot, après . ! ? …, après un saut de ligne) — miroir JS atStart / _SEG.ss / _SEG.nl
+        self._debs = {k for k in range(len(ms)) if k == 0 or re.search(u'[.!?…]', text[ms[k - 1].end():ms[k].start()]) or '\n' in text[ms[k - 1].end():ms[k].start()]}   # ⭐ 14/10/2026 (liste n° 22) : mots d'un courriel / lien / domaine — miroir JS
         # ⭐ 16/10/2026 (liste n° 43) : trait d'union COLLÉ entre deux jetons (hyt[k] : l'écart avant le jeton k est exactement « - ») — miroir _SEG.hyt
         _hyt = [False] + [text[ms[k - 1].end():ms[k].start()] == '-' for k in range(1, len(ms))]
         for i, m in enumerate(ms):
