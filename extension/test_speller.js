@@ -723,6 +723,18 @@ function testListe87() {   // liste n° 87 : la table de conjugaison garde les d
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 87 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe92() {   // lignes 92, 93, 94, 96 : silences du 6e tour (grammaire du verbe)
+  for (const [t, w, s] of [['Paul et Marie vient ce soir.', 'vient', 'viennent'],                 // 92 : deux prénoms coordonnés
+      ['Elles se sont parlées longtemps.', 'parlées', 'parlé'], ['Les orages se sont succédés toute la nuit.', 'succédés', 'succédé'],   // 93
+      ['Je vais parti demain matin.', 'parti', 'partir'],                                           // 94
+      ['Elle a résout le problème.', 'résout', 'résolu'],                                          // 96
+      // témoins : rien
+      ['Paul et Marie viennent ce soir.', 'viennent', null], ['Elles se sont écrites souvent.', 'écrites', null], ['Le parti a gagné.', 'parti', null],
+      ['Elle a résolu le problème.', 'résolu', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 92-96 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe88() {   // lignes 88-90 : trois rouges faux du 6e tour (grammaire du verbe)
   for (const [t, w, s] of [["Les chaleurs qu'il a fait cet été étaient fortes.", 'fait', null],   // 88 : « il » impersonnel, participe invariable
       ['Toi et moi somme amis depuis longtemps.', 'somme', 'sommes'],                                   // 89 : pas « sommons » (sommer)
@@ -808,6 +820,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe92();
   testListe88();
   testListe59();
   testListe52();
