@@ -723,6 +723,16 @@ function testListe87() {   // liste n° 87 : la table de conjugaison garde les d
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 87 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe88() {   // lignes 88-90 : trois rouges faux du 6e tour (grammaire du verbe)
+  for (const [t, w, s] of [["Les chaleurs qu'il a fait cet été étaient fortes.", 'fait', null],   // 88 : « il » impersonnel, participe invariable
+      ['Toi et moi somme amis depuis longtemps.', 'somme', 'sommes'],                                   // 89 : pas « sommons » (sommer)
+      ['Il nettoye la table chaque soir.', 'nettoye', 'nettoie'],                                     // 90 : présent, pas « nettoyé »
+      // témoins
+      ['Elle a nettoye la table.', 'nettoye', 'nettoyé'], ['Il paye ses dettes.', 'paye', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 88-90 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe59() {   // liste n° 59 : sujet nominal féminin + « c'est » + participe au féminin → s'est (orange) ; la mise en relief reste juste
   for (const [t, s, tier] of [["La directrice c'est engagée à répondre vite.", "s'est", 'vigilance'], ["Ma voisine c'est installée au rez-de-chaussée.", "s'est", 'vigilance'],
       ["Elle c'est levée tôt.", "s'est", 'auto'],
@@ -798,6 +808,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe88();
   testListe59();
   testListe52();
   testListe64();

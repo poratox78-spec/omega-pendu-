@@ -1248,8 +1248,9 @@ class Speller:
         # « sélectionné » en rouge) ; « tu » + -es ; palier = auto si la table de conjugaison connaît ce présent, sinon flag. Miroir JS.
         if sbj and (d.endswith('e') or sbj_tu):
             pr, pr_v, ppl = None, None, False
+            dy90 = re.sub(r'([ou])y(es?)$', r'\1i\2', d)            # ⭐ liste n° 90 : « il nettoye » → nettoie (-oye / -uye = présent -oie / -uie) — miroir JS
             for ck in cands:                                    # les DEUX accentuations existent (présent -e / participe -é) ?
-                if deacc(ck) != d and not (deacc(ck) == deacc(w1) and sed1(d, deacc(w1))): continue   # ⭐ liste n° 68 : aussi le squelette d'une suggestion à UNE édition — miroir JS
+                if deacc(ck) != d and deacc(ck) != dy90 and not (deacc(ck) == deacc(w1) and sed1(d, deacc(w1))): continue   # ⭐ liste n° 68 : aussi le squelette d'une suggestion à UNE édition — miroir JS
                 if ck.endswith('é') or ck.endswith('és'): ppl = True
                 else:
                     if 'V' in self.POS.get(ck, ()) and (pr_v is None or cands[ck][1] > cands[pr_v][1]): pr_v = ck
@@ -1257,7 +1258,7 @@ class Speller:
             pr = pr_v or pr
             if pr and ppl and ((pr != w1) if deacc(pr) != d else (pr != w1 or pr_v)):   # ⭐ liste n° 68 : par le squelette, uniquement quand la suggestion change — miroir JS        # un présent sans lecture verbale (« même » / « mémé ») ne fire que s'il n'est pas déjà en tête
                 ip = any(len(r.split(';')) == 4 and r.split(';')[1] == 'ind:pre' for r in (self.CONJ_F.get(deacc(pr)) or '').split('|'))
-                return ((('auto' if ip else 'flag') if deacc(pr) == d else 'vigilance'), pr)   # ⭐ liste n° 68 : par le squelette → ORANGE (mesuré)
+                return ((('auto' if ip else 'flag') if (deacc(pr) == d or (dy90 != d and deacc(pr) == dy90)) else 'vigilance'), pr)   # ⭐ liste n° 68 : par le squelette → ORANGE (mesuré)
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
         _pv = deacc(toks[idx - 1].lower()) if (toks and idx) else ''
