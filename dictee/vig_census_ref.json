@@ -1,10 +1,13 @@
 {
- "justes": 387,
+ "justes": 390,
  "pointeuses": 207,
- "fatigue": 131,
+ "fatigue": 132,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
+  "Pesnez→Pensez [orthographe] inversion",
+  "Pôuruqoi→Pourquoi [orthographe] autre",
+  "Rapiedment→Rapidement [orthographe] inversion",
   "acusait→accusait [mot inconnu] lettre_manque",
   "adjectif→adjectifs [accord pluriel à vérifier] accord",
   "affleunt→affluent [mot inconnu] inversion",

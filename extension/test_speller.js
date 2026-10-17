@@ -578,6 +578,18 @@ function testListe44() {   // liste n° 44 : après un auxiliaire, la finale de 
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (!f || f.sugg !== s || f.tier !== tier) fail.push('ligne 44 « ' + t + ' » : attendu ' + s + ' en ' + tier + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe46() {   // liste n° 46 : un mot capitalisé en début de phrase, inconnu, qui ne peut pas être un nom propre connu → orange
+  for (const [t, w, s] of [['Le train part tard. Ensuitte nous marchons vers le port.', 'Ensuitte', 'Ensuite'],
+      ['La réunion finit à midi\nToujorus la même salle au deuxième étage.', 'Toujorus', 'Toujours'], ['Il fait beau ce matin. Pourtnat la route reste glissante.', 'Pourtnat', 'Pourtant'],
+      ['Fin du cours. Ensuitte L\'équipe range la salle.', 'Ensuitte', 'Ensuite'],
+      // témoins : nom complet, initiale avant, 1re lettre changée, nom propre connu (table du Wiktionnaire) — rien
+      ['Le concert commence. George Martin chante le premier titre.', 'George', null], ['Selon A. Henriet, rien ne change cette année.', 'Henriet', null],
+      ['Le film sort demain. Camille arrive en retard.', 'Camille', null], ['La séance ouvre. Forbes publie son classement annuel.', 'Forbes', null],
+      ['Le jury délibère. Holmes attend la réponse.', 'Holmes', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
+      fail.push('ligne 46 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -635,6 +647,7 @@ function finish(parityKO) {
   testListe45();
   testListe42();
   testListe44();
+  testListe46();
   testListe34();
   testListe32();
   testListe7();

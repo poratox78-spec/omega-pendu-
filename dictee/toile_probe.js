@@ -65,6 +65,7 @@ const ASSETS = {
   setNounPost: ['NOUN_POST'],
   setPosHmm: ['POS-HMM'],
   setPrenoms: ['prénom', 'prenom', 'PRENOMS'],
+  setNomsTete: ['NP46', 'noms propres du Wiktionnaire'],   // ⭐ 17/10/2026 (liste n° 46) : noms propres du début de phrase
   setGaccLex: ['accentué', 'accentue', 'GENDER_ACC', "collision"],
   setOsLm: ['OS-sujet', 'os-subj'],
   setConfusables: ['confusable'],
