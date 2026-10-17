@@ -25506,7 +25506,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var _EER_CLIT={};'me te se nous vous lui leur le la les y en'.split(' ').forEach(function(w){_EER_CLIT[w]=1;});
   var _EER_MINF={pouvoir:1,devoir:1,vouloir:1,savoir:1,aller:1,venir:1,faire:1,laisser:1,oser:1};
   var _EER_DET={le:1,la:1,les:1,l:1,un:1,une:1,du:1,des:1,au:1,aux:1,ce:1,cet:1,cette:1,ces:1,son:1,sa:1,ses:1,mon:1,ma:1,mes:1,ton:1,ta:1,tes:1,notre:1,votre:1,nos:1,vos:1,leur:1,leurs:1};
-  var _EER_ADV={beaucoup:1,bien:1,deja:1,toujours:1,souvent:1,encore:1,aussi:1,vraiment:1,trop:1,peu:1,presque:1,jamais:1,pas:1,plus:1,enfin:1,meme:1};
+  var _EER_ADV={beaucoup:1,bien:1,deja:1,toujours:1,souvent:1,encore:1,aussi:1,vraiment:1,trop:1,peu:1,presque:1,jamais:1,pas:1,plus:1,enfin:1,meme:1,surtout:1,longtemps:1,rarement:1,parfois:1,tellement:1,assez:1,seulement:1,mal:1,tout:1};   // ⭐ 17/10/2026 (liste n° 76) : + surtout, longtemps… (« j'ai surtout aider » → aidé)
   var _EER_AVOIR={a:1,ai:1,as:1,avons:1,avez:1,ont:1,avait:1,avais:1,avaient:1,avions:1,aviez:1,aura:1,aurai:1,auras:1,aurons:1,aurez:1,auront:1,aurait:1,aurais:1,auraient:1};
   var _EER_PINF={de:1,'à':1,pour:1,sans:1,par:1};   // prépositions qui gouvernent un INFINITIF (« dans », « sur », « chez »… jamais)
   function _eerMinf(T,k){if(k<0)return false;var d=deacc(T[k].toLowerCase());if(!_EER_MINF[d])return false;return !(k>0&&_EER_DET[deacc(T[k-1].toLowerCase())]);}   // modal à l'INFINITIF, pas le nom (« le pouvoir délégué »)
@@ -26058,12 +26058,20 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   function _aaSalut(T,i){if(i<1||i+1>=T.length)return false;var n=deacc(T[i+1].toLowerCase());if(n!=='tous'&&n!=='toutes'&&n!=='toute')return false;
     var p=deacc(T[i-1].toLowerCase()),p2=i>=2?deacc(T[i-2].toLowerCase()):'';if(_AA_DET9[p2])return false;
     return !!(_AA_SAL[p]||(_AA_SAL2[p]&&(p2==='bonne'||p2==='belle'||p2==='excellente'||p2==='joyeuse'||p2==='bon')));}
+  /* ⭐ 17/10/2026 (liste n° 73) — « il aide l'équipe a préparer » : « a » lu avoir, et la règle -er/-é réécrivait l'infinitif JUSTE en « préparé »,
+     EN ROUGE. Verbe transitif qui appelle « à » + infinitif (aider, apprendre, inviter, obliger…), puis son complément ([dét + nom] ou « l'X »),
+     puis « a » + INFINITIF : « avoir » + infinitif n'existe pas. Pas le participe (« ce qu'il a appris a changé sa vie » : avoir). Miroir Python. */
+  var _A_INF_TR73={aider:1,apprendre:1,inviter:1,obliger:1,autoriser:1,encourager:1,habituer:1,pousser:1,forcer:1,condamner:1,engager:1,preparer:1};
+  function _aaGouvObj73(T,i){if(i<2||i+1>=T.length||T[i]!=='a')return false;if(!/(er|ir|re|oir)$/.test(deacc(T[i+1].toLowerCase())))return false;
+    var k;if(/^[ld]['’]./.test(T[i-1].toLowerCase()))k=i-2;else if(i>=3&&_EER_DET[deacc(T[i-2].toLowerCase())])k=i-3;else return false;if(k<0)return false;
+    var g=T[k].toLowerCase().replace(/^(j|n|m|t|s|qu)['’]/,''),r=svReads(g);for(var q=0;q<r.length;q++)if(_A_INF_TR73[deacc(r[q][0])])return true;return false;}
   function _rAnouveau(T,i,sans4){
     if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase()||i<1)return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(_aaLocution(T,i))return 'à';                                      // ⑤ locution prépositive (sans infinitif)
     if(_aaApresAdverbe(T,i))return 'à';                                  // ⑥ verbe + adverbe + « a »
     if(_aaPronVerbe(T,i))return 'à';                                     // ⑨ « a » + pronom préverbal + verbe (liste n° 47)
-    if(_aaSalut(T,i))return 'à';                                         // ⑩ salutation + « a tous » (liste n° 47)
+    if(_aaSalut(T,i))return 'à';
+    if(_aaGouvObj73(T,i))return 'à';                                     // ⑫ verbe + complément + « a » + infinitif (liste n° 73)                                         // ⑩ salutation + « a tous » (liste n° 47)
     if(_SEG&&i+1<_SEG.dig.length&&_SEG.dig[i+1]){for(var _jd=i-1;_jd>=Math.max(0,i-2);_jd--){if(deacc(T[_jd].toLowerCase())==='de'&&_jd+1<_SEG.dig.length&&_SEG.dig[_jd+1])return 'à';}}   // ⑦ intervalle « de 10 hectares a 20 hectares » : un chiffre après « de », un autre après « a » (UD 14 450 : le seul « a » du motif est une faute du corpus)
     var k=i+1;while(k<T.length&&CLITIC[T[k].toLowerCase().replace(/’/g,"'")])k++;if(k>=T.length||!/(er|ir|re|oir)$/.test(deacc(T[k].toLowerCase())))return null;
     var p1=deacc(T[i-1].toLowerCase());
@@ -30441,7 +30449,9 @@ function spellTokenCore(tok,atStart,T,idx){
   var _NV_DET={le:1,un:1,mon:1,ton:1,son:1,du:1,au:1,ce:1,notre:1,votre:1,leur:1},_NV_SUJ={je:1,il:1,elle:1,on:1,tu:1},_NV_CL={me:1,te:1,se:1,le:1,la:1,les:1,lui:1,nous:1,vous:1,ne:1,y:1,en:1};
   var _NV_PAIRES=[['aille','ail'],['eille','eil'],['euille','euil'],['elle','el'],['oie','oi'],['uie','ui'],['aie','ai'],['ient','ien']];   // ⭐ 17/10/2026 (liste n° 48) : entretien, soutien, maintien, lien (« un entretient »)
   function _nvNp(x){var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deaccS(x)):NOUN_POST[deaccS(x)]):null;return np?np[0]:-1;}
-  function nomVerbeVig(T,i){if(i<1)return null;var w=T[i],lw=w.toLowerCase();if(w!==lw||lw.indexOf("'")>=0)return null;var k,v,n;
+  function nomVerbeVig(T,i){var _w75=T[i],_l75=_w75.toLowerCase().replace(/’/g,"'");if(/^l'./.test(_l75)&&_w75.slice(1)===_w75.slice(1).toLowerCase()&&(i===0||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])||PREP[deacc(T[i-1].toLowerCase())]||deacc(T[i-1].toLowerCase())==='et')){   /* ⭐ 17/10/2026 (liste n° 75) : « L'accueille était chaleureux » → L'accueil — « l' » en début de phrase, après une préposition ou « et » : déterminant (« qui l'accueille », « le roi l'accueille » : pronom) */
+      var _r75=_l75.slice(2);for(var _k75=0;_k75<_NV_PAIRES.length;_k75++){var _v75=_NV_PAIRES[_k75];if(_r75.length>_v75[0].length+1&&_r75.slice(-_v75[0].length)===_v75[0]){var _n75=_r75.slice(0,-_v75[0].length)+_v75[1];if(svReads(_r75).length&&_nvNp(_r75)<100&&_nvNp(_n75)>=PL_TAU_M&&sGender(_n75)==='m')return _w75.slice(0,2)+_n75;return null;}}return null;}
+    if(i<1)return null;var w=T[i],lw=w.toLowerCase();if(w!==lw||lw.indexOf("'")>=0)return null;var k,v,n;
     var p=deacc(T[i-1].toLowerCase());
     if(_NV_DET[p]&&(p==='le'||p==='leur')&&i>=2){var _pp=deacc(T[i-2].toLowerCase());if(_NV_SUJ[_pp]||_NV_CL[_pp]||_pp==='ils'||_pp==='elles'||_pp==='qui'||_pp==='nous'||_pp==='vous'||/^[jnmtsl]'/.test(T[i-2].toLowerCase())||_nvNp(T[i-2])>=PL_TAU_M||(i-2>0&&T[i-2].charAt(0)!==T[i-2].charAt(0).toLowerCase())||PRENOMS[T[i-2]])return null;}
     if(_NV_DET[p]){for(k=0;k<_NV_PAIRES.length;k++){v=_NV_PAIRES[k];if(lw.length>v[0].length+1&&lw.slice(-v[0].length)===v[0]){n=lw.slice(0,-v[0].length)+v[1];
@@ -30478,6 +30488,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(_MUET_NOM[w]&&_MUET_DET[pv])return _MUET_NOM[w];
     if(w==='moi'){var _p54=i>1?deaccS(T[i-2].toLowerCase()):'';if(CARD[pv]||pv==='quelques'||pv==='plusieurs'||(pv==='les'&&_p54==='tous')||(pv==='du'&&/^(fin|debut|milieu|courant)$/.test(_p54))||(/^(le|ce|chaque|un|du|au)$/.test(pv)&&(/^(prochain|dernier|suivant|precedent|passe|entier|courant)$/.test(nx)||(nx==='de'&&i+2<T.length&&_MOIS54[deaccS(T[i+2].toLowerCase())]))))return 'mois';return null;}   // ⭐ liste n° 54
     if(w==='lieux'&&_AV58[pv])return 'lieu';   // ⭐ liste n° 58
+    if(w==='voire'&&/^(vous|te|me|le|la|les|nous|lui|leur|se)$/.test(pv))return 'voir';   // ⭐ 17/10/2026 (liste n° 74) : « j'ai hâte de vous voire » — l'adverbe « voire » ne suit pas un pronom complément
     if(w==='cuir'&&/^(laisser|laissez|laisse|laissons|faire|faites|fait|fais|faisons)$/.test(pv))return 'cuire';   // ⭐ 17/10/2026 (liste n° 72) : « laissez cuir » → cuire (le nom après laisser / faire)
     if(w==='est'&&_POLI60[pv]&&_BON60[nx])return 'et';   // ⭐ liste n° 60
     if(w==='tan'&&!_MUET_DET[pv]&&(nx==='de'||nx==='que'||nx==='pis'||nx==='mieux'||/^(d|qu)'/.test(nx)))return 'tant';   // ⭐ 17/10/2026 (liste n° 48) : « tan de choses », « tan que » → tant ; « le tan », « un pull tan » : rien

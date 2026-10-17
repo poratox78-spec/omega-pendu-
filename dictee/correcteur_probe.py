@@ -332,7 +332,7 @@ def _pp_relit(T, i, part):
 _EER_CLIT = set('me te se nous vous lui leur le la les y en'.split())
 _EER_MINF = set('pouvoir devoir vouloir savoir aller venir faire laisser oser'.split())
 _EER_DET = set('le la les l un une du des au aux ce cet cette ces son sa ses mon ma mes ton ta tes notre votre nos vos leur leurs'.split())
-_EER_ADV = set('beaucoup bien deja toujours souvent encore aussi vraiment trop peu presque jamais pas plus enfin meme'.split())
+_EER_ADV = set('beaucoup bien deja toujours souvent encore aussi vraiment trop peu presque jamais pas plus enfin meme surtout longtemps rarement parfois tellement assez seulement mal tout'.split())   # ⭐ liste n° 76
 _EER_AVOIR = set('a ai as avons avez ont avait avais avaient avions aviez aura aurai auras aurons aurez auront aurait aurais auraient'.split())
 _EER_PINF = {'de', u'à', 'pour', 'sans', 'par'}   # prépositions qui gouvernent un INFINITIF (dans, sur, chez… jamais)
 
@@ -1520,6 +1520,17 @@ def _aa_salut(T, i):
     if p2 in _AA_DET9: return False
     return p in _AA_SAL or (p in _AA_SAL2 and p2 in ('bonne', 'belle', 'excellente', 'joyeuse', 'bon'))
 
+_A_INF_TR73 = frozenset('aider apprendre inviter obliger autoriser encourager habituer pousser forcer condamner engager preparer'.split())   # ⭐ liste n° 73 — miroir JS
+def _aa_gouv_obj73(T, i):
+    if i < 2 or i + 1 >= len(T) or T[i] != 'a': return False
+    if not re.search(r'(er|ir|re|oir)$', deacc(T[i + 1].lower())): return False
+    if re.match(u"^[ld]['’].", T[i - 1].lower()): k = i - 2
+    elif i >= 3 and deacc(T[i - 2].lower()) in _EER_DET: k = i - 3
+    else: return False
+    if k < 0: return False
+    g = re.sub(u"^(j|n|m|t|s|qu)['’]", '', T[k].lower())
+    return any(deacc(r[0]) in _A_INF_TR73 for r in _reads(g))
+
 def _rule_a_aa_nouveau(T, i, sans4=False):
     if deacc(T[i].lower()) != 'a' or T[i] != T[i].lower() or i < 1: return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
@@ -1527,6 +1538,7 @@ def _rule_a_aa_nouveau(T, i, sans4=False):
     if _aa_apres_adverbe(T, i): return u'à'                                # ⑥ verbe + adverbe + « a »
     if _aa_pron_verbe(T, i): return u'à'                                   # ⑨ « a » + pronom préverbal + verbe (liste n° 47)
     if _aa_salut(T, i): return u'à'                                        # ⑩ salutation + « a tous » (liste n° 47)
+    if _aa_gouv_obj73(T, i): return u'à'                                   # ⑫ verbe + complément + « a » + infinitif (liste n° 73)
     if _SEG is not None and i + 1 < len(_SEG['dig']) and _SEG['dig'][i + 1]:   # ⑦ intervalle « de 10 hectares a 20 hectares » : un chiffre après « de », un autre après « a »
         for _jd in range(i - 1, max(0, i - 2) - 1, -1):
             if deacc(T[_jd].lower()) == 'de' and _jd + 1 < len(_SEG['dig']) and _SEG['dig'][_jd + 1]: return u'à'
@@ -7999,6 +8011,7 @@ MUETS = [
     ("Il est malade ou en voyage.", "« ou en » sans verbe être : conjonction (liste n° 62)."),
     ("Lui a lui aussi répondu.", "« a » entre deux pronoms : avoir, pas une locution (17/10/2026, liste n° 70)."),
     ("Je n'ai pas faim.", "« n'ai » après « je » : juste (liste n° 69)."),
+    ("Ce qu'il a appris a changé sa vie.", "« a » + participe après un verbe : avoir (17/10/2026, liste n° 73)."),
     ("Le prêt a été accordé.", "« prêt » NOM après un déterminant : « a » reste avoir (17/10/2026, liste n° 47)."),
     ("Ce prêt a un taux bas.", "« prêt » nom, « a » + déterminant : avoir (liste n° 47)."),
     ("Il a tous les atouts.", "« a tous » sans salutation devant : avoir (liste n° 47)."),
@@ -8242,6 +8255,8 @@ CASES = [
     ("Le repas est bon, mais l'addition est salée.", "mais", "mes", "mais/mes"),   # ⭐ 17/10/2026 (liste n° 65)
     ("Personne n'est venu ce matin.", "n'est", "n'ai", "j'est/j'ai"),   # liste n° 69
     ("Petit à petit, la neige fond.", "à", "a", "a/à"),   # liste n° 70
+    ("Il aide sa tante à ranger le garage.", "à", "a", "a/à"),   # ⭐ 17/10/2026 (liste n° 73)
+    ("Elle a surtout aimé la fin du film.", "aimé", "aimer", "-é/-er"),   # liste n° 76
     ("J'aime cuisiner pour mes amis.", "cuisiner", "cuisiné", "-é/-er"),   # ⭐ 17/10/2026 (liste n° 49) : pronom élidé dans le jeton
     ("Je souhaiterais participer au projet.", "participer", "participé", "-é/-er"),   # conditionnel de souhait
     ("Mon voisin est prêt à me prêter sa voiture.", "à", "a", "a/à"),   # ⭐ 17/10/2026 (liste n° 47) ⑨ : pronom préverbal entre « a » et le verbe
