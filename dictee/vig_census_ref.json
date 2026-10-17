@@ -1,6 +1,6 @@
 {
- "justes": 384,
- "pointeuses": 209,
+ "justes": 387,
+ "pointeuses": 207,
  "fatigue": 131,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -71,6 +71,7 @@
   "cpectateur→spectateur [orthographe] lettre_change",
   "cr→car [orthographe] lettre_manque",
   "ctete→cette [orthographe] inversion",
+  "céré→créé [orthographe] inversion",
   "d'atlédisme→d'athlétisme [mot inconnu] autre",
   "d'eviron→d'environ [orthographe] lettre_manque",
   "d'otogoné→d'octogone [mot inconnu] autre",
@@ -268,6 +269,7 @@
   "proose→propose [orthographe] lettre_manque",
   "propriétaire→propriétaires [accord pluriel à vérifier] accord",
   "province→provinces [accord pluriel à vérifier] accord",
+  "préentés→présentés [orthographe] lettre_manque",
   "préférrées→préférées [orthographe] lettre_trop",
   "présiser→préciser [orthographe] lettre_change",
   "prêcession→précession [mot inconnu] accent",
@@ -345,6 +347,7 @@
   "thsèe→thèse [orthographe] inversion",
   "tosu→tous [orthographe] inversion",
   "tourr→tour [orthographe] lettre_trop",
+  "touré→tourné [orthographe] lettre_manque",
   "tranchez→tranchées [pluriel par le son à vérifier] terminaison",
   "transpord→transport [orthographe] lettre_change",
   "traversés→traversée [accord participe] terminaison",

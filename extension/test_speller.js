@@ -571,6 +571,13 @@ function testListe45() {   // liste n° 45 : « faites-le », « dites-moi » ne
   { const f = DC.diagnoseAll('Donnes-lui le livre.').flags.find(x => x.name === 'impératif');
     if (!f || f.sugg !== 'Donne') fail.push('ligne 45 : « Donnes-lui » doit toujours devenir Donne, eu ' + (f ? f.sugg : 'rien')); }
 }
+function testListe44() {   // liste n° 44 : après un auxiliaire, la finale de participe ÉCRITE se garde (« éré » → été, « appellé » → appelé)
+  for (const [t, w, s, tier] of [['Mon frère a éré malade.', 'éré', 'été', 'vigilance'], ['La rue est appellée la grande allée.', 'appellée', 'appelée', 'flag'],
+      ['Ce petit village est appellé le hameau.', 'appellé', 'appelé', 'flag'], ['Les dossiers sont rejettés.', 'rejettés', 'rejetés', 'flag'],
+      ['Mes deux tantes sont fort agées.', 'agées', 'âgées', 'auto']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (!f || f.sugg !== s || f.tier !== tier) fail.push('ligne 44 « ' + t + ' » : attendu ' + s + ' en ' + tier + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -627,6 +634,7 @@ function finish(parityKO) {
   testListe43();
   testListe45();
   testListe42();
+  testListe44();
   testListe34();
   testListe32();
   testListe7();

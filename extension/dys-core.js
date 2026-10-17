@@ -5165,6 +5165,17 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        en AUTO sur le moteur d'avant. Miroir Python. */
     var _avA=_avoirSansAnte(T,idx);
     if(_avA&&_ppSurnum(w1)){var _pbW=_ppBase(w1);if(_pbW===null||_pbW===undefined)_pbW=IRR_PP[deacc(w1.toLowerCase())];if(_pbW&&cand[_pbW]){w1=_pbW;p1=cand[w1][0];f1=cand[w1][1];}}
+    /* ⭐ 16/10/2026 (liste n° 44) — APRÈS UN AUXILIAIRE, LA FINALE DE PARTICIPE ÉCRITE SE GARDE. « Mon frère a éré malade » : la restauration
+       d'accent rendait « ère » (variante d'accent, palier 0) et battait le participe « été », à une lettre. Recensé au produit (3 corpus dys) :
+       sur le mot qui suit un auxiliaire, des corrections rouges vers une forme SANS finale de participe alors que le gold écrit le participe
+       (« appellé » → appelle, appliqué ; « completée » → complète ; « melangée » → mélange ; « rejettés » → rejette). Garde : saisie en -é,
+       -ée, -és ou -ées, auxiliaire avoir/être avant (adverbes traversés, « à » exclu, même boucle que l'étape participe plus bas), et
+       gagnant du tri SANS finale de participe — s'il en a une, même autre (« agées » → âgés : l'accord), on n'y touche pas. Alors le
+       candidat le plus fréquent (≥ 1/M) qui garde la finale ÉCRITE remplace le gagnant ; son palier décide de la couleur. Miroir Python. */
+    var _ppE=/(é|ée|és|ées)$/.exec(low),_pp44=false,_pp44c=false;
+    if(_ppE&&T){var _z44=idx-1;while(_z44>=0){var _d44=deaccS(T[_z44].toLowerCase());if((SAUXAV[_d44]||SCOPULA[_d44])&&T[_z44].toLowerCase()!=='à'){_pp44=true;break;}if(/^(ne|n|pas|plus|jamais|bien|tres|deja|toujours|y|en|tout)$/.test(_d44)){_z44--;continue;}break;}
+      if(_pp44&&!/(é|ée|és|ées)$/.test(w1)){var _pb44=null,_pf44=0,_q44;for(_q44=0;_q44<keys.length;_q44++){var _k44=keys[_q44];if(_k44.slice(-_ppE[1].length)===_ppE[1]&&cand[_k44][1]>=1.0&&cand[_k44][1]>_pf44){_pb44=_k44;_pf44=cand[_k44][1];}}
+        if(_pb44){w1=_pb44;p1=cand[w1][0];f1=cand[w1][1];_pp44c=true;}}}
     if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent
     /* ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, colonne accents : « decide » après « il » → le produit écrivait « décidé », le gold veut « décide » —
        3 rouges ailleurs). Symétrique du participe après auxiliaire : quand le mot NU a deux accentuations, présent (-e) et participe
@@ -5212,7 +5223,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     if(_aux&&p1===2&&/é$/.test(w1)&&/[èê]$/.test(low)&&!(T&&T[idx]&&/^[ld]['’]/i.test(T[idx]))&&cand[w1][1]>=1.0)return['flag',w1];   // ⭐ 14/10/2026 (liste n° 5b) : le tri a gardé l'accent final écrit è/ê (« il a visitè » → visité) — le participe est déjà là, même palier que ci-dessus ; une finale « é » écrite reste à l'étape d'avant (mesuré)
     var _cgd=(T&&idx>0)?DET_G[deaccS(T[idx-1].toLowerCase())]:null;   // GENRE du DETERMINANT immediat (audible, fiable) — pas la marche arriere sCtxGender, qui peut lire un genre POLLUE sur un mot-outil (« des » porte un genre dans le lexique relache)
     if(expPos&&expPos!=='F'){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // ⭐ liste n° 24 : « F » (après qui) trie, n'affirme pas — CONTEXTE-FIRST : candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte → flag même court/non-dominant (pri→pris, von→vont, pleu→pleut ; respecte le nombre)
-      if(cand[_cw][0]>=1&&!(_avA&&_ppSurnum(_cw))&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale audible (é) → context-first ne re-choisit QUE des candidats à finale audible (manjé→mangé). Miroir app.
+      if(cand[_cw][0]>=1&&!(_avA&&_ppSurnum(_cw))&&(!_pp44||/(é|ée|és|ées)$/.test(_cw))&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale audible (é) → context-first ne re-choisit QUE des candidats à finale audible (manjé→mangé). Miroir app.
       if(_b&&_bf>=1.0&&(!_son||_b===w1)&&!(pm(w1)&&cand[w1][0]>=1&&cand[w1][1]>=20*_bf))return['flag',_b];}   /* ⭐ liste n° 36 : un choix du SON n'est jamais remplacé ici (« mangeèt » → mangé, pas mangée), seulement confirmé (« recueili » → recueilli garde son rouge) */   // GARDE DE DOMINANCE (2026-08-22) : si le vainqueur du tri colle déjà au POS et est ≫20× plus fréquent, la ré-sélection phonétique ne le détrône pas (« un chein »→chien, pas « chin » 3/M) — même garde que le tri, parité Python (qui rend chien)
     /* ⭐ 13/10/2026 (liste n° 5 : « personalisé » → personnalisé seulement en orange) — UNE LETTRE REDOUBLÉE MANQUE, ET UN SEUL MOT
        LE PERMET. Le palier rouge exigeait un mot d'au moins 1/M : « personnalisé » (0,6/M) tombait au « mot inconnu », en orange, et
@@ -5222,7 +5233,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        exactes passent de l'orange au rouge (dont 16 dont la forme devient juste), 2 restent d'une autre forme que le corrigé ;
        UD 14 450 : 3 marques, 2 vraies fautes et un mot anglais cité (« carousel »), qui passe d'orange à rouge. Miroir app + Python. */
     if(d.length>=5&&(f1<1.0||_son)){var _rd2=_redoubleSeul(low,d,keys,cand);if(_rd2&&(spF(_rd2)||0)>0)return['flag',_rd2];}   /* ⭐ liste n° 36 : un choix du SON n'ôte pas son rouge au redoublement seul (« recueili » → recueilli) */
-    if(!(d.length>=4&&f1>=1.0))return (_accX||_kV)?['vigilance',w1]:null;
+    if(!(d.length>=4&&f1>=1.0))return (_accX||_kV||(_pp44c&&f1>=1.0))?['vigilance',w1]:null;   // ⭐ liste n° 44 : « éré » → été (orange : mot court)
     // CONFIANCE : n'AFFIRMER (rouge) que si sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son rang, dominant.
     // Sinon VIGILANCE orange « à vérifier » (n'impose pas un mauvais mot : courrir→courrier, ceuille→feuille). Mesuré sur dictées réelles.
     var firstOk=deaccS(w1).charAt(0)===d.charAt(0),nTop=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===p1)nTop++;
