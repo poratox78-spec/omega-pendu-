@@ -723,6 +723,14 @@ function testListe87() {   // liste n° 87 : la table de conjugaison garde les d
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 87 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe91() {   // lignes 91 et 95 (6e tour) : « peind » → peint ; « Manges ce gâteau » → Mange (orange)
+  for (const [t, w, s] of [['Il peind le mur du salon.', 'peind', 'peint'], ['Manges ce gâteau.', 'Manges', 'Mange'], ['Chantes une chanson.', 'Chantes', 'Chante'],
+      // témoins : rien (un nom en tête de phrase, la forme juste)
+      ['Il peint le mur du salon.', 'peint', null], ['Restes du repas.', 'Restes', null], ['Mange ce gâteau.', 'Mange', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 91-95 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -789,6 +797,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe91();
   testListe52();
   testListe64();
   testListe47();

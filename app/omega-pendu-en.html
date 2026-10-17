@@ -28854,6 +28854,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   var _IMPS_INV_ADV={ensuite:1,alors:1,enfin:1,puis:1,aussi:1,maintenant:1,bientot:1,deja:1,soudain:1,ici:0},_IMPS_INV_V={venir:1,revenir:1,survenir:1,suivre:1,apparaitre:1,paraitre:1,naitre:1,partir:1,sortir:1,arriver:1,commencer:1};
   var _IMPS_SUB={si:1,que:1,quand:1,lorsque:1,comme:1,parce:1,pourquoi:1,comment:1,combien:1,puisque:1};   // ⭐ 17/10/2026 (liste n° 50)
   var _IMPS2={ton:1,ta:1,tes:1,toi:1,te:1},_IMPS2P={votre:1,vos:1,vous:1},_IMPS_SPEC={etre:['sois','soyez'],avoir:['aie','ayez'],savoir:['sache','sachez'],vouloir:['veuille','veuillez'],aller:['va','allez']};
+  var _DET95={};'ce cet cette ces le la les un une des du mon ma mes son sa ses notre nos leur leurs'.split(' ').forEach(function(w){_DET95[w]=1;});   // ⭐ liste n° 95
   function rImperatifSeul(T,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw),k;
     if(lw.indexOf("'")>=0||i+1>=T.length||d==='a')return null;   // « a » / « à » : jamais (UD : « …, à Târgovişte » → aie)
     if(!(i===0||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])))return null;
@@ -28867,6 +28868,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       if(SUBJ_PRON[dk]&&!(k===i+1&&hy))return null;                                    // un sujet : pas l'impératif
       if(_IMPS2[dk]||/^t['’]/.test(T[k].toLowerCase()))c2=true;if(_IMPS2P[dk])c2p=true;}
     if(n1==='attention')c2=true;
+    if(!c2&&i===0&&!hy&&/es$/.test(d)&&!/és$/.test(lw)&&_DET95[n1]&&GENDER_MAP[d]===undefined&&GENDER_PURE[d]===undefined){var _rd95=svReads(d),_er95=false,_tg95=posTags(T),_k95;for(_k95=0;_k95<_rd95.length;_k95++)if(_rd95[_k95][1]==='ind:pre'&&_rd95[_k95][2]==='2'&&/er$/.test(_rd95[_k95][0]))_er95=true;if(_er95&&_tg95){for(_k95=i+2;_k95<T.length;_k95++){if(_SEG&&_SEG.bb&&_k95<_SEG.bb.length&&_SEG.bb[_k95])break;if(_tg95[_k95]==='VERB'||_tg95[_k95]==='AUX'){_er95=false;break;}}}if(_er95)c2=true;}   // ⭐ liste n° 95 : « Manges ce gâteau » → Mange — en tête de phrase, 1er groupe en -es + déterminant ; jamais un nom (tables de genre), un participe en -és, ni avec un autre verbe conjugué (« Gênes le prête »)
     if(_IMPS_INV_ADV[n1])return null;                                                   // « Vient ensuite ton frère » : sujet inversé
     if(c2p){if(!/é$/.test(lw))return null;var _inf=d.slice(0,-1)+'er',_f2=((CONJ_C[_inf]||{})['ind:pre']||{})['2p'];return _f2&&_f2.toLowerCase()!==lw?{sugg:ckeepcase(w,_f2),vig:1}:null;}
     if(!c2)return null;
@@ -29768,6 +29770,7 @@ function estQuestion(t,maxMots){
      lettre change pour une confusion connue (voyelles entre elles, b/d/p/q, c/s/k/q, g/j, f/v, m/n, t/d) : garder l'initiale partout coûtait
      « evec » → avec et « gours » → jours (mesuré, écarté) ; p → s n'en est pas une. Miroir Python _init_conf. */
   var _INIT_CONF=['aeiouy','bdpq','cskq','gj','fv','mn','td'];
+  function _indre91(c,d,fin){return /[aeo]ind$/.test(d)&&deaccS(c)===d.slice(0,-1)+(fin||'t');}   // ⭐ liste n° 91 : « peind » → peint (peindre), pas « peine » : le -d écrit pour le -t muet des verbes en -indre
   function _initConf(w,d){var a=w.charAt(0),b=d.charAt(0);if(a===b)return true;for(var i=0;i<_INIT_CONF.length;i++)if(_INIT_CONF[i].indexOf(a)>=0&&_INIT_CONF[i].indexOf(b)>=0)return true;return false;}
   function sGender(w){var dw=deaccS(w);if((spP(w)||'').indexOf('A')>=0){var a=ADJP[dw];if(a)return a[0];}var g=GENDER_PURE[dw]||GENDER_MAP[dw];return (g==='m'||g==='f')?g:null;}  // table adj SEULEMENT si adjectif (évite collision pomme/pommé) ; sinon genre du nom
   function _homophoneEdit1(low){var d=deaccS(low),pk=phonKey(low),e1=sEdits1(d),i,j;for(i=0;i<e1.length;i++){var a=spD(e1[i]);if(!a)continue;for(j=0;j<a.length;j++){var w=a[j];if(w!==low&&(spF(w)||0)>=1.0&&/V/.test(spP(w)||'')&&phonKey(w)===pk)return true;}}return false;}   // un VERBE du lexique à 1 édition et de même clé phonétique existe (aboit→aboie) : la soudure « a + verbe » s'efface devant lui
@@ -30096,6 +30099,7 @@ function spellTokenCore(tok,atStart,T,idx){
        pour un : l'accent exact peut être la faute (« posséde » → possède, pas possédé ; « méme » → même). Un rival ≥ 20× plus fréquent
        laisse décider les critères suivants. Neutre pour une saisie sans accent ou un candidat d'un autre squelette. Miroir Python _kacc. */
     var _sqL=deaccS(low);function _kAcc(x){if(x.length!==low.length||deaccS(x)!==_sqL)return 1;for(var q=0;q<low.length;q++){var c=low.charAt(q),e=x.charAt(q);if(c!==deaccS(c)&&e===deaccS(e))return 0;}return 1;}   // une lettre accentuée reste accentuée (é/è/ê : même classe — « posséde » → possède)
+    var _f91=(T&&/[aeo]ind$/.test(d)&&/^(je|tu)$/.test(_sujPron(T,idx)||''))?'s':'t';   // ⭐ liste n° 91 : « je peins », « tu rejoins » ; sinon -t (« il peint », « il a peint »)
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
         if(qx>qy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
@@ -30109,6 +30113,7 @@ function spellTokenCore(tok,atStart,T,idx){
       if(inpAud){var fax=fin_aud(x),fay=fin_aud(y);if(fax!==fay)return fay-fax;}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → préférer un candidat à finale AUDIBLE (mangé) au -e MUET (mange), AVANT la dominance de fréquence
       if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
+      var _i9x=_indre91(x,d,_f91)?1:0,_i9y=_indre91(y,d,_f91)?1:0;if(_i9x!==_i9y)return _i9y-_i9x;   // ⭐ liste n° 91 : « peind » → peint avant « peine » (la clé phonétique garde le -d écrit)
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1]&&deaccS(y)!==d.slice(1)&&(_initConf(deaccS(y),d)||cand[x][1]<1))return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1]&&deaccS(x)!==d.slice(1)&&(_initConf(deaccS(x),d)||cand[y][1]<1))return -1;return py-px;}   /* ⭐ 30/09/2026 : un rival qui n'est que le mot écrit AMPUTÉ de sa première lettre n'écrase pas un homophone (« aprise » : « prise » écrasait « apprise », la chaîne ne rendait plus « appris ») ; la version large (garder l'initiale) coûtait des fautes dys typiques e/a, g/j (evec → avec, gours → jours) — miroir Python */   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;
       if(px===1&&py===1&&(x===y+'s'||y===x+'s'||x===y+'x'||y===x+'x')){var _ls=/[sx]$/.test(low);return (/[sx]$/.test(y)===_ls?1:0)-(/[sx]$/.test(x)===_ls?1:0);}   // ⭐ 30/09/2026 : singulier / pluriel HOMOPHONES : la finale -s/-x du mot ÉCRIT départage avant la fréquence (« afreuses » → affreuses) ; restreint à ces paires — le comparateur n'est pas transitif (« rélles » → elles sinon) — miroir Python
