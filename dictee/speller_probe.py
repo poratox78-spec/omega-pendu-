@@ -20,7 +20,7 @@ _SPREP_P = set('de dans pour sur par avec sans sous chez vers entre contre depui
 _PREP_NO_V = set('sont est suis es sommes etes ont ai as avons avez etait etais etaient avait avais avaient sera seront serai seras aura auront fut furent soit soient ait aient vont vais vas va peut peuvent veut veulent doit doivent'.split())   # ⭐ liste n° 33 : formes finies d'être/avoir/aller/modal — miroir JS _PREP_NO_V
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
-_AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité'}   # décalque de _AFIX (dys-core.js l.2948)
+_AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité', 'aprés': 'après', 'déja': 'déjà', 'qué': 'que', 'commé': 'comme', 'bonné': 'bonne', 'teté': 'tête', 'tetés': 'têtes', 'vîte': 'vite', 'jeunés': 'jeunes', 'étrangé': 'étrange', 'dommagé': 'dommage', 'réalite': 'réalité', 'gossé': 'gosse', 'refléchir': 'réfléchir', 'refléchis': 'réfléchis', 'refléchi': 'réfléchi'}   # décalque de _AFIX (dys-core.js) — ⭐ 17/10/2026 (liste n° 51) : + 16 accents faux entrés dans le lexique
 # ⭐ 29/09/2026 (catalogue des muets, accents) — formes SANS accent qui existent aussi sous cette forme, ou se lisent autrement hors
 # contexte : ORANGE, jamais rouge. « ca » → ça (circa « ca 1850 ») ; « foret » → forêt sauf après un déterminant masculin (« le foret »,
 # l'outil) ; « pole », « media » → pôle, média après un déterminant français, sauf composé anglais (pole position/dance, mot suivant
