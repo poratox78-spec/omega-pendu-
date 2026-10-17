@@ -26034,13 +26034,33 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
      « il surtout a chanter » : « seul » ou un adverbe laisse le créneau du verbe LIBRE → « a » est l'auxiliaire (a mangé). Liste fermée
      + adverbes en -ment (7 lettres et plus : « dément » reste un verbe). Miroir Python _AA_NONVB. */
   var _AA_NONVB={};"seul seule seuls seules surtout egalement ainsi aussitot cependant neanmoins toutefois maintenant aujourd'hui hier demain ensuite parfois rarement longtemps peu mal puis ici".split(' ').forEach(function(w){_AA_NONVB[w]=1;});
+  /* ⭐ 17/10/2026 (liste n° 47) — trois cadres où « a » ne peut pas être avoir ; UD 14 450 : aucun « a » dans aucun des trois.
+     ⑨ « a » + pronom préverbal (me te se nous vous lui leur, ou collé : m' t' s') + verbe : avec avoir, ces pronoms se placent AVANT
+        l'auxiliaire (« il m'a déplacé »). « prêt a me déplacer » réécrivait « déplacer » en « déplacé », EN ROUGE.
+     ⑩ salutation + « a tous / toutes / toute » (« merci a tous », « bonne soirée a tous ») ; un déterminant devant (« le courage a tous… ») : avoir.
+     ⑪ adjectif qui appelle « à + infinitif » (_AA_ADJ_INF : simple, prêt, long, lent…) + « a » + infinitif : « c'est simple a utiliser »
+        réécrivait « utiliser » en « utilisé », EN ROUGE ; « le prêt a » (nom après un déterminant) reste avoir. Miroir Python. */
+  var _AA_PRV={me:1,te:1,se:1,nous:1,vous:1,lui:1,leur:1},_AA_DET9={le:1,la:1,les:1,un:1,une:1,des:1,ce:1,cet:1,cette:1,ces:1,mon:1,ton:1,son:1,ma:1,ta:1,sa:1,mes:1,tes:1,ses:1,notre:1,votre:1,nos:1,vos:1,leur:1,leurs:1,du:1,au:1,aux:1};
+  var _AA_SAL={},_AA_SAL2={};'merci bravo bienvenue bonjour bonsoir salut coucou bisous bisou courage felicitations'.split(' ').forEach(function(w){_AA_SAL[w]=1;});'soiree journee annee fete chance continuation nuit semaine route'.split(' ').forEach(function(w){_AA_SAL2[w]=1;});
+  function _aaVb9(w){var d=deacc(w.toLowerCase());return (!!COMMON_VERBS[d]&&/(er|ir|re|oir)$/.test(d))||_isPpl(w);}
+  function _aaPronVerbe(T,i){if(i+1>=T.length)return false;var dc=deacc(T[i+1].toLowerCase().replace(/’/g,"'")),m=/^[mts]'(.+)$/.exec(dc),k;
+    if(m){if(m[1]==='en'||m[1]==='y')return i+2<T.length&&_aaVb9(T[i+2]);return _aaVb9(m[1]);}   // « a m'aider », « a s'en aller »
+    if(!_AA_PRV[dc])return false;k=i+2;if(k<T.length&&(deacc(T[k].toLowerCase())==='en'||deacc(T[k].toLowerCase())==='y'))k++;   // « a nous en parler »
+    if(k>=T.length)return false;if(dc==='leur'&&!_isInfinitive(T[k]))return false;   // « leur » est aussi un déterminant (« a leur parole ») : infinitif seulement
+    return _aaVb9(T[k]);}
+  function _aaSalut(T,i){if(i<1||i+1>=T.length)return false;var n=deacc(T[i+1].toLowerCase());if(n!=='tous'&&n!=='toutes'&&n!=='toute')return false;
+    var p=deacc(T[i-1].toLowerCase()),p2=i>=2?deacc(T[i-2].toLowerCase()):'';if(_AA_DET9[p2])return false;
+    return !!(_AA_SAL[p]||(_AA_SAL2[p]&&(p2==='bonne'||p2==='belle'||p2==='excellente'||p2==='joyeuse'||p2==='bon')));}
   function _rAnouveau(T,i,sans4){
     if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase()||i<1)return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(_aaLocution(T,i))return 'à';                                      // ⑤ locution prépositive (sans infinitif)
     if(_aaApresAdverbe(T,i))return 'à';                                  // ⑥ verbe + adverbe + « a »
+    if(_aaPronVerbe(T,i))return 'à';                                     // ⑨ « a » + pronom préverbal + verbe (liste n° 47)
+    if(_aaSalut(T,i))return 'à';                                         // ⑩ salutation + « a tous » (liste n° 47)
     if(_SEG&&i+1<_SEG.dig.length&&_SEG.dig[i+1]){for(var _jd=i-1;_jd>=Math.max(0,i-2);_jd--){if(deacc(T[_jd].toLowerCase())==='de'&&_jd+1<_SEG.dig.length&&_SEG.dig[_jd+1])return 'à';}}   // ⑦ intervalle « de 10 hectares a 20 hectares » : un chiffre après « de », un autre après « a » (UD 14 450 : le seul « a » du motif est une faute du corpus)
     var k=i+1;while(k<T.length&&CLITIC[T[k].toLowerCase().replace(/’/g,"'")])k++;if(k>=T.length||!/(er|ir|re|oir)$/.test(deacc(T[k].toLowerCase())))return null;
     var p1=deacc(T[i-1].toLowerCase());
+    if(_AA_ADJ_INF[p1]&&!(i>=2&&_AA_DET9[deacc(T[i-2].toLowerCase())]))return 'à';   // ⑪ adjectif + « a » + infinitif (liste n° 47) ; « le prêt a » = nom
     if(_AA_NEG[p1])return 'à';                                          // ① négation AVANT « a » : l'auxiliaire la précède toujours (« n'a pas »)
     if(_aaObjAvoir(T,i))return 'à';                                     // ⑧ avoir + groupe nominal OBJET + « a » (« j'ai un livre a terminer »)
     if(_AA_NOM[p1]||_AA_NOM[p1.replace(/ee(s?)$/,'e$1')])return 'à';   // ② nom qui appelle « à » (du mal a dormir, de la peine a marcher) ; ⭐ 03/10/2026 : aussi écrit en -ée comme un participe (« une facilitée a dessiner ») — c'est le NOM : « a » devient « à », le verbe reste (avant : « dessiné » ROUGE). Miroir Python _rule_a_aa_nouveau

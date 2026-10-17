@@ -181,7 +181,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 
 | table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |
 |---|---|---|---|---|
-| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 96 / 103 | `_persDe` `lexicalGender` `_isPpl` `vlike` `rEer` `_inf1` `rImperatif` `_groupBounds` … (101) |
+| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 96 / 103 | `_persDe` `lexicalGender` `_isPpl` `vlike` `rEer` `_inf1` `rImperatif` `_groupBounds` … (102) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 78 / 103 | `rEPplVig` `rEPpl` `rCaSa` `rAccordIncise` `rDetGenre` `rTout` `rNounSing` `_deselide` … (21) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 28 / 103 | `_isPplWideEr` `_canonW` `_emit` `rInfBut` `_spos` `_pplForm` `_infForm` `rAInfE` … (55) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 23 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (31) |
