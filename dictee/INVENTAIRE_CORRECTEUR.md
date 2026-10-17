@@ -77,7 +77,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 58 | accord sujet-verbe | `rAiAit` | `rule_ai_ait` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller) |
 | 59 | accord sujet-verbe | `rAccordSVquant` | `rule_accord_sv_quant` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
 | 60 | accord sujet-verbe | `rAccordSVrelatif` | `rule_accord_sv_relatif` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
-| 61 | accord sujet-verbe | `rAccordSVcoord` | `rule_accord_sv_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
+| 61 | accord sujet-verbe | `rAccordSVcoord` | `rule_accord_sv_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM, prénoms |
 | 62 | accord sujet-verbe | `rAccordSVinfinitif` | `rule_accord_sv_infinitif` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
 | 63 | accord sujet-verbe | `rPostpose` | `rule_accord_postpose` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM, prénoms, genre accentué |
 | 64 | accord sujet-verbe | `rAccordVerbCoord` | `rule_accord_verb_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
@@ -108,7 +108,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 89 | davantage | `rDavantage` | `rule_davantage` | rouge, orange dans un cas posé par la règle | segmentation | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
 | 90 | conditionnel à vérifier | `rCondSi` | `rule_cond_si` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 91 | temps du verbe à vérifier | `rTempsProtase` | `rule_temps_protase` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 92 | impératif à vérifier | `rImperatifSeul` | `rule_imperatif_seul` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
+| 92 | impératif à vérifier | `rImperatifSeul` | `rule_imperatif_seul` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
 | 93 | subjonctif à vérifier | `rSubjonctif` | `rule_subjonctif` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 94 | mot-outil à vérifier | `rHomophoneMo` | `rule_homophone_mo` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
 | 95 | petit mot après le sujet à vérifier | `rApresSujet` | `rule_apres_sujet` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
@@ -182,12 +182,12 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |
 |---|---|---|---|---|
 | vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 96 / 103 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `rImperatif` … (104) |
-| genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 79 / 103 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rAccordIncise` `rDetGenre` `rTout` `rNounSing` … (22) |
+| genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 79 / 103 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rAccordIncise` `rDetGenre` `rTout` `rNounSing` … (23) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 28 / 103 | `_isPplWideEr` `_canonW` `_emit` `rInfBut` `_spos` `_pplForm` `_infForm` `rAInfE` … (55) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 24 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (31) |
-| étiqueteur HMM | `setPosHmm` | `_HMM` | 43 / 103 | `posTags` |
+| étiqueteur HMM | `setPosHmm` | `_HMM` | 44 / 103 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 103 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
-| prénoms | `_applyPrenoms` | `PRENOMS` | 15 / 103 | `_rAbase` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
+| prénoms | `_applyPrenoms` | `PRENOMS` | 16 / 103 | `_rAbase` `rAccordSVcoord` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
 | genre accentué | `_applyGaccLex` | `_GACC` | 23 / 103 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` |
 | confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 103 | `_vigOne` `vigText` |
 | genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 103 | `getAuteur` `auteurSugg` `auteurPasse` |
