@@ -905,6 +905,7 @@ def rule_inf_but(T, i):
         k -= 1; vus += 1
     return None
 
+_IMP_TES = {'contrefaites', 'dites', 'defaites', 'faites', 'redites', 'refaites', 'satisfaites', 'surfaites'}   # ⭐ liste n° 45 : « faites-le », « dites-moi » (2e pers. du pluriel) — miroir JS
 def rule_imperatif(T, i):
     """Fautes d'impératif à MOTIF LOCAL (FP≈0, pas besoin de reconnaître la modalité globale) :
     1) -s euphonique : « mange-en/-y »→manges-en, « va-y »→vas-y (verbe -er 2sg + trait d'union + en/y) ;
@@ -925,7 +926,7 @@ def rule_imperatif(T, i):
         if lw.endswith('e') and not lw.endswith('es') and deacc(lw) in VERB_LEX:
             return w + 's'                                        # « mange »/« achète » (forme verbale connue) + en/y → +s
         return None
-    if nx in _IMP_PRON and lw.endswith('es') and lw[:-1].endswith('e') and deacc(lw[:-1]) in VERB_LEX:
+    if nx in _IMP_PRON and lw.endswith('es') and lw[:-1].endswith('e') and deacc(lw[:-1]) in VERB_LEX and d not in _IMP_TES:   # ⭐ liste n° 45 — miroir JS
         return w[:-1]                                             # 2) « donnes-lui »→donne-lui (verbe -er, retire le -s ; exclut prends-le)
     return None
 
@@ -7901,6 +7902,8 @@ MUETS = [
     ("Le chasse-neige dégage la route avant l'aube.", "composé : ni accord sur « chasse », ni genre du déterminant lu sur le premier élément (liste n° 43)."),
     ("Il y a un sous-affluent.", "le nombre du déterminant ne se lit pas sur le premier élément d'un composé (liste n° 43)."),
     ("Les eaux s'écoulent-elles vers la mer ?", "inversion : le verbe s'accorde au pronom inversé, pas à un sujet nominal (liste n° 43)."),
+    ("Faites-le vous-même.", "« faites » = 2e pers. du pluriel de faire, pas un présent en -e + s (16/10/2026, liste n° 45)."),
+    ("Dites-moi la vérité.", "« dites » = 2e pers. du pluriel de dire (liste n° 45)."),
     ("Il a les yeux bleus et vert foncé.", "couleur composée invariable après « et » (14/10/2026, liste n° 12)."),
     ("Il a les ailes gris argenté.", "couleur composée, 2e mot étiqueté verbe (14/10/2026, liste n° 12)."),
     ("D'autres pensent le contraire.", "« d'autres » PRONOM : le veto verbal reste (14/10/2026, liste n° 18)."),
