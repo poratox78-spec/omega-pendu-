@@ -715,6 +715,14 @@ function testListe82() {   // liste n° 82 : « sa meilleur amie » — un nom a
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 82 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe87() {   // liste n° 87 : la table de conjugaison garde les deux graphies d'un même verbe (connaître / connaitre) — le passé simple de connaître, paraître, reconnaître
+  for (const [t, w, s] of [['Il connu des jours difficiles.', 'connu', 'connut'], ['Elle reconnu sa voix au téléphone.', 'reconnu', 'reconnut'], ['Il paru fatigué ce soir-là.', 'paru', 'parut'],
+      // témoins : rien
+      ['Il connut des jours difficiles.', 'connut', null], ['Elle reconnut sa voix au téléphone.', 'reconnut', null], ['Il a paru fatigué ce soir-là.', 'paru', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
+      fail.push('ligne 87 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -780,6 +788,7 @@ function finish(parityKO) {
   testListe82();
   testListe84();
   testListe85();
+  testListe87();
   testListe52();
   testListe64();
   testListe47();

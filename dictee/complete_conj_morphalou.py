@@ -11,7 +11,8 @@ embarquée app → extension) vient de Lexique 4 SEUL : elle ne garde que les fo
 Ce script REMPLIT LES CASES VIDES des verbes déjà connus, aux quatre temps mesurés sans fausse alerte (3 corpus dys : 0 écart ; UD
 14 450 : 0). Il ne modifie JAMAIS une case remplie. Gardes, chacune vue en mesurant :
   · la forme est attestée VERBE au dictionnaire du produit (POS V de extension/assets/speller.tsv.gz) et n'est pas un participe passé ;
-  · lemmes désaccentués en COLLISION écartés (réformer / reformer, pécher / pêcher : une seule clé, deux paradigmes) ;
+  · lemmes désaccentués en COLLISION écartés (réformer / reformer, pécher / pêcher : une seule clé, deux paradigmes) — sauf deux graphies
+    du MÊME verbe (1990 : connaître / connaitre ; variantes : développer / developper), liste n° 87 ;
   · verbes archaïques ou défectifs écartés (ouïr : « orrai » → « orront ») ;
   · une forme déjà lue pour un AUTRE verbe ne reçoit la nouvelle lecture que si ce verbe est plus fréquent (« saurons » : savoir passe
     devant saurer ; « étaient » reste à être, jamais à étayer).
@@ -73,6 +74,37 @@ PS_SANS = set()                        # ⭐ conjugaison 3 : être et avoir entr
 PERS = {'firstPerson': '1', 'secondPerson': '2', 'thirdPerson': '3'}
 NOMB = {'singular': 's', 'plural': 'p'}
 ARCH = set()                           # ⭐ conjugaison 14 : les verbes archaïques ou défectifs entrent aussi (ouïr, choir, gésir…)
+# ⭐ 17/10/2026 (liste n° 87) — COLLISIONS DÉSACCENTUÉES : une clé (« connaitre ») peut porter deux graphies du MÊME verbe. Avant, toute clé à
+# deux graphies était jetée (190 verbes, 3 408 cases vides : passé simple de connaître, impératif de répéter, réparer, développer…).
+#   · orthographe rectifiée de 1990 (î / û → i / u : connaître / connaitre, dîner / diner) : même verbe, la graphie traditionnelle d'abord ;
+#   · VARIANTES : une seule graphie admise dans un ouvrage de conjugaison de référence ET au moins 5 fois plus fréquente au dictionnaire
+#     que l'autre (développer / developper) ; ses formes seules ;
+#   · le reste reste écarté : deux verbes (pécher / pêcher, tacher / tâcher, repartir / répartir) ou trop peu attestés pour trancher
+#     (designer / désigner, raper / râper : chacun fréquent).
+VARIANTES = dict(x.split('=') for x in (
+    'arguer=arguer bequeter=béqueter celer=celer coincider=coïncider correler=corréler defenestrer=défenestrer degainer=dégainer '
+    'demater=démâter deraper=déraper desobeir=désobéir dessouler=dessoûler developper=développer diplomer=diplômer entacher=entacher '
+    'entrebailler=entrebâiller faseyer=faseyer gracier=gracier maquer=maquer placoter=placoter querir=quérir racler=racler '
+    'rechauffer=réchauffer reciter=réciter reclamer=réclamer recompenser=récompenser reexaminer=réexaminer regenerer=régénérer '
+    'reglementer=réglementer rehausser=rehausser reparer=réparer repercuter=répercuter repeter=répéter resigner=résigner '
+    'resonner=résonner reviser=réviser telescoper=télescoper trompeter=trompeter').split())
+
+
+def _rect90(a, b):
+    u"""Même mot à l'accent circonflexe de i / u près (rectifications de 1990)."""
+    return len(a) == len(b) and all(x == y or {x, y} in ({u'î', u'i'}, {u'û', u'u'}) for x, y in zip(a, b))
+
+
+def _canonique(k, graphies):
+    u"""La graphie dont la clé garde les formes (les autres graphies suivent si elles sont officielles), ou None : clé écartée."""
+    g = sorted(graphies)
+    if all(_rect90(g[0], x) for x in g[1:]):
+        return max(g, key=lambda x: (x.count(u'î') + x.count(u'û'), x)), True
+    if VARIANTES.get(k) in graphies:
+        return VARIANTES[k], False
+    return None, False
+
+
 VARL = set('asseoir rasseoir surseoir messeoir seoir saillir assaillir tressaillir faillir defaillir bruire frire clore eclore gesir ouir '
            'choir echoir dechoir paitre repaitre braire traire'.split())   # ⭐ conjugaison 8 : double conjugaison (assois / assieds…)
 try: sys.stdout.reconfigure(encoding='utf-8')
@@ -100,7 +132,7 @@ def charger():
         if len(q) >= 3: spos[q[0]] = q[2]
         if len(q) >= 2 and q[1].isdigit():
             d = deacc(q[0]); lfreq[d] = max(lfreq.get(d, 0), int(q[1]))
-    mor, ppl, lemmes, lem, tous = {}, set(), {}, None, {}
+    mor, ppl, lemmes, lem, tous, parg = {}, set(), {}, None, {}, {}
     with io.open(MOR, encoding='utf-8') as f:
         for l in f:
             c = l.rstrip('\n').split(';')
@@ -116,8 +148,20 @@ def charger():
             tous.setdefault(deacc(lem), {}).setdefault(k, {}).setdefault(PERS[c[15]] + NOMB[c[11]], set()).add(deacc(form.lower()))   # conjugaison 8 : tout Morphalou, collisions comprises
             slot = mor.setdefault(deacc(lem), {}).setdefault(k, {}).setdefault(PERS[c[15]] + NOMB[c[11]], [])
             if form not in slot: slot.append(form)
+            pg = parg.setdefault(deacc(lem), {}).setdefault(lem, {}).setdefault(k, {}).setdefault(PERS[c[15]] + NOMB[c[11]], [])
+            if form not in pg: pg.append(form)
     for k, v in lemmes.items():
-        if len(v) > 1: mor.pop(k, None)                         # collision désaccentuée
+        if len(v) < 2: continue
+        can, toutes = _canonique(k, v)
+        if can is None: mor.pop(k, None); continue           # collision désaccentuée : deux verbes, ou rien pour trancher
+        neuf = {}                                             # ⭐ liste n° 87 : la graphie retenue d'abord, puis (1990) l'autre graphie officielle
+        for g in [can] + (sorted(v - {can}) if toutes else []):
+            for t_, d_ in parg.get(k, {}).get(g, {}).items():
+                for pn, fs in d_.items():
+                    sl = neuf.setdefault(t_, {}).setdefault(pn, [])
+                    sl.extend(f_ for f_ in fs if f_ not in sl)
+        if neuf: mor[k] = neuf
+        else: mor.pop(k, None)
     for k in ARCH: mor.pop(k, None)
     globals()['spos'] = spos
     return mor, ppl, spos, lfreq, tous
