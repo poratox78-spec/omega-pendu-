@@ -565,6 +565,12 @@ function testListe42() {   // liste n° 42 : préfixes savants détachés → «
     const f = DC.diagnoseAll(t).flags.find(x => x.name === 'mot coupé');
     if (f) fail.push('ligne 42 témoin « ' + t + ' » : attendu rien, eu ' + f.word + ' → ' + f.sugg + ' (' + f.tier + ')'); }
 }
+function testListe45() {   // liste n° 45 : « faites-le », « dites-moi » ne perdent pas leur s ; « donnes-lui » le perd toujours
+  for (const t of ['Faites-le vous-même.', 'Dites-moi la vérité.', 'Faites-moi signe.', 'Refaites-le demain.']) {
+    const fl = DC.diagnoseAll(t).flags; if (fl.length) fail.push('ligne 45 témoin « ' + t + ' » : attendu rien, eu ' + JSON.stringify(fl.map(x => [x.word, x.sugg, x.name]))); }
+  { const f = DC.diagnoseAll('Donnes-lui le livre.').flags.find(x => x.name === 'impératif');
+    if (!f || f.sugg !== 'Donne') fail.push('ligne 45 : « Donnes-lui » doit toujours devenir Donne, eu ' + (f ? f.sugg : 'rien')); }
+}
 function testListe44() {   // liste n° 44 : après un auxiliaire, la finale de participe ÉCRITE se garde (« éré » → été, « appellé » → appelé)
   for (const [t, w, s, tier] of [['Mon frère a éré malade.', 'éré', 'été', 'vigilance'], ['La rue est appellée la grande allée.', 'appellée', 'appelée', 'flag'],
       ['Ce petit village est appellé le hameau.', 'appellé', 'appelé', 'flag'], ['Les dossiers sont rejettés.', 'rejettés', 'rejetés', 'flag'],
@@ -626,6 +632,7 @@ function finish(parityKO) {
   testListe36();
   testListe38();
   testListe43();
+  testListe45();
   testListe42();
   testListe44();
   testListe34();
