@@ -51,7 +51,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 32 | sais/sait | `rSais` | `rule_sais` | rouge | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 33 | ce/se | `rCe` | `rule_ce_se` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
 | 34 | des/dès | `rDesDes` | `rule_des_des` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 35 | c'est/s'est | `rCestSest` | `rule_cest_sest` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels) |
+| 35 | c'est/s'est | `rCestSest` | `rule_cest_sest` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 36 | c'est/s'est | `rCesSest` | `rule_ces_sest` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
 | 37 | ça/sa | `rCaSa` | `rule_ca_sa` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post |
 | 38 | ou/où | `rOuOu` | `rule_ou_ou` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
@@ -181,8 +181,8 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 
 | table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |
 |---|---|---|---|---|
-| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 96 / 103 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `rImperatif` … (103) |
-| genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 78 / 103 | `rEPplVig` `rEPpl` `rCaSa` `rAccordIncise` `rDetGenre` `rTout` `rNounSing` `_deselide` … (21) |
+| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 96 / 103 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `rImperatif` … (104) |
+| genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 79 / 103 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rAccordIncise` `rDetGenre` `rTout` `rNounSing` … (22) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 28 / 103 | `_isPplWideEr` `_canonW` `_emit` `rInfBut` `_spos` `_pplForm` `_infForm` `rAInfE` … (55) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 24 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (31) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 43 / 103 | `posTags` |

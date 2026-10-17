@@ -733,6 +733,15 @@ function testListe88() {   // lignes 88-90 : trois rouges faux du 6e tour (gramm
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('lignes 88-90 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe59() {   // liste n° 59 : sujet nominal féminin + « c'est » + participe au féminin → s'est (orange) ; la mise en relief reste juste
+  for (const [t, s, tier] of [["La directrice c'est engagée à répondre vite.", "s'est", 'vigilance'], ["Ma voisine c'est installée au rez-de-chaussée.", "s'est", 'vigilance'],
+      ["Elle c'est levée tôt.", "s'est", 'auto'],
+      // témoins : rien
+      ["Le problème c'est réglé.", null], ["La solution, c'est simple.", null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word.toLowerCase() === "c'est");
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('ligne 59 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -800,6 +809,7 @@ function finish(parityKO) {
   testListe85();
   testListe87();
   testListe88();
+  testListe59();
   testListe52();
   testListe64();
   testListe47();

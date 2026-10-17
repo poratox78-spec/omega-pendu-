@@ -1928,6 +1928,18 @@ def rule_ce_se(T, i):
         return _keepcase(T[i], 'se')
     return None
 
+def _cest_nom_fem(T, i):
+    """⭐ liste n° 59 : [la/une/cette/ma/ta/sa] + nom féminin juste avant « c'est » (miroir JS _cestNomFem). Le participe exigé
+    au féminin (-ée) distingue « La directrice c'est engagée » (→ s'est) de la mise en relief « Le problème c'est réglé »."""
+    if i < 2: return False
+    if _SEG is not None and i - 1 < len(_SEG['bb']) and _SEG['bb'][i - 1]: return False
+    n = T[i - 1]
+    if n != n.lower(): return False
+    g = GENDER_PURE.get(deacc(n.lower()))
+    if g is None: g = GENDER_FULL.get(deacc(n.lower()))
+    return g == 'f' and deacc(T[i - 2].lower()) in _DET_FEM_SUR
+
+
 def rule_cest_sest(T, i):
     # « c'est » (ce+est, impersonnel) vs « s'est » (se+est, pronominal 3e sing.). FP=0 : un PRONOM SUJET SINGULIER
     # (il/elle/on) collé devant « c'est » SUIVI d'un PARTICIPE ne peut être que « s'est » (« elle c'est levée »→s'est).
@@ -1935,10 +1947,13 @@ def rule_cest_sest(T, i):
     # Singulier seulement : au pluriel « ils/elles c'est » la bonne forme est « se sont », pas « s'est » → abstention.
     if deacc(T[i].lower()) != "c'est": return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant → pas de sujet net
-    if _prev_pron(T, i) not in ('il', 'elle', 'on'): return None   # _prev_pron : lit aussi le pronom élidé (« Puisqu'elle c'est levée »→s'est)
+    nom59 = False
+    if _prev_pron(T, i) not in ('il', 'elle', 'on'):              # _prev_pron : lit aussi le pronom élidé (« Puisqu'elle c'est levée »→s'est)
+        if not _cest_nom_fem(T, i): return None                    # ⭐ liste n° 59 : sujet NOMINAL féminin (« La directrice c'est engagée »)
+        nom59 = True
     j = i + 1                                                        # sauter ne/pas/bien/déjà… (« elle c'est bien amusée ») → participe
     while j < len(T) and j <= i + 3 and deacc(T[j].lower()) in _PP_MID: j += 1
-    if j < len(T) and _is_ppl(T[j]): return _keepcase(T[i], "s'est")
+    if j < len(T) and _is_ppl(T[j]) and (not nom59 or deacc(T[j].lower()).endswith('ee')): return _keepcase(T[i], "s'est")
     return None
 
 
@@ -7688,7 +7703,7 @@ def rule_on_ont_sujet_pluriel(T, i):
     return 'ont'
 
 
-VIG_FAMILIES = ('accord grammatical (é/er)', '-é/-er', 'terminaison -er/-é/-ez/-ai', 'a/à', 'et/est', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
+VIG_FAMILIES = ('accord grammatical (é/er)', '-é/-er', 'terminaison -er/-é/-ez/-ai', 'a/à', 'et/est', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié', "c'est/s'est",
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'accord du verbe au sujet nominal à vérifier',
                 'on/ont après un sujet pluriel à vérifier', 'élision inversée')
@@ -7732,6 +7747,8 @@ def tier_of(T, i, name, sugg):
                 and not (vlike(T, i - 1) or (CONJ_F and deacc(T[i - 1].lower()) in CONJ_F))):
             return 'vigilance'                            # ⭐ (suite) seul le cas ④ décide, mot d'avant hors verbe connu (« elle continu a avancer ») → orange
         return 'auto'
+    if name == "c'est/s'est":                            # ⭐ liste n° 59 : sujet nominal → orange — miroir JS
+        return 'auto' if _prev_pron(T, i) in ('il', 'elle', 'on') else 'vigilance'
     if name == 'et/est':                                  # ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir JS
         return 'vigilance' if (_rule_et_est_base(T, i) is None and (_rule_et_est_nouveau(T, i) is not None or _rule_est_et_coord(T, i) is not None)) else 'auto'
     if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge
@@ -8450,6 +8467,7 @@ CASES = [
     ("Elle est partie tôt", "est", "a", "usage être/avoir"),
     ("Ils sont restés ici", "sont", "ont", "usage être/avoir"),
     ("Toi et moi sommes amis depuis longtemps", "sommes", "somme", "accord sujet-verbe"),   # ⭐ liste n° 89
+    ("La directrice s'est engagée à répondre vite", "s'est", "c'est", "c'est/s'est"),   # ⭐ liste n° 59
     # auxiliaire être/avoir mal orthographié (distance d'édition vers la forme accordée)
     ("Nous sommes prêts", "sommes", "somme", "aux mal orthographié"),
     ("Vous êtes là", "êtes", "ete", "aux mal orthographié"),
