@@ -683,6 +683,16 @@ function testListe64() {   // liste n° 64 : « et » entre deux propositions �
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 64 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe78() {   // listes n° 78 à 83 (sauf 80 et 82) : 5e tour des textes de genre réel
+  for (const [t, w, s, tier] of [['Excusez-nous pour la gène occasionnée.', 'gène', 'gêne', 'vigilance'], ["Si besoin, n'hésiter pas à nous écrire.", "n'hésiter", "n'hésitez", 'vigilance'],
+      ["Je t'appel demain matin.", "t'appel", "t'appelle", 'vigilance'],
+      ['Un vieil homme qui les aides souvent.', 'aides', 'aide', 'auto'],
+      // témoins : rien
+      ['Ce gène est rare.', 'gène', null], ['Il préfère ne pas hésiter.', 'hésiter', null], ["Je t'appelle demain matin.", "t'appelle", null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('lignes 78-83 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -744,6 +754,7 @@ function finish(parityKO) {
   testListe53();
   testListe63();
   testListe73();
+  testListe78();
   testListe52();
   testListe64();
   testListe47();

@@ -4372,7 +4372,7 @@ def rule_accord_sv_relatif(T, i):
     reads = _reads(T[i])
     if not reads: return None
     tg = pos_tags(T)
-    if not tg or not _verb_or_homograph(tg, T, i): return None
+    if not tg or not (_verb_or_homograph(tg, T, i) or (i >= 2 and deacc(T[i - 1].lower()) in ('le', 'la', 'les') and deacc(T[i - 2].lower()) == 'qui')): return None   # ⭐ liste n° 83 — miroir JS
     j = i - 1                                                                # remonter jusqu'à « qui » (sauter clitiques/négation)
     while j >= 0 and (T[j].lower().replace(u'’', "'") in CLITIC or deacc(T[j].lower()) in ('ne', 'n')): j -= 1
     if j < 0 or deacc(T[j].lower()) != 'qui': return None
@@ -8272,6 +8272,7 @@ CASES = [
     ("Personne n'est venu ce matin.", "n'est", "n'ai", "j'est/j'ai"),   # liste n° 69
     ("Petit à petit, la neige fond.", "à", "a", "a/à"),   # liste n° 70
     ("Il aide sa tante à ranger le garage.", "à", "a", "a/à"),   # ⭐ 17/10/2026 (liste n° 73)
+    ("Un vieil homme qui les aide souvent.", "aide", "aides", "accord sujet-verbe"),   # liste n° 83
     ("Elle a surtout aimé la fin du film.", "aimé", "aimer", "-é/-er"),   # liste n° 76
     ("J'aime cuisiner pour mes amis.", "cuisiner", "cuisiné", "-é/-er"),   # ⭐ 17/10/2026 (liste n° 49) : pronom élidé dans le jeton
     ("Je souhaiterais participer au projet.", "participer", "participé", "-é/-er"),   # conditionnel de souhait
