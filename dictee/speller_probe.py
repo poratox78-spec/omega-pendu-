@@ -184,6 +184,8 @@ def _accent_rival(sp, low, dblf=0.0, sujet_v=False):
 _LIEUX_COMP_CLES = {u'ile de france', u'seine saint denis', u'seine et marne', u'val de marne', u"val d'oise", u'hauts de seine', u'hauts de france', u'nouvelle aquitaine', u'auvergne rhone alpes', u'bourgogne franche comte', u'aix en provence', u'clermont ferrand', u'boulogne billancourt', u'seine maritime', u'loire atlantique', u'haute garonne', u'haute savoie', u'bas rhin', u'haut rhin', u'puy de dome', u'saone et loire', u'indre et loire', u'meurthe et moselle', u'ille et vilaine', u'maine et loire', u'eure et loir'}   # ⭐ 14/10/2026 (liste n° 16) — miroir de correcteur_probe._LIEUX_COMP
 
 
+_LEX_COQ52 = frozenset(u'avie avia quis maos brien souis commant chole jammais ravait rétais avanta aviant aviais avias ravais bonna bonnez bonnée choises chones toustes poutrait senait auriat raurait raurais essez issez charcher rétaient cellui serrière antant faissait faissais caffé encontrer encontré mavaise motié réalitée élicitations moinse parsait parkait heureuxe monstrer commendé commender renvenir rattendre rattendez rattend raviez ravaient ravance rauriez raurez raimerais raimez réamener rentourne détrange assayé assayer assaye assayez fasions naisons suiver suivée planère pleuves règes killions équite abriver guerrer écoler jeunée jeunées'.split())   # ⭐ liste n° 52 — miroir JS
+
 def load_lexicon():
     WORDS, FREQ, DEACC2ACC, POS = set(), {}, defaultdict(list), defaultdict(set)
     # ⭐ LES AJOUTS AU FORMAT Lexique4 (wikt_lex_fr.tsv, gacc_lex_fr.tsv) SONT LUS ICI AUSSI (02/09/2026).
@@ -215,6 +217,8 @@ def load_lexicon():
             cgr = (row[cg] or '').strip().upper()
             p = 'N' if cgr.startswith('NOM') else ('V' if (cgr.startswith('VER') or cgr.startswith('AUX')) else ('A' if cgr.startswith('ADJ') else None))
             if p: POS[w].add(p)
+    for w in _LEX_COQ52 & WORDS:   # ⭐ 17/10/2026 (liste n° 52) : coquilles entrées dans le lexique — miroir JS _LEX_COQ52
+        WORDS.discard(w); FREQ.pop(w, None); POS.pop(w, None)
     for w in [w for w in WORDS if w.endswith(u'è') and w[:-1] + u'é' in WORDS and w != u'burkinabè']:   # burkinabè : vrai mot (les deux graphies)   # ⭐ 14/10/2026 (liste n° 5b) : « aimè », « donnè »… coquilles de la source
         WORDS.discard(w); FREQ.pop(w, None); POS.pop(w, None)                  # (jumeau en « é » présent) : pas des mots — miroir JS _applySpellerTSV
     PHON = defaultdict(list)

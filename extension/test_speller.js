@@ -658,6 +658,13 @@ function testListe63() {   // listes n° 63 à 72 (sauf 64 et 71) : 3e tour des 
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
       fail.push('lignes 63-72 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe52() {   // liste n° 52 : coquilles entrées dans le lexique (« jammais », « avie ») — plus acceptées comme des mots
+  for (const [t, w, s] of [['Il ne vient jammais le lundi.', 'jammais', 'jamais'], ['Je ne sais pas commant ouvrir la boîte.', 'commant', 'comment'],
+      ['Il a reçu un avie favorable.', 'avie', 'avis'], ['Les iels de la classe votent.', 'iels', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('ligne 52 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -718,6 +725,7 @@ function finish(parityKO) {
   testListe50();
   testListe53();
   testListe63();
+  testListe52();
   testListe47();
   testListe51();
   testListe42();

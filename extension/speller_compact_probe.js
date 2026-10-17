@@ -35,6 +35,14 @@ for (const w of RETIRES) { WORDS.delete(w); const d = deaccS(w); if (D2A[d]) { D
 if (RETIRES.length !== 87) ech('⑤ ' + RETIRES.length + ' coquilles en « -è » retirées, 87 attendues (relevé du 15/10/2026)');
 for (const w of RETIRES) if (L.W(w)) ech('⑤ « ' + w + ' » : coquille en « -è », encore connue du moteur');
 if (!L.W('burkinabè')) ech('⑤ « burkinabè » (vrai mot) n\'est plus connu');
+// ⭐ 17/10/2026 (liste n° 52) — RETRAIT VOULU : coquilles entrées dans le lexique (avie, jammais, commant…), liste lue dans dys-core (_LEX_COQ52).
+const _src52 = require('fs').readFileSync(require('path').join(__dirname, 'dys-core.js'), 'utf8');
+const _m52 = /var _LEX_COQ52=\{([^}]*)\}/.exec(_src52);
+const COQ52 = _m52 ? [..._m52[1].matchAll(/"([^"]+)":1/g)].map((m) => m[1]) : [];
+if (COQ52.length !== 82) ech('⑥ ' + COQ52.length + ' coquilles _LEX_COQ52 lues dans dys-core, 82 attendues (relevé du 17/10/2026)');
+for (const w of COQ52) { if (!WORDS.has(w)) continue; WORDS.delete(w); const d = deaccS(w); if (D2A[d]) { D2A[d] = D2A[d].filter((x) => x !== w); if (!D2A[d].length) delete D2A[d]; } delete FREQ[w]; delete POS[w]; }
+for (const w of COQ52) if (L.W(w)) ech('⑥ « ' + w + ' » : coquille du lexique, encore connue du moteur');
+if (!L.W('iels')) ech('⑥ « iels » (gardé : pronom) n\'est plus connu');
 const sf = (a, b) => FREQ[b] - FREQ[a];
 for (const d in D2A) D2A[d].sort(sf);
 // ① chaque mot
