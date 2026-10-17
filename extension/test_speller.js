@@ -723,6 +723,16 @@ function testListe87() {   // liste n° 87 : la table de conjugaison garde les d
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 87 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe88() {   // lignes 88-90 : trois rouges faux du 6e tour (grammaire du verbe)
+  for (const [t, w, s] of [["Les chaleurs qu'il a fait cet été étaient fortes.", 'fait', null],   // 88 : « il » impersonnel, participe invariable
+      ['Toi et moi somme amis depuis longtemps.', 'somme', 'sommes'],                                   // 89 : pas « sommons » (sommer)
+      ['Il nettoye la table chaque soir.', 'nettoye', 'nettoie'],                                     // 90 : présent, pas « nettoyé »
+      // témoins
+      ['Elle a nettoye la table.', 'nettoye', 'nettoyé'], ['Il paye ses dettes.', 'paye', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 88-90 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -789,6 +799,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe88();
   testListe52();
   testListe64();
   testListe47();
