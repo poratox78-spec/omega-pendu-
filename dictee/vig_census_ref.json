@@ -1,5 +1,5 @@
 {
- "justes": 391,
+ "justes": 392,
  "pointeuses": 207,
  "fatigue": 132,
  "cles_justes": [
@@ -338,6 +338,7 @@
   "spcifiqut→spécifique [mot inconnu] autre",
   "stratégis→stratégie [orthographe] terminaison",
   "stupde→stupide [orthographe] lettre_manque",
+  "succédez→succédé [accord participe] terminaison",
   "supre→super [orthographe] inversion",
   "surfece→surface [orthographe] lettre_change",
   "surr→sur [mot inconnu] lettre_trop",

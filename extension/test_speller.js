@@ -723,6 +723,18 @@ function testListe87() {   // liste n° 87 : la table de conjugaison garde les d
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 87 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe92() {   // lignes 92, 93, 94, 96 : silences du 6e tour (grammaire du verbe)
+  for (const [t, w, s] of [['Paul et Marie vient ce soir.', 'vient', 'viennent'],                 // 92 : deux prénoms coordonnés
+      ['Elles se sont parlées longtemps.', 'parlées', 'parlé'], ['Les orages se sont succédés toute la nuit.', 'succédés', 'succédé'],   // 93
+      ['Je vais parti demain matin.', 'parti', 'partir'],                                           // 94
+      ['Elle a résout le problème.', 'résout', 'résolu'],                                          // 96
+      // témoins : rien
+      ['Paul et Marie viennent ce soir.', 'viennent', null], ['Elles se sont écrites souvent.', 'écrites', null], ['Le parti a gagné.', 'parti', null],
+      ['Elle a résolu le problème.', 'résolu', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 92-96 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe91() {   // lignes 91 et 95 (6e tour) : « peind » → peint ; « Manges ce gâteau » → Mange (orange)
   for (const [t, w, s] of [['Il peind le mur du salon.', 'peind', 'peint'], ['Manges ce gâteau.', 'Manges', 'Mange'], ['Chantes une chanson.', 'Chantes', 'Chante'],
       // témoins : rien (un nom en tête de phrase, la forme juste)
@@ -816,6 +828,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe92();
   testListe91();
   testListe88();
   testListe59();
