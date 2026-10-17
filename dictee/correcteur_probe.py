@@ -2958,8 +2958,9 @@ def rule_pp_etre(T, i):
     if a is None: return None
     _dr1 = deacc(T[a-1].lower()) if a >= 1 else ''; _dr2 = deacc(T[a-2].lower()) if a >= 2 else ''   # ⭐ 12/10/2026 (conjugaison 9) : « nous nous sommes parlé » — réfléchi COMPLÉMENT INDIRECT → invariable (miroir JS)
     if _dr2 == 'ne' and a >= 3: _dr2 = deacc(T[a-3].lower())
-    if (re.match(u"^[smt]['’]", deacc(T[a].lower())) or _dr1 in ('se', 'me', 'te') or (_dr1 in ('nous', 'vous') and _dr2 == _dr1)) \
-            and (deacc(base) in _PP_COD_STOP or deacc(base) in _REFL_COI): return None
+    _refl93 = bool(re.match(u"^[smt]['’]", deacc(T[a].lower())) or _dr1 in ('se', 'me', 'te') or (_dr1 in ('nous', 'vous') and _dr2 == _dr1))
+    if _refl93 and deacc(base) in _REFL_COI93 and deacc(T[i].lower()) != deacc(base): return _keepcase(T[i], base)   # ⭐ liste n° 93 — miroir JS
+    if _refl93 and (deacc(base) in _PP_COD_STOP or deacc(base) in _REFL_COI): return None
     aux_num = ('p' if deacc(T[a].lower()) in _PP_AVOIR_P else 's') if _compose else ('p' if deacc(T[a].lower()) in _PP_AUX_P else 's')
     _a1ok = deacc(T[a].lower()) in _A1_AUX_PL or (_compose and deacc(T[a].lower()) in _PP_AVOIR_P)   # nombre PLURIEL certain, ancré sur l'auxiliaire audible
     _a1_refl = a >= 1 and any(deacc(T[k].lower()) in ('se', 's') for k in range(max(0, a - 2), a))   # #A1 : verbe PRONOMINAL (« se/s' sont … ») → participe potentiellement INVARIABLE (se succéder/plaire/téléphoner = « se » COI) → A1 s'abstient (nombre plus certain)
@@ -3051,6 +3052,7 @@ _PP_COD_STOP = {'menti', 'ri', 'souri', 'plu', 'deplu', 'nui', 'suffi', 'dormi',
                 'parle', 'repondu', 'telephone', 'obei', 'ressemble', 'renonce', 'participe', 'assiste',
                 'succede', 'procede', 'remedie', 'convenu', 'nui', 'menace', 'songe', 'reve',
                 'fallu', 'pu'}    # TOUJOURS invariables : falloir (impersonnel) + pouvoir (objet = infinitif, jamais COD direct) — cf. « les efforts qu'il a fallu/pu » (pièges Voltaire). PAS du/su/voulu qui, eux, PEUVENT s'accorder.
+_REFL_COI93 = frozenset('parle succede plu deplu complu souri menti nui ressemble suffi telephone ri'.split())   # ⭐ liste n° 93 : « se » TOUJOURS complément indirect → participe invariable
 _REFL_COI = frozenset('ecrit dit demande promis permis jure souhaite donne'.split())   # ⭐ 12/10/2026 (conjugaison 9) : avec un pronom réfléchi, « se » est complément INDIRECT de ces verbes (« ils se sont écrit », « nous nous sommes dit »)
 _PP_PERCEPTION = {'vu', 'entendu', 'senti', 'regarde', 'ecoute', 'apercu', 'laisse', 'envoye', 'fait'}   # PP de perception/factitif : + INFINITIF = accord ambigu (l'antécédent fait OU subit l'action) → abstention ; « fait »+inf = causatif TOUJOURS invariable (« que j'ai fait venir », « s'est fait avoir »)
 # Noms de PAROLE / PENSÉE / FAIT : « que » après eux peut être COMPLÉTIF (conjonction) ⇒ le nom n'est pas le COD ⇒ abstention.
@@ -4458,6 +4460,7 @@ def rule_accord_sv_relatif(T, i):
 _COORD_PRON = {'moi': '1', 'nous': '1', 'toi': '2', 'vous': '2', 'lui': '3', 'elle': '3', 'soi': '3', 'eux': '3', 'elles': '3'}
 
 def rule_accord_sv_coord(T, i):
+    if T[i].lower() == 'puis': return None                        # ⭐ liste n° 92 : « …Milan puis s'installe » — « puis » est l'adverbe (miroir JS)
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None
     if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None
     if i > 0 and deacc(T[i-1].lower()) in PREP: return None
@@ -4479,10 +4482,10 @@ def rule_accord_sv_coord(T, i):
         if tg[m] in ('VERB', 'AUX') or dm in PREP: return None     # verbe/préposition dans la zone sujet → pas une coordination de GN sujets
         # ⭐ 11/09/2026 — « La vérité ÉCLATE et Georges est partagé » → sont : le tagger a manqué « éclate ». Un mot à lecture
         #    verbale FINIE qui n'est pas précédé d'un déterminant (« la porte et… » reste un nom) est un verbe → abstention.
-        if _reads(T[m]) and not (m > lo and (deacc(T[m-1].lower()) in NUM_DET or tg[m-1] == 'DET')): return None
+        if _reads(T[m]) and not (m > lo and (deacc(T[m-1].lower()) in NUM_DET or tg[m-1] == 'DET')) and not (T[m] in PRENOMS and T[m][:1] != T[m][:1].lower()): return None   # ⭐ liste n° 92 : « Marie » (prénom) n'est pas « marie » (marier)
         conjuncts[-1].append(m)
     if not has_sep or len(conjuncts) < 2: return None
-    per_rank = 3; has_common = False                              # priorité de personne : 1 > 2 > 3 ; has_common = au moins un conjoint pronom OU introduit par un déterminant
+    per_rank = 3; has_common = False; prop92 = pren92 = 0                              # priorité de personne : 1 > 2 > 3 ; has_common = au moins un conjoint pronom OU introduit par un déterminant
     for cj in conjuncts:
         if not cj: return None                                     # conjoint vide
         first = deacc(T[cj[0]].lower())
@@ -4492,8 +4495,11 @@ def rule_accord_sv_coord(T, i):
             if not any(tg[m] in ('NOUN', 'PROPN') for m in cj): return None
             has_common = True; continue
         if tg[cj[0]] == 'PROPN' and all(tg[m] == 'PROPN' for m in cj):
+            prop92 += 1
+            if len(cj) == 1 and T[cj[0]] in PRENOMS: pren92 += 1   # ⭐ liste n° 92 — miroir JS
             continue                                              # conjoint = nom(s) propre(s) NU(s) — toléré mais ne compte pas comme has_common
         return None                                               # « noir et blanc » (adjectifs), etc. → abstention
+    if not has_common and prop92 == len(conjuncts) and pren92 == prop92: has_common = True   # ⭐ liste n° 92 : TOUS les conjoints sont des prénoms de la table
     if not has_common: return None                               # tous les conjoints sont des noms propres NUS → risque de nom composé (« Belcastel-et-Buc », place) → abstention
     per, nb = str(per_rank), 'p'
     if any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in reads): return None   # déjà d'accord
@@ -6664,6 +6670,8 @@ def rule_avoir_fini(T, i):
     d = deacc(w)
     for suf in ('es', 's', 'e'):                                                # participe ACCORDÉ (« les tableaux que tu as vus », « qu'il a prises ») : juste, ou l'affaire de l'orange d'accord
         if d.endswith(suf) and len(d) > len(suf) + 1 and _avoir_pp(w[:-len(suf)]): return None
+    _so96 = {'resout': 'résolu', 'resous': 'résolu', 'dissout': 'dissous', 'absout': 'absous'}.get(d)   # ⭐ liste n° 96 — miroir JS
+    if _so96: return _so96
     if d[-1:] not in ('s', 't'): return None
     for c in (w[:-1], w[:-1] + ('t' if d[-1] == 's' else 's')):                # consonne finale MUETTE ôtée ou échangée : même son
         if len(deacc(c)) >= 2 and _avoir_pp(c):
@@ -7684,6 +7692,7 @@ def rule_inf_semi_aux(T, i):
     if not src:   # ⭐ 11/10/2026 : verbes en -yer (« envoyée ») — infinitif rebâti du mot écrit, s'il est un verbe connu ; miroir JS
         _sE = re.match(u'^(.*)é(e|es|s)?$', w.lower())
         if _sE and len(_sE.group(1)) >= 2 and deacc(_sE.group(1) + 'er') in VERB_LEX: return _sE.group(1) + 'er'
+        if len(lw) >= 4 and re.search(u'[^aeiouy]i$', lw) and lw + 'r' in VERB_LEX and not (lw == 'parti' and deacc(T[j].lower()) in _FAIRE_SEMI): return w.lower() + 'r'   # ⭐ liste n° 94 : « je vais parti » → partir ; « faire partie » non — miroir JS
         return None
     out = None
     for r in src.split('|'):
@@ -8496,6 +8505,7 @@ CASES = [
     ("Elle est partie tôt", "est", "a", "usage être/avoir"),
     ("Ils sont restés ici", "sont", "ont", "usage être/avoir"),
     ("Toute la classe est partie", "Toute", "Tout", "accord tout"),   # ⭐ liste n° 101
+    ("Elle a résolu le problème", "résolu", "résout", "participe après avoir"),   # ⭐ liste n° 96
     ("Toi et moi sommes amis depuis longtemps", "sommes", "somme", "accord sujet-verbe"),   # ⭐ liste n° 89
     ("La directrice s'est engagée à répondre vite", "s'est", "c'est", "c'est/s'est"),   # ⭐ liste n° 59
     # auxiliaire être/avoir mal orthographié (distance d'édition vers la forme accordée)

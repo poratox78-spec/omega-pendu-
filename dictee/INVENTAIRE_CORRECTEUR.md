@@ -77,7 +77,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 58 | accord sujet-verbe | `rAiAit` | `rule_ai_ait` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller) |
 | 59 | accord sujet-verbe | `rAccordSVquant` | `rule_accord_sv_quant` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
 | 60 | accord sujet-verbe | `rAccordSVrelatif` | `rule_accord_sv_relatif` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
-| 61 | accord sujet-verbe | `rAccordSVcoord` | `rule_accord_sv_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
+| 61 | accord sujet-verbe | `rAccordSVcoord` | `rule_accord_sv_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM, prénoms |
 | 62 | accord sujet-verbe | `rAccordSVinfinitif` | `rule_accord_sv_infinitif` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
 | 63 | accord sujet-verbe | `rPostpose` | `rule_accord_postpose` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM, prénoms, genre accentué |
 | 64 | accord sujet-verbe | `rAccordVerbCoord` | `rule_accord_verb_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
@@ -187,7 +187,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | noun-post | `_applyNounPost` | `NOUN_POST` | 24 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (32) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 44 / 103 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 103 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
-| prénoms | `_applyPrenoms` | `PRENOMS` | 15 / 103 | `_rAbase` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
+| prénoms | `_applyPrenoms` | `PRENOMS` | 16 / 103 | `_rAbase` `rAccordSVcoord` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
 | genre accentué | `_applyGaccLex` | `_GACC` | 23 / 103 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` |
 | confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 103 | `_vigOne` `vigText` |
 | genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 103 | `getAuteur` `auteurSugg` `auteurPasse` |
