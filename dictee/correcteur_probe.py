@@ -1928,6 +1928,18 @@ def rule_ce_se(T, i):
         return _keepcase(T[i], 'se')
     return None
 
+def _cest_nom_fem(T, i):
+    """⭐ liste n° 59 : [la/une/cette/ma/ta/sa] + nom féminin juste avant « c'est » (miroir JS _cestNomFem). Le participe exigé
+    au féminin (-ée) distingue « La directrice c'est engagée » (→ s'est) de la mise en relief « Le problème c'est réglé »."""
+    if i < 2: return False
+    if _SEG is not None and i - 1 < len(_SEG['bb']) and _SEG['bb'][i - 1]: return False
+    n = T[i - 1]
+    if n != n.lower(): return False
+    g = GENDER_PURE.get(deacc(n.lower()))
+    if g is None: g = GENDER_FULL.get(deacc(n.lower()))
+    return g == 'f' and deacc(T[i - 2].lower()) in _DET_FEM_SUR
+
+
 def rule_cest_sest(T, i):
     # « c'est » (ce+est, impersonnel) vs « s'est » (se+est, pronominal 3e sing.). FP=0 : un PRONOM SUJET SINGULIER
     # (il/elle/on) collé devant « c'est » SUIVI d'un PARTICIPE ne peut être que « s'est » (« elle c'est levée »→s'est).
@@ -1935,10 +1947,13 @@ def rule_cest_sest(T, i):
     # Singulier seulement : au pluriel « ils/elles c'est » la bonne forme est « se sont », pas « s'est » → abstention.
     if deacc(T[i].lower()) != "c'est": return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant → pas de sujet net
-    if _prev_pron(T, i) not in ('il', 'elle', 'on'): return None   # _prev_pron : lit aussi le pronom élidé (« Puisqu'elle c'est levée »→s'est)
+    nom59 = False
+    if _prev_pron(T, i) not in ('il', 'elle', 'on'):              # _prev_pron : lit aussi le pronom élidé (« Puisqu'elle c'est levée »→s'est)
+        if not _cest_nom_fem(T, i): return None                    # ⭐ liste n° 59 : sujet NOMINAL féminin (« La directrice c'est engagée »)
+        nom59 = True
     j = i + 1                                                        # sauter ne/pas/bien/déjà… (« elle c'est bien amusée ») → participe
     while j < len(T) and j <= i + 3 and deacc(T[j].lower()) in _PP_MID: j += 1
-    if j < len(T) and _is_ppl(T[j]): return _keepcase(T[i], "s'est")
+    if j < len(T) and _is_ppl(T[j]) and (not nom59 or deacc(T[j].lower()).endswith('ee')): return _keepcase(T[i], "s'est")
     return None
 
 
@@ -3029,6 +3044,7 @@ _COD_SUBJ = {'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles'}   #
 # ⭐ 17/10/2026 (liste n° 84) : participes de verbes SANS complément d'objet direct (Wiktionnaire ∩ ouvrage de conjugaison de référence)
 # — miroir JS PP_SANS_COD ; lue par la seule règle rule_pp_avoir_cod.
 _PP_SANS_COD = set('aberre abonde abouti accede accouru achoppe acquiesce adhere adonne advenu affere afflue agiote agnele ahane aire alle alluvionne aluni amble amerri anhele anordi apatame apostasie apparu apponte argotise argumente arrerage arrive assone attente atterri babele babille bagarre bagote bagotte baguenaude baille balle bamboche banquete barete barguigne baroude barri baste bataille batele batifole bavarde bavasse bavoche baye bedonne bee begue beguete bele belote beneficie betise bibelote biche biffetonne bifurque bigophone billebaude bisque bivouaque blablate blatere blemi blese bletti bloblote blondoye boite boitille bondi bonimente boquillonne bouboule bouffonne bouillotte bouloche boume bourde bourdonne bourgeonne bourlingue boursicote boustifaille brame brille bronche bruisse bruit cabale cabine cabote cabotine cabriole cacabe cacarde cagnarde cagne cague caillete calanche calete calmi calte camembere cancane cane canote capee capeye capitule caponne caracole carcaille cascade catche cauchemarde cavalcade chaloupe chameause chancele chanci chatoye chauvi chelingue chemine chere cherre chevrete chiale chienne chigne chlingue chocotte chopine choppe chu chuinte clabaude clamece clamse clapi clapote clapse claquete claudique clebe clignote cliquete cliquote clopine coasse coexiste cognote cohabite coherite coincide coite collabore commerce commere comparu compati compete complu concorde concouru condescendu consone contrevenu contribue converge converse convole coopere copine copule coquete correspondu cosse cotise couchaille couine crachote craille crampse cramse crane crapahute crapaute crapule craquete crepite crique crise croasse croupi croupionne cru culmine dansotte deambule debouque decampe decanille decede dechante dechu decolere deconne decouche decoule decru defailli deflagre deflaque degenere delire demeure demordu deparle deperi derade derage deraille deraisonne derape deroge desalpe desobei detone detonne devenu dine dingue disconvenu discorde discouru disparu dissone divague diverge divorce dogmatise doublonne douille doute drache drageonne echu ecrivaille effleuri emane emerge emigre encheri endeve enquete enrage equivalu equivoque ergote escarmouche este eternue excelle excipe excursionne extravague exulte faibli faignante failli faineante fanfaronne faseye fauconne faute feignante fermente ferraille flageole flamboye flanoche flaque flemmarde flirte floconne fluctue flue folatre folichonne fonctionne forligne fornique fouge fouine fourmille fransquillonne fraternise fremi fretille frissonne froue froufroute fructifie fugue galeje galere gambade gambille gamine gargote gargouille gasconne geint germe gesticule girouette gite glande glandouille glati glaviote glette godaille godille gondole gongonne gouape goutte graillonne gravite grelotte grenouille greve grigne grisole grisolle grisonne grognasse grouille groume gueuletonne guindaille halete henni herborise hesite hui hulule immigre indague influe insiste intercede interfere intervenu iodle ironise issu jacasse jailli jappe jargonne jase jeune jodle jongle joute jubile jute laiusse lambine langui lansquine lapine larmoye legifere lesine levite liarde lofe louche loufe louvoye luge lui lunche lutte machicote madrigalise marivaude marsouine medise medit mefait merdoye mesuse miaule michetonne milite minaude minci miroite misere monologue mort motionne moucheronne mouette moufete moufte mousse mulote musarde muse naufrage navigue ne neige nidifie noce nomadise nordi oblique obvenu obvie officie opine opte oscille ovule pactise pagaye paillarde palabre palpite panoramique pantele pantoufle papillonne papote paresse parlemente partouze paru patauge pate pati patiente patisse pause peche pedale peluche pendille pendouille pendule pepie perdure peregrine peri periclite periphrase perore perquisitionne persevere peste pestelle petarade petille petitionne petoche petrarquise petune piaffe piaille piaule piete pinaille pindarise pinte pioge pionce pionne pirouette pissote pite pivote placote pleurniche pleuviote pluche poireaute poirote polemique politique postiche postillonne pote potine poudroye pouffe pouline predomine preexiste prejudicie prelude prevalu prevarique profite progresse prolifere prospere proute provenu pullule pyramide quotte radine radote raffole rage ragote rait rampe ranci randonne rassi rauque reagi rebique rebondi recause rechigne rechute recidive recrimine recru redevenu ree reflue regate regimbe regorge regresse rejailli relui remarche renarde renaude rene rengracie reparle reparu reside resonne resplendi ressurgi reste resulte resurgi retenti retombe retroagi revasse reveillonne revenu riboule ricane rimaille ripaille rivalise rocque rodaille rognonne ronchonne ronfle ronronne ronsardise rougeoye rougnotte roupille rouspete ruissele rupine ruse rutile salive sanglote saune sautille scintille sejourne semble serpente sevi siege sieste slalome smurfe soliflue soliloque sombre sommeille somnole sonnaille soubresaute soupe sourcille specule sporule sprinte stagne subsiste subvenu succombe suppure surabonde suralle surencheri surgeonne surgi suri surinvesti surnage sursaute survenu sympathise table talle tangue tapage tapine tarde tatillonne tatonne tchatche tempete tergiverse terri tictaque tintinnabule tique titube tonne tope toree tourbillonne tournicote tournille tournoye toussaille toussote traboule transmigre transparu travaillote trefondu tremblote trepasse trepide tressailli tressaute trinque triomphe trottine trouillote vacille vagabonde vagi vaironne valdingue valete vaque varappe vasouille vaticine vele vente venu verbiage verdoye vermille vesse vetille viande vielle villegiature vioqui vivote vogue voisine volete volte voltige vrombi yoyote zigzague zonzonne zouke zozote zwanze'.split())
+_METEO88 = set('chaleur chaleurs froid froids temps vent vents orage orages tempete tempetes canicule canicules gel gels neige neiges brouillard brouillards pluie pluies soleil grele greles secheresse secheresses frimas fraicheur fraicheurs douceur humidite beau'.split())   # ⭐ liste n° 88 : antécédents météo de « qu'il a fait » impersonnel — miroir JS
 _PP_COD_STOP = {'menti', 'ri', 'souri', 'plu', 'deplu', 'nui', 'suffi', 'dormi', 'regne', 'existe', 'marche',
                 'vecu', 'couru', 'coute', 'valu', 'pese', 'dure', 'reussi', 'echoue', 'appartenu', 'resiste',
                 'survecu', 'nage', 'voyage', 'travaille', 'circule', 'evolue', 'rode', 'erre',
@@ -3147,6 +3163,7 @@ def rule_pp_avoir_cod(T, i):
         if m < len(tg) and tg[m] in ('ADJ', 'ADV', 'NUM'): m -= 1; continue
         return None                                                 # verbe/pronom/conj ⇒ pas un GN simple ⇒ abstention
     if det is None or noun is None: return None
+    if deacc(base) == 'fait' and (deacc(T[q].lower()) == "qu'il" or (q + 1 < len(T) and deacc(T[q + 1].lower()) == 'il')) and deacc(T[noun].lower()) in _METEO88: return None   # ⭐ liste n° 88 : « il » impersonnel
     mm = det - 1                                                    # préposition/coordination avant le déterminant ⇒ antécédent ambigu
     while mm > lo and mm < len(tg) and tg[mm] == 'ADV': mm -= 1
     if mm >= lo and deacc(T[mm].lower()) in PREP: return None
@@ -4480,6 +4497,8 @@ def rule_accord_sv_coord(T, i):
     if not has_common: return None                               # tous les conjoints sont des noms propres NUS → risque de nom composé (« Belcastel-et-Buc », place) → abstention
     per, nb = str(per_rank), 'p'
     if any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in reads): return None   # déjà d'accord
+    _ta89 = [(df, af) for (df, _v, af) in _aux_targets(per, nb) if len(df) >= 4 and _lev(deacc(T[i].lower()), df) == 1]
+    if len(_ta89) == 1: return _ta89[0][1]                       # ⭐ liste n° 89 : « toi et moi somme » → sommes, pas « sommons » — miroir JS
     lemmas = {l for (l, _mt, _p, _n) in reads}
     if len(lemmas) != 1: return None
     lem = lemmas.pop()
@@ -7694,7 +7713,7 @@ def rule_on_ont_sujet_pluriel(T, i):
     return 'ont'
 
 
-VIG_FAMILIES = ('accord grammatical (é/er)', '-é/-er', 'terminaison -er/-é/-ez/-ai', 'a/à', 'et/est', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
+VIG_FAMILIES = ('accord grammatical (é/er)', '-é/-er', 'terminaison -er/-é/-ez/-ai', 'a/à', 'et/est', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié', "c'est/s'est",
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'accord du verbe au sujet nominal à vérifier',
                 'on/ont après un sujet pluriel à vérifier', 'élision inversée')
@@ -7738,6 +7757,8 @@ def tier_of(T, i, name, sugg):
                 and not (vlike(T, i - 1) or (CONJ_F and deacc(T[i - 1].lower()) in CONJ_F))):
             return 'vigilance'                            # ⭐ (suite) seul le cas ④ décide, mot d'avant hors verbe connu (« elle continu a avancer ») → orange
         return 'auto'
+    if name == "c'est/s'est":                            # ⭐ liste n° 59 : sujet nominal → orange — miroir JS
+        return 'auto' if _prev_pron(T, i) in ('il', 'elle', 'on') else 'vigilance'
     if name == 'et/est':                                  # ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir JS
         return 'vigilance' if (_rule_et_est_base(T, i) is None and (_rule_et_est_nouveau(T, i) is not None or _rule_est_et_coord(T, i) is not None)) else 'auto'
     if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge
@@ -8455,6 +8476,8 @@ CASES = [
     ("Il est allé à Paris", "est", "a", "usage être/avoir"),
     ("Elle est partie tôt", "est", "a", "usage être/avoir"),
     ("Ils sont restés ici", "sont", "ont", "usage être/avoir"),
+    ("Toi et moi sommes amis depuis longtemps", "sommes", "somme", "accord sujet-verbe"),   # ⭐ liste n° 89
+    ("La directrice s'est engagée à répondre vite", "s'est", "c'est", "c'est/s'est"),   # ⭐ liste n° 59
     # auxiliaire être/avoir mal orthographié (distance d'édition vers la forme accordée)
     ("Nous sommes prêts", "sommes", "somme", "aux mal orthographié"),
     ("Vous êtes là", "êtes", "ete", "aux mal orthographié"),
