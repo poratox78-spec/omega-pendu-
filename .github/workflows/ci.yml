@@ -178,6 +178,8 @@ jobs:
         run: node dictee/parity_diag.js
       - name: Dictée — SENT app == sentences.json + 0 FP
         run: python3 dictee/sentences_parity.py
+      - name: Dictée — Conjugue affiche le temps et la personne de la phrase
+        run: node dictee/conjugue_probe.js
       - name: Vigilance accord sujet-verbe (orange mid-phrase)
         run: node dictee/test_sv_vigilance.js
       - name: Garde anti-dérive — dev.sh lance bien ce que lance la CI
