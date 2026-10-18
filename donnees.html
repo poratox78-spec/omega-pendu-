@@ -22,7 +22,7 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Lexiques français ouverts & POS-tagger — OMEGA-Ω","description":"Lexiques du français retravaillés (lexique orthographique ~739 000 formes, genre des noms, homophones, morphologie) et un POS-tagger HMM, curés à zéro faux positif. Libres à réutiliser.","url":"https://omegapendu.com/donnees","license":"https://creativecommons.org/licenses/by-sa/4.0/","inLanguage":"fr","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"},"keywords":["lexique français","POS tagger","étiquetage morphosyntaxique","dyslexie","correcteur orthographique","TAL","NLP","genre des noms","homophones","morphologie"],"distribution":{"@type":"DataDownload","encodingFormat":"application/zip","contentUrl":"https://omegapendu.com/omega-lexiques.zip"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Lexiques français ouverts & POS-tagger — OMEGA-Ω","description":"Lexiques du français retravaillés (lexique orthographique ~739 000 formes, conjugaison de 12 945 verbes, prononciations, lexique du pendu, genre des noms, homophones, morphologie) et un POS-tagger HMM, curés à zéro faux positif. Libres à réutiliser.","url":"https://omegapendu.com/donnees","license":"https://creativecommons.org/licenses/by-sa/4.0/","inLanguage":"fr","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"},"keywords":["lexique français","POS tagger","étiquetage morphosyntaxique","dyslexie","correcteur orthographique","TAL","NLP","genre des noms","homophones","morphologie"],"distribution":{"@type":"DataDownload","encodingFormat":"application/zip","contentUrl":"https://omegapendu.com/omega-lexiques.zip"}}</script>
 <script src="nav.js" defer></script>
 <style>
   .lextab{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px}
@@ -57,10 +57,10 @@
   <h1>Nos lexiques français, <em>retravaillés</em> — en un seul paquet.</h1>
   <p class="lead">C'est le lexique du correcteur et de la dictée OMEGA — <strong>retravaillé, complété, curé</strong>, et sensiblement plus utile que la matière première dont il part&nbsp;: <strong>~739 000 formes</strong> (enrichies au Wiktionnaire), le <strong>genre des noms</strong> bouché, les <strong>homophones</strong>, la <strong>morphologie</strong>, et un <strong>POS-tagger</strong> qu'on a entraîné nous-mêmes — le tout trié à <strong>zéro faux positif</strong>. Le français n'appartient à personne&nbsp;: sers-t'en <strong>librement</strong>, pour n'importe quel projet.</p>
   <div class="cta">
-    <a class="btn primary" href="omega-lexiques.zip" download>⬇️ Télécharger le paquet (.zip, ~4,6&nbsp;Mo)</a>
+    <a class="btn primary" href="omega-lexiques.zip" download>⬇️ Télécharger le paquet (.zip, ~12,6&nbsp;Mo)</a>
     <a class="btn ghost" href="https://github.com/poratox78-spec/omega-pendu-">Parcourir sur GitHub</a>
   </div>
-  <p class="small">Un seul zip contient tout, avec un <code>NOTICE.txt</code> qui décrit chaque fichier. Aucune donnée personnelle&nbsp;: rien qui vienne d'un corpus privé.</p>
+  <p class="small">Un seul zip contient tout ce que nos outils utilisent — dictionnaire, conjugaison, prononciations, lexique du pendu, modèles — avec un <code>NOTICE.txt</code> qui décrit chaque fichier. Aucune donnée personnelle&nbsp;: rien qui vienne d'un corpus privé.</p>
 </div></section>
 
 <section><div class="wrap">
@@ -79,11 +79,20 @@
       <tr><td><code>morpho.json</code></td><td>Morphologie&nbsp;: radicaux (md/mb).</td><td class="src">Lexique 4</td></tr>
       <tr><td><code>homophones-phonetiques.json</code></td><td>Groupes d'homophones par clé phonétique.</td><td class="src">Lexique 4</td></tr>
       <tr><td><code>elision.txt</code></td><td>Mots à apostrophe (élision) pour le rappel.</td><td class="src">UD French-GSD · curé</td></tr>
+      <tr><td><code>pendu-lexique.json</code></td><td>Lexique du pendu&nbsp;: ~155&nbsp;000 mots avec prononciation, lemme, catégorie, fréquence (colonnes décrites en tête du fichier).</td><td class="src">Lexique 4</td></tr>
+      <tr><td><code>conjugaison.json</code></td><td>Table de conjugaison&nbsp;: 12&nbsp;945 verbes, tous les temps et toutes les personnes (verbe → temps → personne → forme).</td><td class="src">Lexique 4 · Morphalou&nbsp;3.1</td></tr>
+      <tr><td><code>prononciations-morphalou.json</code></td><td>Prononciations de ~305&nbsp;000 formes, notées comme dans Lexique 4.</td><td class="src">Morphalou&nbsp;3.1</td></tr>
+      <tr><td><code>troisieme-personne-pluriel.txt.gz</code></td><td>Formes en «&nbsp;-ent&nbsp;» qui sont des 3<sup>es</sup> personnes du pluriel («&nbsp;-ent&nbsp;» muet&nbsp;: ils mangent).</td><td class="src">Lexique 4 · Morphalou&nbsp;3.1</td></tr>
+      <tr><td><code>genre-noms-verbes-rares.json</code></td><td>Genre des formes rares à la fois nom et verbe («&nbsp;flue&nbsp;»&nbsp;: nom féminin).</td><td class="src">Morphalou&nbsp;3.1 · Wiktionnaire</td></tr>
+      <tr><td><code>prenoms-genre.tsv.gz</code></td><td>Prénoms et leur genre (accord&nbsp;: «&nbsp;Marie est venue&nbsp;»).</td><td class="src">Wiktionnaire</td></tr>
+      <tr><td><code>definitions-courtes.json.gz</code></td><td>Définitions courtes par mot (jeu Double-Sens).</td><td class="src">Wiktionnaire</td></tr>
+      <tr><td><code>ponctuation-lm.json.gz</code></td><td>Modèle de ponctuation du texte dicté (où poser virgules et points).</td><td class="src">UD French-GSD · Wiktionnaire</td></tr>
       <tr><td><code>LICENSE-LGPL-LR.txt</code></td><td>Texte de la licence LGPL-LR, à joindre avec les fichiers qui dérivent de Morphalou.</td><td class="src">ATILF/CNRS</td></tr>
     </tbody>
   </table>
   </div>
   <p class="small">Formats simples&nbsp;: TSV et JSON (les <code>.gz</code> se décompressent avec n'importe quel outil, <code>gunzip</code> compris).</p>
+  <p class="small">Le <a href="Lexique4.tsv.xz">Lexique&nbsp;4 d'origine</a>, inchangé (6&nbsp;Mo, compressé en <code>.xz</code>)&nbsp;: c'est le point de départ, sous la même licence (CC&nbsp;BY-SA&nbsp;4.0, <a href="http://www.lexique.org/">lexique.org</a>).</p>
 </div></section>
 
 <section><div class="wrap">
