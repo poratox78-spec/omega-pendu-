@@ -522,10 +522,13 @@ function testListe34() {
 // de français juste (taxons, trayons, estive…) — refusé. « flue » pour « flux » ne se rattrape donc plus que si le contexte le dit.
 // ⭐ liste n° 114 : le contexte le dit par le GENRE — « flue » nom est féminin (Morphalou et Wiktionnaire d'accord, build_nv_genre.py) :
 // « le flue » ne peut pas être ce nom → flux ; « la flue » reste muet.
+// Sans article (« flue de données ») : le verbe n'a pas de sujet (début du texte, préposition, conjonction) et le nom pas d'article → flux ;
+// « la rivière flue de la montagne » (sujet présent) reste muet.
 function testListe35() {
   for (const [t, w, s] of [['Les lignés du cahier sont bleues.', 'lignés', 'lignes'], ['Le prix des minerait monte vite.', 'minerait', 'minerais'],
       ['Le temps flue lentement.', 'flue', null], ['Un flux de données.', 'flux', null],
-      ['Le flue de données sature le réseau.', 'flue', 'flux'], ['La flue sèche au soleil.', 'flue', null]]) {
+      ['Le flue de données sature le réseau.', 'flue', 'flux'], ['La flue sèche au soleil.', 'flue', null],
+      ['flue de données en temps réel', 'flue', 'flux'], ['La rivière flue de la montagne.', 'flue', null]]) {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance')) fail.push('liste n° 35 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
@@ -799,6 +802,15 @@ function testListe113() {   // liste n° 113 : noms et adjectifs justes jamais v
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 113 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testRaisons() {   // ⭐ 18/10/2026 : un mot qui EXISTE marqué par une règle de contexte porte sa RAISON, et le 💡 la dit (pas « lettre en trop »)
+  for (const [t, w, r] of [['Nous prenons le étrain de midi.', 'étrain', '113-7'], ['Il suit son vouloirs sans réfléchir.', 'vouloirs', '113-8'],
+      ['Les adnées de lycée passent vite.', 'adnées', '113-9'], ['Le gardien, grappé par la balle, tombe au sol.', 'grappé', '113-11'],
+      ['Le flue de données sature le réseau.', 'flue', '114'], ['flue de données en temps réel', 'flue', '115'],
+      ['Les lignés du cahier sont bleues.', 'lignés', '35'], ['La soupe a été sévie froide.', 'sévie', '108-3']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (!f || f.raison !== r || !f.hint || f.hint.indexOf(w) < 0 || /lettre|ce son s/.test(f.hint))
+      fail.push('raison « ' + t + ' » : attendu la raison ' + r + ' et un 💡 qui la dit, eu ' + (f ? (f.raison || 'sans raison') + ' / ' + JSON.stringify(f.hint || '') : 'rien')); }
+}
 function testListe87() {   // liste n° 87 : la table de conjugaison garde les deux graphies d'un même verbe (connaître / connaitre) — le passé simple de connaître, paraître, reconnaître
   for (const [t, w, s] of [['Il connu des jours difficiles.', 'connu', 'connut'], ['Elle reconnu sa voix au téléphone.', 'reconnu', 'reconnut'], ['Il paru fatigué ce soir-là.', 'paru', 'parut'],
       // témoins : rien
@@ -928,6 +940,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testRaisons();
   testListe113();
   testListe112();
   testListe109();
