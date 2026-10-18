@@ -56,7 +56,8 @@
 - `data_local/Lexique4.tsv` (33 Mo, 188 863 mots) : présent en local, hors git. Les sondes lisent l'env `LEX4=` (défaut `/tmp/lex4/Lexique4.tsv`).
 - Licences : Lexique 4 **CC BY-SA 4.0** (citation complète : `NOTICE`) · **Morphalou 3.1 (ATILF/CNRS, LGPL-LR)** · Wiktionnaire/kaikki CC BY-SA.
   Tout dérivé embarqué suit. Paquet public du site : `omega-lexiques.zip` (~706 000 formes, `python3 build_lexiques.py --check`).
-- Speller embarqué : 734 635 formes (Lexique 4 + Wiktionnaire + 4 lots Morphalou + le lot de la table de conjugaison + le lot des formes verbales justes, liste n° 108 + les graphies rectifiées de 1990, liste n° 109).
+- Speller embarqué : 734 635 formes. Sources : Lexique 4, Wiktionnaire, 4 lots Morphalou, la table de conjugaison,
+  les formes verbales justes (liste n° 108), les graphies rectifiées de 1990 (liste n° 109).
 
 ## Comment lancer (l'essentiel)
 - `./dev.sh` — toutes les gardes (≡ CI, la parité est elle-même gardée). Compte et liste commentée : `ETAT.md` §2.
