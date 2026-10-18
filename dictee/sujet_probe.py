@@ -46,7 +46,10 @@ except Exception:
     pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-UDFR = os.environ.get('UDFR', '/tmp/udfr')
+# UD French-GSD : /tmp/udfr (clone complet) sinon la copie locale de data_local (hors dépôt) — avant le 18/10/2026 la sonde ne
+# cherchait que /tmp/udfr et SAUTAIT en silence partout ailleurs, même avec l'UD sous la main.
+_UD_LOCAL = os.path.join(os.path.dirname(HERE), 'data_local', 'ud_fr_gsd-train.conllu')
+UDFR = os.environ.get('UDFR') or ('/tmp/udfr' if os.path.isdir('/tmp/udfr') else _UD_LOCAL)
 N_SENT = int(os.environ.get('SUJET_N', '3000'))
 MIN_PREC, MIN_VERB, MIN_COUV = 90.0, 90.0, 50.0     # gardes (marges sous les ~93,2/93,1/56,5 mesurés)
 
@@ -59,7 +62,7 @@ def _norm(s):
 
 def conllu_iter(d):
     """(texte, lignes CoNLL-U) par phrase, tous fichiers *.conllu triés (déterministe)."""
-    for f in sorted(glob.glob(os.path.join(d, '*.conllu'))):
+    for f in ([d] if os.path.isfile(d) else sorted(glob.glob(os.path.join(d, '*.conllu')))):
         text, rows = None, []
         for ln in open(f, encoding='utf-8', errors='ignore'):
             ln = ln.rstrip('\n')
@@ -163,8 +166,8 @@ def structure_of(v, s, tv, ts, words, children, T):
 
 
 def main():
-    if not os.path.isdir(UDFR) or not glob.glob(os.path.join(UDFR, '*.conllu')):
-        print('SAUTÉ (UDFR absent)')
+    if not (os.path.isfile(UDFR) or (os.path.isdir(UDFR) and glob.glob(os.path.join(UDFR, '*.conllu')))):
+        print('SAUTÉ (UD French-GSD absent : ni /tmp/udfr ni data_local/ud_fr_gsd-train.conllu)')
         return 0
     sys.path.insert(0, HERE)
     import correcteur_probe as C

@@ -40,7 +40,11 @@ import io, json, lzma, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-LEX4 = os.path.join(ROOT, 'Lexique4.tsv.xz')          # committé à la racine : la garde tourne en CI
+# Lexique4.tsv.xz est commité à la racine depuis le 18/10/2026 (CC BY-SA 4.0) : la garde tourne partout, CI comprise ; repli sur
+# data_local/Lexique4.tsv. (Avant, ce commentaire disait déjà « committé, tourne en CI » alors que le fichier était hors dépôt :
+# la garde sautait partout sauf dans le dossier principal.)
+LEX4 = next((p for p in (os.path.join(ROOT, 'Lexique4.tsv.xz'), os.path.join(ROOT, 'data_local', 'Lexique4.tsv')) if os.path.exists(p)),
+            os.path.join(ROOT, 'Lexique4.tsv.xz'))
 GACC = os.path.join(HERE, 'gender_acc.json')
 OUT = os.path.join(HERE, 'gacc_epicene_excl.json')
 
@@ -51,7 +55,7 @@ def epicenes_lexique4():
     u"""Graphies que Lexique4 donne comme NOM à genre « e » (épicène EXPLICITE). Le genre vide n'est PAS
     de l'épicénie — c'est une absence d'information, et la table accentuée est justement là pour ça."""
     out = set()
-    with lzma.open(LEX4, 'rt', encoding='utf-8') as f:
+    with (lzma.open(LEX4, 'rt', encoding='utf-8') if LEX4.endswith('.xz') else io.open(LEX4, encoding='utf-8')) as f:
         f.readline()
         for l in f:
             p = l.rstrip(u'\n').split(u'\t')
@@ -69,7 +73,7 @@ def liste():
 def main():
     chk = '--check' in sys.argv
     if not os.path.exists(LEX4):
-        print(u'· ÉPICÈNES : SAUTÉ — Lexique4.tsv.xz absent')
+        print(u'· ÉPICÈNES : SAUTÉ — Lexique 4 absent (ni Lexique4.tsv.xz à la racine, ni data_local/Lexique4.tsv)')
         return 0
     L = liste()
     if chk:

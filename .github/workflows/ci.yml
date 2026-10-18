@@ -9,6 +9,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.x' }
+      # Lexique 4 (CC BY-SA 4.0) est commité en .xz depuis le 18/10/2026 : décompressé là où la référence Python le cherche, il fait
+      # tourner en CI les gardes qui sautaient faute de lui (parité speller, tests de la liste n° 33, épicènes).
+      - name: Lexique 4 décompressé pour la référence Python (/tmp/lex4)
+        run: mkdir -p /tmp/lex4 && xz -dc Lexique4.tsv.xz > /tmp/lex4/Lexique4.tsv
       - name: Mesure du diagnostic de dictée (phrases) + levier grammaire
         run: python3 dictee/diag_sentence.py
       - name: Correcteur dys (détection + correction, sans corrigé)
@@ -23,10 +27,12 @@ jobs:
         run: python3 dictee/couverture_conj_probe.py
       - name: MUETTES justes — r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain
         run: python3 dictee/muettes_probe.py --check
-      # La sonde-sujet exige les ARBRES CoNLL-U (or nsubj), pas seulement des phrases → SAUTÉE en CI
-      # (pas de $UDFR), comme les sondes dys. L'instrument est versionné : la mesure d'origine du
-      # « mur sujet ~63 % » (DICTEE_ROADMAP) avait été perdue avec une mémoire de session cloud.
-      - name: Sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans UDFR)
+      # La sonde-sujet exige les ARBRES CoNLL-U (or nsubj), pas seulement des phrases. Jusqu'au 18/10/2026 elle SAUTAIT en CI
+      # (pas de $UDFR) : UD French-GSD est public (CC BY-SA), on le clone donc ici ; si le clone échoue, la sonde le DIT (SAUTÉ).
+      # L'instrument est versionné : la mesure d'origine du « mur sujet ~63 % » (DICTEE_ROADMAP) avait été perdue avec une mémoire de session cloud.
+      - name: UD French-GSD (arbres CoNLL-U publics) pour la sonde SUJET
+        run: git clone --depth 1 https://github.com/UniversalDependencies/UD_French-GSD /tmp/udfr || echo "clone UD impossible — la sonde SUJET dira SAUTÉ"
+      - name: Sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; UD cloné ci-dessus)
         run: python3 dictee/sujet_probe.py
       # Le chantier « bases de genre désaccentuées » a traîné parce qu'AUCUN banc ne déclenchait
       # la table : la retirer ne changeait rien, et elle contenait « le »→féminin sans que rien
@@ -67,7 +73,7 @@ jobs:
         run: python3 dictee/build_non_verbe_acc.py --check
       - name: "Toile du correcteur à jour — légende == nœuds, chaque table chargée y est nommée"
         run: node dictee/toile_probe.js --check
-      - name: "Noms épicènes exclus du genre — liste == Lexique4 (SAUTÉ en CI : Lexique4.tsv.xz est local)"
+      - name: "Noms épicènes exclus du genre — liste == Lexique4 (Lexique4.tsv.xz commité)"
         run: python3 dictee/build_gacc_epicene_excl.py --check
       - name: "Lots Morphalou du speller — TSV commités bien formés (morph_na, morph_ver.gz)"
         run: python3 dictee/build_morph_lex.py --check
