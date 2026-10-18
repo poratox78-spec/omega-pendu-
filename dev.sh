@@ -225,6 +225,7 @@ run "CHARGEUR UNIQUE : les tables du produit == charger_node.js ; chaque banc No
 run "lot Morphalou accentué du speller : TSV commité bien formé (morph_acc, « calmât »)" python3 dictee/build_morph_acc_lex.py --check
 run "lot de la table de conjugaison du speller : TSV commité bien formé et câblé (outillent, indexent, prototyper)" python3 dictee/build_conj_lex.py --check
 run "lot des formes verbales justes du speller : TSV commité bien formé et câblé (avouions, écoutas ; intailles nom)" python3 dictee/build_ver_justes_lex.py --check
+run "lot des graphies rectifiées de 1990 du speller : TSV commité bien formé et câblé (apparait, coute, cèderai ; fimes hors du lot)" python3 dictee/build_rect90_lex.py --check
 run "extrait Wiktionnaire du speller : TSV commité bien formé, sans doublon" python3 dictee/build_wikt_lex.py --check
 run "lot MÉTIER du speller (liste curée) : TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole)" python3 dictee/build_metier_lex.py --check
 run "paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise)" python3 build_lexiques.py --check
