@@ -180,7 +180,7 @@ def _check():
         got = [f[4] for f in C.correct_tiered(s) if deacc(f[1].lower()) == deacc(wtok.lower())]
         if got != [tr]: bad.append(f"{s!r} → palier de {wtok!r} attendu {tr}, eu {got}")
     import speller_probe as _SPm   # ⭐ 15/10/2026 (liste n° 33) : le SPELLER de référence lui-même (correct_tiered du correcteur ne le porte pas)
-    if not os.path.exists(_SPm.LEX):   # Lexique4 est local (gitignoré) : en CI le speller ne se charge pas — garde LOCALE (dev.sh), comme parity_speller
+    if not os.path.exists(_SPm.LEX):   # Lexique4 : /tmp/lex4 (la CI le décompresse du .xz commité depuis le 18/10/2026) ou $LEX4 ; absent → on le dit
         print(f"  ⚠ tests speller (liste n° 33) SAUTÉS : Lexique introuvable ({_SPm.LEX}) — garde locale, dev.sh les joue")
     else:
         _sp = _SPm.Speller()

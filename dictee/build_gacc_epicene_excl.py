@@ -40,9 +40,9 @@ import io, json, lzma, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-# Lexique 4 n'est PAS dans le dépôt (.gitignore) : la garde tourne en local — Lexique4.tsv.xz à la racine du dossier principal,
-# sinon data_local/Lexique4.tsv (tout dossier de travail) — et SAUTE en CI, en le disant. (Avant le 18/10/2026 ce commentaire
-# disait « committé, la garde tourne en CI » : faux, elle sautait partout sauf dans le dossier principal.)
+# Lexique4.tsv.xz est commité à la racine depuis le 18/10/2026 (CC BY-SA 4.0) : la garde tourne partout, CI comprise ; repli sur
+# data_local/Lexique4.tsv. (Avant, ce commentaire disait déjà « committé, tourne en CI » alors que le fichier était hors dépôt :
+# la garde sautait partout sauf dans le dossier principal.)
 LEX4 = next((p for p in (os.path.join(ROOT, 'Lexique4.tsv.xz'), os.path.join(ROOT, 'data_local', 'Lexique4.tsv')) if os.path.exists(p)),
             os.path.join(ROOT, 'Lexique4.tsv.xz'))
 GACC = os.path.join(HERE, 'gender_acc.json')
@@ -73,7 +73,7 @@ def liste():
 def main():
     chk = '--check' in sys.argv
     if not os.path.exists(LEX4):
-        print(u'· ÉPICÈNES : SAUTÉ — Lexique 4 absent (ni Lexique4.tsv.xz à la racine, ni data_local/Lexique4.tsv : normal en CI)')
+        print(u'· ÉPICÈNES : SAUTÉ — Lexique 4 absent (ni Lexique4.tsv.xz à la racine, ni data_local/Lexique4.tsv)')
         return 0
     L = liste()
     if chk:

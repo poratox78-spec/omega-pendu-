@@ -7,9 +7,9 @@ dictee/glosses_cache.json
 .claude/*
 !.claude/skills/
 
-# Lexique 4 — source maître (hors-repo par doctrine : 34 Mo ; fourni en .xz local / Drive de Rem)
+# Lexique 4 — source maître. Le .tsv (34 Mo) reste hors dépôt ; le .xz (6,3 Mo, identique octet pour octet une fois décompressé) est
+# COMMITÉ depuis le 18/10/2026 (choix de Rem) : CC BY-SA 4.0, attribution dans NOTICE ; la CI le décompresse dans /tmp/lex4 pour ses gardes.
 Lexique4.tsv
-Lexique4.tsv.xz
 
 # dump Wiktextract kaikki.org (hors-repo : ~544 Mo ; CC BY-SA ; re-téléchargeable depuis
 # kaikki.org/dictionary/French/kaikki.org-dictionary-French.jsonl) — source des build_wikt_*/build_argot/build_invariable

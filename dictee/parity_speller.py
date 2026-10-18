@@ -39,8 +39,9 @@ def cle(d):
 
 def main():
     fix = '--fix' in sys.argv
-    # GARDE LOCALE, ET QUI LE DIT. La référence Python lit Lexique4 (33 Mo, NON committé : licence),
-    # donc la CI ne peut pas la faire tourner. On saute alors EXPLICITEMENT — jamais un vert muet :
+    # GARDE QUI LE DIT. La référence Python lit Lexique4 (/tmp/lex4/Lexique4.tsv ou $LEX4) ; depuis le 18/10/2026 le .xz est commité
+    # (CC BY-SA 4.0 — il était hors dépôt pour sa TAILLE, pas pour sa licence) et la CI le décompresse : elle tourne donc aussi en CI.
+    # Sans le fichier, on saute alors EXPLICITEMENT — jamais un vert muet :
     # un contrôle qui passe sans rien avoir mesuré est exactement le défaut que le lot 1 corrige.
     import speller_probe as _S
     if not os.path.exists(_S.LEX):

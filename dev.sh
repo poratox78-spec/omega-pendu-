@@ -218,7 +218,7 @@ run "précision par famille AU PRODUIT (extension réelle dans Chrome)" python3 
 run "résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local)" node dictee/residual_audit.js --check
 run "collisions d’accent : JSON == app == extension (non_verbe_acc)" python3 dictee/build_non_verbe_acc.py --check
 run "toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée)" node dictee/toile_probe.js --check
-run "noms épicènes exclus du genre (liste == Lexique4 ; Lexique 4 de la racine ou de data_local ; SAUTÉ en CI)" python3 dictee/build_gacc_epicene_excl.py --check
+run "noms épicènes exclus du genre (liste == Lexique4, commité en .xz)" python3 dictee/build_gacc_epicene_excl.py --check
 run "lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz)" python3 dictee/build_morph_lex.py --check
 run "table de conjugaison SANS RETARD sur son script (Morphalou ; SAUTÉ sans data_local)" python3 dictee/complete_conj_morphalou.py --check
 run "CHARGEUR UNIQUE : les tables du produit == charger_node.js ; chaque banc Node passe par lui ou dit pourquoi" node extension/chargeur_probe.js --check
