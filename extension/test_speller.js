@@ -717,6 +717,23 @@ function testListe82() {   // liste n° 82 : « sa meilleur amie » — un nom a
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 82 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe102() {   // lignes 102, 103, 105, 106, 107 (8e tour, suite) : chaque / aucun + pluriel, quel + pluriel, au + pluriel, adjectif antéposé au pluriel, « travails »
+  for (const [t, w, s] of [["Chaque élèves arrive à l'heure.", 'élèves', 'élève'], ['Aucun enfants ne dort ce soir.', 'enfants', 'enfant'],   // 102
+      ['Aucune filles ne chante.', 'filles', 'fille'],
+      ['Quel belles fleurs dans ce jardin !', 'Quel', 'Quelles'], ['Quel beaux jours nous passons !', 'Quel', 'Quels'],              // 103
+      ["J'ai mal au dents depuis hier.", 'au', 'aux'], ['Elle parle au enfants du quartier.', 'au', 'aux'],                        // 105
+      ['Mes nouvelles voisins sont gentils.', 'nouvelles', 'nouveaux'], ['Ces belles garçons jouent au foot.', 'belles', 'beaux'],   // 106
+      ['Les travails sont finis depuis lundi.', 'travails', 'travaux'],                                                          // 107
+      // témoins : rien
+      ["Chaque élève arrive à l'heure.", 'élève', null], ['Aucun enfant ne dort ce soir.', 'enfant', null], ['Quel temps fait-il ?', 'Quel', null],
+      ['Quelles belles fleurs dans ce jardin !', 'Quelles', null], ['Elle parle aux enfants du quartier.', 'aux', null],
+      ["J'ai mal au dos depuis hier.", 'au', null], ['Au cours de la soirée.', 'Au', null], ['Mes nouveaux voisins sont gentils.', 'nouveaux', null],
+      ['Mes nouvelles voisines sont gentilles.', 'nouvelles', null], ['Les vieilles gens racontent.', 'vieilles', null],
+      ['Les travaux sont finis depuis lundi.', 'travaux', null], ['Le maréchal range les travails à ferrer.', 'travails', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 102-107 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe108() {   // liste n° 108 : les formes verbales JUSTES sont au dictionnaire ; la confusion qu'elles cacheraient se rattrape par le CONTEXTE
   for (const [t, w, s] of [['Les champs ensemences de blé brillent au soleil.', 'ensemences', 'ensemencés'],   // ① 2e personne sans « tu »
       ['Des branches entrecoupes de lumière.', 'entrecoupes', 'entrecoupées'],                                // ① accordé au nom (liste n° 6)
@@ -870,6 +887,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe102();
   testListe108();
   testListe100();
   testListe92();
