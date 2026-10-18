@@ -762,6 +762,14 @@ function testListe59() {   // liste n° 59 : sujet nominal féminin + « c'est �
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
       fail.push('ligne 59 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe97() {   // lignes 97-99 (7e tour) : « je n'ai rien vue », « que j'ai vu sont », « content que tu viens »
+  for (const [t, w, s] of [["Je n'ai rien vue de la soirée.", 'vue', 'vu'], ["Les films que j'ai vu sont longs.", 'vu', 'vus'], ['Je suis content que tu viens.', 'viens', 'viennes'],
+      // témoins : rien
+      ["Je n'ai rien vu de la soirée.", 'vu', null], ["Les enfants que j'ai vu jouer étaient contents.", 'vu', null], ['Je suis sûr que tu viens.', 'viens', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 97-99 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
   for (const [t, w, s, tier] of [['Il a ttreize ans.', 'ttreize', 'treize', 'vigilance'], ['Elle a treizze ans.', 'treizze', 'treize', 'vigilance'],
@@ -831,6 +839,7 @@ function finish(parityKO) {
   testListe92();
   testListe91();
   testListe88();
+  testListe97();
   testListe59();
   testListe52();
   testListe64();

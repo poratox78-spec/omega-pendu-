@@ -6494,7 +6494,7 @@ _AVOIR_CONJ = {'a', 'as', 'ont', 'ai', 'avons', 'avez', 'avait', 'avais', 'avaie
                'avoir', 'ayant'}   # ⭐ 28/09/2026 : l'infinitif et le participe présent aussi (« après avoir prit », « ayant fais »)
 _PPS_AVOIR = set('ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions '
                  'auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split())
-_PPS_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'deja', 'bien', 'toujours', 'aussi', 'encore', 'souvent', 'vraiment', 'enfin'}
+_PPS_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'deja', 'bien', 'toujours', 'aussi', 'encore', 'souvent', 'vraiment', 'enfin', 'rien'}   # ⭐ liste n° 97
 _PPS_CLIT = {'le', 'la', 'les', 'l', 'me', 'm', 'te', 't', 'se', 's', 'nous', 'vous', 'en', 'lui', 'leur', 'y'}
 _PPS_ANTE = {'que', 'qu', 'combien', 'quel', 'quelle', 'quels', 'quelles', 'lequel', 'laquelle', 'lesquels', 'lesquelles'}
 _PPS_REFL = ('se', 'me', 'te', 'nous', 'vous', 'le', 'la', 'les', 'y', 'en')
@@ -7088,7 +7088,7 @@ def rule_homophone_mo(T, i):
     return None
 
 
-_SUBJ_DECL = frozenset('faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent'.split())
+_SUBJ_DECL = frozenset('faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent content contente contents contentes heureux heureuse heureuses ravi ravie ravis ravies triste tristes desole desolee desoles desolees surpris surprise surprises etonne etonnee etonnes etonnees decu decue decus decues soulage soulagee soulages soulagees navre navree navres navrees furieux furieuse furieuses'.split())   # ⭐ liste n° 99 : adjectifs de sentiment
 _SUBJ_PP = {'je': '1s', 'j': '1s', 'tu': '2s', 'il': '3s', 'elle': '3s', 'on': '3s', 'nous': '1p', 'vous': '2p', 'ils': '3p', 'elles': '3p'}
 _SUBJ_CL = frozenset(('ne', 'n', 'me', 'm', 'te', 't', 'se', 's', 'le', 'la', 'l', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous'))
 
@@ -8485,6 +8485,7 @@ CASES = [
     ("Il est allé à Paris", "est", "a", "usage être/avoir"),
     ("Elle est partie tôt", "est", "a", "usage être/avoir"),
     ("Ils sont restés ici", "sont", "ont", "usage être/avoir"),
+    ("Je suis content que tu viennes", "viennes", "viens", "subjonctif à vérifier"),   # ⭐ liste n° 99
     ("Elle a résolu le problème", "résolu", "résout", "participe après avoir"),   # ⭐ liste n° 96
     ("Toi et moi sommes amis depuis longtemps", "sommes", "somme", "accord sujet-verbe"),   # ⭐ liste n° 89
     ("La directrice s'est engagée à répondre vite", "s'est", "c'est", "c'est/s'est"),   # ⭐ liste n° 59

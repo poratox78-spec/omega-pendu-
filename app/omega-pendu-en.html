@@ -27533,7 +27533,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   function _qq(w){var d=deacc(String(w).toLowerCase());return d==='que'||d==='qu';}
   function rPpAvoirCod(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null){base=(IRR_PP[deacc(lw)]!==undefined?IRR_PP[deacc(lw)]:null);}if(base===null)return null;
-    if(PP_COD_STOP[deacc(base)]||PP_SANS_COD[deacc(base)])return null;if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;
+    if(PP_COD_STOP[deacc(base)]||PP_SANS_COD[deacc(base)])return null;if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())]&&_isInfinitive(T[i+1]))return null;   // ⭐ liste n° 98 : un vrai infinitif (« vu jouer »), pas un verbe conjugué (« que j'ai vu sont »)
     if(PP_INVAR_ALWAYS[deacc(base)])return null;                     // voulu/pu/dû → invariable
     if(i+1<T.length&&(T[i+1].toLowerCase()==='à'||deacc(T[i+1].toLowerCase())==='de'||deacc(T[i+1].toLowerCase())==="d'")&&i+2<T.length&&_isInfinitive(T[i+2]))return null;   // PP + à/de + INFINITIF (« eu à traiter », « décidé de modifier ») → invariable
     var a=-1,aje=false,k;for(k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(AVOIR_AUX[dk]){a=k;break;}if(AVOIR_JE[tk]){a=k;aje=true;break;}if(PPMID[dk])continue;return null;}
@@ -28352,7 +28352,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     return ckeepcase(w,cible);}
   var _PPS_AVOIR={},_PPS_MID={},_PPS_CLIT={},_PPS_ANTE={},_PPS_REFL={};   // ⭐ 12/09/2026 — RÈGLE NEUVE (orange) : accord SURNUMÉRAIRE du participe après avoir (miroir Python rule_pp_avoir_surnum)
   'ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split(' ').forEach(function(w){_PPS_AVOIR[w]=1;});
-  'ne n pas plus jamais deja bien toujours aussi encore souvent vraiment enfin'.split(' ').forEach(function(w){_PPS_MID[w]=1;});
+  'ne n pas plus jamais deja bien toujours aussi encore souvent vraiment enfin rien'.split(' ').forEach(function(w){_PPS_MID[w]=1;});   // ⭐ liste n° 97 : « je n'ai rien vue » → vu
   'le la les l me m te t se s nous vous en lui leur y'.split(' ').forEach(function(w){_PPS_CLIT[w]=1;});
   'que qu combien quel quelle quels quelles lequel laquelle lesquels lesquelles'.split(' ').forEach(function(w){_PPS_ANTE[w]=1;});
   'se me te nous vous le la les y en'.split(' ').forEach(function(w){_PPS_REFL[w]=1;});
@@ -28831,7 +28831,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
      peur, vouloir, souhaiter, il est important / possible / nécessaire…) ; « bien que » seulement en tête de proposition (« il sait bien
      que tu es là » : indicatif). Gardes : sujet pronom collé (clitiques permis), la forme écrite n'est pas déjà un subjonctif, un seul
      verbe en jeu. ORANGE (« subjonctif à vérifier »). Miroir Python rule_subjonctif. */
-  var _SUBJ_DECL={};'faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent'.split(' ').forEach(function(w){_SUBJ_DECL[w]=1;});
+  var _SUBJ_DECL={};'faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent content contente contents contentes heureux heureuse heureuses ravi ravie ravis ravies triste tristes desole desolee desoles desolees surpris surprise surprises etonne etonnee etonnes etonnees decu decue decus decues soulage soulagee soulages soulagees navre navree navres navrees furieux furieuse furieuses'.split(' ').forEach(function(w){_SUBJ_DECL[w]=1;});   // ⭐ liste n° 99 : adjectifs de sentiment + que → subjonctif;
   var _SUBJ_PP={je:'1s',j:'1s',tu:'2s',il:'3s',elle:'3s',on:'3s',nous:'1p',vous:'2p',ils:'3p',elles:'3p'},_SUBJ_CL={ne:1,n:1,me:1,m:1,te:1,t:1,se:1,s:1,le:1,la:1,l:1,les:1,lui:1,leur:1,y:1,en:1,nous:1,vous:1};
   function rSubjonctif(T,i){if(i<2)return null;var w=T[i],lw=w.toLowerCase(),dl=deacc(lw);if(lw.indexOf("'")>=0)return null;
     var k=i-1;while(k>=1&&_SUBJ_CL[deacc(T[k].toLowerCase()).replace(/['’]$/,'')]&&!/^qu['’]/.test(T[k].toLowerCase())&&!(/^(nous|vous)$/.test(deacc(T[k].toLowerCase()))&&deacc(T[k-1].toLowerCase())==='que'))k--;   // « que nous » : nous est le SUJET
