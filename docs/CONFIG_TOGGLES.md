@@ -82,7 +82,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | `M_NEO_OS_ARB_NGRAM` | OFF (OOV) | n-gram = voie sublexicale de l'arbitrage OS (auto-régime). | 🟢 |
 | `M_NEO_NGRAM_GAP` | OFF (OOV) | n-gram **gap-aware** (plus proche voisin révélé d=1..4). | 🟢 |
 | `M_NEO_C_HEAVY` | OFF | C lourd (transformer) en voie sublexicale. **Mesuré §1.12 : parité, non câblé.** | 🟢 (poids `_neoHeavyC` null par défaut = inerte) |
-| `M_TREXQUANT_MODE` | OFF | retire le mot du lexique → test hors-lexique (honnête après fix). | mode test |
+| `M_TREXQUANT_MODE` | OFF | retire le mot du lexique → test hors-lexique (honnête après fix) ; depuis le 19/10/2026 allume aussi le n-gram de NEO (arbitré + gap-aware : 21,5 → 57,4 % hors lexique) et le rend en s'éteignant. | mode test |
 
 > **Décompte** : ~41 toggles bascule + paramètres (46 `data-toggle` UI, ~73 drapeaux/params au total). Au boot, tout est
 > **OFF — ou INERTE par maître OFF** : exception `M4_PHON_USE_P` (`true`) ; et `M_NEO_ASSEMBLED`/`M_NEO_RECALL` sont `true`
