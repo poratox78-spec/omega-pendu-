@@ -803,9 +803,11 @@ class Speller:
         """⭐ 18/10/2026 (liste n° 113) — décalque de `_ctx113` (dys-core.js, miroir app). Un nom ou un adjectif JUSTE jamais vu en usage
         (fréquence 0) est au dictionnaire ; quatre faits de grammaire rattrapent la confusion qu'il pourrait cacher (orange) :
         ⑧ déterminant singulier + forme au pluriel dont le singulier est un nom courant → ce singulier (le nombre passe avant l'élision) ;
+          si la forme n'est qu'un adjectif, le nom courant de même squelette au singulier, du genre de l'article (« la tigés » → tige), en rouge ;
         ⑦ « le » / « la » non élidé devant une voyelle → nom courant au singulier à une lettre, du genre de l'article, qui commence par une consonne ;
         ⑨ adjectif seul juste après un déterminant et devant une préposition → nom courant (≥ 10/M) à une lettre, même nombre ;
-        ⑩ masculin pluriel en -ants devant une préposition, participe présent courant → le participe présent, invariable."""
+        ⑩ masculin pluriel en -ants devant une préposition, participe présent courant → le participe présent, invariable ;
+        ⑪ nom seul en -é / -ée / -és / -ées devant « par » (participe passif) → participe courant à une lettre, même terminaison."""
         pv = T[idx - 1].lower() if idx > 0 else ''; pvd = deacc(pv)
         nx = T[idx + 1].lower() if idx + 1 < len(T) else ''
         pos = ''.join(sorted(self.POS.get(low, ())))
@@ -823,6 +825,13 @@ class Speller:
         if pvd in self._DG113 and low[-1:] in ('s', 'x') and not self._invar_s(low):
             sg = low[:-1]
             if sg in self.WORDS and 'N' in self.POS.get(sg, ()) and self.FREQ.get(sg, 0.0) >= 1.0: return sg
+            if pos == 'A':   # ⑧ b : adjectif seul au pluriel → nom de même squelette (« la tigés » → tige)
+                g = self._DG113[pvd]; b8, f8 = None, 0.0
+                for c8 in (self.D2A.get(deacc(sg)) or ()):
+                    cf = self.FREQ.get(c8, 0.0)
+                    if c8 == low or 'N' not in self.POS.get(c8, ()) or cf < 1.0 or self._gender(c8) != g or (c8[-1:] in ('s', 'x') and not self._invar_s(c8)): continue
+                    if cf > f8: b8, f8 = c8, cf
+                if b8: return (b8, 'flag')   # rouge : 0 tir sur français juste, et la grammaire écrirait « tigé »
         if pv in ('le', 'la') and re.match(u'^[aeiouàâäéèêëîïôöùûüœ]', low) and low not in self._NONEL113:
             g = self._DG113[pv]
             m = best(1.0, lambda c: not re.match(u'^[aeiouyhàâäéèêëîïôöùûüœ]', c) and self._gender(c) == g and (c[-1:] not in ('s', 'x') or self._invar_s(c)))
@@ -835,6 +844,15 @@ class Speller:
         if m and 'A' in pos and nx in self._PREP113:
             b = m.group(1)
             if b in self.WORDS and 'V' in self.POS.get(b, ()) and self.FREQ.get(b, 0.0) >= 1.0: return b
+        m = re.search(u'(ées|ée|és|é)$', low)
+        if pos == 'N' and nx == 'par' and m:   # ⑪ place d'un participe passif
+            f11 = m.group(1); b11, v11 = None, 0.0
+            for e in edits1(deacc(low)):
+                for c in (self.D2A.get(e) or ()):
+                    cf = self.FREQ.get(c, 0.0)
+                    if c == low or 'V' not in self.POS.get(c, ()) or not c.endswith(f11) or cf < 1.0: continue
+                    if cf > v11: b11, v11 = c, cf
+            if b11: return b11
         return None
 
     def _gender(self, w):
@@ -1170,7 +1188,9 @@ class Speller:
         if (tok == low and len(low) >= 3 and "'" not in low and low in self.WORDS and not self.FREQ.get(low, 0.0) > 0 and self.POS.get(low)
                 and 'V' not in self.POS.get(low, ()) and toks is not None and idx is not None):   # ⭐ liste n° 113 : nom ou adjectif jamais vu en usage — miroir JS
             _r113 = self._ctx113(low, toks, idx)
-            if _r113: return ('vigilance', (_r113[:1].upper() + _r113[1:]) if tok[:1].isupper() else _r113)
+            if _r113:
+                _t113, _r113 = ('vigilance', _r113) if isinstance(_r113, str) else (_r113[1], _r113[0])
+                return (_t113, (_r113[:1].upper() + _r113[1:]) if tok[:1].isupper() else _r113)
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — miroir JS
         if low in self.PRENOMS_L: return None

@@ -792,6 +792,7 @@ function testListe112() {   // liste n° 112 : forme juste jamais vue en usage =
 function testListe113() {   // liste n° 113 : noms et adjectifs justes jamais vus en usage — connus, et la grammaire rattrape la confusion (orange)
   for (const [t, w, s] of [['Nous prenons le étrain de midi.', 'étrain', 'train'], ['Il suit son vouloirs sans réfléchir.', 'vouloirs', 'vouloir'],
       ['Les adnées de lycée passent vite.', 'adnées', 'années'], ['Les fenêtres donnants sur la cour sont fermées.', 'donnants', 'donnant'],
+      ['Le gardien, grappé par la balle, tombe au sol.', 'grappé', 'frappé'],
       // témoins : rien (« la ixième » non élidé par usage ; formes justes du lot sans contexte fautif)
       ["C'est la ixième fois qu'il appelle.", 'ixième', null], ['La jument suitée broute dans le pré.', 'suitée', null], ['Les antiennes résonnent dans la nef.', 'antiennes', null]]) {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);

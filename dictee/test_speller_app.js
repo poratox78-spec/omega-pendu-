@@ -244,13 +244,13 @@ const SP = globalThis.__sp;
     if (!f || f.sugg !== 'dois') fail.push('« dans le journal doi » : attendu « dois » inchangé (pas de sujet après une préposition), eu ' + JSON.stringify(f && f.sugg)); }
   { const f = SP.spell('il voit les sse').find(x => x.word === 'sse');
     if (!f || f.sugg === 'ces') fail.push('« les sse » : un déterminant ne prend pas de forme jumelle (« ces »), eu ' + JSON.stringify(f && f.sugg)); }
-  // ⭐ 30/09/2026 — dominance de fréquence seulement si l'initiale change pour une confusion connue : polution → pollution (plus solution) ; evec → avec, gours → jours gardés.
+  // ⭐ 30/09/2026 — dominance de fréquence seulement si l'initiale change pour une confusion connue : polution → pollution (plus solution) ; evec → avec, geunes → jeunes gardés.
   { const f = SP.spell('une polution énorme').find(x => x.word === 'polution');
     if (!f || f.sugg !== 'pollution') fail.push('« polution » : attendu « pollution » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
   { const f = SP.spell('il vient evec lui').find(x => x.word === 'evec');
     if (!f || f.sugg !== 'avec') fail.push('« evec » : attendu « avec » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
-  { const f = SP.spell('les gours passent vite').find(x => x.word === 'gours');
-    if (!f || f.sugg !== 'jours') fail.push('« gours » : attendu « jours » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
+  { const f = SP.spell('les geunes partent tôt').find(x => x.word === 'geunes');   // liste n° 113 : « gours » (vasques de calcaire) est un mot juste, connu
+    if (!f || f.sugg !== 'jeunes') fail.push('« geunes » : attendu « jeunes » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
   // ⭐ 30/09/2026 — FORMES ET EXPRESSIONS SOUDÉES : formes tronquées (liste fermée) et clé phonétique EXACTE d'une expression de _MWE, avant le tri.
   { const f = SP.spell('il est venu ducou').find(x => x.word === 'ducou');
     if (!f || f.sugg !== 'du coup') fail.push('« ducou » : attendu « du coup » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
