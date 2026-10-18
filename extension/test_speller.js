@@ -148,13 +148,13 @@ for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass med
   if (!f || f.sugg !== 'dois') fail.push('« dans le journal doi » : attendu « dois » inchangé (pas de sujet après une préposition), eu ' + JSON.stringify(f && f.sugg)); }
 { const f = DC.spell('il voit les sse').find(x => x.word === 'sse');
   if (!f || f.sugg === 'ces') fail.push('« les sse » : un déterminant ne prend pas de forme jumelle (« ces »), eu ' + JSON.stringify(f && f.sugg)); }
-// ⭐ 30/09/2026 — dominance de fréquence seulement si l'initiale change pour une confusion connue : polution → pollution (plus solution) ; evec → avec, gours → jours gardés.
+// ⭐ 30/09/2026 — dominance de fréquence seulement si l'initiale change pour une confusion connue : polution → pollution (plus solution) ; evec → avec, geunes → jeunes gardés.
 { const f = DC.spell('une polution énorme').find(x => x.word === 'polution');
   if (!f || f.sugg !== 'pollution') fail.push('« polution » : attendu « pollution » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
 { const f = DC.spell('il vient evec lui').find(x => x.word === 'evec');
   if (!f || f.sugg !== 'avec') fail.push('« evec » : attendu « avec » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
-{ const f = DC.spell('les gours passent vite').find(x => x.word === 'gours');
-  if (!f || f.sugg !== 'jours') fail.push('« gours » : attendu « jours » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
+{ const f = DC.spell('les geunes partent tôt').find(x => x.word === 'geunes');   // liste n° 113 : « gours » (vasques de calcaire) est un mot juste, connu
+  if (!f || f.sugg !== 'jeunes') fail.push('« geunes » : attendu « jeunes » (initiale), eu ' + JSON.stringify(f && f.sugg)); }
 // ⭐ 30/09/2026 — FORMES ET EXPRESSIONS SOUDÉES : formes tronquées (liste fermée) et clé phonétique EXACTE d'une expression de _MWE, avant le tri.
 { const f = DC.spell('il est venu ducou').find(x => x.word === 'ducou');
   if (!f || f.sugg !== 'du coup') fail.push('« ducou » : attendu « du coup » (forme ou expression soudée), eu ' + JSON.stringify(f && f.sugg)); }
@@ -786,6 +786,16 @@ function testListe112() {   // liste n° 112 : forme juste jamais vue en usage =
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 112 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe113() {   // liste n° 113 : noms et adjectifs justes jamais vus en usage — connus, et la grammaire rattrape la confusion (orange)
+  for (const [t, w, s] of [['Nous prenons le étrain de midi.', 'étrain', 'train'], ['Il suit son vouloirs sans réfléchir.', 'vouloirs', 'vouloir'],
+      ['Les adnées de lycée passent vite.', 'adnées', 'années'], ['Les fenêtres donnants sur la cour sont fermées.', 'donnants', 'donnant'],
+      ['Le gardien, grappé par la balle, tombe au sol.', 'grappé', 'frappé'],
+      // témoins : rien (« la ixième » non élidé par usage ; formes justes du lot sans contexte fautif)
+      ["C'est la ixième fois qu'il appelle.", 'ixième', null], ['La jument suitée broute dans le pré.', 'suitée', null], ['Les antiennes résonnent dans la nef.', 'antiennes', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
+      fail.push('ligne 113 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe87() {   // liste n° 87 : la table de conjugaison garde les deux graphies d'un même verbe (connaître / connaitre) — le passé simple de connaître, paraître, reconnaître
   for (const [t, w, s] of [['Il connu des jours difficiles.', 'connu', 'connut'], ['Elle reconnu sa voix au téléphone.', 'reconnu', 'reconnut'], ['Il paru fatigué ce soir-là.', 'paru', 'parut'],
       // témoins : rien
@@ -915,6 +925,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe113();
   testListe112();
   testListe109();
   testListe110();

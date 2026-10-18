@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 SRC = os.path.join(HERE, 'metier_curated.tsv'); OUT = os.path.join(HERE, 'metier_lex_fr.tsv')
 SPELLER = os.path.join(ROOT, 'extension', 'assets', 'speller.tsv.gz')
 LEX4 = os.environ.get('LEX4') or os.path.join(ROOT, 'data_local', 'Lexique4.tsv')
-LOTS = ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz', 'rect90_lex_fr.tsv.gz')
+LOTS = ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz', 'rect90_lex_fr.tsv.gz', 'na_justes_lex_fr.tsv.gz')
 NC = 37; CI = {'Mot': 0, 'Lemme': 3, 'Cgram': 4, 'CgramOrtho': 5, 'Genre': 6, 'FreqMot': 9, 'FreqOrtho': 10, 'FreqLemme': 11}
 CG = {'N': 'NOM', 'V': 'VER', 'A': 'ADJ'}
 AB = 'abcdefghijklmnopqrstuvwxyz'

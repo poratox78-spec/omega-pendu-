@@ -26,17 +26,17 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 7 | participe après être à vérifier | `rEPplVig` | `rule_e_ppl_vig` | orange | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller) |
 | 8 | participe après être à vérifier | `rEtreFini` | `rule_etre_fini` | orange | participe | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
 | 9 | accord participe | `rPpEtre` | `rule_pp_etre` | rouge ou orange (sous-cas mesuré, _tierOf) | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
-| 10 | accord participe (COD avoir) | `rPpAvoirCod` | `rule_pp_avoir_cod` | rouge | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM, genre accentué |
+| 10 | accord participe (COD avoir) | `rPpAvoirCod` | `rule_pp_avoir_cod` | rouge | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, genre accentué |
 | 11 | accord participe (dont) | `rPpAvoirDont` | `rule_pp_avoir_dont` | rouge | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 12 | accord adjectif | `rAdjAttr` | `rule_adj_attr` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM, prénoms, genre accentué |
-| 13 | accord adjectif épithète | `rAdjEpithet` | `rule_adj_epithet` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
-| 14 | accord adjectif épithète | `rAdjEpithetCoord` | `rule_adj_epithet_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM, genre accentué |
-| 15 | accord adjectif épithète | `rAdjGeo` | `rule_adj_geo` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
+| 12 | accord adjectif | `rAdjAttr` | `rule_adj_attr` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, prénoms, genre accentué |
+| 13 | accord adjectif épithète | `rAdjEpithet` | `rule_adj_epithet` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
+| 14 | accord adjectif épithète | `rAdjEpithetCoord` | `rule_adj_epithet_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
+| 15 | accord adjectif épithète | `rAdjGeo` | `rule_adj_geo` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 16 | accord adjectif antéposé | `rQuelque` | `rule_quelque` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post |
-| 17 | accord adjectif épithète | `rAdjNumber` | `rule_adj_number` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
+| 17 | accord adjectif épithète | `rAdjNumber` | `rule_adj_number` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 18 | accord participe épithète | `rPpEpithetNum` | `rule_pp_epithet_number` | rouge | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, genre accentué |
 | 19 | accord adjectif épithète | `rAdjAux` | `rule_adj_aux` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
-| 20 | accord participe épithète | `rPpEpithetFem` | `rule_pp_epithet_fem` | rouge | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM, genre accentué |
+| 20 | accord participe épithète | `rPpEpithetFem` | `rule_pp_epithet_fem` | rouge | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, genre accentué |
 | 21 | terminaison -er/-é/-ez/-ai | `rFlexionEr` | `rule_flexion_er` | rouge ou orange (sous-cas mesuré, _tierOf) | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
 | 22 | infinitif de but | `rInfBut` | `rule_inf_but` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller) |
 | 23 | impératif | `rImperatif` | `rule_imperatif` | rouge | personne | vdc-lex (conjugaison, genre, pluriels) |
@@ -44,15 +44,15 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 25 | on/ont | `rOn` | `rule_on_ont` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
 | 26 | leur/leurs | `rLeur` | `rule_leur_leurs` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
 | 27 | a/à | `rA` | `rule_a_aa` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms |
-| 28 | et/est | `rEt` | `rule_et_est` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), noun-post, étiqueteur HMM |
-| 29 | est/et (proposition) | `rEstEtClause` | `rule_est_et_clause` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
-| 30 | peu/peux/peut | `rPeu` | `rule_peu` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
+| 28 | et/est | `rEt` | `rule_et_est` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), noun-post, étiqueteur HMM |
+| 29 | est/et (proposition) | `rEstEtClause` | `rule_est_et_clause` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
+| 30 | peu/peux/peut | `rPeu` | `rule_peu` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), étiqueteur HMM |
 | 31 | sujet je | `rJeSubject` | `rule_je_subject` | rouge | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 32 | sais/sait | `rSais` | `rule_sais` | rouge | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 33 | ce/se | `rCe` | `rule_ce_se` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
 | 34 | des/dès | `rDesDes` | `rule_des_des` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 35 | c'est/s'est | `rCestSest` | `rule_cest_sest` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 36 | c'est/s'est | `rCesSest` | `rule_ces_sest` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
+| 36 | c'est/s'est | `rCesSest` | `rule_ces_sest` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), étiqueteur HMM |
 | 37 | ça/sa | `rCaSa` | `rule_ca_sa` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post |
 | 38 | ou/où | `rOuOu` | `rule_ou_ou` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 39 | met/mais | `rMetMais` | `rule_met_mais` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
@@ -73,21 +73,21 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 54 | accord sujet-verbe | `rAccordSVrecover` | `rule_accord_sv_recover` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 55 | accord sujet-verbe | `rAccordSVnoun` | `rule_accord_sv_noun` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
 | 56 | accord sujet-verbe | `rAccordSVnounElid` | `rule_accord_sv_noun_elid` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
-| 57 | accord sujet-verbe | `rAisAit` | `rule_ais_ait` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM, prénoms, genre accentué |
+| 57 | accord sujet-verbe | `rAisAit` | `rule_ais_ait` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, prénoms, genre accentué |
 | 58 | accord sujet-verbe | `rAiAit` | `rule_ai_ait` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller) |
-| 59 | accord sujet-verbe | `rAccordSVquant` | `rule_accord_sv_quant` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
-| 60 | accord sujet-verbe | `rAccordSVrelatif` | `rule_accord_sv_relatif` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
-| 61 | accord sujet-verbe | `rAccordSVcoord` | `rule_accord_sv_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM, prénoms |
-| 62 | accord sujet-verbe | `rAccordSVinfinitif` | `rule_accord_sv_infinitif` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), étiqueteur HMM |
-| 63 | accord sujet-verbe | `rPostpose` | `rule_accord_postpose` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM, prénoms, genre accentué |
+| 59 | accord sujet-verbe | `rAccordSVquant` | `rule_accord_sv_quant` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), étiqueteur HMM |
+| 60 | accord sujet-verbe | `rAccordSVrelatif` | `rule_accord_sv_relatif` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), étiqueteur HMM |
+| 61 | accord sujet-verbe | `rAccordSVcoord` | `rule_accord_sv_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), étiqueteur HMM, prénoms |
+| 62 | accord sujet-verbe | `rAccordSVinfinitif` | `rule_accord_sv_infinitif` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), étiqueteur HMM |
+| 63 | accord sujet-verbe | `rPostpose` | `rule_accord_postpose` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, prénoms, genre accentué |
 | 64 | accord sujet-verbe | `rAccordVerbCoord` | `rule_accord_verb_coord` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
-| 65 | accord sujet-verbe | `rAccordRelObj` | `rule_accord_rel_obj` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM, prénoms, genre accentué |
-| 66 | accord sujet-verbe | `rAccordIncise` | `rule_accord_incise` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
-| 67 | genre déterminant | `rDetGenre` | `rule_det_gender` | rouge ou orange (sous-cas mesuré, _tierOf) | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM |
+| 65 | accord sujet-verbe | `rAccordRelObj` | `rule_accord_rel_obj` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, prénoms, genre accentué |
+| 66 | accord sujet-verbe | `rAccordIncise` | `rule_accord_incise` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
+| 67 | genre déterminant | `rDetGenre` | `rule_det_gender` | rouge ou orange (sous-cas mesuré, _tierOf) | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM |
 | 68 | accord tout | `rTout` | `rule_tout_det` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post |
 | 69 | infinitif après pronom sujet à vérifier | `rPronInf` | `rule_pron_inf` | orange | personne | vdc-lex (conjugaison, genre, pluriels) |
-| 70 | accord adjectif antéposé | `rAdjAntePl` | `rule_adj_ante_plural` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM, genre accentué |
-| 71 | accord adjectif antéposé | `rAdjAnteGenre` | `rule_adj_ante_genre` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM |
+| 70 | accord adjectif antéposé | `rAdjAntePl` | `rule_adj_ante_plural` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
+| 71 | accord adjectif antéposé | `rAdjAnteGenre` | `rule_adj_ante_genre` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM |
 | 72 | nom féminin en -ée | `rFemEe` | `rule_fem_ee` | rouge | muette | — |
 | 73 | accord pluriel nom | `rNounPlural` | `rule_noun_plural` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, genre accentué |
 | 74 | accord singulier nom | `rNounSing` | `rule_noun_singular` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM |
@@ -101,21 +101,21 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 82 | si + conditionnel | `rSiCond` | `rule_si_cond` | rouge, orange dans un cas posé par la règle | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 83 | quel que soit | `rQuelQue` | `rule_quel_que` | rouge | segmentation | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 84 | qu'il (élision) | `rQuiPron` | `rule_qui_pron` | rouge, orange dans un cas posé par la règle | segmentation | — |
-| 85 | que/dont | `rQueDont` | `rule_que_dont` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
-| 86 | qui/que | `rQuiQue` | `rule_qui_que` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
-| 87 | près/prêt | `rPresPret` | `rule_pres_pret` | rouge, orange dans un cas posé par la règle | homophone_gram | étiqueteur HMM |
+| 85 | que/dont | `rQueDont` | `rule_que_dont` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
+| 86 | qui/que | `rQuiQue` | `rule_qui_que` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
+| 87 | près/prêt | `rPresPret` | `rule_pres_pret` | rouge, orange dans un cas posé par la règle | homophone_gram | dictionnaire (speller), étiqueteur HMM |
 | 88 | cher/chez | `rCherChez` | `rule_cher_chez` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 89 | davantage | `rDavantage` | `rule_davantage` | rouge, orange dans un cas posé par la règle | segmentation | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
 | 90 | conditionnel à vérifier | `rCondSi` | `rule_cond_si` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 91 | temps du verbe à vérifier | `rTempsProtase` | `rule_temps_protase` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 92 | impératif à vérifier | `rImperatifSeul` | `rule_imperatif_seul` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
+| 92 | impératif à vérifier | `rImperatifSeul` | `rule_imperatif_seul` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 93 | subjonctif à vérifier | `rSubjonctif` | `rule_subjonctif` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 94 | mot-outil à vérifier | `rHomophoneMo` | `rule_homophone_mo` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
 | 95 | petit mot après le sujet à vérifier | `rApresSujet` | `rule_apres_sujet` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 96 | expression figée à vérifier | `rFige` | `rule_fige` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels) |
 | 97 | mot soudé à vérifier | `rSoude` | `rule_soude` | orange | segmentation | vdc-lex (conjugaison, genre, pluriels) |
 | 98 | plutôt / plus tôt à vérifier | `rPlutot` | `rule_plutot` | orange | segmentation | vdc-lex (conjugaison, genre, pluriels) |
-| 99 | adjectif en -ant/-ent | `rAntAdj` | `rule_ant_adj` | rouge, orange dans un cas posé par la règle | homophone_lex | vdc-lex (conjugaison, genre, pluriels), genre relâché, étiqueteur HMM |
+| 99 | adjectif en -ant/-ent | `rAntAdj` | `rule_ant_adj` | rouge, orange dans un cas posé par la règle | homophone_lex | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 100 | vingt/cent | `rVingtCent` | `rule_vingt_cent` | rouge | accord | — |
 | 101 | personne du verbe | `rVousIrr` | `rule_vous_irr` | rouge | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 102 | personne du verbe | `sujFlexVig` | `rule_sujet_flexion` | rouge, orange dans un cas posé par la règle | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, prénoms, genre accentué |
@@ -183,7 +183,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 |---|---|---|---|---|
 | vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 96 / 103 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `rImperatif` … (107) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 79 / 103 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rAccordIncise` `rDetGenre` `_tousFem101` `rTout` … (24) |
-| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 29 / 103 | `_isPplWideEr` `_canonW` `_emit` `rInfBut` `_spos` `_pplForm` `_infForm` `rAInfE` … (59) |
+| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 56 / 103 | `_isPplWideEr` `_canonW` `_emit` `rInfBut` `_spos` `_pplForm` `_infForm` `rAInfE` … (60) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 24 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (33) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 44 / 103 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 103 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |

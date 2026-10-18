@@ -2,82 +2,82 @@
  "longueurs": {
   "10": {
    "courants": 29654,
-   "mots": 100191,
-   "octets": 336507,
-   "sha": "93237c7864baf268"
+   "mots": 100403,
+   "octets": 337186,
+   "sha": "e53c30a5ec0d0b4e"
   },
   "11": {
    "courants": 24199,
-   "mots": 98854,
-   "octets": 336144,
-   "sha": "ffdc5a85a8045ad9"
+   "mots": 98962,
+   "octets": 336520,
+   "sha": "1dfd8276a413f8d1"
   },
   "12": {
    "courants": 17607,
-   "mots": 85798,
-   "octets": 296977,
-   "sha": "8a50cf64c13cfa2e"
+   "mots": 85854,
+   "octets": 297195,
+   "sha": "df30fddd23017218"
   },
   "13": {
    "courants": 11498,
-   "mots": 66548,
-   "octets": 236076,
-   "sha": "7c80f5fd939c3a17"
+   "mots": 66572,
+   "octets": 236151,
+   "sha": "03cc9f1b2d7da948"
   },
   "14": {
    "courants": 7077,
-   "mots": 46565,
-   "octets": 171644,
-   "sha": "d830f9f30b24234c"
+   "mots": 46575,
+   "octets": 171680,
+   "sha": "be3bb167cb432e75"
   },
   "15": {
    "courants": 4170,
-   "mots": 30143,
-   "octets": 115871,
-   "sha": "73229d2b557c4abc"
+   "mots": 30146,
+   "octets": 115886,
+   "sha": "d35b9201532a2348"
   },
   "3": {
    "courants": 904,
-   "mots": 942,
-   "octets": 2099,
-   "sha": "44635315fb3298e5"
+   "mots": 969,
+   "octets": 2164,
+   "sha": "5c39d62cb116a513"
   },
   "4": {
    "courants": 2918,
-   "mots": 3129,
-   "octets": 8362,
-   "sha": "9a8569857dc6a89f"
+   "mots": 3289,
+   "octets": 8781,
+   "sha": "93a14a5709052ff2"
   },
   "5": {
    "courants": 7041,
-   "mots": 8953,
-   "octets": 26912,
-   "sha": "7134325a2c1a9dd4"
+   "mots": 9479,
+   "octets": 28409,
+   "sha": "1419d6f352e5e736"
   },
   "6": {
    "courants": 13352,
-   "mots": 21053,
-   "octets": 66276,
-   "sha": "1f55c829272aac9f"
+   "mots": 21970,
+   "octets": 68813,
+   "sha": "cdd41ac143f08b9b"
   },
   "7": {
    "courants": 21024,
-   "mots": 40906,
-   "octets": 130607,
-   "sha": "3b7f4bc5708cd906"
+   "mots": 41944,
+   "octets": 133482,
+   "sha": "37102ff8b3bcaa6f"
   },
   "8": {
    "courants": 28113,
-   "mots": 66043,
-   "octets": 216774,
-   "sha": "1121e29c7bcdd3ef"
+   "mots": 66819,
+   "octets": 219038,
+   "sha": "3c301d47ada5abf1"
   },
   "9": {
    "courants": 31256,
-   "mots": 88232,
-   "octets": 293237,
-   "sha": "fad391fb746f7c07"
+   "mots": 88663,
+   "octets": 294637,
+   "sha": "403fdbd0e55a3987"
   }
  },
- "total": 657357
+ "total": 661645
 }

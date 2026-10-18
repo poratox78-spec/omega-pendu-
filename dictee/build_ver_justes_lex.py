@@ -30,7 +30,7 @@ import io, gzip, json, re, sys, os, unicodedata
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(HERE, 'ver_justes_lex_fr.tsv.gz')
 LOTS = ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz',
-        'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'rect90_lex_fr.tsv.gz')
+        'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'rect90_lex_fr.tsv.gz', 'na_justes_lex_fr.tsv.gz')
 TAGS_ECARTES = {'misspelling', 'alt-of', 'nonstandard', 'erroneous', 'abbreviation', 'form-of'}   # rare / vieilli / archaïque = juste : pas écarté
 TEMOINS_OUI = ('avouions', 'écoutas', 'gâchai', 'dragua')
 TEMOINS_NON = ('developpé', 'diplomé', 'débarasser')
