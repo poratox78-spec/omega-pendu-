@@ -1417,7 +1417,7 @@ footer {
         <div class="toggle-desc">engages the silent only if cognition gap low</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_TREXQUANT_MODE_ENABLED" title="🎯 Mode Trexquant (hors-lexique) : à chaque Nouvelle partie, le mot tiré est RETIRÉ du lexique (cohorte/recall aveugles) → OMEGA le résout en vrai hors-lexique (généralisation phon→ortho), comme le challenge Trexquant. Lexique restauré au tour suivant. Pour voir le concept à l'œuvre sur du mot neuf. OFF par défaut." onclick="ui_toggle(this)">
+    <div class="toggle-item" data-toggle="M_TREXQUANT_MODE_ENABLED" title="🎯 Mode Trexquant (hors-lexique) : à chaque Nouvelle partie, le mot tiré est RETIRÉ du lexique (cohorte/recall aveugles) → OMEGA le résout en vrai hors-lexique (généralisation phon→ortho), comme le challenge Trexquant. Lexique restauré au tour suivant. Allume aussi le n-gram de NEO (arbitré + gap-aware), la voie du hors-lexique : 21,5 → 57,4 % mesuré ; rend son état d'avant en s'éteignant. Pour voir le concept à l'œuvre sur du mot neuf. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🎯 Mode Trexquant (hors-lexique)</div>
@@ -9360,6 +9360,10 @@ function ui_toggle(item) {
     M_NEO_G2P_EXP_PEN = _gp ? Math.max(0, parseFloat(_gp.value) || 0.5) : 0.5;
     ui_log('NEO G2P', 'g2p révélé+pénalité ACTIVE · pén = ' + M_NEO_G2P_EXP_PEN);
   }
+  if (name === 'M_TREXQUANT_MODE_ENABLED') {   // 19/10 : le mode hors lexique allume le n-gram de NEO (arbitré + gap-aware), l'éteint en partant
+    _trexqSyncNgram(newValue);
+    ui_log('TREXQUANT', newValue ? 'mode hors lexique : n-gram arbitré + gap-aware ALLUMÉS (21,5 → 57,4 % mesuré)' : 'mode hors lexique éteint : n-gram rendu à son état d\'avant');
+  }
   if (name === 'M_NEO_PHON_COHORT_ENABLED') {   // bascule le bleu cohorte → recolorer l'assemblé (orange si lit le son, vert si cohorte cheat-free)
     ui_syncAssembledColor();
     ui_log('NEO', 'assemblé recoloré : ' + (M_NEO_PHON_COHORT_ENABLED ? 'VERT (cheat-free, son board-dérivé)' : 'ORANGE (lit le son du mot)'));
@@ -9531,6 +9535,7 @@ function applyReferenceConfig() {
     // (« tâtonne / fait plus d'erreurs »). Le bouton garantit désormais la config exacte mesurée.
     ALLOWED_TOGGLES.forEach(function(n){ try { eval(n + ' = ' + (ON.indexOf(n) >= 0 ? 'true' : 'false')); } catch(e){ console.warn('[preset]', n, e); } });
     if (typeof _trexq_restore === 'function') { try { _trexq_restore(); } catch(e){} }   // soigne un lexique amputé par un tour Trexquant précédent
+    _trexqNgramAvant = null;   // Trexquant et n-grams viennent d'être remis à OFF : plus d'état « d'avant » à rendre
     if (typeof initOmegaGlobals === 'function') initOmegaGlobals();   // (re)bâtit voie phon / substrat avec la config
     if (typeof ui_attachGameEndSub === 'function') ui_attachGameEndSub();
     if (typeof ui_initToggles === 'function') ui_initToggles();        // resync visuels + aria-checked
@@ -9776,6 +9781,18 @@ function _omega_distStats(arr) {
 }
 
 let _trexqRemoved = null;  // {key,pos,id} mot retiré du len_index (mode Trexquant), à restaurer au tour suivant
+/* ⭐ 19/10/2026 (Rem) — LE MODE TREXQUANT ALLUME SON N-GRAM. Les n-grams de NEO sont la voie du hors-lexique ; mesuré (10 graines ×
+   350 mots inconnus, appariés, placebo +0,1) : préréglage 21,5 % → + n-gram arbitré 56,1 % → + gap-aware 57,4 %. Dans le lexique ils
+   n'apportent rien (−0,1 / −0,3) : ils restent OFF dans le préréglage de base. Le bouton les allume et rend leur état d'avant en
+   s'éteignant ; le préréglage (reset complet) oublie cet état. Garde : evo/trexquant_ngram_probe.js. */
+var _trexqNgramAvant = null;   // var (pas let) : applyReferenceConfig, plus haut dans le fichier, l'écrit au chargement
+function _trexqSyncNgram(on){
+  if (on) { if (_trexqNgramAvant == null) _trexqNgramAvant = { arb: M_NEO_OS_ARB_NGRAM, gap: M_NEO_NGRAM_GAP }; M_NEO_OS_ARB_NGRAM = true; M_NEO_NGRAM_GAP = true; }
+  else if (_trexqNgramAvant) { M_NEO_OS_ARB_NGRAM = _trexqNgramAvant.arb; M_NEO_NGRAM_GAP = _trexqNgramAvant.gap; _trexqNgramAvant = null; }
+  _neoNG = null;   // tables n-gram rebâties sur le lexique du tour (le mot retiré n'y est pas)
+  if (typeof document !== 'undefined' && document.querySelector) [['M_NEO_OS_ARB_NGRAM', M_NEO_OS_ARB_NGRAM], ['M_NEO_NGRAM_GAP', M_NEO_NGRAM_GAP]].forEach(function(x){
+    var el = document.querySelector('.toggle-item[data-toggle="' + x[0] + '"]'); if (el) { el.classList.toggle('on', x[1]); el.setAttribute('aria-checked', x[1] ? 'true' : 'false'); } });
+}
 function _trexq_restore(){
   try{ if(_trexqRemoved && typeof OMEGA_LEX4!=='undefined' && OMEGA_LEX4 && OMEGA_LEX4.len_index){
     const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } } }catch(e){ console.error('[trexq] restore len_index échec — lexique possiblement amputé:', e); }
