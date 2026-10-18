@@ -14,7 +14,8 @@ Ce qui entre (forme exacte, normalisée œ → oe comme le dictionnaire) :
     pronominal (« s'abader ») est un verbe juste : il entre ;
   - deux sources : la FORME dans un dictionnaire indépendant de Morphalou (DELA, Dicollecte, Lefff — une forme que Morphalou seul
     génère, « intervièwerais », n'entre pas), le VERBE dans le Wiktionnaire ;
-  - pas une graphie RECTIFIÉE de 1990 dont la forme traditionnelle existe (« frèterais », « aouté ») : c'est la liste n° 109, à Rem ;
+  - pas une graphie RECTIFIÉE de 1990 dont la forme traditionnelle existe (« frèterais », « aouté ») : elles entrent par le lot de la
+    liste n° 109 (rect90_lex_fr.tsv.gz, décision de Rem : justes) ;
   - de 4 lettres au moins.
 Même contrat que les lots Morphalou : FreqOrtho 0 → dans WORDS, jamais candidat (jamais proposé), jamais concurrent au tri.
 
@@ -29,7 +30,7 @@ import io, gzip, json, re, sys, os, unicodedata
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(HERE, 'ver_justes_lex_fr.tsv.gz')
 LOTS = ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz',
-        'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv')
+        'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'rect90_lex_fr.tsv.gz')
 TAGS_ECARTES = {'misspelling', 'alt-of', 'nonstandard', 'erroneous', 'abbreviation', 'form-of'}   # rare / vieilli / archaïque = juste : pas écarté
 TEMOINS_OUI = ('avouions', 'écoutas', 'gâchai', 'dragua')
 TEMOINS_NON = ('developpé', 'diplomé', 'débarasser')
@@ -101,7 +102,7 @@ def generer():
             seen.add(w); nb = p[11].strip().lower()[:1]; cand.append((w, lem, nb if nb in ('s', 'p') else ''))
     tous, r90 = base | seen, 0
     for w, lem, nb in cand:                                          # graphie RECTIFIÉE de 1990 (« frèterais », « aouté ») : sa forme
-        if any(v in tous for v in rectifiees(w)): seen.discard(w); r90 += 1; continue   # traditionnelle existe — à trancher par Rem (liste n° 109)
+        if any(v in tous for v in rectifiees(w)): seen.discard(w); r90 += 1; continue   # traditionnelle existe — elle entre par le lot de la liste n° 109 (rect90)
         row = [''] * 37; row[0] = w; row[3] = lem; row[4] = 'VER'; row[5] = 'VER'; row[7] = nb; row[9] = '0'; row[10] = '0'; row[11] = '0'
         rows.append('\t'.join(row))
     nat = 0                                                         # nature NOM : formes du lot + verbes rares connus comme verbe seul
@@ -113,7 +114,7 @@ def generer():
             rows.append('\t'.join(row)); nat += 1
     rows.sort()
     with gzip.open(OUT, 'wt', encoding='utf-8', newline='\n') as f: f.write('\n'.join(rows) + '\n')
-    print('✓ ver_justes : %d lignes (%d formes verbales, %d natures nom ; %d graphies de 1990 laissées à la liste n° 109) -> %s' % (len(rows), len(seen), nat, r90, os.path.relpath(OUT, ROOT)))
+    print('✓ ver_justes : %d lignes (%d formes verbales, %d natures nom ; %d graphies de 1990 laissées au lot rect90, liste n° 109) -> %s' % (len(rows), len(seen), nat, r90, os.path.relpath(OUT, ROOT)))
 
 
 def check():
