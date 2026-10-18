@@ -4018,7 +4018,7 @@ function estQuestion(t,maxMots){
     return ckeepcase(w,cible);}
   var _PPS_AVOIR={},_PPS_MID={},_PPS_CLIT={},_PPS_ANTE={},_PPS_REFL={};   // ⭐ 12/09/2026 — RÈGLE NEUVE (orange) : accord SURNUMÉRAIRE du participe après avoir (miroir Python rule_pp_avoir_surnum)
   'ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split(' ').forEach(function(w){_PPS_AVOIR[w]=1;});
-  'ne n pas plus jamais deja bien toujours aussi encore souvent vraiment enfin rien'.split(' ').forEach(function(w){_PPS_MID[w]=1;});   // ⭐ liste n° 97 : « je n'ai rien vue » → vu
+  'ne n pas plus jamais deja bien toujours aussi encore souvent vraiment enfin rien egalement beaucoup longtemps peu trop tant presque parfois seulement simplement rarement certainement probablement surement completement totalement entierement largement finalement recemment rapidement'.split(' ').forEach(function(w){_PPS_MID[w]=1;});   // ⭐ liste n° 111 : « elle a beaucoup mangée » → mangé (adverbes entre l'auxiliaire et le participe)   // ⭐ liste n° 97 : « je n'ai rien vue » → vu
   'le la les l me m te t se s nous vous en lui leur y'.split(' ').forEach(function(w){_PPS_CLIT[w]=1;});
   'que qu combien quel quelle quels quelles lequel laquelle lesquels lesquelles'.split(' ').forEach(function(w){_PPS_ANTE[w]=1;});
   'se me te nous vous le la les y en'.split(' ').forEach(function(w){_PPS_REFL[w]=1;});
@@ -5989,8 +5989,8 @@ function spellUnknown(tok,atStart,T,idx){
   function cesProbe(text){text=String(text).replace(/[’ʼ]/g,"'");var T=toks(text),out=[],i,r;for(i=0;i<T.length;i++){r=cesVig(T,i);if(r&&r!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:r});}return out;}
   function participeEtreVig(T,tg,i){
     if(!tg||i<1||i>=tg.length||tg[i]!=='VERB')return null;
-    var w=T[i];if(!/é$/.test(w.toLowerCase()))return null;
-    var dd=deacc(w.toLowerCase());if(dd.length<4||GENDER_PURE[dd])return null;
+    var w=T[i],_pl110=/és$/.test(w.toLowerCase());if(!/é$/.test(w.toLowerCase())&&!_pl110)return null;   /* ⭐ liste n° 110 : aussi le participe DÉJÀ au masculin pluriel (« les filles sont emmenés » → emmenées) — il ne change que si le sujet est féminin */
+    var dd=deacc(w.toLowerCase());if(dd.length<4||GENDER_PURE[dd]||(_pl110&&GENDER_PURE[dd.slice(0,-1)]))return null;
     var a=-1;for(var j=i-1;j>=0&&j>=i-2;j--){var dj=deacc(T[j].toLowerCase());
       if(dj==='sont'||dj==='etaient'||dj==='furent'||dj==='seront'||dj==='etes'){a=j;break;}
       if(tg[j]!=='ADV')return null;}
@@ -6002,6 +6002,7 @@ function spellUnknown(tok,atStart,T,idx){
        grammaire se tait. Le parseur de sujet existe (_npSubject : déterminant + nom-tête, saute les PP « de la maison », s'abstient
        sur coordination, connaît les prénoms) et rend le genre : on le lui demande. Sujet introuvable ou singulier → comme avant. */
     if(!_pr){var _np=_npSubject(T,tg,a);if(_np&&_np.g==='f'&&_np.n!=='s')fem=true;}
+    if(_pl110)return fem?w.slice(0,-1)+'es':null;   /* masculin pluriel juste derrière un sujet masculin ou inconnu */
     return w+(fem?'es':'s');}
   /* ⭐ 28/09/2026 — « SONT + ADJECTIF » : participeEtreVig étendu, même cadre (un être AUDIBLEMENT pluriel). Recensement du gold dys :
      derrière « sont », les fautes d'accord muettes étaient des ADJECTIFS (« sont exploitable », « seront insolent ») et des participes
