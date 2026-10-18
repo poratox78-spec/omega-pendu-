@@ -58,7 +58,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 30 | parité POS-tagger HMM (Py==ext==app) | `node dictee/parity_pos.js` |
 | 31 | speller app (décompresse+FP0) | `node dictee/test_speller_app.js` |
 | 32 | vigilance accord sujet-verbe (orange mid-phrase) | `node dictee/test_sv_vigilance.js` |
-| 33 | sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans /tmp/udfr) | `python3 dictee/sujet_probe.py` |
+| 33 | sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; UD de /tmp/udfr ou data_local ; SAUTÉ sans les deux) | `python3 dictee/sujet_probe.py` |
 | 34 | benchmark dys réel (messy: rappel+FP+mauvaises corr.) | `node dictee/messy_probe.js --check` |
 | 35 | juges dys : suggestion de PLUSIEURS mots jugée sur la suite gold (bien sûr juste, ronde vous faux) | `python3 dictee/test_juges_multimots.py` |
 | 36 | census vigilance dys (aucune orange juste perdue) | `python3 dictee/vig_census_probe.py` |
@@ -133,7 +133,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 105 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
 | 106 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
 | 107 | toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée) | `node dictee/toile_probe.js --check` |
-| 108 | noms épicènes exclus du genre (liste == Lexique4 ; SAUTÉ sans Lexique4.tsv.xz) | `python3 dictee/build_gacc_epicene_excl.py --check` |
+| 108 | noms épicènes exclus du genre (liste == Lexique4 ; Lexique 4 de la racine ou de data_local ; SAUTÉ en CI) | `python3 dictee/build_gacc_epicene_excl.py --check` |
 | 109 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
 | 110 | table de conjugaison SANS RETARD sur son script (Morphalou ; SAUTÉ sans data_local) | `python3 dictee/complete_conj_morphalou.py --check` |
 | 111 | CHARGEUR UNIQUE : les tables du produit == charger_node.js ; chaque banc Node passe par lui ou dit pourquoi | `node extension/chargeur_probe.js --check` |

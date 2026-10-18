@@ -23,10 +23,12 @@ jobs:
         run: python3 dictee/couverture_conj_probe.py
       - name: MUETTES justes — r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain
         run: python3 dictee/muettes_probe.py --check
-      # La sonde-sujet exige les ARBRES CoNLL-U (or nsubj), pas seulement des phrases → SAUTÉE en CI
-      # (pas de $UDFR), comme les sondes dys. L'instrument est versionné : la mesure d'origine du
-      # « mur sujet ~63 % » (DICTEE_ROADMAP) avait été perdue avec une mémoire de session cloud.
-      - name: Sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans UDFR)
+      # La sonde-sujet exige les ARBRES CoNLL-U (or nsubj), pas seulement des phrases. Jusqu'au 18/10/2026 elle SAUTAIT en CI
+      # (pas de $UDFR) : UD French-GSD est public (CC BY-SA), on le clone donc ici ; si le clone échoue, la sonde le DIT (SAUTÉ).
+      # L'instrument est versionné : la mesure d'origine du « mur sujet ~63 % » (DICTEE_ROADMAP) avait été perdue avec une mémoire de session cloud.
+      - name: UD French-GSD (arbres CoNLL-U publics) pour la sonde SUJET
+        run: git clone --depth 1 https://github.com/UniversalDependencies/UD_French-GSD /tmp/udfr || echo "clone UD impossible — la sonde SUJET dira SAUTÉ"
+      - name: Sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; UD cloné ci-dessus)
         run: python3 dictee/sujet_probe.py
       # Le chantier « bases de genre désaccentuées » a traîné parce qu'AUCUN banc ne déclenchait
       # la table : la retirer ne changeait rien, et elle contenait « le »→féminin sans que rien

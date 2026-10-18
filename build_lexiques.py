@@ -16,7 +16,7 @@ OUT = os.path.join(HERE, 'omega-lexiques.zip')
 # (chemin source, nom dans le zip, description, source amont)
 FILES = [
     ('extension/assets/speller.tsv.gz',   'speller.tsv.gz',
-     'Lexique orthographique — ~706 000 formes (correction, accents, non-mots ; forme, fréquence ‰, catégorie).', 'Lexique 4 + Wiktionnaire + Morphalou 3.1 (LGPL-LR)'),
+     'Lexique orthographique — ~{N_SPELLER} formes (correction, accents, non-mots ; forme, fréquence ‰, catégorie).', 'Lexique 4 + Wiktionnaire + Morphalou 3.1 (LGPL-LR)'),
     ('extension/assets/gender-acc.json.gz', 'genre-accentue.json.gz',
      'Genre des noms, formes accentuées (accord du déterminant et de l’adjectif) — hors noms épicènes, '
      'qui ont les deux genres (un/une peintre) et ne peuvent donc trancher aucun accord.', 'Lexique 4 + Wiktionnaire + Morphalou 3.1 (LGPL-LR)'),
@@ -55,7 +55,7 @@ Merci aux ressources amont dont ces données partent — Lexique 4
 Dependencies French-GSD (universaldependencies.org), en CC BY-SA 4.0 ;
 et, depuis septembre 2026, Morphalou 3.1 (ATILF/CNRS, ortolang.fr), sous
 LGPL-LR : le lexique orthographique et le genre accentué en contiennent des
-formes fléchies (≈ 500 000 formes verbales, noms, adjectifs, adverbes).
+formes fléchies (≈ {N_MORPHALOU} formes verbales, noms, adjectifs, adverbes).
 Par correction on partage donc dans le même esprit : crédite OMEGA-Ω et
 ces sources si tu réutilises, garde-le ouvert, et joins le texte de la
 LGPL-LR (LICENSE-LGPL-LR.txt) avec toute redistribution des fichiers qui
@@ -68,6 +68,36 @@ FICHIERS
 """
 
 
+# Lots du speller tirés de Morphalou 3.1 (LGPL-LR) : leur part dans le speller livré est comptée pour la NOTICE.
+LOTS_MORPHALOU = ('morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv',
+                  'ver_justes_lex_fr.tsv.gz', 'rect90_lex_fr.tsv.gz', 'na_justes_lex_fr.tsv.gz')
+
+
+def _formes(p):
+    import gzip, io
+    f = gzip.open(p, 'rt', encoding='utf-8') if p.endswith('.gz') else io.open(p, encoding='utf-8')
+    with f:
+        return {l.split('\t', 1)[0].strip() for l in f if l.strip()}
+
+
+def _chiffres():
+    """Les chiffres de la NOTICE, COMPTÉS sur les fichiers livrés (arrondis au millier) — jamais écrits à la main : le
+    « ~706 000 » a dormi dans le paquet pendant que le speller passait à 739 000 (vu le 18/10/2026), et --check, qui
+    comparait la NOTICE à elle-même, ne pouvait pas le voir."""
+    sp = _formes(os.path.join(HERE, 'extension', 'assets', 'speller.tsv.gz'))
+    mo = set()
+    for f in LOTS_MORPHALOU:
+        q = os.path.join(HERE, 'dictee', f)
+        if os.path.exists(q): mo |= _formes(q)
+    k = lambda n: '{:,}'.format(int(round(n / 1000.0)) * 1000).replace(',', ' ')
+    return {'N_SPELLER': k(len(sp)), 'N_MORPHALOU': k(len(mo & sp))}
+
+
+def _remplir(t, c):
+    for a, b in c.items(): t = t.replace('{' + a + '}', b)
+    return t
+
+
 def _texte(name):
     return name.endswith(('.txt', '.json', '.tsv', '.md'))
 
@@ -77,13 +107,13 @@ def _lf(b):
 
 
 def _notice_et_membres():
-    notice = NOTICE; membres = []
+    c = _chiffres(); notice = _remplir(NOTICE, c); membres = []
     for src, name, desc, up in FILES:
         p = os.path.join(HERE, src)
         if not os.path.exists(p):
             continue
         membres.append((name, p))
-        notice += f"- {name}\n    {desc}\n    Source : {up}\n"
+        notice += f"- {name}\n    {_remplir(desc, c)}\n    Source : {up}\n"
     notice += "\nGénéré par build_lexiques.py — OMEGA-Ω — https://omegapendu.com/\n"
     return notice, membres
 
@@ -118,8 +148,8 @@ def check():
 
 def main():
     rows = []
+    notice, _m = _notice_et_membres()   # une seule fabrique de NOTICE (chiffres comptés) pour l'écriture et pour --check
     with zipfile.ZipFile(OUT, 'w', zipfile.ZIP_DEFLATED) as z:
-        notice = NOTICE
         for src, name, desc, up in FILES:
             p = os.path.join(HERE, src)
             if not os.path.exists(p):
@@ -131,8 +161,6 @@ def main():
                 z.write(p, name)
             sz = os.path.getsize(p)
             rows.append((name, sz))
-            notice += f"- {name}\n    {desc}\n    Source : {up}\n"
-        notice += "\nGénéré par build_lexiques.py — OMEGA-Ω — https://omegapendu.com/\n"
         z.writestr('NOTICE.txt', notice)
     total = os.path.getsize(OUT)
     print(f"✓ {OUT}  ({total//1024} Ko, {len(rows)} fichiers + NOTICE.txt)")

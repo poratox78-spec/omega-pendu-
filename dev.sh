@@ -92,7 +92,7 @@ run "parité correcteur APP↔Python"  node dictee/parity_corr.js
 run "parité POS-tagger HMM (Py==ext==app)" node dictee/parity_pos.js
 run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
 run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigilance.js
-run "sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans /tmp/udfr)" python3 dictee/sujet_probe.py
+run "sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; UD de /tmp/udfr ou data_local ; SAUTÉ sans les deux)" python3 dictee/sujet_probe.py
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
 run "juges dys : suggestion de PLUSIEURS mots jugée sur la suite gold (bien sûr juste, ronde vous faux)" python3 dictee/test_juges_multimots.py
 run "census vigilance dys (aucune orange juste perdue)" python3 dictee/vig_census_probe.py
@@ -218,7 +218,7 @@ run "précision par famille AU PRODUIT (extension réelle dans Chrome)" python3 
 run "résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local)" node dictee/residual_audit.js --check
 run "collisions d’accent : JSON == app == extension (non_verbe_acc)" python3 dictee/build_non_verbe_acc.py --check
 run "toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée)" node dictee/toile_probe.js --check
-run "noms épicènes exclus du genre (liste == Lexique4 ; SAUTÉ sans Lexique4.tsv.xz)" python3 dictee/build_gacc_epicene_excl.py --check
+run "noms épicènes exclus du genre (liste == Lexique4 ; Lexique 4 de la racine ou de data_local ; SAUTÉ en CI)" python3 dictee/build_gacc_epicene_excl.py --check
 run "lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz)" python3 dictee/build_morph_lex.py --check
 run "table de conjugaison SANS RETARD sur son script (Morphalou ; SAUTÉ sans data_local)" python3 dictee/complete_conj_morphalou.py --check
 run "CHARGEUR UNIQUE : les tables du produit == charger_node.js ; chaque banc Node passe par lui ou dit pourquoi" node extension/chargeur_probe.js --check
