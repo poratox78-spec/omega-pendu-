@@ -201,7 +201,7 @@ def load_lexicon():
     _HERE = os.path.dirname(os.path.abspath(__file__))
     # SPELLER_EXTRA=0 : base Lexique4 seule (instrument d'A/B : mesurer ce qu'un lot d'ajouts CHANGE, pas seulement ce qu'il apporte)
     _EXTRA = os.environ.get('SPELLER_EXTRA', '1') != '0'
-    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz', 'rect90_lex_fr.tsv.gz') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
+    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz', 'rect90_lex_fr.tsv.gz', 'na_justes_lex_fr.tsv.gz') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
     _H = None
     for _src in _SRC:
       with (gzip.open(_src, 'rt', encoding='utf-8') if _src.endswith('.gz') else open(_src, encoding='utf-8')) as f:   # le lot VER est commite gzippe (26,5 Mo en clair)
@@ -790,6 +790,48 @@ class Speller:
                 if b6: return b6
         return None
 
+    _PREP113 = set('de d du des à au aux en par pour sur dans avec sans sous chez entre vers'.split())
+    _DG113 = dict([(w, 'm') for w in 'le un ce cet du au mon ton son'.split()] + [(w, 'f') for w in 'la une cette ma ta sa'.split()])
+    _NONEL113 = {'ixième', 'ixièmes'}
+
+    def _ctx113(self, low, T, idx):
+        """⭐ 18/10/2026 (liste n° 113) — décalque de `_ctx113` (dys-core.js, miroir app). Un nom ou un adjectif JUSTE jamais vu en usage
+        (fréquence 0) est au dictionnaire ; quatre faits de grammaire rattrapent la confusion qu'il pourrait cacher (orange) :
+        ⑧ déterminant singulier + forme au pluriel dont le singulier est un nom courant → ce singulier (le nombre passe avant l'élision) ;
+        ⑦ « le » / « la » non élidé devant une voyelle → nom courant au singulier à une lettre, du genre de l'article, qui commence par une consonne ;
+        ⑨ adjectif seul juste après un déterminant et devant une préposition → nom courant (≥ 10/M) à une lettre, même nombre ;
+        ⑩ masculin pluriel en -ants devant une préposition, participe présent courant → le participe présent, invariable."""
+        pv = T[idx - 1].lower() if idx > 0 else ''; pvd = deacc(pv)
+        nx = T[idx + 1].lower() if idx + 1 < len(T) else ''
+        pos = ''.join(sorted(self.POS.get(low, ())))
+
+        def best(min_f, ok):
+            dL = deacc(low); bn, bs, bf = None, -1, 0.0
+            for e in edits1(dL):
+                for c in (self.D2A.get(e) or ()):
+                    cf = self.FREQ.get(c, 0.0)
+                    if c == low or 'N' not in self.POS.get(c, ()) or cf < min_f or not ok(c): continue
+                    sc = (2 if deacc(c) == dL else 0) + (1 if c[:1] == low[:1] else 0)
+                    if sc > bs or (sc == bs and cf > bf): bn, bs, bf = c, sc, cf
+            return bn
+
+        if pvd in self._DG113 and low[-1:] in ('s', 'x') and not self._invar_s(low):
+            sg = low[:-1]
+            if sg in self.WORDS and 'N' in self.POS.get(sg, ()) and self.FREQ.get(sg, 0.0) >= 1.0: return sg
+        if pv in ('le', 'la') and re.match(u'^[aeiouàâäéèêëîïôöùûüœ]', low) and low not in self._NONEL113:
+            g = self._DG113[pv]
+            m = best(1.0, lambda c: not re.match(u'^[aeiouyhàâäéèêëîïôöùûüœ]', c) and self._gender(c) == g and (c[-1:] not in ('s', 'x') or self._invar_s(c)))
+            if m: return m
+        if pos == 'A' and pvd in _RV_DET and nx in self._PREP113:
+            pl = low[-1:] in ('s', 'x')
+            m = best(10.0, lambda c: (c[-1:] in ('s', 'x')) == pl)
+            if m: return m
+        m = re.match(r'^(.+ant)s$', low)
+        if m and 'A' in pos and nx in self._PREP113:
+            b = m.group(1)
+            if b in self.WORDS and 'V' in self.POS.get(b, ()) and self.FREQ.get(b, 0.0) >= 1.0: return b
+        return None
+
     def _gender(self, w):
         """genre d'un candidat accentué : adjectif (paire) SI c'est un adjectif, sinon nom. None si inconnu.
         Le guard 'A' évite la collision déacc (« pomme » nom ≠ « pommé » adj → ne pas prendre le genre adj)."""
@@ -1119,6 +1161,10 @@ class Speller:
                 and self.FREQ.get(low, 0.0) < 0.01 and toks is not None and idx is not None):
             _r108 = self._ctx108(low, toks, idx)
             if _r108: return ('vigilance', (_r108[:1].upper() + _r108[1:]) if tok[:1].isupper() else _r108)
+        if (tok == low and len(low) >= 3 and "'" not in low and low in self.WORDS and not self.FREQ.get(low, 0.0) > 0 and self.POS.get(low)
+                and 'V' not in self.POS.get(low, ()) and toks is not None and idx is not None):   # ⭐ liste n° 113 : nom ou adjectif jamais vu en usage — miroir JS
+            _r113 = self._ctx113(low, toks, idx)
+            if _r113: return ('vigilance', (_r113[:1].upper() + _r113[1:]) if tok[:1].isupper() else _r113)
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — miroir JS
         if low in self.PRENOMS_L: return None

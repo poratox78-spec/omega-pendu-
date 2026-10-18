@@ -23,7 +23,7 @@ import io, gzip, json, re, sys, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(HERE, 'rect90_lex_fr.tsv.gz')
 LOTS = ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz',
-        'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz')
+        'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz', 'na_justes_lex_fr.tsv.gz')
 TEMOINS_OUI = ('apparait', 'coute', 'cèderai', 'abimer', 'goulument')
 TEMOINS_NON = ('fimes', 'futes')   # « nous fîmes », « vous fûtes » gardent le circonflexe
 GARDE = {'dû', 'mûr', 'mûre', 'mûrs', 'mûres', 'sûr', 'sûre', 'sûrs', 'sûres'}
