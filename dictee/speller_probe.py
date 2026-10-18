@@ -801,7 +801,8 @@ class Speller:
           si la forme n'est qu'un adjectif, le nom courant de même squelette au singulier, du genre de l'article (« la tigés » → tige), en rouge ;
         ⑦ « le » / « la » non élidé devant une voyelle → nom courant au singulier à une lettre, du genre de l'article, qui commence par une consonne ;
         ⑨ adjectif seul juste après un déterminant et devant une préposition → nom courant (≥ 10/M) à une lettre, même nombre ;
-        ⑩ masculin pluriel en -ants devant une préposition, participe présent courant → le participe présent, invariable."""
+        ⑩ masculin pluriel en -ants devant une préposition, participe présent courant → le participe présent, invariable ;
+        ⑪ nom seul en -é / -ée / -és / -ées devant « par » (participe passif) → participe courant à une lettre, même terminaison."""
         pv = T[idx - 1].lower() if idx > 0 else ''; pvd = deacc(pv)
         nx = T[idx + 1].lower() if idx + 1 < len(T) else ''
         pos = ''.join(sorted(self.POS.get(low, ())))
@@ -838,6 +839,15 @@ class Speller:
         if m and 'A' in pos and nx in self._PREP113:
             b = m.group(1)
             if b in self.WORDS and 'V' in self.POS.get(b, ()) and self.FREQ.get(b, 0.0) >= 1.0: return b
+        m = re.search(u'(ées|ée|és|é)$', low)
+        if pos == 'N' and nx == 'par' and m:   # ⑪ place d'un participe passif
+            f11 = m.group(1); b11, v11 = None, 0.0
+            for e in edits1(deacc(low)):
+                for c in (self.D2A.get(e) or ()):
+                    cf = self.FREQ.get(c, 0.0)
+                    if c == low or 'V' not in self.POS.get(c, ()) or not c.endswith(f11) or cf < 1.0: continue
+                    if cf > v11: b11, v11 = c, cf
+            if b11: return b11
         return None
 
     def _gender(self, w):

@@ -30075,7 +30075,8 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
        si la forme n'est qu'un adjectif, le nom courant de même squelette au singulier, du genre de l'article (« la tigés » → tige), en rouge ;
      ⑦ « le » / « la » non élidé devant une voyelle → nom courant au singulier à une lettre, du genre de l'article, qui commence par une consonne ;
      ⑨ adjectif seul (jamais nom) juste après un déterminant et devant une préposition → nom courant (≥ 10/M) à une lettre, même nombre ;
-     ⑩ masculin pluriel en -ants devant une préposition, quand le participe présent est courant → le participe présent, invariable.
+     ⑩ masculin pluriel en -ants devant une préposition, quand le participe présent est courant → le participe présent, invariable ;
+     ⑪ nom seul en -é / -ée / -és / -ées devant « par » (place d'un participe passif) → participe courant à une lettre, même terminaison.
      En orange (⑧ b en rouge). Miroir Python (speller_probe). */
   var _PREP113={de:1,d:1,du:1,des:1,'à':1,au:1,aux:1,en:1,par:1,pour:1,sur:1,dans:1,avec:1,sans:1,sous:1,chez:1,entre:1,vers:1};
   var _DG113={le:'m',un:'m',ce:'m',cet:'m',du:'m',au:'m',mon:'m',ton:'m',son:'m',la:'f',une:'f',cette:'f',ma:'f',ta:'f',sa:'f'},_NONEL113={'ixième':1,'ixièmes':1};
@@ -30091,6 +30092,9 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
       m=best(1,function(c){return !/^[aeiouyhàâäéèêëîïôöùûüœ]/.test(c)&&sGender(c)===g&&(!/[sx]$/.test(c)||inv(c));});if(m)return m;}
     if(pos==='A'&&_RV_DET[pvd]&&_PREP113[nx]){pl=/[sx]$/.test(low);m=best(10,function(c){return /[sx]$/.test(c)===pl;});if(m)return m;}
     if((m=low.match(/^(.+ant)s$/))&&pos.indexOf('A')>=0&&_PREP113[nx]&&SP.WORDS.has(m[1])&&(spP(m[1])||'').indexOf('V')>=0&&(spF(m[1])||0)>=1)return m[1];
+    if(pos==='N'&&nx==='par'&&(m=low.match(/(ées|ée|és|é)$/))){var f11=m[1],e11=sEdits1(deaccS(low)),b11=null,v11=0,q11,r11,a11,c11;   /* ⑪ place d'un participe passif */
+      for(q11=0;q11<e11.length;q11++){a11=spD(e11[q11]);if(!a11)continue;for(r11=0;r11<a11.length;r11++){c11=a11[r11];if(c11===low||(spP(c11)||'').indexOf('V')<0||c11.slice(-f11.length)!==f11||(spF(c11)||0)<1)continue;if((spF(c11)||0)>v11){b11=c11;v11=spF(c11)||0;}}}
+      if(b11)return b11;}
     return null;}
 function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
