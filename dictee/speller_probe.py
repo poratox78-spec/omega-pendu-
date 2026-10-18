@@ -798,6 +798,7 @@ class Speller:
     _PREP113 = set('de d du des à au aux en par pour sur dans avec sans sous chez entre vers'.split())
     _DG113 = dict([(w, 'm') for w in 'le un ce cet du au mon ton son'.split()] + [(w, 'f') for w in 'la une cette ma ta sa'.split()])
     _NONEL113 = {'ixième', 'ixièmes'}
+    _LIB115 = set('de d à a en par pour sur dans avec sans sous chez entre vers et ou mais donc car ni puis'.split())   # « flue de données » : un verbe conjugué n'a pas de sujet après ces mots — miroir JS
 
     def _ctx113(self, low, T, idx):
         """⭐ 18/10/2026 (liste n° 113) — décalque de `_ctx113` (dys-core.js, miroir app). Un nom ou un adjectif JUSTE jamais vu en usage
@@ -1156,7 +1157,7 @@ class Speller:
         # Risque quasi nul : la garde ne s'applique qu'à un token DÉJÀ inconnu du lexique de 211 k
         # formes ; qu'il soit en plus un prénom attesté en fait un nom, pas un typo.
         # ⭐ 15/10/2026 (liste n° 35) — forme verbale rarissime à une place de nom (« flue de données » → flux) — miroir JS
-        if ((tok == low or at_start) and len(low) >= 4 and low in self.WORDS and low not in _RV_LATIN and (''.join(sorted(self.POS.get(low, ()))) == 'V' or low in self.G114)
+        if ((tok == low or at_start) and len(low) >= 4 and low in self.WORDS and low not in _RV_LATIN and ''.join(sorted(self.POS.get(low, ()))) in ('V', 'NV')
                 and self.FREQ.get(low, 0.0) < 0.01 and not re.search(r'(er|ir|re|oir)$', low) and toks is not None and idx is not None):
             _pvL = 'l' if re.match(u"^l['’]", toks[idx], re.I) else (deacc(toks[idx - 1].lower()).rstrip("'’") if idx > 0 else '')   # ⭐ liste n° 108 : l'article élidé collé (« l'articla ») — miroir JS
             _nxL = deacc(toks[idx + 1].lower()) if idx + 1 < len(toks) else ''
@@ -1166,7 +1167,8 @@ class Speller:
             if (_pvL in _RV_DET and _pvL in ('le', 'la', 'les', 'l') and _p2L
                     and (_p2L in _cpm()._COD_SUBJ or _p2L in _cpm().CLITIC or (_cpm()._noun_gate_n(_p2L) and _p3L in _RV_DET))):
                 _pvL = ''   # ⭐ liste n° 108 : « le » pronom devant un verbe (« les soucis le poignent ») — miroir JS
-            _g114 = None if ''.join(sorted(self.POS.get(low, ()))) == 'V' else (self._DG113[_pvL] if self._DG113.get(_pvL) and self._DG113[_pvL] != self.G114.get(low) else '')   # ⭐ liste n° 114 : forme aussi NOM — seulement si le genre de l'article exclut ce nom (« le flue » → flux) — miroir JS
+            _g114 = None if ''.join(sorted(self.POS.get(low, ()))) == 'V' else (self._DG113[_pvL] if self._DG113.get(_pvL) and self.G114.get(low) and self._DG113[_pvL] != self.G114.get(low) else '')
+            if _g114 == '' and low[-1:] not in ('s', 'x') and (idx == 0 or _pvL in self._LIB115) and _nxL in ('de', 'd', "d'"): _g114 = None   # « flue de données » : ni sujet, ni article — miroir JS   # ⭐ liste n° 114 : forme aussi NOM — seulement si le genre de l'article exclut ce nom (« le flue » → flux) — miroir JS
             if _g114 != '' and (_pvL in _RV_DET or (_nxL in ('de', 'du', 'des', 'd', "d'") and _nx2 and _nx2 in self.WORDS and 'N' in self.POS.get(_nx2, ())
                                    and deacc(_nx2) not in _RV_DET and _nx2 not in ('ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous'))):   # « de la » : « la » n'est pas le nom (la note)
                 _dL = deacc(low); _bn, _bs, _bf = None, -1, 0.0   # même squelette d'abord (lignés → lignes), puis même initiale, puis fréquence — comme le tri du speller

@@ -24994,6 +24994,29 @@ window.addEventListener('DOMContentLoaded', () => {
     for(var q=i+2;q<=i+3&&q<T.length;q++){var r=svReads(T[q]),pl=false,sg=false;for(var k=0;k<r.length;k++){if(r[k][2]!=='3')continue;if(r[k][3]==='p'||r[k][3]==='x')pl=true;else if(r[k][3]==='s')sg=true;}
       if(pl&&!sg)return 'Le verbe « '+T[q]+' » est au pluriel : il y a deux sujets, reliés par « et » (il relie ; il se dit « é »). « est » (il se dit « è ») serait le verbe être.';}
     return '';}
+  /* ⭐ 18/10/2026 — POURQUOI UN MOT QUI EXISTE EST MARQUÉ. Les règles de contexte (listes 35, 108, 112, 113, 114) marquent un mot du
+     dictionnaire que le contexte exclut : la leçon « une lettre en trop / ce son s’écrit… » de la famille orthographe était fausse ou
+     muette sur la vraie raison. Chaque marque porte sa RAISON (f.raison) ; ici la leçon (🛠️, _RTIP « raison … ») et le 💡 (_raisonHint). */
+  var _RAISON={
+    '35':['ce mot existe, mais c’est un VERBE : à la place d’un nom, il faut un nom.',function(w,s){return '« '+w+' » existe, mais c’est un verbe ; ici il faut un nom : sans doute « '+s+' ».';}],
+    '114':['ce mot existe comme verbe, ou comme nom de l’AUTRE genre que son article : ici, c’est un autre nom.',function(w,s,p){return '« '+w+' » existe (un verbe, ou un nom de l’autre genre) ; avec « '+p+' », c’est sans doute « '+s+' ».';}],
+    '115':['un verbe conjugué a besoin d’un sujet, un nom d’un article : sans l’un ni l’autre, c’est un autre mot.',function(w,s){return '« '+w+' » existe (verbe ou nom), mais ici il n’a ni sujet ni article : sans doute « '+s+' ».';}],
+    '108-1':['une forme en « tu » a besoin de « tu » : sans « tu », c’est le participe.',function(w,s){return '« '+w+' » est une forme en « tu », mais aucun « tu » ne l’accompagne : sans doute « '+s+' ».';}],
+    '108-2':['entre un nom et « qui », il faut un participe ou un adjectif, pas un verbe conjugué.',function(w,s,p){return '« '+w+' » est un verbe conjugué ; entre « '+p+' » et « qui », il faut un participe : sans doute « '+s+' ».';}],
+    '108-3':['après « été », il faut un participe passé.',function(w,s){return '« '+w+' » ne se met pas au passif après « été » : sans doute « '+s+' ».';}],
+    '108-4':['deux verbes conjugués ne se suivent pas : l’un des deux est un nom ou un adjectif.',function(w,s,p,n){return '« '+w+' » et « '+n+' » seraient deux verbes de suite : « '+w+' » est sans doute « '+s+' ».';}],
+    '108-5':['à la place d’un nom ou d’un adjectif, un verbe qui se prononce pareil est souvent une faute de lettre.',function(w,s){return '« '+w+' » est un verbe ; à cette place il faut un nom ou un adjectif, et « '+s+' » se prononce pareil.';}],
+    '108-6':['ce mot existe mais il est très rare, et un verbe courant se prononce pareil : vérifie le sens.',function(w,s){return '« '+w+' » existe mais il est très rare ; « '+s+' » se prononce pareil et va sans doute mieux : vérifie le sens.';}],
+    '113-7':['devant une voyelle, « le » et « la » deviennent « l’ » (l’arbre, l’école).',function(w,s,p){return '« '+p+' '+w+' » ne se dit pas (ce serait « l’'+w+' ») : c’est sans doute « '+p+' '+s+' ».';}],
+    '113-8':['un article au singulier va avec un nom au singulier.',function(w,s,p){return '« '+p+' » est au singulier, « '+w+' » au pluriel : sans doute « '+s+' ».';}],
+    '113-8b':['un article au singulier va avec un nom au singulier.',function(w,s,p){return '« '+p+' » est au singulier et « '+w+' » est un adjectif au pluriel, sans nom : sans doute « '+s+' ».';}],
+    '113-9':['après un article, il faut un nom : un adjectif seul ne suffit pas.',function(w,s,p){return '« '+w+' » est un adjectif ; après « '+p+' », il faut un nom : sans doute « '+s+' ».';}],
+    '113-10':['suivi d’un complément, le participe présent (en -ant) ne prend pas de « s ».',function(w,s,p,n){return '« '+w+' » est suivi d’un complément (« '+n+' … ») : le participe présent reste « '+s+' ».';}],
+    '113-11':['devant « par », il faut un participe passé (frappé par, porté par).',function(w,s){return '« '+w+' » est un nom ; devant « par », il faut un participe : sans doute « '+s+' ».';}]
+  };
+  (function(){for(var k in _RAISON)if(_RAISON.hasOwnProperty(k))_RTIP['raison '+k]=(function(L){return function(){return L;};})(_RAISON[k][0]);})();
+  function _raisonHint(f,T){var r=f&&f.raison&&_RAISON[f.raison],i=f&&f.i;if(!r||typeof i!=='number'||!T)return '';
+    return r[1](String(f.word||''),String(f.sugg||''),i>0?String(T[i-1]):'',i+1<T.length?String(T[i+1]):'');}
   // ===== fin de la COUCHE DYS PARTAGÉE =====
   function remedBlock(F,cls){var r=remedFams(F);if(!r)return '';
     var tips=r.fams.map(function(t,k){return remedTip(t,r.rep[k]);}).filter(Boolean);if(!tips.length)return '';
@@ -30010,6 +30033,7 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
   function _rdx108(w){return svReads(w).filter(function(x){var f=((CONJ_C[x[0]]||{})[x[1]]||{})[x[2]+x[3]];return Array.isArray(f)?f.indexOf(w)>=0:f===w;});}   /* la clé de la table est SANS accent : « édictés » (participe) n'est pas « édictes » — la forme exacte décide */
   function _rd108(low){var r=_rdx108(low),i,f,lem;if(r.length)return r;for(i=0;i<_FIN108.length;i++){f=_FIN108[i];if(low.length>f[0].length+2&&low.slice(-f[0].length)===f[0]){lem=deaccS(low.slice(0,-f[0].length))+'er';if(CONJ_C[lem]&&!(CONJ_C[lem][f[1]]||{})[f[2]])r.push([lem,f[1],f[2].charAt(0),f[2].charAt(1)]);}}return r;}
   function _ppSans108(d){if(PP_SANS_COD[d])return true;var m=d.match(/^(.+?)(e|es|s)$/);return !!(m&&PP_SANS_COD[m[1]]);}
+  var _R108=0,_R113='';   /* ⭐ la règle de contexte qui a tiré (explication : _RAISON) */
   function _ctx108(low,T,idx,inv){
     var rd=_rd108(low),i,k,c,a,best=null,bs=-1e18,sc,d=deaccS(low),bb=(_SEG&&_SEG.bb&&_SEG.bb.length===T.length)?_SEG.bb:null;
     var pv=idx>0?T[idx-1].toLowerCase():'',nx=idx+1<T.length?T[idx+1].toLowerCase():'',pvw=pv.replace(/^[a-zà-ÿ]+'/,'');
@@ -30027,19 +30051,19 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
       return r;}
     if(rd.length&&!bA&&nx!=='tu'&&!(/es$/.test(low)&&(spP(low.slice(0,-2))||'').indexOf('V')>=0)&&(_nounGateN(deaccS(pvw))&&!_RV_DET[deaccS(pvw)]&&!CLITIC[pvw]&&!_SUB108[pvw]||_AUX108[pvw])){var all2=true;   /* « décuites » : féminin pluriel du participe « décuit », pas une 2e personne */for(i=0;i<rd.length;i++)if(rd[i][2]!=='2'||rd[i][3]!=='s'){all2=false;break;}
       if(all2){var tu=false;for(k=idx-1;k>=Math.max(0,idx-6);k--){if(bb&&bb[k+1])break;a=T[k].toLowerCase();if(a==='tu'||a==='toi'||/^t'/.test(a)){tu=true;break;}}
-        if(!tu){c=part108(rd[0][0]);if(c)return c;}}}
-    if(rd.length&&nx==='qui'&&!bN&&!bA&&pvw&&_nounGateN(deaccS(pvw))&&!_RV_DET[deaccS(pvw)]&&!CLITIC[pvw]&&!_SUB108[pvw]){c=part108(rd[0][0]);if(c)return c;}
+        if(!tu){c=part108(rd[0][0]);if(c){_R108=1;return c;}}}}
+    if(rd.length&&nx==='qui'&&!bN&&!bA&&pvw&&_nounGateN(deaccS(pvw))&&!_RV_DET[deaccS(pvw)]&&!CLITIC[pvw]&&!_SUB108[pvw]){c=part108(rd[0][0]);if(c){_R108=2;return c;}}
     if(pv==='été'||pv==='ete'){var pe=low.match(/(ée|ées|és|é|ie|ies|is|i|ue|ues|us|u)$/);
       if(pe&&_ppSans108(d)){pe=pe[1];var e1=sEdits1(d);
         for(i=0;i<e1.length;i++){a=spD(e1[i]);if(!a)continue;for(k=0;k<a.length;k++){c=a[k];var cf=spF(c)||0;
           if(c===low||cf<1||(spP(c)||'').indexOf('V')<0||c.slice(-pe.length)!==pe||_rdx108(c).length||_ppSans108(deaccS(c)))continue;
           sc=cf;if(sc>bs){bs=sc;best=c;}}}
-        if(best)return best;}}
+        if(best){_R108=3;return best;}}}
     if(rd.length&&idx>0&&nx&&!bN&&!bA&&!_NXSTOP108[nx]&&(spP(nx)||'')==='V'&&_rdx108(nx).length&&(spF(nx)||0)>=0.01&&!_RV_DET[deaccS(pv).replace(/'$/,'')]&&!CLITIC[pv]){
       var sub=false;for(k=idx-1;k>=Math.max(0,idx-6);k--){if(bb&&bb[k+1])break;a=T[k].toLowerCase();if(_SUB108[a]||/^(qu|lorsqu|puisqu|quoiqu|j|s|c|n|m|t)'/.test(a)){sub=true;break;}}
       if(!sub){var e2=sEdits1(d).concat([d]);for(i=0;i<e2.length;i++){a=spD(e2[i]);if(!a)continue;for(k=0;k<a.length;k++){c=a[k];var f2=spF(c)||0;
           if(c===low||f2<1||!/[NA]/.test(spP(c)||''))continue;sc=((deaccS(c)===d?2:0)+(c.charAt(0)===low.charAt(0)?1:0))*1e6+f2;if(sc>bs){bs=sc;best=c;}}}
-        if(best)return best;}}
+        if(best){_R108=4;return best;}}}
     /* ⑤ la forme SONNE comme un nom ou un adjectif fréquent à une lettre, et elle est à sa place : place de NOM (après un déterminant
        ou une préposition) → le nom ; place d'ADJECTIF (juste après un nom) → l'adjectif. « un groupe de soldas » → soldats, « une maison
        carée » → carrée. Sans la position, le son seul tirait 234 fois sur 700 000 lignes justes (« pansait les plaies ») ; avec, 32. */
@@ -30052,7 +30076,7 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
           if(c===low||c5<1||s5<=f5||(spP(c)||'').indexOf(need)<0||_sonKey(c)!==k5)continue;
           var same=false,r5=_rdx108(c);for(var q5=0;q5<r5.length;q5++)if(L5[r5[q5][0]])same=true;if(same)continue;
           b5=c;f5=s5;}}}
-      if(b5)return b5;}
+      if(b5){_R108=5;return b5;}}
     /* ⑥ (liste n° 112) la forme est juste mais JAMAIS vue en usage (fréquence 0) et c'est un verbe courant avec UNE LETTRE OMISE, du
        même son et à la même personne (« il dévirait » = dévierait − e, « je soufrais » = souffrais − f) : l'omission est LA faute dys.
        Présent, imparfait, futur, conditionnel, subjonctif présent seulement (le passé simple littéraire, « les cloches tintèrent »,
@@ -30066,7 +30090,7 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
           for(k=0;k<a.length;k++){c=a[k];var c6=spF(c)||0;if(c===low||c6<=0||c6<=f6||_sonKey(c)!==k6)continue;
             var r6=_rdx108(c),pp=false,vv=false;for(var q6=0;q6<r6.length;q6++){if(P6[r6[q6][2]+r6[q6][3]])pp=true;if(N6[_nlem112(r6[q6][0])])vv=true;}
             if(!pp||vv)continue;b6=c;f6=c6;}}
-        if(b6)return b6;}}
+        if(b6){_R108=6;return b6;}}}
     return null;}
   /* ⭐ 18/10/2026 (liste n° 113) — les noms, adjectifs et adverbes JUSTES sont au dictionnaire (na_justes_lex_fr.tsv.gz) ; la confusion
      qu'une forme JAMAIS vue en usage (fréquence 0) pourrait cacher se rattrape par la GRAMMAIRE, jamais en refusant le mot. Quatre faits
@@ -30079,6 +30103,7 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
      ⑪ nom seul en -é / -ée / -és / -ées devant « par » (place d'un participe passif) → participe courant à une lettre, même terminaison.
      En orange (⑧ b en rouge). Miroir Python (speller_probe). */
   var _PREP113={de:1,d:1,du:1,des:1,'à':1,au:1,aux:1,en:1,par:1,pour:1,sur:1,dans:1,avec:1,sans:1,sous:1,chez:1,entre:1,vers:1};
+  var _LIB115={de:1,d:1,'à':1,a:1,en:1,par:1,pour:1,sur:1,dans:1,avec:1,sans:1,sous:1,chez:1,entre:1,vers:1,et:1,ou:1,mais:1,donc:1,car:1,ni:1,puis:1};   /* ⭐ « flue de données » : mots après lesquels un verbe conjugué n'a pas de sujet */
   var _DG113={le:'m',un:'m',ce:'m',cet:'m',du:'m',au:'m',mon:'m',ton:'m',son:'m',la:'f',une:'f',cette:'f',ma:'f',ta:'f',sa:'f'},_NONEL113={'ixième':1,'ixièmes':1};
   var _G114={};[['f','absoutes accouples affines affleurées agendes agnelées agrégées aiguillées airée airées alumines amnistiées angaries ankyloses annexions arase arases argues augée aunée aunées autoconcurrences autographie autographies baguenaude baguenaudes ballottes banches bannes basane basanes batelées biffes billette billettes boettes boittes boucanes boësse boësses brasque brasques brelles brettes brillantines broques brouettées cabotines cadmie cague cagues calamites cargue carnèles cartographies carènes cavée cavées chamarre chamarres chaudronnées chaînée chaînées chiade chiades chicottes cliquettes clisses codas colombines complétions conche concordes conjurées copules cordelles couillonnes couperoses coéditions criées curées dactylographies dations dictions dilations dodine drosse drèges duite dupliques dèches décontractions défausses défriches dégelées dénivelées déprise déprises désannexions désépargnes détractions dévoyées embouches enquêtées ensouple ensouples entes entraides entrevoies esche esches escrimes espadas essente estampilles estive estompes estrope estropes extravasions faraudes fardes fissions flette flettes flue flues follettes fouaille fouailles fouge fouges fourchée foène frayées fritte fêles gambilles gangrènes gerce gerces glettes gloses glènes goberges godaille grailles grignes guilloche guilloches gunite gunites géminées halenées happes harangues harasse harasses hussardes hyperhémies hypertrophies hématose immatricule immatricules intaille intailles intimas jaffes jointée jointées laies lansquines laure laye layes lichée lichées litée litées loure macle macules manoque manoques maraudes marmitées moies monophtongue monophtongues moyette moyettes musse musses méconduites mésestimes nagée nagées nitrations nivelles nopes orthographies ouates palanques patouilles peinturlures phonographies picotes picouses pierrée pierrées pipées pites pochetées poirées pommelles pontées porques postdate postdates postfaces professes promissions préfixions préforme préformes prénommées punctures pépies raches radiotélégraphie rague ragues ramée ratines ravigotes recensions recepées reconduites recoupes rehausses renouée renouées resquilles retailles retrempe retrempes rimaille rimailles ripes risse risses rouées ruchée rugines râtelées réadmissions réinfections réinjections réinventions réprouvées saucées sautelles savonnée sayettes seines serpes smille smilles souchette souchettes soufflettes stipules subdéléguées supervisions surventes talle taques tondues touée truellées trustes trôle vaigre vaigres varlope veltes verrée verrées vesses videlle videlles vinée viroles écangues échevettes éclusée écore édictions égrisées égrènes émonde émondes émouchettes épaulées épincettes époussettes épreinte épreintes éversions'],['m','abricotés accores actant affouagé affouagés afféages agglutinant alkyles aoûterons apostrophé appointés argentons avivé azotes azurés barrit bibions biges bipasses bouillonnés boulant bourbillons bourras bouteillons bridons brochetons bromes brunis bufflons bâillas béquillons cailloutés caperons capons cardé cardés catis chanci chancis chantournés charretons chloroformes coptes cordés cossons coursons crochons culerons curions duits débroussaillant débuché débuchés décuples dédits démanché départages détiré embus empannons escoffions escomptes fauchons faucillons fendis feuillé flottés gabions germons gorgeons grappillons graticules gratterons grime gringues gruons grésillons guilloché guillochés guipons guêtrons hoquetons hâles jable jables jaspes lampas lanternons layons liserés louchons lunches mailletons manillons meulons minons minorant mitons moirés mécompte mégis narrés nimbe nitres ocelle ocelles octuples ornes paillons palissons parafe pastiches pendillons perlant perlons picrates pisés poirés provins précompte préverbe pâtiras pâtons quartiles rapsodes rayonnés recrû refend refends rengagé riblons réchappés réméré rémérés rétreint rétreints salabre salabres salerons sauris secondant septuples sextuples signifiés soufres subdélégués sublimés subordonnant subrogés surcuits tarares taupés taxons tenaillons tiercerons toisés tonsuré tonsurés toupillons trayons tremblés vendangerons vermicule vrillons ébauchons éjecta élégis']].forEach(function(x){x[1].split(' ').forEach(function(w){_G114[w]=x[0];});});   /* ⭐ liste n° 114 : genre des formes rares nom + verbe (Morphalou et Wiktionnaire d'accord) — généré par dictee/build_nv_genre.py */
   function _ctx113(low,T,idx,inv){
@@ -30087,15 +30112,15 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
       for(q=0;q<e1.length;q++){a=spD(e1[q]);if(!a)continue;for(r=0;r<a.length;r++){c=a[r];cf=spF(c)||0;if(c===low||(spP(c)||'').indexOf('N')<0||cf<minF||!ok(c))continue;
         s=(deaccS(c)===dL?2:0)+(c.charAt(0)===low.charAt(0)?1:0);if(s>bs||(s===bs&&cf>bf)){bn=c;bs=s;bf=cf;}}}
       return bn;}
-    if(_DG113[pvd]&&/[sx]$/.test(low)&&!inv(low)){sg=low.slice(0,-1);if(SP.WORDS.has(sg)&&(spP(sg)||'').indexOf('N')>=0&&(spF(sg)||0)>=1)return sg;
-      if(pos==='A'){var a8=spD(deaccS(sg))||[],b8=null,f8=0,q8,c8;g=_DG113[pvd];for(q8=0;q8<a8.length;q8++){c8=a8[q8];if(c8===low||(spP(c8)||'').indexOf('N')<0||(spF(c8)||0)<1||sGender(c8)!==g||(/[sx]$/.test(c8)&&!inv(c8)))continue;if((spF(c8)||0)>f8){b8=c8;f8=spF(c8)||0;}}if(b8)return[b8,'flag'];}}   /* ⑧ b : adjectif seul au pluriel → nom de même squelette (« la tigés » → tige), en rouge : 0 tir sur français juste, et la grammaire écrirait « tigé » */
+    if(_DG113[pvd]&&/[sx]$/.test(low)&&!inv(low)){sg=low.slice(0,-1);if(SP.WORDS.has(sg)&&(spP(sg)||'').indexOf('N')>=0&&(spF(sg)||0)>=1){_R113='8';return sg;}
+      if(pos==='A'){var a8=spD(deaccS(sg))||[],b8=null,f8=0,q8,c8;g=_DG113[pvd];for(q8=0;q8<a8.length;q8++){c8=a8[q8];if(c8===low||(spP(c8)||'').indexOf('N')<0||(spF(c8)||0)<1||sGender(c8)!==g||(/[sx]$/.test(c8)&&!inv(c8)))continue;if((spF(c8)||0)>f8){b8=c8;f8=spF(c8)||0;}}if(b8){_R113='8b';return[b8,'flag'];}}}   /* ⑧ b : adjectif seul au pluriel → nom de même squelette (« la tigés » → tige), en rouge : 0 tir sur français juste, et la grammaire écrirait « tigé » */
     if((pv==='le'||pv==='la')&&/^[aeiouàâäéèêëîïôöùûüœ]/.test(low)&&!_NONEL113[low]){g=_DG113[pv];
-      m=best(1,function(c){return !/^[aeiouyhàâäéèêëîïôöùûüœ]/.test(c)&&sGender(c)===g&&(!/[sx]$/.test(c)||inv(c));});if(m)return m;}
-    if(pos==='A'&&_RV_DET[pvd]&&_PREP113[nx]){pl=/[sx]$/.test(low);m=best(10,function(c){return /[sx]$/.test(c)===pl;});if(m)return m;}
-    if((m=low.match(/^(.+ant)s$/))&&pos.indexOf('A')>=0&&_PREP113[nx]&&SP.WORDS.has(m[1])&&(spP(m[1])||'').indexOf('V')>=0&&(spF(m[1])||0)>=1)return m[1];
+      m=best(1,function(c){return !/^[aeiouyhàâäéèêëîïôöùûüœ]/.test(c)&&sGender(c)===g&&(!/[sx]$/.test(c)||inv(c));});if(m){_R113='7';return m;}}
+    if(pos==='A'&&_RV_DET[pvd]&&_PREP113[nx]){pl=/[sx]$/.test(low);m=best(10,function(c){return /[sx]$/.test(c)===pl;});if(m){_R113='9';return m;}}
+    if((m=low.match(/^(.+ant)s$/))&&pos.indexOf('A')>=0&&_PREP113[nx]&&SP.WORDS.has(m[1])&&(spP(m[1])||'').indexOf('V')>=0&&(spF(m[1])||0)>=1){_R113='10';return m[1];}
     if(pos==='N'&&nx==='par'&&(m=low.match(/(ées|ée|és|é)$/))){var f11=m[1],e11=sEdits1(deaccS(low)),b11=null,v11=0,q11,r11,a11,c11;   /* ⑪ place d'un participe passif */
       for(q11=0;q11<e11.length;q11++){a11=spD(e11[q11]);if(!a11)continue;for(r11=0;r11<a11.length;r11++){c11=a11[r11];if(c11===low||(spP(c11)||'').indexOf('V')<0||c11.slice(-f11.length)!==f11||(spF(c11)||0)<1)continue;if((spF(c11)||0)>v11){b11=c11;v11=spF(c11)||0;}}}
-      if(b11)return b11;}
+      if(b11){_R113='11';return b11;}}
     return null;}
 function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
@@ -30171,15 +30196,17 @@ function spellTokenCore(tok,atStart,T,idx){
        0,003/M) : connu, donc muet. Un mot qui n'est qu'une forme de verbe (code V pur), < 0,01/M, pas un infinitif, après un déterminant
        ou devant « de + nom », reçoit en orange le NOM le plus fréquent à une lettre (≥ 1/M). Liste n° 114 : une forme rare qui est AUSSI un nom
        (« flue », nom féminin) n'y entre que si l'article est de l'autre genre (_G114, build_nv_genre.py), et le nom proposé prend le genre
-       de l'article. Miroir Python (speller_probe). */
-    if((tok===low||atStart)&&low.length>=4&&SP.WORDS.has(low)&&!_RV_LATIN[low]&&((spP(low)||'')==='V'||_G114[low])&&(spF(low)||0)<0.01&&!/(er|ir|re|oir)$/.test(low)&&T&&idx!=null){
+       de l'article. Sans article (« flue de données ») : seulement au singulier, devant « de », quand le verbe n'a pas de sujet possible
+       (début du texte, après une préposition ou une conjonction, _LIB115). Miroir Python (speller_probe). */
+    if((tok===low||atStart)&&low.length>=4&&SP.WORDS.has(low)&&!_RV_LATIN[low]&&((spP(low)||'')==='V'||(spP(low)||'').split('').sort().join('')==='NV')&&(spF(low)||0)<0.01&&!/(er|ir|re|oir)$/.test(low)&&T&&idx!=null){
       var _pvL=/^l['’]/i.test(T[idx])?'l':(idx>0?deaccS(T[idx-1].toLowerCase()).replace(/['’]$/,''):''),_nxL=idx+1<T.length?deaccS(T[idx+1].toLowerCase()):'',_nx2=idx+2<T.length?T[idx+2].toLowerCase():'';
       var _j2=/^l['’]/i.test(T[idx])?idx-1:idx-2,_p2L=_j2>=0?T[_j2].toLowerCase():'',_p3L=_j2>0?deaccS(T[_j2-1].toLowerCase()):'';   /* le mot avant « le » : sujet pronom, clitique, ou nom précédé d'un déterminant (« les soucis le poignent ») */
       if(_RV_DET[_pvL]&&/^(le|la|les|l)$/.test(_pvL)&&_p2L&&(COD_SUBJ[_p2L]||CLITIC[_p2L]||(_nounGateN(deaccS(_p2L))&&_RV_DET[_p3L])))_pvL='';   /* ⭐ liste n° 108 : « le » pronom devant un verbe (« les soucis le poignent ») n'est pas un déterminant */
-      var _g114=(spP(low)||'')==='V'?null:(_DG113[_pvL]&&_DG113[_pvL]!==_G114[low]?_DG113[_pvL]:'');   /* ⭐ liste n° 114 : forme aussi NOM (« flue ») — seulement si le genre de l'article exclut ce nom (« le flue » → flux) */
+      var _g114=(spP(low)||'')==='V'?null:(_DG113[_pvL]&&_G114[low]&&_DG113[_pvL]!==_G114[low]?_DG113[_pvL]:'');
+      if(_g114===''&&!/[sx]$/.test(low)&&(idx===0||_LIB115[_pvL])&&(_nxL==='de'||_nxL==='d'||_nxL==="d'"))_g114=null;   /* « flue de données » : ni sujet pour le verbe, ni article pour le nom (début du texte, préposition, conjonction) */   /* ⭐ liste n° 114 : forme aussi NOM (« flue ») — seulement si le genre de l'article exclut ce nom (« le flue » → flux) */
       if(_g114!==''&&(_RV_DET[_pvL]||((_nxL==='de'||_nxL==='du'||_nxL==='des'||_nxL==='d'||_nxL==="d'")&&_nx2&&SP.WORDS.has(_nx2)&&(spP(_nx2)||'').indexOf('N')>=0&&!_RV_DET[deaccS(_nx2)]&&!CLITIC[_nx2]))){
         var _dL=deaccS(low),_e1=sEdits1(_dL).concat([_dL]),_bn=null,_bs=-1,_bf=0,_nbL=SDET_NUM[_pvL]||({aux:'p',au:'s',du:'s'})[_pvL]||null;for(var _q=0;_q<_e1.length;_q++){var _a=spD(_e1[_q]);if(!_a)continue;for(var _r2=0;_r2<_a.length;_r2++){var _c=_a[_r2],_cf=spF(_c)||0;if(_c===low||(spP(_c)||'').indexOf('N')<0||_cf<1||(_g114&&sGender(_c)!==_g114))continue;if(_nbL==='p'&&!/[sx]$/.test(_c))continue;if(_nbL==='s'&&/[sx]$/.test(_c)&&!sInvarS(_c))continue;var _sc=(deaccS(_c)===_dL?2:0)+(_c.charAt(0)===low.charAt(0)?1:0);if(_sc>_bs||(_sc===_bs&&_cf>_bf)){_bn=_c;_bs=_sc;_bf=_cf;}}}
-        if(_bn)return['vigilance',ckeepcase(tok,_bn)];}}
+        if(_bn)return['vigilance',ckeepcase(tok,_bn),(spP(low)||'')==='V'?'35':(_g114?'114':'115')];}}
     /* ⭐ 18/10/2026 (liste n° 108) — les formes verbales JUSTES sont au dictionnaire (ver_justes_lex_fr.tsv.gz) ; la confusion
        qu'une forme rare pourrait cacher se rattrape par le CONTEXTE, jamais en refusant le mot. Quatre faits du français, chacun
        mesuré sur du français juste (UD, 14 450 phrases ; 657 000 lignes de texte web) avant d'être posé :
@@ -30189,9 +30216,9 @@ function spellTokenCore(tok,atStart,T,idx){
        ④ forme conjuguée rare collée à un autre verbe conjugué, hors relative ou subordonnée → nom ou adjectif à une lettre.
        Toujours en orange. Miroir Python (speller_probe). */
     if(tok===low&&low.length>=4&&SP.WORDS.has(low)&&!_RV_LATIN[low]&&(spP(low)||'')==='V'&&(spF(low)||0)<0.01&&T&&idx!=null){
-      var _r108=_ctx108(low,T,idx,sInvarS);if(_r108)return['vigilance',ckeepcase(tok,_r108)];}
+      _R108=0;var _r108=_ctx108(low,T,idx,sInvarS);if(_r108)return['vigilance',ckeepcase(tok,_r108),'108-'+_R108];}
     if(tok===low&&low.length>=3&&low.indexOf("'")<0&&SP.WORDS.has(low)&&!((spF(low)||0)>0)&&(spP(low)||'')&&(spP(low)||'').indexOf('V')<0&&T&&idx!=null){   /* ⭐ liste n° 113 : nom ou adjectif jamais vu en usage — règles ⑦-⑩ de _ctx113 */
-      var _r113=_ctx113(low,T,idx,sInvarS);if(_r113)return typeof _r113==='string'?['vigilance',ckeepcase(tok,_r113)]:[_r113[1],ckeepcase(tok,_r113[0])];}
+      _R113='';var _r113=_ctx113(low,T,idx,sInvarS);if(_r113)return typeof _r113==='string'?['vigilance',ckeepcase(tok,_r113),'113-'+_R113]:[_r113[1],ckeepcase(tok,_r113[0]),'113-'+_R113];}
     if(SP.WORDS.has(low))return null;                                  // mot valide (œuf→oeuf normalisé) → couche grammaire
     if(_presentRegulier(low,T,idx,tok))return null;   // ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal
     // ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08, parité Python speller_probe + dys-core) : la garde « nom propre »
@@ -31392,7 +31419,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var r=spellToken(T[i],i===0,T,i),pushed=false;
     var _hf=_hc?_hyFirst(T,i):i,_hok=_hc&&_hf<i&&!!_HY_TETE[String(T[_hf]).toLowerCase()];   // composé ouvert par une tête fréquente (« grand-mrèe »)
     if(_hc&&!_hok&&r&&deaccS(String(r[1]).toLowerCase())!==deaccS(T[i].toLowerCase())&&!_HY_TETE[String(r[1]).toLowerCase()])r=null;
-    if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
+    if(r&&r[1]!==T[i].toLowerCase()){var _o={i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]};if(r[2])_o.raison=r[2];out.push(_o);pushed=true;}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null&&(!_hc||_hok||_HY_TETE[String(u).toLowerCase()])){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var _ee=T[i].match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),_ep=_ee?_ee[1].toLowerCase():'';if(_ee&&((_ep.length===1&&SELIDE[_ep])||_ep==='qu')&&T[i].charAt(0)===T[i].charAt(0).toLowerCase()&&/^[aeiouyh]/.test(deaccS(_ee[2].toLowerCase()))){var _eu=spellUnknown(_ee[2],false,T,i);if(_eu!==null){out.push({i:i,word:T[i],sugg:(_eu&&SVOW[deaccS(_eu.toLowerCase())[0]])?_ee[1]+"'"+_eu:T[i],name:'mot inconnu',tier:'vigilance'});pushed=true;}}}   // ⭐ 29/09/2026 : mot ÉLIDÉ inconnu → « mot inconnu » sur le reste, préfixe gardé (miroir correct_text)
     if(!pushed&&(!_hc||_hok)){var _vg=vigAt(T,i,_vst,text);if(_vg){out.push(_vg);pushed=true;}}}   // ⭐ 12/09/2026 : la chaîne orange vit dans vigAt (consultable à UN index sur des tokens corrigés — bout de chaîne orthographe → orange)
@@ -32118,7 +32145,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var pk=km[2]==='er'?'mordre':km[2]==='ez'?'mordez':'mordu',_ef=_erFen(_curToks,i,pk),a=_ef.a,b=_erFin(_curToks,i,pk),w=_curToks.slice(a,b);w[i-a]=_ef.mot;
     var me=km[2]==='er'?('infinitif « '+sg+' » (-er)'):km[2]==='ez'?('« '+sg+' » (-ez, vous)'):('participe « '+sg+' » (-'+km[2]+')'),oth=km[2]==='er'?('participe « '+km[1]+'é » (-é)'):('infinitif « '+km[1]+'er » (-er)');
     return 'Astuce : remplace par « '+pk+' ». « '+(a>0?'…':'')+esc(w.join(' '))+(b<_curToks.length?'…':'')+' » se dit ? oui → '+esc(me)+' · non → '+esc(oth)+'.';}
-  function _ctxHint(f){var i=f.i;if(typeof i!=='number'||!_curToks||i>=_curToks.length)return '';if(f.auteur)return esc(_auteurHint(f));if(f.name==='et/est'&&String(f.sugg||'').toLowerCase()==='et'){var _hc=_hintEstEtCoord(_curToks,i);if(_hc)return esc(_hc);}var _ph=_peuHint(f);if(_ph)return esc(_ph);var h=_HPROBE[f.name];if(!h)return _erHint(f,i)||_accHint(f,i);
+  function _ctxHint(f){var i=f.i;if(typeof i!=='number'||!_curToks||i>=_curToks.length)return '';if(f.raison){var _rh=_raisonHint(f,_curToks);if(_rh)return esc(_rh);}if(f.auteur)return esc(_auteurHint(f));if(f.name==='et/est'&&String(f.sugg||'').toLowerCase()==='et'){var _hc=_hintEstEtCoord(_curToks,i);if(_hc)return esc(_hc);}var _ph=_peuHint(f);if(_ph)return esc(_ph);var h=_HPROBE[f.name];if(!h)return _erHint(f,i)||_accHint(f,i);
     var a=Math.max(0,i-2),b=Math.min(_curToks.length,i+3),win=_curToks.slice(a,b);win[i-a]=h[0];   // remplace le mot par le probe
     var pre=a>0?'…':'',suf=b<_curToks.length?'…':'';
     return 'Astuce : remplace par « '+esc(h[0])+' ». « '+pre+esc(win.join(' '))+suf+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
@@ -32130,7 +32157,7 @@ function spellTokenCore(tok,atStart,T,idx){
        Tout le versant orthographe rendait « même son, orthographe corrigée : « faute » », qui ne dit
        pas CE QUI a changé. `remedTip` le dit (consonne double, graphème, lettre muette) : il ne
        manquait que le fil entre la couche dys et la carte du correcteur. */
-    var _fm=_corrFam(f.name,f.word,f.sugg),_dy=remedTip(_fm==='homophone'?'homophone_gram':_fm,{ecrit:f.word,mot:f.sugg,regle:f.name});
+    var _fm=_corrFam(f.name,f.word,f.sugg),_dy=remedTip(_fm==='homophone'?'homophone_gram':_fm,{ecrit:f.word,mot:f.sugg,regle:f.raison?'raison '+f.raison:f.name});
     if(_dy)e=e?(e+'<br><span style="color:#7a5c00">🛠️ '+esc(_dy)+'</span>'):('🛠️ '+esc(_dy));
     return e;}
   function _hideCard(){var c=$('vdc-cardpop');if(c)c.style.display='none';}
@@ -32358,7 +32385,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var html=_rest;
     if(onC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e9f7ec"><b>✓ Appliqué</b> <span class="vdc-sc">(clique : annuler ou ignorer)</span><br>'+onC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #7fb98e"><s style="opacity:.6">'+esc(f.word)+'</s> → <b>'+esc(f.sugg)+'</b></span>';}).join('')+'</div>';
     if(offC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea"><b>À vérifier</b> <span class="vdc-sc">(clique : appliquer ou ignorer)</span><br>'+offC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #e0b060">'+esc(f.word)+(f.sugg&&f.sugg!==f.word?' → <b>'+esc(f.sugg)+'</b>':'')+' <span class="vdc-sc">['+esc(f.name)+']</span></span>';}).join('')+'</div>';
-    var devF=_corrs.map(function(f){var fm=_corrFam(f.name,f.word,f.sugg);return {types:[fm==='homophone'?'homophone_gram':fm],mot:f.sugg,ecrit:f.word,regle:f.name};});   // ⭐ le mot ÉCRIT, sa correction et la RÈGLE voyagent jusqu'au conseil ; les homophones du correcteur (a/à, son/sont…) sont GRAMMATICAUX
+    var devF=_corrs.map(function(f){var fm=_corrFam(f.name,f.word,f.sugg);return {types:[fm==='homophone'?'homophone_gram':fm],mot:f.sugg,ecrit:f.word,regle:f.raison?'raison '+f.raison:f.name};});   // ⭐ le mot ÉCRIT, sa correction et la RÈGLE voyagent jusqu'au conseil ; les homophones du correcteur (a/à, son/sont…) sont GRAMMATICAUX
     // ⛔ plus de bloc « Stade » ici (14/09/2026, rapport de Rem) : voir la COUCHE DYS PARTAGÉE — affiché presque partout, message souvent faux
     html+=remedBlock(devF,'vdc-fact');
     $('vdc-out').innerHTML=html;}
