@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""build_rect90_lex.py — SPELLER : les graphies RECTIFIÉES de 1990 sont justes (liste n° 109, décision de Rem, 18/10/2026).
+"""build_rect90_lex.py — SPELLER : les graphies RECTIFIÉES de 1990 sont justes (liste n° 109, choix de Rem, 18/10/2026).
 
 Le symptôme : « Il apparait au loin » → apparaît EN ROUGE, « Ça coute cher » → coûte, « Je cèderai ma place » muet par chance,
 « Ils s'abiment » → mot inconnu. L'orthographe de 1990 est l'orthographe officielle recommandée : ses graphies ne sont pas des

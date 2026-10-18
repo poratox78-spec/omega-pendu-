@@ -769,7 +769,7 @@ function testListe108() {   // liste n° 108 : les formes verbales JUSTES sont a
     const ok = s === null ? !f : s === '*' ? !!f : (!!f && f.sugg === s && f.tier === 'vigilance');
     if (!ok) fail.push('ligne 108 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s === '*' ? 'une marque' : s + ' en vigilance') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
-function testListe109() {   // liste n° 109 (décision de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
+function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
       // toujours corrigés : 1990 n'y touche pas

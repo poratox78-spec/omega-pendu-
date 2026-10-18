@@ -15,7 +15,7 @@ Ce qui entre (forme exacte, normalisée œ → oe comme le dictionnaire) :
   - deux sources : la FORME dans un dictionnaire indépendant de Morphalou (DELA, Dicollecte, Lefff — une forme que Morphalou seul
     génère, « intervièwerais », n'entre pas), le VERBE dans le Wiktionnaire ;
   - pas une graphie RECTIFIÉE de 1990 dont la forme traditionnelle existe (« frèterais », « aouté ») : elles entrent par le lot de la
-    liste n° 109 (rect90_lex_fr.tsv.gz, décision de Rem : justes) ;
+    liste n° 109 (rect90_lex_fr.tsv.gz, choix de Rem : justes) ;
   - de 4 lettres au moins.
 Même contrat que les lots Morphalou : FreqOrtho 0 → dans WORDS, jamais candidat (jamais proposé), jamais concurrent au tri.
 
