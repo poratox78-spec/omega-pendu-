@@ -1,6 +1,6 @@
 {
- "justes": 392,
- "pointeuses": 207,
+ "justes": 393,
+ "pointeuses": 206,
  "fatigue": 132,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -107,6 +107,7 @@
   "dérives→dérive [personne du verbe par le son à vérifier] accord",
   "désormées→désormais [orthographe] terminaison",
   "déséqquilibré→déséquilibré [mot inconnu] lettre_trop",
+  "dêcouvertes→découverte [accord singulier nom] autre",
   "eaut→eau [orthographe] terminaison",
   "effcetuait→effectuait [mot inconnu] inversion",
   "emtre→entre [orthographe] lettre_change",
@@ -115,7 +116,6 @@
   "endémiqus→endémique [mot inconnu] terminaison",
   "engllobent→englobent [mot inconnu] lettre_trop",
   "enocre→encore [orthographe] inversion",
-  "entiez→entier [orthographe] terminaison",
   "entraprit→entreprit [mot inconnu] lettre_change",
   "entreprisa→entreprise [orthographe] lettre_change",
   "entthousiasme→enthousiasme [orthographe] lettre_trop",
@@ -141,7 +141,6 @@
   "filiala→filiale [orthographe] lettre_change",
   "fills→fils [orthographe] lettre_trop",
   "fnatesy→fantasy [mot inconnu] autre",
-  "foiss→fois [orthographe] lettre_trop",
   "fondametales→fondamentales [mot inconnu] lettre_manque",
   "fonte→fontes [accord pluriel à vérifier] accord",
   "formèretn→formèrent [mot inconnu] inversion",
@@ -150,6 +149,7 @@
   "fusil→fusils [accord pluriel à vérifier] inversion",
   "futt→fut [orthographe] lettre_trop",
   "ggané→gagné [orthographe] inversion",
+  "gorges→gorge [accord singulier nom] accord",
   "gours→jours [orthographe] lettre_change",
   "granb→grand [orthographe] lettre_change",
   "grans→grand [orthographe] dys_reel/texte6_h23",
@@ -182,6 +182,7 @@
   "l'histtorien→l'historien [mot inconnu] lettre_trop",
   "l'homma→l'homme [orthographe] lettre_change",
   "l'humanitais→l'humanité [orthographe] terminaison",
+  "l'originé→l'origine [orthographe] accent",
   "l'origne→l'origine [orthographe] lettre_manque",
   "l'uinvercité→l'université [mot inconnu] autre",
   "l'éditon→l'édition [orthographe] lettre_manque",
@@ -345,6 +346,7 @@
   "surr→sur [orthographe] lettre_trop",
   "sushies→sushis [orthographe] terminaison",
   "sêrums→sérum [mot inconnu] autre",
+  "tailles→taille [accord singulier nom] accord",
   "tbales→tables [orthographe] inversion",
   "tempc→temps [orthographe] lettre_change",
   "tennit→tennis [orthographe] terminaison",
@@ -352,7 +354,6 @@
   "thsèe→thèse [orthographe] inversion",
   "tosu→tous [orthographe] inversion",
   "tourr→tour [orthographe] lettre_trop",
-  "touré→tourné [orthographe] lettre_manque",
   "tranchez→tranchées [pluriel par le son à vérifier] terminaison",
   "transpord→transport [orthographe] lettre_change",
   "traversés→traversée [accord participe] terminaison",
@@ -405,13 +406,6 @@
    "cle_si_reparee": "tèrs→très [orthographe] inversion"
   },
   {
-   "mot": "sines",
-   "attendu": "signes",
-   "obtenu": "mines",
-   "depuis": "PR#568",
-   "cle_si_reparee": "sines→signes [orthographe] lettre_manque"
-  },
-  {
    "mot": "soucehs",
    "attendu": "souches",
    "obtenu": "souhaite",
@@ -426,25 +420,25 @@
    "cle_si_reparee": "êrcite→écrite [orthographe] autre"
   },
   {
-   "mot": "préférrées",
-   "attendu": "préférées",
-   "obtenu": "préférés",
-   "depuis": "PR#568",
-   "cle_si_reparee": "préférrées→préférées [orthographe] lettre_trop"
-  },
-  {
-   "mot": "sonn",
-   "attendu": "son",
-   "obtenu": "sont",
-   "depuis": "PR#568",
-   "cle_si_reparee": "sonn→son [orthographe] lettre_trop"
-  },
-  {
    "mot": "séris",
    "attendu": "série",
    "obtenu": "sérieux",
    "depuis": "PR#568",
    "cle_si_reparee": "séris→série [orthographe] terminaison"
+  },
+  {
+   "mot": "entiez",
+   "obtenu": "(rien)",
+   "attendu": "entier",
+   "depuis": "liste n° 108 (18/10/2026) : forme rare JUSTE (enter, tourer), confusion de sens — liste n° 112",
+   "cle_si_reparee": "entiez→entier [orthographe] terminaison"
+  },
+  {
+   "mot": "touré",
+   "obtenu": "(rien)",
+   "attendu": "tourné",
+   "depuis": "liste n° 108 (18/10/2026) : forme rare JUSTE (enter, tourer), confusion de sens — liste n° 112",
+   "cle_si_reparee": "touré→tourné [orthographe] lettre_manque"
   }
  ],
  "note": "effectifs de référence du census (post-cartes PR#523-524) ; le cas sais→s'est de texte4 reste compté SIGNALE_AUTRE ici car le juge B2 (opt-in, WebGPU) est invisible aux harnais Node — sa couverture est prouvée par b2_web_probe (bout-en-bout navigateur)."

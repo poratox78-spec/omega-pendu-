@@ -1783,8 +1783,12 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var _lfa=_lemFreq(lem);if(typeof _lfa==='number'&&_lfa<1){var _vxa=_voisinAuxLong(_dsv);if(_vxa){var _rva=svReads(_vxa);for(k=0;k<_rva.length;k++){if(_rva[k][0]==='etre'||_rva[k][0]==='avoir'){var _fa=((CONJ_C[_rva[k][0]]||{})[_rva[k][1]]||{})[per+nb];if(_fa&&_fa.toLowerCase()!==T[i].toLowerCase())return ckeepcase(T[i],_fa);}}return null;}}   /* ⭐ 12/09/2026 : « ils somme » → sont, pas « somment » — lemme RARE à une lettre d'une forme longue d'être/avoir → cet auxiliaire conjugué (miroir Python rule_accord_sv) */
     /* ⭐ LE MODE AVANT LE TEMPS (08/09/2026, miroir Python rule_accord_sv) : `reads[0][1]` n'est pas « le temps tapé » mais le PREMIER ORDRE DU LEXIQUE. « Il faut que je disiez » a pour lectures {ind:imp, sub:pre} → le repli rendait « disais » au lieu de « dise ». Sur DÉCLENCHEUR FERMÉ de subjonctif, le mode passe devant. Mesuré : banc Bescherelle subjonctif 73,5 → 99,0 %, banc entier 92,4 → 96,8 %, 0 phrase correcte cassée, 0 verdict changé sur les 381 textes à déclencheur des 48 866 corpus. PLACEBO (mode d'abord SANS déclencheur) : même gain sur le subjonctif mais 8 autres cases CASSÉES — c'est la liste fermée qui porte la garde. */var _sbm=null;for(k=0;k<reads.length;k++)if(reads[k][1].indexOf('sub')===0){_sbm=reads[k][1];break;}var mt=(_sbm&&_subjTrigger(T,i))?_sbm:(mts['ind:pre']?'ind:pre':reads[0][1]);if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     if(!svAgrees(svReads(sugg),per,nb))return null;return sugg;}
+  var _INV_NOM105={};'abus amas anis apex avis bas bis borax bris bus cabas cas chaos codex colis cours dais dos entrelacs faux fax fils fois fonds frais gris haras héros huis inclus index jars laps las lis lux maquis mas mois palis palus pas pis pois poix pus quartz ras rassis reclus relais roux sas semis sens silex six tas taux thermos tréfonds tétras vernis vers vis'.split(' ').forEach(function(w){_INV_NOM105[deacc(w)]=1;});   /* ⭐ liste n° 105 : noms INVARIABLES dont le radical est aussi un mot (fonds/fond, maquis) — même liste que _INV_S108 du speller, + chaos */
   var _DET_PL={le:'les',la:'les',un:'des',une:'des',ce:'ces',cet:'ces',cette:'ces',mon:'mes',ma:'mes',ton:'tes',ta:'tes',son:'ses',sa:'ses',notre:'nos',votre:'vos'};   // pas « leur » : rLeur le porte déjà
-  function rDetNumber(T,i){if(_hyDetSkip(T,i))return null;   /* ⭐ liste n° 43 : le nom suivant ouvre un composé verbe-nom ou préfixé : son genre/nombre ne s'y lit pas */var lw=deacc(T[i].toLowerCase());if(!_DET_PL[lw]||T[i].indexOf("'")>=0||i+2>=T.length)return null;if(i>0&&/^(et|ou|ni)$/.test(deacc(T[i-1].toLowerCase())))return null;   /* conjoint (« l'hébergement et la restaurations ont ») : le pluriel vient de la coordination — miroir Python */   /* ⭐ 11/09/2026 : la case manquante du triangle dét/nom/verbe — « le MAÇONS ONT » → les ? (ORANGE). Miroir Python rule_det_number. */
+  function rDetNumber(T,i){if(_hyDetSkip(T,i))return null;   /* ⭐ liste n° 43 : le nom suivant ouvre un composé verbe-nom ou préfixé : son genre/nombre ne s'y lit pas */var lw=deacc(T[i].toLowerCase());if((lw==='au'||lw==='du')&&T[i].indexOf("'")<0&&i+1<T.length){var n5=T[i+1],d5=deacc(n5.toLowerCase());   /* ⭐ liste n° 105 : « au » / « du » ne précèdent jamais un pluriel (« j'ai mal au dents ») → aux / des. Le nom doit être sûrement nom (porte stricte) et vraiment pluriel (invariables écartés : au cours, du temps, au taux). Miroir Python */
+      if(/^[a-zà-ÿœæ]/.test(n5)&&d5.length>=4&&/[sx]$/.test(d5)&&!_INVAR_S[d5]&&!_SG_STOP[d5]&&!NOUN_PL_STOP[d5]&&!_INV_NOM105[d5]&&!(_SEG&&_SEG.dig&&_SEG.dig[i+1])&&'àâäèêëìîïòôöùûü'.indexOf(n5.charAt(n5.length-2))<0&&_nounGate(d5)){   /* nombre devant (« du 400 mètres »), « congrès » (pas un pluriel), invariables */
+        var s5=/aux$/.test(d5)?d5.slice(0,-3)+'al':d5.slice(0,-1);if(_wordKnown(s5)&&((NOUN_POST&&NOUN_POST.get(s5))||[0])[0]>=PL_ANCHOR_M)return ckeepcase(T[i],lw==='au'?'aux':'des');}return null;}
+    if(!_DET_PL[lw]||T[i].indexOf("'")>=0||i+2>=T.length)return null;if(i>0&&/^(et|ou|ni)$/.test(deacc(T[i-1].toLowerCase())))return null;   /* conjoint (« l'hébergement et la restaurations ont ») : le pluriel vient de la coordination — miroir Python */   /* ⭐ 11/09/2026 : la case manquante du triangle dét/nom/verbe — « le MAÇONS ONT » → les ? (ORANGE). Miroir Python rule_det_number. */
     var n=T[i+1],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;var dn=deacc(n.toLowerCase());
     if(dn.length<4||!/[sx]$/.test(dn)||_INVAR_S[dn]||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;
     var sg=/aux$/.test(dn)?dn.slice(0,-3)+'al':dn.slice(0,-1);if(!_wordKnown(sg))return null;
@@ -1892,6 +1896,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var r=svReads(T[i+1]);for(var k=0;k<r.length;k++)if(/^(ind|cnd|sub)/.test(r[k][1])&&!/é(s?)$/.test(T[i+1].toLowerCase()))return true;   // le VRAI verbe suit (« les pages produit RESTENT claires ») : deux verbes conjugués ne se suivent pas
     return false;}
   function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
+    if(i>0&&T[i].length>=2&&T[i].charAt(0)!==T[i].charAt(0).toLowerCase()&&T[i].slice(1)===T[i].slice(1).toLowerCase()&&T[i-1]===T[i-1].toLowerCase()&&!(_SEG&&_SEG.ss&&_SEG.ss[i]))return null;   /* ⭐ liste n° 108 : majuscule en milieu de phrase = nom propre (« des monts Bissa ») — la table connaît « bissa » (bisser), ce n'est pas un verbe. Miroir Python */
     if(i>0&&deacc(T[i-1].toLowerCase())==='en'&&gerondifVig(T,i))return null;
     if(deacc(lw)==='a'&&i+1<T.length){var _dn=deacc(T[i+1].toLowerCase());if(_dn==='la'||_dn==='le'||_dn==='les'||_dn.slice(0,2)==="l'")return null;}   // « a » + article défini (la/le/les/l') → préposition « à » trop plausible → a→ont s'abstient ; indéfini reste. Miroir Python/app.
     // vig=true : jumeau ORANGE (retire la garde clause-init) pour la vigilance sujet-verbe mid-phrase
@@ -2266,7 +2271,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(hi===i+1&&_PREFIX_NU[nd]&&i+2<T.length&&/^[a-zà-ÿœ]+$/.test(T[i+2])){var _kx2=deacc(T[i+2].toLowerCase()),_ppx=NOUN_POST&&(typeof NOUN_POST.get==='function'?NOUN_POST.get(_kx2):NOUN_POST[_kx2]);if(_ppx&&_ppx[0]>=PL_TAU_M){hi=i+2;_pp=_ppx;}}   // ⭐ liste n° 34 (a) : « la pré éclampsie » — le préfixe n'est pas le nom-tête
     if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;
     if(hi+1<T.length&&_PART_EN[deacc(T[hi+1].toLowerCase())]&&((_SEG&&_SEG.hy&&hi+1<_SEG.hy.length&&_SEG.hy[hi+1])||_PART_EN[deacc(T[hi+1].toLowerCase())]===2))return null;   // ⭐ 14/10/2026 (liste n° 21) : « une start-up », « un stand-up », « un check-in » — le genre du composé anglais ne vient pas de son 1er mot
-    var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd){if(lw==='ce'&&gn==='m'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))return ckeepcase(T[i],'cet');return null;}var sg=DET_A[lw+'|'+gn];if(sg==='ce'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))sg='cet';return sg?ckeepcase(T[i],sg):null;}   // ⭐ liste n° 56 : devant voyelle ou h muet, « cet » (« Cette homme » proposait « Ce ») ; ⭐ liste n° 104 : « ce arbre » → cet (genre juste, euphonie)
+    var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(lw==='quel'||lw==='quelle'){var hd=deacc(T[hi].toLowerCase());if(/[sx]$/.test(hd)&&!_INVAR_S[hd]&&!_SG_STOP[hd]&&!NOUN_PL_STOP[hd]&&(GENDER_PURE[hd.slice(0,-1)]!==undefined||(/aux$/.test(hd)&&GENDER_PURE[hd.slice(0,-3)+'al']!==undefined))){var gq=(gn==='m'||gn==='f')?gn:gd;return ckeepcase(T[i],gq==='m'?'quels':'quelles');}}   /* ⭐ liste n° 103 : « quel » s'accorde aussi en NOMBRE (« quel belles fleurs » → quelles). Miroir Python */if(gn!=='m'&&gn!=='f')return null;if(gn===gd){if(lw==='ce'&&gn==='m'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))return ckeepcase(T[i],'cet');return null;}var sg=DET_A[lw+'|'+gn];if(sg==='ce'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))sg='cet';return sg?ckeepcase(T[i],sg):null;}   // ⭐ liste n° 56 : devant voyelle ou h muet, « cet » (« Cette homme » proposait « Ce ») ; ⭐ liste n° 104 : « ce arbre » → cet (genre juste, euphonie)
   var TOUT_EXTRA={avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
   var _TOUS_DETSG={le:1,la:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,se:1},_TOUS_PLANTE={ils:1,elles:1,nous:1,vous:1,les:1,leur:1,leurs:1,eux:1,ces:1,des:1,mes:1,tes:1,ses:1,nos:1,vos:1};   // ⭐ 13/09/2026 — « tous » → « tout » (miroir Python _tous_tout)
   function _tousTout(T,i){var nx=deacc(T[i+1].toLowerCase());if(!(_TOUS_DETSG[nx]||nx.slice(0,2)==="l'"))return null;if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;
@@ -2980,7 +2985,7 @@ function estQuestion(t,maxMots){
       if(pp&&pp[0]>=PL_TAU_M&&!ADJP[dnx])return null;}                                        // nom composé (nom+nom ; adj « français » → pas un composé)
     var pl=pluralizeNoun(n);return (pl&&deacc(pl.toLowerCase())!==dn)?pl:null;}
   // Sens INVERSE (plur→sing) : déterminant SINGULIER (classe fermée) collé à un nom pluriel = TOUJOURS une faute → FP=0 par construction. Miroir rule_noun_singular.
-  var _SING_DET={un:1,une:1,le:1,la:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,chaque:1,du:1,au:1};
+  var _SING_DET={un:1,une:1,le:1,la:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,chaque:1,du:1,au:1,aucun:1,aucune:1};   // ⭐ liste n° 102 : « aucun enfants » → enfant (« aucuns », « aucunes » restent pluriels)
   var _SG_STOP={};('ananas avis bois bras bus cabas cas choix colis compas compromis concours corps courroux cours croix dais deces devis discours dos doux engrais epoux faux fils flux fois fracas gaz heros houx index jus laps larynx lilas mars matelas mets mois nez noix os ours paix paradis parcours pays permis pharynx poids prix progres puits reflux relais remords repas roux sas secours sens silex succes tas taux temps tennis toux univers velours virus voix').split(' ').forEach(function(w){_SG_STOP[w]=1;});_SG_STOP.process=1;   // ⭐ 14/10/2026 (liste n° 21) : « un process clair » → « proces » EN ROUGE (anglicisme invariable)   // invariants -s/-x (sing==plur) : la singularisation naïve donne un autre lexème → piège
   var _PL_OUX_PL={bijoux:1,cailloux:1,choux:1,genoux:1,hiboux:1,joujoux:1,poux:1};
   function desingularizeNoun(n){var dn=deacc(n.toLowerCase()),cands=[];   // inverse ancré : -aux→-al, -x→∅, -s→∅ ; ne renvoie QUE si la forme sing. est un NOM confiant
@@ -3028,7 +3033,7 @@ function estQuestion(t,maxMots){
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());var pp=NOUN_POST.get(dnx);   // nom composé : nom + NOM confiant NON-verbe → abstention
       if(pp&&pp[0]>=PL_TAU_M&&pp[1]<PL_EPS_M&&!ADJP[dnx])return null;}
     if(_nounGate(dn)){var sg=desingularizeNoun(n);if(sg&&deacc(sg.toLowerCase())!==dn)return _pre+sg;}       // VOIE FRÉQUENTIELLE : pluriel NOM-dominant → « une voitures »→voiture
-    if(/s$/.test(dn)&&NOUN_PLURAL[dn]&&GENDER_PURE[dn.slice(0,-1)]!==undefined){                       // VOIE RELÂCHÉE : pluriel homographe verbal (« la boites »=boiter 3sg) tranché par dét sing + tagger + lexique
+    if(/s$/.test(dn)&&((NOUN_PLURAL[dn]&&GENDER_PURE[dn.slice(0,-1)]!==undefined)||(!/(é|ée|és|ées|u|us|ue|ues|i|is|ie|ies)$/.test(n.toLowerCase())&&SP&&SP.WORDS&&SP.WORDS.has(n.toLowerCase())&&!_INV_NOM105[dn]&&!(_SEG&&_SEG.bb&&_SEG.bb[i])&&_nounGateN(dn)&&((NOUN_POST&&NOUN_POST.get(dn.slice(0,-1)))||[0])[0]>=PL_ANCHOR_M))){   /* ⭐ liste n° 102 : ou singulier ÉPICÈNE (« élève », sans genre pur) — pluriel nom-dominant, singulier ancré nom (même table que Python) */                       // VOIE RELÂCHÉE : pluriel homographe verbal (« la boites »=boiter 3sg) tranché par dét sing + tagger + lexique
       if(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;                                           // composé à trait d'union (« la sous-famille »)
       if('àâäèêëìîïòôöùûü'.indexOf(n.charAt(n.length-2))>=0)return null;                                // même garde de FORME que desingularizeNoun : « congrès »→« congrè » n'est pas un mot
       var _tgS=posTags(T);if(_tgS&&i<_tgS.length&&_tgS[i]==='NOUN')return {sugg:n.slice(0,-1),vig:1};}    // -s retiré. ORANGE (à vérifier) : direction ambiguë (la boîte OU les boîtes ?) — décision Rem. Miroir app.
@@ -4672,11 +4677,17 @@ function estQuestion(t,maxMots){
   var _ADJ_ANTE_G={},_ADJ_ANTE_M={},_DET_MASC_SUR={le:1,un:1,ce:1},_ADJ_ANTE_VOY={beau:'bel',nouveau:'nouvel',vieux:'vieil'},_GRAND_F={};
   'grand:grande petit:petite gros:grosse beau:belle bel:belle joli:jolie nouveau:nouvelle nouvel:nouvelle vieux:vieille vieil:vieille bon:bonne mauvais:mauvaise meilleur:meilleure haut:haute long:longue faux:fausse gentil:gentille dernier:dernière premier:première prochain:prochaine seul:seule vrai:vraie majeur:majeure cher:chère'.split(' ').forEach(function(p){var q=p.split(':');_ADJ_ANTE_G[q[0]]=q[1];if(q[0]!=='bel'&&q[0]!=='nouvel'&&q[0]!=='vieil')_ADJ_ANTE_M[q[1]]=q[0];});
   'mere tante route rue messe place peine chose voile faim soif peur croix chambre garde'.split(' ').forEach(function(w){_GRAND_F[w]=1;});
+  var _ADJ_PL106={beau:'beaux',nouveau:'nouveaux',vieux:'vieux',gros:'gros',mauvais:'mauvais',faux:'faux'},_ADJ_SG106={},_GENS106={gens:1,amours:1,delices:1,orgues:1};   /* ⭐ liste n° 106 : formes PLURIELLES de la liste close → [singulier, genre] ; « gens », « amours », « délices », « orgues » : adjectif féminin devant un nom dit masculin — exclus */
+  Object.keys(_ADJ_ANTE_G).forEach(function(m){if(m==='bel'||m==='nouvel'||m==='vieil')return;_ADJ_SG106[_ADJ_PL106[m]||m+'s']=[m,'m'];_ADJ_SG106[_ADJ_ANTE_G[m]+'s']=[_ADJ_ANTE_G[m],'f'];});
   function rAdjAnteGenre(T,i){if(i===0||i+1>=T.length)return null;var w=T[i];if(w!==w.toLowerCase()||!/^[a-zà-ÿœæ]+$/.test(w))return null;
     if(_SEG&&_SEG.hy&&(_SEG.hy[i]||_SEG.hy[i+1]))return null;   // trait d'union : « grand-mère »
     if(_SEG&&_SEG.bb&&(_SEG.bb[i]||_SEG.bb[i+1]))return null;   // ponctuation entre les trois mots
     var pd=deacc(T[i-1].toLowerCase()),nx=T[i+1].toLowerCase(),gn=GENDER_PURE[deacc(nx)];if(gn===undefined&&_nounGate(deacc(nx)))gn=GENDER_MAP[deacc(nx)];if(gn!=='m'&&gn!=='f')return null;   // ⭐ liste n° 82 : « sa meilleur amie » — amie / voisine (aussi adjectifs) manquent au genre PUR : nom dominant → table des noms
     var tg=posTags(T);if(!tg||i+1>=tg.length||tg[i+1]!=='NOUN')return null;
+    if(PLURAL_DET[pd]&&/[sx]$/.test(deacc(nx))&&!_GENS106[deacc(nx)]){var s6=_ADJ_SG106[w];if(!s6)return null;   /* ⭐ liste n° 106 : déterminant PLURIEL (sans genre) — le genre vient du nom : « mes nouvelles voisins » → nouveaux, « des grands maisons » → grandes. Miroir Python */
+      if(gn==='m'&&s6[1]==='f'){var m6=_ADJ_ANTE_M[s6[0]];if(m6)return _ADJ_PL106[m6]||m6+'s';}
+      if(gn==='f'&&s6[1]==='m'){var f6=_ADJ_ANTE_G[s6[0]];if(f6)return f6+'s';}
+      return null;}
     if(_DET_FEM_SUR[pd]&&gn==='f'){if(w==='grand'&&_GRAND_F[deacc(nx)])return null;var f=_ADJ_ANTE_G[w];if(f)return f;}
     if(_DET_MASC_SUR[pd]&&gn==='m'){var m=_ADJ_ANTE_M[w];if(m){if(_ADJ_ANTE_VOY[m]&&/^[aeiouyhàâéèêëîïôöûü]/.test(deacc(nx)))m=_ADJ_ANTE_VOY[m];return m;}}
     return null;}
@@ -5031,6 +5042,63 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
      _np46Sugg : la suggestion garde la 1re lettre et ne coupe pas le mot (« Sequel » → Lequel, « Abades » → « A bades » : noms). Miroir Python. */
   function _np46Suiv(T,idx){var nx=T&&idx+1<T.length?T[idx+1]:'';return /^[A-ZÀ-ÖØ-Þ][^'’]*$/.test(nx)&&(nx===nx.toUpperCase()||!SP.WORDS.has(nx.toLowerCase()));}
   function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLowerCase())===deaccS(low.charAt(0));}
+  /* ⭐ 18/10/2026 (liste n° 108) — contexte d'une forme verbale rare et juste (voir spellTokenCore). Rend la suggestion ou null. */
+  var _INV_S108={};'abus amas anis apex avis bas bis borax bris bus cabas cas codex colis cours dais dos entrelacs faux fax fils fois fonds frais gris haras héros huis inclus index jars laps las lis lux maquis mas mois palis palus pas pis pois poix pus quartz ras rassis reclus relais roux sas semis sens silex six tas taux thermos tréfonds tétras vernis vers vis'.split(' ').forEach(function(w){_INV_S108[w]=1;});
+  var _SUB108={qui:1,que:1,dont:1,'où':1,quand:1,lorsque:1,si:1,comme:1,puisque:1,quoique:1,je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,'ça':1,ce:1,cela:1,ceci:1};
+  var _NXSTOP108={puis:1,vaille:1,soit:1};
+  var _PREP108={de:1,d:1,du:1,des:1,'à':1,au:1,aux:1,en:1,par:1,pour:1,sur:1,sans:1,avec:1,sous:1,chez:1,entre:1,vers:1,dans:1};
+  var _AV108={};'ai as a avons avez ont avais avait avions aviez avaient eus eut eûmes eûtes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient avoir eu'.split(' ').forEach(function(w){_AV108[w]=1;});   /* après avoir (sans COD connu) : le participe reste au masculin singulier */
+  var _AUX108={};'suis es est sommes êtes sont étais était étions étiez étaient fus fut fûmes fûtes furent serai seras sera serons serez seront serais serait serions seriez seraient sois soit soyons soyez soient être été ai as a avons avez ont avais avait avions aviez avaient eus eut eûmes eûtes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient avoir eu'.split(' ').forEach(function(w){_AUX108[w]=1;});   /* être et avoir : un auxiliaire n'a jamais une 2e personne derrière lui */
+  /* terminaisons du 1er groupe : lectures de REPLI quand la table n'a pas la case (elle laisse vide une forme dont la clé sans accent
+     est un adjectif plus fréquent : « lambrisse » / « lambrissé ») — lues ici seulement, jamais versées dans la table */
+  var _FIN108=[['èrent','ind:pas','3p'],['eraient','cnd:pre','3p'],['erais','cnd:pre','1s'],['erais','cnd:pre','2s'],['erait','cnd:pre','3s'],['eront','ind:fut','3p'],['erai','ind:fut','1s'],['eras','ind:fut','2s'],['era','ind:fut','3s'],['aient','ind:imp','3p'],['ais','ind:imp','1s'],['ais','ind:imp','2s'],['ait','ind:imp','3s'],['ent','ind:pre','3p'],['es','ind:pre','2s'],['es','sub:pre','2s'],['ai','ind:pas','1s'],['as','ind:pas','2s'],['a','ind:pas','3s'],['e','ind:pre','1s'],['e','ind:pre','3s']];
+  function _rdx108(w){return svReads(w).filter(function(x){var f=((CONJ_C[x[0]]||{})[x[1]]||{})[x[2]+x[3]];return Array.isArray(f)?f.indexOf(w)>=0:f===w;});}   /* la clé de la table est SANS accent : « édictés » (participe) n'est pas « édictes » — la forme exacte décide */
+  function _rd108(low){var r=_rdx108(low),i,f,lem;if(r.length)return r;for(i=0;i<_FIN108.length;i++){f=_FIN108[i];if(low.length>f[0].length+2&&low.slice(-f[0].length)===f[0]){lem=deaccS(low.slice(0,-f[0].length))+'er';if(CONJ_C[lem]&&!(CONJ_C[lem][f[1]]||{})[f[2]])r.push([lem,f[1],f[2].charAt(0),f[2].charAt(1)]);}}return r;}
+  function _ppSans108(d){if(PP_SANS_COD[d])return true;var m=d.match(/^(.+?)(e|es|s)$/);return !!(m&&PP_SANS_COD[m[1]]);}
+  function _ctx108(low,T,idx,inv){
+    var rd=_rd108(low),i,k,c,a,best=null,bs=-1e18,sc,d=deaccS(low),bb=(_SEG&&_SEG.bb&&_SEG.bb.length===T.length)?_SEG.bb:null;
+    var pv=idx>0?T[idx-1].toLowerCase():'',nx=idx+1<T.length?T[idx+1].toLowerCase():'',pvw=pv.replace(/^[a-zà-ÿ]+'/,'');
+    if(pvw&&pvw.length>1&&!SP.WORDS.has(pvw)&&!_AUX108[pvw])return null;   /* mot d'avant inconnu : passage en langue étrangère (« eos foras ») — on se tait */
+    var el108=T[idx].toLowerCase().match(/^([a-zà-ÿ]+)'/);if(el108){if(el108[1]!=='d'&&el108[1]!=='l')return null;pv=el108[1]+"'";pvw='';}   /* forme élidée : « s'ébroua » (pronom → verbe conjugué) se tait ; « d'amoure », « l'X » sont à une place de nom */
+    var bA=!el108&&!!(bb&&bb[idx]),bN=!!(bb&&bb[idx+1]);   /* ponctuation de l'auteur avant / après la forme */
+    function noun108(){for(var j=idx-1;j>=Math.max(0,idx-3);j--){if(bb&&bb[j+1])return null;var w=T[j].toLowerCase();if((spP(w)||'').indexOf('N')>=0&&!_RV_DET[deaccS(w)]&&!CLITIC[w])return w;}return null;}
+    function part108(lem){if(!/er$/.test(lem))return null;var sd=lem.slice(0,-2),fin=['é','ée','és','ées'],fd=['e','ee','es','ees'],cs=[],q,j,x,f;
+      for(q=0;q<_FIN108.length;q++){f=_FIN108[q][0];if(low.slice(-f.length)===f&&deaccS(low.slice(0,-f.length))===sd){for(j=0;j<4;j++)cs.push([low.slice(0,-f.length)+fin[j],j]);break;}}
+      for(j=0;j<4;j++){x=spD(sd+fd[j]);if(x)for(q=0;q<x.length;q++)if(x[q].slice(-fin[j].length)===fin[j])cs.push([x[q],j]);}
+      var n=noun108(),g=n?sGender(n):null,pl=n?(/[sx]$/.test(n)&&!inv(n)):null,r=null,rs=-1e9,av=!!_AV108[pvw]&&cs.some(function(x){return x[1]===0&&x[0]!==low&&SP.WORDS.has(x[0]);});
+      for(q=0;q<cs.length;q++){var cc=cs[q][0],jj=cs[q][1];if(cc===low||!SP.WORDS.has(cc)||(av&&jj!==0))continue;var s=-10*svLev(low,cc);
+        if(n){if(g&&(g==='f')===(jj%2===1))s+=2;if(pl!==null&&pl===(jj>=2))s+=2;}
+        s+=Math.min(1,(spF(cc)||0)/100);if(s>rs){rs=s;r=cc;}}
+      return r;}
+    if(rd.length&&!bA&&nx!=='tu'&&!(/es$/.test(low)&&(spP(low.slice(0,-2))||'').indexOf('V')>=0)&&(_nounGateN(deaccS(pvw))&&!_RV_DET[deaccS(pvw)]&&!CLITIC[pvw]&&!_SUB108[pvw]||_AUX108[pvw])){var all2=true;   /* « décuites » : féminin pluriel du participe « décuit », pas une 2e personne */for(i=0;i<rd.length;i++)if(rd[i][2]!=='2'||rd[i][3]!=='s'){all2=false;break;}
+      if(all2){var tu=false;for(k=idx-1;k>=Math.max(0,idx-6);k--){if(bb&&bb[k+1])break;a=T[k].toLowerCase();if(a==='tu'||a==='toi'||/^t'/.test(a)){tu=true;break;}}
+        if(!tu){c=part108(rd[0][0]);if(c)return c;}}}
+    if(rd.length&&nx==='qui'&&!bN&&!bA&&pvw&&_nounGateN(deaccS(pvw))&&!_RV_DET[deaccS(pvw)]&&!CLITIC[pvw]&&!_SUB108[pvw]){c=part108(rd[0][0]);if(c)return c;}
+    if(pv==='été'||pv==='ete'){var pe=low.match(/(ée|ées|és|é|ie|ies|is|i|ue|ues|us|u)$/);
+      if(pe&&_ppSans108(d)){pe=pe[1];var e1=sEdits1(d);
+        for(i=0;i<e1.length;i++){a=spD(e1[i]);if(!a)continue;for(k=0;k<a.length;k++){c=a[k];var cf=spF(c)||0;
+          if(c===low||cf<1||(spP(c)||'').indexOf('V')<0||c.slice(-pe.length)!==pe||_rdx108(c).length||_ppSans108(deaccS(c)))continue;
+          sc=cf;if(sc>bs){bs=sc;best=c;}}}
+        if(best)return best;}}
+    if(rd.length&&idx>0&&nx&&!bN&&!bA&&!_NXSTOP108[nx]&&(spP(nx)||'')==='V'&&_rdx108(nx).length&&(spF(nx)||0)>=0.01&&!_RV_DET[deaccS(pv).replace(/'$/,'')]&&!CLITIC[pv]){
+      var sub=false;for(k=idx-1;k>=Math.max(0,idx-6);k--){if(bb&&bb[k+1])break;a=T[k].toLowerCase();if(_SUB108[a]||/^(qu|lorsqu|puisqu|quoiqu|j|s|c|n|m|t)'/.test(a)){sub=true;break;}}
+      if(!sub){var e2=sEdits1(d).concat([d]);for(i=0;i<e2.length;i++){a=spD(e2[i]);if(!a)continue;for(k=0;k<a.length;k++){c=a[k];var f2=spF(c)||0;
+          if(c===low||f2<1||!/[NA]/.test(spP(c)||''))continue;sc=((deaccS(c)===d?2:0)+(c.charAt(0)===low.charAt(0)?1:0))*1e6+f2;if(sc>bs){bs=sc;best=c;}}}
+        if(best)return best;}}
+    /* ⑤ la forme SONNE comme un nom ou un adjectif fréquent à une lettre, et elle est à sa place : place de NOM (après un déterminant
+       ou une préposition) → le nom ; place d'ADJECTIF (juste après un nom) → l'adjectif. « un groupe de soldas » → soldats, « une maison
+       carée » → carrée. Sans la position, le son seul tirait 234 fois sur 700 000 lignes justes (« pansait les plaies ») ; avec, 32. */
+    var need=(_RV_DET[deaccS(pv).replace(/'$/,'')]||_PREP108[deaccS(pv).replace(/'$/,'')])?'N':((pvw&&!bA&&_nounGateN(deaccS(pvw))&&!CLITIC[pvw])?'A':null);
+    if(need==='N'&&/^d(e|')$/.test(pv)&&idx>1&&/^(rien|chose|personne|quoi)$/.test(T[idx-2].toLowerCase()))need=null;   /* « rien de celé » : un adjectif, pas un nom */
+    if(need&&/^(le|la|les|l')$/.test(pv)&&idx>1){var p2=T[idx-2].toLowerCase();if(COD_SUBJ[p2]||CLITIC[p2]||_nounGateN(deaccS(p2)))need=null;}   /* « le » pronom devant un verbe (« les soucis le poignent ») */
+    if(need&&!bA){var k5=_sonKey(low),b5=null,f5=0,L5={},e5=sEdits1(d).concat([d]);for(i=0;i<rd.length;i++)L5[rd[i][0]]=1;
+      if(k5){for(i=0;i<e5.length;i++){a=spD(e5[i]);if(!a)continue;for(k=0;k<a.length;k++){c=a[k];var c5=spF(c)||0;
+          var s5=(c.slice(-2)===low.slice(-2)?1e9:0)+c5;   /* la terminaison gardée d'abord (« carée » → carrée, pas carré) */
+          if(c===low||c5<1||s5<=f5||(spP(c)||'').indexOf(need)<0||_sonKey(c)!==k5)continue;
+          var same=false,r5=_rdx108(c);for(var q5=0;q5<r5.length;q5++)if(L5[r5[q5][0]])same=true;if(same)continue;
+          b5=c;f5=s5;}}}
+      if(b5)return b5;}
+    return null;}
   function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                       // dictionnaire utilisateur -> mot valide
@@ -5099,15 +5167,28 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
         if(CONJ_F[deacc(_fc)])return["auto",_fc];}}
 
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
+    if(low==='travails'&&T&&idx!=null&&!(idx+2<T.length&&/^[aà]$/.test(T[idx+1].toLowerCase())&&/^ferr/.test(T[idx+2].toLowerCase())))return['vigilance',ckeepcase(tok,'travaux')];   /* ⭐ liste n° 107 : « travails » n'est que le travail du maréchal-ferrant (« travails à ferrer ») ; mesuré : 5 sur 105 Mo de texte juste contre 1 656 « travaux » → orange. Miroir Python */
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur ». Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app.
     /* ⭐ 15/10/2026 (liste n° 35) — FORME VERBALE RARISSIME À UNE PLACE DE NOM : « flue de données ». « flue » est au dictionnaire (fluer,
        0,003/M) : connu, donc muet. Un mot qui n'est qu'une forme de verbe (code V pur), < 0,01/M, pas un infinitif, après un déterminant
        ou devant « de + nom », reçoit en orange le NOM le plus fréquent à une lettre (≥ 1/M). Miroir Python (speller_probe). */
     if((tok===low||atStart)&&low.length>=4&&SP.WORDS.has(low)&&!_RV_LATIN[low]&&(spP(low)||'')==='V'&&(spF(low)||0)<0.01&&!/(er|ir|re|oir)$/.test(low)&&T&&idx!=null){
-      var _pvL=idx>0?deaccS(T[idx-1].toLowerCase()).replace(/['’]$/,''):'',_nxL=idx+1<T.length?deaccS(T[idx+1].toLowerCase()):'',_nx2=idx+2<T.length?T[idx+2].toLowerCase():'';
+      var _pvL=/^l['’]/i.test(T[idx])?'l':(idx>0?deaccS(T[idx-1].toLowerCase()).replace(/['’]$/,''):''),_nxL=idx+1<T.length?deaccS(T[idx+1].toLowerCase()):'',_nx2=idx+2<T.length?T[idx+2].toLowerCase():'';
+      var _j2=/^l['’]/i.test(T[idx])?idx-1:idx-2,_p2L=_j2>=0?T[_j2].toLowerCase():'',_p3L=_j2>0?deaccS(T[_j2-1].toLowerCase()):'';   /* le mot avant « le » : sujet pronom, clitique, ou nom précédé d'un déterminant (« les soucis le poignent ») */
+      if(_RV_DET[_pvL]&&/^(le|la|les|l)$/.test(_pvL)&&_p2L&&(COD_SUBJ[_p2L]||CLITIC[_p2L]||(_nounGateN(deaccS(_p2L))&&_RV_DET[_p3L])))_pvL='';   /* ⭐ liste n° 108 : « le » pronom devant un verbe (« les soucis le poignent ») n'est pas un déterminant */
       if(_RV_DET[_pvL]||((_nxL==='de'||_nxL==='du'||_nxL==='des'||_nxL==='d'||_nxL==="d'")&&_nx2&&SP.WORDS.has(_nx2)&&(spP(_nx2)||'').indexOf('N')>=0&&!_RV_DET[deaccS(_nx2)]&&!CLITIC[_nx2])){
         var _dL=deaccS(low),_e1=sEdits1(_dL).concat([_dL]),_bn=null,_bs=-1,_bf=0,_nbL=SDET_NUM[_pvL]||({aux:'p',au:'s',du:'s'})[_pvL]||null;for(var _q=0;_q<_e1.length;_q++){var _a=spD(_e1[_q]);if(!_a)continue;for(var _r2=0;_r2<_a.length;_r2++){var _c=_a[_r2],_cf=spF(_c)||0;if(_c===low||(spP(_c)||'').indexOf('N')<0||_cf<1)continue;if(_nbL==='p'&&!/[sx]$/.test(_c))continue;if(_nbL==='s'&&/[sx]$/.test(_c)&&!sInvarS(_c))continue;var _sc=(deaccS(_c)===_dL?2:0)+(_c.charAt(0)===low.charAt(0)?1:0);if(_sc>_bs||(_sc===_bs&&_cf>_bf)){_bn=_c;_bs=_sc;_bf=_cf;}}}
         if(_bn)return['vigilance',ckeepcase(tok,_bn)];}}
+    /* ⭐ 18/10/2026 (liste n° 108) — les formes verbales JUSTES sont au dictionnaire (ver_justes_lex_fr.tsv.gz) ; la confusion
+       qu'une forme rare pourrait cacher se rattrape par le CONTEXTE, jamais en refusant le mot. Quatre faits du français, chacun
+       mesuré sur du français juste (UD, 14 450 phrases ; 657 000 lignes de texte web) avant d'être posé :
+       ① 2e personne du singulier sans « tu » (ni « toi ») dans la proposition : la forme n'a pas de sujet → participe du même verbe ;
+       ② nom + forme conjuguée rare + « qui » : le verbe n'a pas de place → participe du même verbe, accordé au nom ;
+       ③ « été » + participe d'un verbe sans COD (PP_SANS_COD) : passif impossible → participe fréquent à une lettre ;
+       ④ forme conjuguée rare collée à un autre verbe conjugué, hors relative ou subordonnée → nom ou adjectif à une lettre.
+       Toujours en orange. Miroir Python (speller_probe). */
+    if(tok===low&&low.length>=4&&SP.WORDS.has(low)&&!_RV_LATIN[low]&&(spP(low)||'')==='V'&&(spF(low)||0)<0.01&&T&&idx!=null){
+      var _r108=_ctx108(low,T,idx,sInvarS);if(_r108)return['vigilance',ckeepcase(tok,_r108)];}
     if(SP.WORDS.has(low))return null;                                  // mot valide → couche grammaire
     if(_presentRegulier(low,T,idx,tok))return null;   // ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal
     // ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08, parité Python speller_probe + app) : la garde « nom propre »
@@ -5118,7 +5199,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     // des 211 k formes : qu'ils soient en plus un prénom attesté en fait un nom, pas un typo.
     if(low.length>=3&&PRENOMS[low.charAt(0).toUpperCase()+low.slice(1)])return null;
     if((low.charAt(0)==='à'||low.charAt(0)==='a')&&low.length>=3){var _rsd=low.slice(1);
-      if(SP.WORDS.has(_rsd)&&/V/.test(spP(_rsd)||'')&&!/(er|re|ir)$/.test(_rsd)
+      if(SP.WORDS.has(_rsd)&&/V/.test(spP(_rsd)||'')&&(spF(_rsd)||0)>0&&!/(er|re|ir)$/.test(_rsd)   // ⭐ liste n° 108 : le reste doit pouvoir être PROPOSÉ (fréquence > 0) — « d'Avène » ne devient plus « d'a vène »
          &&!SP.WORDS.has(low.charAt(0)+low.charAt(1)+low.slice(1))   // le REDOUBLEMENT prime : « aporté »→apporté (couche DC), pas « a porté »
          &&!_homophoneEdit1(low)){   // et un VRAI MOT à une édition, de MÊME SON, prime aussi (2026-08-22, texte dys) : « aboit » = aboie /abwa/ (1 édition, verbe), pas « a boit » — Python (sans soudure) rend aboie
         /* SOUDURE à/a+VERBE (enquête des 22, texte3 réel : « àeu »→a eu, « àfinit »→a finit puis
@@ -5182,7 +5263,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
       else if(SCOPULA[pt])expPos='VA';else if(SAUXAV[pt]||SSUBJP[pt])expPos='V';else if(pt==='qui')expPos='F';else if(_SPREP_P[pt])expPrep=pt;}   // ⭐ liste n° 33 (B) : après une préposition, un verbe CONJUGUÉ n'est pas attendu   // ⭐ 14/10/2026 (liste n° 24) : après « qui » sujet, un verbe CONJUGUÉ (« qui délenche » → déclenche, pas déclenché)   // copule = attribut POSSIBLE : V OU A (« je suis trist »→triste, pas seulement « je suis allé ») — audit 07/2026   // CONTEXTE VERBAL : après aux/copule/pronom-sujet → candidat VERBE (pri→pris, pleu→pleut). Bonus, jamais pénalité → FP-sûr.
     function pm(x){if(expPrep&&!expPos){for(var _k2 in cand)if(cand[_k2][0]===2)return 0;var _pp=spP(x)||'';return ((_pp==='V'&&!(/(er|ir|re|oir)$/.test(x)||(expPrep==='en'&&/ant$/.test(x))))||_PREP_NO_V[deaccS(x)])?0:1;}if(!expPos)return 0;if(expPos==='F'){if(/é(s?)$/.test(x))return 0;var _rf=svReads(x);for(var _q=0;_q<_rf.length;_q++)if(/^(ind|cnd|sub)/.test(_rf[_q][1]))return 1;return 0;}var ps=spP(x)||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
     function gm(x){var g=sGender(x);return (cg&&g&&g===cg)?1:0;}       // bonus genre (jamais pénalité)
-    function sInvarS(x){var w=x.toLowerCase();if(!/[sxz]$/.test(w))return false;   // NOM/ADJ INVARIABLE en -s/-x/-z : sa forme est la MEME au singulier et au pluriel (noix, voix, prix, croix, choix, temps, bras, heureux) => compatible avec un determinant SINGULIER. Sans ca, le filtre de nombre lisait le -x final comme une marque de pluriel et ecartait « noix » apres « la/une » (« la nois »→fois au lieu de noix).
+    function sInvarS(x){var w=x.toLowerCase();if(!/[sxz]$/.test(w))return false;if(_INV_S108[w])return true;   /* ⭐ liste n° 108 : invariables dont le radical est aussi un mot (fois/foi, mois, cas, pas, sens…) — Lexique4 les marque « i » */   // NOM/ADJ INVARIABLE en -s/-x/-z : sa forme est la MEME au singulier et au pluriel (noix, voix, prix, croix, choix, temps, bras, heureux) => compatible avec un determinant SINGULIER. Sans ca, le filtre de nombre lisait le -x final comme une marque de pluriel et ecartait « noix » apres « la/une » (« la nois »→fois au lieu de noix).
       var st=w.slice(0,-1);if(SP.WORDS&&SP.WORDS.has(st)&&/[NA]/.test(spP(st)||''))return false;   // le radical est lui-meme un NOM/ADJ => la forme EST un pluriel (chats/chat, bijoux/bijou, boites/boite)
       if(/aux$/.test(w)&&SP.WORDS&&SP.WORDS.has(w.slice(0,-3)+'al'))return false;   // pluriel en -aux d'un nom en -al (journaux/journal, chevaux/cheval)
       if(w==='yeux'||w==='cieux'||w==='aieux'||w==='æieux'||w==='aïeux')return false;   // pluriels irreguliers (radical introuvable)
@@ -5569,7 +5650,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(!SP.ready)return null;
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
     if(low.length<3||!isAlphaS(low))return null;
-    if(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;            // mot connu (ou connu sans accents)
+    if(SP.WORDS.has(low)||(SP.WORDS.has(deaccS(low))&&(low===deaccS(low)||(spF(deaccS(low))||0)>0)))return null;   // mot connu (ou connu sans accents) — ⭐ liste n° 108 : une forme « connue seulement » (fréquence 0) ne fait pas taire un mot mal accentué (« minorè »)
     if(udHas(low))return null;                                              // dictionnaire utilisateur (prénom/jargon)
     if(_presentRegulier(low,T,idx,tok))return null;   // ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — pas « inconnu »
     if(_SPELL_KEEP[low])return null;                                       // mot anglais fréquent / résidu d'ordinal (the/er) → ni corrigé ni signalé « inconnu »
@@ -5809,6 +5890,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(!tg||i>=tg.length)return null;
     var w=deaccS(T[i].toLowerCase());
     if(w.length<3||/[sxz]$/.test(w))return null;                       // déjà pluriel/invariable
+    if(typeof SP!=='undefined'&&SP&&SP.ready){var _lw108=T[i].toLowerCase();if((spP(_lw108)||'')==='V'&&(spF(_lw108)||0)<0.01)return null;}   // ⭐ liste n° 108 : un mot connu SEULEMENT comme verbe rare n'est pas un nom à mettre au pluriel (« des hancha » → hanchas) — la règle du verbe rare propose le nom
     /* ⭐ 04/10/2026 — APRÈS UN NOMBRE EN CHIFFRES, encore muets : « pour 5 euro », « 20 hectare », « 10 minute », « 3 kilo », « il mesure 2 mètre ».
        ① l'étiqueteur ne voit pas le chiffre (ce n'est pas un mot) et tague le nom PROPN : un mot EN MINUSCULE que la table des noms
        (NOUN_POST) donne pour nom commun est accepté ; ② « minute » a aussi une lecture verbale (minuter) : la table des noms tranche ;
@@ -6008,7 +6090,8 @@ function spellUnknown(tok,atStart,T,idx){
     var _a2=(i>=2)?deacc(T[i-2].toLowerCase()):'',num=_el?'s':(_EPI_ART[_a2]||_EPI_ART_AU[_a2]||null);   /* ⭐ 18/09/2026 — « au / aux » : l'article CONTRACTÉ manquait à la table (« nous allons au marché provençale », « au niveau mondiale » ×2 dans le corpus dys). Pour cette règle ORANGE seulement : la rouge garde sa table mesurée. */
     if(!num)return null;
     var sugg=_adjAgreeG(w,g,num);return sugg.toLowerCase()!==lw?sugg:null;}
-  function imparfaitVig(T,i,tg){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw.length<3)return null;
+  function _npMaj108(T,i){return i>0&&T[i].length>=2&&T[i].charAt(0)!==T[i].charAt(0).toLowerCase()&&T[i].slice(1)===T[i].slice(1).toLowerCase()&&T[i-1]===T[i-1].toLowerCase()&&!(_SEG&&_SEG.ss&&_SEG.ss[i]);}   /* ⭐ liste n° 108 : majuscule en milieu de phrase = nom propre (« des monts Bissa »), jamais un verbe à accorder */
+  function imparfaitVig(T,i,tg){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw.length<3||_npMaj108(T,i))return null;
     var reads=svReads(T[i]),imp=[],k;for(k=0;k<reads.length;k++){var rk=reads[k];if(rk[1].indexOf('imp')>=0&&rk[1].indexOf('ind')>=0)imp.push(rk);}
     if(!imp.length)return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
@@ -6041,7 +6124,7 @@ function spellUnknown(tok,atStart,T,idx){
   // ⭐ COLLISION D'ACCENT (02/09). Les lectures verbales (svReads/CONJ) sont keyées DÉSACCENTUÉES : « adhérent »
   // tombe sur la clé de « adhèrent » et passe pour un verbe ; idem côté, gène, mûre, précédent... 24 mots
   // courants mesurés. Table EXACTE générée par dictee/build_non_verbe_acc.py (Morphalou) — ne pas éditer à la main.
-  var _NON_VERBE_ACC={'adhérent':1,'boëtte':1,'châsse':1,'châsses':1,'côte':1,'côtes':1,'côté':1,'côtés':1,'faîtes':1,'gène':1,'gènes':1,'indifférent':1,'léva':1,'mâconnais':1,'mûre':1,'mûres':1,'précédent':1,'préposat':1,'régentat':1,'réversions':1,'érigérons':1};
+  var _NON_VERBE_ACC={'adhérent':1,'boëtte':1,'callaïs':1,'châsse':1,'châsses':1,'côte':1,'côtes':1,'côté':1,'côtés':1,'faîtes':1,'gène':1,'gènes':1,'idéat':1,'indifférent':1,'léva':1,'mâconnais':1,'mûre':1,'mûres':1,'précédent':1,'préposat':1,'régentat':1,'réticulat':1,'réversions':1,'taraï':1,'érigérons':1};
   function setOsLm(m){
     if(!m||!m.uni){_OSLM=null;return;}
     function sums(tab){var s={},k,w,t;for(k in tab){t=0;for(w in tab[k])t+=tab[k][w];s[k]=t;}return s;}
@@ -6143,7 +6226,7 @@ function spellUnknown(tok,atStart,T,idx){
      57 (dys) et 43 (UD) — elle reproduit l'ATTRACTION, mécanisme même de la faute → elle se tait. C) seul le PLURIEL est proposé :
      sur les textes dys, les 69 marques vers le singulier étaient toutes fausses ; les vraies sont le pluriel oublié (-nt muet).
      Prix accepté : 2 vraies fautes d'UD (encyclopédie) qui demandaient le singulier. Miroir Python os_subject_probe.detect. */
-  function osVerbVig(T,i,tg,plein){if(!_OSLM)return null;   // plein : relecture de bout de chaîne (forme d'un mot déjà mal écrit) — sans B ni C
+  function osVerbVig(T,i,tg,plein){if(!_OSLM||_npMaj108(T,i))return null;   // plein : relecture de bout de chaîne (forme d'un mot déjà mal écrit) — sans B ni C
     var F=[],m;for(m=0;m<T.length;m++)F.push(/^d[éè]s$/.test(T[m].toLowerCase())?'·dès':T[m].toLowerCase());   // ⭐ 13/10/2026 (conjugaison 14) : « dés » / « dès » accentué n'est pas l'article « des » — les voisins de l'OS le désaccentuaient (« progression dés juillet suscita » → suscitèrent)
     if(!_osGuardOk(F,i))return null;
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;

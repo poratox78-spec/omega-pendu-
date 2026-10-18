@@ -4009,6 +4009,8 @@ def rule_accord_sv_noun(T, i):
     un 2e GN non prépositionnel → abstention (autre structure)."""
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
     if _nom_appose(T, i): return None                                  # ⭐ 14/10/2026 (liste n° 20) : « les pages produit » — miroir JS
+    if (i > 0 and len(T[i]) >= 2 and T[i][:1] != T[i][:1].lower() and T[i][1:] == T[i][1:].lower() and T[i - 1] == T[i - 1].lower()
+            and not (_SEG and len(_SEG['ss']) == len(T) and _SEG['ss'][i])): return None   # ⭐ liste n° 108 : majuscule en milieu de phrase = nom propre (« des monts Bissa ») — miroir JS
     if deacc(T[i].lower()) == 'a' and i + 1 < len(T):                   # « a » + ARTICLE DÉFINI (la/le/les/l') → la préposition « à » est trop plausible (« les enfants a la maison / a l'école » = « à la/à l' », locatif) → a→ont S'ABSTIENT (ambigu). L'INDÉFINI (une/un/des) reste → possession (« ont une pomme »).
         _dn = deacc(T[i + 1].lower())
         if _dn in ('la', 'le', 'les') or _dn[:2] == "l'": return None
@@ -5224,6 +5226,7 @@ def rule_sujet_flexion_nom(T, i):
     finally: _ROUGE = True
 
 
+_INV_NOM105 = {deacc(w) for w in u'abus amas anis apex avis bas bis borax bris bus cabas cas chaos codex colis cours dais dos entrelacs faux fax fils fois fonds frais gris haras héros huis inclus index jars laps las lis lux maquis mas mois palis palus pas pis pois poix pus quartz ras rassis reclus relais roux sas semis sens silex six tas taux thermos tréfonds tétras vernis vers vis'.split()}   # ⭐ liste n° 105 : noms invariables (fonds/fond, maquis) — miroir JS, même liste que speller_probe._INV_S108 + chaos
 _DET_PL = {'le': 'les', 'la': 'les', 'un': 'des', 'une': 'des', 'ce': 'ces', 'cet': 'ces', 'cette': 'ces', 'mon': 'mes', 'ma': 'mes',
            'ton': 'tes', 'ta': 'tes', 'son': 'ses', 'sa': 'ses', 'notre': 'nos', 'votre': 'vos'}   # pas « leur » : rule_leur_leurs le porte déjà
 
@@ -5234,6 +5237,14 @@ def rule_det_number(T, i):
     le déterminant : doute → l'auteur tranche. Le genre du déterminant reste à rule_det_gender. Miroir JS : rDetNumber."""
     if hy_det_skip(T, i): return None   # ⭐ liste n° 43 : le nom suivant ouvre un composé verbe-nom ou préfixé — miroir JS _hyDetSkip
     lw = deacc(T[i].lower())
+    if lw in ('au', 'du') and "'" not in T[i] and i + 1 < len(T):   # ⭐ liste n° 105 : « au » / « du » ne précèdent jamais un pluriel → aux / des — miroir JS
+        n = T[i+1]; dn = deacc(n.lower())
+        if (n[:1].isalpha() and n[:1].islower() and len(dn) >= 4 and dn.endswith(('s', 'x')) and dn not in _INVAR_S and dn not in _SG_STOP
+                and dn not in NOUN_PL_STOP and dn not in _INV_NOM105 and not (_SEG is not None and i + 1 < len(_SEG['dig']) and _SEG['dig'][i + 1])
+                and n[-2:-1] not in u'àâäèêëìîïòôöùûü' and _noun_gate(n)):   # nombre devant (« du 400 mètres »), « congrès », invariables
+            sg = dn[:-3] + 'al' if dn.endswith('aux') else dn[:-1]
+            if (sg in WORDS_SET or sg in GENDER_PURE) and (NOUN_POST.get(sg) or [0])[0] >= PL_ANCHOR_M: return _keepcase(T[i], 'aux' if lw == 'au' else 'des')
+        return None
     if lw not in _DET_PL or "'" in T[i] or i + 2 >= len(T): return None
     if i > 0 and deacc(T[i-1].lower()) in ('et', 'ou', 'ni'): return None   # CONJOINT (« l'hébergement et la restaurations ont ») : le pluriel du verbe vient de la coordination — même exception que rule_noun_singular (#728), trouvée par le différentiel
     n = T[i+1]; dn = deacc(n.lower())
@@ -5311,6 +5322,12 @@ def rule_det_gender(T, i):
     # ⚠️ SOUS-ENSEMBLE « COLLISION » SEULEMENT (GENDER_ACC_COLL, cf. sa définition) : la table brute
     # rétablirait aussi des adjectifs antéposés que la curation avait écartés exprès -> 3 FP mesurés.
     g_noun = GENDER_ACC_COLL.get(T[hi].lower()) or GENDER_PURE.get(deacc(T[hi].lower()))  # (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
+    if lw in ('quel', 'quelle'):                                    # ⭐ liste n° 103 : « quel » s'accorde aussi en NOMBRE (« quel belles fleurs » → quelles) — miroir JS
+        hd = deacc(T[hi].lower())
+        if (hd.endswith(('s', 'x')) and hd not in _INVAR_S and hd not in _SG_STOP and hd not in NOUN_PL_STOP
+                and (hd[:-1] in GENDER_PURE or (hd.endswith('aux') and hd[:-3] + 'al' in GENDER_PURE))):
+            gq = g_noun if g_noun in ('m', 'f') else g_det
+            return _keepcase(T[i], 'quels' if gq == 'm' else 'quelles')
     if g_noun not in ('m', 'f'): return None                       # nom inconnu/ambigu/homographe → abstention
     if g_noun == g_det:                                            # accord OK — ⭐ liste n° 104 : « ce arbre » → cet (euphonie) — miroir JS
         if lw == 'ce' and g_noun == 'm' and (re.match('[aeiou]', deacc(T[i + 1].lower())) or deacc(T[i + 1].lower()) in _H_MUET56): return _keepcase(T[i], 'cet')
@@ -5818,7 +5835,7 @@ NOUN_PL_STOP = {'sida', 'minima', 'maxima', 'media', 'data', 'extra', 'intra', '
 
 # Sens INVERSE (plur→sing) : déterminant SINGULIER (classe fermée) collé à un nom au pluriel APPARENT.
 # En français correct, « un/le/la/ce/… + nom-pluriel » est TOUJOURS une faute → FP=0 par construction.
-_SING_DET = {'un', 'une', 'le', 'la', 'ce', 'cet', 'cette', 'mon', 'ma', 'ton', 'ta', 'son', 'sa', 'chaque', 'du', 'au'}
+_SING_DET = {'un', 'une', 'le', 'la', 'ce', 'cet', 'cette', 'mon', 'ma', 'ton', 'ta', 'son', 'sa', 'chaque', 'du', 'au', 'aucun', 'aucune'}   # ⭐ liste n° 102 — miroir JS
 # Noms INVARIABLES -s/-x (sing==plur) : leur « singularisation » naïve donne un autre lexème valide → piège → abstention.
 # (NOUN_POST/GENDER_PURE ne les distinguent pas ; les non-noms « très/sous/savons » sont écartés par _noun_gate.)
 _SG_STOP = INVAR_NOUN | _NOUN_INVAR_S | {
@@ -6035,6 +6052,12 @@ _ADJ_ANTE_PL = {'grand': 'grands', 'grande': 'grandes', 'petit': 'petits', 'peti
 # genre connu (étiqueté nom) qui s'accordent entre eux → l'adjectif prend ce genre (« une grand maison » → grande, « un belle arbre » → bel).
 _ADJ_ANTE_G = dict(p.split(':') for p in u'grand:grande petit:petite gros:grosse beau:belle bel:belle joli:jolie nouveau:nouvelle nouvel:nouvelle vieux:vieille vieil:vieille bon:bonne mauvais:mauvaise meilleur:meilleure haut:haute long:longue faux:fausse gentil:gentille dernier:dernière premier:première prochain:prochaine seul:seule vrai:vraie majeur:majeure cher:chère'.split())
 _ADJ_ANTE_M = dict((v, k) for k, v in _ADJ_ANTE_G.items() if k not in ('bel', 'nouvel', 'vieil'))
+_ADJ_PL106 = {'beau': 'beaux', 'nouveau': 'nouveaux', 'vieux': 'vieux', 'gros': 'gros', 'mauvais': 'mauvais', 'faux': 'faux'}   # ⭐ liste n° 106 — miroir JS
+_ADJ_SG106 = {}
+for _m6, _f6 in _ADJ_ANTE_G.items():
+    if _m6 in ('bel', 'nouvel', 'vieil'): continue
+    _ADJ_SG106[_ADJ_PL106.get(_m6, _m6 + 's')] = (_m6, 'm'); _ADJ_SG106[_f6 + 's'] = (_f6, 'f')
+_GENS106 = {'gens', 'amours', 'delices', 'orgues'}   # adjectif féminin devant un nom dit masculin — exclus
 _DET_MASC_SUR = frozenset(('le', 'un', 'ce'))
 _ADJ_ANTE_VOY = {'beau': 'bel', 'nouveau': 'nouvel', 'vieux': 'vieil'}
 _GRAND_F = frozenset(u'mere tante route rue messe place peine chose voile faim soif peur croix chambre garde'.split())   # « grand route », « grand mère », « à grand peine » : anciens composés
@@ -6051,6 +6074,16 @@ def rule_adj_ante_genre(T, i):
     if gn not in ('m', 'f'): return None
     tg = pos_tags(T)
     if not tg or i + 1 >= len(tg) or tg[i + 1] != 'NOUN': return None
+    if pd in PLURAL_DET and deacc(nx).endswith(('s', 'x')) and deacc(nx) not in _GENS106:   # ⭐ liste n° 106 : le genre vient du nom — miroir JS
+        s6 = _ADJ_SG106.get(w)
+        if not s6: return None
+        if gn == 'm' and s6[1] == 'f':
+            m6 = _ADJ_ANTE_M.get(s6[0])
+            if m6: return _ADJ_PL106.get(m6, m6 + 's')
+        if gn == 'f' and s6[1] == 'm':
+            f6 = _ADJ_ANTE_G.get(s6[0])
+            if f6: return f6 + 's'
+        return None
     if pd in _DET_FEM_SUR and gn == 'f':
         if w == 'grand' and deacc(nx) in _GRAND_F: return None
         return _ADJ_ANTE_G.get(w)
@@ -6171,7 +6204,9 @@ def rule_noun_singular(T, i):
     # VOIE RELÂCHÉE : pluriel homographe d'un VERBE (« la boites » = boiter 3sg) que le posterior fréquentiel écarte à
     # tort. Le déterminant singulier + le TAGGER (contexte → NOUN) + le LEXIQUE (forme STRICTEMENT plurielle, singulier
     # connu) le tranchent. FP=0 mesuré (UD) : mois écartés par le singulier non-nom (mars→mar), composés par le trait d'union.
-    if dn.endswith('s') and dn in PLURAL_NOUNS and dn[:-1] in GENDER_PURE:
+    if dn.endswith('s') and ((dn in PLURAL_NOUNS and dn[:-1] in GENDER_PURE)
+                             or (not re.search(u'(é|ée|és|ées|u|us|ue|ues|i|is|ie|ies)$', n.lower()) and dn not in _INV_NOM105
+                                 and not (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]) and _noun_gate_n(dn) and (NOUN_POST.get(dn[:-1]) or [0])[0] >= PL_ANCHOR_M)):   # ⭐ liste n° 102 : ou singulier ÉPICÈNE (« élève ») — même table que JS
         if _SEG is not None and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]: return None   # composé à trait d'union (« la sous-famille »)
         tg = pos_tags(T)
         if tg and i < len(tg) and tg[i] == 'NOUN':
@@ -8226,6 +8261,10 @@ MUETS = [
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
     ("Elle a beaucoup mangé ce midi.", "mangé", "mangée", "accord du participe après avoir à vérifier"),   # ⭐ liste n° 111 : adverbe entre l'auxiliaire et le participe
+    ("Aucun enfant ne dort ce soir", "enfant", "enfants", "accord singulier nom"),   # ⭐ liste n° 102
+    ("Quelles belles fleurs dans ce jardin", "Quelles", "Quel", "genre déterminant"),   # ⭐ liste n° 103
+    ("Elle parle aux enfants du quartier", "aux", "au", "nombre du déterminant à vérifier"),   # ⭐ liste n° 105
+    ("Mes nouveaux voisins sont gentils", "nouveaux", "nouvelles", "accord adjectif antéposé"),   # ⭐ liste n° 106
     ("Elle a mangé.", "mangé", "mangée", "accord du participe après avoir à vérifier"),   # ⭐ 16/10/2026 (ligne 38) : sans complément après le participe
     ("Nous avons dansé toute la nuit.", "dansé", "dansées", "accord du participe après avoir à vérifier"),   # ⭐ ligne 38 : complément de temps
     ("Marie a dormi.", "dormi", "dormie", "accord du participe après avoir à vérifier"),   # ⭐ ligne 38 : sujet nom propre
