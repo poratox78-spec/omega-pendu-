@@ -769,6 +769,15 @@ function testListe108() {   // liste n° 108 : les formes verbales JUSTES sont a
     const ok = s === null ? !f : s === '*' ? !!f : (!!f && f.sugg === s && f.tier === 'vigilance');
     if (!ok) fail.push('ligne 108 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s === '*' ? 'une marque' : s + ' en vigilance') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
+  for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
+      ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
+      // toujours corrigés : 1990 n'y touche pas
+      ['Nous fimes la fête.', 'fimes', 'fîmes'], ['Il est sur de lui.', 'sur', 'sûr']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('ligne 109 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe87() {   // liste n° 87 : la table de conjugaison garde les deux graphies d'un même verbe (connaître / connaitre) — le passé simple de connaître, paraître, reconnaître
   for (const [t, w, s] of [['Il connu des jours difficiles.', 'connu', 'connut'], ['Elle reconnu sa voix au téléphone.', 'reconnu', 'reconnut'], ['Il paru fatigué ce soir-là.', 'paru', 'parut'],
       // témoins : rien
@@ -898,6 +907,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe109();
   testListe110();
   testListe102();
   testListe108();
