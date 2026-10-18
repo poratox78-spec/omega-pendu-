@@ -517,6 +517,11 @@ class Speller:
     def __init__(self):
         self.WORDS, self.FREQ, self.D2A, self.PHON, self.POS = load_lexicon()
         self.PRENOMS_L = set()                                  # prénoms en MINUSCULE (protection, cf. correct_token)
+        try:   # ⭐ liste n° 114 : genre des formes rares nom + verbe (dictee/build_nv_genre.py) — miroir JS _G114
+            _gj = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'nv_genre_fr.json'), encoding='utf-8'))
+            self.G114 = {w: g for g in _gj for w in _gj[g]}
+        except (OSError, ValueError):
+            self.G114 = {}
         self.PRENOMS_C = set()                                  # ⭐ 13/09/2026 : graphie d'ORIGINE (« ludovic » → Ludovic, miroir JS PRENOMS)
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
@@ -1151,7 +1156,7 @@ class Speller:
         # Risque quasi nul : la garde ne s'applique qu'à un token DÉJÀ inconnu du lexique de 211 k
         # formes ; qu'il soit en plus un prénom attesté en fait un nom, pas un typo.
         # ⭐ 15/10/2026 (liste n° 35) — forme verbale rarissime à une place de nom (« flue de données » → flux) — miroir JS
-        if ((tok == low or at_start) and len(low) >= 4 and low in self.WORDS and low not in _RV_LATIN and ''.join(sorted(self.POS.get(low, ()))) == 'V'
+        if ((tok == low or at_start) and len(low) >= 4 and low in self.WORDS and low not in _RV_LATIN and (''.join(sorted(self.POS.get(low, ()))) == 'V' or low in self.G114)
                 and self.FREQ.get(low, 0.0) < 0.01 and not re.search(r'(er|ir|re|oir)$', low) and toks is not None and idx is not None):
             _pvL = 'l' if re.match(u"^l['’]", toks[idx], re.I) else (deacc(toks[idx - 1].lower()).rstrip("'’") if idx > 0 else '')   # ⭐ liste n° 108 : l'article élidé collé (« l'articla ») — miroir JS
             _nxL = deacc(toks[idx + 1].lower()) if idx + 1 < len(toks) else ''
@@ -1161,14 +1166,15 @@ class Speller:
             if (_pvL in _RV_DET and _pvL in ('le', 'la', 'les', 'l') and _p2L
                     and (_p2L in _cpm()._COD_SUBJ or _p2L in _cpm().CLITIC or (_cpm()._noun_gate_n(_p2L) and _p3L in _RV_DET))):
                 _pvL = ''   # ⭐ liste n° 108 : « le » pronom devant un verbe (« les soucis le poignent ») — miroir JS
-            if _pvL in _RV_DET or (_nxL in ('de', 'du', 'des', 'd', "d'") and _nx2 and _nx2 in self.WORDS and 'N' in self.POS.get(_nx2, ())
-                                   and deacc(_nx2) not in _RV_DET and _nx2 not in ('ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous')):   # « de la » : « la » n'est pas le nom (la note)
+            _g114 = None if ''.join(sorted(self.POS.get(low, ()))) == 'V' else (self._DG113[_pvL] if self._DG113.get(_pvL) and self._DG113[_pvL] != self.G114.get(low) else '')   # ⭐ liste n° 114 : forme aussi NOM — seulement si le genre de l'article exclut ce nom (« le flue » → flux) — miroir JS
+            if _g114 != '' and (_pvL in _RV_DET or (_nxL in ('de', 'du', 'des', 'd', "d'") and _nx2 and _nx2 in self.WORDS and 'N' in self.POS.get(_nx2, ())
+                                   and deacc(_nx2) not in _RV_DET and _nx2 not in ('ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous'))):   # « de la » : « la » n'est pas le nom (la note)
                 _dL = deacc(low); _bn, _bs, _bf = None, -1, 0.0   # même squelette d'abord (lignés → lignes), puis même initiale, puis fréquence — comme le tri du speller
                 _nbL = self.DET_NUM.get(_pvL) or {'aux': 'p', 'au': 's', 'du': 's'}.get(_pvL)   # le nom suit le NOMBRE du déterminant (« aux minerait » → minerais)
                 for _e in list(edits1(_dL)) + [_dL]:
                     for _c in (self.D2A.get(_e) or ()):
                         _cf = self.FREQ.get(_c, 0.0)
-                        if _c == low or 'N' not in self.POS.get(_c, ()) or _cf < 1.0: continue
+                        if _c == low or 'N' not in self.POS.get(_c, ()) or _cf < 1.0 or (_g114 and self._gender(_c) != _g114): continue
                         if _nbL == 'p' and not _c.endswith(('s', 'x')): continue
                         if _nbL == 's' and _c.endswith(('s', 'x')) and not self._invar_s(_c): continue
                         _sc = (2 if deacc(_c) == _dL else 0) + (1 if _c[:1] == low[:1] else 0)

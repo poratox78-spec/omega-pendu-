@@ -85,6 +85,8 @@ jobs:
         run: python3 dictee/build_rect90_lex.py --check
       - name: "Lot des noms et adjectifs justes du speller — TSV commité bien formé et câblé (charismes, antiennes, capuce, componée ; developpement hors du lot)"
         run: python3 dictee/build_na_justes_lex.py --check
+      - name: "Genre des formes rares nom + verbe — JSON commité == ligne _G114 des 2 moteurs JS, formes toujours rares (flue f)"
+        run: python3 dictee/build_nv_genre.py --check
       - name: Extrait Wiktionnaire du speller — TSV commité bien formé, sans doublon
         run: python3 dictee/build_wikt_lex.py --check
       - name: Lot MÉTIER du speller (liste curée) — TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole)
