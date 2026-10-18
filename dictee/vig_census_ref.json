@@ -1,7 +1,7 @@
 {
- "justes": 390,
+ "justes": 393,
  "pointeuses": 206,
- "fatigue": 130,
+ "fatigue": 132,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -107,6 +107,7 @@
   "dérives→dérive [personne du verbe par le son à vérifier] accord",
   "désormées→désormais [orthographe] terminaison",
   "déséqquilibré→déséquilibré [mot inconnu] lettre_trop",
+  "dêcouvertes→découverte [accord singulier nom] autre",
   "eaut→eau [orthographe] terminaison",
   "effcetuait→effectuait [mot inconnu] inversion",
   "emtre→entre [orthographe] lettre_change",
@@ -148,6 +149,7 @@
   "fusil→fusils [accord pluriel à vérifier] inversion",
   "futt→fut [orthographe] lettre_trop",
   "ggané→gagné [orthographe] inversion",
+  "gorges→gorge [accord singulier nom] accord",
   "gours→jours [orthographe] lettre_change",
   "granb→grand [orthographe] lettre_change",
   "grans→grand [orthographe] dys_reel/texte6_h23",
@@ -344,6 +346,7 @@
   "surr→sur [orthographe] lettre_trop",
   "sushies→sushis [orthographe] terminaison",
   "sêrums→sérum [mot inconnu] autre",
+  "tailles→taille [accord singulier nom] accord",
   "tbales→tables [orthographe] inversion",
   "tempc→temps [orthographe] lettre_change",
   "tennit→tennis [orthographe] terminaison",

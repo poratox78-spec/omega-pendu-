@@ -976,6 +976,9 @@ class Speller:
         if len(low) < 2 or not all(deacc(ch) in ALPHA for ch in low): return None
         if tok != low and re.search(u'[áíóúñãõåøäöìòü]', low): return None   # ⭐ 13/10/2026 (liste n° 2) : NOM à diacritique étranger — miroir JS
         _oel = {'soeur': 'sœur', 'soeurs': 'sœurs', 'coeur': 'cœur', 'coeurs': 'cœurs', 'choeur': 'chœur', 'choeurs': 'chœurs', 'oeuf': 'œuf', 'oeufs': 'œufs', 'oeuvre': 'œuvre', 'oeuvres': 'œuvres', 'boeuf': 'bœuf', 'boeufs': 'bœufs', 'oeil': 'œil', 'voeu': 'vœu', 'voeux': 'vœux', 'noeud': 'nœud', 'noeuds': 'nœuds', 'moeurs': 'mœurs', 'manoeuvre': 'manœuvre', 'manoeuvres': 'manœuvres', 'oeillet': 'œillet', 'oeillets': 'œillets', 'oesophage': 'œsophage', 'foetus': 'fœtus'}
+        if (low == 'travails' and toks is not None and idx is not None
+                and not (idx + 2 < len(toks) and toks[idx + 1].lower() in ('a', 'à') and toks[idx + 2].lower().startswith('ferr'))):
+            return ('vigilance', 'Travaux' if tok[:1].isupper() else 'travaux')   # ⭐ liste n° 107 : « travails à ferrer » seul juste — miroir JS
         if low in _oel and 'œ' not in tok and 'Œ' not in tok: return ('flag', _oel[low])   # LIGATURE œ (« soeur »→« sœur »). Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app/ext.
         # ⭐ AUTO-FIX FERMÉS (10/09/2026, décalque de _AFIX l.2948) : huit accents usuels mal posés → auto — AVANT la garde
         # « mot valide », comme le produit : « trés » EST au lexique (pollution), le produit le corrige quand même.
