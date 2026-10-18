@@ -449,7 +449,7 @@ const SP = globalThis.__sp;
   for (const [t, w, s, tier] of [['Elles outillent leurs ateliers.', 'outillent', null, null], ['Il outille son garage.', 'outille', null, null],
       ['Le service fiabilise ses chiffres.', 'fiabilise', null, null], ['Les robots indexent le site.', 'indexent', null, null],
       ['Elle aime prototyper des jeux.', 'prototyper', null, null],
-      ['Des branches entrecoupes de lumière.', 'entrecoupes', 'entrecoupés', 'vigilance'], ['Il leve la main.', 'leve', 'lève', 'auto']]) {
+      ['Il leve la main.', 'leve', 'lève', 'auto']]) {   // « entrecoupes » : forme JUSTE depuis la liste n° 108 (le contexte la rattrape, testé dans extension/test_speller.js, testListe108)
     const r = SP.spell(t).find(x => x.word === w);
     if (s === null ? !!r : (!r || r.sugg !== s || r.tier !== tier)) fail.push('liste n° 6 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(r && [r.sugg, r.tier, r.name]));
   }

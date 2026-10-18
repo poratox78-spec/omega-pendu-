@@ -199,7 +199,7 @@ def vlike(T, i):
     w = deacc(T[i].lower())
     if w in VLIKE_STOP: return False                                       # mots-outils homographes du cgram (« ne », « le »…) — jamais verbe ici
     if w not in VERB_LEX: return False
-    if i > 0 and (T[i-1].lower() in NUM_DET or T[i-1].lower() in ('du', 'au', 'aux')):   # « le porte » reste un NOM… — et « du travaille » aussi (12/09/2026 : les contractions sont des déterminants ; « du conseille a permis » → « à » était une casse)
+    if i > 0 and (T[i-1].lower() in NUM_DET or T[i-1].lower() in ('du', 'au', 'aux', 'chaque', 'aucun', 'aucune')):   # ⭐ liste n° 100 — miroir JS   # « le porte » reste un NOM… — et « du travaille » aussi (12/09/2026 : les contractions sont des déterminants ; « du conseille a permis » → « à » était une casse)
         # …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08 sur gold dys réel). « Elle CE lance a chanter » : le
         # scripteur confond ce/se, la garde déterminant tue alors la lecture VERBALE — et la cascade suit :
         # vlike(lance)=False → rule_a_aa ne tranche plus → la garde a/à de rule_e_er ne tire pas → « chanter »
@@ -4009,6 +4009,8 @@ def rule_accord_sv_noun(T, i):
     un 2e GN non prépositionnel → abstention (autre structure)."""
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
     if _nom_appose(T, i): return None                                  # ⭐ 14/10/2026 (liste n° 20) : « les pages produit » — miroir JS
+    if (i > 0 and len(T[i]) >= 2 and T[i][:1] != T[i][:1].lower() and T[i][1:] == T[i][1:].lower() and T[i - 1] == T[i - 1].lower()
+            and not (_SEG and len(_SEG['ss']) == len(T) and _SEG['ss'][i])): return None   # ⭐ liste n° 108 : majuscule en milieu de phrase = nom propre (« des monts Bissa ») — miroir JS
     if deacc(T[i].lower()) == 'a' and i + 1 < len(T):                   # « a » + ARTICLE DÉFINI (la/le/les/l') → la préposition « à » est trop plausible (« les enfants a la maison / a l'école » = « à la/à l' », locatif) → a→ont S'ABSTIENT (ambigu). L'INDÉFINI (une/un/des) reste → possession (« ont une pomme »).
         _dn = deacc(T[i + 1].lower())
         if _dn in ('la', 'le', 'les') or _dn[:2] == "l'": return None
@@ -5326,7 +5328,10 @@ def rule_det_gender(T, i):
                 and (hd[:-1] in GENDER_PURE or (hd.endswith('aux') and hd[:-3] + 'al' in GENDER_PURE))):
             gq = g_noun if g_noun in ('m', 'f') else g_det
             return _keepcase(T[i], 'quels' if gq == 'm' else 'quelles')
-    if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
+    if g_noun not in ('m', 'f'): return None                       # nom inconnu/ambigu/homographe → abstention
+    if g_noun == g_det:                                            # accord OK — ⭐ liste n° 104 : « ce arbre » → cet (euphonie) — miroir JS
+        if lw == 'ce' and g_noun == 'm' and (re.match('[aeiou]', deacc(T[i + 1].lower())) or deacc(T[i + 1].lower()) in _H_MUET56): return _keepcase(T[i], 'cet')
+        return None
     sugg = DET_ALT.get((lw, g_noun))
     if sugg == 'ce' and (re.match('[aeiou]', deacc(T[i + 1].lower())) or deacc(T[i + 1].lower()) in _H_MUET56): sugg = 'cet'   # ⭐ liste n° 56
     return _keepcase(T[i], sugg) if sugg else None
@@ -5362,6 +5367,20 @@ _TOUT_EXTRA = {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'enve
                'suivant', 'concernant'}   # ⭐ 30/09/2026 : mots après lesquels « tout » n'est jamais un déterminant (miroir JS TOUT_EXTRA)
 TOUT_LSTOP = PREP | set(NUM_DET) | {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'envers',
                                     'durant', 'pendant', 'hormis', 'outre', 'moyennant', 'suivant', 'concernant'}
+def _tous_fem101(T, i):
+    """⭐ liste n° 101 : « Tous les filles » → toutes, en TÊTE de phrase seulement (miroir JS _tousFem101)."""
+    bb = (_SEG or {}).get('bb') or []
+    if not (i == 0 or (i < len(bb) and bb[i])) or i + 2 >= len(T): return False
+    if NUM_DET.get(deacc(T[i + 1].lower())) != 'pl': return False
+    if i + 1 < len(bb) and bb[i + 1]: return False
+    if "'" in T[i + 2]: return False
+    nd = deacc(T[i + 2].lower()); pp = NOUN_POST.get(nd)
+    if not (pp and pp[0] >= PL_TAU_M): return False
+    g = GENDER_PURE.get(nd)
+    if g is None: g = GENDER_FULL.get(nd)
+    return g == 'f'
+
+
 def rule_tout_det(T, i):
     # « tout/toute » (forme SINGULIÈRE) DÉTERMINANT + déterminant + NOM confiant s'accorde en genre ET nombre avec son
     # groupe : « tout les jours »→tous, « toute les semaines »→toutes (nombre) ; « tout cette mascarade »→toute, « toute
@@ -5375,6 +5394,7 @@ def rule_tout_det(T, i):
     lw = deacc(T[i].lower())
     if lw == 'tous' and i + 1 < len(T):
         _tt = _tous_tout(T, i)
+        if not _tt and _tous_fem101(T, i): _tt = 'toutes'          # ⭐ liste n° 101 — miroir JS
         return _keepcase(T[i], _tt) if _tt else None
     if lw not in ('tout', 'toute'): return None
     if i + 2 >= len(T): return None
@@ -5389,6 +5409,7 @@ def rule_tout_det(T, i):
     pp = NOUN_POST.get(nd)
     if not (pp and pp[0] >= PL_TAU_M): return None                 # le mot après le déterminant doit être un NOM confiant
     g = GENDER_PURE.get(nd)
+    if g is None: g = GENDER_FULL.get(nd)                           # ⭐ liste n° 101 : « tout la classe » — miroir JS
     if g not in ('m', 'f'): return None                            # genre inconnu/ambigu → abstention
     target = ('tous' if g == 'm' else 'toutes') if num == 'pl' else ('tout' if g == 'm' else 'toute')
     return _keepcase(T[i], target) if target != lw else None
@@ -8522,6 +8543,7 @@ CASES = [
     ("Il est allé à Paris", "est", "a", "usage être/avoir"),
     ("Elle est partie tôt", "est", "a", "usage être/avoir"),
     ("Ils sont restés ici", "sont", "ont", "usage être/avoir"),
+    ("Toute la classe est partie", "Toute", "Tout", "accord tout"),   # ⭐ liste n° 101
     ("Je suis content que tu viennes", "viennes", "viens", "subjonctif à vérifier"),   # ⭐ liste n° 99
     ("Elle a résolu le problème", "résolu", "résout", "participe après avoir"),   # ⭐ liste n° 96
     ("Toi et moi sommes amis depuis longtemps", "sommes", "somme", "accord sujet-verbe"),   # ⭐ liste n° 89

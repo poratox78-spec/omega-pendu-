@@ -142,7 +142,8 @@ def _check():
     vig = [("Elle a appris la langue des sines à l'école", "sines", "signes"), ("Voici mes chansons préférrées.", "préférrées", "préférées"),
            ("Loin de sonn corps", "sonn", "son"), ("Il parle de sonn temps libre", "sonn", "son"),
            ("La robe est mois chere", "chere", "chère"), ("Un film tèrs long", "tèrs", "très")]   # jugé sur correct_tiered : suggestion du SPELLER, vigilance comprise (correct() ne voit que la grammaire)
-    vig += [("Flue de données", "Flue", "Flux"), ("Le flue continu de la rivière", "flue", "flux"), ("Un gros flue de visiteurs", "flue", "flux")]   # ⭐ liste n° 35
+    vig += [("Les lignés du cahier sont bleues", "lignés", "lignes")]   # ⭐ liste n° 35 (« flue » est aussi un nom depuis la liste n° 108 : exemple remplacé)
+    vig += [("Un groupe de soldas arrive au camp", "soldas", "soldats"), ("Une maison carée au bord du lac", "carée", "carrée")]   # ⭐ liste n° 108 : même son, à sa place
     nofp += ["La pomme qu'elle a mangée était bonne.", "Ils ne nous ont pas informées.", "Elle a été nommée."]   # ⭐ ligne 38 : antécédent, COD nous, passif
     vig += [("Elle a mangeé une pomme", "mangeé", "mangé"), ("Il a mangeèt hier", "mangeèt", "mangé")]   # ⭐ ligne 38 : pas d'accord avec le sujet après avoir
     vig += [("Il a ttreize ans", "ttreize", "treize"), ("Elle a treizze ans", "treizze", "treize"), ("Je vais empployer ce mot", "empployer", "employer"),
