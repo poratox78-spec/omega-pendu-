@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-10-18 — voie B : l'oreille apprise refaite sur le code du jour — le gain venait du g2p, pas de la table
+
+- Rem (paraphrase) : feu vert pour la saisie vocale, qui a progressé récemment ; vérifier que les entraînements suivent.
+- L'oreille (`asr_oreille.json`, 27/09) prête aux mots inconnus de l'index le son du g2p de `decompose.py`, relu le 16/10
+  (52,4 → 81,15 % exact held-out). Mesuré sur les sons déjà entendus (banc du labo, 250 extraits VoxPopuli + registre parlé +
+  voix de Rem ; mêmes moitiés B jamais apprises) : code du 27/09 (chiffres du 27/09) 75,1 % · 80,6 % · 48 · 30 ; code du 09/10 75,9 % · 81,3 % ;
+  code du jour, oreille du 27/09 : 76,0 % · 81,3 % · 48/53 · 30/53 ; code du jour, oreille refaite (`build_asr_oreille.py`,
+  GPU 14 s, 3 passes d'EM) : 76,0 % · 81,6 % · 48/53 · 30/53. Le ré-entraînement n'apporte que 3 mots sur 1 002 (parlé) ; il
+  est adopté parce que la table correspond de nouveau à sa recette sur le code du jour (`--check` local : écart maximal 5,6 avant).
+- Chiffres du décomposeur remis au jour : `dictee/README.md` affichait encore 52,4 % / 89,5 % ; le rapport garde l'historique et
+  dit le chiffre actuel (81,15 % / 96,40 %).
+
+---
+
 ## 2026-10-13 — mémoire 2 : le dictionnaire d'orthographe rangé compact (191 → 68 Mo), zéro perte vérifiée
 
 - Rem (paraphrase) : bug ou utile, ces 191 Mo ? Réduis-les — le pire serait des pertes : des gardes partout.

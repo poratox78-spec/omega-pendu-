@@ -14,6 +14,9 @@ modèle acoustique (torch + transformers, GPU si disponible).
 
 Ce que la table a appris (27/09) : « 8 » (/ɥ/) est entendu « y » 88 % du temps — le modèle n'a PAS ce symbole ;
 le schwa se perd 45 % du temps ; ø → ə 32 %, œ → ø 24 %, ɛ̃ → œ̃ 20 %, o → ɔ 20 %, liaisons (z, t ajoutés).
+Refaite le 18/10/2026 sur le code du jour (le son de référence des mots inconnus de l'index vient du g2p, relu le 16/10) ;
+mesurée sur les mêmes sons entendus : Parlement B 76,0 % (inchangé), parlé B 81,3 → 81,6 %, voix de Rem 48/53 et 30/53
+bruitée (inchangées). Le gain de l'été au code du jour (75,1 → 76,0 % ; 80,6 → 81,3 %) vient du code, pas de la table.
 
     python dictee/build_asr_oreille.py            # écrit dictee/asr_oreille.json
     python dictee/build_asr_oreille.py --check    # refait la table et la compare à celle du dépôt
