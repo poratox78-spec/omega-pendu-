@@ -13,6 +13,7 @@ LEX = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 # Frontières de proposition pour l'ANCRE DE GENRE du contexte : un relatif/conjonction entre le déterminant et
 # le mot fautif = autre proposition (« un chien qui aboit »), le genre ne traverse pas. Miroir JS : SCTX_STOP.
 CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme'.split())
+_INV_S108 = set('abus amas anis apex avis bas bis borax bris bus cabas cas codex colis cours dais dos entrelacs faux fax fils fois fonds frais gris haras héros huis inclus index jars laps las lis lux maquis mas mois palis palus pas pis pois poix pus quartz ras rassis reclus relais roux sas semis sens silex six tas taux thermos tréfonds tétras vernis vers vis'.split())   # ⭐ liste n° 108 — miroir JS _INV_S108
 _RV_DET = set('le la les l un une des du au aux ce cet cette ces mon ma mes ton ta tes son sa ses notre votre leur nos vos leurs quel quelle quels quelles chaque plusieurs quelques'.split())   # ⭐ liste n° 35 : place de nom à gauche — miroir JS _RV_DET
 _RV_LATIN = set('taxa corpora genera data strata errata addenda desiderata curricula media minima maxima'.split())   # ⭐ liste n° 35 : pluriels latins écrits comme noms — miroir JS _RV_LATIN
 _SCTX_NOG = set('les des ces mes tes ses nos vos leurs leur notre votre aux plusieurs quelques chaque'.split())   # ⭐ liste n° 33 : déterminants sans genre (du/au exclus : masculins) — miroir JS _SCTX_NOG
@@ -200,7 +201,7 @@ def load_lexicon():
     _HERE = os.path.dirname(os.path.abspath(__file__))
     # SPELLER_EXTRA=0 : base Lexique4 seule (instrument d'A/B : mesurer ce qu'un lot d'ajouts CHANGE, pas seulement ce qu'il apporte)
     _EXTRA = os.environ.get('SPELLER_EXTRA', '1') != '0'
-    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
+    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
     _H = None
     for _src in _SRC:
       with (gzip.open(_src, 'rt', encoding='utf-8') if _src.endswith('.gz') else open(_src, encoding='utf-8')) as f:   # le lot VER est commite gzippe (26,5 Mo en clair)
@@ -608,11 +609,163 @@ class Speller:
         singulier et au pluriel (noix, voix, prix, temps, heureux) => compatible avec un déterminant SINGULIER."""
         w = x.lower()
         if not w.endswith(('s', 'x', 'z')): return False
+        if w in _INV_S108: return True   # ⭐ liste n° 108 : invariables dont le radical est aussi un mot (fois/foi, mois, cas…) — miroir JS
         st = w[:-1]
         if st in self.WORDS and any(c in 'NA' for c in self.POS.get(st, ())): return False   # le radical est lui-même N/A => la forme EST un pluriel (chats/chat, bijoux/bijou)
         if w.endswith('aux') and (w[:-3] + 'al') in self.WORDS: return False                 # pluriel en -aux d'un nom en -al (journaux/journal)
         if w in ('yeux', 'cieux', 'aieux', 'æieux', 'aïeux'): return False           # pluriels irréguliers (radical introuvable)
         return True
+
+    _SUB108 = set("qui que dont où quand lorsque si comme puisque quoique je tu il elle on nous vous ils elles ça ce cela ceci".split())
+    _NXSTOP108 = {'puis', 'vaille', 'soit'}
+    _PREP108 = set('de d du des à au aux en par pour sur sans avec sous chez entre vers dans'.split())
+    _AV108 = set('ai as a avons avez ont avais avait avions aviez avaient eus eut eûmes eûtes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient avoir eu'.split())   # après avoir (sans COD connu) : participe au masculin singulier — miroir JS
+    _AUX108 = set('suis es est sommes êtes sont étais était étions étiez étaient fus fut fûmes fûtes furent serai seras sera serons serez seront '
+                   'serais serait serions seriez seraient sois soit soyons soyez soient être été '
+                   'ai as a avons avez ont avais avait avions aviez avaient eus eut eûmes eûtes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient avoir eu'.split())   # être et avoir — miroir JS _AUX108
+    # terminaisons du 1er groupe : lectures de REPLI quand la table n'a pas la case — miroir JS _FIN108 (même ordre)
+    _FIN108 = (('èrent', 'ind:pas', '3p'), ('eraient', 'cnd:pre', '3p'), ('erais', 'cnd:pre', '1s'), ('erais', 'cnd:pre', '2s'), ('erait', 'cnd:pre', '3s'),
+               ('eront', 'ind:fut', '3p'), ('erai', 'ind:fut', '1s'), ('eras', 'ind:fut', '2s'), ('era', 'ind:fut', '3s'), ('aient', 'ind:imp', '3p'),
+               ('ais', 'ind:imp', '1s'), ('ais', 'ind:imp', '2s'), ('ait', 'ind:imp', '3s'), ('ent', 'ind:pre', '3p'), ('es', 'ind:pre', '2s'),
+               ('es', 'sub:pre', '2s'), ('ai', 'ind:pas', '1s'), ('as', 'ind:pas', '2s'), ('a', 'ind:pas', '3s'), ('e', 'ind:pre', '1s'), ('e', 'ind:pre', '3s'))
+
+    @staticmethod
+    def _rdx108(w):
+        C = _cpm()
+        def _exact(x):   # la clé de la table est SANS accent : « édictés » (participe) n'est pas « édictes » — la forme exacte décide
+            f = ((C.CONJ_C.get(x[0]) or {}).get(x[1]) or {}).get(x[2] + x[3])
+            return (w in f) if isinstance(f, list) else f == w
+        return [x for x in C._reads(w) if _exact(x)]
+
+    def _rd108(self, low):
+        C = _cpm(); r = self._rdx108(low)
+        if r: return r
+        r = []
+        for f, t, pn in self._FIN108:
+            if len(low) > len(f) + 2 and low.endswith(f):
+                lem = deacc(low[:-len(f)]) + 'er'
+                if lem in C.CONJ_C and not (C.CONJ_C[lem].get(t) or {}).get(pn): r.append((lem, t, pn[0], pn[1]))   # case VIDE seulement
+        return r
+
+    @staticmethod
+    def _pp_sans108(d):
+        P = _cpm()._PP_SANS_COD
+        if d in P: return True
+        m = re.match(r'^(.+?)(e|es|s)$', d)
+        return bool(m and m.group(1) in P)
+
+    def _ctx108(self, low, T, idx):
+        """⭐ 18/10/2026 (liste n° 108) — décalque de `_ctx108` (dys-core.js, miroir app). Une forme verbale rare et JUSTE est au
+        dictionnaire ; quatre faits du français rattrapent la confusion qu'elle pourrait cacher (orange) :
+        ① 2e personne du singulier sans « tu »/« toi » dans la proposition → participe du même verbe ;
+        ② nom + forme conjuguée rare + « qui » → participe du même verbe, accordé au nom ;
+        ③ « été » + participe d'un verbe sans COD → participe fréquent à une lettre ;
+        ④ forme conjuguée rare collée à un verbe conjugué, hors relative ou subordonnée → nom ou adjectif à une lettre."""
+        C = _cpm(); rd = self._rd108(low); d = deacc(low)
+        bb = getattr(self, '_bb', None)
+        if bb is not None and len(bb) != len(T): bb = None
+        pv = T[idx - 1].lower() if idx > 0 else ''
+        nx = T[idx + 1].lower() if idx + 1 < len(T) else ''
+        pvw = re.sub(r"^[a-zà-ÿ]+'", '', pv)
+        if pvw and len(pvw) > 1 and pvw not in self.WORDS and pvw not in self._AUX108: return None   # mot d'avant inconnu : passage en langue étrangère — on se tait (miroir JS)
+        el108 = re.match(r"^([a-zà-ÿ]+)'", T[idx].lower())
+        if el108:                                                     # « s'ébroua » (pronom) se tait ; « d'amoure », « l'X » : place de nom
+            if el108.group(1) not in ('d', 'l'): return None
+            pv = el108.group(1) + "'"; pvw = ''
+        bA = (not el108) and bool(bb and bb[idx]); bN = bool(bb and idx + 1 < len(bb) and bb[idx + 1])   # ponctuation de l'auteur avant / après la forme
+
+        def noun108():
+            for j in range(idx - 1, max(0, idx - 3) - 1, -1):
+                if bb and bb[j + 1]: return None
+                w = T[j].lower()
+                if 'N' in self.POS.get(w, ()) and deacc(w) not in _RV_DET and w not in C.CLITIC: return w
+            return None
+
+        def part108(lem):
+            if not lem.endswith('er'): return None
+            sd = lem[:-2]; fin = ('é', 'ée', 'és', 'ées'); fd = ('e', 'ee', 'es', 'ees'); cs = []
+            for f, _t, _p in self._FIN108:
+                if low.endswith(f) and deacc(low[:-len(f)]) == sd:
+                    cs += [(low[:-len(f)] + fin[j], j) for j in range(4)]; break
+            for j in range(4):
+                for x in (self.D2A.get(sd + fd[j]) or ()):
+                    if x.endswith(fin[j]): cs.append((x, j))
+            n = noun108(); g = self._gender(n) if n else None
+            pl = (n[-1:] in ('s', 'x') and not self._invar_s(n)) if n else None
+            r, rs = None, -1e9
+            av = pvw in self._AV108 and any(j == 0 and x != low and x in self.WORDS for x, j in cs)
+            for cc, jj in cs:
+                if cc == low or cc not in self.WORDS or (av and jj != 0): continue
+                sc = -10 * C._lev(low, cc)
+                if n:
+                    if g and (g == 'f') == (jj % 2 == 1): sc += 2
+                    if pl is not None and pl == (jj >= 2): sc += 2
+                sc += min(1, self.FREQ.get(cc, 0.0) / 100)
+                if sc > rs: rs, r = sc, cc
+            return r
+
+        if (rd and not bA and nx != 'tu' and not (low.endswith('es') and 'V' in self.POS.get(low[:-2], ()))   # « décuites » : participe féminin pluriel
+                and ((C._noun_gate_n(pvw) and deacc(pvw) not in _RV_DET and pvw not in C.CLITIC and pvw not in self._SUB108) or pvw in self._AUX108)):
+            if all(x[2] == '2' and x[3] == 's' for x in rd):
+                tu = False
+                for k in range(idx - 1, max(0, idx - 6) - 1, -1):
+                    if bb and bb[k + 1]: break
+                    a = T[k].lower()
+                    if a in ('tu', 'toi') or a.startswith("t'"): tu = True; break
+                if not tu:
+                    c = part108(rd[0][0])
+                    if c: return c
+        if rd and nx == 'qui' and not bN and not bA and pvw and C._noun_gate_n(pvw) and deacc(pvw) not in _RV_DET and pvw not in C.CLITIC and pvw not in self._SUB108:
+            c = part108(rd[0][0])
+            if c: return c
+        best, bs = None, -1e18
+        if pv in ('été', 'ete'):
+            pe = re.search(r'(ée|ées|és|é|ie|ies|is|i|ue|ues|us|u)$', low)
+            if pe and self._pp_sans108(d):
+                pe = pe.group(1)
+                for e in edits1(d):
+                    for c in (self.D2A.get(e) or ()):
+                        cf = self.FREQ.get(c, 0.0)
+                        if (c == low or cf < 1 or 'V' not in self.POS.get(c, ()) or not c.endswith(pe) or self._rdx108(c)
+                                or self._pp_sans108(deacc(c))): continue
+                        sc = cf
+                        if sc > bs: bs, best = sc, c
+                if best: return best
+        if (rd and idx > 0 and nx and not bN and not bA and nx not in self._NXSTOP108 and ''.join(sorted(self.POS.get(nx, ()))) == 'V' and self._rdx108(nx)
+                and self.FREQ.get(nx, 0.0) >= 0.01 and re.sub(r"'$", '', deacc(pv)) not in _RV_DET and pv not in C.CLITIC):
+            sub = False
+            for k in range(idx - 1, max(0, idx - 6) - 1, -1):
+                if bb and bb[k + 1]: break
+                a = T[k].lower()
+                if a in self._SUB108 or re.match(r"^(qu|lorsqu|puisqu|quoiqu|j|s|c|n|m|t)'", a): sub = True; break
+            if not sub:
+                for e in list(edits1(d)) + [d]:
+                    for c in (self.D2A.get(e) or ()):
+                        f2 = self.FREQ.get(c, 0.0)
+                        if c == low or f2 < 1 or not any(x in self.POS.get(c, ()) for x in 'NA'): continue
+                        sc = ((2 if deacc(c) == d else 0) + (1 if c[:1] == low[:1] else 0)) * 1e6 + f2
+                        if sc > bs: bs, best = sc, c
+                if best: return best
+        # ⑤ la forme SONNE comme un nom / adjectif fréquent à une lettre, à SA place (nom après déterminant ou préposition ; adjectif
+        # juste après un nom) — « un groupe de soldas » → soldats, « une maison carée » → carrée. Miroir JS.
+        pvd = re.sub(r"'$", '', deacc(pv))
+        need = 'N' if (pvd in _RV_DET or pvd in self._PREP108) else ('A' if (pvw and not bA and C._noun_gate_n(pvw) and pvw not in C.CLITIC) else None)
+        if need == 'N' and pv in ('de', "d'") and idx > 1 and T[idx - 2].lower() in ('rien', 'chose', 'personne', 'quoi'): need = None   # « rien de celé » : adjectif
+        if need and pv in ('le', 'la', 'les', "l'") and idx > 1:
+            p2 = T[idx - 2].lower()
+            if p2 in C._COD_SUBJ or p2 in C.CLITIC or C._noun_gate_n(p2): need = None   # « le » pronom devant un verbe
+        if need and not bA:
+            k5 = _son_key(low); b5, f5 = None, 0.0; L5 = {x[0] for x in rd}
+            if k5:
+                for e in list(edits1(d)) + [d]:
+                    for c in (self.D2A.get(e) or ()):
+                        c5 = self.FREQ.get(c, 0.0)
+                        s5 = (1e9 if c[-2:] == low[-2:] else 0) + c5   # la terminaison gardée d'abord (« carée » → carrée)
+                        if c == low or c5 < 1 or s5 <= f5 or need not in self.POS.get(c, ()) or _son_key(c) != k5: continue
+                        if any(x[0] in L5 for x in self._rdx108(c)): continue
+                        b5, f5 = c, s5
+            if b5: return b5
+        return None
 
     def _gender(self, w):
         """genre d'un candidat accentué : adjectif (paire) SI c'est un adjectif, sinon nom. None si inconnu.
@@ -914,9 +1067,14 @@ class Speller:
         # ⭐ 15/10/2026 (liste n° 35) — forme verbale rarissime à une place de nom (« flue de données » → flux) — miroir JS
         if ((tok == low or at_start) and len(low) >= 4 and low in self.WORDS and low not in _RV_LATIN and ''.join(sorted(self.POS.get(low, ()))) == 'V'
                 and self.FREQ.get(low, 0.0) < 0.01 and not re.search(r'(er|ir|re|oir)$', low) and toks is not None and idx is not None):
-            _pvL = deacc(toks[idx - 1].lower()).rstrip("'’") if idx > 0 else ''
+            _pvL = 'l' if re.match(u"^l['’]", toks[idx], re.I) else (deacc(toks[idx - 1].lower()).rstrip("'’") if idx > 0 else '')   # ⭐ liste n° 108 : l'article élidé collé (« l'articla ») — miroir JS
             _nxL = deacc(toks[idx + 1].lower()) if idx + 1 < len(toks) else ''
             _nx2 = toks[idx + 2].lower() if idx + 2 < len(toks) else ''
+            _j2 = idx - 1 if re.match(u"^l['’]", toks[idx], re.I) else idx - 2
+            _p2L = toks[_j2].lower() if _j2 >= 0 else ''; _p3L = deacc(toks[_j2 - 1].lower()) if _j2 > 0 else ''
+            if (_pvL in _RV_DET and _pvL in ('le', 'la', 'les', 'l') and _p2L
+                    and (_p2L in _cpm()._COD_SUBJ or _p2L in _cpm().CLITIC or (_cpm()._noun_gate_n(_p2L) and _p3L in _RV_DET))):
+                _pvL = ''   # ⭐ liste n° 108 : « le » pronom devant un verbe (« les soucis le poignent ») — miroir JS
             if _pvL in _RV_DET or (_nxL in ('de', 'du', 'des', 'd', "d'") and _nx2 and _nx2 in self.WORDS and 'N' in self.POS.get(_nx2, ())
                                    and deacc(_nx2) not in _RV_DET and _nx2 not in ('ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous')):   # « de la » : « la » n'est pas le nom (la note)
                 _dL = deacc(low); _bn, _bs, _bf = None, -1, 0.0   # même squelette d'abord (lignés → lignes), puis même initiale, puis fréquence — comme le tri du speller
@@ -930,6 +1088,11 @@ class Speller:
                         _sc = (2 if deacc(_c) == _dL else 0) + (1 if _c[:1] == low[:1] else 0)
                         if _sc > _bs or (_sc == _bs and _cf > _bf): _bn, _bs, _bf = _c, _sc, _cf
                 if _bn: return ('vigilance', (_bn[:1].upper() + _bn[1:]) if tok[:1].isupper() else _bn)
+        # ⭐ 18/10/2026 (liste n° 108) — forme verbale rare et JUSTE (au dictionnaire) : la confusion se rattrape par le CONTEXTE — miroir JS _ctx108
+        if (tok == low and len(low) >= 4 and low in self.WORDS and low not in _RV_LATIN and ''.join(sorted(self.POS.get(low, ()))) == 'V'
+                and self.FREQ.get(low, 0.0) < 0.01 and toks is not None and idx is not None):
+            _r108 = self._ctx108(low, toks, idx)
+            if _r108: return ('vigilance', (_r108[:1].upper() + _r108[1:]) if tok[:1].isupper() else _r108)
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — miroir JS
         if low in self.PRENOMS_L: return None
@@ -938,7 +1101,7 @@ class Speller:
         # (« aporté »→apporté, couche DC) ; un VRAI verbe à une édition et de même son prime aussi (« aboit » = aboie, pas « a boit »).
         if low[:1] in ('à', 'a') and len(low) >= 3:
             rsd = low[1:]
-            if (rsd in self.WORDS and 'V' in self.POS.get(rsd, ()) and not rsd.endswith(('er', 're', 'ir'))
+            if (rsd in self.WORDS and 'V' in self.POS.get(rsd, ()) and self.FREQ.get(rsd, 0) > 0 and not rsd.endswith(('er', 're', 'ir'))   # ⭐ liste n° 108 — miroir JS
                     and (low[0] + low[1] + low[1:]) not in self.WORDS and not self._homophone_edit1(low)):
                 return ('vigilance', 'a ' + rsd)
         if low in SPELL_KEEP: return None      # mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ni corrigé ni signalé (miroir JS _SPELL_KEEP, même position : après prénom, avant nom-propre)
@@ -1554,7 +1717,7 @@ class Speller:
         """-> None | '' (souligné sans suggestion) | suggestion (orange AU CLIC, jamais appliquée)."""
         low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')
         if len(low) < 3 or not all(deacc(c) in ALPHA for c in low): return None
-        if low in self.WORDS or deacc(low) in self.WORDS: return None       # mot connu (ou connu sans accents)
+        if low in self.WORDS or (deacc(low) in self.WORDS and (low == deacc(low) or self.FREQ.get(deacc(low), 0.0) > 0)): return None   # mot connu (ou connu sans accents) — ⭐ liste n° 108 : une forme « connue seulement » (fréquence 0) ne fait pas taire un mot mal accentué — miroir JS
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) — miroir JS
         if low == 'ête': return None            # réservé à la règle grammaire (rEteEtre) — miroir du court-circuit spellText
         if low in SPELL_KEEP: return None       # mot anglais fréquent / résidu d'ordinal → ni corrigé ni signalé
@@ -1635,6 +1798,8 @@ class Speller:
         self._debs = {k for k in range(len(ms)) if k == 0 or re.search(u'[.!?…]', text[ms[k - 1].end():ms[k].start()]) or '\n' in text[ms[k - 1].end():ms[k].start()]}   # ⭐ 14/10/2026 (liste n° 22) : mots d'un courriel / lien / domaine — miroir JS
         # ⭐ 16/10/2026 (liste n° 43) : trait d'union COLLÉ entre deux jetons (hyt[k] : l'écart avant le jeton k est exactement « - ») — miroir _SEG.hyt
         _hyt = [False] + [text[ms[k - 1].end():ms[k].start()] == '-' for k in range(1, len(ms))]
+        # ⭐ liste n° 108 : ponctuation de l'auteur avant chaque jeton — miroir JS _SEG.bb
+        self._bb = [bool(re.search(u'[.!?…,;:()«»"–—\n]', text[(ms[k - 1].end() if k else 0):ms[k].start()])) for k in range(len(ms))]
         for i, m in enumerate(ms):
             if i in _couv: continue
             if any(a <= m.start() < b for (a, b) in _usp): continue

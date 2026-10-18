@@ -32,7 +32,7 @@ for (const ln of txt.split('\n')) { if (!ln) continue; const pr = ln.split('\t')
 // (aimè, donnè… : le correcteur se taisait dessus) — sauf burkinabè. Le banc reproduit ce retrait et vérifie que lui seul a changé : ces formes, aucune autre.
 const RETIRES = [...WORDS].filter((w) => w.endsWith('è') && WORDS.has(w.slice(0, -1) + 'é') && w !== 'burkinabè');
 for (const w of RETIRES) { WORDS.delete(w); const d = deaccS(w); if (D2A[d]) { D2A[d] = D2A[d].filter((x) => x !== w); if (!D2A[d].length) delete D2A[d]; } delete FREQ[w]; delete POS[w]; }
-if (RETIRES.length !== 87) ech('⑤ ' + RETIRES.length + ' coquilles en « -è » retirées, 87 attendues (relevé du 15/10/2026)');
+if (RETIRES.length !== 88) ech('⑤ ' + RETIRES.length + ' coquilles en « -è » retirées, 88 attendues (relevé du 15/10/2026 ; +1 le 18/10, liste n° 108 : « gravillonné » entré, son jumeau « gravillonnè » est retiré)');
 for (const w of RETIRES) if (L.W(w)) ech('⑤ « ' + w + ' » : coquille en « -è », encore connue du moteur');
 if (!L.W('burkinabè')) ech('⑤ « burkinabè » (vrai mot) n\'est plus connu');
 // ⭐ 17/10/2026 (liste n° 52) — RETRAIT VOULU : coquilles entrées dans le lexique (avie, jammais, commant…), liste lue dans dys-core (_LEX_COQ52).

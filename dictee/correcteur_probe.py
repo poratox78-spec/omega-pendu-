@@ -4009,6 +4009,8 @@ def rule_accord_sv_noun(T, i):
     un 2e GN non prépositionnel → abstention (autre structure)."""
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
     if _nom_appose(T, i): return None                                  # ⭐ 14/10/2026 (liste n° 20) : « les pages produit » — miroir JS
+    if (i > 0 and len(T[i]) >= 2 and T[i][:1] != T[i][:1].lower() and T[i][1:] == T[i][1:].lower() and T[i - 1] == T[i - 1].lower()
+            and not (_SEG and len(_SEG['ss']) == len(T) and _SEG['ss'][i])): return None   # ⭐ liste n° 108 : majuscule en milieu de phrase = nom propre (« des monts Bissa ») — miroir JS
     if deacc(T[i].lower()) == 'a' and i + 1 < len(T):                   # « a » + ARTICLE DÉFINI (la/le/les/l') → la préposition « à » est trop plausible (« les enfants a la maison / a l'école » = « à la/à l' », locatif) → a→ont S'ABSTIENT (ambigu). L'INDÉFINI (une/un/des) reste → possession (« ont une pomme »).
         _dn = deacc(T[i + 1].lower())
         if _dn in ('la', 'le', 'les') or _dn[:2] == "l'": return None
