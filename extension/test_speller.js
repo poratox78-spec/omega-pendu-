@@ -520,9 +520,12 @@ function testListe34() {
 // ⭐ liste n° 108 : l'exemple fondateur « flue » est AUSSI un nom (Morphalou, deux sources) — le dictionnaire a maintenant cette nature,
 // et la règle ne vise que les mots qui ne sont QUE des verbes. L'étendre aux mots nom + verbe a été mesuré : 413 tirs sur 700 000 lignes
 // de français juste (taxons, trayons, estive…) — refusé. « flue » pour « flux » ne se rattrape donc plus que si le contexte le dit.
+// ⭐ liste n° 114 : le contexte le dit par le GENRE — « flue » nom est féminin (Morphalou et Wiktionnaire d'accord, build_nv_genre.py) :
+// « le flue » ne peut pas être ce nom → flux ; « la flue » reste muet.
 function testListe35() {
   for (const [t, w, s] of [['Les lignés du cahier sont bleues.', 'lignés', 'lignes'], ['Le prix des minerait monte vite.', 'minerait', 'minerais'],
-      ['Le temps flue lentement.', 'flue', null], ['Un flux de données.', 'flux', null]]) {
+      ['Le temps flue lentement.', 'flue', null], ['Un flux de données.', 'flux', null],
+      ['Le flue de données sature le réseau.', 'flue', 'flux'], ['La flue sèche au soleil.', 'flue', null]]) {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance')) fail.push('liste n° 35 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }

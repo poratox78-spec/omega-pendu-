@@ -227,6 +227,7 @@ run "lot de la table de conjugaison du speller : TSV commité bien formé et câ
 run "lot des formes verbales justes du speller : TSV commité bien formé et câblé (avouions, écoutas ; intailles nom)" python3 dictee/build_ver_justes_lex.py --check
 run "lot des graphies rectifiées de 1990 du speller : TSV commité bien formé et câblé (apparait, coute, cèderai ; fimes hors du lot)" python3 dictee/build_rect90_lex.py --check
 run "lot des noms et adjectifs justes du speller : TSV commité bien formé et câblé (charismes, antiennes, capuce, componée ; developpement hors du lot)" python3 dictee/build_na_justes_lex.py --check
+run "genre des formes rares nom + verbe : JSON commité == ligne _G114 des 2 moteurs JS, formes toujours rares (flue f)" python3 dictee/build_nv_genre.py --check
 run "extrait Wiktionnaire du speller : TSV commité bien formé, sans doublon" python3 dictee/build_wikt_lex.py --check
 run "lot MÉTIER du speller (liste curée) : TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole)" python3 dictee/build_metier_lex.py --check
 run "paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise)" python3 build_lexiques.py --check
