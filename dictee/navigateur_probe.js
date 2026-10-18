@@ -981,6 +981,8 @@ async function main() {
       bd.click(); await attendre(400);
       const brp = document.getElementById('vdd-repere'); if (!brp) return { fatal: 'bouton 🎯 absent' };
       brp.click(); await attendre(400);
+      // 18/10/2026 : le mode charge lui-même le dictionnaire (« ⏳ Chargement du dictionnaire… ») — on attend la phrase
+      for (let t = 0; t < 80 && document.querySelectorAll('.vdd-rmot').length < 3; t++) await attendre(250);
       const mots = document.querySelectorAll('.vdd-rmot');
       if (mots.length < 3) return { fatal: 'phrase non affichée (' + mots.length + ' mots)' };
       mots[0].click(); await attendre(400);
@@ -1008,6 +1010,7 @@ async function main() {
       const attendre = (ms) => new Promise(r => setTimeout(r, ms));
       const bc = document.getElementById('vdd-conj'); if (!bc) return { fatal: 'bouton ✍️ absent' };
       bc.click(); await attendre(500);
+      for (let t = 0; t < 80 && !document.getElementById('vdd-cin'); t++) await attendre(250);   // conjugaisons + étiqueteur (18/10)
       const inp = document.getElementById('vdd-cin');
       if (!inp) return { fatal: 'trou de conjugaison non affiché' };
       inp.value = 'zzzz';
