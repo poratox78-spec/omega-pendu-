@@ -727,6 +727,7 @@ function testListe108() {   // liste n° 108 : les formes verbales JUSTES sont a
       ['Encore une fouis, il a gagné.', 'fouis', 'fois'],                                                      // « fois » invariable (pas le pluriel de « foi »)
       ['Un groupe de soldas arrive au camp.', 'soldas', 'soldats'], ["Elle rêve d'amoure toute la nuit.", "d'amoure", "d'amour"],   // ⑤ même son, place de nom
       ['Une maison carée au bord du lac.', 'carée', 'carrée'],                                                 // ⑤ même son, place d'adjectif
+      ["Il lit l'articla avec soin.", "l'articla", "l'article"],                                             // règle 35 : l'article élidé collé au mot
       ['Le chiffre est minorè.', 'minorè', '*'],                                                               // mal accentué : jamais muet
       // témoins : rien — les formes justes, et les contextes où la règle se tait
       ['Nous avouions notre erreur.', 'avouions', null], ['Tu écoutas la radio.', 'écoutas', null], ['Je gâchai tout.', 'gâchai', null],
@@ -735,7 +736,7 @@ function testListe108() {   // liste n° 108 : les formes verbales JUSTES sont a
       ['Ces confitures se sont décuites.', 'décuites', null], ['Il se réfère aux principes édictés par la loi.', 'édictés', null],
       ['Les chiens que leurs maîtres rudoient mordent souvent.', 'rudoient', null],
       ['Les bergers des monts Bissa de la région sont partis.', 'Bissa', null], ['Les soucis le poignent chaque nuit.', 'poignent', null],
-      ['Les feuilles ont brui doucement.', 'brui', null], ['Il pansait les plaies du soldat.', 'pansait', null], ["Il s'ébroua dans l'eau froide.", "s'ébroua", null]]) {
+      ['Les feuilles ont brui doucement.', 'brui', null], ['Il pansait les plaies du soldat.', 'pansait', null], ["Il s'ébroua dans l'eau froide.", "s'ébroua", null], ["Il l'articla avec soin.", "l'articla", null]]) {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     const ok = s === null ? !f : s === '*' ? !!f : (!!f && f.sugg === s && f.tier === 'vigilance');
     if (!ok) fail.push('ligne 108 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s === '*' ? 'une marque' : s + ' en vigilance') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
@@ -786,6 +787,22 @@ function testListe59() {   // liste n° 59 : sujet nominal féminin + « c'est �
     const f = DC.diagnoseAll(t).flags.find(x => x.word.toLowerCase() === "c'est");
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
       fail.push('ligne 59 « ' + t + ' » : attendu ' + (s ? s + ' en ' + tier : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
+function testListe100() {   // lignes 100, 101, 104 (8e tour) : « Chaque élève a » (rouge faux), « Tout la classe », « Tous les filles », « Ce arbre »
+  for (const [t, w, s] of [['Chaque élève a un livre.', 'a', null], ['Tout la classe est partie.', 'Tout', 'Toute'], ['Tous les filles chantent.', 'Tous', 'Toutes'], ['Ce arbre est grand.', 'Ce', 'Cet'],
+      // témoins
+      ['Il mange a la cantine.', 'a', 'à'], ['Ils voient tous les filles.', 'tous', null], ['Cet arbre est grand.', 'Cet', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 100-104 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
+function testListe97() {   // lignes 97-99 (7e tour) : « je n'ai rien vue », « que j'ai vu sont », « content que tu viens »
+  for (const [t, w, s] of [["Je n'ai rien vue de la soirée.", 'vue', 'vu'], ["Les films que j'ai vu sont longs.", 'vu', 'vus'], ['Je suis content que tu viens.', 'viens', 'viennes'],
+      // témoins : rien
+      ["Je n'ai rien vu de la soirée.", 'vu', null], ["Les enfants que j'ai vu jouer étaient contents.", 'vu', null], ['Je suis sûr que tu viens.', 'viens', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 97-99 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
 function testListe36() {
   if (typeof _DECL2 === 'undefined' || !_DECL2.g2p) fail.push('liste n° 36 : assets/g2p.js non chargé sous Node — la règle du son serait muette et ce banc vert par omission');
@@ -854,9 +871,11 @@ function finish(parityKO) {
   testListe85();
   testListe87();
   testListe108();
+  testListe100();
   testListe92();
   testListe91();
   testListe88();
+  testListe97();
   testListe59();
   testListe52();
   testListe64();

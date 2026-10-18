@@ -558,7 +558,7 @@
      celle d'en bas ; les déterminants pluriels de plus ont leur propre table, _PL_DET_X, lue par les seules règles mesurées avec elle. */
   var VSTOP={};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du','lui'].forEach(function(w){VSTOP[w]=1;});   /* 'lui' (12/09/2026) : VERB_LEX le connaît (luire) → « lui a donner »→à, casse — miroir Python VLIKE_STOP */Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
   function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;if(!COMMON_VERBS[w])return false;
-    if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||{du:1,au:1,aux:1}[T[i-1].toLowerCase()])){   /* du/au/aux (12/09/2026) : contractions = déterminants, « du conseille a permis » ne lit plus un verbe — miroir Python */                                          // « le porte » reste un NOM…
+    if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||{du:1,au:1,aux:1,chaque:1,aucun:1,aucune:1}[T[i-1].toLowerCase()])){   // ⭐ liste n° 100 : « Chaque élève a un livre » — après chaque / aucun, c'est un NOM (plus « a » → à en rouge)   /* du/au/aux (12/09/2026) : contractions = déterminants, « du conseille a permis » ne lit plus un verbe — miroir Python */                                          // « le porte » reste un NOM…
       // …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08, parité Python vlike). « Elle CE lance a chanter » : la
       // garde déterminant tue la lecture VERBALE, et la cascade suit — vlike(lance)=false → rA ne tranche
       // plus → la garde a/à de rEer ne tire pas → « chanter » devient « chanté », un mot JUSTE cassé.
@@ -2267,7 +2267,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(hi===i+1&&_PREFIX_NU[nd]&&i+2<T.length&&/^[a-zà-ÿœ]+$/.test(T[i+2])){var _kx2=deacc(T[i+2].toLowerCase()),_ppx=NOUN_POST&&(typeof NOUN_POST.get==='function'?NOUN_POST.get(_kx2):NOUN_POST[_kx2]);if(_ppx&&_ppx[0]>=PL_TAU_M){hi=i+2;_pp=_ppx;}}   // ⭐ liste n° 34 (a) : « la pré éclampsie » — le préfixe n'est pas le nom-tête
     if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;
     if(hi+1<T.length&&_PART_EN[deacc(T[hi+1].toLowerCase())]&&((_SEG&&_SEG.hy&&hi+1<_SEG.hy.length&&_SEG.hy[hi+1])||_PART_EN[deacc(T[hi+1].toLowerCase())]===2))return null;   // ⭐ 14/10/2026 (liste n° 21) : « une start-up », « un stand-up », « un check-in » — le genre du composé anglais ne vient pas de son 1er mot
-    var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];if(sg==='ce'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))sg='cet';return sg?ckeepcase(T[i],sg):null;}   // ⭐ liste n° 56 : devant voyelle ou h muet, « cet » (« Cette homme » proposait « Ce »)
+    var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd){if(lw==='ce'&&gn==='m'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))return ckeepcase(T[i],'cet');return null;}var sg=DET_A[lw+'|'+gn];if(sg==='ce'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))sg='cet';return sg?ckeepcase(T[i],sg):null;}   // ⭐ liste n° 56 : devant voyelle ou h muet, « cet » (« Cette homme » proposait « Ce ») ; ⭐ liste n° 104 : « ce arbre » → cet (genre juste, euphonie)
   var TOUT_EXTRA={avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
   var _TOUS_DETSG={le:1,la:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,se:1},_TOUS_PLANTE={ils:1,elles:1,nous:1,vous:1,les:1,leur:1,leurs:1,eux:1,ces:1,des:1,mes:1,tes:1,ses:1,nos:1,vos:1};   // ⭐ 13/09/2026 — « tous » → « tout » (miroir Python _tous_tout)
   function _tousTout(T,i){var nx=deacc(T[i+1].toLowerCase());if(!(_TOUS_DETSG[nx]||nx.slice(0,2)==="l'"))return null;if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;
@@ -2277,13 +2277,14 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(av.length&&(av[av.length-1]==='pendant'||av[av.length-1]==='durant'))return 'tout';
     if((nx==='ce'||nx==='se')&&i+2<T.length&&['que','qu','qui'].indexOf(deacc(T[i+2].toLowerCase()).split("'")[0])>=0){for(k=0;k<av.length;k++){if(['je','tu','il','elle','on'].indexOf(av[k])>=0||av[k].slice(0,2)==="j'")return 'tout';}}
     return null;}
-  function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw==='tous'&&i+1<T.length){var _tt=_tousTout(T,i);return _tt?ckeepcase(T[i],_tt):null;}if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
+  function _tousFem101(T,i){if(!(i===0||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i]))||i+2>=T.length)return false;if(NUM_DET[deacc(T[i+1].toLowerCase())]!=='pl')return false;if(_SEG&&_SEG.bb&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return false;if(T[i+2].indexOf("'")>=0)return false;var nd=deacc(T[i+2].toLowerCase()),pp=NOUN_POST&&NOUN_POST.get(nd);if(!(pp&&pp[0]>=PL_TAU_M))return false;var g=GENDER_PURE[nd];if(g===undefined)g=GENDER_MAP[nd];return g==='f';}   // ⭐ liste n° 101 : « Tous les filles » → toutes, en TÊTE de phrase seulement (ailleurs : pronom flottant possible)
+  function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw==='tous'&&i+1<T.length){var _tt=_tousTout(T,i);if(!_tt&&_tousFem101(T,i))_tt='toutes';return _tt?ckeepcase(T[i],_tt):null;}if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
     var num=NUM_DET[deacc(T[i+1].toLowerCase())];if(!num)return null;
     if(_SEG&&(i+1)<_SEG.bb.length&&_SEG.bb[i+1])return null;
     var p=cprev(T,i);if((PREP[p]&&num!=='pl')||NUM_DET[p]||TOUT_EXTRA[p])return null;   // ⭐ 30/09/2026 : « à tout les enfants » → tous — la préposition ne garde que le singulier (« à tout le monde ») ; miroir Python
     if(T[i+2].toLowerCase().indexOf("'")>=0)return null;
     var nd=deacc(T[i+2].toLowerCase());var pp=NOUN_POST&&NOUN_POST.get(nd);if(!(pp&&pp[0]>=PL_TAU_M))return null;
-    var g=GENDER_PURE[nd];if(g!=='m'&&g!=='f')return null;
+    var g=GENDER_PURE[nd];if(g===undefined)g=GENDER_MAP[nd];if(g!=='m'&&g!=='f')return null;   // ⭐ liste n° 101 : « tout la classe » — nom aussi verbe, absent du genre pur → table des noms
     var target=(num==='pl')?(g==='m'?'tous':'toutes'):(g==='m'?'tout':'toute');
     return target!==lw?ckeepcase(T[i],target):null;}
   // accord PLURIEL du NOM — MÊME logique que correcteur_probe.rule_noun_plural (parité). GARDE §3 = posterior P(POS|forme) en ‰ (asset noun-post).
@@ -3202,7 +3203,7 @@ function estQuestion(t,maxMots){
   function _qq(w){var d=deacc(String(w).toLowerCase());return d==='que'||d==='qu';}
   function rPpAvoirCod(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null){base=(IRR_PP[deacc(lw)]!==undefined?IRR_PP[deacc(lw)]:null);}if(base===null)return null;
-    if(PP_COD_STOP[deacc(base)]||PP_SANS_COD[deacc(base)])return null;if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;
+    if(PP_COD_STOP[deacc(base)]||PP_SANS_COD[deacc(base)])return null;if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())]&&_isInfinitive(T[i+1]))return null;   // ⭐ liste n° 98 : un vrai infinitif (« vu jouer »), pas un verbe conjugué (« que j'ai vu sont »)
     if(PP_INVAR_ALWAYS[deacc(base)])return null;                     // voulu/pu/dû → invariable
     if(i+1<T.length&&(T[i+1].toLowerCase()==='à'||deacc(T[i+1].toLowerCase())==='de'||deacc(T[i+1].toLowerCase())==="d'")&&i+2<T.length&&_isInfinitive(T[i+2]))return null;   // PP + à/de + INFINITIF → invariable
     var a=-1,aje=false,k;for(k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(AVOIR_AUX[dk]){a=k;break;}if(AVOIR_JE[tk]){a=k;aje=true;break;}if(PPMID[dk])continue;return null;}
@@ -4013,7 +4014,7 @@ function estQuestion(t,maxMots){
     return ckeepcase(w,cible);}
   var _PPS_AVOIR={},_PPS_MID={},_PPS_CLIT={},_PPS_ANTE={},_PPS_REFL={};   // ⭐ 12/09/2026 — RÈGLE NEUVE (orange) : accord SURNUMÉRAIRE du participe après avoir (miroir Python rule_pp_avoir_surnum)
   'ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split(' ').forEach(function(w){_PPS_AVOIR[w]=1;});
-  'ne n pas plus jamais deja bien toujours aussi encore souvent vraiment enfin'.split(' ').forEach(function(w){_PPS_MID[w]=1;});
+  'ne n pas plus jamais deja bien toujours aussi encore souvent vraiment enfin rien'.split(' ').forEach(function(w){_PPS_MID[w]=1;});   // ⭐ liste n° 97 : « je n'ai rien vue » → vu
   'le la les l me m te t se s nous vous en lui leur y'.split(' ').forEach(function(w){_PPS_CLIT[w]=1;});
   'que qu combien quel quelle quels quelles lequel laquelle lesquels lesquelles'.split(' ').forEach(function(w){_PPS_ANTE[w]=1;});
   'se me te nous vous le la les y en'.split(' ').forEach(function(w){_PPS_REFL[w]=1;});
@@ -4492,7 +4493,7 @@ function estQuestion(t,maxMots){
      peur, vouloir, souhaiter, il est important / possible / nécessaire…) ; « bien que » seulement en tête de proposition (« il sait bien
      que tu es là » : indicatif). Gardes : sujet pronom collé (clitiques permis), la forme écrite n'est pas déjà un subjonctif, un seul
      verbe en jeu. ORANGE (« subjonctif à vérifier »). Miroir Python rule_subjonctif. */
-  var _SUBJ_DECL={};'faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent'.split(' ').forEach(function(w){_SUBJ_DECL[w]=1;});
+  var _SUBJ_DECL={};'faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent content contente contents contentes heureux heureuse heureuses ravi ravie ravis ravies triste tristes desole desolee desoles desolees surpris surprise surprises etonne etonnee etonnes etonnees decu decue decus decues soulage soulagee soulages soulagees navre navree navres navrees furieux furieuse furieuses'.split(' ').forEach(function(w){_SUBJ_DECL[w]=1;});   // ⭐ liste n° 99 : adjectifs de sentiment + que → subjonctif;
   var _SUBJ_PP={je:'1s',j:'1s',tu:'2s',il:'3s',elle:'3s',on:'3s',nous:'1p',vous:'2p',ils:'3p',elles:'3p'},_SUBJ_CL={ne:1,n:1,me:1,m:1,te:1,t:1,se:1,s:1,le:1,la:1,l:1,les:1,lui:1,leur:1,y:1,en:1,nous:1,vous:1};
   function rSubjonctif(T,i){if(i<2)return null;var w=T[i],lw=w.toLowerCase(),dl=deacc(lw);if(lw.indexOf("'")>=0)return null;
     var k=i-1;while(k>=1&&_SUBJ_CL[deacc(T[k].toLowerCase()).replace(/['’]$/,'')]&&!/^qu['’]/.test(T[k].toLowerCase())&&!(/^(nous|vous)$/.test(deacc(T[k].toLowerCase()))&&deacc(T[k-1].toLowerCase())==='que'))k--;   // « que nous » : nous est le SUJET
@@ -5161,8 +5162,9 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        0,003/M) : connu, donc muet. Un mot qui n'est qu'une forme de verbe (code V pur), < 0,01/M, pas un infinitif, après un déterminant
        ou devant « de + nom », reçoit en orange le NOM le plus fréquent à une lettre (≥ 1/M). Miroir Python (speller_probe). */
     if((tok===low||atStart)&&low.length>=4&&SP.WORDS.has(low)&&!_RV_LATIN[low]&&(spP(low)||'')==='V'&&(spF(low)||0)<0.01&&!/(er|ir|re|oir)$/.test(low)&&T&&idx!=null){
-      var _pvL=idx>0?deaccS(T[idx-1].toLowerCase()).replace(/['’]$/,''):'',_nxL=idx+1<T.length?deaccS(T[idx+1].toLowerCase()):'',_nx2=idx+2<T.length?T[idx+2].toLowerCase():'';
-      if(_RV_DET[_pvL]&&/^(le|la|les|l)$/.test(_pvL)&&idx>1&&(COD_SUBJ[T[idx-2].toLowerCase()]||CLITIC[T[idx-2].toLowerCase()]||_nounGateN(deaccS(T[idx-2].toLowerCase()))))_pvL='';   /* ⭐ liste n° 108 : « le » pronom devant un verbe (« les soucis le poignent ») n'est pas un déterminant */
+      var _pvL=/^l['’]/i.test(T[idx])?'l':(idx>0?deaccS(T[idx-1].toLowerCase()).replace(/['’]$/,''):''),_nxL=idx+1<T.length?deaccS(T[idx+1].toLowerCase()):'',_nx2=idx+2<T.length?T[idx+2].toLowerCase():'';
+      var _j2=/^l['’]/i.test(T[idx])?idx-1:idx-2,_p2L=_j2>=0?T[_j2].toLowerCase():'',_p3L=_j2>0?deaccS(T[_j2-1].toLowerCase()):'';   /* le mot avant « le » : sujet pronom, clitique, ou nom précédé d'un déterminant (« les soucis le poignent ») */
+      if(_RV_DET[_pvL]&&/^(le|la|les|l)$/.test(_pvL)&&_p2L&&(COD_SUBJ[_p2L]||CLITIC[_p2L]||(_nounGateN(deaccS(_p2L))&&_RV_DET[_p3L])))_pvL='';   /* ⭐ liste n° 108 : « le » pronom devant un verbe (« les soucis le poignent ») n'est pas un déterminant */
       if(_RV_DET[_pvL]||((_nxL==='de'||_nxL==='du'||_nxL==='des'||_nxL==='d'||_nxL==="d'")&&_nx2&&SP.WORDS.has(_nx2)&&(spP(_nx2)||'').indexOf('N')>=0&&!_RV_DET[deaccS(_nx2)]&&!CLITIC[_nx2])){
         var _dL=deaccS(low),_e1=sEdits1(_dL).concat([_dL]),_bn=null,_bs=-1,_bf=0,_nbL=SDET_NUM[_pvL]||({aux:'p',au:'s',du:'s'})[_pvL]||null;for(var _q=0;_q<_e1.length;_q++){var _a=spD(_e1[_q]);if(!_a)continue;for(var _r2=0;_r2<_a.length;_r2++){var _c=_a[_r2],_cf=spF(_c)||0;if(_c===low||(spP(_c)||'').indexOf('N')<0||_cf<1)continue;if(_nbL==='p'&&!/[sx]$/.test(_c))continue;if(_nbL==='s'&&/[sx]$/.test(_c)&&!sInvarS(_c))continue;var _sc=(deaccS(_c)===_dL?2:0)+(_c.charAt(0)===low.charAt(0)?1:0);if(_sc>_bs||(_sc===_bs&&_cf>_bf)){_bn=_c;_bs=_sc;_bf=_cf;}}}
         if(_bn)return['vigilance',ckeepcase(tok,_bn)];}}
@@ -6110,7 +6112,7 @@ function spellUnknown(tok,atStart,T,idx){
   // ⭐ COLLISION D'ACCENT (02/09). Les lectures verbales (svReads/CONJ) sont keyées DÉSACCENTUÉES : « adhérent »
   // tombe sur la clé de « adhèrent » et passe pour un verbe ; idem côté, gène, mûre, précédent... 24 mots
   // courants mesurés. Table EXACTE générée par dictee/build_non_verbe_acc.py (Morphalou) — ne pas éditer à la main.
-  var _NON_VERBE_ACC={'adhérent':1,'boëtte':1,'châsse':1,'châsses':1,'côte':1,'côtes':1,'côté':1,'côtés':1,'faîtes':1,'gène':1,'gènes':1,'indifférent':1,'léva':1,'mâconnais':1,'mûre':1,'mûres':1,'précédent':1,'préposat':1,'régentat':1,'réversions':1,'érigérons':1};
+  var _NON_VERBE_ACC={'adhérent':1,'boëtte':1,'callaïs':1,'châsse':1,'châsses':1,'côte':1,'côtes':1,'côté':1,'côtés':1,'faîtes':1,'gène':1,'gènes':1,'idéat':1,'indifférent':1,'léva':1,'mâconnais':1,'mûre':1,'mûres':1,'précédent':1,'préposat':1,'régentat':1,'réticulat':1,'réversions':1,'taraï':1,'érigérons':1};
   function setOsLm(m){
     if(!m||!m.uni){_OSLM=null;return;}
     function sums(tab){var s={},k,w,t;for(k in tab){t=0;for(w in tab[k])t+=tab[k][w];s[k]=t;}return s;}

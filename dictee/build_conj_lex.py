@@ -18,6 +18,9 @@ Quatre filtres anti-masquage, MESURÉS au produit (3 corpus dys + UD, voir la PR
        acceptés en contexte verbal par le moteur (_presentRegulier), pas par le dictionnaire ;
   (iii) à une lettre d'un mot fréquent (≥ 20/M dans Lexique 4 : « fouis » masquerait « fois ») ;
   (iv) consonne doublée ou dédoublée d'un mot connu (« débutte » ↔ débute).
+⭐ Liste n° 108 (18/10/2026) : ces filtres ne valent que pour les formes CONSTRUITES ici (non attestées). Une forme ATTESTÉE (Morphalou +
+un dictionnaire indépendant) entre par ver_justes_lex_fr.tsv.gz, même à une lettre d'un mot fréquent (« entrecoupes », « fouis »,
+« débutte » sont justes) : la confusion qu'elle pourrait cacher se rattrape par le CONTEXTE (_ctx108), jamais en refusant le mot.
 Même contrat que les lots Morphalou : FreqOrtho 0 → dans WORDS, jamais dans D2A/PHON (jamais candidat, jamais concurrent).
 Base NON circulaire : Lexique 4 + les lots SOURCES (pas l'asset livré, qui contient ce lot).
 
@@ -111,9 +114,9 @@ def check():
         p = l.rstrip('\n').split('\t'); sp[p[0]] = p[1] if len(p) > 1 else ''
     absents = [l.split('\t')[0] for l in L if l.split('\t')[0] not in sp]
     if absents: print('✗ conj_lex : %d forme(s) du lot absentes du speller livré (ex. %s) — régénérer le speller' % (len(absents), absents[:3])); return 1
-    for w, attendu in (('outillent', True), ('indexent', True), ('prototyper', True), ('entrecoupes', False), ('fouis', False), ('débutte', False), ('a', False)):
+    for w, attendu in (('outillent', True), ('indexent', True), ('prototyper', True), ('a', False)):   # entrecoupes / fouis / débutte : justes, entrés par le lot 108
         if (w in sp) != attendu: print('✗ conj_lex : « %s » %s au speller livré' % (w, 'absent' if attendu else 'présent')); return 1
-    print('✓ conj_lex_fr.tsv : %d formes, 37 colonnes, FreqOrtho 0 ; câblé dans le speller livré (outillent, indexent, prototyper connus ; entrecoupes, fouis, débutte non)' % len(L))
+    print('✓ conj_lex_fr.tsv : %d formes, 37 colonnes, FreqOrtho 0 ; câblé dans le speller livré (outillent, indexent, prototyper connus ; « a » non)' % len(L))
     return 0
 
 

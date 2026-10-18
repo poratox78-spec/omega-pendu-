@@ -199,7 +199,7 @@ def vlike(T, i):
     w = deacc(T[i].lower())
     if w in VLIKE_STOP: return False                                       # mots-outils homographes du cgram (« ne », « le »…) — jamais verbe ici
     if w not in VERB_LEX: return False
-    if i > 0 and (T[i-1].lower() in NUM_DET or T[i-1].lower() in ('du', 'au', 'aux')):   # « le porte » reste un NOM… — et « du travaille » aussi (12/09/2026 : les contractions sont des déterminants ; « du conseille a permis » → « à » était une casse)
+    if i > 0 and (T[i-1].lower() in NUM_DET or T[i-1].lower() in ('du', 'au', 'aux', 'chaque', 'aucun', 'aucune')):   # ⭐ liste n° 100 — miroir JS   # « le porte » reste un NOM… — et « du travaille » aussi (12/09/2026 : les contractions sont des déterminants ; « du conseille a permis » → « à » était une casse)
         # …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08 sur gold dys réel). « Elle CE lance a chanter » : le
         # scripteur confond ce/se, la garde déterminant tue alors la lecture VERBALE — et la cascade suit :
         # vlike(lance)=False → rule_a_aa ne tranche plus → la garde a/à de rule_e_er ne tire pas → « chanter »
@@ -5313,7 +5313,10 @@ def rule_det_gender(T, i):
     # ⚠️ SOUS-ENSEMBLE « COLLISION » SEULEMENT (GENDER_ACC_COLL, cf. sa définition) : la table brute
     # rétablirait aussi des adjectifs antéposés que la curation avait écartés exprès -> 3 FP mesurés.
     g_noun = GENDER_ACC_COLL.get(T[hi].lower()) or GENDER_PURE.get(deacc(T[hi].lower()))  # (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
-    if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
+    if g_noun not in ('m', 'f'): return None                       # nom inconnu/ambigu/homographe → abstention
+    if g_noun == g_det:                                            # accord OK — ⭐ liste n° 104 : « ce arbre » → cet (euphonie) — miroir JS
+        if lw == 'ce' and g_noun == 'm' and (re.match('[aeiou]', deacc(T[i + 1].lower())) or deacc(T[i + 1].lower()) in _H_MUET56): return _keepcase(T[i], 'cet')
+        return None
     sugg = DET_ALT.get((lw, g_noun))
     if sugg == 'ce' and (re.match('[aeiou]', deacc(T[i + 1].lower())) or deacc(T[i + 1].lower()) in _H_MUET56): sugg = 'cet'   # ⭐ liste n° 56
     return _keepcase(T[i], sugg) if sugg else None
@@ -5349,6 +5352,20 @@ _TOUT_EXTRA = {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'enve
                'suivant', 'concernant'}   # ⭐ 30/09/2026 : mots après lesquels « tout » n'est jamais un déterminant (miroir JS TOUT_EXTRA)
 TOUT_LSTOP = PREP | set(NUM_DET) | {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'envers',
                                     'durant', 'pendant', 'hormis', 'outre', 'moyennant', 'suivant', 'concernant'}
+def _tous_fem101(T, i):
+    """⭐ liste n° 101 : « Tous les filles » → toutes, en TÊTE de phrase seulement (miroir JS _tousFem101)."""
+    bb = (_SEG or {}).get('bb') or []
+    if not (i == 0 or (i < len(bb) and bb[i])) or i + 2 >= len(T): return False
+    if NUM_DET.get(deacc(T[i + 1].lower())) != 'pl': return False
+    if i + 1 < len(bb) and bb[i + 1]: return False
+    if "'" in T[i + 2]: return False
+    nd = deacc(T[i + 2].lower()); pp = NOUN_POST.get(nd)
+    if not (pp and pp[0] >= PL_TAU_M): return False
+    g = GENDER_PURE.get(nd)
+    if g is None: g = GENDER_FULL.get(nd)
+    return g == 'f'
+
+
 def rule_tout_det(T, i):
     # « tout/toute » (forme SINGULIÈRE) DÉTERMINANT + déterminant + NOM confiant s'accorde en genre ET nombre avec son
     # groupe : « tout les jours »→tous, « toute les semaines »→toutes (nombre) ; « tout cette mascarade »→toute, « toute
@@ -5362,6 +5379,7 @@ def rule_tout_det(T, i):
     lw = deacc(T[i].lower())
     if lw == 'tous' and i + 1 < len(T):
         _tt = _tous_tout(T, i)
+        if not _tt and _tous_fem101(T, i): _tt = 'toutes'          # ⭐ liste n° 101 — miroir JS
         return _keepcase(T[i], _tt) if _tt else None
     if lw not in ('tout', 'toute'): return None
     if i + 2 >= len(T): return None
@@ -5376,6 +5394,7 @@ def rule_tout_det(T, i):
     pp = NOUN_POST.get(nd)
     if not (pp and pp[0] >= PL_TAU_M): return None                 # le mot après le déterminant doit être un NOM confiant
     g = GENDER_PURE.get(nd)
+    if g is None: g = GENDER_FULL.get(nd)                           # ⭐ liste n° 101 : « tout la classe » — miroir JS
     if g not in ('m', 'f'): return None                            # genre inconnu/ambigu → abstention
     target = ('tous' if g == 'm' else 'toutes') if num == 'pl' else ('tout' if g == 'm' else 'toute')
     return _keepcase(T[i], target) if target != lw else None
@@ -6496,7 +6515,7 @@ _AVOIR_CONJ = {'a', 'as', 'ont', 'ai', 'avons', 'avez', 'avait', 'avais', 'avaie
                'avoir', 'ayant'}   # ⭐ 28/09/2026 : l'infinitif et le participe présent aussi (« après avoir prit », « ayant fais »)
 _PPS_AVOIR = set('ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions '
                  'auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split())
-_PPS_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'deja', 'bien', 'toujours', 'aussi', 'encore', 'souvent', 'vraiment', 'enfin'}
+_PPS_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'deja', 'bien', 'toujours', 'aussi', 'encore', 'souvent', 'vraiment', 'enfin', 'rien'}   # ⭐ liste n° 97
 _PPS_CLIT = {'le', 'la', 'les', 'l', 'me', 'm', 'te', 't', 'se', 's', 'nous', 'vous', 'en', 'lui', 'leur', 'y'}
 _PPS_ANTE = {'que', 'qu', 'combien', 'quel', 'quelle', 'quels', 'quelles', 'lequel', 'laquelle', 'lesquels', 'lesquelles'}
 _PPS_REFL = ('se', 'me', 'te', 'nous', 'vous', 'le', 'la', 'les', 'y', 'en')
@@ -7090,7 +7109,7 @@ def rule_homophone_mo(T, i):
     return None
 
 
-_SUBJ_DECL = frozenset('faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent'.split())
+_SUBJ_DECL = frozenset('faut faudrait fallait faudra fallut pour afin avant sans pourvu moins peur crainte veux veut voulait voulais voudrais voudrait voulez voulons veulent voulaient souhaite souhaites souhaitons souhaitez souhaitent souhaitait aimerais aimerait aimerions exige exigent exigeait importe necessaire important possible normal dommage indispensable essentiel urgent content contente contents contentes heureux heureuse heureuses ravi ravie ravis ravies triste tristes desole desolee desoles desolees surpris surprise surprises etonne etonnee etonnes etonnees decu decue decus decues soulage soulagee soulages soulagees navre navree navres navrees furieux furieuse furieuses'.split())   # ⭐ liste n° 99 : adjectifs de sentiment
 _SUBJ_PP = {'je': '1s', 'j': '1s', 'tu': '2s', 'il': '3s', 'elle': '3s', 'on': '3s', 'nous': '1p', 'vous': '2p', 'ils': '3p', 'elles': '3p'}
 _SUBJ_CL = frozenset(('ne', 'n', 'me', 'm', 'te', 't', 'se', 's', 'le', 'la', 'l', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous'))
 
@@ -8487,6 +8506,8 @@ CASES = [
     ("Il est allé à Paris", "est", "a", "usage être/avoir"),
     ("Elle est partie tôt", "est", "a", "usage être/avoir"),
     ("Ils sont restés ici", "sont", "ont", "usage être/avoir"),
+    ("Toute la classe est partie", "Toute", "Tout", "accord tout"),   # ⭐ liste n° 101
+    ("Je suis content que tu viennes", "viennes", "viens", "subjonctif à vérifier"),   # ⭐ liste n° 99
     ("Elle a résolu le problème", "résolu", "résout", "participe après avoir"),   # ⭐ liste n° 96
     ("Toi et moi sommes amis depuis longtemps", "sommes", "somme", "accord sujet-verbe"),   # ⭐ liste n° 89
     ("La directrice s'est engagée à répondre vite", "s'est", "c'est", "c'est/s'est"),   # ⭐ liste n° 59

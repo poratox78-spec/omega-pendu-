@@ -1067,11 +1067,13 @@ class Speller:
         # ⭐ 15/10/2026 (liste n° 35) — forme verbale rarissime à une place de nom (« flue de données » → flux) — miroir JS
         if ((tok == low or at_start) and len(low) >= 4 and low in self.WORDS and low not in _RV_LATIN and ''.join(sorted(self.POS.get(low, ()))) == 'V'
                 and self.FREQ.get(low, 0.0) < 0.01 and not re.search(r'(er|ir|re|oir)$', low) and toks is not None and idx is not None):
-            _pvL = deacc(toks[idx - 1].lower()).rstrip("'’") if idx > 0 else ''
+            _pvL = 'l' if re.match(u"^l['’]", toks[idx], re.I) else (deacc(toks[idx - 1].lower()).rstrip("'’") if idx > 0 else '')   # ⭐ liste n° 108 : l'article élidé collé (« l'articla ») — miroir JS
             _nxL = deacc(toks[idx + 1].lower()) if idx + 1 < len(toks) else ''
             _nx2 = toks[idx + 2].lower() if idx + 2 < len(toks) else ''
-            if (_pvL in _RV_DET and _pvL in ('le', 'la', 'les', 'l') and idx > 1
-                    and (toks[idx - 2].lower() in _cpm()._COD_SUBJ or toks[idx - 2].lower() in _cpm().CLITIC or _cpm()._noun_gate_n(toks[idx - 2].lower()))):
+            _j2 = idx - 1 if re.match(u"^l['’]", toks[idx], re.I) else idx - 2
+            _p2L = toks[_j2].lower() if _j2 >= 0 else ''; _p3L = deacc(toks[_j2 - 1].lower()) if _j2 > 0 else ''
+            if (_pvL in _RV_DET and _pvL in ('le', 'la', 'les', 'l') and _p2L
+                    and (_p2L in _cpm()._COD_SUBJ or _p2L in _cpm().CLITIC or (_cpm()._noun_gate_n(_p2L) and _p3L in _RV_DET))):
                 _pvL = ''   # ⭐ liste n° 108 : « le » pronom devant un verbe (« les soucis le poignent ») — miroir JS
             if _pvL in _RV_DET or (_nxL in ('de', 'du', 'des', 'd', "d'") and _nx2 and _nx2 in self.WORDS and 'N' in self.POS.get(_nx2, ())
                                    and deacc(_nx2) not in _RV_DET and _nx2 not in ('ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous')):   # « de la » : « la » n'est pas le nom (la note)
