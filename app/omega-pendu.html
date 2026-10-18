@@ -6268,7 +6268,7 @@ let M_NEO_TRIGGER_ENABLED = false;           // Trigger (B) : n'overrider que qu
 let M_NEO_TRIGGER_GAP = 0.005;               // seuil mesuré : NEO muette n'engage que si M5_d.output.gap < ce seuil (cognition tres incertaine) -> muette neutre, ne drague plus
 let M_NEO_COHORT_ENABLED = false;           // brique cohorte : filtre board-derived (lexique autorisé pour DECLARE) — isolable
 let M_NEO_G2P_EXP_ENABLED = false;          // EXP : g2p apprend SEULEMENT des positions révélées (expérience), pas du mot complet — sonde de triche
-let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres fausses (0 = OFF)
+let M_NEO_G2P_EXP_PEN = 0.5;                 // pénalité bornée sur lettres fausses (0 = OFF) — 0,5 = la valeur du champ et des bancs (14/06) ; avant le 18/10 le préréglage la laissait à 0
 let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée+muette) vient du consensus phonémique de la cohorte board-compatible, PAS de wp.get(mot). Supprime la lecture du son du mot caché. OFF par défaut.
 let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohorte alignés par décision
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
