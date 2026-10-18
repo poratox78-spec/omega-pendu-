@@ -91,12 +91,12 @@ for (const [t, w, s, tier] of [['Il bele sans arrêt.', 'bele', 'bêle', 'auto']
   if (!f || f.sugg !== s || f.tier !== tier) fail.push('listes n° 1b-5 « ' + w + ' » : attendu « ' + s + ' » (' + tier + '), eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 // ⭐ 14/10/2026 — LISTE N° 6 : des verbes VALIDES étaient soulignés (« ils outillent » → outils, « indexent » → indécent, « prototyper »).
 // Le lot conj_lex_fr.tsv (table de conjugaison → dictionnaire) et, pour les présents qui ne diffèrent d'un mot connu que par l'accent,
-// le contexte verbal (_presentRegulier). Témoins : l'accent oublié reste corrigé hors contexte (entrecoupés), le radical à alternance
-// aussi (lève). Phrases inventées ; les cinq premières échouent sur le moteur et le dictionnaire d'avant.
+// le contexte verbal (_presentRegulier). Témoin : le radical à alternance reste corrigé (lève). « entrecoupes » est une forme JUSTE
+// (liste n° 108) : le contexte la rattrape — testé avec le moteur complet dans testListe108. Phrases inventées ; les cinq premières échouent sur le moteur et le dictionnaire d'avant.
 for (const [t, w, s, tier] of [['Elles outillent leurs ateliers.', 'outillent', null, null], ['Il outille son garage.', 'outille', null, null],
     ['Le service fiabilise ses chiffres.', 'fiabilise', null, null], ['Les robots indexent le site.', 'indexent', null, null],
     ['Elle aime prototyper des jeux.', 'prototyper', null, null],
-    ['Des branches entrecoupes de lumière.', 'entrecoupes', 'entrecoupés', 'vigilance'], ['Il leve la main.', 'leve', 'lève', 'auto']]) {
+    ['Il leve la main.', 'leve', 'lève', 'auto']]) {
   const f = DC.spell(t).find(x => x.word === w);
   if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier)) fail.push('liste n° 6 « ' + w + ' » : attendu ' + (s === null ? 'rien' : '« ' + s + ' » (' + tier + ')') + ', eu ' + JSON.stringify(f && [f.sugg, f.tier, f.name])); }
 // ⭐ 14/10/2026 — LISTE N° 13 : « jusqu'a », « jusqu'ou » n'existent pas (rouge). Phrases inventées ; les trois échouent sur le moteur d'avant.
@@ -515,11 +515,13 @@ function testListe34() {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s)) fail.push('liste n° 34 « ' + t + ' » : attendu ' + (s || 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
-// ⭐ LISTE N° 35 : « Flue de données » — « flue » est au dictionnaire (fluer, 0,003/M) : une forme de verbe rarissime à une PLACE DE NOM
-// (déterminant avant, ou « de + nom » après) reçoit en orange le nom courant à une lettre. Les trois premiers échouent sur le moteur
-// d'avant ; témoins : « il flue » (place de verbe) et « un flux » restent muets.
+// ⭐ LISTE N° 35 : une forme de verbe rarissime à une PLACE DE NOM (déterminant avant, ou « de + nom » après) reçoit en orange le nom
+// courant à une lettre (« les lignés » → lignes). Témoins : « il flue » (place de verbe) et « un flux » restent muets.
+// ⭐ liste n° 108 : l'exemple fondateur « flue » est AUSSI un nom (Morphalou, deux sources) — le dictionnaire a maintenant cette nature,
+// et la règle ne vise que les mots qui ne sont QUE des verbes. L'étendre aux mots nom + verbe a été mesuré : 413 tirs sur 700 000 lignes
+// de français juste (taxons, trayons, estive…) — refusé. « flue » pour « flux » ne se rattrape donc plus que si le contexte le dit.
 function testListe35() {
-  for (const [t, w, s] of [['Flue de données.', 'Flue', 'Flux'], ['Le flue continu de la rivière.', 'flue', 'flux'], ['Un gros flue de visiteurs.', 'flue', 'flux'],
+  for (const [t, w, s] of [['Les lignés du cahier sont bleues.', 'lignés', 'lignes'], ['Le prix des minerait monte vite.', 'minerait', 'minerais'],
       ['Le temps flue lentement.', 'flue', null], ['Un flux de données.', 'flux', null]]) {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance')) fail.push('liste n° 35 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
@@ -715,6 +717,29 @@ function testListe82() {   // liste n° 82 : « sa meilleur amie » — un nom a
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 82 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe108() {   // liste n° 108 : les formes verbales JUSTES sont au dictionnaire ; la confusion qu'elles cacheraient se rattrape par le CONTEXTE
+  for (const [t, w, s] of [['Les champs ensemences de blé brillent au soleil.', 'ensemences', 'ensemencés'],   // ① 2e personne sans « tu »
+      ['Des branches entrecoupes de lumière.', 'entrecoupes', 'entrecoupées'],                                // ① accordé au nom (liste n° 6)
+      ['Les murs sont lambrisses de chêne.', 'lambrisses', 'lambrissés'], ['Il a lambrisses la salle.', 'lambrisses', 'lambrissé'],
+      ['La salle lambrisse qui accueille les invités est belle.', 'lambrisse', 'lambrissée'],                  // ② nom + forme + « qui »
+      ['La soupe a été sévie froide.', 'sévie', 'servie'],                                                     // ③ « été » + verbe sans COD
+      ['Un médecin anglait soigna le roi.', 'anglait', 'anglais'],                                             // ④ collée à un verbe conjugué
+      ['Encore une fouis, il a gagné.', 'fouis', 'fois'],                                                      // « fois » invariable (pas le pluriel de « foi »)
+      ['Un groupe de soldas arrive au camp.', 'soldas', 'soldats'], ["Elle rêve d'amoure toute la nuit.", "d'amoure", "d'amour"],   // ⑤ même son, place de nom
+      ['Une maison carée au bord du lac.', 'carée', 'carrée'],                                                 // ⑤ même son, place d'adjectif
+      ['Le chiffre est minorè.', 'minorè', '*'],                                                               // mal accentué : jamais muet
+      // témoins : rien — les formes justes, et les contextes où la règle se tait
+      ['Nous avouions notre erreur.', 'avouions', null], ['Tu écoutas la radio.', 'écoutas', null], ['Je gâchai tout.', 'gâchai', null],
+      ['Il dragua la rivière.', 'dragua', null], ['Tu ensemences les champs de blé.', 'ensemences', null],
+      ['Toi qui ensemences les champs, tu es courageux.', 'ensemences', null], ['Pourquoi ensemences-tu ce champ ?', 'ensemences', null],
+      ['Ces confitures se sont décuites.', 'décuites', null], ['Il se réfère aux principes édictés par la loi.', 'édictés', null],
+      ['Les chiens que leurs maîtres rudoient mordent souvent.', 'rudoient', null],
+      ['Les bergers des monts Bissa de la région sont partis.', 'Bissa', null], ['Les soucis le poignent chaque nuit.', 'poignent', null],
+      ['Les feuilles ont brui doucement.', 'brui', null], ['Il pansait les plaies du soldat.', 'pansait', null], ["Il s'ébroua dans l'eau froide.", "s'ébroua", null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    const ok = s === null ? !f : s === '*' ? !!f : (!!f && f.sugg === s && f.tier === 'vigilance');
+    if (!ok) fail.push('ligne 108 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s === '*' ? 'une marque' : s + ' en vigilance') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe87() {   // liste n° 87 : la table de conjugaison garde les deux graphies d'un même verbe (connaître / connaitre) — le passé simple de connaître, paraître, reconnaître
   for (const [t, w, s] of [['Il connu des jours difficiles.', 'connu', 'connut'], ['Elle reconnu sa voix au téléphone.', 'reconnu', 'reconnut'], ['Il paru fatigué ce soir-là.', 'paru', 'parut'],
       // témoins : rien
@@ -828,6 +853,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe108();
   testListe92();
   testListe91();
   testListe88();

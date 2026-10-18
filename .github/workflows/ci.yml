@@ -79,6 +79,8 @@ jobs:
         run: python3 dictee/build_morph_acc_lex.py --check
       - name: "Lot de la table de conjugaison du speller — TSV commité bien formé et câblé (outillent, indexent, prototyper)"
         run: python3 dictee/build_conj_lex.py --check
+      - name: "Lot des formes verbales justes du speller — TSV commité bien formé et câblé (avouions, écoutas ; intailles nom)"
+        run: python3 dictee/build_ver_justes_lex.py --check
       - name: Extrait Wiktionnaire du speller — TSV commité bien formé, sans doublon
         run: python3 dictee/build_wikt_lex.py --check
       - name: Lot MÉTIER du speller (liste curée) — TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole)
