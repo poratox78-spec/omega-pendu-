@@ -618,6 +618,12 @@ class Speller:
 
     _SUB108 = set("qui que dont où quand lorsque si comme puisque quoique je tu il elle on nous vous ils elles ça ce cela ceci".split())
     _NXSTOP108 = {'puis', 'vaille', 'soit'}
+    _TEMPS112 = {'ind:pre', 'ind:imp', 'ind:fut', 'cnd:pre', 'sub:pre'}
+
+    @staticmethod
+    def _nlem112(l):   # lemme sans lettres doublées ni h initial : greloter ≡ grelotter, ululer ≡ hululer — miroir JS
+        return re.sub(r'([a-z])\1', r'\1', deacc(l)).lstrip('h')
+
     _PREP108 = set('de d du des à au aux en par pour sur sans avec sous chez entre vers dans'.split())
     _AV108 = set('ai as a avons avez ont avais avait avions aviez avaient eus eut eûmes eûtes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient avoir eu'.split())   # après avoir (sans COD connu) : participe au masculin singulier — miroir JS
     _AUX108 = set('suis es est sommes êtes sont étais était étions étiez étaient fus fut fûmes fûtes furent serai seras sera serons serez seront '
@@ -765,6 +771,23 @@ class Speller:
                         if any(x[0] in L5 for x in self._rdx108(c)): continue
                         b5, f5 = c, s5
             if b5: return b5
+        # ⑥ (liste n° 112) forme juste JAMAIS vue en usage (fréquence 0) = un verbe courant avec UNE LETTRE OMISE, même son, même
+        # personne (« il dévirait » → dévierait, « je soufrais » → souffrais) ; pas le passé simple, jamais une variante d'orthographe — miroir JS
+        if (rd and self.FREQ.get(low, 0.0) == 0 and len(low) >= 5
+                and not re.search(u'(ât|ît|ût|asse|asses|assent|assions|assiez|âmes|âtes|îmes|îtes|ûmes|ûtes)$', low)
+                and any(x[1] in self._TEMPS112 for x in rd)):
+            k6 = _son_key(low)
+            if k6:
+                P6 = {x[2] + x[3] for x in rd}; N6 = {self._nlem112(x[0]) for x in rd}; b6, f6 = None, 0.0
+                for j6 in range(len(d) + 1):
+                    for l6 in 'abcdefghijklmnopqrstuvwxyz':
+                        for c in (self.D2A.get(d[:j6] + l6 + d[j6:]) or ()):
+                            c6 = self.FREQ.get(c, 0.0)
+                            if c == low or c6 <= 0 or c6 <= f6 or _son_key(c) != k6: continue
+                            r6 = self._rdx108(c)
+                            if not any(x[2] + x[3] in P6 for x in r6) or any(self._nlem112(x[0]) in N6 for x in r6): continue
+                            b6, f6 = c, c6
+                if b6: return b6
         return None
 
     def _gender(self, w):

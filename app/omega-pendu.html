@@ -29999,6 +29999,8 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
   var _INV_S108={};'abus amas anis apex avis bas bis borax bris bus cabas cas codex colis cours dais dos entrelacs faux fax fils fois fonds frais gris haras héros huis inclus index jars laps las lis lux maquis mas mois palis palus pas pis pois poix pus quartz ras rassis reclus relais roux sas semis sens silex six tas taux thermos tréfonds tétras vernis vers vis'.split(' ').forEach(function(w){_INV_S108[w]=1;});
   var _SUB108={qui:1,que:1,dont:1,'où':1,quand:1,lorsque:1,si:1,comme:1,puisque:1,quoique:1,je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,'ça':1,ce:1,cela:1,ceci:1};
   var _NXSTOP108={puis:1,vaille:1,soit:1};
+  var _TEMPS112={'ind:pre':1,'ind:imp':1,'ind:fut':1,'cnd:pre':1,'sub:pre':1};
+  function _nlem112(l){return deaccS(l).replace(/([a-z])\1/g,'$1').replace(/^h/,'');}   /* lemme sans lettres doublées ni h initial : greloter ≡ grelotter, ululer ≡ hululer */
   var _PREP108={de:1,d:1,du:1,des:1,'à':1,au:1,aux:1,en:1,par:1,pour:1,sur:1,sans:1,avec:1,sous:1,chez:1,entre:1,vers:1,dans:1};
   var _AV108={};'ai as a avons avez ont avais avait avions aviez avaient eus eut eûmes eûtes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient avoir eu'.split(' ').forEach(function(w){_AV108[w]=1;});   /* après avoir (sans COD connu) : le participe reste au masculin singulier */
   var _AUX108={};'suis es est sommes êtes sont étais était étions étiez étaient fus fut fûmes fûtes furent serai seras sera serons serez seront serais serait serions seriez seraient sois soit soyons soyez soient être été ai as a avons avez ont avais avait avions aviez avaient eus eut eûmes eûtes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient avoir eu'.split(' ').forEach(function(w){_AUX108[w]=1;});   /* être et avoir : un auxiliaire n'a jamais une 2e personne derrière lui */
@@ -30051,6 +30053,20 @@ function _np46Sugg(low,w1){return w1.indexOf(' ')<0&&deaccS(w1.charAt(0).toLower
           var same=false,r5=_rdx108(c);for(var q5=0;q5<r5.length;q5++)if(L5[r5[q5][0]])same=true;if(same)continue;
           b5=c;f5=s5;}}}
       if(b5)return b5;}
+    /* ⑥ (liste n° 112) la forme est juste mais JAMAIS vue en usage (fréquence 0) et c'est un verbe courant avec UNE LETTRE OMISE, du
+       même son et à la même personne (« il dévirait » = dévierait − e, « je soufrais » = souffrais − f) : l'omission est LA faute dys.
+       Présent, imparfait, futur, conditionnel, subjonctif présent seulement (le passé simple littéraire, « les cloches tintèrent »,
+       reste muet) ; jamais une variante d'orthographe du même verbe (greloter / grelotter, ululer / hululer). Mesuré sur du français
+       juste : UD 1 tir (une coquille d'UD, « soufrais »), 700 000 lignes web 3 tirs. */
+    if(rd.length&&(spF(low)||0)===0&&low.length>=5&&!/(ât|ît|ût|asse|asses|assent|assions|assiez|âmes|âtes|îmes|îtes|ûmes|ûtes)$/.test(low)){
+      var t6=false;for(i=0;i<rd.length;i++)if(_TEMPS112[rd[i][1]])t6=true;
+      var k6=t6?_sonKey(low):'';
+      if(k6){var P6={},N6={},b6=null,f6=0;for(i=0;i<rd.length;i++){P6[rd[i][2]+rd[i][3]]=1;N6[_nlem112(rd[i][0])]=1;}
+        for(var j6=0;j6<=d.length;j6++)for(var l6=0;l6<26;l6++){a=spD(d.slice(0,j6)+String.fromCharCode(97+l6)+d.slice(j6));if(!a)continue;
+          for(k=0;k<a.length;k++){c=a[k];var c6=spF(c)||0;if(c===low||c6<=0||c6<=f6||_sonKey(c)!==k6)continue;
+            var r6=_rdx108(c),pp=false,vv=false;for(var q6=0;q6<r6.length;q6++){if(P6[r6[q6][2]+r6[q6][3]])pp=true;if(N6[_nlem112(r6[q6][0])])vv=true;}
+            if(!pp||vv)continue;b6=c;f6=c6;}}
+        if(b6)return b6;}}
     return null;}
 function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
