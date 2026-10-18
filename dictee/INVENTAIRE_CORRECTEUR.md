@@ -90,7 +90,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 71 | accord adjectif antéposé | `rAdjAnteGenre` | `rule_adj_ante_genre` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM |
 | 72 | nom féminin en -ée | `rFemEe` | `rule_fem_ee` | rouge | muette | — |
 | 73 | accord pluriel nom | `rNounPlural` | `rule_noun_plural` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, genre accentué |
-| 74 | accord singulier nom | `rNounSing` | `rule_noun_singular` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, étiqueteur HMM |
+| 74 | accord singulier nom | `rNounSing` | `rule_noun_singular` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM |
 | 75 | usage être/avoir | `rAuxUsage` | `rule_aux_usage` | rouge | personne | vdc-lex (conjugaison, genre, pluriels) |
 | 76 | aux mal orthographié | `rAuxMisspell` | `rule_aux_misspell` | rouge ou orange (sous-cas mesuré, _tierOf) | surface | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller) |
 | 77 | accent (âge) | `rAgeAcc` | `rule_age_accent` | rouge | accent | — |
@@ -183,8 +183,8 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 |---|---|---|---|---|
 | vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 96 / 103 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `rImperatif` … (104) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 79 / 103 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rAccordIncise` `rDetGenre` `rTout` `rNounSing` … (23) |
-| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 28 / 103 | `_isPplWideEr` `_canonW` `_emit` `rInfBut` `_spos` `_pplForm` `_infForm` `rAInfE` … (55) |
-| noun-post | `_applyNounPost` | `NOUN_POST` | 24 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (31) |
+| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 29 / 103 | `_isPplWideEr` `_canonW` `_emit` `rInfBut` `_spos` `_pplForm` `_infForm` `rAInfE` … (56) |
+| noun-post | `_applyNounPost` | `NOUN_POST` | 24 / 103 | `_etreAttrEr` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` `cestCesVig` … (32) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 44 / 103 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 103 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
 | prénoms | `_applyPrenoms` | `PRENOMS` | 16 / 103 | `_rAbase` `rAccordSVcoord` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
