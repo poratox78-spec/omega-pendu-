@@ -717,6 +717,17 @@ function testListe82() {   // liste n° 82 : « sa meilleur amie » — un nom a
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 82 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe110() {   // lignes 110 et 111 : « les filles sont emmenés » (participe déjà au pluriel, sujet féminin) ; « a beaucoup mangée » (adverbe entre l'auxiliaire et le participe)
+  for (const [t, w, s] of [['Les filles sont emmenés au parc.', 'emmenés', 'emmenées'], ['Les maisons sont rénovés cette année.', 'rénovés', 'rénovées'],   // 110
+      ['Les voitures sont garés devant.', 'garés', 'garées'],
+      ['Elle a beaucoup mangée ce midi.', 'mangée', 'mangé'], ['Ils ont longtemps attendus le bus.', 'attendus', 'attendu'],                           // 111
+      // témoins : rien
+      ['Les garçons sont emmenés au parc.', 'emmenés', null], ['Les filles sont emmenées au parc.', 'emmenées', null],
+      ['Elle a beaucoup mangé ce midi.', 'mangé', null], ["Les pommes qu'elle a beaucoup aimées.", 'aimées', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 110-111 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe102() {   // lignes 102, 103, 105, 106, 107 (8e tour, suite) : chaque / aucun + pluriel, quel + pluriel, au + pluriel, adjectif antéposé au pluriel, « travails »
   for (const [t, w, s] of [["Chaque élèves arrive à l'heure.", 'élèves', 'élève'], ['Aucun enfants ne dort ce soir.', 'enfants', 'enfant'],   // 102
       ['Aucune filles ne chante.', 'filles', 'fille'],
@@ -897,6 +908,7 @@ function finish(parityKO) {
   testListe85();
   testListe87();
   testListe109();
+  testListe110();
   testListe102();
   testListe108();
   testListe100();
