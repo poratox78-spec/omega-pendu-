@@ -715,6 +715,17 @@ function testListe82() {   // liste n° 82 : « sa meilleur amie » — un nom a
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 82 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe110() {   // lignes 110 et 111 : « les filles sont emmenés » (participe déjà au pluriel, sujet féminin) ; « a beaucoup mangée » (adverbe entre l'auxiliaire et le participe)
+  for (const [t, w, s] of [['Les filles sont emmenés au parc.', 'emmenés', 'emmenées'], ['Les maisons sont rénovés cette année.', 'rénovés', 'rénovées'],   // 110
+      ['Les voitures sont garés devant.', 'garés', 'garées'],
+      ['Elle a beaucoup mangée ce midi.', 'mangée', 'mangé'], ['Ils ont longtemps attendus le bus.', 'attendus', 'attendu'],                           // 111
+      // témoins : rien
+      ['Les garçons sont emmenés au parc.', 'emmenés', null], ['Les filles sont emmenées au parc.', 'emmenées', null],
+      ['Elle a beaucoup mangé ce midi.', 'mangé', null], ["Les pommes qu'elle a beaucoup aimées.", 'aimées', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('lignes 110-111 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe87() {   // liste n° 87 : la table de conjugaison garde les deux graphies d'un même verbe (connaître / connaitre) — le passé simple de connaître, paraître, reconnaître
   for (const [t, w, s] of [['Il connu des jours difficiles.', 'connu', 'connut'], ['Elle reconnu sa voix au téléphone.', 'reconnu', 'reconnut'], ['Il paru fatigué ce soir-là.', 'paru', 'parut'],
       // témoins : rien
@@ -844,6 +855,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe110();
   testListe100();
   testListe92();
   testListe91();

@@ -6514,6 +6514,7 @@ _AVOIR_CONJ = {'a', 'as', 'ont', 'ai', 'avons', 'avez', 'avait', 'avais', 'avaie
 _PPS_AVOIR = set('ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions '
                  'auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split())
 _PPS_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'deja', 'bien', 'toujours', 'aussi', 'encore', 'souvent', 'vraiment', 'enfin', 'rien'}   # ⭐ liste n° 97
+_PPS_MID |= set('egalement beaucoup longtemps peu trop tant presque parfois seulement simplement rarement certainement probablement surement completement totalement entierement largement finalement recemment rapidement'.split())   # ⭐ liste n° 111 : « elle a beaucoup mangée » → mangé — miroir JS
 _PPS_CLIT = {'le', 'la', 'les', 'l', 'me', 'm', 'te', 't', 'se', 's', 'nous', 'vous', 'en', 'lui', 'leur', 'y'}
 _PPS_ANTE = {'que', 'qu', 'combien', 'quel', 'quelle', 'quels', 'quelles', 'lequel', 'laquelle', 'lesquels', 'lesquelles'}
 _PPS_REFL = ('se', 'me', 'te', 'nous', 'vous', 'le', 'la', 'les', 'y', 'en')
@@ -8224,6 +8225,7 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Elle a beaucoup mangé ce midi.", "mangé", "mangée", "accord du participe après avoir à vérifier"),   # ⭐ liste n° 111 : adverbe entre l'auxiliaire et le participe
     ("Elle a mangé.", "mangé", "mangée", "accord du participe après avoir à vérifier"),   # ⭐ 16/10/2026 (ligne 38) : sans complément après le participe
     ("Nous avons dansé toute la nuit.", "dansé", "dansées", "accord du participe après avoir à vérifier"),   # ⭐ ligne 38 : complément de temps
     ("Marie a dormi.", "dormi", "dormie", "accord du participe après avoir à vérifier"),   # ⭐ ligne 38 : sujet nom propre
