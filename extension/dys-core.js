@@ -5119,10 +5119,11 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
      qu'une forme JAMAIS vue en usage (fréquence 0) pourrait cacher se rattrape par la GRAMMAIRE, jamais en refusant le mot. Quatre faits
      du français, mesurés sur du français juste avant d'être posés (UD, 14 450 phrases : 0 tir ; 700 000 lignes de texte web : 4) :
      ⑧ déterminant singulier + forme au pluriel dont le singulier est un nom courant → ce singulier (le nombre passe avant l'élision) ;
+       si la forme n'est qu'un adjectif, le nom courant de même squelette au singulier, du genre de l'article (« la tigés » → tige), en rouge ;
      ⑦ « le » / « la » non élidé devant une voyelle → nom courant au singulier à une lettre, du genre de l'article, qui commence par une consonne ;
      ⑨ adjectif seul (jamais nom) juste après un déterminant et devant une préposition → nom courant (≥ 10/M) à une lettre, même nombre ;
      ⑩ masculin pluriel en -ants devant une préposition, quand le participe présent est courant → le participe présent, invariable.
-     Toujours en orange. Miroir Python (speller_probe). */
+     En orange (⑧ b en rouge). Miroir Python (speller_probe). */
   var _PREP113={de:1,d:1,du:1,des:1,'à':1,au:1,aux:1,en:1,par:1,pour:1,sur:1,dans:1,avec:1,sans:1,sous:1,chez:1,entre:1,vers:1};
   var _DG113={le:'m',un:'m',ce:'m',cet:'m',du:'m',au:'m',mon:'m',ton:'m',son:'m',la:'f',une:'f',cette:'f',ma:'f',ta:'f',sa:'f'},_NONEL113={'ixième':1,'ixièmes':1};
   function _ctx113(low,T,idx,inv){
@@ -5131,7 +5132,8 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
       for(q=0;q<e1.length;q++){a=spD(e1[q]);if(!a)continue;for(r=0;r<a.length;r++){c=a[r];cf=spF(c)||0;if(c===low||(spP(c)||'').indexOf('N')<0||cf<minF||!ok(c))continue;
         s=(deaccS(c)===dL?2:0)+(c.charAt(0)===low.charAt(0)?1:0);if(s>bs||(s===bs&&cf>bf)){bn=c;bs=s;bf=cf;}}}
       return bn;}
-    if(_DG113[pvd]&&/[sx]$/.test(low)&&!inv(low)){sg=low.slice(0,-1);if(SP.WORDS.has(sg)&&(spP(sg)||'').indexOf('N')>=0&&(spF(sg)||0)>=1)return sg;}
+    if(_DG113[pvd]&&/[sx]$/.test(low)&&!inv(low)){sg=low.slice(0,-1);if(SP.WORDS.has(sg)&&(spP(sg)||'').indexOf('N')>=0&&(spF(sg)||0)>=1)return sg;
+      if(pos==='A'){var a8=spD(deaccS(sg))||[],b8=null,f8=0,q8,c8;g=_DG113[pvd];for(q8=0;q8<a8.length;q8++){c8=a8[q8];if(c8===low||(spP(c8)||'').indexOf('N')<0||(spF(c8)||0)<1||sGender(c8)!==g||(/[sx]$/.test(c8)&&!inv(c8)))continue;if((spF(c8)||0)>f8){b8=c8;f8=spF(c8)||0;}}if(b8)return[b8,'flag'];}}   /* ⑧ b : adjectif seul au pluriel → nom de même squelette (« la tigés » → tige), en rouge : 0 tir sur français juste, et la grammaire écrirait « tigé » */
     if((pv==='le'||pv==='la')&&/^[aeiouàâäéèêëîïôöùûüœ]/.test(low)&&!_NONEL113[low]){g=_DG113[pv];
       m=best(1,function(c){return !/^[aeiouyhàâäéèêëîïôöùûüœ]/.test(c)&&sGender(c)===g&&(!/[sx]$/.test(c)||inv(c));});if(m)return m;}
     if(pos==='A'&&_RV_DET[pvd]&&_PREP113[nx]){pl=/[sx]$/.test(low);m=best(10,function(c){return /[sx]$/.test(c)===pl;});if(m)return m;}
@@ -5228,7 +5230,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     if(tok===low&&low.length>=4&&SP.WORDS.has(low)&&!_RV_LATIN[low]&&(spP(low)||'')==='V'&&(spF(low)||0)<0.01&&T&&idx!=null){
       var _r108=_ctx108(low,T,idx,sInvarS);if(_r108)return['vigilance',ckeepcase(tok,_r108)];}
     if(tok===low&&low.length>=3&&low.indexOf("'")<0&&SP.WORDS.has(low)&&!((spF(low)||0)>0)&&(spP(low)||'')&&(spP(low)||'').indexOf('V')<0&&T&&idx!=null){   /* ⭐ liste n° 113 : nom ou adjectif jamais vu en usage — règles ⑦-⑩ de _ctx113 */
-      var _r113=_ctx113(low,T,idx,sInvarS);if(_r113)return['vigilance',ckeepcase(tok,_r113)];}
+      var _r113=_ctx113(low,T,idx,sInvarS);if(_r113)return typeof _r113==='string'?['vigilance',ckeepcase(tok,_r113)]:[_r113[1],ckeepcase(tok,_r113[0])];}
     if(SP.WORDS.has(low))return null;                                  // mot valide → couche grammaire
     if(_presentRegulier(low,T,idx,tok))return null;   // ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal
     // ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08, parité Python speller_probe + app) : la garde « nom propre »

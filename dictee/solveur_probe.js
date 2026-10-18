@@ -12,7 +12,7 @@
  * LA RÈGLE QUE LES SOLVEURS OUBLIENT. Au pendu, une lettre trouvée se révèle PARTOUT à la fois.
  * Donc une case vide ne peut pas porter une lettre déjà affichée ailleurs : sur « _A__ON », aucun
  * mot contenant un second A, O ou N n'est possible. C'est la règle ② ci-dessous, et c'est elle
- * qui fait tomber la liste de plusieurs centaines à cinquante-cinq.
+ * qui fait tomber la liste de plusieurs centaines à soixante et un.
  *
  * LES SIX RÈGLES :
  *   ① le mot cherché est TOUJOURS dans les candidats (aller-retour sur des mots connus) ;
@@ -198,7 +198,7 @@ if (prose.indexOf(bornes) < 0) {
 }
 /* l'exemple chiffré de la page doit rester vrai */
 const ex = F.filtrer(seau(6), '_A__ON', '');
-const mEx = { 55: 'cinquante-cinq', 54: 'cinquante-quatre', 56: 'cinquante-six' }[ex.length];
+const mEx = { 55: 'cinquante-cinq', 54: 'cinquante-quatre', 56: 'cinquante-six', 61: 'soixante et un' }[ex.length];
 if (!mEx || prose.indexOf(mEx) < 0) {
   rouge(`la page illustre « _A__ON » par un nombre de mots qui n'est plus ${ex.length}`);
 }
