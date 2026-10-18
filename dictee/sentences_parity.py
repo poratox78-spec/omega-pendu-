@@ -43,6 +43,15 @@ for s in src:
     if canon['fam'] != s.get('fam'):
         errs.append(f"fam NON CANONIQUE (build ≠ stocké) : {t}")
 
+# LE NOMBRE AFFICHÉ == LE FICHIER (18/10/2026) : dictee.html annonçait 126 phrases quand l'app en avait 333 — le chiffre
+# du 27/07 n'avait jamais suivi la banque (la page anglaise, elle, est gardée par dictee_en_probe.js).
+page = open(os.path.join(HERE, '..', 'dictee.html'), encoding='utf-8').read()
+mp = re.search(r'<b>(\d+)</b><small>phrases graduées', page)
+if not mp:
+    errs.append("dictee.html : le nombre de phrases annoncé est introuvable (« <b>N</b><small>phrases graduées »)")
+elif int(mp.group(1)) != len(src):
+    errs.append(f"dictee.html annonce {mp.group(1)} phrases, la banque en a {len(src)}")
+
 if errs:
     print("✗ GARDE DICTÉE : %d problème(s)" % len(errs))
     for e in errs[:20]: print("   -", e)
