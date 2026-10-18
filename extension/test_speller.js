@@ -778,6 +778,14 @@ function testListe109() {   // liste n° 109 (choix de Rem) : les graphies recti
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 109 « ' + t + ' » : attendu ' + (s ? s : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe112() {   // liste n° 112 : forme juste jamais vue en usage = verbe courant avec une lettre omise, même son, même personne (orange)
+  for (const [t, w, s] of [['Le ballon dévirait vers la droite.', 'dévirait', 'dévierait'], ['Je soufrais du dos depuis hier.', 'soufrais', 'souffrais'],
+      // témoins : rien (passé simple littéraire ; variante d'orthographe du même verbe ; forme juste sans voisin)
+      ['Les cloches tintèrent longtemps.', 'tintèrent', null], ['Ils grelotent de froid.', 'grelotent', null], ['Nous avouions notre erreur.', 'avouions', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
+      fail.push('ligne 112 « ' + t + ' » : attendu ' + (s ? s + ' en vigilance' : 'rien') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe87() {   // liste n° 87 : la table de conjugaison garde les deux graphies d'un même verbe (connaître / connaitre) — le passé simple de connaître, paraître, reconnaître
   for (const [t, w, s] of [['Il connu des jours difficiles.', 'connu', 'connut'], ['Elle reconnu sa voix au téléphone.', 'reconnu', 'reconnut'], ['Il paru fatigué ce soir-là.', 'paru', 'parut'],
       // témoins : rien
@@ -907,6 +915,7 @@ function finish(parityKO) {
   testListe84();
   testListe85();
   testListe87();
+  testListe112();
   testListe109();
   testListe110();
   testListe102();
