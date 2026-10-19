@@ -229,7 +229,7 @@ jobs:
       - name: Pendu — le bouton Trexquant allume le n-gram de NEO (et le rend)
         run: node evo/trexquant_ngram_probe.js
       - name: Voie B — l'oreille apprise et le LM oral sont branchés (/ɥ/ entendu « y », schwa perdu ; falsifié par une table uniforme)
-        run: python3 -m pip install --quiet numpy && python3 dictee/asr_oreille_probe.py
+        run: python3 -m pip install --quiet numpy && python3 dictee/asr_oreille_probe.py && python3 dictee/build_asr_oreille.py --check
       - name: OMEGA·KEY — crypto (entropie passphrases + gel des listes + KAT Double Ratchet)
         run: node omega-key/test_crypto.js
       - name: Scrabidon — moteur plateau (mots croisés sur le bon axe, CHATS proposé, bi-mots scorés)

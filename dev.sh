@@ -131,6 +131,7 @@ run "compteur de parties : une partie jouée = une comptée (page)" node evo/com
 run "banc hors-lexique : le mot test n'a pas de son, la config n'hérite pas" node evo/banc_oov_probe.js
 run "bouton Trexquant : allume le n-gram de NEO, le rend en s'éteignant" node evo/trexquant_ngram_probe.js
 run "voie B : oreille apprise + LM oral branchés (asset, classement au son, falsifié)" python3 dictee/asr_oreille_probe.py
+run "voie B : la table de l'oreille = sa recette sur le code du jour (local, saute sans audio)" python3 dictee/build_asr_oreille.py --check
 run "scrabidon — moteur plateau"    node dictee/scrabidon_probe.js
 run "EN speller (recall CASES + FP casse)" python3 dictee/speller_en_probe.py --check
 run "EN homophones (recall CASES 14/14, RED=vraies fautes)" python3 dictee/homophone_en_probe.py --check
