@@ -255,6 +255,7 @@ def _pp_surnum(w):
     b = C._pp_base(w) or C._IRR_PP.get(dw)
     return bool(b and deacc(b) != dw)
 _DBL_DETV = set('un une cet cette mon ton son ma ta sa mes tes ses notre votre nos vos du au aux des aucun aucune chaque quelques plusieurs'.split())   # ⭐ 19/10/2026 : déterminants qui ne précèdent jamais un verbe conjugué (le/la/les/l'/leur exclus : clitiques) — miroir JS _DBL_DETV
+_PS_PL = frozenset('ils elles les des ces mes tes ses nos vos leurs nous vous'.split())   # ⭐ 19/10/2026 (ligne 123) : sujet pluriel → hors de portée — miroir JS _PS_PL
 _EVID = frozenset('evidement evidament evidamment evidemant evidamant evidemmant'.split())   # ⭐ 19/10/2026 : graphies de « évidemment » (désaccentuées) — miroir JS _EVID
 def _det_sur(toks, idx):
     """⭐ 19/10/2026 — le mot précédent est un DÉTERMINANT qui ne précède jamais un verbe conjugué. « ce » / « ces » seulement derrière
@@ -1013,6 +1014,9 @@ class Speller:
             pk = em.group(1).lower()
             if (len(pk) == 1 and pk in ELIDE) or pk == 'qu':
                 rc = self.correct_token(em.group(2), at_start=False, toks=toks, idx=idx)
+                if pk == 's' and em.group(2)[:1] == em.group(2)[:1].lower():   # ⭐ 19/10/2026 (ligne 123) : « s'assis » → s'assit — miroir JS _sePs3
+                    _ps = self._se_ps3(rc[1].lower() if rc else em.group(2).lower(), toks, idx)
+                    if _ps: return ('flag', em.group(1) + "'" + _ps)
                 if pk == 'd' and em.group(2)[:1] == em.group(2)[:1].lower() and not (rc and deacc(rc[1].lower()) in _D_LOC):   # ⭐ liste n° 53 : « d'abort » → d'abord ; « d'acord » garde d'accord — miroir JS
                     _rl53 = deacc(em.group(2).lower())
                     if em.group(2).lower() not in self.WORDS and _rl53 not in self.WORDS:
@@ -1031,6 +1035,23 @@ class Speller:
                     return ('vigilance', em.group(1) + "'" + rc[1])
                 return (rc[0], em.group(1) + "'" + rc[1])
         return self._maj_tier(tok, self.correct_token(tok, at_start=at_start, toks=toks, idx=idx))
+
+    def _se_ps3(self, x, toks, idx):
+        """⭐ 19/10/2026 (ligne 123) — « s' » + PARTICIPE sans auxiliaire est impossible (il faudrait « s'est ») : le dys écrit le participe
+        pour le passé simple ou le présent de même son (s'assis → s'assit, s'aperçu → s'aperçut, s'enfui → s'enfuit, s'agi → s'agit).
+        Recensé : gold dys 4 sur 4 vers la forme en -t ; UD 14 450 : 0 tir. Garde : pas de pluriel dans les trois mots d'avant (ils, les…
+        → « s'assirent », hors de portée). Miroir JS _sePs3."""
+        if not re.search(u'(i|is|u|us)$', x) or not _cpm()._avoir_pp(x): return None
+        def fin3s(c, temps):
+            for e in (self.CONJ_F.get(deacc(c)) or '').split('|'):
+                f = e.split(';')
+                if len(f) == 4 and f[2:] == ['3', 's'] and (temps is None or f[1] in temps): return True
+            return False
+        if fin3s(x, None): return None                                   # déjà une forme finie de 3e personne
+        if toks and idx is not None and any(deacc(toks[k].lower()) in _PS_PL for k in range(max(0, idx - 3), idx)): return None
+        for c in (x + 't', x[:-1] + 't' if x.endswith('s') else None):
+            if c and fin3s(c, ('ind:pas', 'ind:pre')): return c
+        return None
 
     def _present_regulier(self, low, toks, idx, tok):
         """⭐ 14/10/2026 (liste n° 6) — miroir _presentRegulier : présent régulier d'un verbe en -er de la table, écrit exactement,

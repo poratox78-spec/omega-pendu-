@@ -29315,6 +29315,12 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(_LOCNOM_CLIT[pv]&&!(z>=2&&_SPREP_P[deaccS(T[z-2].toLowerCase())]))return false;
     var nx=idx+1<T.length?deaccS(T[idx+1].toLowerCase()).replace(/’/g,"'").split("'")[0]:'';if(_LOCNOM[dw][nx])return true;
     return dw==='force'&&!!_LOCNOM_SUJ_NX[nx];}
+  /* ⭐ 19/10/2026 (ligne 123) — « s' » + participe sans auxiliaire → la forme en -t de même son (s'assis → s'assit). Miroir Python _se_ps3. */
+  var _PS_PL={};'ils elles les des ces mes tes ses nos vos leurs nous vous'.split(' ').forEach(function(x){_PS_PL[x]=1;});
+  function _fin3s(c,temps){var s=CONJ_F[deacc(c)];if(!s)return false;return s.split('|').some(function(e){var f=e.split(';');return f.length===4&&f[2]==='3'&&f[3]==='s'&&(!temps||f[1]==='ind:pas'||f[1]==='ind:pre');});}
+  function _sePs3(x,T,idx){if(!/(i|is|u|us)$/.test(x)||!_avoirPp(x)||_fin3s(x,false))return null;
+    if(T&&idx!=null)for(var k=Math.max(0,idx-3);k<idx;k++)if(_PS_PL[deacc(T[k].toLowerCase())])return null;
+    var cs=[x+'t'];if(/s$/.test(x))cs.push(x.slice(0,-1)+'t');for(var q=0;q<cs.length;q++)if(_fin3s(cs[q],true))return cs[q];return null;}
   var _EVID={evidement:1,evidament:1,evidamment:1,evidemant:1,evidamant:1,evidemmant:1},_EVID_DET={};'le la les un une des du au aux ce cet cette ces mon ma ton ta son sa notre votre leur mes tes ses nos vos leurs'.split(' ').forEach(function(x){_EVID_DET[x]=1;});
   var SELIDE={l:1,m:1,t:1,s:1,n:1,d:1,c:1,j:1},_SELIDE_ACC={l:1,d:1,j:1,c:1,s:1},SVOW={a:1,e:1,i:1,o:1,u:1,y:1,h:1};   // _SELIDE_ACC = préfixes SÛRS pour restauration d'accent (m'/t'/n' exclus : « metre »=mètre)
   // tokens courts NON-FRANÇAIS à ne JAMAIS corriger : mots anglais fréquents dans du texte FR (the→thé) + « er » = résidu
@@ -30012,6 +30018,7 @@ function estQuestion(t,maxMots){
     var em=tok.match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),pk;
     if(em&&((pk=em[1].toLowerCase()).length===1&&SELIDE[pk]||pk==='qu')){  // d'/l'/j'/qu'… + reste ; le reste d'une élision CORRECTE est un mot connu → core rend null (FP-safe)
       var rc=spellTokenCore(em[2],false,T,idx);
+      if(pk==='s'&&em[2].charAt(0)===em[2].charAt(0).toLowerCase()){var _ps=_sePs3(rc?String(rc[1]).toLowerCase():em[2].toLowerCase(),T,idx);if(_ps)return['flag',em[1]+"'"+_ps];}   // ⭐ 19/10/2026 (ligne 123) : « s'assis » → s'assit — miroir Python
       if(pk==='d'&&em[2].charAt(0)===em[2].charAt(0).toLowerCase()&&!(rc&&_D_LOC[deaccS(String(rc[1]).toLowerCase())])){var _rl53=deaccS(em[2].toLowerCase());if(!SP.WORDS.has(em[2].toLowerCase())&&!SP.WORDS.has(_rl53)&&!udHas(_rl53)){for(var _lk53 in _D_LOC){if(_rl53!==_lk53&&sEd1(_rl53,_lk53))return['flag',em[1]+"'"+_D_LOC[_lk53]];}}}   // ⭐ liste n° 53 : seulement si la correction normale n'est pas déjà une locution (« d'acord » → d'accord)
       if(!rc)return null;
       var rem=deaccS(em[2].toLowerCase()),sug=deaccS(rc[1].toLowerCase());
