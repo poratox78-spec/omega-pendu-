@@ -6630,6 +6630,8 @@ def rule_pp_avoir_surnum(T, i):
 # sigle (« la C2A était »), avoir verbe plein dans une relative (« tout ce qu'il a était à elle »).
 _AVOIR_PP_ACC = {'du': u'dû', 'mu': u'mû', 'recu': u'reçu', 'decu': u'déçu', 'apercu': u'aperçu', 'concu': u'conçu', 'percu': u'perçu'}
 _AVOIR_ETAIT = {u'était', u'étais', u'étaient', 'etait', 'etais', 'etaient'}
+_AVOIR_ETES = {u'êtes', 'etes'}   # ⭐ 19/10/2026 : « a êtes » → été — miroir JS _AVOIR_ETES
+_ETE_MID = {'pas', 'plus', 'jamais', 'point', 'toujours', 'deja', 'souvent', 'encore', 'bien', 'vraiment'}   # ⭐ 19/10/2026 : traversés entre avoir et « était » — miroir JS _ETE_MID
 # Homophones HORS verbe, ORANGE (tier_of) : « ils ont prix le train » → pris, « nous avons eux de la chance » → eu. Jamais après
 # « a »/« as » seuls (« à prix d'or », « c'est à eux ») sauf « eux » + déterminant (« elle a eux une bonne note ») ; « ils ont eux aussi
 # des droits », « eux-mêmes » : juste.
@@ -6679,6 +6681,21 @@ def rule_avoir_fini(T, i):
     if i < 1: return None
     w = T[i]
     if w != w.lower(): return None
+    # ⭐ 19/10/2026 — « n'a pas était », « n'a jamais êtes », « a toujours était » → été : la négation et les adverbes se traversent jusqu'à
+    # l'auxiliaire ; « a êtes » → été (« êtes » après avoir est impossible). L'auxiliaire doit être ÉCRIT par l'auteur — l'apostrophe
+    # seule peut manquer (« na pas » : la négation dit déjà « n'a »). Mêmes pièges gardés (relative « qu'il a », sigle). Miroir JS.
+    if (w in _AVOIR_ETAIT or w in _AVOIR_ETES) and (deacc(T[i - 1].lower()) in _ETE_MID or w in _AVOIR_ETES):
+        a = i - 1; neg = False
+        while a >= 1 and deacc(T[a].lower()) in _ETE_MID: neg = neg or deacc(T[a].lower()) in ('pas', 'plus', 'jamais', 'point'); a -= 1
+        a0 = T[a].lower().replace(u'’', u"'"); pa = a0.rsplit("'", 1)[-1]
+        if pa not in _AVOIR_CONJ and neg and a0[:1] == 'n' and a0[1:] in _AVOIR_CONJ: pa = a0[1:]   # « na pas » : n'a, l'apostrophe seule manque
+        if pa not in _AVOIR_CONJ or T[a][-1:] != T[a][-1:].lower(): return None
+        p2 = T[a - 1].lower().replace(u'’', u"'") if a >= 1 else ''
+        p3 = deacc(T[a - 2].lower()) if a >= 2 else ''
+        if p2.startswith("qu'") or deacc(p2) in ('que', 'qu') or p3 in ('que', 'qu'): return None
+        if _SEG is not None and _SEG.get('raw') and a < len(_SEG['raw']):
+            if _SEG['raw'][a].lower().replace(u'’', u"'").replace(u'ʼ', u"'").replace("'", '') != a0.replace("'", ''): return None
+        return u'été'
     pv0 = T[i - 1]
     pv = pv0.lower().replace(u'’', u"'")
     if "'" in pv: pv = pv.rsplit("'", 1)[1]

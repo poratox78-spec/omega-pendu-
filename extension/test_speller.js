@@ -775,6 +775,23 @@ function testListe108() {   // liste n° 108 : les formes verbales JUSTES sont a
     const ok = s === null ? !f : s === '*' ? !!f : (!!f && f.sugg === s && f.tier === 'vigilance');
     if (!ok) fail.push('ligne 108 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s === '*' ? 'une marque' : s + ' en vigilance') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe122() {   // ligne 122 (19/10/2026) : des rouges FAUX du speller rattrapés par un fait de CONTEXTE. Phrases inventées ; les onze premières échouent sur le moteur d'avant.
+  for (const [t, w, s, tier] of [['Le bus est en avanse ce soir.', 'avanse', 'avance', 'vigilance'],   // « en » entre l'auxiliaire et le mot = la préposition (pas « avancé »)
+      ['Nous restons dedans a coze du vent.', 'coze', 'cause', 'vigilance'], ['Elle a gagné a forsse de travail.', 'forsse', 'force', 'vigilance'],   // à cause de, à force de
+      ['Il ne voit aucun sense à cette histoire.', 'sense', 'sens', 'flag'],   // après un déterminant, le e final est muet (pas « sensé »)
+      ['Il aime bien son travaile.', 'travaile', 'travail', 'flag'],          // après un déterminant, pas de verbe conjugué
+      ['Ce film na jamais etes diffusé.', 'etes', 'été', 'auto'], ["Il n'a jamais était malade.", 'était', 'été', 'auto'],   // avoir + négation + été
+      ['Il revient pour repete la scène.', 'repete', 'répéter', 'flag'],    // pour / sans / de + infinitif
+      ["Il n'y a plus darmé dans ce pays.", 'darmé', "d'armée", 'flag'],    // le é écrit s'entend
+      ['Evidement il viendra demain.', 'Evidement', 'Évidemment', 'flag'], ['Il rit quand maime.', 'maime', 'même', 'flag'],
+      // témoins : la lecture d'avant reste
+      ['Il leur a coze des soucis.', 'coze', 'causé', 'flag'], ['Sa mère maime beaucoup.', 'maime', "m'aime", 'flag'],
+      ["Il a enlevé l'évidement du bois.", "l'évidement", null, null], ['Il aurait dû atterir plus tôt.', 'atterir', 'atterrir', 'flag'],   // « dû » n'est pas « du »
+      ["Tout ce qu'il n'a pas était à lui.", 'était', null, null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('ligne 122 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + tier) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -943,6 +960,7 @@ function finish(parityKO) {
   testRaisons();
   testListe113();
   testListe112();
+  testListe122();
   testListe109();
   testListe110();
   testListe102();
