@@ -216,6 +216,17 @@ def construire():
 
 
 def main():
+    if '--check' in sys.argv:
+        # garde LOCALE (dev.sh + CI, 19/10/2026) : la table du dépôt doit rester ce que sa recette produit sur le code du jour —
+        # elle avait dérivé sans bruit entre le 27/09 et le 18/10 (écart 5,6) quand le g2p a été relu. Sans l'audio ou sans
+        # torch (CI), la garde SAUTE en le disant : jamais un vert muet.
+        if not os.path.exists(os.path.join(VOX, 'index.jsonl')):
+            print(u'SAUTE : audio VoxPopuli absent (data_local/voix/voxpopuli_fr, local) — table non recalculée'); sys.exit(0)
+        os.environ.setdefault('HF_HUB_OFFLINE', '1')   # la garde n'appelle jamais le réseau : modèle lu dans le cache local
+        try:
+            import torch, transformers  # noqa: F401
+        except ImportError:
+            print(u'SAUTE : torch / transformers absents — table non recalculée'); sys.exit(0)
     T = construire()
     if '--check' in sys.argv:
         R = json.load(open(OUT, encoding='utf-8'))
