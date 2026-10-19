@@ -443,7 +443,10 @@ body::before {
 /* === STATISTICS PANEL === */
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* ⭐ 19/10/2026 (Rem : « la colonne bouge, se décale quand les caractères changent, une partie est rognée ») : en « 1fr 1fr »,
+     une colonne s'élargissait avec son contenu — la grille débordait du panneau étroit (mise en page à 4 colonnes du 24-25/09),
+     était coupée, et se décalait à chaque changement de chiffre. minmax(0, 1fr) : la largeur ne dépend plus du contenu. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -452,7 +455,13 @@ body::before {
   border: 1px solid var(--border-soft);
   border-radius: 4px;
   padding: 14px;
+  min-width: 0;
 }
+.stat-cell .stat-value { overflow-wrap: break-word; }   /* un nombre trop long pour la case est coupé, sinon jamais */
+.stat-cell .stat-trend { overflow-wrap: anywhere; }
+/* les grilles de valeurs longues (OS μ/r, W_eff, top ortho, θ, pénalité φ ; santé bPC) : chiffres plus petits quand le panneau
+   est étroit (4 colonnes), pour qu'ils tiennent sans être coupés ni passer à la ligne au milieu d'un nombre */
+@media (min-width: 1360px) { .stats-fin .stat-value { font-size: 18px; } }
 .stat-label {
   font-family: var(--mono);
   font-size: 9px;
@@ -619,6 +628,8 @@ details.ctl-mesure[open] > summary::before { content:"▾"; }
 }
 .toggle-item.on .toggle-switch { background: var(--accent); }
 .toggle-item.on .toggle-switch::after { background: var(--bg); transform: translateX(12px); }
+.toggle-item > div:not(.toggle-switch) { min-width: 0; }   /* 19/10/2026 : sans lui, une suite insécable (« sublexical⟷lexical ») sortait du cadre */
+.toggle-label, .toggle-desc { overflow-wrap: anywhere; }
 .toggle-label {
   font-family: var(--mono);
   font-size: 11px;
@@ -984,7 +995,7 @@ footer {
       </div>
     </div>
 
-    <div class="stats-grid" style="margin-top:10px">
+    <div class="stats-grid stats-fin" style="margin-top:10px">
       <div class="stat-cell">
         <div class="stat-label">OS μ · poids φ</div>
         <div class="stat-value" id="v07-mu">—</div>
@@ -1025,7 +1036,7 @@ footer {
   <div class="panel">
     <div class="panel-label">SUBSTRAT · SANTÉ bPC</div>
     <div class="panel-title">bPC santé · <span class="accent">cellules concept</span></div>
-    <div class="stats-grid">
+    <div class="stats-grid stats-fin">
       <div class="stat-cell">
         <div class="stat-label">‖W‖ moy</div>
         <div class="stat-value" id="bpc-wmean">—</div>
