@@ -19,6 +19,7 @@ _RV_LATIN = set('taxa corpora genera data strata errata addenda desiderata curri
 _SCTX_NOG = set('les des ces mes tes ses nos vos leurs leur notre votre aux plusieurs quelques chaque'.split())   # ⭐ liste n° 33 : déterminants sans genre (du/au exclus : masculins) — miroir JS _SCTX_NOG
 _SPREP_P = set('de dans pour sur par avec sans sous chez vers entre contre depuis pendant selon malgre apres avant durant parmi'.split())   # ⭐ liste n° 33 : après une préposition, pas de verbe conjugué — miroir JS _SPREP_P
 _PREP_NO_V = set('sont est suis es sommes etes ont ai as avons avez etait etais etaient avait avais avaient sera seront serai seras aura auront fut furent soit soient ait aient vont vais vas va peut peuvent veut veulent doit doivent'.split())   # ⭐ liste n° 33 : formes finies d'être/avoir/aller/modal — miroir JS _PREP_NO_V
+_AUX_MID = ('ne', 'n', 'pas', 'plus', 'jamais', 'bien', 'tres', 'deja', 'toujours', 'tout')   # ⭐ 19/10/2026 : mots traversés entre l'auxiliaire et le participe (« en », « y » retirés : clitiques placés AVANT l'auxiliaire) — miroir JS
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 _AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité', 'aprés': 'après', 'déja': 'déjà', 'qué': 'que', 'commé': 'comme', 'bonné': 'bonne', 'teté': 'tête', 'tetés': 'têtes', 'vîte': 'vite', 'jeunés': 'jeunes', 'étrangé': 'étrange', 'dommagé': 'dommage', 'réalite': 'réalité', 'gossé': 'gosse', 'refléchir': 'réfléchir', 'refléchis': 'réfléchis', 'refléchi': 'réfléchi'}   # décalque de _AFIX (dys-core.js) — ⭐ 17/10/2026 (liste n° 51) : + 16 accents faux entrés dans le lexique
@@ -253,6 +254,29 @@ def _pp_surnum(w):
     if not C._PPS_MARQUE.search(lw): return False              # une vraie MARQUE d'accord d'abord : un infinitif n'est pas un participe accordé
     b = C._pp_base(w) or C._IRR_PP.get(dw)
     return bool(b and deacc(b) != dw)
+_DBL_DETV = set('un une cet cette mon ton son ma ta sa mes tes ses notre votre nos vos du au aux des aucun aucune chaque quelques plusieurs'.split())   # ⭐ 19/10/2026 : déterminants qui ne précèdent jamais un verbe conjugué (le/la/les/l'/leur exclus : clitiques) — miroir JS _DBL_DETV
+_EVID = frozenset('evidement evidament evidamment evidemant evidamant evidemmant'.split())   # ⭐ 19/10/2026 : graphies de « évidemment » (désaccentuées) — miroir JS _EVID
+def _det_sur(toks, idx):
+    """⭐ 19/10/2026 — le mot précédent est un DÉTERMINANT qui ne précède jamais un verbe conjugué. « ce » / « ces » seulement derrière
+    une préposition (« sur ce … ») : le dys écrit souvent « ce » pour « se » (« il ce rapelle »). Miroir JS _detSur."""
+    pt = toks[idx - 1].lower()   # SANS désaccentuer : « dû » n'est pas « du » (« aurait dû atterir » → atterrir)
+    return pt in _DBL_DETV or (pt in ('ce', 'ces') and idx >= 2 and deacc(toks[idx - 2].lower()) in _SPREP_P)
+_LOCNOM = {'cause': ('de', 'du', 'des', 'd'), 'force': ('de', 'd')}   # cause + de/du/des/d', force + de/d' (les deux locutions) — miroir JS _LOCNOM
+_LOCNOM_SUJ = set('il elle on ca cela ce c qui'.split())
+_LOCNOM_CLIT = set('lui leur me m te t nous vous l le la les en y ne n se s'.split())
+_LOCNOM_SUJ_NX = set('je j tu il elle on nous vous ils elles'.split())
+def _loc_a_nom(toks, idx, z, w1):
+    """⭐ 19/10/2026 — « a » NU + nom d'une locution (« a coze du », « a forsse ils… » : les locutions avec cause et force) : ce « a » n'est pas
+    l'auxiliaire, l'étape « participe après auxiliaire » ne tire pas. Recensé : UD + frgec corrigé, « à cause d » 46 fois contre
+    « a causé d » 1 ; gold dys : 2 rouges faux (causé, forcé). Garde : pronom sujet devant « a », ou clitique objet devant « a »
+    hors préposition (« il leur a coze des soucis » ; un « lui » derrière une préposition reste la locution) = avoir. Miroir JS _locANom."""
+    if not toks or idx is None or z < 0 or toks[z].lower() != 'a' or deacc(w1) not in _LOCNOM: return False
+    pv = deacc(toks[z - 1].lower()).replace(u'’', "'").split("'")[-1] if z >= 1 else ''
+    if pv in _LOCNOM_SUJ: return False
+    if pv in _LOCNOM_CLIT and not (z >= 2 and deacc(toks[z - 2].lower()) in _SPREP_P): return False
+    nx = deacc(toks[idx + 1].lower()).replace(u'’', "'").split("'")[0] if idx + 1 < len(toks) else ''
+    if nx in _LOCNOM[deacc(w1)]: return True
+    return deacc(w1) == 'force' and nx in _LOCNOM_SUJ_NX
 def _avoir_sans_ante(T, i):
     """auxiliaire AVOIR juste avant (adverbes traversés) et aucun antécédent possible — miroir _avoirSansAnte (JS)"""
     C = _cpm()
@@ -1076,6 +1100,9 @@ class Speller:
         # Lexique4 (NOM m, 6,66/M) à côté de « mère » (630/M) — liste CLOSE recensée (non-mots, 0 en minuscules sur UD, 16 dans le
         # corpus dys tous vers la sœur accentuée). MINUSCULES SEULEMENT (« Ame V », « Special » existent en majuscule).
         if tok == low and low in _AFIX_MIN: return ('auto', _AFIX_MIN[low])
+        # ⭐ 19/10/2026 — « évidement » (le NOM, 1,25/M) a toujours un déterminant (« l'évidement », « un évidement ») ; sans lui c'est
+        # l'adverbe mal écrit (« Evidement il… », « va évidement ») → évidemment (44,7/M). UD 14 450 : 0 occurrence. Miroir JS _EVID.
+        if deacc(low) in _EVID and not (toks and idx is not None and (re.match(u"^[ld]['’]", toks[idx].lower()) or (idx and deacc(toks[idx - 1].lower()) in _AFIX_DET))): return ('flag', u'évidemment')   # « l'évidement » : l'article est collé au jeton
         if tok == low and low in _AFIX_VIG:                  # ⭐ 29/09/2026 : accents muets, ORANGE (cf. _AFIX_VIG) — miroir JS
             ap = deacc(toks[idx - 1].lower()) if (toks and idx is not None and idx > 0) else ''
             nr = toks[idx + 1].lower() if (toks and idx is not None and idx + 1 < len(toks)) else ''
@@ -1250,6 +1277,10 @@ class Speller:
         # 354 647 jetons d'UD. Placebo sur l'accent AIGU : 5 changements dont 4 FAUX au gold.
         # ⭐ 11/09/2026 : la garde couvre aussi l'AIGU/GRAVE quand le rival n'est pas verbal — « desert » proposait
         # dessert (orange) alors que désert (23,8/M, nom) attendait. Mesuré : 1 changement sur 41 987 jetons, 0 faux.
+        # ⭐ 19/10/2026 : après un DÉTERMINANT sûr (« son travaile »), un verbe conjugué est impossible — un doublement qui ne donne
+        # qu'un verbe (travaille : ni nom ni adjectif) n'affirme pas ; le jeton redescend dans la machinerie normale. Miroir JS _DBL_DETV.
+        # « ce » / « ces » seulement derrière une préposition : le dys écrit souvent « ce » pour « se » (« il ce rapelle »).
+        if _dblw and toks and idx and not (set(self.POS.get(_dblw, ())) & {'N', 'A'}) and _det_sur(toks, idx): _dblw = None
         if _dblw and not _accent_rival(self, low, _dblf, bool(self._suj_pron(toks, idx)) and 'V' not in self.POS.get(_dblw, ())): return ('flag', _dblw)
         # ⭐ 04/10/2026 — APOSTROPHE OUBLIÉE (miroir de spellTokenCore, même place) : A. fins COURTES très fréquentes, liste fermée par préfixe
         # (« il sest levé » → s'est ; « jai / nai / na » restent à « élision fusionnée ») ; B. NÉGATION : « n » + voyelle, inconnu, suivi de pas /
@@ -1259,6 +1290,11 @@ class Speller:
             rc = deacc(low[1:]); rw = rc if rc in self.WORDS else None
             for w in self.D2A.get(rc, []):
                 if deacc(w) == rc and deacc(w)[:1] in VOWELS and (rw is None or self.FREQ.get(w, 0) > self.FREQ.get(rw, 0)): rw = w
+            # ⭐ 19/10/2026 — « maime » = « m'aime » OU « même » (même son). Après « de / quand / tout », ou devant « si », le verbe conjugué
+            # est impossible (« de même que », « quand même », « même si ») → même. Ailleurs, l'élision reste. Miroir JS.
+            if rw and low == 'maime' and toks and idx is not None and (
+                    (idx and deacc(toks[idx - 1].lower()) in ('de', 'quand', 'tout')) or (idx + 1 < len(toks) and deacc(toks[idx + 1].lower()) == 'si')):
+                return ('flag', u'même')
             if rw: return ('flag', low[0] + "'" + rw)
         # ⭐ 13/10/2026 (liste n° 1 : « Séléction » → S'élection) — LE MOT ENTIER D'ABORD, miroir de spellTokenCore : la saisie, accents
         # rétablis, est un mot (séléction → sélection, decrit → décrit) → pas de découpe, sauf si la lecture élidée colle STRICTEMENT mieux
@@ -1271,7 +1307,11 @@ class Speller:
         if len(low) > 2 and low[0] in ELIDE and deacc(low[1])[:1] in VOWELS:
             rest = low[1:]; cw = rest if (rest in self.WORDS and len(rest) >= 5 and self.FREQ.get(rest, 0) >= 1.0) else None   # reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
             if cw is None and low[0] in _ELIDE_ACC and len(rest) >= 4:   # restauration d'accent du reste (lhopital→l'hôpital, léconomi→l'économie) — préfixes SÛRS uniquement
-                for w in self.D2A.get(deacc(rest), []):
+                _pool = self.D2A.get(deacc(rest), [])
+                if rest.endswith(u'é'):   # ⭐ 19/10/2026 : le « é » écrit S'ENTEND — « darmé » → d'armée (finale /e/ gardée), pas d'arme. Miroir JS.
+                    _same = [w for w in list(_pool) + self.D2A.get(deacc(rest) + 'e', []) if re.search(u'(é|ée)$', w)]
+                    if any(self.FREQ.get(w, 0) >= 2.0 for w in _same): _pool = _same
+                for w in _pool:
                     if deacc(w)[:1] in VOWELS and self.FREQ.get(w, 0) >= 2.0 and (cw is None or self.FREQ[w] > self.FREQ.get(cw, 0)):
                         cw = w
             if cw and not (low[0] == 'c' and deacc(cw)[:1] not in 'ei') and (mot_d < 0 or (_acc_diff(rest, cw) < mot_d and (low[0] not in 'mtnsj' or 'V' in self.POS.get(cw, ())))):   # « c' » seulement devant e/i (c'est, c'était)
@@ -1493,7 +1533,7 @@ class Speller:
             while _z44 >= 0:
                 _d44 = deacc(toks[_z44].lower())
                 if (_d44 in self.AUXAV or _d44 in self.COPULA) and toks[_z44].lower() != u'à': _pp44 = True; break
-                if _d44 in ('ne', 'n', 'pas', 'plus', 'jamais', 'bien', 'tres', 'deja', 'toujours', 'y', 'en', 'tout'): _z44 -= 1; continue
+                if _d44 in _AUX_MID: _z44 -= 1; continue
                 break
             if _pp44 and not re.search(u'(é|ée|és|ées)$', w1):
                 _fin = _ppE.group(1); _pb44 = None; _pf44 = 0
@@ -1546,6 +1586,21 @@ class Speller:
                and any(p == 2 and _kacc(w) == 0 for w, (p, _f) in ranked))   # ⭐ liste n° 5b : accents écrits gardés, rare → orange (miroir JS _kV)
         if f1 < FLAG_FREQ and not acc_x and not k_v: return None            # meilleur candidat trop rare → abstention
         f2 = ranked[1][1][1] if len(ranked) > 1 else 0.0
+        # ⭐ 19/10/2026 — DEUX FAITS DE CONTEXTE AVANT LES AUTOS (rouges faux recensés sur le gold dys, passés dans le correcteur complet) :
+        # ① « pour / sans / de » + verbe CONJUGUÉ est impossible : « pour repete » → préparer, pas « prépare ». Verbe pur (ni nom ni
+        #   adjectif), finale -e, infinitif en -er connu et courant → l'infinitif (flag). ② Après un DÉTERMINANT sûr, la finale -e
+        #   écrite ne devient pas « -é » d'un mot qui n'est pas un nom : « aucun sense » → sens (même son, nom), pas « sensé ».
+        #   Miroir JS _infPrep / _finEDet.
+        if toks and idx and deacc(toks[idx - 1].lower()) in ('pour', 'sans', 'de') and w1.endswith('e') and set(self.POS.get(w1, ())) == {'V'}:
+            _inf, _fi = None, 0.0
+            for _c in self.D2A.get(d + 'r', []):   # l'infinitif par sa forme sans accents : repete → répéter (pas « répèter »)
+                if _c.endswith('er') and 'V' in self.POS.get(_c, ()) and self.FREQ.get(_c, 0.0) > _fi: _inf, _fi = _c, self.FREQ.get(_c, 0.0)
+            if _inf and _fi >= 1.0: return ('flag', _inf)
+        if (toks and idx and d.endswith('e') and w1.endswith(u'é') and _det_sur(toks, idx) and 'N' not in self.POS.get(w1, ())):
+            _bn, _bfn = None, 0.0
+            for _cw in self.D2A.get(d[:-1], []):   # le « e » final écrit est MUET : sense → sens
+                if 'N' in self.POS.get(_cw, ()) and self.FREQ.get(_cw, 0.0) > _bfn: _bn, _bfn = _cw, self.FREQ.get(_cw, 0.0)
+            if _bn and _bfn >= 1.0: return ('flag', _bn)
         # AUTO : accent-only dominant (priorité 2, fréquent, sans rival proche) OU edit-1 vers un mot très dominant
         accent_only = (p1 == 2 and deacc(w1) == d)
         dominant = (f1 >= AUTO_FREQ and (f2 == 0 or f1 >= DOMINANCE * f2))
@@ -1568,16 +1623,19 @@ class Speller:
         # redoublement → on AFFIRME (auto). Mesuré côté produit : 24/24 justes sur 474 phrases dys/GEC, FP = 0 littéral sur 14 450 UD.
         if len(cands) == 1 and len(d) >= 4 and f1 >= 1.0 and slip_mot(d, deacc(w1)): return ('auto', w1)
         # ⭐ PARTICIPE APRÈS AUXILIAIRE (10/09/2026, décalque l.3079-3080) : « il a manje »→mangé. On remonte les mots-outils
-        # (ne/n/pas/plus/jamais/bien/tres/deja/toujours/y/en/tout) jusqu'à un auxiliaire avoir ou une copule ; le dys écrit le
+        # (ne/n/pas/plus/jamais/bien/tres/deja/toujours/tout) jusqu'à un auxiliaire avoir ou une copule ; le dys écrit le
         # PRÉSENT (-e) là où l'aux impose le PARTICIPE (-é) du même verbe → flag. Ne touche que la finale -e (jamais -s/-t/-u).
+        # ⭐ 19/10/2026 : « en » et « y » ne se traversent plus — ces clitiques se placent AVANT l'auxiliaire (« il en a mangé ») ; entre
+        # l'auxiliaire et le mot, « en » est la préposition (« il est en avance » : un nom, jamais un participe). Miroir JS.
         aux = False
         if toks:
             z = idx - 1
             while z >= 0:
                 dz = deacc(toks[z].lower())
                 if (dz in self.AUXAV or dz in self.COPULA) and toks[z].lower() != u'à': aux = True; break   # ⭐ 03/10/2026 : « à » n'est pas l'auxiliaire « a »
-                if dz in ('ne', 'n', 'pas', 'plus', 'jamais', 'bien', 'tres', 'deja', 'toujours', 'y', 'en', 'tout'): z -= 1; continue
+                if dz in _AUX_MID: z -= 1; continue
                 break
+        if aux and _loc_a_nom(toks, idx, z, w1): aux = False   # ⭐ 19/10/2026 : « a coze du » = la locution (cause), pas « a causé du »
         if aux and w1.endswith('e') and not w1.endswith('é') and not (toks and idx is not None and re.match(u"^[ld]['’]", toks[idx].lower())):   # ⭐ 03/10/2026 : « l' » / « d' » collé = un NOM, jamais un participe
             pe = w1[:-1] + 'é'
             if pe in cands and cands[pe][1] >= 1.0: return ('flag', pe)
