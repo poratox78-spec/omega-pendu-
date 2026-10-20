@@ -792,6 +792,16 @@ function testListe122() {   // ligne 122 (19/10/2026) : des rouges FAUX du spell
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
       fail.push('ligne 122 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + tier) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe123() {   // ligne 123 (19/10/2026) : « s' » + participe sans auxiliaire → la forme en -t de même son. Phrases inventées ; les cinq premières échouent sur le moteur d'avant.
+  for (const [t, w, s] of [['Le chat s\'assis sur le tapis.', "s'assis", "s'assit"], ["Il s'agi d'une simple erreur.", "s'agi", "s'agit"],
+      ["Elle s'endormi devant la télé.", "s'endormi", "s'endormit"], ["Le voleur s'enfui par la fenêtre.", "s'enfui", "s'enfuit"],
+      ["Le garçon s'apperçu de son oubli.", "s'apperçu", "s'aperçut"],
+      // témoins : rien (auxiliaire présent ; sujet pluriel, hors de portée)
+      ["Il s'est assis près du feu.", 'assis', null], ['Ils se sont enfuis très vite.', 'enfuis', null], ["Les enfants s'assis par terre.", "s'assis", null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'flag'))
+      fail.push('ligne 123 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en flag') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -961,6 +971,7 @@ function finish(parityKO) {
   testListe113();
   testListe112();
   testListe122();
+  testListe123();
   testListe109();
   testListe110();
   testListe102();
