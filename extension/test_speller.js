@@ -822,6 +822,17 @@ function testListe125() {   // ligne 125 (20/10/2026) : « debout » écrit sans
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 125 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe126() {   // ligne 126 (20/10/2026) : familles d'homophones du banc « L'Orthographe illustrée » dans la couche vigilance. Une famille peut ne souligner
+  // que sa forme RARE (« dent » pour dans, « toux » pour tout, « taire » pour terre) : « dans », « tout » restent muets. Phrases inventées ; les quatre premières échouent sur le moteur d'avant.
+  DC.setConfusables(JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'confusables.json'), 'utf8')));
+  for (const [t, w, att] of [['Le chat dort dent le panier.', 'dent', 'dans'], ['Il a toux rangé hier.', 'toux', 'tout'],
+      ['La taire est mouillée.', 'taire', 'terre'], ['Le pirate rejoint le porc du village.', 'porc', 'port'],
+      // témoins : la forme courante n'est pas soulignée
+      ['Le chat dort dans le panier.', 'dans', null], ['Tout le monde est venu.', 'Tout', null]]) {
+    const m = DC.vigText(t).find(x => x.word === w);
+    if (att === null ? !!m : (!m || m.info.indexOf(att) < 0))
+      fail.push('ligne 126 « ' + t + ' » : attendu ' + (att === null ? 'rien' : 'une marque qui propose ' + att) + ', eu ' + (m ? m.info : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -994,6 +1005,7 @@ function finish(parityKO) {
   testListe123();
   testListe124();
   testListe125();
+  testListe126();
   testListe109();
   testListe110();
   testListe102();
