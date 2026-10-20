@@ -814,6 +814,14 @@ function testListe124() {   // ligne 124 (20/10/2026) : finale muette oubliée s
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
       fail.push('ligne 124 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + tier) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe125() {   // ligne 125 (20/10/2026) : « debout » écrit sans accent n'est jamais un verbe (« débout », de débouillir, l'est). Phrases inventées ; les deux premières échouent sur le moteur d'avant (« débouillent » en rouge).
+  for (const [t, w, s] of [['Les touristes debout regardent la mer.', 'debout', null], ['Les enfants debout attendent le bus.', 'debout', null],
+      ['Ils sont restés debout toute la nuit.', 'debout', null],
+      ['Les enfants mange.', 'mange', 'mangent']]) {   // témoin : l'accord sujet-verbe tire toujours
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('ligne 125 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -985,6 +993,7 @@ function finish(parityKO) {
   testListe122();
   testListe123();
   testListe124();
+  testListe125();
   testListe109();
   testListe110();
   testListe102();
