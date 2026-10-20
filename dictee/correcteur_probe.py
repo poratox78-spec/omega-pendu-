@@ -3304,8 +3304,15 @@ CLITIC = {'ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', '
           "l'", "m'", "t'", "s'", "n'"}
 
 
+_SANS_ACC_NON_VERBE = {'debout'}   # ⭐ 20/10/2026 (ligne 125) : écrit sans accent, jamais un verbe (« débout », de débouillir, l'est) — miroir JS
+
+
 def _reads(w):
-    """Lectures finies de la forme : liste de (lemme, mode:temps, personne, nombre)."""
+    """Lectures finies de la forme : liste de (lemme, mode:temps, personne, nombre).
+    ⭐ 20/10/2026 (ligne 125) : CONJ_F est rangée sans accents ; « debout » y tombait sur « débout » (débouillir) et l'accord
+    sujet-verbe écrivait « débouillent » en rouge sur du français juste (« les touristes debout regardent », UD : « restés debout
+    sont »). Recensé : parmi les mots courants écrits sans accent dont la clé est une forme verbale, seul « debout » déclenche."""
+    if w.lower() in _SANS_ACC_NON_VERBE: return []
     s = CONJ_F.get(deacc(w.lower()))
     if not s: return []
     r = []
