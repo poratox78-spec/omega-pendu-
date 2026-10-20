@@ -266,6 +266,8 @@ _FIN_PERS = {'je': ('1', 's'), 'j': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's
 _FIN_DUO = {'san': ('sang', 'sans')}   # nom après un déterminant, mot-outil sinon (« pui » : souvent « qui », lettres miroir)
 _FIN_MIROIR = {'p': 'q', 'q': 'p', 'b': 'd', 'd': 'b'}
 _FIN_VOY = u'aeiouéy'
+_QUI_ANTE = {'moi': ('1', 's'), 'toi': ('2', 's'), 'nous': ('1', 'p'), 'vous': ('2', 'p'), 'lui': ('3', 's'), 'elle': ('3', 's'), 'celui': ('3', 's'),
+             'celle': ('3', 's'), 'eux': ('3', 'p'), 'elles': ('3', 'p'), 'ceux': ('3', 'p'), 'celles': ('3', 'p')}   # ⭐ 20/10/2026 (ligne 127) : personne de l'antécédent de « qui » — miroir JS _QUI_ANTE
 _PS_PL = frozenset('ils elles les des ces mes tes ses nos vos leurs nous vous'.split())   # ⭐ 19/10/2026 (ligne 123) : sujet pluriel → hors de portée — miroir JS _PS_PL
 _EVID = frozenset('evidement evidament evidamment evidemant evidamant evidemmant'.split())   # ⭐ 19/10/2026 : graphies de « évidemment » (désaccentuées) — miroir JS _EVID
 def _det_sur(toks, idx):
@@ -1434,7 +1436,7 @@ class Speller:
         cands = self._cands(low, d)
         if not cands: return None                               # aucun voisin → néologisme/nom propre → abstention
         pk = phon_key(low)
-        inp_aud = low.endswith('é')                                         # AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable)
+        inp_aud = low.endswith('é')                                       # AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable)
         cg, cn = self._ctx_gender(toks, idx), self._ctx_number(toks, idx)   # VOIE GRAMMAIRE : accord du contexte
         # POS attendu du contexte (désambiguïse l'accent : élève/élevé). ⚠️ DÉCALQUE DU PRODUIT — la
         # référence décrivait ici un AUTRE moteur que celui livré (asymétrie mesurée le 04/09/2026,
@@ -1956,6 +1958,8 @@ class Speller:
             if k >= 0:
                 tk = toks[k].lower(); me = re.match(u"^l['’](.+)$", tk); nn = me.group(1) if me else tk; pn = self.POS.get(nn, ()); kd = k
                 if deacc(tk) in _CPm.PRON_SUBJ: per = _CPm.PRON_SUBJ[deacc(tk)]
+                elif tk == 'qui':   # ⭐ 20/10/2026 (ligne 127) : « qui » sujet = 3e personne de l'antécédent (« mon frère qui sorè tout » → saurait) — miroir JS
+                    per = (_QUI_ANTE.get(toks[k - 1].lower()) if k >= 1 else None) or (('3', 'p') if (k >= 2 and toks[k - 2].lower() in _SU_PLDET and re.search(r'[sx]$', deacc(toks[k - 1].lower()))) else ('3', 's'))   # « toi qui sorè tout » → saurais
                 elif 'N' in pn and 'V' not in pn and deacc(nn) not in _SU_NSTOP:
                     if me: per = ('3', 's')
                     elif k >= 1:
@@ -1971,11 +1975,24 @@ class Speller:
                 if b2: return b2
         return best
 
+    def _son_ecrit(self, low):
+        """⭐ 20/10/2026 (ligne 127, point 3 du banc « L'Orthographe illustrée ») — un mot ÉCRIT AU SON avec un accent (« balè », « tèr »,
+        « pièr », « assé ») tombait, accents ôtés, sur un jumeau RARE du dictionnaire (bale, ter, pier, asse : < 1/M) : le palier « mot
+        inconnu » se taisait, alors que l'index des sons tient le mot voulu (balai, terre, pierre, assez). L'accent écrit est un indice de
+        son : si le jumeau est rare et qu'un mot de même clé de son est courant (≥ 1/M) et 10 fois plus fréquent, on ne se tait plus — la
+        proposition reste ORANGE (palier « mot inconnu »). Miroir JS _sonEcrit."""
+        d = deacc(low)
+        if low == d: return False
+        if not re.search(u'[éèêë]([^aeiouyéèêëàâîïôûù]|$)', low): return False   # l'accent dit le son en finale ou devant une consonne (« tèr », « assé ») ; devant une voyelle (« censéur ») c'est une coquille
+        fd = self.FREQ.get(d, 0.0)
+        if fd >= 1.0: return False
+        return any(w != d and self.FREQ.get(w, 0.0) >= max(1.0, 10 * fd) for w in self.PHON.get(phon_key(low), []))
+
     def spell_unknown(self, tok, at_start=False, toks=None, idx=None):
         """-> None | '' (souligné sans suggestion) | suggestion (orange AU CLIC, jamais appliquée)."""
         low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')
         if len(low) < 3 or not all(deacc(c) in ALPHA for c in low): return None
-        if low in self.WORDS or (deacc(low) in self.WORDS and (low == deacc(low) or self.FREQ.get(deacc(low), 0.0) > 0)): return None   # mot connu (ou connu sans accents) — ⭐ liste n° 108 : une forme « connue seulement » (fréquence 0) ne fait pas taire un mot mal accentué — miroir JS
+        if low in self.WORDS or (deacc(low) in self.WORDS and (low == deacc(low) or self.FREQ.get(deacc(low), 0.0) > 0) and not self._son_ecrit(low)): return None   # mot connu (ou connu sans accents) — ⭐ liste n° 108 : une forme « connue seulement » (fréquence 0) ne fait pas taire un mot mal accentué — miroir JS
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) — miroir JS
         if low == 'ête': return None            # réservé à la règle grammaire (rEteEtre) — miroir du court-circuit spellText
         if low in SPELL_KEEP: return None       # mot anglais fréquent / résidu d'ordinal → ni corrigé ni signalé
@@ -1989,13 +2006,14 @@ class Speller:
         for e in edits1(d):
             arr += self.D2A.get(e, ())
         iaU = low.endswith('é')
+        iaG = low[-1:] in (u'è', u'ê')                     # ⭐ 20/10/2026 (ligne 127) : finale /ɛ/ écrite (« balè ») → les finales /ɛ/ (balai, ballet), pas « balle »
         pk = phon_key(low)
         best, bh, ba, bf = None, -1, -1, -1.0
         for w in arr:
             hm = 1 if phon_key(w) == pk else 0
             if not hm and deacc(w)[:1] != d[:1]: continue
             # ⭐ 30/09/2026 : finales audibles + -ès/-et/-êt/-aient (« apré » → après, pas la coquille « aprés ») — miroir JS spellUnknown
-            au = 1 if (iaU and re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$', w)) else 0
+            au = 1 if ((iaU and re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$', w)) or (iaG and re.search(u'(ai|ais|ait|aient|aie|aies|et|ets|ès|êt|ey|ay)$', w))) else 0
             fq = self.FREQ.get(w, 0)
             if hm > bh or (hm == bh and (au > ba or (au == ba and fq > bf))):
                 bh, ba, bf, best = hm, au, fq, w
@@ -2039,6 +2057,7 @@ class Speller:
         if tok[:1] != tok[:1].lower() or not re.match(r'[aeiouyh]', deacc(em.group(2).lower())): return None
         u = self.spell_unknown(em.group(2), at_start=False, toks=toks, idx=idx)
         if u is None: return None
+        if pk == 'd' and u and set(self.POS.get(u, ())) == {'V'}: return None   # ⭐ 20/10/2026 (ligne 127) : « d' » + verbe conjugué n'existe pas (le « d' » d'un nom ou d'un adjectif) — miroir JS
         return (em.group(1) + "'" + u) if (u and deacc(u.lower())[:1] in VOWELS) else ''
 
     def correct_text(self, text, inconnu=False):

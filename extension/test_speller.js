@@ -822,6 +822,15 @@ function testListe125() {   // ligne 125 (20/10/2026) : « debout » écrit sans
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 125 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe127() {   // ligne 127 (20/10/2026, point 3) : un mot ÉCRIT AU SON avec un accent n'est plus tu par son jumeau sans accent rare (ter, pier…) ; « qui » prend la personne de son antécédent. Phrases inventées ; les quatre premières échouent sur le moteur d'avant.
+  for (const [t, w, s] of [['Il marche sur la tèr mouillée.', 'tèr', 'terre'], ['Une grosse pièr bloque la route.', 'pièr', 'pierre'],
+      ['Mon frère qui sorè tout.', 'sorè', 'saurait'], ['Toi qui sorè tout.', 'sorè', 'saurais'],
+      // témoins : « d' » + verbe conjugué n'existe pas ; un mot juste reste muet
+      ["Des fils d'orés brillent.", "d'orés", null], ['Le voyage est fini.', 'fini', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
+      fail.push('ligne 127 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en orange') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -994,6 +1003,7 @@ function finish(parityKO) {
   testListe123();
   testListe124();
   testListe125();
+  testListe127();
   testListe109();
   testListe110();
   testListe102();

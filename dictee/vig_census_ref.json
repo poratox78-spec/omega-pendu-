@@ -1,6 +1,6 @@
 {
- "justes": 390,
- "pointeuses": 207,
+ "justes": 391,
+ "pointeuses": 208,
  "fatigue": 131,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -358,6 +358,7 @@
   "traversés→traversée [accord participe] terminaison",
   "troic→trois [orthographe] lettre_change",
   "tuos→tous [orthographe] inversion",
+  "têtte→tête [mot inconnu] lettre_trop",
   "uen→une [mot inconnu] dys_reel/texte6_h23",
   "una→une [mot inconnu] lettre_change",
   "uniqus→unique [orthographe] terminaison",
