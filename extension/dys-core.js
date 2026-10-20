@@ -7040,7 +7040,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
   function setConfusables(j){_CONFW=(j&&j.win)||4;_CONFBF={};((j&&j.groups)||[]).forEach(function(g){g.forms.forEach(function(f){if(f.indexOf(' ')<0)_CONFBF[f.toLowerCase()]=g;});});}
   function loadConfusables(url){return fetch(url).then(function(r){return r.json();}).then(function(j){setConfusables(j);return true;}).catch(function(){return false;});}
   function _vigSc(g,f,ctx){var s=(g.prior&&g.prior[f]!=null)?g.prior[f]:0,c=g.ctx&&g.ctx[f],fl=(g.floor&&g.floor[f]!=null)?g.floor[f]:0,i;if(c)for(i=0;i<ctx.length;i++)s+=(c[ctx[i]]!=null?c[ctx[i]]:fl);return s;}
-  function _vigOne(word,ctx){if(!_CONFBF)return null;var lw=word.toLowerCase(),g=_CONFBF[lw];if(!g)return null;
+  function _vigOne(word,ctx){if(!_CONFBF)return null;var lw=word.toLowerCase(),g=_CONFBF[lw];if(!g)return null;if(g.mark&&g.mark.indexOf(lw)<0)return null;   /* ⭐ 20/10/2026 (ligne 126) : une famille peut ne souligner que ses formes RARES (mark : « dent » pour dans, « toux » pour tout) — sans ça, « dans », « tout » seraient soulignés partout */
     if(g.prior){var r=Object.keys(g.prior).map(function(f){return [f,_vigSc(g,f,ctx)];}).sort(function(a,b){return b[1]-a[1];});
       if(r.length>=2&&r[0][0]===lw&&(r[0][1]-r[1][1])>3)return null;}   // ATTÉNUE : contexte confirme nettement la forme écrite → pas de marque
     return g.forms.filter(function(f){return f.indexOf(' ')<0;}).map(function(f){return (g.gloss&&g.gloss[f])?f+' ('+g.gloss[f]+')':f;}).join(' · ');}

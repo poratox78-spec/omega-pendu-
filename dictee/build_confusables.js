@@ -101,6 +101,19 @@ const CURATED=[
   {forms:['subi','subis','subit','subite','subits']},
   {forms:['décrépi','décrépie','décrépit','décrépite']},
   {forms:['émigré','émigrés','immigré','immigrés']},
+  // — ⭐ 20/10/2026 (ligne 126) : familles du banc « L'Orthographe illustrée » absentes jusqu'ici. « mark » = seules ces formes sont
+  //   soulignées (la forme RARE que le dys écrit pour la courante) : sans lui, « dans », « tout », « saint », « sein », « maître »
+  //   ajoutaient ~1 250 marques sur le texte juste d'UD (2 074 avant). —
+  {forms:['cerf','cerfs','serf','serfs','serre','serres'], gloss:{'cerf':"l'animal",'serf':'le paysan du Moyen Âge','serre':'abri vitré · (serrer)'}},
+  {forms:['taire','terre','terres'], mark:['taire'], gloss:{'taire':'ne pas dire','terre':'le sol · la planète'}},
+  {forms:['maître','maîtres','mettre','mètre','mètres'], mark:['mètre'], gloss:{'maître':'qui enseigne · qui dirige','mettre':'placer','mètre':'la mesure'}},
+  {forms:['sein','seins','saint','saints','sain','sains'], mark:['sain','sains'], gloss:{'sein':'la poitrine · au sein de','saint':'le religieux','sain':'en bonne santé'}},
+  {forms:['dans','dent','dents'], mark:['dent','dents'], gloss:{'dans':"à l'intérieur de",'dent':'dans la bouche'}},
+  {forms:['pois','poids','poix'], gloss:{'pois':'le légume · à pois','poids':'la masse','poix':'la résine'}},
+  {forms:['porc','porcs','port','ports','pore','pores'], gloss:{'porc':"l'animal",'port':'le havre · (porter)','pore':'de la peau'}},
+  {forms:['reine','reines','renne','rennes','rêne','rênes'], gloss:{'reine':'la souveraine','renne':"l'animal",'rêne':'la courroie (les ~s)'}},
+  {forms:['tout','toux'], mark:['toux'], gloss:{'tout':'la totalité','toux':'le fait de tousser'}},
+  {forms:['pâte','pâtes','patte','pattes'], gloss:{'pâte':'à pain · les pâtes','patte':"la jambe d'un animal"}},
 ];
 
 function buildModel(){
@@ -133,6 +146,7 @@ for(const g of CURATED){
   const gloss={};                                  // curé d'abord, Wiktionnaire en repli, par forme
   for(const f of g.forms){ const cg=(g.gloss||{})[f]; if(cg)gloss[f]=cg; else if(WIKT[f])gloss[f]=WIKT[f]; }
   const grp={forms:g.forms, gloss:gloss};
+  if(g.mark) grp.mark=g.mark;                       // ⭐ ligne 126 : seules ces formes sont soulignées
   if(M){
     const present=g.forms.filter(f=>f.indexOf(' ')<0 && (M.freq.get(f)||0)>=MINF);
     if(present.length>=2){
