@@ -255,6 +255,17 @@ def _pp_surnum(w):
     b = C._pp_base(w) or C._IRR_PP.get(dw)
     return bool(b and deacc(b) != dw)
 _DBL_DETV = set('un une cet cette mon ton son ma ta sa mes tes ses notre votre nos vos du au aux des aucun aucune chaque quelques plusieurs'.split())   # ⭐ 19/10/2026 : déterminants qui ne précèdent jamais un verbe conjugué (le/la/les/l'/leur exclus : clitiques) — miroir JS _DBL_DETV
+_FIN_MUET = ('t', 's', 'x', 'd', 'p', 'ts', 'ds', 'ps')   # ⭐ 20/10/2026 (ligne 124) : finales muettes — miroir JS _FIN_MUET
+_FIN_DET_PL = frozenset('les des ces mes tes ses nos vos leurs aux quelques plusieurs'.split())
+_FIN_DET_SG = frozenset('le la un une ce cet cette mon ton son ma ta sa notre votre leur du au chaque aucun aucune'.split())
+_FIN_AVOIR = frozenset('a ai as ont avons avez avait avais avaient aura'.split())
+_FIN_AUX = _FIN_AVOIR | frozenset('est sont suis es etait etaient'.split())
+_FIN_CLIT = frozenset('ne n me m te t se s le la les l lui leur y en'.split())
+_FIN_PERS = {'je': ('1', 's'), 'j': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'), 'on': ('3', 's'),
+             'nous': ('1', 'p'), 'vous': ('2', 'p'), 'ils': ('3', 'p'), 'elles': ('3', 'p')}
+_FIN_DUO = {'san': ('sang', 'sans')}   # nom après un déterminant, mot-outil sinon (« pui » : souvent « qui », lettres miroir)
+_FIN_MIROIR = {'p': 'q', 'q': 'p', 'b': 'd', 'd': 'b'}
+_FIN_VOY = u'aeiouéy'
 _PS_PL = frozenset('ils elles les des ces mes tes ses nos vos leurs nous vous'.split())   # ⭐ 19/10/2026 (ligne 123) : sujet pluriel → hors de portée — miroir JS _PS_PL
 _EVID = frozenset('evidement evidament evidamment evidemant evidamant evidemmant'.split())   # ⭐ 19/10/2026 : graphies de « évidemment » (désaccentuées) — miroir JS _EVID
 def _det_sur(toks, idx):
@@ -1036,6 +1047,70 @@ class Speller:
                 return (rc[0], em.group(1) + "'" + rc[1])
         return self._maj_tier(tok, self.correct_token(tok, at_start=at_start, toks=toks, idx=idx))
 
+    def _fin_muette(self, low, tok, toks, idx):
+        """⭐ 20/10/2026 (ligne 124) — finale muette oubliée sur un NON-MOT. Candidats : écrit + t / s / x / d / p / ts / ds / ps, au
+        dictionnaire et courants (≥ 2/M). Le contexte filtre : déterminant (ou article l' collé) → nom ou adjectif au NOMBRE du
+        déterminant ; auxiliaire → participe (avoir : sans marque de pluriel ; être : participe ou attribut) ; pronom sujet → forme
+        conjuguée à sa PERSONNE ; sinon un seul candidat courant (≥ 10/M), ou 20 fois plus fréquent quand les deux ne sont pas des
+        verbes, et rien devant un nom propre ou un mot inconnu. Un adjectif à deux genres n'est jamais tranché ici. « san » : sang après un déterminant, sans
+        sinon. Deux rivales rendent la main (_fin_rival : lettres miroir, mot bien plus fréquent à une lettre près). Rouge s'il n'en reste qu'un ; sinon la suite du speller décide (rien ne change). Miroir JS _finMuette."""
+        if len(low) < 3 or tok != low or not low.isalpha() or low in self.WORDS or deacc(low) in self.WORDS: return None
+        pv = deacc(toks[idx - 1].lower()) if (toks and idx) else ''
+        el = (toks[idx].lower().replace(u'’', "'")[:2] if (toks and idx is not None) else '')
+        if self._fin_rival(low, [_FIN_DUO[low][1]] if low in _FIN_DUO else [low + m for m in _FIN_MUET if (low + m) in self.WORDS]): return None
+        if low in _FIN_DUO:
+            n, f = _FIN_DUO[low]
+            return n if (pv in _FIN_DET_PL or pv in _FIN_DET_SG or el in ("l'", "d'")) else f
+        # après un « e » final, seul le « s » reste muet (« éme » + t = émet, un autre son) ; un accent faux entré au lexique passe par
+        # _AFIX (« aprés » → après) ; un ADJECTIF à deux genres (« diver » : divers / diverses, « tou » : tout / toute) n'est jamais
+        # sûr — on rend la main, rien ne change.
+        C = []
+        for m in (('s',) if low.endswith('e') else _FIN_MUET):
+            c = low + m
+            if c in self.WORDS and self.FREQ.get(c, 0.0) >= 2.0:   # courant (« un comic » : comics, 1,5/M, anglais — non)
+                c = _AFIX.get(c, c)
+                if c not in C: C.append(c)
+        pos = lambda w: set(self.POS.get(w, ()))
+        if not C or any('A' in pos(c) and self.ADJ.get(deacc(c)) for c in C): return None
+        plur = lambda w: deacc(w)[-1:] in ('s', 'x') and not self._invar_s(w)
+        art = el == "l'" and pv not in _FIN_PERS and pv not in _FIN_CLIT and pv != 'qui'   # « il l'apele » : l' pronom, pas article
+        if pv in _FIN_DET_PL or pv in _FIN_DET_SG or art:
+            C = [c for c in C if pos(c) & {'N', 'A'} and (self._invar_s(c) or plur(c) == (pv in _FIN_DET_PL))]
+        elif pv in _FIN_AUX and toks[idx - 1].lower() != u'à':   # « à » n'est pas l'auxiliaire « a »
+            if pv in _FIN_AVOIR: C = [c for c in C if _cpm()._avoir_pp(c) and not plur(c)]   # avoir : le participe, sans accord
+            else: C = [c for c in C if _cpm()._avoir_pp(c) or 'A' in pos(c) or not pos(c)]  # être : participe ou attribut (« est debou » ; debout est sans catégorie)
+        else:
+            j = idx - 1 if (toks and idx is not None) else -1
+            while j >= 0 and deacc(toks[j].lower()) in _FIN_CLIT: j -= 1
+            per = _FIN_PERS.get(deacc(toks[j].lower()).split("'")[-1]) if j >= 0 else None   # « qu'il » : il
+            if el == "j'": per = ('1', 's')                                                       # « j'avai » : le sujet est collé
+            if per:
+                C = [c for c in C if any(len(f.split(';')) == 4 and tuple(f.split(';')[2:]) == per
+                                          for f in (self.CONJ_F.get(deacc(c)) or '').split('|'))]
+            else:
+                # sans contexte : rien devant un nom propre (« von Braun ») ni devant un mot inconnu (« comic book »)
+                nx = toks[idx + 1] if (toks and idx is not None and idx + 1 < len(toks)) else ''
+                if nx and (nx[:1] != nx[:1].lower() or (nx.isalpha() and nx.lower() not in self.WORDS and deacc(nx.lower()) not in self.WORDS)): return None
+                if len(C) > 1:
+                    C.sort(key=lambda c: -self.FREQ.get(c, 0.0))
+                    if self.FREQ.get(C[0], 0.0) >= 20 * self.FREQ.get(C[1], 0.0) and not ('V' in pos(C[0]) and 'V' in pos(C[1])): C = C[:1]
+                if C and self.FREQ.get(C[0], 0.0) < 10.0: return None   # sans contexte, un mot COURANT seulement (« comic » → comics, 1,5/M : non)
+        return C[0] if len(C) == 1 else None
+
+    def _fin_rival(self, low, C):
+        """⭐ 20/10/2026 (ligne 124) — deux lectures rivales de la finale muette, vues sur le corpus de la sonde de précision :
+        ① LETTRES MIROIR (p/q, b/d) : « pui », « puit » sont souvent « qui » — un mot courant (≥ 100/M) à un échange près, finale ôtée ;
+        ② un mot 5 fois plus fréquent à UNE lettre près, lettre ôtée (pas la première : « pon » n'est pas « on ») ou voyelle ajoutée :
+        « por » = pour, « loui » = lui. Alors le résolveur rend la main. Miroir JS _finRival."""
+        for k, ch in enumerate(low):
+            sw = _FIN_MIROIR.get(ch)
+            if sw:
+                v = low[:k] + sw + low[k + 1:]
+                if any(x in self.WORDS and self.FREQ.get(x, 0.0) >= 100.0 for x in (v, v[:-1])): return True
+        fmax = max([self.FREQ.get(c, 0.0) for c in C] or [0.0])
+        riv = [low[:k] + low[k + 1:] for k in range(1, len(low))] + [low[:k] + vo + low[k:] for k in range(len(low) + 1) for vo in _FIN_VOY]
+        return any(v in self.WORDS and v not in C and self.FREQ.get(v, 0.0) >= 5 * fmax for v in riv)
+
     def _se_ps3(self, x, toks, idx):
         """⭐ 19/10/2026 (ligne 123) — « s' » + PARTICIPE sans auxiliaire est impossible (il faudrait « s'est ») : le dys écrit le participe
         pour le passé simple ou le présent de même son (s'assis → s'assit, s'aperçu → s'aperçut, s'enfui → s'enfuit, s'agi → s'agit).
@@ -1278,6 +1353,10 @@ class Speller:
         if re.search(r'(.)\1\1', low) and not (tok == tok.upper() and len(tok) >= 2) and not re.fullmatch(r'[ivxlcdm]+(e|es|eme|emes|er|ers)?', d):
             ec = self._collapse(low)
             if ec: return ('auto', ec[0]) if len(ec) == 1 else ('flag', ec[0])
+        # ⭐ 20/10/2026 (ligne 124) — FINALE MUETTE OUBLIÉE : le mot écrit + une lettre muette finale est un mot, et le contexte n'en laisse
+        # qu'un (« nombreu » → nombreux, « il doi » → doit, « ces pon » → ponts, « a construi » → construit) → rouge. Miroir JS _finMuette.
+        _fm = self._fin_muette(low, tok, toks, idx)
+        if _fm: return ('flag', _fm)
         # élision : « lannée »→« l'année », « dautres »→« d'autres » (consonne d'élision + mot voyelle/h valide)
         # DOUBLE-CONSONNE simplifiée = faute dys TRÈS fréquente (laisé→laissé, pome→pomme, carote→carotte, aporté→apporté,
         # décolé→décollé) : si doubler UNE consonne interne donne un mot COMMUN (freq≥3) qui GARDE la finale saisie →

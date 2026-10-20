@@ -802,6 +802,18 @@ function testListe123() {   // ligne 123 (19/10/2026) : « s' » + participe san
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'flag'))
       fail.push('ligne 123 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en flag') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe124() {   // ligne 124 (20/10/2026) : finale muette oubliée sur un non-mot — le contexte n'en laisse qu'une (rouge). Phrases inventées ; les cinq premières échouent sur le moteur d'avant.
+  for (const [t, w, s, tier] of [['Ces pon traversent le fleuve.', 'pon', 'ponts', 'flag'],   // déterminant pluriel → nom au pluriel
+      ['Il part san regarder.', 'san', 'sans', 'flag'], ['Elle donne du san chaque année.', 'san', 'sang', 'flag'],
+      ['Elle est debou.', 'debou', 'debout', 'flag'],                       // après être : participe ou attribut
+      ['Il habite au nor du pays.', 'nor', 'nord', 'flag'],                 // une seule finale possible (pas « non »)
+      ['Il a pri le train.', 'pri', 'pris', 'flag'], ['Le vieu chien dort.', 'vieu', 'vieux', 'flag'],   // déjà justes : gardés
+      // témoins : « tou » reste ambigu (tout / tous), « pui » aussi (souvent « qui » : lettres miroir), « por » (pour) ; les mots justes restent muets
+      ['Il a mangé tou.', 'tou', 'tout', 'vigilance'], ['Et pui il part.', 'pui', 'puis', 'vigilance'], ['Il pond un œuf.', 'pond', null, null], ['Le sang coule.', 'sang', null, null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('ligne 124 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + tier) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -972,6 +984,7 @@ function finish(parityKO) {
   testListe112();
   testListe122();
   testListe123();
+  testListe124();
   testListe109();
   testListe110();
   testListe102();

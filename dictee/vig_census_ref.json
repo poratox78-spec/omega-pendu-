@@ -1,6 +1,6 @@
 {
- "justes": 392,
- "pointeuses": 206,
+ "justes": 390,
+ "pointeuses": 207,
  "fatigue": 131,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -374,7 +374,6 @@
   "volés→volé [accord du participe après avoir à vérifier] accord",
   "vor→voir [mot inconnu] lettre_manque",
   "votrre→votre [orthographe] lettre_trop",
-  "vou→vous [mot inconnu] lettre_manque",
   "vrançaise→française [orthographe] lettre_change",
   "vria→vrai [orthographe] inversion",
   "youan→yuan [orthographe] lettre_change",
@@ -391,7 +390,6 @@
   "équieq→équipe [mot inconnu] autre",
   "équipemenc→équipements [orthographe] autre",
   "équipess→équipes [orthographe] lettre_trop",
-  "étan→étant [orthographe] lettre_manque",
   "étiat→était [orthographe] inversion",
   "étudas→études [orthographe] lettre_change",
   "êtiat→était [orthographe] autre"
