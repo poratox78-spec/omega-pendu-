@@ -29329,9 +29329,9 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   'a ai as ont avons avez avait avais avaient aura'.split(' ').forEach(function(x){_FIN_AVOIR[x]=1;_FIN_AUX[x]=1;});
   'est sont suis es etait etaient'.split(' ').forEach(function(x){_FIN_AUX[x]=1;});
   'ne n me m te t se s le la les l lui leur y en'.split(' ').forEach(function(x){_FIN_CLIT[x]=1;});
-  var _FIN_PERS={je:'1s',j:'1s',tu:'2s',il:'3s',elle:'3s',on:'3s',nous:'1p',vous:'2p',ils:'3p',elles:'3p'},_FIN_DUO={san:['sang','sans']},_FIN_MIROIR={p:'q',q:'p',b:'d',d:'b'},_FIN_VOY='aeiouéy';
-  function _finRival(low,C){   // lettres miroir (« pui » = qui) ; un mot 5 fois plus fréquent à une lettre près (« por » = pour, « loui » = lui) — miroir Python _fin_rival
-    var k,v,i;for(k=0;k<low.length;k++){var sw=_FIN_MIROIR[low.charAt(k)];if(sw){v=low.slice(0,k)+sw+low.slice(k+1);if([v,v.slice(0,-1)].some(function(x){return SP.WORDS.has(x)&&(spF(x)||0)>=100;}))return true;}}
+  var _FIN_PERS={je:'1s',j:'1s',tu:'2s',il:'3s',elle:'3s',on:'3s',nous:'1p',vous:'2p',ils:'3p',elles:'3p'},_FIN_DUO={san:['sang','sans']},_FIN_VOY='aeiouéy';
+  function _finRival(low,C){   // un mot 5 fois plus fréquent à une lettre près (« por » = pour) — ⛔ 21/10/2026 (ligne 129) : garde « lettres miroir » retirée (cas seulement GÉNÉRÉS, 0 sur le réel) — miroir Python _fin_rival
+    var k,i;
     var fmax=0;for(i=0;i<C.length;i++)fmax=Math.max(fmax,spF(C[i])||0);
     var riv=[];for(k=1;k<low.length;k++)riv.push(low.slice(0,k)+low.slice(k+1));for(k=0;k<=low.length;k++)for(i=0;i<_FIN_VOY.length;i++)riv.push(low.slice(0,k)+_FIN_VOY.charAt(i)+low.slice(k));
     return riv.some(function(x){return SP.WORDS.has(x)&&C.indexOf(x)<0&&(spF(x)||0)>=5*fmax;});}

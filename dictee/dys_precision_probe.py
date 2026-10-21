@@ -56,6 +56,10 @@ REF_PREC = os.path.join(_DIR_ICI, 'dys_precision_ref.json')
 REF_PREC_NAV = os.path.join(_DIR_ICI, 'dys_precision_nav_ref.json')
 DATA = os.environ.get('OMEGA_DYS_DATA') or os.path.join(ROOT, 'data_local', 'dys_reel')   # worktree : OMEGA_DYS_DATA=/chemin/data_local/dys_reel
 FILES = ['dictees_gold.jsonl', 'faiblesses.jsonl', 'genere_gold.jsonl', 'gold_claude.jsonl']
+# ⭐ 21/10/2026 (ligne 129) : deux de ces corpus sont GÉNÉRÉS par dictee/dys_gen.py (fautes tirées, pas écrites). Une garde réglée sur un cas qui
+# n'existe que là peut coûter de vraies réparations (vu : « pui » = qui, 0 cas réel). La sonde imprime donc, par famille, la part réelle et la
+# part générée — information, les références (et donc le verdict) restent calculées sur l'ensemble, comme avant.
+_GENERES = {'faiblesses.jsonl', 'genere_gold.jsonl'}
 # gold_claude.jsonl (22/08/2026) : les 72 productions dys réelles du corpus n'avaient AUCUN corrigé — seules les
 # 6 dictées en avaient un (le texte dicté est connu). Corrigées À LA MAIN, en édition minimale (orthographe,
 # accord, conjugaison, accents, élision, segmentation, majuscule de phrase ; ni style, ni ordre des mots).
@@ -230,6 +234,7 @@ def main():
     import inspect
     sp = [o for n, o in vars(S).items() if inspect.isclass(o) and hasattr(o, '_cands')][0]()
     stats = defaultdict(lambda: defaultdict(int))
+    stats_o = defaultdict(lambda: defaultdict(int))     # ⭐ ligne 129 : (famille, palier, origine) → comptes
     exemples = defaultdict(list)
     distinct = defaultdict(set)
     n_pairs = 0
@@ -331,6 +336,7 @@ def main():
             k = classer(sugg, w, al, i)                    # ⭐ 13/09/2026 : suggestion de plusieurs mots jugée sur la suite de tokens gold (juste)
             key = (fam, tier) if fam == 'orthographe' else (fam, tier + ('·propre' if clean_ctx(i) else '·pollué'))
             stats[key][k] += 1
+            stats_o[key + ('généré' if fn in _GENERES else 'réel',)][k] += 1
             # CAS DISTINCTS : le corpus contient la MÊME dictée recopiée par plusieurs élèves → un piège
             # (« vingt anse ») comptait 7×. On compte aussi chaque (mot, suggestion, contexte ±2) une seule fois.
             toks_ctx = rt_g if fam != 'orthographe' else rt_s
@@ -368,6 +374,16 @@ def main():
               r['precision'] if r['precision'] is not None else '—', d[0], d[1], d[2], r['precision_distincts'] if r['precision_distincts'] is not None else '—'))
         for e in r['exemples']:
             print('      · ' + e)
+    # ⭐ ligne 129 : réel / généré, par famille (effectif ≥ 20)
+    print('\n  RÉEL / GÉNÉRÉ (précision ; effectif) — les corpus générés : ' + ', '.join(sorted(_GENERES)))
+    for (fam, tier), c in sorted(stats.items(), key=lambda kv: (-sum(kv[1].values()), kv[0])):
+        if sum(c[x] for x in ('juste', 'inutile', 'fausse')) < 20: continue
+        cells = []
+        for o in ('réel', 'généré'):
+            co = stats_o.get((fam, tier, o)) or {}
+            t = sum(co.get(x, 0) for x in ('juste', 'inutile', 'fausse'))
+            cells.append('%s %s (%d)' % (o, ('%5.1f %%' % (100.0 * co.get('juste', 0) / t)) if t else '   — ', t))
+        print('    %-34s %-10s %s' % (fam[:34], tier, ' · '.join(cells)))
 
     # ⭐ CONTRAT — cette sonde ne pouvait PAS échouer : elle imprimait un tableau et rendait 0.
     # Second banc décoratif du lot 1 (le premier, descending_probe, a reçu le sien en PR#622).
