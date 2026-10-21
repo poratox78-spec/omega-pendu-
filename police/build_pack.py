@@ -13,7 +13,9 @@ import zipfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 ZIP = os.path.join(ROOT, 'omega-police-dys.zip')
-FILES = ['OmegaDys-Regular.ttf', 'OmegaDys-Light.ttf', 'OmegaDys-Heavy.ttf', 'LISEZMOI.txt', 'OFL.txt']
+FILES = ['OmegaDys-Regular.ttf', 'OmegaDys-Light.ttf', 'OmegaDys-Heavy.ttf',
+         'OmegaDysWord-Regular.ttf',   # ⭐ 21/10/2026 (ligne 137) : muettes et syllabes colorées par la police (build_font_word.py) ; style « rond » choisi par Rem
+         'LISEZMOI.txt', 'OFL.txt']
 
 
 def norm(name, data):
