@@ -842,6 +842,14 @@ function testListe127() {   // ligne 127 (20/10/2026, point 3) : un mot ÉCRIT A
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== 'vigilance'))
       fail.push('ligne 127 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en orange') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe128() {   // ligne 128 (21/10/2026) : « à charge » après rester / continuer… est une locution, pas « à charger » — sauf quand un déterminant ouvre le complément. Phrases inventées ; les deux premières échouent sur le moteur d'avant (« charger » en rouge).
+  for (const [t, w, s] of [['Ces frais restent à charge pour la famille.', 'charge', null], ['Les soins restent à charge du patient.', 'charge', null],
+      // témoins : les vrais infinitifs restent corrigés
+      ['Ils restent à charge le camion.', 'charge', 'charger'], ['Il commence à marche vite.', 'marche', 'marcher']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('ligne 128 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -1016,6 +1024,7 @@ function finish(parityKO) {
   testListe125();
   testListe126();
   testListe127();
+  testListe128();
   testListe109();
   testListe110();
   testListe102();
