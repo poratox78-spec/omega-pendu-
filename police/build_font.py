@@ -645,6 +645,11 @@ def build(style='Regular', uniform=None):
     })
     fb.setupOS2(sTypoAscender=880, sTypoDescender=-280, sTypoLineGap=200,
                 usWinAscent=960, usWinDescent=320)
+    # ⭐ 21/10/2026 : PAGES DE CODE déclarées (Latin 1, recalculées sur la table des caractères) et style « Regular » (fsSelection, bit 6).
+    # À zéro, Windows rangeait la police hors de l'alphabet latin : installée, elle restait inutilisable dans Word (le nom s'affiche,
+    # le texte part dans une autre police) — constat de Rem. Garde : police/build_pack.py --check.
+    fb.font['OS/2'].recalcCodePageRanges(fb.font)
+    fb.font['OS/2'].fsSelection |= 0x40
     fb.setupPost()
     out = os.path.join(here, 'OmegaDys-%s.ttf' % style)
     fb.save(out)
