@@ -30759,6 +30759,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(_isFinite(best)){var k=idx-1,per=null;while(k>=0&&/^(ne|n'|n’)$/.test(T[k].toLowerCase()))k--;
       if(k>=0){var tk=T[k].toLowerCase(),me=/^l['’](.+)$/.exec(tk),nn=me?me[1]:tk,pn=spP(nn)||'',kd=k;
         if(RPRON[deaccS(tk)])per=RPRON[deaccS(tk)];
+        else if(tk==='qui')per=(k>=1&&_QUI_ANTE[T[k-1].toLowerCase()])||((k>=2&&_SU_PLDET[T[k-2].toLowerCase()]&&/[sx]$/.test(deaccS(T[k-1].toLowerCase())))?['3','p']:['3','s']);   // ⭐ 20/10/2026 (ligne 127) : « qui » sujet = 3e personne de l'antécédent — miroir Python
         else if(pn.indexOf('N')>=0&&pn.indexOf('V')<0&&!_SU_NSTOP[deaccS(nn)]){if(me)per=['3','s'];
           else if(k>=1){var dt=T[k-1].toLowerCase();kd=k-1;if(_SU_SGDET[dt])per=['3','s'];else if(_SU_PLDET[dt]&&dt!=='aux')per=['3','p'];}}
         if(per&&kd>=1&&_SU_PREP[T[kd-1].toLowerCase().replace(/’/g,"'")])per=null;}
@@ -30768,11 +30769,17 @@ function spellTokenCore(tok,atStart,T,idx){
           if(same){f=spF(w)||0;if(f>bf){bf=f;b2=w;}}}
         if(b2)return b2;}}
     return best;}
-  function spellUnknown(tok,atStart,T,idx){
+  /* ⭐ 20/10/2026 (ligne 127, point 3) — un mot ÉCRIT AU SON avec un accent (« balè », « tèr ») tombait, accents ôtés, sur un jumeau RARE
+     (bale, ter : < 1/M) et le palier « mot inconnu » se taisait ; l'index des sons tient le mot voulu. Jumeau rare et mot de même clé de son
+     courant (≥ 1/M, 10 fois plus fréquent) → on propose (orange). Miroir Python _son_ecrit. */
+  var _QUI_ANTE={moi:['1','s'],toi:['2','s'],nous:['1','p'],vous:['2','p'],lui:['3','s'],elle:['3','s'],celui:['3','s'],celle:['3','s'],eux:['3','p'],elles:['3','p'],ceux:['3','p'],celles:['3','p']};   // ⭐ 20/10/2026 (ligne 127) : personne de l'antécédent de « qui » — miroir Python
+  function _sonEcrit(low){var d=deaccS(low);if(low===d)return false;if(!/[éèêë]([^aeiouyéèêëàâîïôûù]|$)/.test(low))return false;var fd=spF(d)||0;   /* l'accent dit le son en finale ou devant une consonne ; devant une voyelle (« censéur ») c'est une coquille */if(fd>=1.0)return false;
+    var pa=SP.PHON[phonKey(low)]||[];for(var i=0;i<pa.length;i++){if(pa[i]!==d&&(spF(pa[i])||0)>=Math.max(1.0,10*fd))return true;}return false;}
+function spellUnknown(tok,atStart,T,idx){
     if(!SP.ready)return null;
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
     if(low.length<3||!isAlphaS(low))return null;
-    if(SP.WORDS.has(low)||(SP.WORDS.has(deaccS(low))&&(low===deaccS(low)||(spF(deaccS(low))||0)>0)))return null;   // mot connu (ou connu sans accents) — ⭐ liste n° 108 : une forme « connue seulement » (fréquence 0) ne fait pas taire un mot mal accentué (« minorè »)
+    if(SP.WORDS.has(low)||(SP.WORDS.has(deaccS(low))&&(low===deaccS(low)||(spF(deaccS(low))||0)>0)&&!_sonEcrit(low)))return null;   // mot connu (ou connu sans accents) — ⭐ liste n° 108 : une forme « connue seulement » (fréquence 0) ne fait pas taire un mot mal accentué (« minorè »)
     if(udHas(low))return null;                                              // dictionnaire utilisateur (prénom/jargon ajouté) → ne pas signaler
     if(_presentRegulier(low,T,idx,tok))return null;   // ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — pas « inconnu »
     if(_SPELL_KEEP[low])return null;                                       // mot anglais fréquent / résidu d'ordinal (the/er) → ni corrigé ni signalé « inconnu »
@@ -30783,13 +30790,13 @@ function spellTokenCore(tok,atStart,T,idx){
     var best=null,bf=-1,ba=-1,arr=(spD(d)||[]).slice(),i,j,w,a;          // candidat best-effort (accents + phonétique + édit-1), même initiale
     var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length;i++)arr.push(pa[i]);
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){a=spD(e1[i]);if(a)for(j=0;j<a.length;j++)arr.push(a[j]);}
-    var _iaU=/é$/.test(low);                                               // AUDIBILITÉ (orange) : saisie à finale /e/ (é) → proposer l'audible (afolé→affolé), PAS le muet plus fréquent (affole). Orange = « à vérifier », jamais affirmé → hors FP=0.
+    var _iaU=/é$/.test(low),_iaG=/[èê]$/.test(low);   // ⭐ 20/10/2026 (ligne 127) : finale /ɛ/ écrite (« balè ») → les finales /ɛ/ (balai, ballet), pas « balle » — miroir Python                                               // AUDIBILITÉ (orange) : saisie à finale /e/ (é) → proposer l'audible (afolé→affolé), PAS le muet plus fréquent (affole). Orange = « à vérifier », jamais affirmé → hors FP=0.
     /* ⭐ 30/09/2026 (2e catalogue) : les finales audibles comptent aussi -ès, -et, -êt, -aient (/ɛ/) — « apré » recevait « aprés »,
        coquille du lexique (sous-titres) finie en -és, contre « après » 85 fois plus fréquent mais « muet » pour l'ancienne liste.
        Mesuré : « apré » → après ×5 sur le gold (le juge désaccentué comptait « aprés » juste) ; UD inchangé.
        Miroir Python spell_unknown. */
     var _pkU=phonKey(low),_bh=-1;                                          // AUDIBILITÉ (doctrine) : le dys écrit ce qu'il ENTEND. Un candidat HOMOPHONE passe avant un candidat seulement proche à l'œil — sinon « koi » se corrige en « ko » (fréquent, muet) au lieu de « quoi » (homophone). La garde de même première LETTRE écartait justement k/qu, c/qu, f/ph : on l'ouvre quand la clé phonétique est IDENTIQUE.
-    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))?1:0,_fq=spF(w)||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}
+    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=((_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))||(_iaG&&/(ai|ais|ait|aient|aie|aies|et|ets|ès|êt|ey|ay)$/.test(w)))?1:0,_fq=spF(w)||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}
     /* ⭐ 30/09/2026 (2e catalogue : le tri des candidats) — L'ACCENT SEUL D'ABORD, comme le tri principal (spellTokenCore le classe en
        tête, mais n'y propose rien sous 1/M : « éclairait » 0,2/M tombait ici, où « éclair », homophone 41 fois plus fréquent, gagnait).
        Seulement si le mot écrit n'a AUCUN accent (le dys pose aussi des accents FAUX : « apré » → âpre serait faux), et sauf si un
@@ -31579,7 +31586,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(_hc&&!_hok&&r&&deaccS(String(r[1]).toLowerCase())!==deaccS(T[i].toLowerCase())&&!_HY_TETE[String(r[1]).toLowerCase()])r=null;
     if(r&&r[1]!==T[i].toLowerCase()){var _o={i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]};if(r[2])_o.raison=r[2];out.push(_o);pushed=true;}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null&&(!_hc||_hok||_HY_TETE[String(u).toLowerCase()])){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
-    if(!pushed){var _ee=T[i].match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),_ep=_ee?_ee[1].toLowerCase():'';if(_ee&&((_ep.length===1&&SELIDE[_ep])||_ep==='qu')&&T[i].charAt(0)===T[i].charAt(0).toLowerCase()&&/^[aeiouyh]/.test(deaccS(_ee[2].toLowerCase()))){var _eu=spellUnknown(_ee[2],false,T,i);if(_eu!==null){out.push({i:i,word:T[i],sugg:(_eu&&SVOW[deaccS(_eu.toLowerCase())[0]])?_ee[1]+"'"+_eu:T[i],name:'mot inconnu',tier:'vigilance'});pushed=true;}}}   // ⭐ 29/09/2026 : mot ÉLIDÉ inconnu → « mot inconnu » sur le reste, préfixe gardé (miroir correct_text)
+    if(!pushed){var _ee=T[i].match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),_ep=_ee?_ee[1].toLowerCase():'';if(_ee&&((_ep.length===1&&SELIDE[_ep])||_ep==='qu')&&T[i].charAt(0)===T[i].charAt(0).toLowerCase()&&/^[aeiouyh]/.test(deaccS(_ee[2].toLowerCase()))){var _eu=spellUnknown(_ee[2],false,T,i);if(_ep==='d'&&_eu&&spP(_eu)==='V')_eu=null;   /* ⭐ 20/10/2026 (ligne 127) : « d' » + verbe conjugué n'existe pas — miroir Python */if(_eu!==null){out.push({i:i,word:T[i],sugg:(_eu&&SVOW[deaccS(_eu.toLowerCase())[0]])?_ee[1]+"'"+_eu:T[i],name:'mot inconnu',tier:'vigilance'});pushed=true;}}}   // ⭐ 29/09/2026 : mot ÉLIDÉ inconnu → « mot inconnu » sur le reste, préfixe gardé (miroir correct_text)
     if(!pushed&&(!_hc||_hok)){var _vg=vigAt(T,i,_vst,text);if(_vg){out.push(_vg);pushed=true;}}}   // ⭐ 12/09/2026 : la chaîne orange vit dans vigAt (consultable à UN index sur des tokens corrigés — bout de chaîne orthographe → orange)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
       var er=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
