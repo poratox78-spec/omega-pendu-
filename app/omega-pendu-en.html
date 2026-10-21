@@ -31731,6 +31731,7 @@ function spellUnknown(tok,atStart,T,idx){
    +'body.dys-dark .vdc-sc .vdc-i{border-color:#b18cf0;color:#b18cf0}body.dys-dark .vdc-sc[open] .vdc-i{background:#b18cf0;color:#1a1a1a}'
    +'#vdc-complete{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px;min-height:0}'
    +'body.vdc-touch #vdc-complete{flex-wrap:nowrap;overflow-x:auto;min-height:38px;margin:4px 0 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}body.vdc-touch #vdc-complete>*{flex:0 0 auto;white-space:nowrap}'   /* aide-frappe : complétions du mot en cours */
+   +'#vdc-complete:empty{display:none}#vdc-complete.vdc-bulle{position:fixed;z-index:60;margin:0;padding:6px 8px;background:#fff;border:1px solid #c9b8ea;border-radius:10px;box-shadow:0 6px 18px rgba(40,20,80,.25);box-sizing:border-box}body.dys-dark #vdc-complete.vdc-bulle{background:#1b2230;border-color:#4a2f85;box-shadow:0 6px 18px rgba(0,0,0,.55)}'   /* ⭐ 21/10/2026 (ligne 132) : aide-frappe en BULLE près du curseur (_placeComp) — sous la zone de saisie, on ne la voyait plus dès que le texte dépassait l'écran */
    +'#vdc-card .vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #4a2f85;border-radius:8px;background:#5b3a9e;color:#fff;cursor:pointer}'   /* scopé #vdc-card : bat le global button:not(.btn) (0,1,1) qui fuyait une couleur claire */
    +'#vdc-card .vdc-comp:hover{background:#492f80;color:#fff}#vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #c9b8ea;font-weight:bold}'   /* 1re = défaut Tab, marquée par un liseré */
    +'body.dys-dark #vdc-card .vdc-comp{background:#7c5bc0;color:#fff;border-color:#6a4caf}body.dys-dark #vdc-card .vdc-comp:hover{background:#6a4caf;color:#fff}body.dys-dark #vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #b9a3e6}'
@@ -31799,7 +31800,7 @@ function spellUnknown(tok,atStart,T,idx){
    +'<button id="vdc-lire" type="button" aria-pressed="false" title="Listen to your text read aloud — the word being read is highlighted (nothing leaves your device)">🔊 Read aloud</button>'
    +'</div>'
    +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> (soulignées si la police de son est allumée) ; clique un mot dans « ✅ Texte corrigé » pour appliquer</span></div>'
-   +'<div id="vdc-editor"><div id="vdc-in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte à corriger" spellcheck="false" data-ph="Ex. : Les enfant joue dans le jardin et il sont content."></div></div>'
+   +'<div id="vdc-editor"><div id="vdc-in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte à corriger" spellcheck="false" autocomplete="off" autocorrect="off" data-ph="Ex. : Les enfant joue dans le jardin et il sont content."></div></div>'
    +'<div id="vdc-complete" aria-live="polite"></div>'
    +'<div class="vdc-flabel vdc-flabel-big">✅ Texte corrigé <button id="vdc-copy" type="button" class="vdc-copy">📋 Copy</button></div>'
    +'<div id="vdc-result" aria-live="polite"></div>'
@@ -32385,7 +32386,25 @@ function spellUnknown(tok,atStart,T,idx){
     var pos=(ta.selectionStart==null?ta.value.length:ta.selectionStart),w=_wordAt(ta.value,pos);
     if(!w.word||pos!==w.end||deaccS(w.word).length<2){box.innerHTML='';return;}   // seulement en fin de mot (préfixe en cours de frappe)
     var cs=complete(w.word,_prevWord(ta.value,w.start),_prevWord(ta.value,w.start,2));if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
-    box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter '+(_touch?'':'(Tab) ')+':</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
+    box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter '+(_touch?'':'(Tab) ')+':</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');_placeComp();}
+  /* ⭐ 21/10/2026 (ligne 132) — L'AIDE-FRAPPE EN BULLE. La barre des complétions vivait SOUS la zone de saisie : dès que le texte
+     dépasse l'écran, ou qu'on écrit au milieu, elle est hors de vue (constat de Rem). Elle suit désormais le CURSEUR : sous la ligne
+     en cours, au-dessus si la place manque ; en tactile, au-dessus d'abord (le clavier virtuel occupe le bas). Curseur sans boîte
+     mesurable (rare) : la barre reste à sa place d'avant. */
+  function _caretRect(){try{var s=window.getSelection();if(!s||!s.rangeCount)return null;var r=s.getRangeAt(0).cloneRange();if(!$('vdc-in').contains(r.endContainer))return null;
+    r.collapse(false);var q=r.getClientRects();if(q.length)return q[q.length-1];
+    var n=r.endContainer,o=r.endOffset;if(n.nodeType===3&&o>0){r.setStart(n,o-1);q=r.getClientRects();if(q.length)return q[q.length-1];}}catch(e){}   // curseur sans boîte : celle du caractère d'avant
+    return null;}
+  function _placeComp(){var box=$('vdc-complete');if(!box)return;
+    if(!box.innerHTML){box.classList.remove('vdc-bulle');return;}
+    var c=_caretRect();if(!c){box.classList.remove('vdc-bulle');return;}
+    box.classList.add('vdc-bulle');
+    var vv=window.visualViewport,vh=vv?vv.height:window.innerHeight,vw=vv?vv.width:window.innerWidth,oy=vv?vv.offsetTop:0,ox=vv?vv.offsetLeft:0;
+    box.style.maxWidth=Math.min(480,vw-16)+'px';
+    var bh=box.offsetHeight,bw=box.offsetWidth,below=c.bottom+8,above=c.top-bh-8,top;
+    if(_touch)top=(above>=oy+8)?above:below;
+    else top=(below+bh<=oy+vh-8)?below:((above>=oy+8)?above:below);
+    box.style.top=Math.round(top)+'px';box.style.left=Math.round(Math.max(ox+8,Math.min(c.left-16,ox+vw-bw-8)))+'px';}
   var _CORR_MAX=20000;   // #UI : plafond de correction en temps réel (caractères) — mesuré Chrome : 20k OK ~2,5s, au-delà de ~30k le rendu O(n) fige l'onglet. Ajustable.
   /* ===== GREFFE JUGE-AVAL sait/s'est+INFINITIF (opt-in, sondes PR#517-518) =====
      Le squelette détecte le cadre [il/elle/on] + sais/sait + INFINITIF-er adjacent et fabrique le
@@ -32552,6 +32571,11 @@ function spellUnknown(tok,atStart,T,idx){
   $('vdc-in').addEventListener('keyup',function(e){if(e.key&&e.key.indexOf('Arrow')===0||e.key==='Home'||e.key==='End')runComplete();});
   $('vdc-in').addEventListener('keydown',function(e){if(e.key==='Tab'&&_compFirst){e.preventDefault();_applyComplete(_compFirst);}});  // Tab = accepte la 1re complétion (aide-frappe)
   $('vdc-complete').addEventListener('click',function(e){var b=e.target.closest('.vdc-comp');if(b)_applyComplete(b.getAttribute('data-w'));});
+  $('vdc-complete').addEventListener('mousedown',function(e){e.preventDefault();});   // ⭐ ligne 132 : cliquer la bulle garde le curseur dans la saisie
+  $('vdc-in').addEventListener('keydown',function(e){if(e.key==='Escape'&&_compFirst){e.stopPropagation();$('vdc-complete').innerHTML='';_compFirst=null;_placeComp();}});   // Échap ferme la bulle (sans fermer l'outil)
+  $('vdc-in').addEventListener('blur',function(){setTimeout(function(){if(document.activeElement!==$('vdc-in')){$('vdc-complete').innerHTML='';_compFirst=null;_placeComp();}},150);});   // saisie quittée : plus de bulle qui flotte
+  window.addEventListener('scroll',_placeComp,true);window.addEventListener('resize',_placeComp);
+  if(window.visualViewport){window.visualViewport.addEventListener('resize',_placeComp);window.visualViewport.addEventListener('scroll',_placeComp);}   // clavier virtuel qui s'ouvre, zoom
   if(_touch){document.body.classList.add('vdc-touch');var _ced=$('vdc-editor'),_ccb=$('vdc-complete');if(_ced&&_ccb&&_ced.parentNode)_ced.parentNode.insertBefore(_ccb,_ced);}   // TACTILE : le cadre des complétions AU-DESSUS de la saisie (sinon sous le clavier virtuel)
   // (Piste A : la zone du HAUT est 100% éditable — le clic y place le curseur, il ne bascule plus la correction ; l'action passe par la carte du cadre BAS)
   function _cardKey(e){if(e.key!=='Enter'&&e.key!==' '&&e.key!=='Spacebar')return;if(!e.target.closest||!e.target.closest('[data-key]'))return;e.preventDefault();_cardClick(e);}   /* CLAVIER : une correction ne doit pas etre atteignable a la SOURIS SEULE (cible dys = co-usagers lecteur d ecran, audit 20/06). Meme delegation que le clic, memes cibles ([data-key] = les corrections ACTIONNABLES ; les soulignes informatifs sans data-key restent non focusables, sinon ils creeraient des arrets de tabulation qui ne font rien). */ var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_cardClick);if(_rz)_rz.addEventListener('keydown',_cardKey);   // clic sur un mot souligné (cadre BAS) = ouvre la carte
