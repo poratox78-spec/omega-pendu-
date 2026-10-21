@@ -26393,6 +26393,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
   function _infForm(w){var lw=w.toLowerCase(),base=lw.slice(0,-1),c=[base],k=Math.max(base.lastIndexOf("è"),base.lastIndexOf("ê"));   // infinitif : radical ACCENTUÉ par le lexique (lève → lever) — miroir Python _inf_form
     if(k>=0)c.push(base.slice(0,k)+"é"+base.slice(k+1),base.slice(0,k)+"e"+base.slice(k+1));
     for(var q=0;q<c.length;q++)if(SP&&SP.ready&&SP.WORDS&&SP.WORDS.has(c[q]+"er"))return c[q]+"er";return null;}
+  var _A_INF_LOC_NOM={charge:1},_A_INF_DET_FORT={};"le la les l' un une ce cet cette ces mon ton son ma ta sa mes tes ses notre votre nos vos leur leurs".split(' ').forEach(function(x){_A_INF_DET_FORT[x]=1;});   // ⭐ 21/10/2026 (ligne 128) — miroir Python
   function rAInfE(T,i){if(i<2)return null;var w=T[i],lw=w.toLowerCase(),dl=deacc(lw);
     if(w!==lw||lw.indexOf("'")>=0||!/e$/.test(dl)||/é$/.test(lw)||dl.length<4)return null;
     if(deacc(T[i-1].toLowerCase())!=='a')return null;
@@ -26400,6 +26401,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     if(SP&&SP.ready&&SP.WORDS&&!SP.WORDS.has(lw))return null;                                        // mot bien écrit (le speller a la main sinon)
     if(!COMMON_VERBS[dl.slice(0,-1)+'er']&&!CONJ_C[dl.slice(0,-1)+'er'])return null;                // verbe du 1er groupe
     if(_nounGateN(dl))return null;                                                                   // NOM d'abord (« passer à table »)
+    if(_A_INF_LOC_NOM[dl]&&!(i+1<T.length&&_A_INF_DET_FORT[deacc(T[i+1].toLowerCase()).replace(/’/g,"'")]))return null;   // ⭐ 21/10/2026 (ligne 128) : « restent à charge » (pour la famille, du patient…) = la locution ; « restent à charge le camion » → charger — miroir Python
     var inf=_infForm(lw);return inf?ckeepcase(w,inf):null;}
   /* ⭐ 09/10/2026 — « Ont mange ensemble » recevait DEUX rouges contradictoires : rOn (« Ont » → on : pas de sujet, verbe en -e) ET
      rEPpl (« mange » → mangé, après l'auxiliaire « Ont »). Les deux appliqués : « on mangé ». En TÊTE de proposition (début, ponctuation

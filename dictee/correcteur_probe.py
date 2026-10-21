@@ -672,6 +672,15 @@ def _inf_form(w):
     return None
 
 
+# ⭐ 21/10/2026 (ligne 128, constat de Rem) — « Ces frais restent à charge pour la famille », « Les soins restent à charge du patient » recevaient « à charger » en
+# ROUGE : « charge » est aussi un verbe très fréquent, la garde « nom d'abord » ne le retient pas. « à charge » est une locution ; seul un
+# déterminant qui ouvre un complément d'objet (le, la, un, ce, mon…) en fait l'infinitif. de / du / des exclus : « à charge du client ».
+# Recensé : UD 14 450, 0 tir de la règle ; gold dys, 1 tir, juste (et hors liste). Testés sans défaut : marche, nage, garde (vrais
+# infinitifs), force, base, cause (déjà retenus par la garde « nom d'abord »). Miroir JS _A_INF_LOC_NOM.
+_A_INF_LOC_NOM = {'charge'}
+_A_INF_DET_FORT = set("le la les l' un une ce cet cette ces mon ton son ma ta sa mes tes ses notre votre nos vos leur leurs".split())
+
+
 def rule_a_inf_e(T, i):
     """⭐ 04/10/2026 — « il commence a mange » → manger : après commencer / continuer / apprendre… à (_A_INF_GOUV), la forme au
     présent en -e est l'infinitif ; rule_e_ppl lisait « a » comme avoir (« à mangé », faux). Placée avant elle. Miroir JS rAInfE."""
@@ -686,6 +695,7 @@ def rule_a_inf_e(T, i):
     if _SPOS and lw not in _SPOS: return None                          # mot bien écrit
     if dl[:-1] + 'er' not in VERB_LEX and dl[:-1] + 'er' not in CONJ_C: return None   # verbe du 1er groupe
     if _noun_gate_n(dl): return None                                    # NOM d'abord (« passer à table »)
+    if dl in _A_INF_LOC_NOM and not (i + 1 < len(T) and deacc(T[i + 1].lower()).replace(u'’', "'") in _A_INF_DET_FORT): return None   # ⭐ 21/10/2026 (ligne 128) : « restent à charge » (pour la famille, du patient…) = la locution ; « restent à charge le camion » → charger
     inf = _inf_form(lw)
     return _keepcase(w, inf) if inf else None
 
