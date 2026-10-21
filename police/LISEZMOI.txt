@@ -11,7 +11,8 @@ Contenu
 
 Installer (Word, LibreOffice, Pages, etc.)
 ------------------------------------------
-  Windows : clic droit sur le .ttf → « Installer » (ou « Installer pour tous les utilisateurs »).
+  Windows : d'abord clic droit sur le .zip → « Extraire tout », puis, dans le dossier extrait,
+            clic droit sur le .ttf → « Installer » (ou « Installer pour tous les utilisateurs »).
   macOS   : double-clic sur le .ttf → « Installer la police ».
   Linux   : copier les .ttf dans ~/.fonts/ puis `fc-cache -f`.
   Puis, dans Word : choisir « OMEGA Dys » dans la liste des polices.
