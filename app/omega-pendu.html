@@ -29219,7 +29219,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       // « leurs »→« leur » corrige le DÉTERMINANT : direction MINORITAIRE (12 contre 59, le gold corrige le NOM). Repli ROUGE conservé (garde produit « il range leurs livre », banc navigateur réel) SAUF PREUVE DE PLURIEL : un verbe 3e pers. PLURIELLE après le groupe (« Leurs racine ls DÉFENDENT ») montre que le GN est bien pluriel → c'est le NOM qui a perdu son -s → orange. Miroir Python tier_of.
       for(var _j=i+2;_j<Math.min(n,i+6);_j++){var _rr=svReads(T[_j]),_q;for(_q=0;_q<_rr.length;_q++)if(_rr[_q][2]==='3'&&_rr[_q][3]==='p')return 'vigilance';}
       return (_wordKnown(dn)&&!/[sx]$/.test(dn))?'auto':'vigilance';}
-    if(name==='genre déterminant'){if(i+1>=n)return 'vigilance';var nx=T[i+1].toLowerCase();if(nx!==deacc(nx))return 'auto';
+    if(name==='genre déterminant'){if(i+1>=n)return 'vigilance';var nx=T[i+1].toLowerCase();if(nx!==deacc(nx)){if(SP&&SP.ready&&!SP.WORDS.has(nx)&&(spD(deaccS(nx))||[]).reduce(function(m,x){return Math.max(m,spF(x)||0);},0)<1.0)return 'vigilance';return 'auto';}   // ⭐ 21/10/2026 (ligne 130) : non-mot accentué au jumeau rare (« le balè ») → orange — miroir Python
       return 'vigilance';}   // nom NU : mesuré 7/12 sur texte dys (« La pont », « Le sole » = nom mal écrit qui existe) → orange
     if(name==='participe après avoir')return _AVOIR_HOMO[deacc(T[i].toLowerCase())]?'vigilance':'auto';
     if(name==='accord grammatical (é/er)'||name==='terminaison -er/-é/-ez/-ai')return _etreAttrEr(T,i)==='N'?'vigilance':'auto';   // ⭐ 09/10/2026 : « est boulanger » / « est boucher » — un métier, ou un participe mal écrit : orange (_etreAttrEr)
@@ -30439,7 +30439,7 @@ function spellTokenCore(tok,atStart,T,idx){
      population cible. Son seul gain est sur WiCoPaCo — registre Wikipédia, juge déjà connu
      comme trompeur ici. Un gain sur un juge trompeur ne paie pas 26 oranges sur du texte juste. */
     var keys=Object.keys(cand);if(!keys.length)return null;var pk=phonKey(low);
-    var inpAud=/é$/.test(low);                                        // AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable)
+    var inpAud=/é$/.test(low)||(low.length>=4&&/[èê]$/.test(low));   // ⭐ 21/10/2026 (ligne 130) : /ɛ/ (è, ê) aussi, mot de 4 lettres ou plus (« lè » = les) — miroir Python. AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable)
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
     var expPos=null,expPrep=null;   // ⭐ liste n° 33 (B) : préposition devant le mot (drapeau séparé : les règles d'après le tri ne le voient pas)                                                   // POS attendu (désambiguïse l'accent : élève/élevé)
     if(T&&idx>0){var pt=deaccS(T[idx-1].toLowerCase());if(DET_G[pt]||SDET_NUM[pt])expPos='N';else if(SADVERB[pt])expPos='A';
@@ -30457,7 +30457,7 @@ function spellTokenCore(tok,atStart,T,idx){
     // INERTE sur le corpus dys réel (chiffres identiques avec et sans) — gardée parce que le raisonnement est
     // FAUX sans elle, pas parce qu'elle gagne. Gains du jour préservés : les/jours/petits/tiges… sont N ou A.
     function nm(x){if(!cn)return 0;var ps=spP(x)||'';if(ps.indexOf('V')>=0&&ps.indexOf('N')<0&&ps.indexOf('A')<0)return 0;var p=nmP(x);return (p===null||((cn==='p')===p))?1:0;}
-    function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET — ⭐ 30/09/2026 : + -ès, -et, -êt, -aient (/ɛ/ : « succé » → succès, « foué » → fouet, plus sucré / joué), miroir Python fin_aud
+    function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt|à)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET — ⭐ 21/10/2026 (ligne 130) : + à (déjà, voilà) — ⭐ 30/09/2026 : + -ès, -et, -êt, -aient (/ɛ/ : « succé » → succès, « foué » → fouet, plus sucré / joué), miroir Python fin_aud
     /* ⭐ 14/10/2026 (liste n° 5b : « Elève » → Élevé, « Etonnés » → Étonnes) — L'ACCENT ÉCRIT EST UNE INTENTION : entre deux formes du
        même squelette, celle qui garde ACCENTUÉES les lettres que la personne a accentuées passe devant (Élève, Étonnés) — é, è, ê comptent
        pour un : l'accent exact peut être la faute (« posséde » → possède, pas possédé ; « méme » → même). Un rival ≥ 20× plus fréquent

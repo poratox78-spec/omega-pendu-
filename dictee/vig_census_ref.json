@@ -1,6 +1,6 @@
 {
- "justes": 391,
- "pointeuses": 208,
+ "justes": 392,
+ "pointeuses": 206,
  "fatigue": 131,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -63,6 +63,7 @@
   "comem→comme [orthographe] inversion",
   "commercialication→commercialisation [mot inconnu] lettre_change",
   "compt→compte [orthographe] lettre_manque",
+  "comunè→commune [orthographe] autre",
   "conetntent→contentent [mot inconnu] inversion",
   "conroversée→controversée [mot inconnu] lettre_manque",
   "conserne→concerne [orthographe] lettre_change",

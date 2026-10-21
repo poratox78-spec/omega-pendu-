@@ -1431,7 +1431,7 @@ class Speller:
         cands = self._cands(low, d)
         if not cands: return None                               # aucun voisin → néologisme/nom propre → abstention
         pk = phon_key(low)
-        inp_aud = low.endswith('é')                                       # AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable)
+        inp_aud = low.endswith('é') or (len(low) >= 4 and low[-1:] in (u'è', u'ê'))   # AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable) ; ⭐ 21/10/2026 (ligne 130) : /ɛ/ (è, ê) aussi, mot de 4 lettres ou plus (« lè » = les : « -es » s'entend dans les petits mots) — « le balè » n'est plus « bal »
         cg, cn = self._ctx_gender(toks, idx), self._ctx_number(toks, idx)   # VOIE GRAMMAIRE : accord du contexte
         # POS attendu du contexte (désambiguïse l'accent : élève/élevé). ⚠️ DÉCALQUE DU PRODUIT — la
         # référence décrivait ici un AUTRE moteur que celui livré (asymétrie mesurée le 04/09/2026,
@@ -1466,7 +1466,7 @@ class Speller:
             ps = self.POS.get(w, ())
             return 1 if any(c in ps for c in exp_pos) else 0               # exp_pos peut être multi-POS ('VA')
         def fin_aud(w):                                                     # finale AUDIBLE /e/ (é/ée/és/er/ez/ai…) vs -e/-es MUET
-            return 1 if re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$', w) else 0   # ⭐ 30/09/2026 : + /ɛ/ (succès, fouet) — miroir JS
+            return 1 if re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt|à)$', w) else 0   # ⭐ 30/09/2026 : + /ɛ/ (succès, fouet) ; 21/10/2026 (ligne 130) : + à (déjà, voilà) — miroir JS
         def gmatch(w):
             g = self._gender(w); return 1 if (cg and g and g == cg) else 0   # bonus seulement (pas de pénalité → ne casse pas fenêtre)
         def nmatch(w):
