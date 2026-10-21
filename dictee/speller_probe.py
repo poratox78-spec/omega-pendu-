@@ -264,7 +264,6 @@ _FIN_CLIT = frozenset('ne n me m te t se s le la les l lui leur y en'.split())
 _FIN_PERS = {'je': ('1', 's'), 'j': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'), 'on': ('3', 's'),
              'nous': ('1', 'p'), 'vous': ('2', 'p'), 'ils': ('3', 'p'), 'elles': ('3', 'p')}
 _FIN_DUO = {'san': ('sang', 'sans')}   # nom après un déterminant, mot-outil sinon (« pui » : souvent « qui », lettres miroir)
-_FIN_MIROIR = {'p': 'q', 'q': 'p', 'b': 'd', 'd': 'b'}
 _FIN_VOY = u'aeiouéy'
 _QUI_ANTE = {'moi': ('1', 's'), 'toi': ('2', 's'), 'nous': ('1', 'p'), 'vous': ('2', 'p'), 'lui': ('3', 's'), 'elle': ('3', 's'), 'celui': ('3', 's'),
              'celle': ('3', 's'), 'eux': ('3', 'p'), 'elles': ('3', 'p'), 'ceux': ('3', 'p'), 'celles': ('3', 'p')}   # ⭐ 20/10/2026 (ligne 127) : personne de l'antécédent de « qui » — miroir JS _QUI_ANTE
@@ -1100,15 +1099,11 @@ class Speller:
         return C[0] if len(C) == 1 else None
 
     def _fin_rival(self, low, C):
-        """⭐ 20/10/2026 (ligne 124) — deux lectures rivales de la finale muette, vues sur le corpus de la sonde de précision :
-        ① LETTRES MIROIR (p/q, b/d) : « pui », « puit » sont souvent « qui » — un mot courant (≥ 100/M) à un échange près, finale ôtée ;
-        ② un mot 5 fois plus fréquent à UNE lettre près, lettre ôtée (pas la première : « pon » n'est pas « on ») ou voyelle ajoutée :
-        « por » = pour, « loui » = lui. Alors le résolveur rend la main. Miroir JS _finRival."""
-        for k, ch in enumerate(low):
-            sw = _FIN_MIROIR.get(ch)
-            if sw:
-                v = low[:k] + sw + low[k + 1:]
-                if any(x in self.WORDS and self.FREQ.get(x, 0.0) >= 100.0 for x in (v, v[:-1])): return True
+        """⭐ 20/10/2026 (ligne 124) — une lecture rivale de la finale muette : un mot 5 fois plus fréquent à UNE lettre près, lettre ôtée
+        (pas la première : « pon » n'est pas « on ») ou voyelle ajoutée (« por » = pour, vu dans les textes dys réels). Alors le résolveur
+        rend la main. ⛔ 21/10/2026 (ligne 129) : la garde « lettres miroir » (p/q, b/d : « pui » = qui) est RETIRÉE — ses cas ne venaient
+        que des corpus GÉNÉRÉS de la sonde de précision (faiblesses, genere_gold) ; 0 échange b/d ni p/q sur 2 376 mots fautifs réels, et
+        elle coûtait 4 vraies réparations (pui → puis). Miroir JS _finRival."""
         fmax = max([self.FREQ.get(c, 0.0) for c in C] or [0.0])
         riv = [low[:k] + low[k + 1:] for k in range(1, len(low))] + [low[:k] + vo + low[k:] for k in range(len(low) + 1) for vo in _FIN_VOY]
         return any(v in self.WORDS and v not in C and self.FREQ.get(v, 0.0) >= 5 * fmax for v in riv)

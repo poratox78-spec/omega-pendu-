@@ -808,8 +808,8 @@ function testListe124() {   // ligne 124 (20/10/2026) : finale muette oubliée s
       ['Elle est debou.', 'debou', 'debout', 'flag'],                       // après être : participe ou attribut
       ['Il habite au nor du pays.', 'nor', 'nord', 'flag'],                 // une seule finale possible (pas « non »)
       ['Il a pri le train.', 'pri', 'pris', 'flag'], ['Le vieu chien dort.', 'vieu', 'vieux', 'flag'],   // déjà justes : gardés
-      // témoins : « tou » reste ambigu (tout / tous), « pui » aussi (souvent « qui » : lettres miroir), « por » (pour) ; les mots justes restent muets
-      ['Il a mangé tou.', 'tou', 'tout', 'vigilance'], ['Et pui il part.', 'pui', 'puis', 'vigilance'], ['Il pond un œuf.', 'pond', null, null], ['Le sang coule.', 'sang', null, null]]) {
+      // témoins : « tou » reste ambigu (tout / tous) ; les mots justes restent muets (« pui » : voir la ligne 129)
+      ['Il a mangé tou.', 'tou', 'tout', 'vigilance'], ['Il pond un œuf.', 'pond', null, null], ['Le sang coule.', 'sang', null, null]]) {
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s || f.tier !== tier))
       fail.push('ligne 124 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + tier) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
@@ -849,6 +849,14 @@ function testListe128() {   // ligne 128 (21/10/2026) : « à charge » après r
     const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
     if (s === null ? !!f : (!f || f.sugg !== s))
       fail.push('ligne 128 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
+function testListe129() {   // ligne 129 (21/10/2026) : la garde « lettres miroir » (« pui » = qui) est retirée — ses cas n'existaient que dans les corpus GÉNÉRÉS. Phrases inventées ; les deux premières échouent sur le moteur d'avant (orange).
+  for (const [t, w, s, tier] of [['Et pui il part.', 'pui', 'puis', 'flag'], ['Le pui est profond.', 'pui', 'puits', 'flag'],
+      // témoin : un mot 5 fois plus fréquent à une lettre près (« pour ») rend toujours la main — pas de rouge
+      ['Il est venu por voir.', 'por', null, 'flag']]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!(f && f.tier === tier) : (!f || f.sugg !== s || f.tier !== tier))
+      fail.push('ligne 129 « ' + t + ' » : attendu ' + (s === null ? 'pas de rouge' : s + ' en ' + tier) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
@@ -1025,6 +1033,7 @@ function finish(parityKO) {
   testListe126();
   testListe127();
   testListe128();
+  testListe129();
   testListe109();
   testListe110();
   testListe102();
