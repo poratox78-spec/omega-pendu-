@@ -867,6 +867,16 @@ function testListe130() {   // ligne 130 (21/10/2026) : la finale è / ê écrit
     if (det || (s === null ? !!f : (!f || f.sugg !== s || (pal === 'rouge') !== rouge(f.tier))))
       fail.push('ligne 130 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + pal) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien') + (det ? ' + ' + det.word + ' → ' + det.sugg : '')); }
 }
+function testListe133() {   // ligne 133 a (21/10/2026) : l'infinitif après une préposition ou un modal — à travers les pronoms seuls (« pour y joué »), après voulu / pu / su / osé / fallu, et l'imparfait après une préposition (« de mangeait »). Phrases inventées ; les quatre premières échouent sur le moteur d'avant.
+  for (const [t, w, s] of [['Il est venu pour y joué avec nous.', 'joué', 'jouer'], ['Il a voulu sauté la barrière.', 'sauté', 'sauter'],
+      ['Il refuse de mangeait sa soupe.', 'mangeait', 'manger'], ['Elle part pour visitait la ville.', 'visitait', 'visiter'],
+      // témoins : un nom après « de » ou « leur », un participe attribut, un infinitif déjà juste restent muets
+      ['Elle boit un bol de lait chaud.', 'lait', null], ['Il parle de leur marché du samedi.', 'marché', null],
+      ['Il semble fatigué ce matin.', 'fatigué', null], ['Elle a su garder son calme.', 'garder', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s || (f.tier !== 'auto' && f.tier !== 'flag')))
+      fail.push('ligne 133 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en rouge') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -1044,6 +1054,7 @@ function finish(parityKO) {
   testListe128();
   testListe129();
   testListe130();
+  testListe133();
   testListe109();
   testListe110();
   testListe102();
