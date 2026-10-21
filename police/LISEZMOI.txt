@@ -26,6 +26,19 @@ Ce que la police fait TOUTE SEULE dans Word
   - Les accents sont agrandis et franchement orientés (é monte, è descend).
   - La chasse est large (moins d'encombrement visuel — le seul effet robuste de la littérature).
 
+OMEGA Dys Word : les muettes et les syllabes en couleur, TOUTES SEULES (nouveau)
+--------------------------------------------------------------------------------
+  OmegaDysWord-Regular.ttf   pendant la frappe, muette en vermillon (point dessous), une syllabe
+                             sur deux en bleu (soulignée). Rien à appliquer : la police reconnaît
+                             les 20 000 mots les plus fréquents (98 % d'un texte courant). Le texte
+                             n'est pas modifié.
+  Installer : comme ci-dessus, puis fermer et rouvrir Word, choisir « OMEGA Dys Word ».
+  Word en thème sombre : sur une page noire, Word n'affiche pas les couleurs (il garde le point et
+  le trait). Page blanche partout : Fichier → Options → Général → cocher « Ne jamais modifier la
+  couleur de la page du document » ; pour un seul document : Affichage → « Changer de mode ».
+  Limites : un mot absent de la liste reste sans couleur ; sans grammaire, un mot à deux lectures
+  (« ils couvent » / « le couvent ») n'en garde qu'une.
+
 Ce qu'elle NE fait PAS dans Word (et pourquoi)
 -----------------------------------------------
   La vraie « police de son » — le s de « poison » rendu voisé, les lettres MUETTES en vermillon, les
