@@ -352,12 +352,19 @@ def _eer_minf_v(T, k):
             or dq in ('et', 'ou', 'mais', 'puis') or (_SEG is not None and k < len(_SEG['bb']) and _SEG['bb'][k]))   # « un grand pouvoir caché » : un nom
 
 
+_EER_PPMOD = {u'dû', 'du', 'pu', 'voulu', 'su', u'osé', 'fallu'}
+_EER_SUJ = set('je j tu il elle on ils elles'.split())
+
+
 def _eer_du(T, k):
-    """⭐ 04/10/2026 — « dû / du » après avoir = modal (« elle a dû quitté » → quitter). Miroir JS _eerDu."""
+    """⭐ 04/10/2026 — « dû / du » après avoir = modal (« elle a dû quitté » → quitter). Miroir JS _eerDu.
+    ⭐ 21/10/2026 (ligne 133) : les autres participes de verbe à infinitif aussi — voulu, pu, su, osé, fallu (« il a voulu sauté » →
+    sauter) — et après un pronom sujet quand l'auxiliaire manque (« elle voulu chanté ») ; « du » reste lié à avoir (c'est aussi l'article)."""
     if k < 1: return False
     d = T[k].lower()
-    if d not in (u'dû', 'du'): return False
-    return re.sub(u"^[jn]['’]", '', deacc(T[k-1].lower())) in _EER_AVOIR
+    if d not in _EER_PPMOD: return False
+    a = re.sub(u"^[jn]['’]", '', deacc(T[k-1].lower()))
+    return a in _EER_AVOIR or (d != 'du' and a in _EER_SUJ)
 
 
 def _eer_gouv_inf(T, k):
@@ -499,14 +506,18 @@ def rule_e_er(T, i):
         return forms[1]                              # préposition → infinitif -er
     _pm49 = re.sub(u"^(j|n|qu)['’]", '', p or '')   # ⭐ 17/10/2026 (liste n° 49) : « j'aime simplifié », « j'aimerais travaillé » — miroir JS
     if p in MODAL or (_pm49 != p and _pm49 != 'a' and _pm49 in MODAL) or _pm49 in _EER_COND: return forms[1]
-    _kc = i - 1; _nc = 0; _det_pos = False             # préposition / modal + pronoms (≤ 2) + participe → infinitif
+    _kc = i - 1; _nc = 0; _det_pos = False; _amb = False   # préposition / modal + pronoms (≤ 2) + participe → infinitif
     while _kc >= 0 and _nc < 2 and deacc(T[_kc].lower()) in _EER_CLIT:
         if deacc(T[_kc].lower()) in ('le', 'la', 'les'): _det_pos = True
+        if deacc(T[_kc].lower()) in ('le', 'la', 'les', 'leur', 'en'): _amb = True   # aussi déterminant / préposition
         _kc -= 1; _nc += 1
     if _det_pos and (deacc(forms[0].lower()) in D.GENDER_LEX or GENDER_ACC.get(forms[0].lower()) or _noun_gate(forms[0])): _nc = -1   # le/la/les aussi déterminants
     if (_nc > 0 and _eer_gouv_inf(T, _kc)) or _eer_minf_v(T, i - 1):
-        if not _eer_minf_v(T, i - 1) and deacc(forms[0].lower()) in D.GENDER_LEX: return None
-        if GENDER_ACC.get(forms[0].lower()) in ('m', 'f') and not (_eer_minf_v(T, i - 1) and i + 1 < len(T) and deacc(T[i+1].lower()) in _EER_DET):
+        # ⭐ 21/10/2026 (ligne 133) : derrière des pronoms SEULS (me te se nous vous lui y), un nom est impossible — « pour y joué » n'est
+        # pas « la joue », « pour te montré » pas « la montre » : les gardes « nom homographe » ne s'appliquent qu'aux le / la / les / leur / en.
+        _pur = _nc > 0 and not _amb
+        if not _eer_minf_v(T, i - 1) and not _pur and deacc(forms[0].lower()) in D.GENDER_LEX: return None
+        if not _pur and GENDER_ACC.get(forms[0].lower()) in ('m', 'f') and not (_eer_minf_v(T, i - 1) and i + 1 < len(T) and deacc(T[i+1].lower()) in _EER_DET):
             _t5 = pos_tags(T)
             if _t5 and i < len(_t5) and _t5[i] in ('NOUN', 'PROPN'): return None
         return forms[1]
@@ -781,6 +792,16 @@ def rule_flexion_er(T, i):
         return None                               # mot capitalisé hors début de phrase = nom propre (Rodez, Pompée)
     if _SEG is not None and i+1 < len(_SEG['hy']) and _SEG['hy'][i+1] and nxt(T, i) != 'vous':
         return None                               # mot suivi d'un trait d'union = composé (cessez-le-feu) → sauf inversion « livré-vous »
+    # ⭐ 21/10/2026 (ligne 133) — PRÉPOSITION + IMPARFAIT d'un verbe en -er : « de mangeait », « pour visitait » → l'infinitif. Après
+    # de / pour / sans / afin / à, un verbe conjugué est impossible. Forme purement verbale (ni nom ni adjectif : lait, laquais, fait
+    # restent), radical + er = vrai verbe. Miroir JS rFlexionEr.
+    _mi = re.match(u'^(.{3,}?)(aient|ais|ait)$', lw)
+    if _mi and (deacc(T[i-1].lower()) in _INF_GOV or T[i-1].lower() == u'à') and _spos(lw) == 'V':
+        if T[i-1].lower() == u'à' and rule_a_aa(T, i - 1) == 'a': return None
+        _b = _mi.group(1)
+        _im = _b + 'r' if _b.endswith('ge') else (_b[:-1] + 'cer' if _b.endswith(u'ç') else _b + 'er')
+        if deacc(_im) in VERB_LEX: return _im
+        return None
     inf = _inf1(w)
     if inf is None: return None
     d = deacc(lw)
