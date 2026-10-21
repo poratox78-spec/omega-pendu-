@@ -635,6 +635,7 @@ def build(style='Regular', uniform=None):
         'styleName': 'Regular',
         'fullName': 'OMEGA Dys ' + style,
         'psName': 'OMEGADys-' + style,
+        'uniqueFontIdentifier': 'OMEGA Dys ' + style + ' 0.1',   # ⭐ 21/10/2026 : nom n° 3, EXIGÉ par Windows (sans lui : « fichier de police non valide » à l'installation) — les navigateurs s'en passent
         'version': 'Version 0.1',
         'description': 'Police experimentale dys — design en aveugle OMEGA '
                        '(voisement = graisse, anti-miroir bdpq, accents agrandis).',
