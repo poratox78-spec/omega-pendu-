@@ -858,6 +858,15 @@ function testListe129() {   // ligne 129 (21/10/2026) : la garde « lettres miro
     if (s === null ? !!(f && f.tier === tier) : (!f || f.sugg !== s || f.tier !== tier))
       fail.push('ligne 129 « ' + t + ' » : attendu ' + (s === null ? 'pas de rouge' : s + ' en ' + tier) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe130() {   // ligne 130 (21/10/2026) : la finale è / ê écrite se prononce — « le balè » n'est plus « bal » ni « la balè ». Phrases inventées ; les deux premières échouent sur le moteur d'avant.
+  const rouge = x => x === 'auto' || x === 'flag';
+  for (const [t, w, s, pal] of [['Il pose le balè contre le mur du garage.', 'balè', 'balai', 'orange'], ['Elle ouvre le robinè de la cuisine.', 'robinè', 'robinet', 'orange'],
+      // témoins : la finale /ɛ/ écrite reste corrigée en rouge ; un mot juste reste muet
+      ['Le jouè rouge est cassé depuis lundi.', 'jouè', 'jouet', 'rouge'], ['Le succès du film surprend tout le monde.', 'succès', null, null]]) {
+    const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w), det = fl.find(x => x.name === 'genre déterminant');
+    if (det || (s === null ? !!f : (!f || f.sugg !== s || (pal === 'rouge') !== rouge(f.tier))))
+      fail.push('ligne 130 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + pal) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien') + (det ? ' + ' + det.word + ' → ' + det.sugg : '')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -1034,6 +1043,7 @@ function finish(parityKO) {
   testListe127();
   testListe128();
   testListe129();
+  testListe130();
   testListe109();
   testListe110();
   testListe102();

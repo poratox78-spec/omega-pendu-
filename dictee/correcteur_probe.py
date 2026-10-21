@@ -7890,7 +7890,13 @@ def tier_of(T, i, name, sugg):
     if name == 'genre déterminant':
         if i + 1 >= n: return 'vigilance'
         nx = T[i + 1].lower()
-        if nx != deacc(nx): return 'auto'                  # écrit AVEC son accent : pas d'ambiguïté
+        if nx != deacc(nx):
+            # ⭐ 21/10/2026 (ligne 130) : un NON-MOT écrit avec un accent (« le balè ») dont le jumeau sans accent est rare (bale, < 1/M) n'a pas
+            # le genre de ce jumeau — c'est un mot écrit au son (balai). Orange : la garde « genre contredit par l'orange du nom » du pipeline
+            # la retire quand la proposition du nom s'accorde au déterminant. Miroir JS _tierOf.
+            _spos('a')
+            if _SPOS and nx not in _SPOS and (_SFREQ_D or {}).get(deacc(nx), 0.0) < 1.0: return 'vigilance'
+            return 'auto'                                  # écrit AVEC son accent : pas d'ambiguïté
         return 'vigilance'                                 # nom NU : mesuré 7/12 sur texte dys (« La pont », « Le sole » = nom mal écrit qui existe) → orange
     if name == 'accord participe':
         for j in range(i - 1, max(-1, i - 4), -1):        # remonte l'auxiliaire : sujet = pronom ou prénom → sûr
