@@ -28,6 +28,9 @@ jobs:
         run: python3 dictee/recall_probe.py --check
       - name: Garde FP À L'ÉCHELLE (correcteur sur 2500 phrases correctes UD — plafond anti-régression, cf. audit 30/06)
         run: python3 dictee/fp_scale_probe.py --check
+      # 22/10/2026 (ligne 25b, étape 2) — la même garde sur la grammaire du PRODUIT (dys-core), sans le moteur Python.
+      - name: Garde FP À L'ÉCHELLE AU PRODUIT (grammaire de dys-core + ses oranges, sur les 2500 phrases UD)
+        run: node dictee/fp_scale_produit.js --check
       - name: COUVERTURE de la conjugaison (sujet x temps - ENUMERE, ne lit aucun corpus)
         run: python3 dictee/couverture_conj_probe.py
       - name: MUETTES justes — r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain
