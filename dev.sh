@@ -69,6 +69,7 @@ run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --
 run "COUVERTURE de la conjugaison (sujet × temps — ÉNUMÈRE, ne lit aucun corpus)" python3 dictee/couverture_conj_probe.py
 run "MUETTES justes (r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain)" python3 dictee/muettes_probe.py --check
 run "FP à l'échelle (UD 2500, garde régression)" python3 dictee/fp_scale_probe.py --check
+run "FP à l'échelle AU PRODUIT (grammaire + ses oranges, UD 2500, ligne 25b)" node dictee/fp_scale_produit.js --check
 run "Genre perdu par la désaccentuation (rappel 217, FP=0)" python3 dictee/gender_coll_probe.py --check
 run "FP speller à l'échelle (ortho affirmatif UD 2500, garde régression)" node dictee/speller_fp_scale_probe.js --check
 run "held-out vocab neuf"          python3 dictee/eval_externe.py
