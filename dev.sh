@@ -66,6 +66,8 @@ run "correcteur (batterie FP=0) AU PRODUIT — même verdict que le Python (lign
 run "batterie du correcteur : le JSON suit correcteur_probe.py" python3 dictee/export_batterie.py --check
 run "mover impératif (réf Python == cas)" python3 dictee/imperative_clitics.py
 run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
+run "garde j'est être/avoir AU PRODUIT — mêmes comportements que le Python (ligne 25b)" node dictee/recall_produit.js
+run "garde j'est : le JSON suit recall_probe.py" python3 dictee/export_recall.py --check
 run "COUVERTURE de la conjugaison (sujet × temps — ÉNUMÈRE, ne lit aucun corpus)" python3 dictee/couverture_conj_probe.py
 run "MUETTES justes (r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain)" python3 dictee/muettes_probe.py --check
 run "FP à l'échelle (UD 2500, garde régression)" python3 dictee/fp_scale_probe.py --check

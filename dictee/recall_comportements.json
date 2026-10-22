@@ -1,0 +1,789 @@
+{
+"expect": [
+[
+"j'est content",
+"je suis"
+],
+[
+"J'est malade",
+"Je suis"
+],
+[
+"j'est allé à Paris",
+"je suis"
+],
+[
+"j'est venu hier",
+"je suis"
+],
+[
+"j'est de la peine",
+"j'ai"
+],
+[
+"j'est du mal",
+"j'ai"
+],
+[
+"j'est des soucis",
+"j'ai"
+],
+[
+"j'est un chien",
+"j'ai"
+],
+[
+"j'est de Paris",
+"je suis"
+],
+[
+"j'est entendu le tonnerre",
+"j'ai"
+],
+[
+"j'est là",
+"je suis"
+],
+[
+"j'est à faire",
+"j'ai"
+],
+[
+"j'est fatigué",
+"je suis"
+],
+[
+"j'est perdu mes clés",
+"j'ai"
+],
+[
+"j'est descendu l'escalier",
+"j'ai"
+],
+[
+"j'est dans ma chambre",
+"je suis"
+]
+],
+"abstain": [],
+"nofp": [
+"Le chat mange une pomme.",
+"je suis content",
+"j'ai de la peine",
+"l'homme est là",
+"j'aime le café",
+"n'est-ce pas",
+"d'abord il faut",
+"je les ai vues.",
+"elle les a mangées.",
+"il les a prises.",
+"Je les ai vues la semaine dernière.",
+"Il l'a aidée à partir.",
+"La lettre qu'il a écrite hier est belle.",
+"Quelle robe as-tu choisie ?",
+"Elle nous a invités à dîner.",
+"nous prîmes la porte.",
+"nous avions la marche à suivre.",
+"ce sont des amis.",
+"ce sont eux qui décident.",
+"ils se sont déroulés hier.",
+"La température la plus froide a été enregistrée hier.",
+"les fleurs sont fanées.",
+"je les ai vus hier.",
+"Ai-je noté le numéro ?",
+"je l'ai noté hier.",
+"il ne mange que peu.",
+"je ne peux pas.",
+"le film qu'on voit.",
+"les gens qu'on aime.",
+"Je ne peux pas.",
+"Je ne sais pas.",
+"Je ne veux pas.",
+"Je ne crois pas.",
+"Je ne pense pas.",
+"Je n'ai pas le temps.",
+"Je n'en sais rien.",
+"Je ne comprends pas.",
+"Je ne vois pas pourquoi.",
+"Je ne peux pas venir ce soir.",
+"Je peux venir demain.",
+"Tu peux m'aider ?",
+"Tu ne peux pas faire ça.",
+"Tu sais quoi ?",
+"Tu veux un café ?",
+"Tu viens avec nous ?",
+"Tu as raison.",
+"Tu as vu ça ?",
+"Il faut que je parte.",
+"Il faut que tu viennes.",
+"Il faut qu'on parle.",
+"On se voit demain.",
+"On y va.",
+"On verra bien.",
+"On peut y aller.",
+"On n'a pas le choix.",
+"Nous sommes arrivés.",
+"Nous avons fini.",
+"Vous êtes sûrs ?",
+"Vous pouvez répéter ?",
+"Vous voulez un verre ?",
+"Ils sont partis.",
+"Elles sont rentrées.",
+"Ils ne peuvent pas venir.",
+"Je suis désolé.",
+"Je suis fatigué.",
+"Je suis content de te voir.",
+"Je suis en retard.",
+"Je suis allé au marché.",
+"Je suis rentré tard hier soir.",
+"J'ai faim.",
+"J'ai froid.",
+"J'ai fini mon travail.",
+"J'ai oublié mes clés.",
+"J'ai perdu mon téléphone.",
+"J'ai mal à la tête.",
+"J'ai besoin d'aide.",
+"J'ai envie de dormir.",
+"J'arrive dans cinq minutes.",
+"J'espère que tu vas bien.",
+"J'aime beaucoup ce film.",
+"Je t'aime.",
+"Je te rappelle plus tard.",
+"Je vous remercie.",
+"Je te dis ça demain.",
+"Je vais bien, merci.",
+"Je vais au travail.",
+"Je vais manger.",
+"Je dois partir.",
+"Je dois y aller.",
+"Je voudrais un renseignement.",
+"Je pourrais venir samedi.",
+"Je serai là à huit heures.",
+"J'étais malade.",
+"J'avais oublié.",
+"Je me suis trompé.",
+"Je me suis levé tôt.",
+"Je m'en occupe.",
+"Je m'en vais.",
+"Ça va ?",
+"Ça ne va pas.",
+"Ça marche.",
+"Ça me fait plaisir.",
+"Ça dépend.",
+"Ce n'est pas grave.",
+"C'est bon.",
+"C'est vrai.",
+"C'est fini.",
+"C'est ça.",
+"Qu'est-ce que tu fais ?",
+"Qu'est-ce qui se passe ?",
+"Où est-ce que tu es ?",
+"Est-ce que tu viens ?",
+"Pourquoi tu ris ?",
+"Comment ça va ?",
+"Quand est-ce qu'on mange ?",
+"Combien ça coûte ?",
+"Il pleut.",
+"Il fait beau.",
+"Il fait froid aujourd'hui.",
+"Il est tard.",
+"Il est parti.",
+"Il a raison.",
+"Elle est malade.",
+"Elle a appelé ce matin.",
+"Elle ne veut pas.",
+"Merci beaucoup.",
+"De rien.",
+"À demain.",
+"À plus tard.",
+"Bonne nuit.",
+"Bon courage.",
+"Pas de problème.",
+"Je n'ai rien dit.",
+"Je n'y peux rien.",
+"Je ne sais plus.",
+"Je ne peux plus.",
+"Je ne veux plus.",
+"Je n'en peux plus.",
+"Tu n'as pas faim ?",
+"Tu ne dis rien ?",
+"Tu ne sais pas ?",
+"Tu ne veux pas venir ?",
+"On ne sait jamais.",
+"On ne peut pas savoir.",
+"Il ne faut pas.",
+"Il n'y a pas de quoi.",
+"Il y a du monde.",
+"Il y avait beaucoup de bruit.",
+"Je paie par carte.",
+"Je paye en espèces.",
+"J'essaie de comprendre.",
+"J'essaye encore.",
+"Je m'assois ici.",
+"Je m'assieds là.",
+"Je vais essayer.",
+"Je suis en train de manger.",
+"Je viens de finir.",
+"Je reviens tout de suite.",
+"Je t'attends devant.",
+"Attends-moi.",
+"Viens ici.",
+"Dépêche-toi.",
+"Arrête !",
+"Regarde ça.",
+"Écoute-moi.",
+"Laisse tomber.",
+"Fais attention.",
+"Tais-toi.",
+"Je n'aurais pas dû.",
+"J'aurais voulu venir.",
+"Si j'avais su.",
+"Si tu veux.",
+"Comme tu veux.",
+"Je te crois.",
+"Je ne te crois pas.",
+"Je le savais.",
+"Je l'ai vu hier.",
+"Je les ai appelés.",
+"Je lui ai dit.",
+"Je leur ai parlé.",
+"Tu me manques.",
+"Tu m'as manqué.",
+"On s'est bien amusés.",
+"Nous nous sommes perdus.",
+"Vous vous êtes trompés.",
+"Ils se sont disputés.",
+"Elle s'est levée tard.",
+"Je ne me souviens pas.",
+"Je me souviens de toi.",
+"ils ont tous le droit de venir.",
+"elles connaissent tous les chemins.",
+"il parle à tous.",
+"Le stade Ben M'barek est plein.",
+"Les photos que j'ai faites ont été publiées.",
+"C'est tout à fait différent.",
+"Ils sont en fait utilisés partout.",
+"Ce fait pourrait tout changer.",
+"Il va en prison.",
+"L'expulsé a droit au pouvoir.",
+"Le mal a gagné la ville.",
+"La peine a été lourde.",
+"Il est juge.",
+"Elle est élève.",
+"Il est guide de montagne.",
+"Elle est interprète.",
+"Il est garde du corps.",
+"Le suivi de la pré éclampsie est rapide.",
+"Elle tient au procédé ancien.",
+"Il faut agir s'il en est besoin.",
+"Tu me lé dit souvent.",
+"Les sida progressent.",
+"La liste des courses que tu fais traîne sur la table.",
+"Tout ce qu'il fait tombe à l'eau.",
+"La pomme qu'elle a mangée était bonne.",
+"Ils ne nous ont pas informées.",
+"Elle a été nommée.",
+"Un ami et associé de longue date.",
+"Né à Lyon le 3 mai 1900 et mort à Paris.",
+"Un étage et un grenier et fait cent mètres.",
+"Terminée en mars et publiée en mai.",
+"Il aime séte maison.",
+"Ces jen sont drôles."
+],
+"elide": [
+[
+"J'sais que c'est vrai",
+"J'sais",
+"Je sais"
+],
+[
+"Personne n'sait",
+"n'sait",
+"ne sait"
+],
+[
+"qu'tu viennes",
+"qu'tu",
+"que tu"
+],
+[
+"vous sommes contents",
+"sommes",
+"êtes"
+],
+[
+"vous somme très contents",
+"somme",
+"êtes"
+],
+[
+"ils somme là",
+"somme",
+"sont"
+],
+[
+"ils ce sont déroulés hier",
+"ce",
+"se"
+],
+[
+"Boeing a signés un contrat",
+"signés",
+"signé"
+],
+[
+"Elle a réussie son examen",
+"réussie",
+"réussi"
+],
+[
+"les faits ce sont déroulés hier",
+"ce",
+"se"
+],
+[
+"mon chien les a garder toute la nuit",
+"garder",
+"gardés"
+],
+[
+"ils ont été fâcher par leurs voisins",
+"fâcher",
+"fâchés"
+],
+[
+"ces outils agricoles sont ranger dans la grange",
+"ranger",
+"rangés"
+],
+[
+"Cette chanson a était chanter hier",
+"chanter",
+"chantée"
+],
+[
+"Hier je noté le numéro",
+"je",
+"j'ai"
+],
+[
+"quand je retourné à la maison",
+"je",
+"je suis"
+],
+[
+"je fatigué ce soir",
+"je",
+"je suis"
+],
+[
+"le moteur ne peu plus tourner",
+"peu",
+"peut"
+],
+[
+"on ne peu aussi chanter",
+"peu",
+"peut"
+],
+[
+"les pays qui on un port",
+"on",
+"ont"
+],
+[
+"deux architectes qui on besoin d'argent",
+"on",
+"ont"
+],
+[
+"tous le monde était choqué",
+"tous",
+"tout"
+],
+[
+"durant tous l'hiver",
+"tous",
+"tout"
+],
+[
+"je faisais tous ce que je voulais",
+"tous",
+"tout"
+],
+[
+"C'est chiens sont âgés",
+"C'est",
+"Ces"
+],
+[
+"Elle s'mariée l'an dernier",
+"s'mariée",
+"s'est mariée"
+],
+[
+"Ils s'mariés en mai",
+"s'mariés",
+"se sont mariés"
+],
+[
+"Le chevalier porte d'lourde armure",
+"d'lourde",
+"d'une lourde"
+],
+[
+"Il vend de l'pétrole",
+"l'pétrole",
+"pétrole"
+],
+[
+"Une maison d'du bois",
+"d'du",
+"du"
+],
+[
+"Il va s'marier en mai",
+"s'marier",
+"se marier"
+],
+[
+"Ils s'disputent souvent",
+"s'disputent",
+"se disputent"
+],
+[
+"Il est parti d'bonne heure",
+"d'bonne",
+"de bonne"
+],
+[
+"Il faut s'marié jeune",
+"s'marié",
+"se marier"
+],
+[
+"Elle va s'mariée en mai",
+"s'mariée",
+"se marier"
+],
+[
+"Elle ne peut plus marche",
+"marche",
+"marcher"
+],
+[
+"On pouvait regardé la mer",
+"regardé",
+"regarder"
+],
+[
+"Il va réussi son examen",
+"réussi",
+"réussir"
+],
+[
+"Il doit été là",
+"été",
+"être"
+],
+[
+"Tu n'as pas a te plaindre",
+"a",
+"à"
+],
+[
+"Elle continu a avancer",
+"a",
+"à"
+],
+[
+"Elle a de la peine a chanter",
+"a",
+"à"
+],
+[
+"Je m'occupe a nettoyer",
+"a",
+"à"
+],
+[
+"On a oublier la clé",
+"oublier",
+"oublié"
+],
+[
+"je né jamais froid",
+"né",
+"n'ai"
+],
+[
+"Elle a une problème",
+"une",
+"un"
+],
+[
+"Elle est faim",
+"est",
+"a"
+],
+[
+"Je te le dit",
+"dit",
+"dis"
+],
+[
+"Les cancer progressent",
+"cancer",
+"cancers"
+],
+[
+"Je crois que je vais mange",
+"mange",
+"manger"
+],
+[
+"Il dit qu'il va mange",
+"mange",
+"manger"
+],
+[
+"La lettre que tu veux passé au voisin",
+"passé",
+"passer"
+],
+[
+"Le fer a repasser est encore chaud",
+"a",
+"à"
+],
+[
+"Nous dînons dans la salle a manger",
+"a",
+"à"
+],
+[
+"Les machines a coudre sont rangées",
+"a",
+"à"
+],
+[
+"La machine a laver le pull",
+"laver",
+"lavé"
+],
+[
+"Elle seule a goûter le plat",
+"goûter",
+"goûté"
+],
+[
+"Il surtout a laver la vaisselle",
+"laver",
+"lavé"
+],
+[
+"Le chat et parti ce matin",
+"et",
+"est"
+],
+[
+"Le repas et fini depuis une heure",
+"et",
+"est"
+],
+[
+"Il est tombé dans l'eau est voilà",
+"est",
+"et"
+],
+[
+"Nous avons parlé est aussi elle a ri",
+"est",
+"et"
+],
+[
+"cest vrai",
+"cest",
+"c'est"
+],
+[
+"jai faim",
+"jai",
+"j'ai"
+]
+],
+"palier": [
+[
+"Elle s'mariée l'an dernier",
+"s'mariée",
+"vigilance"
+],
+[
+"Le chevalier porte d'lourde armure",
+"d'lourde",
+"vigilance"
+],
+[
+"Il vend de l'pétrole",
+"l'pétrole",
+"vigilance"
+],
+[
+"J'mangé une pomme",
+"J'mangé",
+"vigilance"
+],
+[
+"Il va s'marier en mai",
+"s'marier",
+"auto"
+],
+[
+"Ils s'disputent souvent",
+"s'disputent",
+"auto"
+],
+[
+"Une barre d'fer",
+"d'fer",
+"auto"
+],
+[
+"Il est parti d'bonne heure",
+"d'bonne",
+"auto"
+],
+[
+"Il faut s'marié jeune",
+"s'marié",
+"vigilance"
+],
+[
+"Elle continu a avancer",
+"a",
+"vigilance"
+],
+[
+"On a oublier la clé",
+"oublier",
+"auto"
+],
+[
+"Elle continue a avancer",
+"a",
+"auto"
+],
+[
+"Elle seule a goûter le plat",
+"goûter",
+"auto"
+],
+[
+"Il est tombe dans la rue",
+"tombe",
+"auto"
+],
+[
+"Le fer a repasser est encore chaud",
+"a",
+"auto"
+],
+[
+"Le chat et parti ce matin",
+"et",
+"vigilance"
+],
+[
+"Il et content",
+"et",
+"auto"
+],
+[
+"cest vrai",
+"cest",
+"auto"
+]
+],
+"vig": [
+[
+"Elle a appris la langue des sines à l'école",
+"sines",
+"signes"
+],
+[
+"Voici mes chansons préférrées.",
+"préférrées",
+"préférées"
+],
+[
+"Loin de sonn corps",
+"sonn",
+"son"
+],
+[
+"Il parle de sonn temps libre",
+"sonn",
+"son"
+],
+[
+"La robe est mois chere",
+"chere",
+"chère"
+],
+[
+"Un film tèrs long",
+"tèrs",
+"très"
+],
+[
+"Les lignés du cahier sont bleues",
+"lignés",
+"lignes"
+],
+[
+"Un groupe de soldas arrive au camp",
+"soldas",
+"soldats"
+],
+[
+"Une maison carée au bord du lac",
+"carée",
+"carrée"
+],
+[
+"Elle a mangeé une pomme",
+"mangeé",
+"mangé"
+],
+[
+"Il a mangeèt hier",
+"mangeèt",
+"mangé"
+],
+[
+"Il a ttreize ans",
+"ttreize",
+"treize"
+],
+[
+"Elle a treizze ans",
+"treizze",
+"treize"
+],
+[
+"Je vais empployer ce mot",
+"empployer",
+"employer"
+],
+[
+"Un outil permettan de lire",
+"permettan",
+"permettant"
+]
+],
+"a_participe": [
+"Marie a dormie.",
+"Mon frère a éré malade.",
+"Son discours a sucisté des rires."
+]
+}

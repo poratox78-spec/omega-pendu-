@@ -73,9 +73,9 @@ def load_sentences():
     return out
 
 
-def _check():
-    """Garde anti-régression CI (déterministe) : comportements clés du correcteur (levier être/avoir « j'est »
-    + contrôles FP). Exit 1 si l'un régresse. Réf. Python (les parités garantissent app≡extension)."""
+def comportements():
+    """Les comportements clés (listes) de la garde — séparés du jugement le 22/10/2026 (ligne 25b) pour être exportés en JSON
+    (dictee/export_recall.py) et rejoués sur le PRODUIT (dictee/recall_produit.js) sans le moteur Python."""
     expect = [("j'est content", "je suis"), ("J'est malade", "Je suis"), ("j'est allé à Paris", "je suis"),
               ("j'est venu hier", "je suis"), ("j'est de la peine", "j'ai"), ("j'est du mal", "j'ai"),
               ("j'est des soucis", "j'ai"), ("j'est un chien", "j'ai")]
@@ -164,6 +164,15 @@ def _check():
     nofp += ["Il aime séte maison.", "Ces jen sont drôles."]
     elide += [("cest vrai", "cest", "c'est"), ("jai faim", "jai", "j'ai")]
     palier += [("cest vrai", "cest", 'auto')]
+    return {'expect': expect, 'abstain': abstain, 'nofp': nofp, 'elide': elide, 'palier': palier, 'vig': vig,
+            'a_participe': ["Marie a dormie.", "Mon frère a éré malade.", "Son discours a sucisté des rires."]}
+
+
+def _check():
+    """Garde anti-régression CI (déterministe) : comportements clés du correcteur (levier être/avoir « j'est »
+    + contrôles FP). Exit 1 si l'un régresse. Réf. Python (les parités garantissent app≡extension)."""
+    _c = comportements()
+    expect, abstain, nofp, elide, palier, vig = _c['expect'], _c['abstain'], _c['nofp'], _c['elide'], _c['palier'], _c['vig']
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):
@@ -185,7 +194,7 @@ def _check():
     else:
         _sp = _SPm.Speller()
         import dys_pipeline_probe as _DPp   # ⭐ ligne 38 : a/à devant un participe mal écrit ou un inconnu accentué, y compris après l'orthographe (pipeline)
-        for s in ("Marie a dormie.", "Mon frère a éré malade.", "Son discours a sucisté des rires."):
+        for s in _c['a_participe']:
             if any(w == 'a' and nm == u'a/à' for (_i, w, _g, nm) in C.correct(s)): bad.append(f"{s!r} → a/à a tiré devant un participe mal écrit ou un inconnu accentué")
             try:
                 _T0, _out, _appl, _or, _sig = _DPp.pyramide(s)

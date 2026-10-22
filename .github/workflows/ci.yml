@@ -26,6 +26,10 @@ jobs:
         run: python3 dictee/imperative_clitics.py
       - name: Garde anti-régression rappel (levier j'est être/avoir + FP) — recall_probe --check
         run: python3 dictee/recall_probe.py --check
+      - name: Garde rappel AU PRODUIT (mêmes comportements, moteur de l'extension) — recall_produit.js
+        run: node dictee/recall_produit.js
+      - name: Garde rappel — le JSON suit recall_probe.py (export_recall --check)
+        run: python3 dictee/export_recall.py --check
       - name: Garde FP À L'ÉCHELLE (correcteur sur 2500 phrases correctes UD — plafond anti-régression, cf. audit 30/06)
         run: python3 dictee/fp_scale_probe.py --check
       # 22/10/2026 (ligne 25b, étape 2) — la même garde sur la grammaire du PRODUIT (dys-core), sans le moteur Python.
