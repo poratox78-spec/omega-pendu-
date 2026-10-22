@@ -63,6 +63,8 @@ jobs:
         run: node dictee/speller_fp_scale_probe.js --check
       - name: Validation held-out (vocabulaire neuf)
         run: python3 dictee/eval_externe.py
+      - name: Held-out vocabulaire neuf AU PRODUIT (mêmes cas, moteur de l'extension) — eval_externe_produit.js
+        run: node dictee/eval_externe_produit.js
       # LE SEUL BANC QUI N'EST PAS UNE REPRODUCTION. Les autres extraient la tranche moteur du HTML
       # et la ré-exécutent sous Node avec un bouchon DOM ; le jour où ce démarrage reproduit est faux,
       # tous les chiffres le sont sans que rien ne le signale (vécu : le moteur LIVRÉ ne chargeait
