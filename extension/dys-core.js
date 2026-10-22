@@ -7072,6 +7072,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
     cjRebuild:_cjRebuild,   // ⭐ 13/10/2026 : table de conjugaison compacte (police/parity_son.js, parity_corr.js)
     _spLire:{F:spF,P:spP,D:spD,W:function(w){return !!(SP.WORDS&&SP.WORDS.has(w));},cles:function(){return SP.D2M?Array.from(SP.D2M.keys()):[];}},   // ⭐ 13/10/2026 : dictionnaire compact — lu par extension/speller_compact_probe.js (zéro perte, mot par mot)
+    _sonde:{seg:function(t){_SEG=_segInfo(String(t));return _SEG;},svSubject:svSubject,npSubject:_npSubject,clauseNoFiniteVerb:_clauseNoFiniteVerb,clitic:function(w){return !!CLITIC[w];}},   // ⭐ 22/10/2026 (ligne 25b) : primitives du SUJET en lecture seule — lues par dictee/sujet_produit.js (sonde sujet sur l'or UD)
     setAuteur:setAuteur, getAuteur:getAuteur,   // ⭐ 01/10/2026 : réglage « j'écris au féminin / au masculin » (panneau, chrome.storage.local)
     udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel,  // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
     udMot:udMot,  // le mot que le 📗 « ce mot est correct » enregistre (radical d'un mot élidé), ou null — lu par la bulle et le panneau
