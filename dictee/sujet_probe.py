@@ -165,18 +165,10 @@ def structure_of(v, s, tv, ts, words, children, T):
     return 'autre'
 
 
-def main():
-    if not (os.path.isfile(UDFR) or (os.path.isdir(UDFR) and glob.glob(os.path.join(UDFR, '*.conllu')))):
-        print('SAUTÉ (UD French-GSD absent : ni /tmp/udfr ni data_local/ud_fr_gsd-train.conllu)')
-        return 0
-    sys.path.insert(0, HERE)
-    import correcteur_probe as C
-
-    n_sent = n_skip = 0
-    tot = Counter()                                   # 'juste'/'faux'/'abst' par type ('pronom'/'nominal')
-    fail_struct = Counter()
-    vp_ok = vp_tot = 0
-
+def collect():
+    """L'OR, sans moteur (⭐ 22/10/2026, ligne 25b) : par phrase lue, (texte normalisé, tokens, verbes finis) ; chaque verbe fini
+    porte None (pas de nsubj dans l'or) ou (token du sujet or, 'pronom'|'nominal', structure pour ventiler un échec nominal)."""
+    items, n_sent, n_skip = [], 0, 0
     for text, rows in conllu_iter(UDFR):
         if n_sent >= N_SENT:
             break
@@ -216,9 +208,7 @@ def main():
                     return w
             return None
 
-        C._SEG = C._seg_info(text_n)                  # même pose que correct() avant la passe de règles
-        tg = C.pos_tags(T)
-
+        verbes = []
         for v in sorted(words):
             form, upos, _, head, dep, feats = words[v]
             if upos not in ('VERB', 'AUX') or 'VerbForm=Fin' not in feats:
@@ -226,24 +216,73 @@ def main():
             tv = tidx(v)
             if tv is None:
                 continue
-            # --- signal verbe-présence : depuis un voisin dont la fenêtre CONTIENT le verbe ---
-            for i in (tv - 1, tv + 1):
-                if 0 <= i < len(T):
-                    lo, hi = _window(i, len(T), C._SEG)
-                    if lo <= tv < hi:
-                        vp_tot += 1
-                        if C._clause_no_finite_verb(T, i) is False:
-                            vp_ok += 1
-                        break
-            # --- sujet : verbe fini avec nsubj dans l'or ---
             s = nsubj_of(v)
             if s is None and upos == 'AUX' and dep.split(':')[0] in ('aux', 'cop'):
                 s = nsubj_of(head)                    # passif/copule : le nsubj est porté par la tête lexicale
             if s is None:
+                verbes.append((tv, None))
                 continue
             ts = tidx(s)
             typ = 'pronom' if words[s][1] == 'PRON' else 'nominal'
-            mode, idx = engine_subject(C, T, tg, tv)
+            verbes.append((tv, (ts, typ, structure_of(v, s, tv, ts, words, children, T) if typ == 'nominal' else None)))
+        items.append((text_n, T, verbes))
+    return items, n_sent, n_skip
+
+
+def reponses_python(items):
+    """Le moteur PYTHON (correcteur_probe) : par verbe, (verbe-présence : None hors fenêtre | True vu | False manqué, mode, index)."""
+    sys.path.insert(0, HERE)
+    import correcteur_probe as C
+    out = []
+    for text_n, T, verbes in items:
+        C._SEG = C._seg_info(text_n)                  # même pose que correct() avant la passe de règles
+        tg = C.pos_tags(T)
+        rep = []
+        for tv, g in verbes:
+            vp = None
+            for i in (tv - 1, tv + 1):                # signal verbe-présence : depuis un voisin dont la fenêtre CONTIENT le verbe
+                if 0 <= i < len(T):
+                    lo, hi = _window(i, len(T), C._SEG)
+                    if lo <= tv < hi:
+                        vp = C._clause_no_finite_verb(T, i) is False
+                        break
+            mode, idx = engine_subject(C, T, tg, tv) if g is not None else (None, None)
+            rep.append((vp, mode, idx))
+        out.append(rep)
+    return out
+
+
+def reponses_produit(items):
+    """⭐ 22/10/2026 (ligne 25b) : les MÊMES questions posées au moteur du PRODUIT (dys-core, primitives exposées en lecture seule)
+    par dictee/sujet_produit.js — un seul appel, les phrases en entrée, les réponses en sortie, aucun fichier écrit."""
+    import json, subprocess
+    r = subprocess.run(['node', os.path.join(HERE, 'sujet_produit.js')], input=json.dumps(
+        [[t, T, [tv for tv, _ in verbes], [g is not None for _, g in verbes]] for t, T, verbes in items], ensure_ascii=False),
+        capture_output=True, text=True, encoding='utf-8')
+    if r.returncode != 0:
+        raise SystemExit('sujet_produit.js : ' + r.stderr[-2000:])
+    return [[tuple(x) for x in rep] for rep in json.loads(r.stdout)]
+
+
+def main():
+    if not (os.path.isfile(UDFR) or (os.path.isdir(UDFR) and glob.glob(os.path.join(UDFR, '*.conllu')))):
+        print('SAUTÉ (UD French-GSD absent : ni /tmp/udfr ni data_local/ud_fr_gsd-train.conllu)')
+        return 0
+    produit = '--produit' in sys.argv
+    items, n_sent, n_skip = collect()
+    reps = reponses_produit(items) if produit else reponses_python(items)
+    tot = Counter()                                   # 'juste'/'faux'/'abst' par type ('pronom'/'nominal')
+    fail_struct = Counter()
+    vp_ok = vp_tot = 0
+    for (text_n, T, verbes), rep in zip(items, reps):
+        for (tv, g), (vp, mode, idx) in zip(verbes, rep):
+            if vp is not None:
+                vp_tot += 1
+                if vp:
+                    vp_ok += 1
+            if g is None:
+                continue
+            ts, typ, struct = g
             if mode is None:
                 verdict = 'abst'
             elif ts is not None and idx == ts:
@@ -252,7 +291,7 @@ def main():
                 verdict = 'faux'
             tot[(typ, verdict)] += 1
             if typ == 'nominal' and verdict != 'juste':
-                fail_struct[structure_of(v, s, tv, ts, words, children, T)] += 1
+                fail_struct[struct] += 1
 
     def _line(typ):
         j, f, a = tot[(typ, 'juste')], tot[(typ, 'faux')], tot[(typ, 'abst')]
@@ -270,7 +309,7 @@ def main():
     prec = 100.0 * juste / rep if rep else 0.0
     vp = 100.0 * vp_ok / vp_tot if vp_tot else 0.0
 
-    print(f'=== SONDE SUJET — or UD nsubj ({n_sent} phrases, {n_skip} sautées, {total} verbes finis avec nsubj) ===')
+    print(f'=== SONDE SUJET{" AU PRODUIT" if produit else ""} — or UD nsubj ({n_sent} phrases, {n_skip} sautées, {total} verbes finis avec nsubj) ===')
     print(f'  couverture globale        : {rep}/{total} = {couv:.1f} %')
     print(f'  précision quand répond    : {juste}/{rep} = {prec:.1f} %   (répondu-faux {faux})')
     print(f'  par type de sujet (or) :')

@@ -50,6 +50,8 @@ jobs:
         run: git clone --depth 1 https://github.com/UniversalDependencies/UD_French-GSD /tmp/udfr || echo "clone UD impossible — la sonde SUJET dira SAUTÉ"
       - name: Sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; UD cloné ci-dessus)
         run: python3 dictee/sujet_probe.py
+      - name: Sonde SUJET AU PRODUIT (mêmes questions, primitives de dys-core) — sujet_probe --produit
+        run: python3 dictee/sujet_probe.py --produit
       # Le chantier « bases de genre désaccentuées » a traîné parce qu'AUCUN banc ne déclenchait
       # la table : la retirer ne changeait rien, et elle contenait « le »→féminin sans que rien
       # ne le voie. Ce banc ferme le trou — un chantier sans banc n'est pas un chantier.
