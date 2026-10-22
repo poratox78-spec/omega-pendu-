@@ -55,6 +55,10 @@ jobs:
       # ne le voie. Ce banc ferme le trou — un chantier sans banc n'est pas un chantier.
       - name: Genre perdu par la DÉSACCENTUATION (âme/amé, affaire/affairé) — rappel + FP=0
         run: python3 dictee/gender_coll_probe.py --check
+      - name: Genre perdu par la désaccentuation AU PRODUIT (même banc, moteur de l'extension) — gender_coll_produit.js
+        run: node dictee/gender_coll_produit.js
+      - name: Genre perdu par la désaccentuation — le JSON suit l'échantillon Python (export_gender_coll --check)
+        run: python3 dictee/export_gender_coll.py --check
       - name: Garde FP SPELLER à l'échelle (ortho affirmatif sur 2500 UD — plafond anti-régression, baseline post-resserrage #107/#112)
         run: node dictee/speller_fp_scale_probe.js --check
       - name: Validation held-out (vocabulaire neuf)
