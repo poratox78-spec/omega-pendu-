@@ -75,6 +75,8 @@ run "MUETTES justes (r final sur 7 263 mots + le e de les/des/mes, contre la vé
 run "FP à l'échelle (UD 2500, garde régression)" python3 dictee/fp_scale_probe.py --check
 run "FP à l'échelle AU PRODUIT (grammaire + ses oranges, UD 2500, ligne 25b)" node dictee/fp_scale_produit.js --check
 run "Genre perdu par la désaccentuation (rappel 217, FP=0)" python3 dictee/gender_coll_probe.py --check
+run "Genre perdu par la désaccentuation AU PRODUIT — même banc que le Python (ligne 25b)" node dictee/gender_coll_produit.js
+run "genre perdu par la désaccentuation : le JSON suit l'échantillon Python" python3 dictee/export_gender_coll.py --check
 run "FP speller à l'échelle (ortho affirmatif UD 2500, garde régression)" node dictee/speller_fp_scale_probe.js --check
 run "held-out vocab neuf"          python3 dictee/eval_externe.py
 run "boucle descendante (genre)"   python3 dictee/descending_probe.py
