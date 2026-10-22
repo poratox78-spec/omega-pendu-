@@ -79,6 +79,7 @@ run "Genre perdu par la désaccentuation AU PRODUIT — même banc que le Python
 run "genre perdu par la désaccentuation : le JSON suit l'échantillon Python" python3 dictee/export_gender_coll.py --check
 run "FP speller à l'échelle (ortho affirmatif UD 2500, garde régression)" node dictee/speller_fp_scale_probe.js --check
 run "held-out vocab neuf"          python3 dictee/eval_externe.py
+run "held-out vocab neuf AU PRODUIT — mêmes cas que le Python (ligne 25b)" node dictee/eval_externe_produit.js
 run "boucle descendante (genre)"   python3 dictee/descending_probe.py
 run "did-you-mean FALSIFIÉ"        python3 dictee/didyoumean_probe.py
 run "tables g2p (depuis l'app)"    python3 dictee/build_g2p_tables.py
