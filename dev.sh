@@ -110,6 +110,7 @@ run "assets extension câblés (aucun asset livré-mais-muet)" node extension/as
 run "angle mort ÉLISION (différentiel l'X vs cet/cette X)" node dictee/elision_probe.js --check
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
 run "parité extension dys-core↔Py"  node extension/parity_core.js
+run "parité DIRECTE app ≡ extension (grammaire, ~9 800 phrases, sans la référence Python — ligne 25b)" node dictee/parity_app_ext.js
 run "police de son (fraîcheur bloc app + clitiques≡Py + texte intact)" node police/parity_son.js
 run "parité OS-sujet 3 moteurs (accord verbe orange)" node dictee/parity_os.js
 run "parité ces/ses 3 moteurs (vigilance-enseignante)" node dictee/parity_cesses.js
