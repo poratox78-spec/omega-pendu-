@@ -6,9 +6,10 @@ const fs = require('fs'), path = require('path'), cp = require('child_process');
 const HERE = __dirname, ROOT = path.join(HERE, '..'), EXT = path.join(ROOT, 'extension');
 const norm = (pairs) => JSON.stringify(pairs.map(p => [String(p[0]).toLowerCase(), String(p[1]).toLowerCase()]).sort());
 
+const SANS_PY = process.argv.includes('--sans-python');   // ⭐ 23/10/2026 (ligne 25b, étape 9c) : le moteur Python est DÉBRANCHÉ (pas supprimé) — sans lui, l'extension sert de référence et l'app doit lui être ÉGALE ; sans l'option, la comparaison au Python reste
 // 1) Python (référence)
-let py;
-try { py = JSON.parse(cp.execFileSync('python3', [path.join(HERE, 'cesses_probe.py'), 'floodflags'],
+let py = null;
+if (!SANS_PY) try { py = JSON.parse(cp.execFileSync('python3', [path.join(HERE, 'cesses_probe.py'), 'floodflags'],
   { encoding: 'utf8', maxBuffer: 1e8, env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) })); }
 catch (e) { console.error('cesses_probe.py floodflags échoué : ' + e.message); process.exit(2); }
 const fp = fs.readFileSync(path.join(HERE, 'fp_scale_corpus.txt'), 'utf8').split('\n').filter(x => x.trim()).slice(0, 1500);
@@ -37,8 +38,8 @@ const appProbe = globalThis.__cesProbe;
 if (typeof appProbe !== 'function') { console.error('cesProbe app non exposé'); process.exit(2); }
 let appFlags = []; for (const s of fp) for (const f of appProbe(s)) appFlags.push([f.word, f.sugg]);
 
-const nPy = norm(py), nExt = norm(extFlags), nApp = norm(appFlags);
+const nExt = norm(extFlags), nApp = norm(appFlags), nPy = SANS_PY ? nExt : norm(py);
 const okExt = nPy === nExt, okApp = nPy === nApp;
-console.log('parité ces/ses (fp_scale) : Python=' + py.length + ' flags | extension=' + extFlags.length + (okExt ? ' ✓' : ' ✗ ÉCART') + ' | app=' + appFlags.length + (okApp ? ' ✓' : ' ✗ ÉCART'));
-if (okExt && okApp) { console.log('✅ PARITÉ ces/ses 3 moteurs OK'); process.exit(0); }
+console.log('parité ces/ses (fp_scale) : ' + (SANS_PY ? 'Python débranché' : 'Python=' + py.length) + ' flags | extension=' + extFlags.length + (okExt ? ' ✓' : ' ✗ ÉCART') + ' | app=' + appFlags.length + (okApp ? ' ✓' : ' ✗ ÉCART'));
+if (okExt && okApp) { console.log(SANS_PY ? '✅ PARITÉ ces/ses extension == app OK (Python débranché)' : '✅ PARITÉ ces/ses 3 moteurs OK'); process.exit(0); }
 console.error('✗ DIVERGENCE parité ces/ses (JS ≠ référence Python)'); process.exit(1);

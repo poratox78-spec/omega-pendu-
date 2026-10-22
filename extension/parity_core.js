@@ -206,6 +206,14 @@ if (process.argv.includes('--dump')) {
   return;
 }
 
+/* ⭐ 22/10/2026 (ligne 25b, étape 9b) — --sans-python : le moteur Python est DÉBRANCHÉ (pas supprimé). Les comparaisons à la référence
+   Python sont SAUTÉES et le disent ; toutes les gardes directes du moteur restent. L'égalité app ≡ extension, que « ⊆ Python » ne
+   garantissait qu'en creux, est vérifiée directement par dictee/parity_app_ext.js. Sans l'option, le harnais compare toujours au Python. */
+const SANS_PY = process.argv.includes('--sans-python');
+let appOnly = 0, gap = 0;
+const key = x => x[0] + '|' + String(x[1]).toLowerCase() + '|' + String(x[2]).toLowerCase();
+if (SANS_PY) console.log('  · parité extension ⊆ Python : SAUTÉE (--sans-python — le moteur Python est débranché)');
+else {
 // 3) flags Python
 const py = cp.spawnSync('python3', ['-c', `
 import sys, json
@@ -218,8 +226,6 @@ if (py.status !== 0) { console.error('probe Python échoué :', py.stderr); proc
 const pyflags = JSON.parse(py.stdout);
 
 // 4) invariant : flags EXTENSION ⊆ flags Python (aucun FP propre ; couverture moindre tolérée = lexique HF)
-let appOnly = 0, gap = 0;
-const key = x => x[0] + '|' + String(x[1]).toLowerCase() + '|' + String(x[2]).toLowerCase();
 PHRASES.forEach((p, k) => {
   const js = DYSCORE.correctText(p).map(f => [f.i, f.word, f.sugg, f.name]);
   const pf = pyflags[k];
@@ -253,6 +259,7 @@ PHRASES.forEach((p, k) => {
 });
 if (_tierKo) { console.log('PARITÉ KO — ' + _tierKo + ' palier(s) rouge/orange différents ext ↔ Python.'); process.exit(1); }
 console.log('  ✓ paliers rouge/orange identiques ext ↔ Python sur ' + _tierCmp + ' corrections');
+}
 
 /* GARDE PRÉNOMS — « ext ⊆ Python » est unidirectionnel : sans table, l'extension n'émettrait rien
    et la parité resterait verte. On exige que l'extension PRODUISE ces corrections (miroir app). */
@@ -486,6 +493,13 @@ const VIG_PHRASES = PHRASES.concat([
   'Dans les mure de la ville.', 'Il y a des hais autour du jardin.', "J'ouvre les porte du garage.",                        // … mauvais homophone (mure → murs) ; « les » après un verbe élidé
   'Le vent les porte loin.', 'Il faut les faire.', 'Les quatre amis sont là.', 'On a vu les new Warriors.', 'Le colis part dès réception de la commande.',              // contrôles : « les » pronom, infinitif, nombre, nom propre → silence
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
+if (SANS_PY) {   // le Python débranché : chaque orange de la liste doit encore TIRER au moins une fois côté extension (une règle qui ne tourne pas vaut zéro)
+  const _vHitJs = {};
+  VIG_PHRASES.forEach((p) => (DYSCORE.diagnoseAll(p).flags || []).forEach((f) => { if (f.tier === 'vigilance' && VIG_MAP[f.name]) _vHitJs[VIG_MAP[f.name]] = (_vHitJs[VIG_MAP[f.name]] || 0) + 1; }));
+  const _vMuet = Array.from(VIG_PY).filter((n) => !_vHitJs[n]);
+  if (_vMuet.length) { console.log('PARITÉ KO — règle(s) de vigilance jamais exercée(s) par le harnais : ' + JSON.stringify(_vMuet) + ' ext=' + JSON.stringify(_vHitJs)); process.exit(1); }
+  console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orange exercées côté extension sur ' + VIG_PHRASES.length + ' phrases (comparaison au Python sautée : --sans-python)');
+} else {
 const pyV = cp.spawnSync('python3', ['-c', `
 import sys, json
 sys.path.insert(0, ${JSON.stringify(path.join(ROOT, 'dictee'))})
@@ -511,6 +525,7 @@ const _vMuet = Array.from(VIG_PY).filter(n => !_vHitJs[n] || !_vHitPy[n]);
 if (_vMuet.length) { console.log('PARITÉ KO — règle(s) de vigilance jamais exercée(s) par le harnais : ' + JSON.stringify(_vMuet) + ' ext=' + JSON.stringify(_vHitJs) + ' py=' + JSON.stringify(_vHitPy)); process.exit(1); }
 if (_vKo) { console.log('PARITÉ KO — ' + _vKo + ' phrase(s) où l\'extension marque une ORANGE hors Python.'); process.exit(1); }
 console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orange appariées, ext ⊆ Python sur ' + VIG_PHRASES.length + ' phrases (écarts de couverture : ' + _vGap + ')');
+}
 
 // ⭐ 29/09/2026 — LE VOISIN ORANGE (catalogue des muets, lot B1) : diagnoseAll relit la phrase avec les corrections ORANGE de
 // l'orthographe ; ce que a/à, ou/où, élision fusionnée, -er/-é y trouvent EN PLUS est proposé en orange, et le rouge -er → -é qui
@@ -744,7 +759,7 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
     }
   }
   DYSCORE.setAuteur(null);
-  const pyA = cp.spawnSync('python3', ['-c', `
+  const pyA = SANS_PY ? { status: 0, stdout: JSON.stringify({ saute: '--sans-python, moteur Python débranché' }) } : cp.spawnSync('python3', ['-c', `
 import sys, json
 sys.path.insert(0, ${JSON.stringify(path.join(ROOT, 'dictee'))})
 import correcteur_probe as CP
@@ -1170,6 +1185,7 @@ print(json.dumps(out))
   if (_ne) { console.log('PARITÉ KO — avoir élidé : ' + _ne + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log("  ✓ avoir élidé : 5 « n'a / n'ai / n'ont » + participe corrigés (avec et sans adverbe) ; « ce n'est pas commencer » muet"); }
 
+if (SANS_PY) { console.log('PARITÉ OK — gardes du moteur tenues sur ' + PHRASES.length + ' phrases (comparaison au Python sautée : --sans-python ; app ≡ extension : parity_app_ext.js)'); process.exit(0); }
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

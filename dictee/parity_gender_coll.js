@@ -14,7 +14,10 @@ const fs = require('fs'), path = require('path'), cp = require('child_process'),
 const HERE = __dirname, ROOT = path.join(HERE, '..');
 
 // ---------- 0) l'échantillon + le résultat de RÉFÉRENCE (Python) ----------
-const py = cp.spawnSync('python3', [path.join(HERE, 'gender_coll_probe.py'), '--dump'],
+const SANS_PY = process.argv.includes('--sans-python');   // ⭐ 23/10/2026 (ligne 25b, étape 9c) : le moteur Python est DÉBRANCHÉ (pas supprimé) — sans lui, l'extension sert de référence et l'app doit lui être ÉGALE ; sans l'option, la comparaison au Python reste
+const py = SANS_PY ? { status: 0, stdout: (() => { const K = JSON.parse(fs.readFileSync(path.join(HERE, 'gender_coll_cas.json'), 'utf8'));
+  return JSON.stringify({ cas: K.cas.map(([mot, g]) => ({ mot, genre: g, faux: g === 'f' ? 'un' : 'une', bon: g === 'f' ? 'une' : 'un' })), rappel_python: null, rappel_min: K.rappel_min, pieges: K.pieges }); })() }
+  : cp.spawnSync('python3', [path.join(HERE, 'gender_coll_probe.py'), '--dump'],
   { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) });
 if (py.status !== 0) { console.error('probe Python échoué :', py.stderr); process.exit(2); }
 const REF = JSON.parse(py.stdout);
@@ -86,13 +89,13 @@ function mesure(corr) {
 const app = mesure(corrApp), ext = mesure(t => D.correctText(t));
 
 console.log('GENRE À CLÉ PARTAGÉE — %d cas, parité 3 moteurs', CAS.length);
-console.log('  rappel   Python %d · app %d · extension %d', REF.rappel_python, app.rappel, ext.rappel);
+console.log('  rappel   Python %s · app %d · extension %d', SANS_PY ? 'débranché (plancher ' + REF.rappel_min + ')' : REF.rappel_python, app.rappel, ext.rappel);
 console.log('  FP       app %d · extension %d', app.fp.length, ext.fp.length);
 app.fp.slice(0, 6).forEach(x => console.log('      app FP : ' + x));
 ext.fp.slice(0, 6).forEach(x => console.log('      ext FP : ' + x));
 
-const ok = app.rappel === REF.rappel_python && ext.rappel === REF.rappel_python
+const ok = (SANS_PY ? app.rappel === ext.rappel && ext.rappel >= REF.rappel_min : app.rappel === REF.rappel_python && ext.rappel === REF.rappel_python)
         && app.fp.length === 0 && ext.fp.length === 0;
-console.log(ok ? '  ✓ les trois moteurs corrigent la MÊME chose, sans faux positif'
+console.log(ok ? (SANS_PY ? '  ✓ l\'app et l\'extension corrigent la MÊME chose, au-dessus du plancher, sans faux positif' : '  ✓ les trois moteurs corrigent la MÊME chose, sans faux positif')
                 : '  ✗ DIVERGENCE — un moteur est en retard sur la référence (ou flague à tort)');
 process.exit(ok ? 0 : 1);

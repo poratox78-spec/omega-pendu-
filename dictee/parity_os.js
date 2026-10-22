@@ -6,9 +6,10 @@ const fs = require('fs'), path = require('path'), cp = require('child_process'),
 const HERE = __dirname, ROOT = path.join(HERE, '..'), EXT = path.join(ROOT, 'extension');
 const norm = (pairs) => JSON.stringify(pairs.map(p => [String(p[0]).toLowerCase(), String(p[1]).toLowerCase()]).sort());
 
+const SANS_PY = process.argv.includes('--sans-python');   // ⭐ 23/10/2026 (ligne 25b, étape 9c) : le moteur Python est DÉBRANCHÉ (pas supprimé) — sans lui, l'extension sert de référence et l'app doit lui être ÉGALE ; sans l'option, la comparaison au Python reste
 // 1) Python (référence)
-let py;
-try { py = JSON.parse(cp.execFileSync('python3', [path.join(HERE, 'os_subject_probe.py'), 'floodflags'],
+let py = null;
+if (!SANS_PY) try { py = JSON.parse(cp.execFileSync('python3', [path.join(HERE, 'os_subject_probe.py'), 'floodflags'],
   { encoding: 'utf8', maxBuffer: 1e8, env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) })); }
 catch (e) { console.error('os_subject_probe.py floodflags échoué : ' + e.message); process.exit(2); }
 const fp = fs.readFileSync(path.join(HERE, 'fp_scale_corpus.txt'), 'utf8').split('\n').filter(x => x.trim()).slice(0, 1500);
@@ -66,13 +67,13 @@ const BATT = ["Ainsi s'achève les travaux de rénovation.", "Là s'entassait de
   'Les rapports que rédige la secrétaire arrivent demain.',
   'Les dossiers que traitent les employés sont urgents.',
   'les enfants que je vois joue'];   // cibles postposées/homographe + contrôles (« Ainsi va la vie » sing, « La compétition rassemble les clubs » sujet préverbal = ne pas flaguer)
-let pyBatt;
-try { pyBatt = JSON.parse(cp.execFileSync('python3', [path.join(HERE, 'os_subject_probe.py'), 'probeflags'],
+let pyBatt = null;
+if (!SANS_PY) try { pyBatt = JSON.parse(cp.execFileSync('python3', [path.join(HERE, 'os_subject_probe.py'), 'probeflags'],
   { input: JSON.stringify(BATT), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) })); }
 catch (e) { console.error('probeflags échoué : ' + e.message); process.exit(2); }
 let extBatt = []; for (const s of BATT) for (const f of D.osProbe(s)) extBatt.push([f.word, f.sugg]);
 let appBatt = []; for (const s of BATT) for (const f of appProbe(s)) appBatt.push([f.word, f.sugg]);
-const okB = norm(pyBatt) === norm(extBatt) && norm(pyBatt) === norm(appBatt);
+const okB = SANS_PY ? norm(extBatt) === norm(appBatt) : (norm(pyBatt) === norm(extBatt) && norm(pyBatt) === norm(appBatt));
 
 /* ⚠️ GARDE EXPLICITE — la parité vérifie que les 3 moteurs S'ACCORDENT, pas ce qu'ils DISENT : si on
    retirait le correctif des trois, ils s'accorderaient sur la MAUVAISE réponse et la parité resterait
@@ -143,9 +144,9 @@ for (const [ph, w] of [['Le roi convoqua les ducs du royaume et même empêcha l
 if (_au) { console.log('PARITÉ OS KO — ' + _au + ' cas « audit ».'); process.exit(1); }
 
 // comparaison
-const nPy = norm(py), nExt = norm(extFlags), nApp = norm(appFlags);
+const nExt = norm(extFlags), nApp = norm(appFlags), nPy = SANS_PY ? nExt : norm(py);
 const okExt = nPy === nExt, okApp = nPy === nApp;
-console.log('parité OS-sujet (fp_scale) : Python=' + py.length + ' flags | extension=' + extFlags.length + (okExt ? ' ✓' : ' ✗ ÉCART') + ' | app=' + appFlags.length + (okApp ? ' ✓' : ' ✗ ÉCART'));
-console.log('parité OS batterie postposé : Python=' + pyBatt.length + ' | ext=' + extBatt.length + ' | app=' + appBatt.length + (okB ? ' ✓' : ' ✗ ÉCART'));
-if (okExt && okApp && okB) { console.log('✅ PARITÉ OS 3 moteurs OK'); process.exit(0); }
+console.log('parité OS-sujet (fp_scale) : ' + (SANS_PY ? 'Python débranché' : 'Python=' + py.length) + ' flags | extension=' + extFlags.length + (okExt ? ' ✓' : ' ✗ ÉCART') + ' | app=' + appFlags.length + (okApp ? ' ✓' : ' ✗ ÉCART'));
+console.log('parité OS batterie postposé : ' + (SANS_PY ? 'Python débranché' : 'Python=' + pyBatt.length) + ' | ext=' + extBatt.length + ' | app=' + appBatt.length + (okB ? ' ✓' : ' ✗ ÉCART'));
+if (okExt && okApp && okB) { console.log(SANS_PY ? '✅ PARITÉ OS extension == app OK (Python débranché)' : '✅ PARITÉ OS 3 moteurs OK'); process.exit(0); }
 console.error('✗ DIVERGENCE parité OS-sujet (JS ≠ référence Python)'); process.exit(1);

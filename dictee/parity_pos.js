@@ -19,8 +19,9 @@ const BATT = [
   "La vieille dame traverse la rue prudemment."
 ];
 
+const SANS_PY = process.argv.includes('--sans-python');   // ⭐ 23/10/2026 (ligne 25b, étape 9c) : le moteur Python est DÉBRANCHÉ (pas supprimé) — sans lui, l'extension sert de référence et l'app doit lui être ÉGALE ; sans l'option, la comparaison au Python reste
 // --- Python : tags de référence ---
-const py = cp.execFileSync('python3', ['-c', `
+const py = SANS_PY ? '[]' : cp.execFileSync('python3', ['-c', `
 import sys, json
 sys.path.insert(0, r'${path.join(ROOT, 'dictee').replace(/\\/g, '\\\\')}')
 import correcteur_probe as C
@@ -35,7 +36,7 @@ require(path.join(ROOT, 'extension', 'dys-core.js'));
 const D = global.DYSCORE;
 D.setPosHmm(model);
 // toks Python vs toks extension peuvent différer ; on tague la MÊME séquence de tokens (celle de Python) pour comparer le DÉCODEUR.
-const pyToks = JSON.parse(cp.execFileSync('python3', ['-c', `
+const pyToks = SANS_PY ? [] : JSON.parse(cp.execFileSync('python3', ['-c', `
 import sys, json
 sys.path.insert(0, r'${path.join(ROOT, 'dictee').replace(/\\/g, '\\\\')}')
 import correcteur_probe as C
@@ -43,7 +44,7 @@ print(json.dumps([C.toks(s) for s in json.loads(sys.stdin.read())], ensure_ascii
 `], { input: JSON.stringify(BATT), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) }));
 
 let diffs = 0;
-for (let i = 0; i < BATT.length; i++) {
+for (let i = 0; i < (SANS_PY ? 0 : BATT.length); i++) {
   const js = D.posTags(pyToks[i]);
   if (JSON.stringify(js) !== JSON.stringify(pyTags[i])) {
     diffs++;
@@ -75,9 +76,9 @@ if (m) {
   blobSame = JSON.stringify(appModel) === JSON.stringify(model);
 }
 
-console.log(`extension==Python : ${diffs === 0 ? 'OK' : diffs + ' diffs'} (${BATT.length} phrases)`);
+console.log(SANS_PY ? 'extension==Python : SAUTÉ (--sans-python — moteur Python débranché)' : `extension==Python : ${diffs === 0 ? 'OK' : diffs + ' diffs'} (${BATT.length} phrases)`);
 console.log(`décodeur app==extension (texte) : ${decoderSame ? 'OK' : 'DIFFÈRE'}`);
 console.log(`blob app==modèle fichier : ${blobSame ? 'OK' : 'DIFFÈRE'}`);
 const ok = diffs === 0 && decoderSame && blobSame;
-console.log(ok ? 'PARITÉ POS OK — Python == extension == app' : 'PARITÉ POS ÉCHOUÉE');
+console.log(ok ? (SANS_PY ? 'PARITÉ POS OK — extension == app (décodeur et modèle)' : 'PARITÉ POS OK — Python == extension == app') : 'PARITÉ POS ÉCHOUÉE');
 process.exit(ok ? 0 : 1);
