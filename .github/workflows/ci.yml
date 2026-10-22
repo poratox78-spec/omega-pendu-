@@ -37,6 +37,10 @@ jobs:
         run: node dictee/fp_scale_produit.js --check
       - name: COUVERTURE de la conjugaison (sujet x temps - ENUMERE, ne lit aucun corpus)
         run: python3 dictee/couverture_conj_probe.py
+      - name: COUVERTURE de la conjugaison AU PRODUIT (mêmes cas, moteur de l'extension) — couverture_conj_produit.js
+        run: node dictee/couverture_conj_produit.js
+      - name: Couverture de la conjugaison — le JSON suit l'énumération Python (export_couverture --check)
+        run: python3 dictee/export_couverture.py --check
       - name: MUETTES justes — r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain
         run: python3 dictee/muettes_probe.py --check
       # La sonde-sujet exige les ARBRES CoNLL-U (or nsubj), pas seulement des phrases. Jusqu'au 18/10/2026 elle SAUTAIT en CI

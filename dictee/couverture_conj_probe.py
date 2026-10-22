@@ -54,16 +54,20 @@ def _phrase(sujet, forme, temps):
     return sujet[0].upper() + sujet[1:] + ' ' + forme + ' souvent.'
 
 
-def mesurer(detail=False):
-    if not CP.CONJ_C:
-        return None, 'tables de conjugaison absentes'
-    temps_tous = sorted({t for d in CP.CONJ_C.values() for t in d if t != 'imp:pre'},   # ⭐ conjugaison 14 : l'impératif n'a pas de sujet — hors de cette sonde (sujet × temps)
-                        key=lambda t: -sum(1 for d in CP.CONJ_C.values() if t in d))
-    res = collections.defaultdict(lambda: [0, 0])
-    rates = collections.defaultdict(list)
+def temps_sondes():
+    """Les temps des tables, du plus couvert au moins couvert (l'impératif, sans sujet, est hors de cette sonde)."""
+    return sorted({t for d in CP.CONJ_C.values() for t in d if t != 'imp:pre'},   # ⭐ conjugaison 14 : l'impératif n'a pas de sujet — hors de cette sonde (sujet × temps)
+                  key=lambda t: -sum(1 for d in CP.CONJ_C.values() if t in d))
+
+
+def cas():
+    """⭐ 22/10/2026 (ligne 25b) : l'énumération seule, sans le juge — (sujet, temps, forme fausse, forme juste, phrase), dans l'ordre
+    de la sonde. export_couverture.py l'écrit en JSON pour que le PRODUIT rejoue les mêmes cas (couverture_conj_produit.js)."""
+    CP._ps_completer()   # le moteur complète le passé simple pluriel à sa PREMIÈRE correction : l'énumérer avant, c'est sonder des cases vides
+    out = []
     for lem in VERBES:
         C = CP.CONJ_C.get(lem) or {}
-        for temps in temps_tous:
+        for temps in temps_sondes():
             slots = C.get(temps) or {}
             for sujet, slot in SUJETS:
                 juste = slots.get(slot)
@@ -77,16 +81,26 @@ def mesurer(detail=False):
                     #    qu'une 1re personne), les injections sur lectures fantômes (« je ramènes ») aussi.
                     if CP._conj_variante(juste.lower(), faux.lower()) and any(
                             r[0] == lem and r[1] == temps and r[2] + r[3] == slot for r in CP._reads(CP.deacc(faux.lower()))): continue
-                    phrase = _phrase(sujet, faux, temps)
-                    flags = CP.correct_tiered(phrase) or []
-                    ok = any(f[1].lower() == faux.lower() and f[2].lower() == juste.lower() for f in flags)
-                    res[(sujet, temps)][1] += 1
-                    if ok:
-                        res[(sujet, temps)][0] += 1
-                    elif len(rates[(sujet, temps)]) < 3:
-                        prop = [f[2] for f in flags if f[1].lower() == faux.lower()]
-                        rates[(sujet, temps)].append('%s %s → %s%s' % (
-                            sujet, faux, juste, (' (proposé : %s)' % prop[0]) if prop else ' (muet)'))
+                    out.append((sujet, temps, faux, juste, _phrase(sujet, faux, temps)))
+    return out
+
+
+def mesurer(detail=False):
+    if not CP.CONJ_C:
+        return None, 'tables de conjugaison absentes'
+    temps_tous = temps_sondes()
+    res = collections.defaultdict(lambda: [0, 0])
+    rates = collections.defaultdict(list)
+    for sujet, temps, faux, juste, phrase in cas():
+        flags = CP.correct_tiered(phrase) or []
+        ok = any(f[1].lower() == faux.lower() and f[2].lower() == juste.lower() for f in flags)
+        res[(sujet, temps)][1] += 1
+        if ok:
+            res[(sujet, temps)][0] += 1
+        elif len(rates[(sujet, temps)]) < 3:
+            prop = [f[2] for f in flags if f[1].lower() == faux.lower()]
+            rates[(sujet, temps)].append('%s %s → %s%s' % (
+                sujet, faux, juste, (' (proposé : %s)' % prop[0]) if prop else ' (muet)'))
     return (res, temps_tous, rates), None
 
 
