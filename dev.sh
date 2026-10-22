@@ -95,8 +95,12 @@ run "assets extension (build)"     python3 extension/build_assets.py
 echo "── Node : parité app/extension + syntaxe + standalone ──"
 runsh "syntaxe bloc dictée+correcteur (app)" "node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('mode PHRASES');if(i<0)throw new Error('bloc dictée introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);\""
 runsh "syntaxe bloc Décompose (app)"          "node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('🔤 DÉCOMPOSE — fiche');if(i<0)throw new Error('bloc décompose introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);\""
-run "parité correcteur APP↔Python"  node dictee/parity_corr.js
-run "parité POS-tagger HMM (Py==ext==app)" node dictee/parity_pos.js
+# ⭐ 23/10/2026 (ligne 25b, étape 9b) — les PARITÉS avec le moteur Python sont débranchées (--sans-python) : chaque harnais garde ses
+# gardes directes du moteur JS, et l'égalité app ≡ extension est vérifiée directement (parity_app_ext.js). Retirés : la précision par
+# famille en mode Python (son mode produit, --navigateur, reste), l'accord de palier produit ↔ Python, la parité speller Python ↔ JS.
+# Le code Python reste ; sans l'option, chaque harnais compare toujours au Python, à la main.
+run "gardes de l'APP (harnais parity_corr, Python débranché — ligne 25b)" node dictee/parity_corr.js --sans-python
+run "parité POS-tagger HMM (extension == app, décodeur et modèle ; Python débranché)" node dictee/parity_pos.js --sans-python
 run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
 run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigilance.js
 run "sonde SUJET AU PRODUIT — mêmes questions aux primitives de dys-core (ligne 25b)" python3 dictee/sujet_probe.py --produit
@@ -104,22 +108,19 @@ run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_p
 run "juges dys : suggestion de PLUSIEURS mots jugée sur la suite gold (bien sûr juste, ronde vous faux)" python3 dictee/test_juges_multimots.py
 run "census vigilance dys (aucune orange juste perdue)" python3 dictee/vig_census_probe.py
 run "cohérence du GOLD (le juge ne porte pas la faute qu'il juge)" python3 dictee/gold_coherence_probe.py --check
-run "précision par famille sur texte dys (rouge/orange mesurés)" python3 dictee/dys_precision_probe.py
-run "accord de PALIER produit↔référence sur le gold (auto/flag/vigilance/inconnu + hors accord ancré ; SAUTÉ sans corpus dys)" python3 dictee/palier_gold_probe.py
 run "assets extension câblés (aucun asset livré-mais-muet)" node extension/assets_wired_probe.js
 run "angle mort ÉLISION (différentiel l'X vs cet/cette X)" node dictee/elision_probe.js --check
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
-run "parité extension dys-core↔Py"  node extension/parity_core.js
+run "gardes de l'EXTENSION (harnais parity_core, Python débranché — ligne 25b)" node extension/parity_core.js --sans-python
 run "parité DIRECTE app ≡ extension (grammaire, ~9 800 phrases, sans la référence Python — ligne 25b)" node dictee/parity_app_ext.js
 run "police de son (fraîcheur bloc app + clitiques≡Py + texte intact)" node police/parity_son.js
-run "parité OS-sujet 3 moteurs (accord verbe orange)" node dictee/parity_os.js
-run "parité ces/ses 3 moteurs (vigilance-enseignante)" node dictee/parity_cesses.js
-run "parité genre à clé partagée 3 moteurs (âme/amé, affaire/affairé)" node dictee/parity_gender_coll.js
+run "parité OS-sujet extension == app (accord verbe orange ; Python débranché)" node dictee/parity_os.js --sans-python
+run "parité ces/ses extension == app (vigilance-enseignante ; Python débranché)" node dictee/parity_cesses.js --sans-python
+run "parité genre à clé partagée extension == app (âme/amé, affaire/affairé ; Python débranché)" node dictee/parity_gender_coll.js --sans-python
 run "parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas)" node dictee/parity_diag.js
 run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
 run "textes d'explication (💡 + conseils attendus, anciens textes faux interdits ; couche dys app ≡ ext ; routage de chaque règle ; plus de Stade au correcteur)" node dictee/textes_probe.js
-run "INVENTAIRE du correcteur à jour (règles ext ≡ app ≡ Python, paliers, conseils, tables et qui les lit)" node dictee/inventaire_correcteur.js --check
-run "parité SPELLER Python↔JS (suggestion, auto+flag+inconnu+vigilance)" python3 dictee/parity_speller.py
+run "INVENTAIRE du correcteur à jour (règles ext ≡ app, paliers, conseils, tables et qui les lit ; Python débranché)" node dictee/inventaire_correcteur.js --check --sans-python
 run "clé phonétique Python ≡ dys-core ≡ app ≡ app EN (« oeu » : cœur → ker, sœur → ser)" python3 dictee/phonkey_parity_probe.py
 runsh "syntaxe extension (6 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js && node --check extension/aide.js"
 run "correcteur standalone"         node dictee/correcteur.js

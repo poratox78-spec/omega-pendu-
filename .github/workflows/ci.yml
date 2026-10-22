@@ -132,10 +132,10 @@ jobs:
       - name: Vérif syntaxe du bloc « Décompose » (script séparé, app)
         run: |
           node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('🔤 DÉCOMPOSE — fiche');if(i<0)throw new Error('bloc décompose introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc décompose se compile (séparé du correcteur)');"
-      - name: Parité correcteur APP↔Python (homophones + accord sujet-verbe)
-        run: node dictee/parity_corr.js
-      - name: Parité POS-tagger HMM (Python == extension == app)
-        run: node dictee/parity_pos.js
+      - name: Gardes de l'APP (harnais parity_corr, Python débranché — ligne 25b)
+        run: node dictee/parity_corr.js --sans-python
+      - name: Parité POS-tagger HMM (extension == app, décodeur et modèle ; Python débranché)
+        run: node dictee/parity_pos.js --sans-python
       - name: Correcteur orthographique app (décompression + non-régression AUTO FP=0)
         run: node dictee/test_speller_app.js
       - name: Benchmark dys réel (rappel plancher + FP=0 + garde anti-mauvaises-corrections)
@@ -146,10 +146,6 @@ jobs:
         run: python3 dictee/vig_census_probe.py
       - name: Cohérence du GOLD, le juge ne porte pas la faute qu'il juge (SAUTÉ en CI, corpus privé local)
         run: python3 dictee/gold_coherence_probe.py --check
-      - name: Précision par famille sur texte DYS réel (rouge/orange mesurés — SAUTÉ en CI, corpus privé local)
-        run: python3 dictee/dys_precision_probe.py
-      - name: Accord de PALIER produit↔référence sur le gold dys (auto/flag/vigilance/inconnu + hors accord ancré — SAUTÉ en CI, corpus privé local)
-        run: python3 dictee/palier_gold_probe.py
       - name: Assets extension câblés (aucun asset livré-mais-muet — le trou des prénoms)
         run: node extension/assets_wired_probe.js
       - name: Angle mort ÉLISION (test différentiel l'X vs cet/cette X — plafond qui ne doit que baisser)
@@ -164,21 +160,21 @@ jobs:
         run: python3 dictee/build_pos.py
       - name: Extension — extraction des lexiques depuis l'app (assets)
         run: python3 extension/build_assets.py
-      - name: Extension — parité moteur dys-core ↔ Python (aucun FP propre)
-        run: node extension/parity_core.js
+      - name: Gardes de l'EXTENSION (harnais parity_core, Python débranché — ligne 25b)
+        run: node extension/parity_core.js --sans-python
       - name: Parité DIRECTE app ≡ extension de la grammaire (sans la référence Python) — parity_app_ext.js
         run: node dictee/parity_app_ext.js
       - name: Police de son — fraîcheur bloc app + parité clitiques ↔ Python + texte jamais altéré
         run: node police/parity_son.js
-      - name: Parité OS-sujet 3 moteurs (orange « accord verbe à vérifier »)
-        run: node dictee/parity_os.js
-      - name: Parité ces/ses 3 moteurs (vigilance-enseignante)
-        run: node dictee/parity_cesses.js
+      - name: Parité OS-sujet extension == app (accord verbe orange ; Python débranché)
+        run: node dictee/parity_os.js --sans-python
+      - name: Parité ces/ses extension == app (vigilance-enseignante ; Python débranché)
+        run: node dictee/parity_cesses.js --sans-python
       # parity_corr vérifie « app ⊆ Python » : il attrape un FP de l'app, jamais un RETARD.
       # C'est ce qui s'était produit — Python corrigeait « la lettre », l'app non, et tout était vert.
       # Ici on exige l'ÉGALITÉ des trois rappels sur le MÊME échantillon (fourni par le Python).
-      - name: Parité GENRE à clé partagée, 3 moteurs (âme/amé, affaire/affairé, lettre/lettré)
-        run: node dictee/parity_gender_coll.js
+      - name: Parité genre à clé partagée extension == app (âme/amé, affaire/affairé ; Python débranché)
+        run: node dictee/parity_gender_coll.js --sans-python
       - name: Parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas)
         run: node dictee/parity_diag.js
       - name: Dictée — SENT app == sentences.json + 0 FP
@@ -193,10 +189,8 @@ jobs:
         run: node extension/test_speller.js
       - name: Textes d'explication (💡 et conseils attendus, anciens textes faux interdits ; couche dys app ≡ ext ; routage de chaque règle ; plus de Stade au correcteur)
         run: node dictee/textes_probe.js
-      - name: INVENTAIRE du correcteur à jour (règles ext ≡ app ≡ Python, paliers, conseils, tables et qui les lit)
-        run: node dictee/inventaire_correcteur.js --check
-      - name: Parité SPELLER Python↔JS (suggestion — saute sans Lexique4, garde locale, vigilance comprise)
-        run: python3 dictee/parity_speller.py
+      - name: INVENTAIRE du correcteur à jour (règles ext ≡ app, paliers, conseils, tables et qui les lit ; Python débranché)
+        run: node dictee/inventaire_correcteur.js --check --sans-python
       - name: Clé phonétique Python ≡ dys-core ≡ app ≡ app EN (« oeu » — cœur → ker, sœur → ser)
         run: python3 dictee/phonkey_parity_probe.py
       - name: Extension — syntaxe dys-core / content / background / sidepanel / micro / aide

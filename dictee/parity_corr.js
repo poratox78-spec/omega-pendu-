@@ -263,6 +263,14 @@ if (process.argv.includes('--dump')) {
   return;
 }
 
+/* ⭐ 22/10/2026 (ligne 25b, étape 9b) — --sans-python : le moteur Python est DÉBRANCHÉ (pas supprimé). Les comparaisons à la référence
+   Python sont SAUTÉES et le disent ; toutes les gardes directes du moteur restent. L'égalité app ≡ extension, que « ⊆ Python » ne
+   garantissait qu'en creux, est vérifiée directement par dictee/parity_app_ext.js. Sans l'option, le harnais compare toujours au Python. */
+const SANS_PY = process.argv.includes('--sans-python');
+let appOnly = 0, gap = 0;
+const key = x => x[0] + '|' + String(x[1]).toLowerCase() + '|' + String(x[2]).toLowerCase();
+if (SANS_PY) console.log('  · parité app ⊆ Python : SAUTÉE (--sans-python — le moteur Python est débranché)');
+else {
 // flags Python via un petit pont
 const py = cp.spawnSync('python3', ['-c', `
 import sys, json
@@ -277,8 +285,6 @@ const pyflags = JSON.parse(py.stdout);
 // Invariant : flags APP ⊆ flags Python. L'app ne doit JAMAIS flaguer ce que Python ne flague pas (= pas de
 // faux positif propre à l'app) ; elle peut en flaguer MOINS (lexique embarqué HF compressé → s'abstient sur les
 // verbes rares, FP-safe). Un flag JS absent de PY = divergence réelle (échec) ; PY > JS = écart de couverture (info).
-let appOnly = 0, gap = 0;
-const key = x => x[0] + '|' + String(x[1]).toLowerCase() + '|' + String(x[2]).toLowerCase();
 PHRASES.forEach((p, k) => {
   const js = corr(p).map(f => [f.i, f.word, f.sugg, f.name]);
   const pf = pyflags[k];
@@ -287,6 +293,7 @@ PHRASES.forEach((p, k) => {
   if (extra.length) { appOnly++; console.log('✗ APP flague ce que PY ne flague pas :', JSON.stringify(p), JSON.stringify(extra)); }
   if (js.length < pf.length) { gap++; console.log('  (couverture) PY > APP sur :', JSON.stringify(p), '| PY=' + JSON.stringify(pf) + ' APP=' + JSON.stringify(js)); }
 });
+}
 /* ⚠️ GARDE TIER — le rouge de la grammaire est PORTÉ par le flag depuis l'audit 2026-08-11.
    Sans lui, `content.js` (extension) n'applique que `tier==='auto'` et la grammaire n'est JAMAIS
    corrigée dans l'extension, alors que l'app la coche par défaut : même texte, deux comportements.
@@ -859,6 +866,13 @@ const VIG_PHRASES = PHRASES.concat([
 const appVig = p => { const t = String(p).replace(/[’ʼ]/g, "'"); const rouge = new Set(corr(t).map(f => f.i)); globalThis.__segOn(t); const T = globalThis.__toks(t), out = [];
   for (let i = 0; i < T.length; i++) if (!rouge.has(i)) for (const [fn, nom] of VIG_ORD) { const s = globalThis.__vig[fn](T, i); if (s) { out.push([i, T[i], s, nom]); break; } }
   return out; };
+if (SANS_PY) {   // le Python débranché : chaque orange de la liste doit encore TIRER au moins une fois côté app (une règle qui ne tourne pas vaut zéro)
+  const _vHitJs = {};
+  VIG_PHRASES.forEach((p) => appVig(p).forEach((x) => { _vHitJs[x[3]] = (_vHitJs[x[3]] || 0) + 1; }));
+  const _vMuet = Array.from(VIG_PY).filter((n) => !_vHitJs[n]);
+  if (_vMuet.length) { console.log('PARITÉ KO — règle(s) de vigilance jamais exercée(s) par le harnais : ' + JSON.stringify(_vMuet) + ' app=' + JSON.stringify(_vHitJs)); process.exit(1); }
+  console.log('  ✓ vigilance : ' + VIG_ORD.length + ' règles orange exercées côté app sur ' + VIG_PHRASES.length + ' phrases (comparaison au Python sautée : --sans-python)');
+} else {
 const pyV = cp.spawnSync('python3', ['-c', `
 import sys, json
 sys.path.insert(0, ${JSON.stringify(HERE)})
@@ -884,7 +898,9 @@ const _vMuet = Array.from(VIG_PY).filter(n => !_vHitJs[n] || !_vHitPy[n]);
 if (_vMuet.length) { console.log('PARITÉ KO — règle(s) de vigilance jamais exercée(s) par le harnais : ' + JSON.stringify(_vMuet) + ' app=' + JSON.stringify(_vHitJs) + ' py=' + JSON.stringify(_vHitPy)); process.exit(1); }
 if (_vKo) { console.log('PARITÉ KO — ' + _vKo + ' phrase(s) où l\'app marque une ORANGE hors Python.'); process.exit(1); }
 console.log('  ✓ vigilance : ' + VIG_ORD.length + ' règles orange appariées, app ⊆ Python sur ' + VIG_PHRASES.length + ' phrases (écarts de couverture : ' + _vGap + ')');
+}
 
+if (SANS_PY) { console.log('PARITÉ OK — gardes du moteur tenues sur ' + PHRASES.length + ' phrases (comparaison au Python sautée : --sans-python ; app ≡ extension : parity_app_ext.js)'); process.exit(0); }
 console.log(appOnly === 0
   ? `PARITÉ OK — aucun flag propre à l'app sur ${PHRASES.length} phrases (app ⊆ Python). Écarts de couverture (lexique HF) : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'app flague hors Python (FP app).`);

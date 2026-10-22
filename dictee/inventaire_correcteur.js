@@ -26,8 +26,9 @@ if (JSON.stringify(CR) !== JSON.stringify(CRA)) fail('① la chaîne des règles
 
 // — le moteur Python —————————————————————————————————————————————————————————————————————————————————————————————————————————
 const PYSRC = 'import json,sys; sys.path.insert(0, sys.argv[1]); import correcteur_probe as C; print(json.dumps([(n, getattr(f, "__name__", "?")) for n, f in C.RULES]))';
-let PY = null;
-for (const exe of ['python', 'python3']) {
+const SANS_PY = process.argv.includes('--sans-python');   // ⭐ 23/10/2026 (ligne 25b, étape 9c) : le moteur Python est DÉBRANCHÉ (pas supprimé) — sans lui, l'extension sert de référence et l'app doit lui être ÉGALE ; sans l'option, la comparaison au Python reste
+let PY = SANS_PY ? [] : null;
+for (const exe of (SANS_PY ? [] : ['python', 'python3'])) {
   try { PY = JSON.parse(cp.execFileSync(exe, ['-c', PYSRC, __dirname], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], env: Object.assign({}, process.env, { PYTHONIOENCODING: 'utf-8' }) })); break; } catch (e) { }
 }
 if (!PY) { console.error('✗ inventaire : moteur Python illisible (python / python3)'); process.exit(1); }
@@ -43,14 +44,15 @@ if (ext.indexOf("'impératif (pronom)'") >= 0) LIT.set('impératif (pronom)', 1)
 const DEPLACEES = { 'infinitif après pronom sujet à vérifier': 'orange ; le Python la pose en fin de chaîne, l\'extension après « accord tout »' };
 const nomsCR = new Set(CR.map(([n]) => nPy(n)));
 const pyChaine = PY.filter(([n]) => nomsCR.has(n)), pySeul = PY.filter(([n]) => !nomsCR.has(n));
+const fail2 = SANS_PY ? () => {} : fail;   // ② n'a plus d'objet sans le Python
 const seqJ = CR.map(([n]) => nPy(n)).filter((n) => !DEPLACEES[n]), seqP = pyChaine.map(([n]) => n).filter((n) => !DEPLACEES[n]);
 if (pyChaine.length !== CR.length || seqJ.length !== seqP.length || seqJ.some((n, k) => n !== seqP[k]))
-  fail('② la chaîne Python ne suit plus celle de l\'extension (' + pyChaine.length + ' / ' + CR.length + ' ; premier écart hors règles déplacées connues : ' +
+  fail2('② la chaîne Python ne suit plus celle de l\'extension (' + pyChaine.length + ' / ' + CR.length + ' ; premier écart hors règles déplacées connues : ' +
        (seqJ.findIndex((n, k) => n !== seqP[k]) + 1) + 'e)');
-const jumelle = []; { const vu = new Map(); for (const [n] of CR) { const k = vu.get(nPy(n)) || 0; vu.set(nPy(n), k + 1); const q = pyChaine.filter(([m]) => m === nPy(n))[k]; jumelle.push(q ? q[1] : '?'); } }
-const deplacees = Object.keys(DEPLACEES).filter((n) => CR.findIndex(([m]) => nPy(m) === n) !== pyChaine.findIndex(([m]) => m === n));
-for (const n of Object.keys(DEPLACEES)) if (deplacees.indexOf(n) < 0) fail('② « ' + n + ' » est revenue à sa place dans le Python : retire-la de DEPLACEES');
-for (const [n] of pySeul) if (!LIT.has(n)) fail('② « ' + n + ' » : dans la chaîne Python, nulle part côté JS');
+const jumelle = []; if (SANS_PY) for (const _ of CR) jumelle.push('—'); else { const vu = new Map(); for (const [n] of CR) { const k = vu.get(nPy(n)) || 0; vu.set(nPy(n), k + 1); const q = pyChaine.filter(([m]) => m === nPy(n))[k]; jumelle.push(q ? q[1] : '?'); } }
+const deplacees = SANS_PY ? [] : Object.keys(DEPLACEES).filter((n) => CR.findIndex(([m]) => nPy(m) === n) !== pyChaine.findIndex(([m]) => m === n));
+for (const n of Object.keys(DEPLACEES)) if (deplacees.indexOf(n) < 0) fail2('② « ' + n + ' » est revenue à sa place dans le Python : retire-la de DEPLACEES');
+for (const [n] of pySeul) if (!LIT.has(n)) fail2('② « ' + n + ' » : dans la chaîne Python, nulle part côté JS');
 
 // — corps des fonctions, graphe d'appels, tables ————————————————————————————————————————————————————————————————————————————
 // Un passage de LEXEUR sur le source : chaînes, commentaires et expressions régulières sont blanchis (un nom de fonction cité dans un
@@ -131,9 +133,10 @@ L.push('# Inventaire du correcteur', '',
   '- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **' + CR.length + '** entrées, **' + new Set(CR.map(([n]) => n)).size + '** noms affichés ; ' +
   'rouge : ' + CR.filter(([n, f]) => palier(n, f) === 'rouge').length + ' · rouge avec un cas orange posé par la règle : ' + nPal('rouge, orange') +
   ' · rouge ou orange selon le sous-cas : ' + nPal('rouge ou orange') + ' · orange : ' + nPal('orange') + '.',
+  (SANS_PY ? '- Moteur Python : débranché de dev.sh et de la CI le 22/10/2026 (ligne 25b) — la chaîne n\'est plus comparée ; la parité directe app ≡ extension la garde (`dictee/parity_app_ext.js`).' :
   '- Moteur Python (`correcteur_probe.RULES`) : **' + PY.length + '** entrées — les ' + CR.length + ' de la chaîne, dans le même ordre, et ' + pySeul.length +
   ' oranges que l\'extension pose hors de la chaîne. Ordre identique, sauf : ' +
-  (deplacees.map((n) => '« ' + n + ' » (' + DEPLACEES[n] + ')').join(' ; ') || 'aucune') + '.',
+  (deplacees.map((n) => '« ' + n + ' » (' + DEPLACEES[n] + ')').join(' ; ') || 'aucune') + '.'),
   '- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **' + LIT.size + '**.',
   '- Tables chargées : ' + TAB.length + ' (le chargeur unique `extension/charger_node.js` les charge toutes pour les bancs).', '',
   '## Règles de grammaire, dans l\'ordre de la chaîne', '',
@@ -145,7 +148,7 @@ L.push('', '## Noms posés hors de la chaîne (extension)', '',
   'Orthographe, typographie, mots inconnus, et les oranges posées après la chaîne. « Python » = fichier où le nom apparaît.', '',
   '| nom | occurrences | palier | famille du conseil | dans la chaîne Python | Python |', '|---|---|---|---|---|---|');
 [...LIT.keys()].sort((a, b) => a.localeCompare(b, 'fr')).forEach((n) => L.push('| ' + esc(n) + ' | ' + LIT.get(n) + ' | ' + (/à vérifier$/.test(n) ? 'orange' : 'selon la couche') + ' | ' + conseil(n) + ' | ' +
-  (pySeul.some(([m]) => m === n) ? 'oui' : 'non') + ' | ' + pyOu(n) + ' |'));
+  (SANS_PY ? '—' : (pySeul.some(([m]) => m === n) ? 'oui' : 'non')) + ' | ' + pyOu(n) + ' |'));
 L.push('', '## Tables et qui les lit', '', '« Directement » : les fonctions dont le code nomme une variable de la table (les 8 premières, ordre du fichier).', '',
   '| table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |', '|---|---|---|---|---|');
 for (const [t, f] of TAB) {
@@ -160,5 +163,5 @@ if (errs.length) { for (const e of errs) console.log('  ✗ ' + e); console.log(
 if (CHECK) {
   const avant = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8').replace(/\r\n/g, '\n') : '';
   if (avant !== txt) { console.log('✗ inventaire : dictee/INVENTAIRE_CORRECTEUR.md n\'est plus à jour — relance node dictee/inventaire_correcteur.js et commite'); process.exit(1); }
-  console.log('✓ inventaire à jour : ' + CR.length + ' règles (ext ≡ app ≡ Python, même ordre), ' + LIT.size + ' noms hors chaîne, ' + TAB.length + ' tables');
+  console.log('✓ inventaire à jour : ' + CR.length + ' règles (' + (SANS_PY ? 'ext ≡ app' : 'ext ≡ app ≡ Python') + ', même ordre), ' + LIT.size + ' noms hors chaîne, ' + TAB.length + ' tables');
 } else { fs.writeFileSync(OUT, txt); console.log('écrit ' + path.relative(ROOT, OUT) + ' : ' + CR.length + ' règles, ' + LIT.size + ' noms hors chaîne, ' + TAB.length + ' tables'); }
