@@ -59,6 +59,12 @@ où ça casse.
 
 ## Limites (honnêtes)
 
+- **Word en ligne** : jusqu'au 22/10/2026, l'en-tête `X-Frame-Options: SAMEORIGIN` du site empêchait Word en ligne d'afficher le
+  volet (il l'ouvre dans un cadre d'Office). `_headers` le retire pour `/word/*` et n'autorise que les domaines d'Office
+  (`frame-ancestors`). À vérifier après déploiement : `curl -sI https://omega-pendu.pages.dev/word/taskpane`.
+- **Sans complément** : la police **OMEGA Dys Word** (pack du site) colore d'elle-même muettes et syllabes pendant la frappe, pour
+  les 20 000 mots les plus fréquents ; le complément reste la voie complète (voisement, tous les mots, grammaire du g2p).
+
 - **Non testé dans Word par nous** à ce stade : la logique est testée sous node avec le g2p réel et une
   glue Office simulée ; le premier essai réel dans Word est à faire (tout retour est bienvenu).
 - Si les polices ne sont pas installées, Word substitue une police : le texte reste intact, la graisse
