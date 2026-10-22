@@ -48,14 +48,15 @@ const REGISTRE = {
   14450:  { nom: 'UD FR complet (14 450 phrases correctes) — FP=0 du correcteur',
             pages: { 'correcteur.html': 1, 'recherche.html': 1, 'saisie-vocale.html': 1, 'toile.html': 2 },   // toile : 15/10/2026 (liste n° 28)
             sonde: { fichier: 'dictee/fp_scale_probe.py', portee: 'locale',
-                     note: 'corpus COMPLET sous data_local ; la CI n en rejoue que l echantillon 2 500' } },
+                     note: 'corpus COMPLET sous data_local, moteur Python (débranché de dev.sh le 22/10/2026, ligne 25b) ; la CI rejoue l echantillon 2 500 au produit' } },
   11304:  { nom: 'phrases écrites par des humains — précision/rappel du speller',
             pages: { 'recherche.html': 1, 'saisie-vocale.html': 1 },
             sonde: { fichier: 'dictee/ponct_double_route_probe.js', portee: 'locale',
                      note: 'meme banc 11 304 ; le volet SPELLER (precision/rappel) n a plus de sonde dediee' } },
   2500:   { nom: 'UD 2 500 (échantillon encyclopédique) — FP à l\'échelle + tagger',
             pages: { 'arbitrage.html': 1, 'recherche.html': 3, 'correcteur.html': 1 },   // toile : passée au corpus complet le 15/10/2026 (liste n° 28)
-            sonde: { fichier: 'dictee/fp_scale_probe.py', portee: 'ci' } },
+            sonde: { fichier: 'dictee/fp_scale_produit.js', portee: 'ci',   // ⭐ 22/10/2026 (ligne 25b) : la garde Python débranchée, son jumeau au produit
+                     note: 'même échantillon, jugé sur le moteur du produit (grammaire et ses oranges) ; fp_scale_probe.py reste, hors dev.sh' } },
   630500: { nom: 'corpus d\'entraînement du corps mou B2 (UD + exemples Wiktionnaire, held-out fp_scale exclu)',
             pages: { 'recherche.html': 1 },
             sonde: { fichier: 'dictee/b2_data.py', portee: 'locale',

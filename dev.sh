@@ -61,24 +61,20 @@ echo "── Python : dictée + correcteur (sans Lexique4.tsv) ──"
 run "diag phrases"                 python3 dictee/diag_sentence.py
 run "dictée SENT (app==json, 0 FP)" python3 dictee/sentences_parity.py
 run "dictée ✍️ Conjugue : temps et personne de la phrase" node dictee/conjugue_probe.js
-run "correcteur (batterie FP=0)"   python3 dictee/correcteur_probe.py
+# ⭐ 22/10/2026 (ligne 25b, étape 8) — LE MOTEUR PYTHON EST DÉBRANCHÉ de dev.sh, PAS SUPPRIMÉ (accord de Rem : sans perte).
+# Chaque garde Python retirée a son jumeau AU PRODUIT, mesuré égal ou meilleur avant le retrait (étapes 1 à 7, #1024-#1030) :
+#   batterie correcteur_probe.py → batterie_produit.js · recall_probe.py → recall_produit.js · fp_scale_probe.py → fp_scale_produit.js
+#   couverture_conj_probe.py → couverture_conj_produit.js · gender_coll_probe.py → gender_coll_produit.js
+#   eval_externe.py → eval_externe_produit.js · imperative_clitics.py → imp_probe.js · sujet_probe.py → sujet_probe.py --produit
+# Les JSON exportés (batterie_correcteur, recall_comportements, couverture_conj_cas, gender_coll_cas) sont désormais la SOURCE
+# des cas : un cas nouveau s'écrit dans le JSON. Le Python se rejoue toujours à la main (python3 dictee/correcteur_probe.py, …).
 run "correcteur (batterie FP=0) AU PRODUIT — même verdict que le Python (ligne 25b)" node dictee/batterie_produit.js
-run "batterie du correcteur : le JSON suit correcteur_probe.py" python3 dictee/export_batterie.py --check
-run "mover impératif (réf Python == cas)" python3 dictee/imperative_clitics.py
-run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
 run "garde j'est être/avoir AU PRODUIT — mêmes comportements que le Python (ligne 25b)" node dictee/recall_produit.js
-run "garde j'est : le JSON suit recall_probe.py" python3 dictee/export_recall.py --check
-run "COUVERTURE de la conjugaison (sujet × temps — ÉNUMÈRE, ne lit aucun corpus)" python3 dictee/couverture_conj_probe.py
 run "COUVERTURE de la conjugaison AU PRODUIT — mêmes cas que le Python (ligne 25b)" node dictee/couverture_conj_produit.js
-run "couverture de la conjugaison : le JSON suit l'énumération Python" python3 dictee/export_couverture.py --check
 run "MUETTES justes (r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain)" python3 dictee/muettes_probe.py --check
-run "FP à l'échelle (UD 2500, garde régression)" python3 dictee/fp_scale_probe.py --check
 run "FP à l'échelle AU PRODUIT (grammaire + ses oranges, UD 2500, ligne 25b)" node dictee/fp_scale_produit.js --check
-run "Genre perdu par la désaccentuation (rappel 217, FP=0)" python3 dictee/gender_coll_probe.py --check
 run "Genre perdu par la désaccentuation AU PRODUIT — même banc que le Python (ligne 25b)" node dictee/gender_coll_produit.js
-run "genre perdu par la désaccentuation : le JSON suit l'échantillon Python" python3 dictee/export_gender_coll.py --check
 run "FP speller à l'échelle (ortho affirmatif UD 2500, garde régression)" node dictee/speller_fp_scale_probe.js --check
-run "held-out vocab neuf"          python3 dictee/eval_externe.py
 run "held-out vocab neuf AU PRODUIT — mêmes cas que le Python (ligne 25b)" node dictee/eval_externe_produit.js
 run "boucle descendante (genre)"   python3 dictee/descending_probe.py
 run "did-you-mean FALSIFIÉ"        python3 dictee/didyoumean_probe.py
@@ -103,7 +99,6 @@ run "parité correcteur APP↔Python"  node dictee/parity_corr.js
 run "parité POS-tagger HMM (Py==ext==app)" node dictee/parity_pos.js
 run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
 run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigilance.js
-run "sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; UD de /tmp/udfr ou data_local ; SAUTÉ sans les deux)" python3 dictee/sujet_probe.py
 run "sonde SUJET AU PRODUIT — mêmes questions aux primitives de dys-core (ligne 25b)" python3 dictee/sujet_probe.py --produit
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
 run "juges dys : suggestion de PLUSIEURS mots jugée sur la suite gold (bien sûr juste, ronde vous faux)" python3 dictee/test_juges_multimots.py
