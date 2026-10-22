@@ -202,8 +202,8 @@ if (process.argv.includes('--dump')) {
   let _in = '';
   try { _in = fs.readFileSync(0, 'utf8'); } catch (e) {}
   const _ph = _in.trim() ? JSON.parse(_in) : PHRASES;
-  process.stdout.write(JSON.stringify({ p: _ph, f: _ph.map((p) => (DYSCORE.correctText(p) || []).map((x) => [x.i, x.word, x.sugg, x.name, x.tier || null])) }));
-  process.exit(0);
+  process.stdout.write(JSON.stringify({ p: _ph, f: _ph.map((p) => (DYSCORE.correctText(p) || []).map((x) => [x.i, x.word, x.sugg, x.name, x.tier || null])) }), () => process.exit(0));   // sortir APRÈS l'écriture : sous Linux, un tube est asynchrone et exit() la tronque à 64 Ko
+  return;
 }
 
 // 3) flags Python
