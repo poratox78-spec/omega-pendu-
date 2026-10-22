@@ -17,6 +17,11 @@ jobs:
         run: python3 dictee/diag_sentence.py
       - name: Correcteur dys (détection + correction, sans corrigé)
         run: python3 dictee/correcteur_probe.py
+      # 22/10/2026 (ligne 25b) — retrait progressif du moteur Python : la même batterie rejouée sur le moteur du PRODUIT (JS).
+      - name: Correcteur dys AU PRODUIT (batterie rejouée sur dys-core, même verdict que le Python)
+        run: node dictee/batterie_produit.js
+      - name: Batterie du correcteur — le JSON suit correcteur_probe.py
+        run: python3 dictee/export_batterie.py --check
       - name: Mover impératif — référence Python == cas
         run: python3 dictee/imperative_clitics.py
       - name: Garde anti-régression rappel (levier j'est être/avoir + FP) — recall_probe --check

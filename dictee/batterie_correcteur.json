@@ -1,0 +1,2541 @@
+{
+"cases": [
+[
+"Elle a beaucoup mangé ce midi.",
+"mangé",
+"mangée",
+"accord du participe après avoir à vérifier"
+],
+[
+"Aucun enfant ne dort ce soir",
+"enfant",
+"enfants",
+"accord singulier nom"
+],
+[
+"Quelles belles fleurs dans ce jardin",
+"Quelles",
+"Quel",
+"genre déterminant"
+],
+[
+"Elle parle aux enfants du quartier",
+"aux",
+"au",
+"nombre du déterminant à vérifier"
+],
+[
+"Mes nouveaux voisins sont gentils",
+"nouveaux",
+"nouvelles",
+"accord adjectif antéposé"
+],
+[
+"Elle a mangé.",
+"mangé",
+"mangée",
+"accord du participe après avoir à vérifier"
+],
+[
+"Nous avons dansé toute la nuit.",
+"dansé",
+"dansées",
+"accord du participe après avoir à vérifier"
+],
+[
+"Marie a dormi.",
+"dormi",
+"dormie",
+"accord du participe après avoir à vérifier"
+],
+[
+"Une voiture rapide et puissante passe devant nous.",
+"puissante",
+"puissant",
+"accord adjectif épithète"
+],
+[
+"Une équipe soudée et motivée gagne souvent.",
+"motivée",
+"motivé",
+"accord adjectif épithète"
+],
+[
+"Il conduit une voiture française.",
+"française",
+"français",
+"accord adjectif épithète"
+],
+[
+"Elle a des idées claires et précises.",
+"précises",
+"précis",
+"accord adjectif épithète"
+],
+[
+"Mes cousins procrastinent souvent.",
+"procrastinent",
+"procrastine",
+"accord sujet-verbe"
+],
+[
+"Les enfants pétardent dans la cour.",
+"pétardent",
+"pétarde",
+"accord sujet-verbe"
+],
+[
+"D'autres chemins mènent à la ville.",
+"chemins",
+"chemin",
+"accord pluriel nom"
+],
+[
+"Elle cherche d'autres solutions.",
+"solutions",
+"solution",
+"accord pluriel nom"
+],
+[
+"Il navigue avec Firefox tous les jours.",
+"Firefox",
+"firefox",
+"majuscule"
+],
+[
+"Il ouvre le navigateur Chrome.",
+"Chrome",
+"chrome",
+"majuscule"
+],
+[
+"Une gestion à flux tendu.",
+"flux",
+"flue",
+"expression figée à vérifier"
+],
+[
+"Une société de 3 milliards de chiffre d'affaires.",
+"chiffre",
+"chiffres",
+"expression figée à vérifier"
+],
+[
+"Le chat mangea la souris.",
+"mangea",
+"mangeâmes",
+"accord du verbe au sujet nominal à vérifier"
+],
+[
+"Il mangea la soupe.",
+"mangea",
+"mangeâmes",
+"personne du verbe"
+],
+[
+"Ils mangèrent la soupe.",
+"mangèrent",
+"mangea",
+"personne du verbe"
+],
+[
+"Le chat prit la souris.",
+"prit",
+"prîmes",
+"accord du verbe au sujet nominal à vérifier"
+],
+[
+"Les chats firent un bruit.",
+"firent",
+"fis",
+"accord du verbe au sujet nominal à vérifier"
+],
+[
+"Vous dûtes partir tôt.",
+"dûtes",
+"durent",
+"personne du verbe"
+],
+[
+"Vous prîtes le train du soir.",
+"prîtes",
+"prîmes",
+"personne du verbe"
+],
+[
+"Il prit le train du soir.",
+"prit",
+"prîmes",
+"personne du verbe"
+],
+[
+"Ils prirent le train du soir.",
+"prirent",
+"prîmes",
+"personne du verbe"
+],
+[
+"Il s'est fié à moi.",
+"fié",
+"fier",
+"participe après s'est"
+],
+[
+"Les filles en ont profité.",
+"profité",
+"profite",
+"-e/-é (participe)"
+],
+[
+"Nous avons acheté des plantes vertes.",
+"plantes",
+"plante",
+"pluriel par le son à vérifier"
+],
+[
+"Il range ces produits dans le placard.",
+"produits",
+"produit",
+"pluriel par le son à vérifier"
+],
+[
+"Elle ouvre les portes du garage.",
+"portes",
+"porte",
+"pluriel par le son à vérifier"
+],
+[
+"Dans les murs de la ville, il fait frais.",
+"murs",
+"mure",
+"pluriel par le son à vérifier"
+],
+[
+"Ils ont planté des haies autour du jardin.",
+"haies",
+"hais",
+"pluriel par le son à vérifier"
+],
+[
+"Elle s'est mariée très jeune ici",
+"s'est",
+"ces",
+"c'est/s'est"
+],
+[
+"Tu manges la soupe",
+"manges",
+"mangent",
+"accord sujet-verbe"
+],
+[
+"Je viens demain",
+"viens",
+"viennent",
+"accord sujet-verbe"
+],
+[
+"lorsqu'ils sont évincés",
+"lorsqu'ils",
+"lorsqu'il",
+"accord sujet-verbe"
+],
+[
+"Une femme cultivée parle",
+"cultivée",
+"cultivé",
+"accord participe épithète"
+],
+[
+"La porte fermée claque",
+"fermée",
+"fermé",
+"accord participe épithète"
+],
+[
+"Il a mon âge",
+"âge",
+"age",
+"accent (âge)"
+],
+[
+"Il semble fatigué",
+"fatigué",
+"fatiguer",
+"-é/-er"
+],
+[
+"Le moteur semble cassé",
+"cassé",
+"casser",
+"-é/-er"
+],
+[
+"Le travail semble terminé",
+"terminé",
+"terminer",
+"-é/-er"
+],
+[
+"Nous irions au cinéma",
+"irions",
+"iriez",
+"personne du verbe"
+],
+[
+"Vous iriez au cinéma",
+"iriez",
+"irions",
+"personne du verbe"
+],
+[
+"Nous allons au parc",
+"allons",
+"vont",
+"personne du verbe"
+],
+[
+"Tu iras demain",
+"iras",
+"irai",
+"personne du verbe"
+],
+[
+"Nous allons au parc",
+"allons",
+"allez",
+"personne du verbe"
+],
+[
+"Nous sommes là",
+"sommes",
+"êtes",
+"personne du verbe"
+],
+[
+"Vous êtes très contents",
+"êtes",
+"sommes",
+"personne du verbe"
+],
+[
+"Vous êtes très contents",
+"êtes",
+"somme",
+"personne du verbe"
+],
+[
+"Ils sont là",
+"sont",
+"somme",
+"accord sujet-verbe"
+],
+[
+"Vous allez au parc",
+"allez",
+"allons",
+"personne du verbe"
+],
+[
+"Nous mangeâmes bien",
+"mangeâmes",
+"mangeames",
+"personne du verbe"
+],
+[
+"Vous mangeâtes bien",
+"mangeâtes",
+"mangeates",
+"personne du verbe"
+],
+[
+"Nous allâmes au parc",
+"allâmes",
+"allames",
+"personne du verbe"
+],
+[
+"Nous finîmes tard",
+"finîmes",
+"finimes",
+"personne du verbe"
+],
+[
+"Ils mangèrent bien",
+"mangèrent",
+"mangerent",
+"personne du verbe"
+],
+[
+"Tu primes sur les autres",
+"primes",
+"primez",
+"personne du verbe"
+],
+[
+"Le chat mange sa pâtée",
+"mange",
+"mangeons",
+"accord du verbe au sujet nominal à vérifier"
+],
+[
+"Les chats mangent leur pâtée",
+"mangent",
+"mangeons",
+"accord du verbe au sujet nominal à vérifier"
+],
+[
+"Nous sommes allés au village visiter le musée.",
+"visiter",
+"visité",
+"infinitif de but"
+],
+[
+"Elle est partie au marché acheter du pain.",
+"acheter",
+"acheté",
+"infinitif de but"
+],
+[
+"Elle retourne chez elle.",
+"chez",
+"chère",
+"cher/chez"
+],
+[
+"Il dîne chez nous demain.",
+"chez",
+"chere",
+"cher/chez"
+],
+[
+"Il a mangé une pomme.",
+"mangé",
+"mange",
+"-e/-é (participe)"
+],
+[
+"Il commence à manger sa soupe.",
+"manger",
+"mange",
+"-é/-er"
+],
+[
+"Elle continue à travailler tard.",
+"travailler",
+"travaille",
+"-é/-er"
+],
+[
+"On apprend à nager cet été.",
+"nager",
+"nage",
+"-é/-er"
+],
+[
+"Il réussit à lever la main.",
+"lever",
+"lève",
+"-é/-er"
+],
+[
+"Elle sort et se promène au parc.",
+"se",
+"ce",
+"ce/se"
+],
+[
+"Elle veut se reposer un peu.",
+"se",
+"ce",
+"ce/se"
+],
+[
+"Elle apprend à se baigner.",
+"se",
+"ce",
+"ce/se"
+],
+[
+"Mon père se perd en ville.",
+"se",
+"ce",
+"ce/se"
+],
+[
+"Il parle aux enfants du quartier.",
+"enfants",
+"enfant",
+"accord pluriel nom"
+],
+[
+"Elle répond aux lettres de ses amis.",
+"lettres",
+"lettre",
+"accord pluriel nom"
+],
+[
+"Il reste quelques jours avant la fête.",
+"jours",
+"jour",
+"accord pluriel nom"
+],
+[
+"Ils ont plusieurs maisons à la mer.",
+"maisons",
+"maison",
+"accord pluriel nom"
+],
+[
+"Il range divers objets dans la boîte.",
+"objets",
+"objet",
+"accord pluriel nom"
+],
+[
+"Elle a plusieurs petits chats.",
+"petits",
+"petit",
+"accord adjectif antéposé"
+],
+[
+"Elle dessine plusieurs grands chiens.",
+"chiens",
+"chien",
+"accord pluriel nom"
+],
+[
+"Ils ont une grande maison.",
+"grande",
+"grand",
+"accord adjectif antéposé"
+],
+[
+"La petite fille joue.",
+"petite",
+"petit",
+"accord adjectif antéposé"
+],
+[
+"C'est sa meilleure amie depuis l'école.",
+"meilleure",
+"meilleur",
+"accord adjectif antéposé"
+],
+[
+"Un bel arbre pousse.",
+"bel",
+"belle",
+"accord adjectif antéposé"
+],
+[
+"C'est la première fois.",
+"première",
+"premier",
+"accord adjectif antéposé"
+],
+[
+"Il apprend à nager.",
+"nager",
+"nagé",
+"-é/-er"
+],
+[
+"Il espère pouvoir inviter ses amis.",
+"inviter",
+"invité",
+"-é/-er"
+],
+[
+"Elle a dû porter le sac.",
+"porter",
+"porté",
+"-é/-er"
+],
+[
+"Elle a dû passer la nuit dehors.",
+"passer",
+"passé",
+"-é/-er"
+],
+[
+"J'aime m'habiller en bleu.",
+"m'habiller",
+"m'habillé",
+"-é/-er"
+],
+[
+"L'aide a été précieuse.",
+"a",
+"à",
+"a/à"
+],
+[
+"Le reste a été vendu.",
+"a",
+"à",
+"a/à"
+],
+[
+"L'aide a changé sa vie.",
+"a",
+"à",
+"a/à"
+],
+[
+"Les inscriptions ouvrent dès le premier lundi du mois.",
+"dès",
+"des",
+"des/dès"
+],
+[
+"Dès lors, le projet avance vite.",
+"Dès",
+"Des",
+"des/dès"
+],
+[
+"La gare est près du centre.",
+"près",
+"prés",
+"près/prêt"
+],
+[
+"Je n'ai reçu aucun courrier.",
+"n'ai",
+"n'est",
+"j'est/j'ai"
+],
+[
+"Nous partons cet été.",
+"cet",
+"cette",
+"genre déterminant"
+],
+[
+"Il fait ses devoirs le soir.",
+"devoirs",
+"devoir",
+"accord pluriel nom"
+],
+[
+"Dis-moi où en est le projet.",
+"où",
+"ou",
+"ou/où"
+],
+[
+"Il viendra te chercher à la gare.",
+"chercher",
+"cherché",
+"terminaison -er/-é/-ez/-ai"
+],
+[
+"Le repas est bon, mais l'addition est salée.",
+"mais",
+"mes",
+"mais/mes"
+],
+[
+"Personne n'est venu ce matin.",
+"n'est",
+"n'ai",
+"j'est/j'ai"
+],
+[
+"Petit à petit, la neige fond.",
+"à",
+"a",
+"a/à"
+],
+[
+"Il aide sa tante à ranger le garage.",
+"à",
+"a",
+"a/à"
+],
+[
+"Un vieil homme qui les aide souvent.",
+"aide",
+"aides",
+"accord sujet-verbe"
+],
+[
+"Elle a surtout aimé la fin du film.",
+"aimé",
+"aimer",
+"-é/-er"
+],
+[
+"J'aime cuisiner pour mes amis.",
+"cuisiner",
+"cuisiné",
+"-é/-er"
+],
+[
+"Je souhaiterais participer au projet.",
+"participer",
+"participé",
+"-é/-er"
+],
+[
+"Mon voisin est prêt à me prêter sa voiture.",
+"à",
+"a",
+"a/à"
+],
+[
+"Bonne soirée à tous.",
+"à",
+"a",
+"a/à"
+],
+[
+"C'est simple à utiliser.",
+"à",
+"a",
+"a/à"
+],
+[
+"Ce texte est long à lire.",
+"à",
+"a",
+"a/à"
+],
+[
+"La Chine entière dort.",
+"entière",
+"entier",
+"accord adjectif épithète"
+],
+[
+"L'Europe occidentale est riche.",
+"occidentale",
+"occidental",
+"accord adjectif épithète"
+],
+[
+"Il a lu quelques livres.",
+"quelques",
+"quelque",
+"accord adjectif antéposé"
+],
+[
+"Ça va mieux.",
+"va",
+"vas",
+"accord du verbe au sujet nominal à vérifier"
+],
+[
+"Cela pourrait marcher.",
+"pourrait",
+"pourrais",
+"accord du verbe au sujet nominal à vérifier"
+],
+[
+"J'ai commencé le travail",
+"commencé",
+"commence",
+"-e/-é (participe)"
+],
+[
+"Il est obligé de partir",
+"obligé",
+"oblige",
+"-e/-é (participe)"
+],
+[
+"Elle s'est mariée hier",
+"mariée",
+"marie",
+"-e/-é (participe)"
+],
+[
+"Je me suis installé ici",
+"installé",
+"installe",
+"participe après être à vérifier"
+],
+[
+"Ils ont envie de partir",
+"ont",
+"on",
+"on/ont"
+],
+[
+"J'ai passé une bonne journée",
+"passé",
+"passe",
+"-e/-é (participe)"
+],
+[
+"Ils ont marché longtemps",
+"marché",
+"marche",
+"-e/-é (participe)"
+],
+[
+"Les enfants, il reculait pour voir",
+"reculait",
+"reculer",
+"infinitif après pronom sujet à vérifier"
+],
+[
+"La barrière qui protégeait les fleurs",
+"protégeait",
+"protéger",
+"infinitif après pronom sujet à vérifier"
+],
+[
+"Voici les prochaines demandes",
+"prochaines",
+"prochaine",
+"accord adjectif antéposé"
+],
+[
+"Il allume la cheminée",
+"cheminée",
+"cheminé",
+"nom féminin en -ée"
+],
+[
+"On voit une fumée noire",
+"fumée",
+"fumé",
+"nom féminin en -ée"
+],
+[
+"Regarde la vue",
+"vue",
+"vu",
+"nom féminin en -ée"
+],
+[
+"Une partie de tennis",
+"partie",
+"parti",
+"nom féminin en -ée"
+],
+[
+"Les jeunes lycéens arrivent",
+"lycéens",
+"lycéen",
+"accord pluriel nom"
+],
+[
+"Les nouvelles technologies avancent",
+"technologies",
+"technologie",
+"accord pluriel nom"
+],
+[
+"Il a des petits chats noirs",
+"chats",
+"chat",
+"accord pluriel nom"
+],
+[
+"J'avais des bonnes idées",
+"bonnes",
+"bonne",
+"accord adjectif antéposé"
+],
+[
+"Les autres consoles marchent",
+"autres",
+"autre",
+"accord adjectif antéposé"
+],
+[
+"Ils ont des grandes sociétés",
+"grandes",
+"grande",
+"accord adjectif antéposé"
+],
+[
+"On voit des nouveaux modèles",
+"nouveaux",
+"nouveau",
+"accord adjectif antéposé"
+],
+[
+"Elle a l'âge de raison",
+"l'âge",
+"l'age",
+"accent (âge)"
+],
+[
+"C'était une belle journée",
+"C'était",
+"C'étais",
+"étais après c'/s'"
+],
+[
+"Elle a grandi très vite",
+"grandi",
+"grandit",
+"participe après avoir"
+],
+[
+"Il n'a pas compris.",
+"n'a",
+"na",
+"élision fusionnée"
+],
+[
+"Ce n'est pas grave.",
+"n'est",
+"né",
+"élision fusionnée"
+],
+[
+"Je crois que j'ai raison.",
+"j'ai",
+"jai",
+"élision fusionnée"
+],
+[
+"Il pense qu'il pleut.",
+"qu'il",
+"quil",
+"élision fusionnée"
+],
+[
+"Il vient d'ailleurs demain.",
+"d'ailleurs",
+"dailleurs",
+"élision fusionnée"
+],
+[
+"Il appelle l'ami de Paul.",
+"l'ami",
+"lami",
+"élision fusionnée"
+],
+[
+"Je rentre chez moi ce soir.",
+"chez",
+"cher",
+"cher/chez"
+],
+[
+"Il était content de venir.",
+"était",
+"été",
+"aux mal orthographié"
+],
+[
+"Je pars au Japon cet été.",
+"Japon",
+"japon",
+"majuscule"
+],
+[
+"Les élèves ont pris le bus.",
+"pris",
+"prit",
+"participe après avoir"
+],
+[
+"Ils ont fait leurs devoirs.",
+"fait",
+"fais",
+"participe après avoir"
+],
+[
+"Les enfants ont mis leurs bottes.",
+"mis",
+"mit",
+"participe après avoir"
+],
+[
+"Ils ont écrit une lettre.",
+"écrit",
+"écris",
+"participe après avoir"
+],
+[
+"Ils ont dû partir tôt.",
+"dû",
+"dut",
+"participe après avoir"
+],
+[
+"La fête a été réussie.",
+"été",
+"était",
+"participe après avoir"
+],
+[
+"J'ai pris le train de nuit.",
+"pris",
+"prix",
+"participe après avoir"
+],
+[
+"Nous avons eu de la chance.",
+"eu",
+"eux",
+"participe après avoir"
+],
+[
+"Il s'est marié jeune",
+"marié",
+"marier",
+"participe après s'est"
+],
+[
+"Il a mangé la soupe",
+"mangé",
+"manger",
+"-é/-er"
+],
+[
+"Il veut manger la soupe",
+"manger",
+"mangé",
+"-é/-er"
+],
+[
+"Elle a préféré rester",
+"préféré",
+"préférer",
+"-é/-er"
+],
+[
+"Il met son manteau",
+"son",
+"sont",
+"son/sont"
+],
+[
+"Le chat et le chien sont là",
+"sont",
+"son",
+"son/sont"
+],
+[
+"Les enfants sont contents",
+"sont",
+"son",
+"son/sont"
+],
+[
+"Mes amis sont gentils",
+"sont",
+"son",
+"son/sont"
+],
+[
+"Ils ont mangé la tarte",
+"ont",
+"on",
+"on/ont"
+],
+[
+"On mange ensemble",
+"On",
+"Ont",
+"on/ont"
+],
+[
+"Les chats ont faim",
+"ont",
+"on",
+"on/ont"
+],
+[
+"Ils prennent leurs cahiers",
+"leurs",
+"leur",
+"leur/leurs"
+],
+[
+"Il caresse leur chien",
+"leur",
+"leurs",
+"leur/leurs"
+],
+[
+"Je leur parle souvent",
+"leur",
+"leurs",
+"leur/leurs"
+],
+[
+"Elle a trouvé un trésor",
+"a",
+"à",
+"a/à"
+],
+[
+"Elle va à Paris",
+"à",
+"a",
+"a/à"
+],
+[
+"Il pense à son chien",
+"à",
+"a",
+"a/à"
+],
+[
+"Le chat est noir",
+"est",
+"et",
+"et/est"
+],
+[
+"Le chien et le chat jouent",
+"et",
+"est",
+"et/est"
+],
+[
+"Il et elle sont là",
+"et",
+"est",
+"et/est"
+],
+[
+"Je peux venir demain",
+"peux",
+"peut",
+"peu/peux/peut"
+],
+[
+"Il peut venir demain",
+"peut",
+"peux",
+"peu/peux/peut"
+],
+[
+"Il mange un peu de pain",
+"peu",
+"peut",
+"peu/peux/peut"
+],
+[
+"Le chat se trouve là",
+"se",
+"ce",
+"ce/se"
+],
+[
+"Il prend ce livre",
+"ce",
+"se",
+"ce/se"
+],
+[
+"Je voulais venir mais il est parti",
+"mais",
+"met",
+"met/mais"
+],
+[
+"Il met son manteau",
+"met",
+"mais",
+"met/mais"
+],
+[
+"On mange ensemble",
+"On",
+"Ont",
+"on/ont"
+],
+[
+"Ils ont fini leur travail",
+"ont",
+"on",
+"on/ont"
+],
+[
+"Je dois partir",
+"dois",
+"doit",
+"accord sujet-verbe"
+],
+[
+"je veux partir",
+"veux",
+"veut",
+"accord sujet-verbe"
+],
+[
+"tu veux venir",
+"veux",
+"veut",
+"accord sujet-verbe"
+],
+[
+"Il a faim",
+"a",
+"ont",
+"accord sujet-verbe"
+],
+[
+"On a gagné",
+"a",
+"ont",
+"accord sujet-verbe"
+],
+[
+"Ils doivent manger",
+"doivent",
+"doit",
+"accord sujet-verbe"
+],
+[
+"Elle est contente",
+"est",
+"sont",
+"accord sujet-verbe"
+],
+[
+"Les enfants jouent dehors",
+"jouent",
+"joue",
+"accord sujet-verbe"
+],
+[
+"Les oiseaux chantent",
+"chantent",
+"chante",
+"accord sujet-verbe"
+],
+[
+"Les voitures roulent vite",
+"roulent",
+"roule",
+"accord sujet-verbe"
+],
+[
+"Mon collègue vérifiait les comptes",
+"vérifiait",
+"vérifiais",
+"accord sujet-verbe"
+],
+[
+"Le technicien réparait la machine",
+"réparait",
+"réparais",
+"accord sujet-verbe"
+],
+[
+"Je gardais le secret",
+"gardais",
+"gardait",
+"accord sujet-verbe"
+],
+[
+"Tu regardais la télévision",
+"regardais",
+"regardait",
+"accord sujet-verbe"
+],
+[
+"les enfants à l'école",
+"à",
+"a",
+"a/à"
+],
+[
+"les filles à la piscine",
+"à",
+"a",
+"a/à"
+],
+[
+"Ils sont contents",
+"ils",
+"il",
+"accord sujet-verbe"
+],
+[
+"Paul et elle vont bien",
+"elle",
+"elles",
+"accord sujet-verbe"
+],
+[
+"La liste des articles est longue",
+"est",
+"sont",
+"accord sujet-verbe"
+],
+[
+"Le prix des matières premières a augmenté",
+"a",
+"ont",
+"accord sujet-verbe"
+],
+[
+"Le stock de pièces détachées diminue vite",
+"diminue",
+"diminuent",
+"accord sujet-verbe"
+],
+[
+"Les employés du service répondent",
+"répondent",
+"répond",
+"accord sujet-verbe"
+],
+[
+"Chacun fait de son mieux",
+"fait",
+"font",
+"accord sujet-verbe"
+],
+[
+"Certains pensent le contraire",
+"pensent",
+"pense",
+"accord sujet-verbe"
+],
+[
+"Tous savent la réponse",
+"savent",
+"sait",
+"accord sujet-verbe"
+],
+[
+"Tout le monde est content",
+"est",
+"sont",
+"accord sujet-verbe"
+],
+[
+"La plupart des gens préfèrent partir",
+"préfèrent",
+"préfère",
+"accord sujet-verbe"
+],
+[
+"La plupart du temps suffit",
+"suffit",
+"suffisent",
+"accord sujet-verbe"
+],
+[
+"Nombre de spécialistes doutent",
+"doutent",
+"doute",
+"accord sujet-verbe"
+],
+[
+"Les personnes qui participent restent",
+"participent",
+"participe",
+"accord sujet-verbe"
+],
+[
+"Voici les articles qui manquent",
+"manquent",
+"manque",
+"accord sujet-verbe"
+],
+[
+"Ce sont eux qui gèrent le dépôt",
+"gèrent",
+"gère",
+"accord sujet-verbe"
+],
+[
+"Les enfants que je vois jouent",
+"jouent",
+"joue",
+"accord sujet-verbe"
+],
+[
+"Les gens que je connais viennent",
+"viennent",
+"vient",
+"accord sujet-verbe"
+],
+[
+"Les erreurs que le prof corrige persistent",
+"persistent",
+"persiste",
+"accord sujet-verbe"
+],
+[
+"Les sujets dont on parle intéressent",
+"intéressent",
+"intéresse",
+"accord sujet-verbe"
+],
+[
+"Les endroits où on va coûtent cher",
+"coûtent",
+"coûte",
+"accord sujet-verbe"
+],
+[
+"Les livres, malgré leur prix, restent chers",
+"restent",
+"reste",
+"accord sujet-verbe"
+],
+[
+"Les élèves, malgré la fatigue, travaillent bien",
+"travaillent",
+"travaille",
+"accord sujet-verbe"
+],
+[
+"Le chat et le chien mangent la viande",
+"mangent",
+"mange",
+"accord sujet-verbe"
+],
+[
+"Toi et moi mangeons ensemble",
+"mangeons",
+"mange",
+"accord sujet-verbe"
+],
+[
+"Ton frère et toi mangez trop",
+"mangez",
+"mange",
+"accord sujet-verbe"
+],
+[
+"Trop manger nuit à la santé",
+"nuit",
+"nuisent",
+"accord sujet-verbe"
+],
+[
+"Réussir cet examen demande des efforts",
+"demande",
+"demandent",
+"accord sujet-verbe"
+],
+[
+"Fumer et boire sont mauvais",
+"sont",
+"est",
+"accord sujet-verbe"
+],
+[
+"Les enfants jouent",
+"enfants",
+"enfant",
+"accord pluriel nom"
+],
+[
+"Des oiseaux chantent",
+"oiseaux",
+"oiseau",
+"accord pluriel nom"
+],
+[
+"Les chevaux galopent",
+"chevaux",
+"cheval",
+"accord pluriel nom"
+],
+[
+"Il a des difficultés",
+"difficultés",
+"difficulté",
+"accord pluriel nom"
+],
+[
+"Le camp est installé",
+"camp",
+"camps",
+"accord singulier nom"
+],
+[
+"Chaque jour compte",
+"jour",
+"jours",
+"accord singulier nom"
+],
+[
+"Une voiture rouge passe",
+"voiture",
+"voitures",
+"accord singulier nom"
+],
+[
+"Ce systeme fonctionne",
+"systeme",
+"systemes",
+"accord singulier nom"
+],
+[
+"Il a un chien",
+"un",
+"une",
+"genre déterminant"
+],
+[
+"Elle habite une maison",
+"une",
+"un",
+"genre déterminant"
+],
+[
+"Le jardin est vert",
+"Le",
+"La",
+"genre déterminant"
+],
+[
+"Il regarde la montagne",
+"la",
+"le",
+"genre déterminant"
+],
+[
+"Quelle belle journée",
+"Quelle",
+"Quel",
+"genre déterminant"
+],
+[
+"Quel joli paysage",
+"Quel",
+"Quelle",
+"genre déterminant"
+],
+[
+"Il a faim",
+"a",
+"est",
+"usage être/avoir"
+],
+[
+"Tu as raison",
+"as",
+"es",
+"usage être/avoir"
+],
+[
+"Nous avons soif",
+"avons",
+"sommes",
+"usage être/avoir"
+],
+[
+"Vous avez peur",
+"avez",
+"êtes",
+"usage être/avoir"
+],
+[
+"Il est allé à Paris",
+"est",
+"a",
+"usage être/avoir"
+],
+[
+"Elle est partie tôt",
+"est",
+"a",
+"usage être/avoir"
+],
+[
+"Ils sont restés ici",
+"sont",
+"ont",
+"usage être/avoir"
+],
+[
+"Toute la classe est partie",
+"Toute",
+"Tout",
+"accord tout"
+],
+[
+"Je suis content que tu viennes",
+"viennes",
+"viens",
+"subjonctif à vérifier"
+],
+[
+"Elle a résolu le problème",
+"résolu",
+"résout",
+"participe après avoir"
+],
+[
+"Toi et moi sommes amis depuis longtemps",
+"sommes",
+"somme",
+"accord sujet-verbe"
+],
+[
+"La directrice s'est engagée à répondre vite",
+"s'est",
+"c'est",
+"c'est/s'est"
+],
+[
+"Nous sommes prêts",
+"sommes",
+"somme",
+"aux mal orthographié"
+],
+[
+"Vous êtes là",
+"êtes",
+"ete",
+"aux mal orthographié"
+],
+[
+"Nous avons un chien",
+"avons",
+"avon",
+"aux mal orthographié"
+],
+[
+"Ils sont contents",
+"sont",
+"son",
+"aux mal orthographié"
+],
+[
+"Il revient de la maison",
+"de",
+"du",
+"du/de"
+],
+[
+"j'ai dû partir tôt",
+"dû",
+"du",
+"du/dû"
+],
+[
+"je suis sûr de moi",
+"sûr",
+"sur",
+"sur/sûr"
+],
+[
+"je suis là",
+"là",
+"la",
+"la/là"
+],
+[
+"Vous signez le document",
+"signez",
+"signer",
+"terminaison -er/-é/-ez/-ai"
+],
+[
+"Demain je noterai le numéro",
+"noterai",
+"noté",
+"terminaison -er/-é/-ez/-ai"
+],
+[
+"Vous avez classé les bordereaux",
+"classé",
+"classez",
+"terminaison -er/-é/-ez/-ai"
+],
+[
+"Je suis allé à Paris",
+"allé",
+"allez",
+"terminaison -er/-é/-ez/-ai"
+],
+[
+"Il faut noter le numéro",
+"noter",
+"notez",
+"terminaison -er/-é/-ez/-ai"
+],
+[
+"S'il vous plaît, notez le numéro",
+"notez",
+"noté",
+"terminaison -er/-é/-ez/-ai"
+],
+[
+"Soyons honnêtes entre nous",
+"soyons",
+"soyions",
+"impératif"
+],
+[
+"Nous sommes allés à Paris",
+"allés",
+"allé",
+"accord participe"
+],
+[
+"Elle est allée au marché",
+"allée",
+"allé",
+"accord participe"
+],
+[
+"Elle est venue hier",
+"venue",
+"venu",
+"accord participe"
+],
+[
+"Nous sommes partis tôt",
+"partis",
+"parti",
+"accord participe"
+],
+[
+"Elle est morte en hiver",
+"morte",
+"mort",
+"accord participe"
+],
+[
+"les erreurs que nous avons faites",
+"faites",
+"fait",
+"accord participe (COD avoir)"
+],
+[
+"la voiture qu'elle a achetée",
+"achetée",
+"acheté",
+"accord participe (COD avoir)"
+],
+[
+"les photos que vous avez prises",
+"prises",
+"pris",
+"accord participe (COD avoir)"
+],
+[
+"la chanson que j'ai entendue",
+"entendue",
+"entendu",
+"accord participe (COD avoir)"
+],
+[
+"les choses dont je t'ai parlé",
+"parlé",
+"parlées",
+"accord participe (dont)"
+],
+[
+"la femme dont il a rêvé",
+"rêvé",
+"rêvées",
+"accord participe (dont)"
+],
+[
+"les fleurs que j'ai cueillies",
+"cueillies",
+"cueilli",
+"accord participe (COD avoir)"
+],
+[
+"Elle est contente",
+"contente",
+"content",
+"accord adjectif"
+],
+[
+"Ils sont nationaux",
+"nationaux",
+"national",
+"accord adjectif"
+],
+[
+"Elles sont vertes",
+"vertes",
+"vert",
+"accord adjectif"
+],
+[
+"La voiture est bleue",
+"bleue",
+"bleu",
+"accord adjectif"
+],
+[
+"La table est petite",
+"petite",
+"petit",
+"accord adjectif"
+],
+[
+"Les plats sont bons",
+"bons",
+"bon",
+"accord adjectif"
+],
+[
+"La couleur de la voiture est belle",
+"belle",
+"beau",
+"accord adjectif"
+],
+[
+"La voiture de mon père est verte",
+"verte",
+"vert",
+"accord adjectif"
+],
+[
+"La commission présidentielle est là",
+"présidentielle",
+"présidentiel",
+"accord adjectif épithète"
+],
+[
+"Les domaines industriels progressent",
+"industriels",
+"industriel",
+"accord adjectif épithète"
+],
+[
+"Une décision mondiale s'impose",
+"mondiale",
+"mondial",
+"accord adjectif épithète"
+],
+[
+"Les colis expédiés partent demain",
+"expédiés",
+"expédié",
+"accord participe épithète"
+],
+[
+"Les commandes annulées reviennent",
+"annulées",
+"annulé",
+"accord participe épithète"
+],
+[
+"Les travaux finis sont livrés",
+"finis",
+"fini",
+"accord participe épithète"
+],
+[
+"Les articles conformes passent",
+"conformes",
+"conforme",
+"accord adjectif épithète"
+],
+[
+"Les enfants sont partis",
+"sont",
+"son",
+"son/sont"
+],
+[
+"je suis fatigué",
+"je",
+"ke",
+"sujet je"
+],
+[
+"je suis content",
+"je",
+"ce",
+"sujet je"
+],
+[
+"je suis là",
+"je",
+"se",
+"sujet je"
+],
+[
+"je suis prêt",
+"je",
+"ge",
+"sujet je"
+],
+[
+"je serais content",
+"je",
+"ke",
+"sujet je"
+],
+[
+"je sais nager",
+"sais",
+"c'est",
+"sais/sait"
+],
+[
+"tu sais la réponse",
+"sais",
+"ces",
+"sais/sait"
+],
+[
+"je sais bien",
+"sais",
+"sait",
+"sais/sait"
+],
+[
+"elle s'est bien amusée",
+"s'est",
+"c'est",
+"c'est/s'est"
+],
+[
+"Lorsqu'il a faim",
+"a",
+"à",
+"a/à"
+],
+[
+"Puisqu'elle s'est levée",
+"s'est",
+"c'est",
+"c'est/s'est"
+],
+[
+"Puisqu'il se regarde",
+"se",
+"ce",
+"ce/se"
+],
+[
+"puisqu'il mangeait une pomme",
+"mangeait",
+"mangeai",
+"accord sujet-verbe"
+],
+[
+"Je crois qu'elle est partie",
+"partie",
+"parti",
+"accord participe"
+],
+[
+"Il pense qu'ils sont partis",
+"sont",
+"son",
+"son/sont"
+],
+[
+"Les chats mangent et lorsqu'elle dort",
+"dort",
+"dorment",
+"accord sujet-verbe"
+],
+[
+"les poules sont dans le jardin quand il fait beau",
+"sont",
+"son",
+"son/sont"
+],
+[
+"les enfants sont partis quand il a appelé",
+"sont",
+"son",
+"son/sont"
+],
+[
+"Marie est gentille",
+"est",
+"es",
+"accord sujet-verbe"
+],
+[
+"La fillette a peur",
+"a",
+"as",
+"accord sujet-verbe"
+],
+[
+"ma soeur va au marché",
+"va",
+"vas",
+"accord sujet-verbe"
+],
+[
+"Les amis de ma sœur que tu connais arrivent demain",
+"arrivent",
+"arrive",
+"accord sujet-verbe"
+],
+[
+"Les deux chats que la voisine nourrit dorment au soleil",
+"dorment",
+"dort",
+"accord sujet-verbe"
+],
+[
+"mes amis ont raison",
+"ont",
+"on",
+"on/ont"
+],
+[
+"il va au travail à vélo",
+"à",
+"a",
+"a/à"
+],
+[
+"un cours à domicile pour tous",
+"à",
+"a",
+"a/à"
+],
+[
+"la réunion a lieu demain",
+"a",
+"à",
+"a/à"
+]
+],
+"muets": [
+[
+"Le physicien range deux électro-aimants dans le tiroir.",
+"composé à trait d'union : aucun accord sur le premier élément (16/10/2026, liste n° 43)."
+],
+[
+"Le chasse-neige dégage la route avant l'aube.",
+"composé : ni accord sur « chasse », ni genre du déterminant lu sur le premier élément (liste n° 43)."
+],
+[
+"Il y a un sous-affluent.",
+"le nombre du déterminant ne se lit pas sur le premier élément d'un composé (liste n° 43)."
+],
+[
+"Les eaux s'écoulent-elles vers la mer ?",
+"inversion : le verbe s'accorde au pronom inversé, pas à un sujet nominal (liste n° 43)."
+],
+[
+"Faites-le vous-même.",
+"« faites » = 2e pers. du pluriel de faire, pas un présent en -e + s (16/10/2026, liste n° 45)."
+],
+[
+"Dites-moi la vérité.",
+"« dites » = 2e pers. du pluriel de dire (liste n° 45)."
+],
+[
+"Les prés de la ferme sont verts.",
+"« prés » NOM après un déterminant : pas « près » (17/10/2026, liste n° 48)."
+],
+[
+"Les verts prés de la vallée.",
+"« prés » nom après un adjectif (liste n° 48)."
+],
+[
+"J'aime le travail bien fait.",
+"« fait » participe épithète, pas l'infinitif (17/10/2026, liste n° 49)."
+],
+[
+"Dit-il si tu viens ?",
+"inversion « dit-il » : pas un impératif (liste n° 50)."
+],
+[
+"Ce héros parle fort.",
+"h aspiré : « ce » reste (17/10/2026, liste n° 56)."
+],
+[
+"Il faut les savoir par cœur.",
+"« les » pronom + infinitif : pas « savoirs » (liste n° 57)."
+],
+[
+"Il est malade ou en voyage.",
+"« ou en » sans verbe être : conjonction (liste n° 62)."
+],
+[
+"Lui a lui aussi répondu.",
+"« a » entre deux pronoms : avoir, pas une locution (17/10/2026, liste n° 70)."
+],
+[
+"Je n'ai pas faim.",
+"« n'ai » après « je » : juste (liste n° 69)."
+],
+[
+"Ce qu'il a appris a changé sa vie.",
+"« a » + participe après un verbe : avoir (17/10/2026, liste n° 73)."
+],
+[
+"Le chat et le chien mangent.",
+"sujets coordonnés : pluriel juste (17/10/2026, liste n° 64)."
+],
+[
+"La chanteuse et son fils chantent ensemble.",
+"sujets coordonnés, nom propre ou non (liste n° 64)."
+],
+[
+"Le prêt a été accordé.",
+"« prêt » NOM après un déterminant : « a » reste avoir (17/10/2026, liste n° 47)."
+],
+[
+"Ce prêt a un taux bas.",
+"« prêt » nom, « a » + déterminant : avoir (liste n° 47)."
+],
+[
+"Il a tous les atouts.",
+"« a tous » sans salutation devant : avoir (liste n° 47)."
+],
+[
+"Il a les yeux bleus et vert foncé.",
+"couleur composée invariable après « et » (14/10/2026, liste n° 12)."
+],
+[
+"Il a les ailes gris argenté.",
+"couleur composée, 2e mot étiqueté verbe (14/10/2026, liste n° 12)."
+],
+[
+"D'autres pensent le contraire.",
+"« d'autres » PRONOM : le veto verbal reste (14/10/2026, liste n° 18)."
+],
+[
+"Il parle d'autre chose.",
+"« d'autre » est singulier (14/10/2026, liste n° 18)."
+],
+[
+"Un process simple aide l'équipe.",
+"anglicisme invariable : « process » n'est pas le pluriel de « procès » (14/10/2026, liste n° 21)."
+],
+[
+"Elle fonde une start-up.",
+"composé anglais : son genre ne vient pas de « start » (14/10/2026, liste n° 21)."
+],
+[
+"Site : www.atelier-velo-exemple.fr",
+"mot d'une adresse de site : rien à corriger (14/10/2026, liste n° 22)."
+],
+[
+"Écrivez à lea.durand@gmail.com demain.",
+"mot d'un courriel : rien à corriger (14/10/2026, liste n° 22)."
+],
+[
+"Les pages produit restent claires.",
+"nom de métier accolé sans déterminant : « produit » n'est pas un verbe (14/10/2026, liste n° 20)."
+],
+[
+"Les photos produit et service se renouvellent.",
+"le verbe frère de « se renouvellent » n'est pas « produit » (14/10/2026, liste n° 20)."
+],
+[
+"Il envoie une lettre exprès.",
+"« exprès » invariable dans « lettre exprès » (14/10/2026, liste n° 12)."
+],
+[
+"J'ai acheté une robe neuve et payé comptant.",
+"participe d'un verbe après « avoir », pas un adjectif du nom (14/10/2026, liste n° 12)."
+],
+[
+"Les jantes en chrome brillent au soleil.",
+"« en chrome » est le complément, le verbe est « brillent » : jamais « chroment » (14/10/2026, liste n° 1c)."
+],
+[
+"Elle vit dans le Val-de-Marne depuis un an.",
+"nom composé déjà bien écrit : rien à dire (14/10/2026, liste n° 16)."
+],
+[
+"Le chrome des jantes brille.",
+"« chrome » le métal, hors contexte de navigateur (14/10/2026, liste n° 16)."
+],
+[
+"Un chiffre d'affaires de 5 millions.",
+"« chiffre d'affaires » au singulier, sans nombre avant : rien à dire (14/10/2026, liste n° 14)."
+],
+[
+"Les chiffres d'affaires des deux sociétés montent.",
+"plusieurs chiffres d'affaires : le pluriel est juste (14/10/2026, liste n° 14)."
+],
+[
+"La rivière flue lentement vers la mer.",
+"« flue » verbe (fluer), hors de la locution « flux tendu » (14/10/2026, liste n° 11)."
+],
+[
+"Les décisions prises hier sont bonnes.",
+"« prises » participe féminin de prendre, pas le verbe « priser » : jamais « prisent » (13/10/2026, liste n° 4)."
+],
+[
+"Les promesses faites aux électeurs.",
+"« faites » participe de faire, pas « vous faites » : jamais « font » (13/10/2026, liste n° 4)."
+],
+[
+"Des photos prises au hasard.",
+"« prises » participe, même sans verbe dans la phrase (13/10/2026, liste n° 4)."
+],
+[
+"Une gamme de livres mise en avant.",
+"« mise » s'accorde avec « gamme » : juste, rien à dire (13/10/2026, liste n° 4)."
+],
+[
+"Il est né pas loin d'ici.",
+"« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."
+],
+[
+"Je vois que certains porte un chapeau.",
+"« certains » aussi pronom : un verbe derrière n'est pas un nom à mettre au pluriel (04/10/2026).",
+"rouge"
+],
+[
+"Il boit un thé aux citron.",
+"« aux » se dit comme « au » : devant un masculin, le déterminant peut être la faute (04/10/2026).",
+"rouge"
+],
+[
+"Elle parle aux petit garçon.",
+"« aux » + adjectif masculin : « au petit garçon » est aussi possible, pas de pluriel rouge (04/10/2026).",
+"rouge"
+],
+[
+"Il cherche quelques chose.",
+"« quelques chose » : c'est « quelque » qui est faux, pas « chose » (04/10/2026).",
+"rouge"
+],
+[
+"Plusieurs même sont partis tôt.",
+"« plusieurs » pronom sans nom après : « même » n'est pas un adjectif à accorder (04/10/2026).",
+"rouge"
+],
+[
+"La pièce Ce5 perd sa place.",
+"un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."
+],
+[
+"Le garçon ce habille vite.",
+"voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."
+],
+[
+"Mon frère ce réveille tard.",
+"paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026) ; l'orange qui le propose est juste (22/10/2026, batterie au produit).",
+"rouge"
+],
+[
+"Il mangea la soupe.",
+"passé simple 3s complété (« mangea »), bien accordé : rien (09/10/2026)."
+],
+[
+"Elle placa le vase.",
+"accent seul à la même personne (placa → plaça) : l'orthographe en orange, jamais la personne en rouge — l'auteur voulait peut-être le présent (09/10/2026).",
+"rouge"
+],
+[
+"Le chat pris au piège miaule.",
+"« pris » participe épithète après un nom : la garde participe tient, pas de passé simple (09/10/2026)."
+],
+[
+"Les chats prirent la souris.",
+"passé simple bien accordé avec un sujet nominal : rien (09/10/2026)."
+],
+[
+"Les vacances durent deux semaines.",
+"« durent » = durer (pas d'infinitif derrière) : pas le passé simple de devoir (09/10/2026)."
+],
+[
+"Ils durent partir tôt.",
+"devoir au passé simple, bien accordé avec « ils » : rien à corriger (09/10/2026)."
+],
+[
+"Nous prîmes le train du soir.",
+"« prîmes » avec son circonflexe = prendre, bien accordé : rien (09/10/2026)."
+],
+[
+"Il est fier de lui.",
+"« fier » ADJECTIF attribut après « être » : pas le participe de « se fier » (« fié » était rouge, 09/10/2026)."
+],
+[
+"Jean est boulanger depuis dix ans.",
+"un MÉTIER (nom en -er) après « être » : orange au plus, jamais « boulangé » en rouge (09/10/2026).",
+"rouge"
+],
+[
+"Mon oncle était conseiller municipal.",
+"un métier après « être » : orange au plus (09/10/2026).",
+"rouge"
+],
+[
+"Elle ces mariée très jeune.",
+"« ces » → s'est : « mariée » ne passe pas au pluriel derrière un « ces » corrigé (09/10/2026).",
+null,
+"mariée"
+],
+[
+"Ont mange ensemble.",
+"« Ont » → on (pas de sujet) : plus d'auxiliaire, donc pas de participe « mangé » — les deux rouges donnaient « on mangé » (09/10/2026).",
+null,
+"mange"
+],
+[
+"Les filles en ont profite.",
+"« en » ne coupe pas le sujet pluriel « les filles » : « ont » est juste, seul « profite » est faux (09/10/2026).",
+null,
+"ont"
+],
+[
+"Il va au grand marché du samedi.",
+"« marché » est aussi un NOM (lexique : N et V) : l'infinitif de but ne lit que les verbes PURS, comme le produit (05/10/2026)."
+],
+[
+"Ils sont partis sur le tracé du circuit.",
+"« tracé » est aussi un NOM : pas d'infinitif de but (05/10/2026, faux rouge de la référence seule sur UD)."
+],
+[
+"Il est très cher lui aussi.",
+"intensif avant : « cher » est l'adjectif, pas « chez » (04/10/2026)."
+],
+[
+"Il le trouve cher lui-même.",
+"« lui-même » : « cher » est l'adjectif (04/10/2026)."
+],
+[
+"Il passe à table.",
+"« passer à table » : un nom après « à », pas un verbe à mettre à l'infinitif (04/10/2026)."
+],
+[
+"Elle se met à table.",
+"« se mettre à table » : un nom après « à » (04/10/2026)."
+],
+[
+"Il vit avec ce souvient.",
+"préposition + « ce » = déterminant, même devant un mot lu verbe (04/10/2026)."
+],
+[
+"Pour ce faire, il part.",
+"« pour ce faire » : « ce » pronom devant faire (04/10/2026)."
+],
+[
+"Il travaille dans ce bureau.",
+"préposition + « ce » = déterminant (04/10/2026)."
+],
+[
+"Ce doit être lui.",
+"« ce doit être » : pronom + devoir (04/10/2026)."
+],
+[
+"Ce peut être vrai.",
+"« ce peut être » : pronom + pouvoir (04/10/2026)."
+],
+[
+"Certains pensent que non.",
+"« certains » pronom + verbe : pas de nom à mettre au pluriel (04/10/2026)."
+],
+[
+"Plusieurs sont venus hier.",
+"« plusieurs » pronom + verbe (04/10/2026)."
+],
+[
+"Cette grand route mène au village.",
+"« grand » des anciens composés (grand route, grand mère, à grand peine) reste tel quel (04/10/2026)."
+],
+[
+"Ma grand-tante dort.",
+"trait d'union : un composé, pas un adjectif à accorder (04/10/2026)."
+],
+[
+"Le petite maison est jolie.",
+"le déterminant et le nom ne s'accordent pas : l'adjectif n'a pas d'ancre sûre (04/10/2026)."
+],
+[
+"Il a un grand pouvoir caché.",
+"« pouvoir » y est un nom (déterminant + adjectif devant) : « caché » est juste (04/10/2026)."
+],
+[
+"Ce qu'il dit a fait rire.",
+"« dit » termine une relative : « a fait » est avoir (04/10/2026)."
+],
+[
+"Le roi de France absent dort.",
+"le lieu SANS article (« de France ») est un complément : l'adjectif porte sur « roi » (04/10/2026)."
+],
+[
+"Il a vu quelque 300 voitures.",
+"« quelque » devant un nombre = environ, invariable (04/10/2026)."
+],
+[
+"Trois joueurs du CA partent demain.",
+"« CA » (un sigle) n'est pas « ça » : « partent » s'accorde à « trois joueurs » (04/10/2026)."
+],
+[
+"Jon arrive demain.",
+"un prénom en tête de phrase : « j' » ne précède jamais « on » (« J'on » écrit en rouge jusqu'au 04/10/2026)."
+],
+[
+"Mon cher, moi je reste.",
+"la virgule coupe : ce « cher » n'est pas « chez »."
+],
+[
+"Un cadeau cher le jour de Noël.",
+"« cher » + article : l'adjectif (seul le pronom tonique, « cher moi », est sûr)."
+],
+[
+"Ça été une belle fête.",
+"« ça été » = « ça a été » à l'oral : jamais « était »."
+],
+[
+"Laquelle a-t-elle été ?",
+"inversion : « été » participe, juste."
+],
+[
+"Le franc suisse monte.",
+"« suisse » est aussi l'adjectif : pas de capitale."
+],
+[
+"Tout ce qu'il a était à elle.",
+"AVOIR verbe plein dans une relative (ce qu'il a) : « était » est le verbe principal, jamais « été » (28/09/2026)."
+],
+[
+"Ils ont eux aussi des droits.",
+"« eux aussi » : pronom d'insistance après avoir, pas le participe « eu »."
+],
+[
+"C'est a eux de jouer.",
+"« a eux » sans déterminant derrière : c'est « à eux », jamais « eu »."
+],
+[
+"La C2A était riche.",
+"le A d'un sigle n'est pas l'auxiliaire « a » : « était » reste le verbe."
+],
+[
+"Le vent les porte loin.",
+"« les » PRONOM devant un verbe conjugué après un nom (sujet possible) : pas de pluriel par le son."
+],
+[
+"Il faut les faire tout de suite.",
+"INFINITIF après « les » pronom : jamais un nom à mettre au pluriel (« les faire » → fers, vu sur UD)."
+],
+[
+"Les quatre amis sont arrivés.",
+"NOMBRE après le déterminant : « quatre » ne prend pas de -s (40 fausses alertes sur UD avant la garde)."
+],
+[
+"On a revu les new Warriors hier.",
+"nom propre qui continue (majuscule au mot suivant) : abstention."
+],
+[
+"Le colis part dès réception de la commande.",
+"« dès » (préposition) n'est pas le déterminant « des » : le déterminant se compare ACCENTS COMPRIS. Avant le 28/09/2026, la règle ROUGE du nom écrivait « réceptions » d'office (accents ôtés avant la comparaison), et l'orange du pluriel « dès janvier » → janviers (UD)."
+],
+[
+"Ils sont du côté des perdants.",
+"« du » SANS accent après « sont » est l'ARTICLE : le participe s'écrit « dû ». Avant le 28/09/2026, la règle ROUGE du participe écrivait « dus » d'office (« elles sont du même avis » → dues)."
+],
+[
+"Elles sont partie prenante du projet.",
+"locution « partie prenante » : invariable. Avant le 28/09/2026 → « parties » en ROUGE (sujet « elles »)."
+],
+[
+"Les rideaux sont orange.",
+"« orange », « marron » : couleurs tirées d'un nom, INVARIABLES. Avant le 28/09/2026 → « oranges » en ROUGE (paire de lexique orange/orangée, et « orange » dans la liste épicène)."
+],
+[
+"Les enfants se sont succédé.",
+"« se » COMPLÉMENT INDIRECT (succéder À quelqu'un) : participe invariable. Avant le 28/09/2026 → « succédés » en orange (sujet nominal parsé)."
+],
+[
+"C'est un peintre italien baroque.",
+"NOM ÉPICÈNE (un / une peintre) : la table de genre accentuée BRUTE lui donne « f », et la règle d'épithète, qui la lisait en premier, écrivait « italienne » en ROUGE (18/09/2026 — vu en portant cette ligne vers le produit : 8 rouges faux sur 14 450 phrases UD). Elle ne lit plus que les COLLISIONS D'ACCENT (marché / marche), seules porteuses d'information."
+],
+[
+"La femme du diplomate américain est venue.",
+"même famille : « diplomate » épicène, « américain » est juste."
+],
+[
+"C'est le ministre marocain des Affaires étrangères.",
+"même famille : « ministre » épicène."
+],
+[
+"Le peintre est italien.",
+"même nom épicène, AUTRE ROUTE : l'ATTRIBUT (rule_adj_attr) demande le genre du sujet à `_noun_gender`, qui consulte la table accentuée en premier — elle répondait « f » et le rouge écrivait « italienne ». Les 793 noms que Lexique4 marque épicènes en sont retirés depuis le 18/09/2026 (gacc_epicene_excl.json)."
+],
+[
+"Le ministre est content.",
+"même route, autre nom : phrase JUSTE, aucune marque."
+],
+[
+"Le peintre est parti hier.",
+"3e route : le PARTICIPE avec être, qui demande le même genre au même endroit."
+],
+[
+"Nous primes le train.",
+"ABSTENTION VOULUE : « primes » est primer-2sg ET le passé simple de prendre (prîmes). Deux lemmes, deux corrections ; sans le lemme on choisit au hasard — mesuré : « primons », un ROUGE faux."
+],
+[
+"Les primes sont versées.",
+"« primes » = le NOM (la prime) : un pluriel de nom ne se conjugue pas."
+],
+[
+"Les primes annuelles augmentent.",
+"même nom, avec un adjectif : le scan du sujet le traverse depuis le 15/09."
+],
+[
+"Je somme le témoin de parler.",
+"« somme » = sommer, 1re du singulier, ACCORDÉ : rien à corriger (garde nous/vous de rule_aux_misspell)."
+],
+[
+"Il somme les gens de partir.",
+"« somme » = sommer, 3e du singulier, accordé."
+],
+[
+"On sent que vous maitrisez votre sujet.",
+"ORTHOGRAPHE RECTIFIÉE de 1990 (sans circonflexe) : elle est JUSTE. Une correction d'ACCENT SEUL n'est permise que hors lexique."
+],
+[
+"Très vite l'ambiance se rafraichit.",
+"idem 1990 : « rafraichit » est au lexique du produit."
+],
+[
+"C'est dans cette ville qu'il décèdera d'un cancer.",
+"idem, dans l'autre sens : la table porte « décédera », l'écrit « décèdera » est la forme rectifiée — les deux se disent."
+],
+[
+"Les élections de Mars ont reconduit la majorité.",
+"« Mars » est dans la table des prénoms, mais derrière « de » ce n'est pas un prénom NU : le sujet est « Les élections », pluriel (garde de _np_subject)."
+],
+[
+"Les Denis ont personnifié des personnages.",
+"nom de famille derrière un déterminant pluriel : pas un prénom nu."
+],
+[
+"Le maçons ont du mal à élever les murs.",
+"déterminant singulier + nom pluriel + verbe pluriel : c'est « le » qui est faux — rule_det_number le propose en ORANGE (les ?) ; ni « maçon » ni « a » (rule_noun_singular et rule_on_ont s'abstiennent sur la même évidence).",
+"rouge"
+],
+[
+"La vérité éclate et Georges est partagé.",
+"« éclate » est un verbe manqué par le tagger : pas une coordination de sujets, « est » reste."
+],
+[
+"Les impudents est le premier roman de Marguerite Duras.",
+"TITRE : sujet à forme plurielle + « est » + attribut SINGULIER (« le premier roman ») → pas de ROUGE ; l'orange « sont ? » est tolérée (11/09 : jamais de silence sans sortie).",
+"rouge"
+],
+[
+"Chaque année sont organisés des milliers de festivals.",
+"INVERSION : « sont » + participe + déterminant pluriel = sujet postposé (« des milliers »)."
+],
+[
+"Entre 2006 et 2016 sont parues des publications.",
+"« et » entre deux nombres coordonne des nombres, pas des verbes (« Entre » lu entrer 3sg)."
+],
+[
+"La grande majorité des films dans lesquels il joue entre 1946 et 1958 sont des films de genre.",
+"idem, et attribut pluriel « des films »."
+],
+[
+"Une importante communauté d'expatriés sont également présents.",
+"COLLECTIF « communauté de » : accord de sens admis → abstention."
+],
+[
+"Je peux venir demain.",
+"« peux » 1re du singulier est une VARIANTE de « puis » (la génération écrit puis) : jamais un fantôme, jamais un rouge."
+],
+[
+"Il faut qu'il rende le livre.",
+"« rende » 3e du singulier : cellule de génération réparée (elle portait rende en 3e du PLURIEL)."
+]
+]
+}
