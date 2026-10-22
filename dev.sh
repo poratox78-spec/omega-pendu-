@@ -62,6 +62,8 @@ run "diag phrases"                 python3 dictee/diag_sentence.py
 run "dictée SENT (app==json, 0 FP)" python3 dictee/sentences_parity.py
 run "dictée ✍️ Conjugue : temps et personne de la phrase" node dictee/conjugue_probe.js
 run "correcteur (batterie FP=0)"   python3 dictee/correcteur_probe.py
+run "correcteur (batterie FP=0) AU PRODUIT — même verdict que le Python (ligne 25b)" node dictee/batterie_produit.js
+run "batterie du correcteur : le JSON suit correcteur_probe.py" python3 dictee/export_batterie.py --check
 run "mover impératif (réf Python == cas)" python3 dictee/imperative_clitics.py
 run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
 run "COUVERTURE de la conjugaison (sujet × temps — ÉNUMÈRE, ne lit aucun corpus)" python3 dictee/couverture_conj_probe.py

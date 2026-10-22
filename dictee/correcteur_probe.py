@@ -8239,7 +8239,7 @@ MUETS = [
     ("Plusieurs même sont partis tôt.", "« plusieurs » pronom sans nom après : « même » n'est pas un adjectif à accorder (04/10/2026).", 'rouge'),
     ("La pièce Ce5 perd sa place.", "un chiffre colle « Ce » : notation (échecs), pas un pronom (04/10/2026)."),
     ("Le garçon ce habille vite.", "voyelle ou h : la forme serait « s' », pas « se » — on se tait (04/10/2026)."),
-    ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026)."),
+    ("Mon frère ce réveille tard.", "paire -eille / -eil : « ce réveil » est aussi possible (04/10/2026) ; l'orange qui le propose est juste (22/10/2026, batterie au produit).", 'rouge'),
     ("Il mangea la soupe.", "passé simple 3s complété (« mangea »), bien accordé : rien (09/10/2026)."),
     ("Elle placa le vase.", "accent seul à la même personne (placa → plaça) : l'orthographe en orange, jamais la personne en rouge — l'auteur voulait peut-être le présent (09/10/2026).", 'rouge'),
     ("Le chat pris au piège miaule.", "« pris » participe épithète après un nom : la garde participe tient, pas de passé simple (09/10/2026)."),
