@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-10-23 — ligne 25b : le moteur Python débranché, sans perte (#1024 → #1034)
+
+- Rem (paraphrase) : débrancher le moteur Python sans le supprimer, mesurer chaque étape, aucune régression.
+- Méthode, une étape par PR : à côté de chaque garde Python, son jumeau AU PRODUIT (dys-core + assets, `charger_node`), mesuré
+  cas par cas contre le Python et falsifié en cassant une règle de `dys-core` ; puis les gardes Python sortent de dev.sh et de la
+  CI (#1032) ; parité DIRECTE app ≡ extension (#1031) ; les parités au Python passent en `--sans-python` (#1033) ; le chiffre
+  produit mesuré sur le produit (`dys_pipeline_probe.py --produit`, #1034). Le code Python reste et se rejoue à la main.
+- Mesuré : batterie identique (0 FP / 333, 320 / 320, 130 silences) ; garde j'est 338 / 338 ; genre sans accents 269 = 269 ;
+  sujet sur l'or UD : 0 différence sur 4 603 verbes ; FP UD 2 500 : grammaire 1,52 % (Python 2,00 %), avec les oranges 4,20 % ;
+  gold dys : 417 réparés = 417, cassés 7 → 6, rattrapables 375 → 457 ; dev.sh ~47 → ~28 min.
+- Trouvé en chemin : le produit range ses oranges de grammaire avec l'orthographe (`.spell`, chaîne `vigAt`) — une garde qui ne
+  lit que `.grammar` ne les voit pas (57 phrases d'UD marquées que rien ne comptait) ; le harnais de l'app (`parity_corr`) n'avait
+  pas le genre accentué ; sous Linux, `process.exit()` tronque une grosse sortie dans un tube (CI rouge, vert sous Windows) ;
+  les sondes Python cachaient des trous du PRODUIT — ligne 139 de LA LISTE (« je » + verbe à voyelle : l'élision mange la
+  personne, 38 cas de la couverture ; passé simple à circonflexe ; subjonctif ; ce/se après un sujet nominal).
+
 ## 2026-10-18 — voie B : l'oreille apprise refaite sur le code du jour — le gain venait du g2p, pas de la table
 
 - Rem (paraphrase) : feu vert pour la saisie vocale, qui a progressé récemment ; vérifier que les entraînements suivent.

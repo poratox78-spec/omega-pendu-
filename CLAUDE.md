@@ -19,22 +19,17 @@
 - Pour éditer le monolithe : `python tools/omega_edit.py` (pièges connus du fichier).
 
 ## Chantier actif : le correcteur dys (dictée de phrases)
-- Trois moteurs à parité gardée en CI : **référence Python** (`dictee/correcteur_probe.py`, `speller_probe.py`, `diag_sentence.py`) ·
-  **app** (panneaux du monolithe) · **extension Chrome** (`extension/dys-core.js`, copie verbatim). Le clone EN et le site se construisent depuis l'app.
-- **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (72 productions dys réelles, 6 217 mots) :
-  **312 fautes réparées sans clic (20,2 %) · 249 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
-  **· 73 rouges appliqués vers un AUTRE mauvais mot (5,9 % des ratés)** — colonne posée le 07/09, invisibles avant
-  (ils tombaient en MUET), **dont 42 « bon lemme, mauvaise flexion »** (58 %). Mesuré le 13/09/2026 — 286 → 294 le 12/09 par
-  l'instrument (le juge admet l'apostrophe), 294 → 308 le 13/09 par le moteur (adjectif antéposé +11, puis le nom derrière lui).
-  produit ne fait que proposer (→ 239/14 le 05/09, palier vigilance porté), puis la référence a reçu ce que le
-  produit affirme (→ 284/14, contexte-first ; → 286/15 le 10/09 ; → 286/14 le 11/09, moteur). Accord de palier : **100 %**
-  (880/880 le 10/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` — la série « la référence décrit le
-  produit » (#659 → #679, dix maillons) est close : 286/14 est le POINT, plus une borne (hors accord : 1, une autre famille).
-  **Accents comptés à part depuis le 12/09** (le juge désaccentue) : 274 fautes d'accent seul, 174 réparées (64 %), 1 cassé
-  (ambigu : « a » avoir ou à selon la lecture du mot d'avant, mal écrit) — les 2 casses a/à réparées le 12/09 (gardes de `vlike`).
+- Deux moteurs à parité gardée en CI : **app** (panneaux du monolithe) · **extension Chrome** (`extension/dys-core.js`), égalité directe
+  `dictee/parity_app_ext.js`. Le clone EN et le site se construisent depuis l'app. La **référence Python** (`correcteur_probe.py`, `speller_probe.py`)
+  est **débranchée depuis le 23/10/2026** (ligne 25b, #1024 → #1034) : code gardé et rejouable à la main, plus de copie des règles ;
+  chaque garde Python a son jumeau au produit (la table est dans `dev.sh`).
+- **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py --produit` (72 productions dys réelles,
+  6 217 mots, corrigées par le PRODUIT) : **417 fautes réparées sans clic (27,0 %) · 457 rattrapables en un clic · 6 mots justes cassés (0,13 %)
+  · 40 rouges appliqués vers un AUTRE mauvais mot, dont 25 « bon lemme, mauvaise flexion »** ; accents seuls (colonne stricte, le juge
+  désaccentue) : 274 fautes, 202 réparées. Mesuré le 23/10/2026. Sans `--produit` : la pyramide Python, figée. Histoire : `dictee/JOURNAL.md`.
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.
-  À l'échelle : 1,36 % de phrases correctes flaggées (UD 2 500, plafond CI 3 %) — mesuré le 12/09/2026 (1,40 % du 03/09 au 12/09).
+  À l'échelle (UD 2 500, `fp_scale_produit.js`) : grammaire du produit 1,52 % (plafond 3 %), avec ses oranges 4,20 % (plafond 5,2 %) — 22/10/2026.
 - Extension Chrome = pivot produit : **0.6.3 téléversée au Web Store (04/09, revue en cours)**, 0.6.4 prête (11/09, moteur). Dossier : `extension/STORE.md`.
 - Corpus : `data_local/dys_reel` (privé, hors git ; `OMEGA_DYS_DATA=` pour un worktree). ⚠️ 92,7 % de sondes à faute unique —
   lire `python3 dictee/corpus_profile_probe.py` avant d'interpréter tout pourcentage « dys ».
@@ -61,9 +56,9 @@
 
 ## Comment lancer (l'essentiel)
 - `./dev.sh` — toutes les gardes (≡ CI, la parité est elle-même gardée). Compte et liste commentée : `ETAT.md` §2.
-- `python3 dictee/correcteur_probe.py` (batterie FP=0) · `python3 dictee/fp_scale_probe.py --check` (FP échelle) ·
-  `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (le chiffre produit).
-- `python3 dictee/dys_precision_probe.py [--navigateur]` — précision par famille ; `--navigateur` = le PRODUIT réel (extension dans Chrome).
+- `node dictee/batterie_produit.js` (batterie FP=0) · `node dictee/fp_scale_produit.js --check` (FP échelle) · `node dictee/parity_app_ext.js`
+  (app ≡ extension) · `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py --produit` (le chiffre produit).
+- `python3 dictee/dys_precision_probe.py --navigateur` — précision par famille sur le PRODUIT réel (extension dans Chrome) ; sans l'option : Python, figé.
 - App : ouvrir `app/omega-pendu.html` (boutons ✍️ Dictée · 🩹 Correcteur · 🔤 Décompose).
   Assets extension : `python3 extension/build_assets.py` · zip Store : `python3 extension/build_zip.py --store`.
 - Pendu : `node evo/fitness_harness.js [seed] [n]` · A/B apparié avec placebo : `node evo/pendu_paired_ab.js`.

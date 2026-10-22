@@ -19,6 +19,7 @@ morphosyntaxique) pour la **remédiation dys**. Angle pédagogique, cible n°1 d
 ## Intégration SANS l'app (sans UI/DOM) — empreinte vérifiée
 Le moteur (grammaire + orthographe + hybride) s'intègre ailleurs **sans le jeu, sans l'UI, sans le DOM** :
 - **Python** : déjà standalone — `from speller_probe import Speller; Speller().correct_text(t)` et `import correcteur_probe`.
+  ⚠️ FIGÉ depuis le 23/10/2026 (ligne 25b) : débranché de dev.sh et de la CI, plus tenu au pas du produit — le produit fait foi.
 - **JS, liée à l'app** : `dictee/correcteur.js` — `const c = await require('./dictee/correcteur').create(); c.correct(t)`.
   Réutilise le monolithe comme **source unique** (extrait la tranche moteur, bouchon DOM minimal) → zéro drift.
 - **JS, autonome (HTML non requis)** : `node dictee/build_correcteur.js` bake moteur + lexiques dans **un seul
