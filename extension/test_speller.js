@@ -877,6 +877,16 @@ function testListe133() {   // ligne 133 a (21/10/2026) : l'infinitif après une
     if (s === null ? !!f : (!f || f.sugg !== s || (f.tier !== 'auto' && f.tier !== 'flag')))
       fail.push('ligne 133 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en rouge') + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
 }
+function testListe133b() {   // ligne 133 b (21/10/2026) : l'adjectif épicène après un nom pluriel SANS déterminant, derrière une préposition (« avec crayons rouge »). Phrases inventées ; les trois premières échouent sur le moteur d'avant.
+  for (const [t, w, s] of [['Elle dessine vite avec crayons rouge.', 'rouge', 'rouges'], ['Il joue dehors avec ballons jaune.', 'jaune', 'jaunes'],
+      ['Nous partons tôt avec sacs vide.', 'vide', 'vides'],
+      // témoins : un nom singulier avant la préposition porte l'adjectif ; « sens » est un singulier
+      ['Elle range une boîte de crayons solide.', 'solide', null], ['On monte ce meuble sans clous visible.', 'visible', null],
+      ['Le bus roule en sens unique.', 'unique', null]]) {
+    const f = DC.diagnoseAll(t).flags.find(x => x.word === w);
+    if (s === null ? !!f : (!f || f.sugg !== s))
+      fail.push('ligne 133 b « ' + t + ' » : attendu ' + (s === null ? 'rien' : s) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien')); }
+}
 function testListe109() {   // liste n° 109 (choix de Rem) : les graphies rectifiées de 1990 sont JUSTES ; 1990 garde le circonflexe du passé simple et de « sûr »
   for (const [t, w, s] of [['Il apparait au loin.', 'apparait', null], ['Ça coute cher.', 'coute', null], ['Je cèderai ma place.', 'cèderai', null],
       ["Ils s'abiment vite.", "s'abiment", null], ['Il mange goulument.', 'goulument', null], ['Ça lui plait beaucoup.', 'plait', null],
@@ -1055,6 +1065,7 @@ function finish(parityKO) {
   testListe129();
   testListe130();
   testListe133();
+  testListe133b();
   testListe109();
   testListe110();
   testListe102();
