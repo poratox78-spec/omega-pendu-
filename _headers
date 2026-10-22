@@ -12,6 +12,13 @@
   Permissions-Policy: geolocation=(), microphone=(self), camera=(self)
   X-Frame-Options: SAMEORIGIN
 
+# 22/10/2026 (ligne 136) — le COMPLÉMENT WORD : Word en ligne affiche le volet (word/taskpane) dans un CADRE de Microsoft Office.
+# « X-Frame-Options: SAMEORIGIN » ci-dessus l'interdisait. On le retire pour /word/ seulement, et on n'autorise que les domaines
+# d'Office à encadrer ces pages (frame-ancestors). Word sur le PC (bureau) n'en dépend pas.
+/word/*
+  ! X-Frame-Options
+  Content-Security-Policy: frame-ancestors 'self' https://*.office.com https://*.officeapps.live.com https://*.office365.com https://*.microsoft.com https://*.sharepoint.com
+
 # 10/10/2026 — le bot du Déformateur (dock d'OBS) et le plateau du pendu : seuls les fichiers du site s'exécutent, et la
 # page ne parle qu'à Twitch et à l'outil sur le PC (127.0.0.1). Même chaîne que data_local/voix/bot/sondes/chrome_sonde.cjs.
 /bot-moderation/*
