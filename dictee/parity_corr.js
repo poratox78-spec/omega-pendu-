@@ -57,7 +57,7 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    ⭐ 09/10/2026 : + D2A (clé sans accent → formes, fréquence > 0, comme setLex) — _lemFreq en dépend : sans lui, « inconnu »
    partout, et la garde « verbe courant » du passé simple se taisait ici sur « nous mangeames » que le produit corrige. */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
-  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){var L=t.split(String.fromCharCode(10)).filter(function(l){return l&&l.split(String.fromCharCode(9)).length>=2;});_spReset(L.length);L.forEach(function(l){' +
+  ';globalThis.__corr=correctText;globalThis.__setGacc=function(o){_GACC=o;};globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){var L=t.split(String.fromCharCode(10)).filter(function(l){return l&&l.split(String.fromCharCode(9)).length>=2;});_spReset(L.length);L.forEach(function(l){' +
   /* ⭐ 13/10/2026 — dictionnaire COMPACT : l'amorce passe par les fonctions MÊMES du produit (_spReset / _spAdd, puis le tri par
      fréquence de la construction) au lieu d'écrire SP.FREQ[…] à la main — l'ancien format, que le moteur ne lit plus. */
   'var q=l.split(String.fromCharCode(9));_spAdd(q[0],parseInt(q[1],10),q[2]);});var sf=function(a,b){return spF(b)-spF(a);};SP.D2M.forEach(function(v){if(typeof v!=="string")v.sort(sf);});SP.ready=true;};})();';
@@ -86,6 +86,12 @@ try {                                            // amorce SP (cf. le commentair
     require('path').join(__dirname, '..', 'extension', 'assets', 'speller.tsv.gz'))).toString('utf8');
   globalThis.__seedSP(_sp);
 } catch (e) { console.error('amorce speller échouée :', e.message); process.exit(2); }
+/* ⭐ 22/10/2026 (ligne 25b) — LE GENRE ACCENTUÉ (bloc gacc-lex-gz) MANQUAIT À CE HARNAIS. La vraie app le charge (loadGaccLex) et
+   rAdjEpithetCoord le lit ; ici _GACC restait vide : la parité tournait sur une app amputée de cette table (vu en comparant l'app à
+   l'extension sans passer par le Python : « une équipe soudée et motivé… » corrigé par l'extension et dans la vraie page, muet ici). */
+{ const _ga = (html.match(/<script type="text\/plain" id="gacc-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
+  if (_ga) { try { globalThis.__setGacc(JSON.parse(zlib.gunzipSync(Buffer.from(_ga.replace(/\s/g, ''), 'base64')).toString('utf8'))); }
+    catch (e) { console.error('amorce genre accentué échouée :', e.message); process.exit(2); } } }
 const corr = globalThis.__corr;
 if (typeof corr !== 'function') { console.error('correctText non exposé'); process.exit(2); }
 
@@ -245,6 +251,17 @@ PHRASES.push("Une gestion à flue tendu.", "Une société de 3 milliards de chif
 PHRASES.push("Elle vit dans le val de marne.", "Il part à aix en provence demain.", "Il habite en Seine Saint Denis.", "Il ouvre le navigateur chrome.", "Il navigue avec firefox.", "Elle vit dans le Val-de-Marne depuis un an.", "Les jantes en chrome brillent au soleil.", "Les enfants en mange.");   // ⭐ 14/10/2026 : liste n° 16
 PHRASES.push("Une voiture rapide et puissant passe devant nous.", "Une équipe soudée et motivé gagne souvent.", "Des salles propres et rangé attendent.", "Il a les yeux bleus et vert foncé.", "J'ai acheté une robe neuve et payé comptant.", "Il conduit une voiture français.", "Elle a des idées claires et précis.", "Il a les ailes gris argenté.", "Il envoie une lettre exprès.", "Mes cousins procrastine souvent.", "Les enfants pétarde dans la cour.", "Elle procrastine encore.", "D'autres chemin mènent à la ville.", "Il a d'autres idée.", "D'autres chemins mène à la ville.", "D'autres pensent le contraire.", "Les pages produit restent claires.", "Les photos produit et service se renouvellent.", "Les usines produit des voitures.", "Les enfants mange et dorment.", "Les chats miaule et ronronnent.", "Il chante et dansent.", "Un process simple aide l'équipe.", "Elle fonde une start-up.", "Elle mange une chou-fleur.", "Site : www.atelier-velo-exemple.fr", "Écrivez à lea.durand@gmail.com demain.");   // ⭐ 14/10/2026 : listes n° 12, 17, 18, 20, 1d, 21 et 22
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)
+
+/* ⭐ 22/10/2026 (ligne 25b) — MODE --dump : le moteur de l'APP (monolithe), tel que ce harnais l'équipe, rend ses marques en JSON pour des phrases lues
+   sur l'entrée (ou, sans entrée, pour la batterie PHRASES ci-dessus) — sans le pont Python. Lu par dictee/parity_app_ext.js, la parité
+   DIRECTE app ≡ extension qui ne dépend plus de la référence Python. */
+if (process.argv.includes('--dump')) {
+  let _in = '';
+  try { _in = fs.readFileSync(0, 'utf8'); } catch (e) {}
+  const _ph = _in.trim() ? JSON.parse(_in) : PHRASES;
+  process.stdout.write(JSON.stringify({ p: _ph, f: _ph.map((p) => (corr(p) || []).map((x) => [x.i, x.word, x.sugg, x.name, x.tier || null])) }));
+  process.exit(0);
+}
 
 // flags Python via un petit pont
 const py = cp.spawnSync('python3', ['-c', `

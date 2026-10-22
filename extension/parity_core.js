@@ -195,6 +195,17 @@ PHRASES.push("Jon arrive demain.", "Lils sont partis.", "Ques tu veux ?", "Il vo
 PHRASES.push("Il n'a pas manger sa soupe.", "Je n'ai pas manger.", "Ils n'ont pas manger.", "Il n'a rien manger.", "Il n'a manger que du pain.", "Le plus dur, ce n'est pas commencer.");   // ⭐ 03/10/2026 : avoir élidé (ext ⊆ Python)
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)
 
+/* ⭐ 22/10/2026 (ligne 25b) — MODE --dump : le moteur de l'EXTENSION (dys-core), tel que ce harnais l'équipe, rend ses marques en JSON pour des phrases lues
+   sur l'entrée (ou, sans entrée, pour la batterie PHRASES ci-dessus) — sans le pont Python. Lu par dictee/parity_app_ext.js, la parité
+   DIRECTE app ≡ extension qui ne dépend plus de la référence Python. */
+if (process.argv.includes('--dump')) {
+  let _in = '';
+  try { _in = fs.readFileSync(0, 'utf8'); } catch (e) {}
+  const _ph = _in.trim() ? JSON.parse(_in) : PHRASES;
+  process.stdout.write(JSON.stringify({ p: _ph, f: _ph.map((p) => (DYSCORE.correctText(p) || []).map((x) => [x.i, x.word, x.sugg, x.name, x.tier || null])) }));
+  process.exit(0);
+}
+
 // 3) flags Python
 const py = cp.spawnSync('python3', ['-c', `
 import sys, json
