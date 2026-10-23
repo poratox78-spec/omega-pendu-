@@ -1445,7 +1445,8 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
         var _xp=_spos(T[i+1]);
         if(_xp.indexOf('V')>=0&&_xp.indexOf('A')<0){
           if(_xp.indexOf('N')<0)return ckeepcase(T[i],'se');                                    // verbe seul au lexique (forme exacte)
-          if(GENDER_MAP[nd]==='f'&&_GACC[T[i+1].toLowerCase()]!=='m'){var _tcs=posTags(T);if(_tcs&&i+1<_tcs.length&&(_tcs[i+1]==='VERB'||_tcs[i+1]==='AUX'))return ckeepcase(T[i],'se');}   // nom féminin lu verbe
+          if((GENDER_MAP[nd]==='f'&&_GACC[T[i+1].toLowerCase()]!=='m')||(GENDER_MAP[nd]==null&&_GACC[T[i+1].toLowerCase()]==null)){var _tcs=posTags(T);   /* ⭐ 23/10/2026 (ligne 139 ④) : + un nom qu'AUCUNE table de genre ne connaît (« mon cousin ce repose ») — le Python le lisait verbe par son lexique verbal complet ; le lexique embarqué ne garde que les verbes fréquents, et le produit se taisait. Même preuve que le nom féminin : l'étiqueteur doit y lire un verbe. */
+          if(_tcs&&i+1<_tcs.length&&(_tcs[i+1]==='VERB'||_tcs[i+1]==='AUX'))return ckeepcase(T[i],'se');}   // nom féminin lu verbe
         }}}
     /* ⭐ 04/10/2026 : « il ce lave » — juste après un pronom sujet, « ce » n'est jamais un déterminant : si le mot suivant peut être un verbe,
        c'est « se », même s'il est aussi un nom (la lave, la porte, la marche). Gardes : ponctuation entre, nom de temps (« il ce matin »).
@@ -3960,7 +3961,7 @@ function estQuestion(t,maxMots){
     if(_SEG&&_SEG.hy&&i<_SEG.hy.length&&_SEG.hy[i])return null;   // ⭐ 11/10/2026 : mot collé par un trait d'union (« les villes du sud-est sont » : « est » n'est pas le verbe) — miroir Python
     if(_coordTonique(T,i))return null;   // ⭐ 11/10/2026 (lot 11) : « Lui et elle viennent » — sujet coordonné, miroir Python
     var lw=w.toLowerCase(),dl=deacc(lw),k;
-    if(lw.indexOf("j'")===0&&lw.length>3&&lw.indexOf("'")===lw.lastIndexOf("'")&&/^[a-zà-ÿœ]+$/.test(lw.slice(2))&&!FULL_AUX[deacc(lw.slice(2))]){   /* être/avoir élidés (« j'est ») = famille j'est/j'ai, silence voulu */var _Tj=T.slice(0,i).concat(['je',w.slice(2)],T.slice(i+1)),_rj=sujFlexVig(_Tj,i+1);return _rj?w.slice(0,2)+_rj:null;}   /* ⭐ 12/09/2026 : « j'admet que » → j'admets — pronom ÉLIDÉ dans le token, relu sur « je + verbe » (liste virtuelle, un pas). Miroir Python rule_sujet_flexion. */
+    if(lw.indexOf("j'")===0&&lw.length>3&&lw.indexOf("'")===lw.lastIndexOf("'")&&/^[a-zà-ÿœ]+$/.test(lw.slice(2))&&!FULL_AUX[deacc(lw.slice(2))]){   /* être/avoir élidés (« j'est ») = famille j'est/j'ai, silence voulu */var _Tj=T.slice(0,i).concat(['je',w.slice(2)],T.slice(i+1)),_rj=sujFlexVig(_Tj,i+1);return _rj?(/^[aeiouyéèêëàâîïôöûüh]/i.test(_rj)?w.slice(0,2)+_rj:(w.charAt(0)==='J'?'Je ':'je ')+_rj):null;}   /* ⭐ 12/09/2026 : « j'admet que » → j'admets — pronom ÉLIDÉ dans le token, relu sur « je + verbe » (liste virtuelle, un pas). Miroir Python rule_sujet_flexion. */
     if(lw.indexOf("'")>=0||lw.indexOf('’')>=0||!/^[a-zà-ÿœ]+$/.test(dl)||dl.length<2)return null;
     if(CLITIC[dl]||PREP[dl])return null;
     if(_PB_CONJ_ADV[dl])return null;   // « puis » se lit *pouvoir 1sg* : c'est un CONNECTEUR (miroir Python — oubli de portage vu par messy_probe)
@@ -6257,6 +6258,7 @@ function spellUnknown(tok,atStart,T,idx){
   function imparfaitVig(T,i,tg){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw.length<3||_npMaj108(T,i))return null;
     var reads=svReads(T[i]),imp=[],k;for(k=0;k<reads.length;k++){var rk=reads[k];if(rk[1].indexOf('imp')>=0&&rk[1].indexOf('ind')>=0)imp.push(rk);}
     if(!imp.length)return null;
+    for(k=0;k<reads.length;k++)if(reads[k][1].indexOf('sub')>=0&&_subjTrigger(T,i))return null;   /* ⭐ 23/10/2026 (ligne 139 ③) : « il faut que le chat voyiez » — la forme se lit AUSSI au subjonctif et un déclencheur fermé le gouverne : l'imparfait (« voyait ») serait le mauvais temps ; l'accord du sujet nominal, qui lit le subjonctif, décide. */
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
     if(i>0&&NUM_DET[T[i-1].toLowerCase()])return null;
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
@@ -6516,7 +6518,7 @@ function spellUnknown(tok,atStart,T,idx){
     var r=spellToken(T[i],i===0,T,i),pushed=false;
     var _hf=_hc?_hyFirst(T,i):i,_hok=_hc&&_hf<i&&!!_HY_TETE[String(T[_hf]).toLowerCase()];   // composé ouvert par une tête fréquente (« grand-mrèe »)
     if(_hc&&!_hok&&r&&deaccS(String(r[1]).toLowerCase())!==deaccS(T[i].toLowerCase())&&!_HY_TETE[String(r[1]).toLowerCase()])r=null;
-    if(r&&r[1]!==T[i].toLowerCase()){var _o={i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]};if(r[2])_o.raison=r[2];out.push(_o);pushed=true;}
+    if(r&&r[1]!==T[i].toLowerCase()){var _vg0=(r[0]==='vigilance'&&SP.WORDS&&SP.WORDS.has(T[i].toLowerCase())&&spP(T[i].toLowerCase())==='V'&&!(function(a,b){var la={},k,ra=svReads(a),rb=svReads(b);for(k=0;k<ra.length;k++)la[ra[k][0]]=1;for(k=0;k<rb.length;k++)if(la[rb[k][0]])return true;return false;})(T[i],r[1])&&(!_hc||_hok))?vigAt(T,i,_vst,text):null;if(_vg0&&/^(accord du verbe au sujet nominal|personne du verbe|personne du verbe par le son|accord sujet-verbe|accord verbe) à vérifier$/.test(_vg0.name)){out.push(_vg0);pushed=true;}else{var _o={i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]};if(r[2])_o.raison=r[2];out.push(_o);pushed=true;}}   /* ⭐ 23/10/2026 (ligne 139 ②) : un VERBE qui existe tel qu'il est écrit, à qui l'orthographe ne propose qu'une ORANGE (un voisin plus fréquent : « prîtes » → prêtes), laisse d'abord parler l'orange d'ACCORD DU VERBE de la grammaire — « le chat prîtes » est un accord (→ prit), et l'orange de l'orthographe masquait la sienne. Restreint au verbe seul, aux familles d'accord du verbe, et à une suggestion d'un AUTRE lemme (prêter ≠ prendre) : élargi, il changeait des noms (une orange juste perdait son accent, mesuré sur le gold) ; sur le même lemme, l'orthographe propose une autre FORME du verbe (« champs ensemences » → ensemencés, participe) et garde la main. */
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null&&(!_hc||_hok||_HY_TETE[String(u).toLowerCase()])){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var _ee=T[i].match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),_ep=_ee?_ee[1].toLowerCase():'';if(_ee&&((_ep.length===1&&SELIDE[_ep])||_ep==='qu')&&T[i].charAt(0)===T[i].charAt(0).toLowerCase()&&/^[aeiouyh]/.test(deaccS(_ee[2].toLowerCase()))){var _eu=spellUnknown(_ee[2],false,T,i);if(_ep==='d'&&_eu&&spP(_eu)==='V')_eu=null;   /* ⭐ 20/10/2026 (ligne 127) : « d' » + verbe conjugué n'existe pas — miroir Python */if(_eu!==null){out.push({i:i,word:T[i],sugg:(_eu&&SVOW[deaccS(_eu.toLowerCase())[0]])?_ee[1]+"'"+_eu:T[i],name:'mot inconnu',tier:'vigilance'});pushed=true;}}}   // ⭐ 29/09/2026 : mot ÉLIDÉ inconnu → « mot inconnu » sur le reste, préfixe gardé (miroir correct_text)
     if(!pushed&&(!_hc||_hok)){var _vg=vigAt(T,i,_vst,text);if(_vg){out.push(_vg);pushed=true;}}}   // ⭐ 12/09/2026 : la chaîne orange vit dans vigAt (consultable à UN index sur des tokens corrigés — bout de chaîne orthographe → orange)
@@ -6929,6 +6931,16 @@ function spellUnknown(tok,atStart,T,idx){
 var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;
       else if(f.span>=2&&(byTok[f.i].span==null||byTok[f.i].span<2)&&byTok[f.i].tier!=='vigilance'&&typeof f.sugg==='string'&&typeof byTok[f.i].sugg==='string'&&typeof f.word==='string'&&f.sugg.slice(0,f.word.length)===f.word){f.sugg=byTok[f.i].sugg+f.sugg.slice(f.word.length);byTok[f.i]=f;}});   // COLLISION grammaire mono-mot (majuscule) sur le 1er mot d'un span:2 speller → FUSIONNER (parité app _computeCorrs), sinon l'espace/tiret est perdu
     var flags=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
+    /* ⭐ 23/10/2026 (ligne 139 ①) — ÉLISION + CORRECTION DU MOT SUIVANT : « je allons » → l'élision de l'orthographe (« j'allons »,
+       deux mots) couvrait le verbe, et la correction ROUGE de la grammaire sur ce verbe (« vais ») disparaissait. On COMPOSE : la
+       grammaire corrige le mot, puis l'élision se décide sur la forme JUSTE — devant une consonne, l'élision tombe et seule la
+       correction du mot reste (« je vais ») ; devant une voyelle ou un h, l'élision porte la forme juste (« j'irai »). Une correction
+       ORANGE du mot ne compose pas (rien ne change : l'élision, sûre, passe seule). */
+    flags=flags.filter(function(f){if(f.name!=='élision'||f.span!==2||typeof f.sugg!=='string')return true;var g=byTok[f.i+1];
+      if(!g||g===f||(g.span&&g.span>1)||g.tier==='vigilance'||typeof g.sugg!=='string'||!/^[A-Za-zÀ-ÿœŒ]+$/.test(g.sugg))return true;
+      var _b=String(_T[f.i+1]).toLowerCase();if(g.sugg.toLowerCase()===_b||f.sugg.toLowerCase().slice(-_b.length)!==_b)return true;
+      if(!/^[aeiouyéèêëàâîïôöûüh]/i.test(g.sugg))return false;
+      f.sugg=f.sugg.slice(0,f.sugg.length-_b.length)+g.sugg;f.compose=g.name;return true;});
     var _cov={};flags.forEach(function(f){if(f.span===2)_cov[f.i+1]=1;});flags=flags.filter(function(f){return !_cov[f.i];});   // un token couvert par une élision (span 2) ne compte pas 2× (parité AUDIT #4)
     /* ⭐ BOUT DE CHAÎNE sur le MÊME mot (11/09/2026) — mesuré : orange seule → état final = F→J 27 · F→F 22 · J→F 2 (net +25 / 1 798 textes),
        0 orange née d'une orange sur 1 500 phrases correctes. UN PAS, jamais une boucle : on applique la suggestion de l'orange seule sur
