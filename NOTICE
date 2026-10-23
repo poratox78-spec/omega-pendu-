@@ -12,9 +12,12 @@ Voir le fichier LICENSE.
 -----------------------------------------------
 Le fichier `app/omega-pendu.html` embarque une base lexicale française
 issue de LEXIQUE 4 (lexique.org). Le fichier `Lexique4.tsv.xz`, à la racine,
-est LEXIQUE 4 lui-même — version 4.10 (29/09/2026) —, INCHANGÉ (simplement compressé), redistribué sous la même licence.
+est LEXIQUE 4 lui-même — version 4.10 (29/09/2026) —, compressé, redistribué sous la même licence, avec UNE modification :
+la ligne « feeder », dont les colonnes sont décalées dans la 4.10 (la catégorie à la place de la prononciation), est remplacée par
+la ligne correspondante de la 4.00. Toutes les autres lignes sont celles de la 4.10.
 Les lexiques dérivés et la base embarquée du pendu ont été construits à partir de la version 4.00 ; la 4.10 n'en diffère que par
-les colonnes de voisinage (voisins orthographiques et phonologiques, OLD20, PLD20) et quelques listes de catégories. Ces données NE
+les colonnes de voisinage (voisins orthographiques et phonologiques, OLD20, PLD20), l'ordre de certaines lignes et de quelques listes
+de catégories, une entrée ajoutée (électromètre) et une retirée (int). Ces données NE
 SONT PAS couvertes par la licence MIT du code. Elles sont diffusées sous :
 
     Creative Commons Attribution - Partage dans les Mêmes Conditions 4.0
