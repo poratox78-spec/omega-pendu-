@@ -4,16 +4,16 @@
 //   faux positifs — la phrase correcte ne marque pas le déclencheur ;
 //   détection     — la faute injectée (même construction que le Python : le déclencheur remplacé) est repérée ;
 //   correction    — la bonne forme est proposée.
-// Le Python se contente d'afficher ; ici les chiffres sont des PLANCHERS. Mesuré à la pose : 0 FP, 25/26 repérées et corrigées ;
-// le Python fait 26/26 — l'écart : « ce » devant un mot à la fois nom et verbe, après un sujet NOMINAL, où le Python met une orange
-// « se » et le produit se tait (sa garde exige un nom féminin lu verbe, et sa table de genre ignore ce nom). Noté dans LA LISTE.
+// Le Python se contente d'afficher ; ici les chiffres sont des PLANCHERS. Mesuré à la pose : 0 FP, 25/26 repérées et corrigées (le
+// Python 26/26 : « ce » devant un mot à la fois nom et verbe, après un sujet NOMINAL, dont aucune table ne connaît le genre — le
+// produit se taisait). Comblé le 23/10/2026 (ligne 139 ④) : 26/26, plancher monté.
 //   node dictee/eval_externe_produit.js
 'use strict';
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const D = require(path.join(ROOT, 'extension', 'charger_node.js'))({ ext: path.join(ROOT, 'extension') });
 const { cases } = require('./corpus_externe.json');
-const PLANCHER = 25;   // détection ET correction à la pose (22/10/2026) — monter avec les cas ajoutés, jamais descendre
+const PLANCHER = 26;   // détection ET correction : 25 à la pose (22/10/2026), 26 depuis la ligne 139 (23/10) — monter, jamais descendre
 const deacc = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
 const lo = (s) => deacc(String(s).toLowerCase());
 const marques = (t) => (D.diagnoseAll(t).flags || []).filter((f) => f.name !== 'point final');

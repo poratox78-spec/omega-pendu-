@@ -19,7 +19,12 @@ for (const [sujet, temps, faux, juste, phrase] of K.cas) {
   res[k] = res[k] || [0, 0];
   res[k][1]++;
   const fl = (D.diagnoseAll(phrase).flags || []).filter((f) => f.name !== 'point final');
-  if (fl.some((f) => String(f.word).toLowerCase() === faux.toLowerCase() && String(f.sugg).toLowerCase() === juste.toLowerCase())) res[k][0]++;
+  // ⭐ 23/10/2026 (ligne 139 ①) : la correction peut arriver avec l'élision du pronom, sur DEUX mots (« je irons » → « j'irai ») — le
+  // dernier mot marqué est la forme fausse, la suggestion finit par la forme juste, après « ' » ou une espace.
+  const fin = (s) => String(s).toLowerCase().split(/\s+/).pop();
+  const bon = (f) => { const w = String(f.word).toLowerCase(), s = String(f.sugg).toLowerCase(), j = juste.toLowerCase();
+    return (w === faux.toLowerCase() && s === j) || (/\s/.test(w) && fin(w) === faux.toLowerCase() && (s.endsWith("'" + j) || s.endsWith(' ' + j))); };
+  if (fl.some(bon)) res[k][0]++;
   else if ((rates[k] = rates[k] || []).length < 3) {
     const p = fl.filter((f) => String(f.word).toLowerCase() === faux.toLowerCase()).map((f) => f.sugg);
     rates[k].push(`${sujet} ${faux} → ${juste}${p.length ? ' (proposé : ' + p[0] + ')' : ' (muet)'}`);
