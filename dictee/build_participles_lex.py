@@ -19,7 +19,7 @@ import os, sys, json, gzip, re, unicodedata, collections
 
 HERE = os.path.dirname(__file__)
 KAIKKI = os.environ.get('KAIKKI', os.path.join(HERE, '..', 'kaikki-fr.jsonl'))
-SPELLER = os.path.join(HERE, '..', 'extension', 'assets', 'speller.tsv.gz')
+sys.path.insert(0, os.path.abspath(HERE)); import lots_dictionnaire   # la base du lot : Lexique + les lots nés avant lui (ligne 142)
 OUT_L4 = os.path.join(HERE, 'participle_rows.tsv')
 NC = 37
 CI = {'Mot': 0, 'Phono_IPA': 2, 'Lemme': 3, 'Cgram': 4, 'CgramOrtho': 5, 'Genre': 6, 'Nombre': 7,
@@ -37,7 +37,9 @@ def deacc(s):
 def main():
     if not os.path.exists(KAIKKI):
         print(f"kaikki introuvable ({KAIKKI}) — voir kaikki.org/frwiktionary"); return 1
-    have = set(l.split('\t', 1)[0] for l in gzip.open(SPELLER, 'rt', encoding='utf-8'))
+    # ⭐ 23/10/2026 (ligne 142) : la base n'est plus le dictionnaire LIVRÉ — il contient déjà ce lot, et relancé le script le vidait
+    # (3 049 → 27 lignes, mesuré) ; c'est le dictionnaire tel qu'il était à la naissance du lot (Lexique + wikt + argot)
+    have = lots_dictionnaire.mots_avant('participle_rows.tsv')
 
     rows = {}   # forme -> (genre, nombre, lemme)
     coll = 0

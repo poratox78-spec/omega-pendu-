@@ -30,15 +30,18 @@ Base NON circulaire : Lexique 4 + les lots SOURCES (pas l'asset livré, qui cont
 import io, os, re, sys, csv, json, gzip, unicodedata, collections
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(HERE, 'conj_lex_fr.tsv')
-LOTS = ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz', 'morph_acc_lex_fr.tsv', 'metier_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz', 'rect90_lex_fr.tsv.gz', 'na_justes_lex_fr.tsv.gz')
+sys.path.insert(0, HERE); import lots_dictionnaire
+LOTS = lots_dictionnaire.avant('conj_lex_fr.tsv')   # base : Lexique + les lots nés AVANT celui-ci, ni lui ni ceux d'après (ligne 142)
 SEUIL = 20.0
 CONS = 'bcdfglmnprst'
 da = lambda s: ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
 
 def _table():
+    # $CONJ_TABLE : une autre version de la table (lots_dictionnaire.py --verifier passe celle du 14/10, d'où le lot est né : la table
+    # a grandi depuis, et relancé sur la table actuelle, le lot passe de 2 982 à 10 060 formes — ligne 142)
     sys.path.insert(0, HERE); import conj_io
-    vd = json.load(io.open(os.path.join(ROOT, 'extension', 'assets', 'vdc-lex.json'), encoding='utf-8'))
+    vd = json.load(io.open(os.environ.get('CONJ_TABLE') or os.path.join(ROOT, 'extension', 'assets', 'vdc-lex.json'), encoding='utf-8'))
     return conj_io.reconstruire(vd['cj'])['c']
 
 

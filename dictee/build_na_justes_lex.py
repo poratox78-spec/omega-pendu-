@@ -20,8 +20,8 @@ Même contrat que les autres lots : FreqOrtho 0 → connues, jamais proposées, 
 import io, gzip, json, re, sys, os, unicodedata
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(HERE, 'na_justes_lex_fr.tsv.gz')
-LOTS = ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz',
-        'morph_acc_lex_fr.tsv', 'conj_lex_fr.tsv', 'metier_lex_fr.tsv', 'ver_justes_lex_fr.tsv.gz', 'rect90_lex_fr.tsv.gz')
+sys.path.insert(0, HERE); import lots_dictionnaire
+LOTS = lots_dictionnaire.avant('na_justes_lex_fr.tsv.gz')   # base : Lexique + les lots nés AVANT celui-ci, ni lui ni ceux d'après (ligne 142)
 TAGS_ECARTES = {'misspelling', 'alt-of', 'nonstandard', 'erroneous', 'abbreviation', 'form-of'}
 POSW = {'noun': 'NOM', 'adj': 'ADJ', 'adv': 'ADV'}
 CATS = {'Nom commun': 'NOM', 'Adjectif qualificatif': 'ADJ', 'Adverbe': 'ADV'}

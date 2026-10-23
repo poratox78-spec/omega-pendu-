@@ -23,7 +23,8 @@ Même contrat que les lots Morphalou : FreqOrtho 0 → dans WORDS, jamais dans D
 import io, csv, gzip, unicodedata, re, sys, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(HERE, 'morph_acc_lex_fr.tsv')
-LOTS = ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz')
+sys.path.insert(0, HERE); import lots_dictionnaire
+LOTS = lots_dictionnaire.avant('morph_acc_lex_fr.tsv')   # base : Lexique + les lots nés AVANT celui-ci, ni lui ni ceux d'après (ligne 142)
 CIRC = set('âêîôû')
 
 
