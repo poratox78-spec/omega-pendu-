@@ -29,6 +29,12 @@ CE QU'ON MESURE ICI — la seule chose qui compte pour l'élève, mot à mot con
 pas la description d'un corpus (cf. le biais mesuré dans ETAT_DES_LIEUX §3ter).
 
   OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py
+  OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py --produit   ← ⭐ 23/10/2026 (ligne 25b) : le MÊME juge sur le moteur du PRODUIT
+
+⭐ --produit (23/10/2026, ligne 25b, étape 10). Depuis le débranchement du moteur Python, la pyramide ci-dessous (Python) n'est plus
+tenue au pas du produit : ce chiffre mesurerait un moteur figé. Avec --produit, chaque texte est corrigé par le produit lui-même
+(dys-core + assets, diagnoseAll) via dictee/pipeline_produit.js, lu avec les mêmes conventions (rouge d'un mot appliqué, orange
+proposée, sans suggestion soulignée), et jugé par le même juge. Une marque sur plusieurs mots est proposée et comptée à part.
 """
 import os
 import re
@@ -261,7 +267,28 @@ def _strict(x, y):
     return a == b or a.split("'")[-1].split(' ')[-1] == b.split("'")[-1].split(' ')[-1]
 
 
+def pyramide_produit(textes):
+    """⭐ 23/10/2026 (ligne 25b) : la pyramide du PRODUIT pour une liste de textes — un seul appel à dictee/pipeline_produit.js,
+    aucun fichier écrit. Rend, par texte, (T, out, regle, orange, signale, multi) : regle[i] = la règle du produit qui a appliqué out[i]."""
+    import json as _j, subprocess as _sp
+    r = _sp.run(['node', os.path.join(HERE, 'pipeline_produit.js')], input=_j.dumps(textes, ensure_ascii=False),
+                capture_output=True, text=True, encoding='utf-8')
+    if r.returncode != 0:
+        raise SystemExit('pipeline_produit.js : ' + r.stderr[-2000:])
+    res = []
+    for d in _j.loads(r.stdout):
+        T = d['T']; out = T[:]; regle = {}; orange = {}; signale = set(d['sig'])
+        for i, sg, nm in d['app']:
+            if i < len(out): out[i] = sg; regle[i] = nm
+        for i, sg in d['orange']:
+            orange.setdefault(i, []).append(sg)
+        res.append((T, out, regle, orange, signale, d['multi']))
+    return res
+
+
 def main():
+    produit = '--produit' in sys.argv
+    multi = 0
     rep = rate = casse = intact = 0
     or_juste = or_faux = muet = sign = 0
     app_faux = 0; ex_appf = []                       # ⭐ ROUGE APPLIQUÉ… vers un AUTRE mauvais mot (07/09/2026)
@@ -284,13 +311,18 @@ def main():
             if _l:
                 _o = _json.loads(_l)
                 amb_par_src[_o['raw']] = set(x.lower() for x in _o.get('ambig', []))
-    for brut, gold in _paires(GOLD):
+    paires = list(_paires(GOLD))
+    cache = dict(zip([b for b, _ in paires], pyramide_produit([b for b, _ in paires]))) if produit and paires else {}
+    for brut, gold in paires:
         n += 1
         # ⚠️ Les tokens `ambig` sont ceux que MOI je n'ai pas su trancher : je les ai laissés INTACTS
         # dans le gold. Les compter « cassés » quand le moteur les corrige serait lui reprocher de
         # savoir ce que j'ignore — on les exclut du jugement (cf. protocole, ETAT_DES_LIEUX §5ter).
         amb = amb_par_src.get(brut.strip(), set())
-        T, out, _Tc_ref, orange, signale = pyramide(brut)
+        if produit:
+            T, out, _regle, orange, signale, _m = cache[brut]; multi += _m
+        else:
+            T, out, _Tc_ref, orange, signale = pyramide(brut)
         al = DP.align(T, [x.group(0) for x in DP.TOK.finditer(gold)])
         for i, w in enumerate(T):
             if not w.isalpha() or i not in al or w.lower() in amb:
@@ -343,8 +375,8 @@ def main():
                 if _casses is not None:
                     _casses.append((w, out[i], g, ' '.join(T[max(0, i - 6):i + 6])))
                 if len(ex_casse) < 60:
-                    _q = ''
-                    for _nm, _r in CP.RULES:                    # QUELLE règle a cassé le mot ? (pour trier par cause)
+                    _q = _regle.get(i, '') if produit else ''
+                    for _nm, _r in ([] if produit else CP.RULES):                    # QUELLE règle a cassé le mot ? (pour trier par cause)
                         try:
                             _d = _r(out[:i] + [w] + out[i + 1:], i) if False else _r(_Tc_ref, i)
                         except Exception:
@@ -366,7 +398,8 @@ def main():
     faux = rep + rate
     juste = casse + intact
     _quoi = 'productions dys RÉELLES' if GOLD == 'gold_claude.jsonl' else ('textes de « %s »' % GOLD)
-    print('\nPIPELINE COMPLET sur %d %s — %d mots alignés\n' % (n, _quoi, faux + juste))
+    print('\nPIPELINE COMPLET%s sur %d %s — %d mots alignés\n' % (' — MOTEUR DU PRODUIT (dys-core)' if produit else ' — pyramide Python (débranchée, figée)', n, _quoi, faux + juste))
+    if produit: print('  marques du produit sur PLUSIEURS mots (proposées : le juge, mot à mot, ne les applique pas) : %d\n' % multi)
     print('  mots FAUX au départ : %d' % faux)
     print('     · RÉPARÉS  : %4d   (%.1f %% des fautes)   ← le gain' % (rep, 100.0 * rep / max(1, faux)))
     print('     · ratés    : %4d   (%.1f %%)              occasion manquée, pas une faute' % (rate, 100.0 * rate / max(1, faux)))
@@ -378,19 +411,21 @@ def main():
           % (or_faux, 100.0 * or_faux / max(1, rate)))
     print('     - signale SANS suggestion: %4d  (%.1f %%)             vu, pas reparable en un clic'
           % (sign, 100.0 * sign / max(1, rate)))
-    print('     - MUET (cote Python)     : %4d  (%.1f %%)             (!) LEGER SUR-ESTIME - voir avertissement'
+    print(('     - MUET (produit)         : %4d  (%.1f %%)             rien n est montre a l utilisateur' if produit else
+           '     - MUET (cote Python)     : %4d  (%.1f %%)             (!) LEGER SUR-ESTIME - voir avertissement')
           % (muet, 100.0 * muet / max(1, rate)))
     print('     - APPLIQUE FAUX (rouge)  : %4d  (%.1f %%)             un ROUGE a REECRIT la faute vers un AUTRE mauvais mot — le pire des rates'
           % (app_faux, 100.0 * app_faux / max(1, rate)))
     print('         dont BON LEMME, mauvaise flexion : %4d  (%.1f %% des appliques faux)   le bon mot, pas la bonne forme — un rate d ACCORD, pas d orthographe'
           % (app_lem, 100.0 * app_lem / max(1, app_faux)))
     print()
-    print('     (!) Le palier « mot inconnu » (spellUnknown JS) est PORTE dans la reference depuis le')
-    print('         04/09/2026 (spell_unknown, action `inconnu`) : « signale = 0 » n est plus un artefact.')
-    print('         « MUET » reste un LEGER sur-estime : les couches vigilance de spellText encore')
-    print('         absentes cote Python (anglicisme, homoVig, accords oranges...) soulignent une part')
-    print('         de ces rates dans le produit — la ventilation PRODUIT exacte se mesure avec un dump')
-    print('         dys-core (cf. ETAT_DES_LIEUX §5septies et l enquete du 04/09).')
+    if not produit:   # l'avertissement ne vaut que pour la pyramide Python : en mode --produit, les oranges du produit sont toutes là
+        print('     (!) Le palier « mot inconnu » (spellUnknown JS) est PORTE dans la reference depuis le')
+        print('         04/09/2026 (spell_unknown, action `inconnu`) : « signale = 0 » n est plus un artefact.')
+        print('         « MUET » reste un LEGER sur-estime : les couches vigilance de spellText encore')
+        print('         absentes cote Python (anglicisme, homoVig, accords oranges...) soulignent une part')
+        print('         de ces rates dans le produit — la ventilation PRODUIT exacte se mesure avec un dump')
+        print('         dys-core (cf. ETAT_DES_LIEUX §5septies et l enquete du 04/09).')
     if ex_or:  print('     exemples rattrapables :', ' | '.join(ex_or[:6]))
     if ex_orf: print('     exemples de bruit     :', ' | '.join(ex_orf[:4]))
     if ex_appf: print('     appliques FAUX        :', ' | '.join(ex_appf[:12]))
