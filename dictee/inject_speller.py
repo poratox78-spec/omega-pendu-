@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 # Injecte le lexique speller (base64 gzip, sortie de build_speller_lex.py) dans le bloc
 # <script type="text/plain" id="speller-lex-gz"> de l'app monolithe. Pendant de inject_vdc.py pour le speller.
-#   Pipeline complet (régénération, Lexique4 hors-repo) :
-#     cat /tmp/lex4/Lexique4.tsv dictee/wikt_lex_fr.tsv > /tmp/lex4/Lexique4_aug.tsv      # augmentation Wiktionnaire
-#     LEX4=/tmp/lex4/Lexique4_aug.tsv MINFREQ=0 OUT=/tmp/lex4/speller_lex python3 dictee/build_speller_lex.py
-#     SPELLER_B64=/tmp/lex4/speller_lex.b64 python3 dictee/inject_speller.py             # CE script
-#   Source : Lexique 4 (CC BY-SA 4.0) + Wiktionnaire FR (CC BY-SA, kaikki.org) — cf. dictee/wikt_lex_fr.tsv.
+#   Pipeline complet (Lexique 4 + les 12 lots, ligne 142) : python3 dictee/lots_dictionnaire.py --reconstruire (appelle CE script).
+#   Sources : Lexique 4 (CC BY-SA 4.0), Wiktionnaire FR (CC BY-SA, kaikki.org), Morphalou 3.1 (LGPL-LR).
 import os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
