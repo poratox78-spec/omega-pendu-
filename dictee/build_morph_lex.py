@@ -7,7 +7,9 @@ mais corrects que « mot inconnu » marquait sur le corpus dys y sont (echafaude
 moulurees, lampasse, caulinaires, omnisport, retombants).
 
 Meme contrat que gacc : FreqOrtho 0 -> freq_milli 0 -> dans WORDS, jamais dans D2A/PHON (jamais candidat,
-jamais concurrent). Base = asset COMMITE (git HEAD) UNION gacc_lex_fr.tsv (non circulaire). Filtres a la source :
+jamais concurrent). Base = le dictionnaire a la naissance du lot (Lexique4 + wikt + argot + participes + gacc, lu dans
+lots_dictionnaire.py) UNION gacc_lex_fr.tsv brut. ⭐ Jusqu'au 23/10 : l asset COMMITE (git HEAD) — qui contient ces deux lots
+depuis le 02/09 ; relance, le script les vidait (NA 81 042 → 12 030, VER 384 869 → 2 809, ligne 142). Filtres a la source :
   - categorie du LEMME (propagee : le CSV ne la porte que sur la ligne de lemme) parmi NOM/ADJ/VER/ADV ;
   - anti-masquage RAPIDE par deletions symetriques : aucun ajout a distance 1 d un mot FREQUENT (>= 1 occ/M
     Lexique4) — sinon la faute d un mot courant devient « valide » (dess->des, vermee->fermee, mesure).
@@ -18,13 +20,14 @@ DEUX sorties, MESUREES SEPAREMENT au moteur JS (A/B node deterministe, 1 998 phr
   python dictee/build_morph_lex.py            # regenere les deux TSV (Morphalou requis)
   python dictee/build_morph_lex.py --check    # forme des TSV commites (37 colonnes)
 """
-import io, csv, gzip, subprocess, unicodedata, re, sys, os
+import io, csv, gzip, unicodedata, re, sys, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
 OUT_NA = os.path.join(HERE, 'morph_na_lex_fr.tsv'); OUT_VER = os.path.join(HERE, 'morph_ver_lex_fr.tsv.gz')   # gzippe : 26,5 Mo en clair, ~3 Mo commites
 
 def generer():
     dea=lambda t:''.join(c for c in unicodedata.normalize('NFD',t) if unicodedata.category(c)!='Mn')
-    base=set(l.split(chr(9))[0] for l in gzip.decompress(subprocess.run(['git','show','HEAD:extension/assets/speller.tsv.gz'],capture_output=True,cwd=ROOT).stdout).decode('utf-8').split(chr(10)) if l)
+    sys.path.insert(0, HERE); import lots_dictionnaire
+    base=lots_dictionnaire.mots_avant('morph_na_lex_fr.tsv')
     base|=set(l.split(chr(9))[0] for l in io.open(os.path.join(HERE,'gacc_lex_fr.tsv'),encoding='utf-8'))
     based=set(dea(w) for w in base)
     freq=set()

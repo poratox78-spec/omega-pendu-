@@ -113,10 +113,8 @@ KAIKKI=kaikki-fr.jsonl python3 dictee/build_invariable_nouns.py.
 
     Attribution : « Lexique du correcteur : Lexique 4 (New et al. 2026) +
       Wiktionnaire (fr.wiktionary.org, via kaikki.org), CC BY-SA 4.0 »
-    Régénérable : python3 dictee/build_wikt_lex.py <kaikki.jsonl> <Lexique4.tsv.xz> <out>
-      puis   cat Lexique4.tsv dictee/wikt_lex_fr.tsv > Lexique4_aug.tsv
-             LEX4=Lexique4_aug.tsv MINFREQ=0 python3 dictee/build_speller_lex.py
-             SPELLER_B64=…/speller_lex.b64 python3 dictee/inject_speller.py
+    Régénérable : python3 dictee/lots_dictionnaire.py --reconstruire
+      (Lexique 4 + les 12 lots de dictee/, dans l'ordre et selon la recette décrits en tête de ce script)
 
 6. CORPUS DE TEST FP À L'ÉCHELLE (garde-fou CI)
 -----------------------------------------------
