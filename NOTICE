@@ -141,3 +141,31 @@ conjuguées (faits linguistiques, ~0,03 % de la ressource) en ont été dérivé
     Source : http://alpage.inria.fr/~sagot/lefff.html
     Attribution : « Conjugaison validée avec le LEFFF (B. Sagot, INRIA), LGPL-LR »
     Régénérable : LEFFF=/chemin/lefff-3.4.mlex python3 dictee/build_cgram.py
+
+
+8. FORMES FLÉCHIES DE MORPHALOU 3.1 (ATILF)
+-------------------------------------------
+Depuis août 2026, le dictionnaire d'orthographe du correcteur et plusieurs tables
+de grammaire contiennent des formes fléchies (avec catégorie, genre, nombre ou
+prononciation) tirées de MORPHALOU 3.1, lexique de l'ATILF (Analyse et Traitement
+Informatique de la Langue Française, unité mixte CNRS - Université de Lorraine),
+diffusé sous licence LGPL-LR (Lesser General Public License For Linguistic
+Resources). Le texte de la licence est joint : `LICENSE-LGPL-LR.txt` (racine du
+dépôt ; aussi dans omega-lexiques.zip). Morphalou lui-même n'est pas redistribué
+(il reste hors dépôt, data_local/) : seules les formes retenues par nos scripts le
+sont. Fichiers qui en dérivent :
+
+  - lots du dictionnaire d'orthographe : `dictee/gacc_lex_fr.tsv`,
+    `morph_na_lex_fr.tsv`, `morph_ver_lex_fr.tsv.gz`, `morph_acc_lex_fr.tsv`,
+    `conj_lex_fr.tsv`, `ver_justes_lex_fr.tsv.gz`, `rect90_lex_fr.tsv.gz`,
+    `na_justes_lex_fr.tsv.gz` — donc le bloc `speller-lex-gz` de l'app et
+    `extension/assets/speller.tsv.gz` ;
+  - genre accentué : `dictee/gender_acc.json` (bloc `gacc-lex-gz`,
+    `extension/assets/gender-acc.json.gz`) ;
+  - conjugaison complétée : `dictee/cgram_conj.json`, `dictee/cgram_hf.json`
+    (bloc `vdc-lex-gz`, `extension/assets/vdc-lex.json`), `dictee/conj_morphalou.json` ;
+  - `dictee/phono_morphalou.json`, `dictee/nv_genre_fr.json`,
+    `dictee/non_verbe_acc.json`, `extension/assets/ent-3p.txt.gz`.
+
+    Source : http://www.cnrtl.fr/lexiques/morphalou/ (ortolang.fr)
+    Attribution : « Formes fléchies : Morphalou 3.1 (ATILF, CNRS - Université de Lorraine), LGPL-LR »
