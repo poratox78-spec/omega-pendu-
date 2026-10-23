@@ -14,14 +14,15 @@
 import os, sys, json, csv, unicodedata
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+SORTIE = os.environ.get('CGRAM_SORTIE') or HERE   # $CGRAM_SORTIE : écrire les tables ailleurs (dictee/ordre_probe.py, ligne 143)
 sys.path.insert(0, HERE)
 import conj_io                                     # ⭐ 13/10/2026 : table de conjugaison COMPACTE (index `f` recalculé depuis `c`)
 LEX_PATH = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
-OUT = os.path.join(HERE, 'cgram_verbs.json')
-OUT_GENDER = os.path.join(HERE, 'cgram_gender.json')
-OUT_ADJ = os.path.join(HERE, 'cgram_adj.json')         # adjectifs : paires de genre (vert↔verte)
-OUT_CONJ = os.path.join(HERE, 'cgram_conj.json')       # table de conjugaison (accord SUJET-VERBE : forme↔personne/nombre)
-OUT_HF = os.path.join(HERE, 'cgram_hf.json')           # sous-ensemble haute-fréquence embarquable dans l'app
+OUT = os.path.join(SORTIE, 'cgram_verbs.json')
+OUT_GENDER = os.path.join(SORTIE, 'cgram_gender.json')
+OUT_ADJ = os.path.join(SORTIE, 'cgram_adj.json')         # adjectifs : paires de genre (vert↔verte)
+OUT_CONJ = os.path.join(SORTIE, 'cgram_conj.json')       # table de conjugaison (accord SUJET-VERBE : forme↔personne/nombre)
+OUT_HF = os.path.join(SORTIE, 'cgram_hf.json')           # sous-ensemble haute-fréquence embarquable dans l'app
 FREQ_MIN = float(os.environ.get('FREQ_MIN', '0.5'))   # garde les formes pas trop rares (taille raisonnable)
 HF_FREQ = float(os.environ.get('HF_FREQ', '5'))        # seuil du sous-ensemble embarquable (par million, FreqOrtho)
 
@@ -47,6 +48,24 @@ IRREG_PRES_PLUR = {('etre', 'sommes', '1'), ('etre', 'etes', '2'),
 
 def deacc(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+
+
+def _ecart(a, b):
+    """Distance d'édition (Levenshtein) : la forme d'un adjectif la plus PROCHE de son lemme (ligne 143)."""
+    p = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        q = [i]
+        for j, cb in enumerate(b, 1): q.append(min(p[j] + 1, q[j - 1] + 1, p[j - 1] + (ca != cb)))
+        p = q
+    return p[-1]
+
+
+def rang_adj(form, lemme, g, nb, fr):
+    """Quelle forme garder quand Lexique en donne plusieurs pour un même (lemme, genre, nombre) — rang le plus PETIT gagne, jamais
+    l'ordre des lignes (ligne 143) : d'abord la terminaison attendue (pluriel en -s/-x, féminin en -e), puis la forme la plus proche
+    du lemme (Lexique rattache « ultraconfidentielle » à confidentiel, « reconstructive » à constructif), puis la plus fréquente."""
+    bonne = (nb != 'p' or form.endswith(('s', 'x'))) and (g != 'f' or form.rstrip('s').endswith('e'))
+    return (not bonne, _ecart(form, lemme), -fr, form)
 
 
 def derive_number(form_lw, per):
@@ -134,12 +153,14 @@ def main():
         nom_empty = []                                    # (forme_déacc, lemme_déacc) des NOMs à genre VIDE → complétés par héritage de lemme
         nom_num = {}                                       # forme NOM → {nombres attestés} : 'p' STRICT (jamais 's') = vrai pluriel (règle accord dét↔nom, FP=0)
         adjp = {}                                         # (lemme, nombre) → {'m':forme_acc, 'f':forme_acc}
+        adjr = {}                                         # (lemme, nombre, genre) → rang (rang_adj) de la forme retenue dans adjp
         adjg = {}                                         # déacc(forme ADJ) → {genres vus} (écarte l'ambigu)
         adjfreq = {}                                      # déacc(forme ADJ) → fréquence max
         cj_f = {}                                          # forme_déacc → {"lemme;mode:temps;pers;nombre"} (toutes lectures finies)
         cj_c = {}                                          # lemme → mode:temps → slot(« 3s ») → (forme_acc, freq, spécificité)
         cj_x = {}                                          # 3e pers. AMBIGUË (vient/rient) → lemme → mt → [(forme,freq,spéc)] (promotion 3s ci-dessous)
         inf_acc = {}                                       # lemme → infinitif ACCENTUÉ (pour dériver le 3s des -er réguliers rares)
+        inf_rang = {}                                      # lemme → (−fréquence, forme) de l'infinitif retenu
         for row in rdr:
             if len(row) <= max(c_mot, c_gram):
                 continue
@@ -178,8 +199,8 @@ def main():
                     nb = row[c_nombre].strip().lower()[:1] if 0 <= c_nombre < len(row) else ''
                     nb = nb if nb in ('s', 'p') else ''                     # '' = à déduire de la morphologie
                     is_inf = (w == lem)                                      # forme = lemme → INFINITIF (ses tags finis = artefacts Lexique « chanter:ind:pre:2 ») → écarté
-                    if is_inf:
-                        inf_acc.setdefault(lem, form)                        # infinitif accentué mémorisé (dérivation 3s des -er réguliers)
+                    if is_inf and (-fr, form) < inf_rang.get(lem, (1.0, '')):   # infinitif accentué mémorisé (dérivation 3s des -er réguliers) :
+                        inf_acc[lem] = form; inf_rang[lem] = (-fr, form)      # le plus FRÉQUENT, pas le premier lu (ligne 143 : pécher / pêcher)
                     fin = []
                     for tag in row[c_info].split(','):
                         pp = tag.split(':')
@@ -214,8 +235,8 @@ def main():
                             cj_f.setdefault(w, set()).add(f"{lem};{mt};{per};{nn}")
                             if nn in ('s', 'p'):
                                 slot = per + nn; d = cj_c.setdefault(lem, {}).setdefault(mt, {})
-                                if slot not in d or (spec, -fr) < (d[slot][2], -d[slot][1]):   # min spécificité, puis max fréq
-                                    d[slot] = (form, fr, spec)
+                                if slot not in d or (spec, -fr, form) < (d[slot][2], -d[slot][1], d[slot][0]):   # min spécificité, puis max fréq,
+                                    d[slot] = (form, fr, spec)                                                     # puis la forme (égalité : jamais l'ordre des lignes)
             if cg.startswith('NOM'):
                 g = row[c_genre].strip().lower() if (0 <= c_genre < len(row)) else ''
                 lem = deacc(row[c_lemme].strip().lower()) if (0 <= c_lemme < len(row)) else ''
@@ -230,8 +251,11 @@ def main():
             if cg.startswith('ADJ') and min(c_genre, c_lemme, c_nombre) >= 0 and max(c_genre, c_lemme, c_nombre) < len(row):
                 g = row[c_genre].strip().lower(); nb = (row[c_nombre].strip().lower()[:1] or '')
                 if g in ('m', 'f') and nb in ('s', 'p'):
-                    lem = deacc(row[c_lemme].strip().lower())
-                    adjp.setdefault((lem, nb), {})[g] = row[c_mot].strip().lower()   # forme accentuée (pour la suggestion)
+                    # ⭐ ligne 143 : lemme ACCENTUÉ — désaccentué, il réunissait béat et beat, fermé et ferme, sûr et sur, ténu et tenu
+                    lem = row[c_lemme].strip().lower()
+                    _f = row[c_mot].strip().lower(); _d = adjp.setdefault((lem, nb), {}); _r = rang_adj(_f, lem, g, nb, fr)
+                    if g not in _d or _r < adjr[(lem, nb, g)]:    # forme accentuée (pour la suggestion) : rang_adj, pas la dernière lue
+                        _d[g] = _f; adjr[(lem, nb, g)] = _r
                     adjg.setdefault(w, set()).add(g); adjfreq[w] = max(adjfreq.get(w, 0.0), fr)
     out = sorted(verbs)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
@@ -261,12 +285,14 @@ def main():
         if not _xs:
             continue
         _pres = cj_c.setdefault(_lem, {}).setdefault('ind:pre', {})
-        _uniq = sorted({f for f, _fr, _sp in _xs}, key=len)
+        _uniq = sorted({f for f, _fr, _sp in _xs}, key=lambda f: (len(f), f))   # égalité de longueur : la forme, jamais le hasard d'un set (ligne 143)
         _long = _uniq[-1]
         if '3p' not in _pres:
             _pres['3p'] = (_long, 0.0, 96)
-            cj_f.setdefault(deacc(_long.lower()), set()).add(f"{_lem};ind:pre;3;p")
-        if '3s' not in _pres and len(_uniq) >= 2 and _uniq[0] != _long:
+        if len(_pres['3p'][0]) == len(_long):                   # ⭐ ligne 143 : deux graphies de même longueur (essaient / essayent) sont
+            for _x in _uniq:                                    #   TOUTES deux le 3p — avant, le hasard en gardait une et taisait l'autre
+                if len(_x) == len(_long): cj_f.setdefault(deacc(_x.lower()), set()).add(f"{_lem};ind:pre;3;p")
+        if '3s' not in _pres and len(_uniq) >= 2 and len(_uniq[0]) < len(_long):   # STRICTEMENT plus courte (étaieront n'est pas un 3s)
             _pres['3s'] = (_uniq[0], 0.0, 96)
             cj_f.setdefault(deacc(_uniq[0].lower()), set()).add(f"{_lem};ind:pre;3;s")
 
@@ -360,13 +386,15 @@ def main():
                 _forms -= _imp
             if not _forms:
                 continue
-            _uniq = sorted(_forms, key=len)
+            _uniq = sorted(_forms, key=lambda f: (len(f), f))
             _long = _uniq[-1]
             if '3p' not in _pres:
                 _pres['3p'] = (_long, 0.0, 96)
-                cj_f.setdefault(deacc(_long.lower()), set()).add(f"{_lem};{_mt};3;p")
                 _p3 += 1
-            if '3s' not in _pres and len(_uniq) >= 2 and _uniq[0] != _long:
+            if len(_pres['3p'][0]) == len(_long):               # mêmes graphies de même longueur : toutes 3p (ligne 143 : déblaieront /
+                for _x in _uniq:                                #   déblayeront, fraieraient / frayeraient)
+                    if len(_x) == len(_long): cj_f.setdefault(deacc(_x.lower()), set()).add(f"{_lem};{_mt};3;p")
+            if '3s' not in _pres and len(_uniq) >= 2 and len(_uniq[0]) < len(_long):
                 _pres['3s'] = (_uniq[0], 0.0, 96)
                 cj_f.setdefault(deacc(_uniq[0].lower()), set()).add(f"{_lem};{_mt};3;s")
                 _p3 += 1
@@ -377,7 +405,7 @@ def main():
     # relu sur les FORMES). Autoritatif : ce sont les formes réelles de la base (Lexique), pas une invention.
     def _cx(v):   # itère : passe base tant que ça remplit (une base fraîchement complétée en débloque d'autres)
         n = 0
-        bases = sorted([l for l, m in cj_c.items() if {'1s', '2s', '3s'} <= set(m.get('ind:pre', {}))], key=len)
+        bases = sorted([l for l, m in cj_c.items() if {'1s', '2s', '3s'} <= set(m.get('ind:pre', {}))], key=lambda l: (len(l), l))
         for _lem, _mts in cj_c.items():
             _pres = _mts.get('ind:pre')
             if not _pres or '3s' not in _pres or {'1s', '2s', '3p'} <= set(_pres):
@@ -451,12 +479,17 @@ def main():
     # table de conjugaison (accord sujet-verbe) : f = forme→lectures ; c = lemme→temps→slot→forme
     # chaque lecture = « lemme;mode:temps;personne;nombre » ; lectures séparées par « | ».
     conj_f = {k: '|'.join(sorted(v)) for k, v in cj_f.items()}
-    conj_c = {lem: {mt: {s: v[0] for s, v in slots.items()} for mt, slots in mts.items()} for lem, mts in cj_c.items()}
+    # trié (ligne 143) : la forme compacte (conj_io) dérive les lectures dans l'ordre de cette table — non triée, le FICHIER changeait avec
+    # l'ordre des lignes de Lexique (501 entrées « fo »), même quand la table reconstruite était identique
+    conj_c = {lem: {mt: {s: v[0] for s, v in sorted(slots.items())} for mt, slots in sorted(mts.items())} for lem, mts in sorted(cj_c.items())}
     conj_io.ecrire(OUT_CONJ, {'f': conj_f, 'c': conj_c})          # ⭐ 13/10/2026 : forme compacte (≤ 25 Mio par fichier, limite Cloudflare)
     print(f"[conj] {len(conj_f)} formes / {len(conj_c)} lemmes (accord sujet-verbe) → {OUT_CONJ}  ({os.path.getsize(OUT_CONJ)//1024} Ko)")
-    for _w, _lem in nom_empty:                            # HÉRITAGE DE GENRE PAR LEMME : Lexique4 laisse le genre VIDE sur ~458
-        _gl = nom_lem_g.get(_lem)                         #   formes (soeur, oeuf, oeil…) alors que le lemme est net (soeurs=f).
-        if _gl and len(_gl) == 1 and _w not in gset:      #   On complète sans jamais écraser un genre déjà attesté (FP=0).
+    _her = {}                                             # HÉRITAGE DE GENRE PAR LEMME : Lexique4 laisse le genre VIDE sur ~458
+    for _w, _lem in nom_empty:                            #   formes (soeur, oeuf, oeil…) alors que le lemme est net (soeurs=f).
+        _gl = nom_lem_g.get(_lem)                         #   On complète sans jamais écraser un genre déjà attesté (FP=0).
+        if _gl: _her.setdefault(_w, set()).update(_gl)    #   ⭐ ligne 143 : une forme peut venir de plusieurs lemmes — leurs genres
+    for _w, _gl in _her.items():                          #   sont RÉUNIS (le premier lu ne gagne plus) ; un seul genre → hérité
+        if len(_gl) == 1 and _w not in gset:
             gset[_w] = set(_gl)
     gender = {w: list(gs)[0] for w, gs in gset.items() if len(gs) == 1}   # NON ambigu seulement (FP=0)
     amb = sum(1 for gs in gset.values() if len(gs) > 1)
@@ -467,17 +500,22 @@ def main():
     # taux, relais…) et les pluriels à nombre VIDE dans Lexique4 sont ÉCARTÉS → on ne flague que le certain (FP=0).
     # Sert la règle « accord déterminant↔nom » (« la boites » : dét singulier + nom pluriel). Cf. sœur/genre (#115) : même
     # discipline — on n'affirme que ce que Lexique atteste, on s'abstient sur le vide.
-    OUT_PLURAL = os.path.join(HERE, 'cgram_plural.json')
+    OUT_PLURAL = os.path.join(SORTIE, 'cgram_plural.json')
     plural = sorted(w for w, ns in nom_num.items() if ns == {'p'})
     json.dump(plural, open(OUT_PLURAL, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print(f"[plural] {len(plural)} formes NOM strictement pluriel (accord dét↔nom) → {OUT_PLURAL}")
 
     # adjectifs : paires genre (forme → [genre, contrepartie de l'autre genre, même nombre]). Épicènes/ambigus écartés (FP=0).
-    adj = {}
+    adj, _adjc = {}, {}
     for (lem, nb), d in adjp.items():
         if 'm' in d and 'f' in d and d['m'] != d['f']:    # paire genrée distincte (≠ épicène « rouge »)
-            adj[deacc(d['m'])] = ['m', d['f']]            # tapé masculin → suggérer le féminin
-            adj[deacc(d['f'])] = ['f', d['m']]
+            _adjc.setdefault(deacc(d['m']), set()).add((adjr[(lem, nb, 'f')], 'm', d['f']))   # tapé masculin → suggérer le féminin
+            _adjc.setdefault(deacc(d['f']), set()).add((adjr[(lem, nb, 'm')], 'f', d['m']))
+    # ⭐ ligne 143 : deux paires pour la même clé sans accent — la dernière lue gagnait. Si les réponses ne diffèrent que par l'accent
+    # (sûre / sure, ténue / tenue, évènementielle / événementielle), la mieux classée (rang_adj : la plus fréquente) ; si elles diffèrent
+    # vraiment (« demis » → demies / démise), la clé est ambiguë et écartée
+    for w, cs in _adjc.items():
+        if len(set((g, deacc(c)) for _r, g, c in cs)) == 1: _r, g, c = min(cs); adj[w] = [g, c]
     for w, gs in adjg.items():                            # forme vue dans les 2 genres (homographe) → écarter
         if len(gs) > 1 and w in adj:
             del adj[w]
@@ -485,9 +523,9 @@ def main():
     print(f"[adj] {len(adj)} formes adjectivales genrées (épicènes/ambigus écartés) → {OUT_ADJ}")
 
     # === INVENTAIRE COMPLET + garde-fous + déterminants (récupération « tous les mots ») ===
-    OUT_WORDS = os.path.join(HERE, 'cgram_words.json')     # reconnaissance : toutes les formes (ne pas flaguer un vrai mot)
-    OUT_GUARD = os.path.join(HERE, 'cgram_guard.json')     # garde-fous FP natifs (homophones / faible prévalence)
-    OUT_DET   = os.path.join(HERE, 'cgram_det.json')        # déterminants genrés (un/une, ce/cette…)
+    OUT_WORDS = os.path.join(SORTIE, 'cgram_words.json')     # reconnaissance : toutes les formes (ne pas flaguer un vrai mot)
+    OUT_GUARD = os.path.join(SORTIE, 'cgram_guard.json')     # garde-fous FP natifs (homophones / faible prévalence)
+    OUT_DET   = os.path.join(SORTIE, 'cgram_det.json')        # déterminants genrés (un/une, ce/cette…)
     words_sorted = sorted(allwords)
     json.dump(words_sorted, open(OUT_WORDS, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[words] INVENTAIRE COMPLET : {len(words_sorted)} formes (toutes catégories/fréquences) → {OUT_WORDS}")
