@@ -290,7 +290,9 @@
 "Il aime séte maison.",
 "Ces jen sont drôles.",
 "Je vais dormir tôt.",
-"J'irai voir la mer."
+"J'irai voir la mer.",
+"Je vais manger tôt.",
+"Tu vas partir tôt."
 ],
 "elide": [
 [
@@ -632,6 +634,16 @@
 "Il faut que le voisin voyiez la mer.",
 "voyiez",
 "voie"
+],
+[
+"J'allons dormir tôt.",
+"J'allons",
+"Je vais"
+],
+[
+"Tu allez partir tôt.",
+"allez",
+"vas"
 ]
 ],
 "palier": [
