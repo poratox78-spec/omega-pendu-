@@ -243,6 +243,7 @@ run "extrait Wiktionnaire du speller : TSV commité bien formé, sans doublon" p
 run "lot MÉTIER du speller (liste curée) : TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole)" python3 dictee/build_metier_lex.py --check
 run "dictionnaire livré == Lexique + 12 lots, mot pour mot (la recette, ligne 142)" python3 dictee/lots_dictionnaire.py --check
 run "constructeurs de tables indépendants de l'ordre des lignes de Lexique et du hasard (ligne 143)" python3 dictee/ordre_probe.py
+run "tables de grammaire : l'héritage de la conjugaison est appliqué (la recette, ligne 144)" python3 dictee/tables_grammaire.py --check
 run "paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise)" python3 build_lexiques.py --check
 
 echo "── LIVRAISON ──"
