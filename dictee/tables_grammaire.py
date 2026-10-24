@@ -36,6 +36,8 @@ dette nommée : chaque case qui en sort doit le faire par une règle mesurée (a
   python dictee/tables_grammaire.py --verifier       # rejoue les 10 étapes en place, compare au commité, restaure (sources locales)
   python dictee/tables_grammaire.py --reconstruire   # les 10 étapes puis la livraison (écrit)
   python dictee/tables_grammaire.py --heritage       # recalcule conj_heritage.json : la table livrée moins ce que la recette redonne
+  python dictee/tables_grammaire.py --classer        # la dette confrontée à Morphalou (livré / recette : confirmé, contredit, inconnu)
+  python dictee/tables_grammaire.py --adopter        # retire de l'héritage les cases où la recette a raison selon Morphalou
 """
 import io, json, os, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
@@ -205,6 +207,95 @@ def heritage():
     return 0
 
 
+def _morphalou():
+    u"""Morphalou 3.1 : (lemme désaccentué, temps, personne+nombre) → formes du verbe."""
+    import collections, csv, unicodedata
+    dea = lambda s: ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+    MT = {('indicative', 'present'): 'ind:pre', ('indicative', 'imperfect'): 'ind:imp', ('indicative', 'future'): 'ind:fut',
+          ('indicative', 'simplePast'): 'ind:pas', ('conditional', 'present'): 'cnd:pre', ('subjunctive', 'present'): 'sub:pre',
+          ('subjunctive', 'imperfect'): 'sub:imp', ('imperative', 'present'): 'imp:pre'}
+    P, N = {'firstPerson': '1', 'secondPerson': '2', 'thirdPerson': '3'}, {'singular': 's', 'plural': 'p'}
+    cases = collections.defaultdict(set)
+    with io.open(SOURCES[0], encoding='utf-8', newline='') as f:
+        for _ in range(16): f.readline()
+        lem = cat = None
+        for row in csv.reader(f, delimiter=';'):
+            if len(row) < 16: continue
+            if row[0]: lem, cat = dea(row[0].lower()), row[2]
+            if cat != 'Verbe': continue
+            mt, p, n = MT.get((row[12], row[14])), P.get(row[15]), N.get(row[11])
+            if mt and p and n: cases[(lem, mt, p + n)].add(row[9].lower())
+    return cases
+
+
+def _paires():
+    u"""Chaque case où la table livrée et la recette (9 étapes) diffèrent : (table, lemme, temps, case, livré, recette). Restaure."""
+    vieux = {fn: _cj(conj_io.charger(os.path.join(HERE, fn)), fn) for fn in CONJ}
+    out = []
+    try:
+        _etapes()
+        for fn in CONJ:
+            a, b = vieux[fn], _cj(conj_io.charger(os.path.join(HERE, fn)), fn)
+            for lem in sorted(set(a['c']) | set(b['c'])):
+                for mt in sorted(set(a['c'].get(lem, {})) | set(b['c'].get(lem, {}))):
+                    x, y = a['c'].get(lem, {}).get(mt) or {}, b['c'].get(lem, {}).get(mt) or {}
+                    out += [(fn, lem, mt, s, x.get(s), y.get(s)) for s in sorted(set(x) | set(y)) if x.get(s) != y.get(s)]
+    finally:
+        _git('checkout', '--', *[os.path.join('dictee', t) for t in TABLES])
+    return out
+
+
+def _juge(M, lem, mt, s, v):
+    if v is None: return '—'
+    m = M.get((lem, mt, s))
+    return 'M' if m and v.lower() in m else ('?' if not m else '✗')
+
+
+def classer():
+    u"""L'héritage confronté à Morphalou : pour chaque case, la forme livrée et celle de la recette sont-elles confirmées (M), contredites
+    (✗ : Morphalou en donne une autre), inconnues (?) ou absentes (—) ? L'instrument de la dette (ligne 146)."""
+    import collections
+    manque = _sources()
+    if manque: print('✗ sources absentes : %s' % ', '.join(manque)); return 1
+    if not _propres(): print('✗ des tables diffèrent de git HEAD : commiter ou restaurer avant de classer'); return 1
+    M = _morphalou(); k = collections.Counter(); ex = collections.defaultdict(list)
+    for fn, lem, mt, s, x, y in _paires():
+        if fn != 'cgram_hf.json': continue
+        t = 'livré %s / recette %s' % (_juge(M, lem, mt, s, x), _juge(M, lem, mt, s, y)); k[t] += 1
+        if len(ex[t]) < 3: ex[t].append('%s %s %s : %s / %s' % (lem, mt, s, x, y))
+    for t, v in sorted(k.items(), key=lambda kv: -kv[1]): print('%5d  %-26s ex. %s' % (v, t, ' · '.join(ex[t])))
+    print('M confirmée par Morphalou · ✗ Morphalou en donne une autre · ? case inconnue de Morphalou · — absente')
+    return 0
+
+
+def adopter():
+    u"""Une case sort de l'héritage quand la recette donne une forme CONFIRMÉE par Morphalou et que la table livrée n'en a pas ou en a
+    une que Morphalou contredit : l'entrée de l'héritage est retirée (case, et lectures des formes en jeu) — la recette l'emporte.
+    Ensuite : --reconstruire, puis --heritage (les tables changent, l'héritage se recalcule sur elles)."""
+    import unicodedata
+    dea = lambda s: ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+    manque = _sources()
+    if manque: print('✗ sources absentes : %s' % ', '.join(manque)); return 1
+    if not _propres(): print('✗ des tables diffèrent de git HEAD : commiter ou restaurer d\'abord'); return 1
+    M = _morphalou(); h = json.load(io.open(HERITAGE, encoding='utf-8')); n = {fn: 0 for fn in CONJ}
+    livre_f = {fn: _cj(conj_io.charger(os.path.join(HERE, fn)), fn)['f'] for fn in CONJ}
+    for fn, lem, mt, s, x, y in _paires():
+        if _juge(M, lem, mt, s, y) != 'M' or _juge(M, lem, mt, s, x) not in ('—', '✗'): continue
+        # pas d'ambiguïté NOUVELLE : une forme que la table livrée lit déjà à un autre verbe reste hors de ce verbe-ci (« vissions » : le
+        # subjonctif imparfait de voir ; l'ajouter à visser faisait basculer 6 cas de couverture, mesuré le 24/10)
+        if any(r.split(';')[0] != lem for r in (livre_f[fn].get(dea(y.lower())) or '').split('|') if r): continue
+        sl = h[fn]['c'].get(lem, {}).get(mt)
+        if isinstance(sl, dict) and s in sl:
+            del sl[s]; n[fn] += 1
+            if not sl: del h[fn]['c'][lem][mt]
+            if not h[fn]['c'][lem]: del h[fn]['c'][lem]
+        for v in (x, y):
+            if v: h[fn]['f'].pop(dea(v.lower()), None)
+    io.open(HERITAGE, 'w', encoding='utf-8', newline='').write(json.dumps(h, ensure_ascii=False, sort_keys=True, indent=0))
+    print('✓ adopté (retiré de l\'héritage) : %s' % ', '.join('%s %d case(s)' % kv for kv in n.items()))
+    return 0
+
+
 def reconstruire():
     manque = _sources()
     if manque: print('✗ sources absentes : %s' % ', '.join(manque)); return 1
@@ -222,4 +313,4 @@ if __name__ == '__main__':
     if hasattr(sys.stdout, 'reconfigure'): sys.stdout.reconfigure(encoding='utf-8')
     a = sys.argv[1:]
     sys.exit(check() if '--check' in a else verifier() if '--verifier' in a else reconstruire() if '--reconstruire' in a else
-             heritage() if '--heritage' in a else (print(__doc__) or 0))
+             heritage() if '--heritage' in a else classer() if '--classer' in a else adopter() if '--adopter' in a else (print(__doc__) or 0))
