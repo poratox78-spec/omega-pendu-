@@ -5,7 +5,7 @@
 # cgram_adj). Les adjectifs (variables ET épicènes) viennent du tag POS 'A' du speller-lex embarqué dans l'app.
 # Source unique pour le probe Python ET l'app (parité). Données dérivées Lexique 4 → CC BY-SA 4.0.
 #   python3 dictee/build_gender_relaxed.py
-import os, re, json, base64, gzip, unicodedata
+import os, re, json, base64, gzip, sys, unicodedata
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'app', 'omega-pendu.html')
@@ -33,6 +33,10 @@ def adjectives_from_speller():
 
 
 def main():
+    if '--force' not in sys.argv:                 # ⭐ ligne 146 (25/10) : FIGÉE — voir l'en-tête de dictee/tables_grammaire.py
+        print("✗ table FIGÉE : relancé sur le dictionnaire d'aujourd'hui, ce script retire 941 noms (police, fromage, langue…) et "
+              "« le police » n'est plus corrigé (ligne 146). --force pour l'écrire quand même (mesure seulement).")
+        return 1
     if not (os.path.exists(GENDER) and os.path.exists(APP)):
         print("cgram_gender.json ou app introuvable"); return 1
     ADJ = adjectives_from_speller()
