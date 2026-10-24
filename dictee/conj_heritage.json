@@ -74,14 +74,6 @@
 "3s": "aigue"
 }
 },
-"alentir": {
-"ind:pas": {
-"3s": "alentit"
-},
-"ind:pre": {
-"3s": "alentit"
-}
-},
 "alleger": {
 "ind:fut": {
 "1p": "allégerons"
@@ -105,11 +97,6 @@
 "aouter": {
 "ind:pas": {
 "3s": "aoûta"
-}
-},
-"appartenir": {
-"ind:pas": {
-"3s": "appartint"
 }
 },
 "ardre": {
@@ -225,14 +212,6 @@
 "2s": "bâtes"
 }
 },
-"baudir": {
-"ind:pas": {
-"3s": "baudit"
-},
-"ind:pre": {
-"3s": "baudit"
-}
-},
 "bayer": {
 "cnd:pre": {
 "1p": "bayerions",
@@ -294,22 +273,6 @@
 "3s": "bombe"
 }
 },
-"bonir": {
-"ind:pas": {
-"3s": "bonit"
-},
-"ind:pre": {
-"3s": "bonit"
-}
-},
-"bonnir": {
-"ind:pas": {
-"3s": "bonnit"
-},
-"ind:pre": {
-"3s": "bonnit"
-}
-},
 "bouiller": {
 "ind:imp": null,
 "ind:pre": {
@@ -341,14 +304,6 @@
 "sub:pre": {
 "1s": "brouette",
 "3s": "brouette"
-}
-},
-"brouir": {
-"ind:pas": {
-"3s": "brouit"
-},
-"ind:pre": {
-"3s": "brouit"
 }
 },
 "bruir": {
@@ -406,14 +361,6 @@
 },
 "camber": {
 "ind:pas": null
-},
-"candir": {
-"ind:pas": {
-"3s": "candit"
-},
-"ind:pre": {
-"3s": "candit"
-}
 },
 "canner": {
 "sub:pre": {
@@ -532,14 +479,6 @@
 "3s": "cheville"
 }
 },
-"chevir": {
-"ind:pas": {
-"3s": "chevit"
-},
-"ind:pre": {
-"3s": "chevit"
-}
-},
 "choir": {
 "cnd:pre": {
 "2p": "cherriez",
@@ -596,11 +535,6 @@
 "1s": "collette"
 }
 },
-"complaire": {
-"ind:pas": {
-"3s": "complut"
-}
-},
 "compresser": {
 "sub:pre": {
 "1p": "compressions"
@@ -609,11 +543,6 @@
 "contracter": {
 "sub:pre": {
 "1p": "contractions"
-}
-},
-"contrefaire": {
-"ind:pas": {
-"3s": "contrefit"
 }
 },
 "coordonner": {
@@ -633,11 +562,6 @@
 "3s": "corde"
 }
 },
-"correspondre": {
-"ind:pas": {
-"3s": "correspondit"
-}
-},
 "cosmetiquer": {
 "sub:pre": {
 "1s": "cosmétique",
@@ -654,14 +578,6 @@
 "sub:pre": {
 "1s": "cote",
 "3s": "cote"
-}
-},
-"cotir": {
-"ind:pas": {
-"3s": "cotit"
-},
-"ind:pre": {
-"3s": "cotit"
 }
 },
 "couder": {
@@ -691,11 +607,6 @@
 "sub:pre": {
 "1s": "crème",
 "3s": "crème"
-}
-},
-"croire": {
-"sub:imp": {
-"2s": "crusses"
 }
 },
 "crouter": {
@@ -838,11 +749,6 @@
 "ind:imp": null,
 "sub:pre": null
 },
-"dependre": {
-"ind:pas": {
-"3s": "dépendit"
-}
-},
 "depersonnaliser": {
 "sub:pre": {
 "2s": "dépersonnalises"
@@ -862,11 +768,6 @@
 },
 "ind:fut": {
 "1s": "dépoussiérerai"
-}
-},
-"deprendre": {
-"ind:pas": {
-"3s": "déprit"
 }
 },
 "deputer": {
@@ -934,11 +835,6 @@
 "3s": "duvète"
 }
 },
-"ebattre": {
-"ind:pas": {
-"3s": "ébattit"
-}
-},
 "ebrecher": {
 "ind:fut": {
 "1s": "ébrécherai"
@@ -948,11 +844,6 @@
 "sub:pre": {
 "1s": "écharpe",
 "3s": "écharpe"
-}
-},
-"econduire": {
-"ind:pas": {
-"3s": "éconduisit"
 }
 },
 "effrayer": {
@@ -1057,11 +948,6 @@
 "sub:pre": {
 "2s": "épincèles",
 "3s": "épincèle"
-}
-},
-"equivaloir": {
-"ind:pas": {
-"3s": "équivalut"
 }
 },
 "erayer": {
@@ -1181,14 +1067,6 @@
 "3s": "fenêtre"
 }
 },
-"flapir": {
-"ind:pas": {
-"3s": "flapit"
-},
-"ind:pre": {
-"3s": "flapit"
-}
-},
 "flecher": {
 "sub:pre": {
 "1s": "flèche",
@@ -1218,11 +1096,6 @@
 "formater": {
 "sub:pre": {
 "2s": null
-}
-},
-"foutre": {
-"ind:pas": {
-"3s": "foutit"
 }
 },
 "frayer": {
@@ -1534,11 +1407,6 @@
 "3s": null
 }
 },
-"luire": {
-"ind:pas": {
-"3s": "luisit"
-}
-},
 "luter": {
 "sub:pre": {
 "2s": "lutes"
@@ -1601,11 +1469,6 @@
 "3s": "mazoute"
 }
 },
-"meprendre": {
-"ind:pas": {
-"3s": "méprit"
-}
-},
 "mineraliser": {
 "sub:pre": {
 "2s": "minéralises"
@@ -1615,14 +1478,6 @@
 "sub:pre": {
 "1s": "minute",
 "3s": "minute"
-}
-},
-"moitir": {
-"ind:pas": {
-"3s": "moitit"
-},
-"ind:pre": {
-"3s": "moitit"
 }
 },
 "monder": {
@@ -1653,11 +1508,6 @@
 "2s": "mouches"
 }
 },
-"moudre": {
-"ind:pas": {
-"3s": "moulut"
-}
-},
 "mouler": {
 "ind:imp": {
 "1p": "moulions",
@@ -1682,14 +1532,6 @@
 "sub:pre": {
 "1s": "musique",
 "3s": "musique"
-}
-},
-"neantir": {
-"ind:pas": {
-"3s": "néantit"
-},
-"ind:pre": {
-"3s": "néantit"
 }
 },
 "necessiter": {
@@ -1800,11 +1642,6 @@
 "3s": "paque"
 }
 },
-"parfaire": {
-"ind:pas": {
-"3s": "parfit"
-}
-},
 "pauser": {
 "sub:pre": {
 "1s": "pause",
@@ -1901,11 +1738,6 @@
 "3s": "poche"
 }
 },
-"poindre": {
-"ind:pas": {
-"3s": "poignit"
-}
-},
 "poisser": {
 "sub:pre": {
 "1s": "poisse",
@@ -1984,19 +1816,9 @@
 "2s": "prétextes"
 }
 },
-"prevoir": {
-"ind:pas": {
-"3s": "prévit"
-}
-},
 "prosperer": {
 "ind:fut": {
 "1s": "prospérerai"
-}
-},
-"provenir": {
-"ind:pas": {
-"3s": "provint"
 }
 },
 "pyramider": {
@@ -2018,11 +1840,6 @@
 "ramifier": {
 "sub:pre": {
 "2s": "ramifies"
-}
-},
-"rapprendre": {
-"ind:pas": {
-"3s": "rapprit"
 }
 },
 "rasseoir": {
@@ -2122,11 +1939,6 @@
 "3s": "redécore"
 }
 },
-"redevoir": {
-"ind:pas": {
-"3s": "redut"
-}
-},
 "referer": {
 "ind:pas": {
 "3s": null
@@ -2140,22 +1952,12 @@
 "ind:imp": null,
 "sub:pre": null
 },
-"refondre": {
-"ind:pas": {
-"3s": "refondit"
-}
-},
 "reformer": {
 "ind:fut": {
 "3p": "réformeront"
 },
 "ind:pas": {
 "2p": null
-}
-},
-"refuir": {
-"ind:pre": {
-"3s": "refuit"
 }
 },
 "regayer": {
@@ -2244,19 +2046,6 @@
 "2p": null
 }
 },
-"rependre": {
-"ind:pas": {
-"3s": "rependit"
-}
-},
-"repolir": {
-"ind:pas": {
-"3s": "repolit"
-},
-"ind:pre": {
-"3s": "repolit"
-}
-},
 "repouvoir": {
 "ind:pas": {
 "1p": "repûmes"
@@ -2276,11 +2065,6 @@
 "sub:pre": {
 "1s": "requête",
 "3s": "requête"
-}
-},
-"resavoir": {
-"ind:pas": {
-"3s": "resut"
 }
 },
 "resceller": {
@@ -2303,11 +2087,6 @@
 "ressemeler": {
 "sub:pre": {
 "1s": "ressemelle"
-}
-},
-"retendre": {
-"ind:pas": {
-"3s": "retendit"
 }
 },
 "reverer": {
@@ -2362,25 +2141,9 @@
 "3p": "rodent"
 }
 },
-"rondir": {
-"ind:pas": {
-"3s": "rondit"
-},
-"ind:pre": {
-"3s": "rondit"
-}
-},
 "roser": {
 "sub:pre": {
 "1s": "rose"
-}
-},
-"rouir": {
-"ind:pas": {
-"3s": "rouit"
-},
-"ind:pre": {
-"3s": "rouit"
 }
 },
 "roulotter": {
@@ -2488,11 +2251,6 @@
 "3s": "surface"
 }
 },
-"surfaire": {
-"ind:pas": {
-"3s": "surfit"
-}
-},
 "surproteger": {
 "sub:pre": {
 "2s": "surprotèges"
@@ -2552,14 +2310,6 @@
 "sub:pre": {
 "1s": "terre",
 "3s": "terre"
-}
-},
-"terrir": {
-"ind:pas": {
-"3s": "territ"
-},
-"ind:pre": {
-"3s": "territ"
 }
 },
 "teter": {
@@ -2877,7 +2627,6 @@
 "blaterions": "blaterer;ind:imp;1;p|blaterer;sub:pre;1;p",
 "boite": "boiter;ind:pre;1;s|boiter;ind:pre;3;s|boiter;sub:pre;3;s|boiter;sub:pre;1;s",
 "bombe": "bomber;ind:pre;1;s|bomber;ind:pre;3;s|bomber;sub:pre;3;s|bomber;sub:pre;1;s",
-"bonit": "bonir;ind:pas;3;s|bonir;ind:pre;3;s",
 "bonnit": "bonnir;sub:imp;3;s|bonnir;ind:pas;3;s|bonnir;ind:pre;3;s",
 "bougiez": "bouger;ind:imp;2;p|bouger;sub:pre;2;p",
 "bouilles": "bouillir;sub:pre;2;s",
@@ -3204,7 +2953,6 @@
 "dribliez": "dribler;ind:imp;2;p|dribler;sub:pre;2;p",
 "driblions": "dribler;ind:imp;1;p|dribler;sub:pre;1;p",
 "duvette": null,
-"ebattit": "ebattre;ind:pas;3;s",
 "ebouillent": "ebouillir;ind:pre;3;p|ebouillir;sub:pre;3;p",
 "ebrecherai": "ebrecher;ind:fut;1;s",
 "ebrechiez": "ebrecher;ind:imp;2;p|ebrecher;sub:pre;2;p",
@@ -3364,7 +3112,6 @@
 "figions": "figer;ind:imp;1;p|figer;sub:pre;1;p",
 "flamboyiez": "flamboyer;ind:imp;2;p|flamboyer;sub:pre;2;p",
 "flamboyions": "flamboyer;ind:imp;1;p|flamboyer;sub:pre;1;p",
-"flapit": "flapir;ind:pas;3;s|flapir;ind:pre;3;s",
 "fleche": "flecher;ind:pre;1;s|flecher;ind:pre;3;s|flecher;sub:pre;3;s|flecher;sub:pre;1;s",
 "flechiez": "flecher;ind:imp;2;p|flecher;sub:pre;2;p",
 "flechions": "flecher;ind:imp;1;p|flecher;sub:pre;1;p",
@@ -3379,7 +3126,6 @@
 "fourragiez": "fourrager;ind:imp;2;p|fourrager;sub:pre;2;p",
 "fourragions": "fourrager;ind:imp;1;p|fourrager;sub:pre;1;p",
 "fourvoyiez": "fourvoyer;ind:imp;2;p|fourvoyer;sub:pre;2;p",
-"foutit": "foutre;sub:imp;3;s|foutre;ind:pas;3;s",
 "fraieront": null,
 "frangions": "franger;ind:imp;1;p|franger;sub:pre;1;p",
 "frayeraient": "frayer;cnd:pre;3;p",
@@ -3564,7 +3310,6 @@
 "mejugiez": "mejuger;ind:imp;2;p|mejuger;sub:pre;2;p",
 "mejugions": "mejuger;ind:imp;1;p|mejuger;sub:pre;1;p",
 "menagions": "menager;ind:imp;1;p|menager;sub:pre;1;p",
-"meprit": "meprendre;ind:pas;3;s",
 "merdoyiez": "merdoyer;ind:imp;2;p|merdoyer;sub:pre;2;p",
 "merdoyions": "merdoyer;ind:imp;1;p|merdoyer;sub:pre;1;p",
 "metastasiez": "metastaser;ind:imp;2;p|metastaser;sub:pre;2;p",
@@ -3656,7 +3401,6 @@
 "paques": "paquer;ind:pre;2;s|paquer;sub:pre;2;s",
 "parametriez": "parametrer;ind:imp;2;p|parametrer;sub:pre;2;p",
 "parametrions": "parametrer;ind:imp;1;p|parametrer;sub:pre;1;p",
-"parfit": "parfaire;ind:pas;3;s",
 "parvins": "parvenir;ind:pas;1;s|parvenir;ind:pas;2;s",
 "pause": "pauser;ind:pre;1;s|pauser;ind:pre;3;s|pauser;sub:pre;3;s|pauser;sub:pre;1;s",
 "peigniez": "peigner;ind:imp;2;p|peindre;ind:imp;2;p|peindre;sub:pre;2;p",
@@ -3692,7 +3436,6 @@
 "plussent": "pleuvoir;sub:imp;3;p",
 "plut": "pleuvoir;ind:pas;3;s|plaire;ind:pas;3;s",
 "poche": "pocher;ind:pre;1;s|pocher;ind:pre;3;s|pocher;sub:pre;3;s|pocher;sub:pre;1;s",
-"poignit": "poindre;ind:pas;3;s",
 "poisse": "poisser;ind:pre;1;s|poisser;ind:pre;3;s|poisser;sub:pre;3;s|poisser;sub:pre;1;s",
 "police": "policer;ind:pre;1;s|policer;ind:pre;3;s|policer;sub:pre;3;s|policer;sub:pre;1;s",
 "policions": "policer;ind:imp;1;p|policer;sub:pre;1;p",
@@ -3769,7 +3512,6 @@
 "rancions": "rancer;ind:imp;1;p|rancer;sub:pre;1;p",
 "rapieciez": "rapiecer;ind:imp;2;p|rapiecer;sub:pre;2;p",
 "rapiecions": "rapiecer;ind:imp;1;p|rapiecer;sub:pre;1;p",
-"rapprit": "rapprendre;ind:pas;3;s",
 "rassereniez": "rasserener;ind:imp;2;p|rasserener;sub:pre;2;p",
 "rasserenions": "rasserener;ind:imp;1;p|rasserener;sub:pre;1;p",
 "rasseyait": "rassoir;ind:imp;3;s",
@@ -17176,14 +16918,6 @@
 "3s": "aigue"
 }
 },
-"alentir": {
-"ind:pas": {
-"3s": "alentit"
-},
-"ind:pre": {
-"3s": "alentit"
-}
-},
 "alleger": {
 "ind:fut": {
 "1p": "allégerons"
@@ -17207,11 +16941,6 @@
 "aouter": {
 "ind:pas": {
 "3s": "aoûta"
-}
-},
-"appartenir": {
-"ind:pas": {
-"3s": "appartint"
 }
 },
 "ardre": {
@@ -17348,14 +17077,6 @@
 "2s": "bâtes"
 }
 },
-"baudir": {
-"ind:pas": {
-"3s": "baudit"
-},
-"ind:pre": {
-"3s": "baudit"
-}
-},
 "bayer": {
 "cnd:pre": {
 "1p": "bayerions",
@@ -17417,22 +17138,6 @@
 "3s": "bombe"
 }
 },
-"bonir": {
-"ind:pas": {
-"3s": "bonit"
-},
-"ind:pre": {
-"3s": "bonit"
-}
-},
-"bonnir": {
-"ind:pas": {
-"3s": "bonnit"
-},
-"ind:pre": {
-"3s": "bonnit"
-}
-},
 "bouiller": {
 "ind:imp": null,
 "ind:pre": {
@@ -17491,14 +17196,6 @@
 "3s": "brouette"
 }
 },
-"brouir": {
-"ind:pas": {
-"3s": "brouit"
-},
-"ind:pre": {
-"3s": "brouit"
-}
-},
 "bruir": {
 "ind:imp": null,
 "sub:imp": null,
@@ -17554,14 +17251,6 @@
 },
 "camber": {
 "ind:pas": null
-},
-"candir": {
-"ind:pas": {
-"3s": "candit"
-},
-"ind:pre": {
-"3s": "candit"
-}
 },
 "canner": {
 "sub:pre": {
@@ -17680,14 +17369,6 @@
 "3s": "cheville"
 }
 },
-"chevir": {
-"ind:pas": {
-"3s": "chevit"
-},
-"ind:pre": {
-"3s": "chevit"
-}
-},
 "choir": {
 "cnd:pre": {
 "2p": "cherriez",
@@ -17744,11 +17425,6 @@
 "1s": "collette"
 }
 },
-"complaire": {
-"ind:pas": {
-"3s": "complut"
-}
-},
 "compresser": {
 "sub:pre": {
 "1p": "compressions"
@@ -17757,11 +17433,6 @@
 "contracter": {
 "sub:pre": {
 "1p": "contractions"
-}
-},
-"contrefaire": {
-"ind:pas": {
-"3s": "contrefit"
 }
 },
 "contreficher": {
@@ -17797,11 +17468,6 @@
 "3s": "corde"
 }
 },
-"correspondre": {
-"ind:pas": {
-"3s": "correspondit"
-}
-},
 "cosmetiquer": {
 "sub:pre": {
 "1s": "cosmétique",
@@ -17818,14 +17484,6 @@
 "sub:pre": {
 "1s": "cote",
 "3s": "cote"
-}
-},
-"cotir": {
-"ind:pas": {
-"3s": "cotit"
-},
-"ind:pre": {
-"3s": "cotit"
 }
 },
 "couder": {
@@ -17855,11 +17513,6 @@
 "sub:pre": {
 "1s": "crème",
 "3s": "crème"
-}
-},
-"croire": {
-"sub:imp": {
-"2s": "crusses"
 }
 },
 "crouter": {
@@ -18002,11 +17655,6 @@
 "ind:imp": null,
 "sub:pre": null
 },
-"dependre": {
-"ind:pas": {
-"3s": "dépendit"
-}
-},
 "depersonnaliser": {
 "sub:pre": {
 "2s": "dépersonnalises"
@@ -18026,11 +17674,6 @@
 },
 "ind:fut": {
 "1s": "dépoussiérerai"
-}
-},
-"deprendre": {
-"ind:pas": {
-"3s": "déprit"
 }
 },
 "deputer": {
@@ -18098,11 +17741,6 @@
 "3s": "duvète"
 }
 },
-"ebattre": {
-"ind:pas": {
-"3s": "ébattit"
-}
-},
 "ebrecher": {
 "ind:fut": {
 "1s": "ébrécherai"
@@ -18112,11 +17750,6 @@
 "sub:pre": {
 "1s": "écharpe",
 "3s": "écharpe"
-}
-},
-"econduire": {
-"ind:pas": {
-"3s": "éconduisit"
 }
 },
 "effrayer": {
@@ -18221,11 +17854,6 @@
 "sub:pre": {
 "2s": "épincèles",
 "3s": "épincèle"
-}
-},
-"equivaloir": {
-"ind:pas": {
-"3s": "équivalut"
 }
 },
 "erayer": {
@@ -18379,14 +18007,6 @@
 "2p": null
 }
 },
-"flapir": {
-"ind:pas": {
-"3s": "flapit"
-},
-"ind:pre": {
-"3s": "flapit"
-}
-},
 "flecher": {
 "sub:pre": {
 "1s": "flèche",
@@ -18416,11 +18036,6 @@
 "formater": {
 "sub:pre": {
 "2s": null
-}
-},
-"foutre": {
-"ind:pas": {
-"3s": "foutit"
 }
 },
 "frayer": {
@@ -18786,11 +18401,6 @@
 "3s": null
 }
 },
-"luire": {
-"ind:pas": {
-"3s": "luisit"
-}
-},
 "luter": {
 "sub:pre": {
 "2s": "lutes"
@@ -18853,11 +18463,6 @@
 "3s": "mazoute"
 }
 },
-"meprendre": {
-"ind:pas": {
-"3s": "méprit"
-}
-},
 "mineraliser": {
 "sub:pre": {
 "2s": "minéralises"
@@ -18867,14 +18472,6 @@
 "sub:pre": {
 "1s": "minute",
 "3s": "minute"
-}
-},
-"moitir": {
-"ind:pas": {
-"3s": "moitit"
-},
-"ind:pre": {
-"3s": "moitit"
 }
 },
 "monder": {
@@ -18905,11 +18502,6 @@
 "2s": "mouches"
 }
 },
-"moudre": {
-"ind:pas": {
-"3s": "moulut"
-}
-},
 "mouler": {
 "ind:imp": {
 "1p": "moulions",
@@ -18934,14 +18526,6 @@
 "sub:pre": {
 "1s": "musique",
 "3s": "musique"
-}
-},
-"neantir": {
-"ind:pas": {
-"3s": "néantit"
-},
-"ind:pre": {
-"3s": "néantit"
 }
 },
 "necessiter": {
@@ -19056,11 +18640,6 @@
 "1s": "paque",
 "2s": "paques",
 "3s": "paque"
-}
-},
-"parfaire": {
-"ind:pas": {
-"3s": "parfit"
 }
 },
 "pauser": {
@@ -19185,11 +18764,6 @@
 "3s": "poigne"
 }
 },
-"poindre": {
-"ind:pas": {
-"3s": "poignit"
-}
-},
 "poisser": {
 "sub:pre": {
 "1s": "poisse",
@@ -19268,19 +18842,9 @@
 "2s": "prétextes"
 }
 },
-"prevoir": {
-"ind:pas": {
-"3s": "prévit"
-}
-},
 "prosperer": {
 "ind:fut": {
 "1s": "prospérerai"
-}
-},
-"provenir": {
-"ind:pas": {
-"3s": "provint"
 }
 },
 "pyramider": {
@@ -19302,11 +18866,6 @@
 "ramifier": {
 "sub:pre": {
 "2s": "ramifies"
-}
-},
-"rapprendre": {
-"ind:pas": {
-"3s": "rapprit"
 }
 },
 "rasseoir": {
@@ -19406,11 +18965,6 @@
 "3s": "redécore"
 }
 },
-"redevoir": {
-"ind:pas": {
-"3s": "redut"
-}
-},
 "referer": {
 "ind:pas": {
 "3s": null
@@ -19424,22 +18978,12 @@
 "ind:imp": null,
 "sub:pre": null
 },
-"refondre": {
-"ind:pas": {
-"3s": "refondit"
-}
-},
 "reformer": {
 "ind:fut": {
 "3p": "réformeront"
 },
 "ind:pas": {
 "2p": null
-}
-},
-"refuir": {
-"ind:pre": {
-"3s": "refuit"
 }
 },
 "regayer": {
@@ -19528,19 +19072,6 @@
 "2p": null
 }
 },
-"rependre": {
-"ind:pas": {
-"3s": "rependit"
-}
-},
-"repolir": {
-"ind:pas": {
-"3s": "repolit"
-},
-"ind:pre": {
-"3s": "repolit"
-}
-},
 "repouvoir": {
 "ind:pas": {
 "1p": "repûmes"
@@ -19560,11 +19091,6 @@
 "sub:pre": {
 "1s": "requête",
 "3s": "requête"
-}
-},
-"resavoir": {
-"ind:pas": {
-"3s": "resut"
 }
 },
 "resceller": {
@@ -19587,11 +19113,6 @@
 "ressemeler": {
 "sub:pre": {
 "1s": "ressemelle"
-}
-},
-"retendre": {
-"ind:pas": {
-"3s": "retendit"
 }
 },
 "reverer": {
@@ -19646,25 +19167,9 @@
 "3p": "rodent"
 }
 },
-"rondir": {
-"ind:pas": {
-"3s": "rondit"
-},
-"ind:pre": {
-"3s": "rondit"
-}
-},
 "roser": {
 "sub:pre": {
 "1s": "rose"
-}
-},
-"rouir": {
-"ind:pas": {
-"3s": "rouit"
-},
-"ind:pre": {
-"3s": "rouit"
 }
 },
 "roulotter": {
@@ -19784,11 +19289,6 @@
 "3s": "surface"
 }
 },
-"surfaire": {
-"ind:pas": {
-"3s": "surfit"
-}
-},
 "surproteger": {
 "sub:pre": {
 "2s": "surprotèges"
@@ -19848,14 +19348,6 @@
 "sub:pre": {
 "1s": "terre",
 "3s": "terre"
-}
-},
-"terrir": {
-"ind:pas": {
-"3s": "territ"
-},
-"ind:pre": {
-"3s": "territ"
 }
 },
 "teter": {
@@ -20180,7 +19672,6 @@
 "blaterions": "blaterer;ind:imp;1;p|blaterer;sub:pre;1;p",
 "boite": "boiter;ind:pre;1;s|boiter;ind:pre;3;s|boiter;sub:pre;3;s|boiter;sub:pre;1;s",
 "bombe": "bomber;ind:pre;1;s|bomber;ind:pre;3;s|bomber;sub:pre;3;s|bomber;sub:pre;1;s",
-"bonit": "bonir;ind:pas;3;s|bonir;ind:pre;3;s",
 "bonnit": "bonnir;sub:imp;3;s|bonnir;ind:pas;3;s|bonnir;ind:pre;3;s",
 "bougiez": "bouger;ind:imp;2;p|bouger;sub:pre;2;p",
 "bouilles": "bouillir;sub:pre;2;s",
@@ -20544,7 +20035,6 @@
 "dribliez": "dribler;ind:imp;2;p|dribler;sub:pre;2;p",
 "driblions": "dribler;ind:imp;1;p|dribler;sub:pre;1;p",
 "duvette": null,
-"ebattit": "ebattre;ind:pas;3;s",
 "ebouillent": "ebouillir;ind:pre;3;p|ebouillir;sub:pre;3;p",
 "ebrecherai": "ebrecher;ind:fut;1;s",
 "ebrechiez": "ebrecher;ind:imp;2;p|ebrecher;sub:pre;2;p",
@@ -20712,7 +20202,6 @@
 "figions": "figer;ind:imp;1;p|figer;sub:pre;1;p",
 "flamboyiez": "flamboyer;ind:imp;2;p|flamboyer;sub:pre;2;p",
 "flamboyions": "flamboyer;ind:imp;1;p|flamboyer;sub:pre;1;p",
-"flapit": "flapir;ind:pas;3;s|flapir;ind:pre;3;s",
 "fleche": "flecher;ind:pre;1;s|flecher;ind:pre;3;s|flecher;sub:pre;3;s|flecher;sub:pre;1;s",
 "flechiez": "flecher;ind:imp;2;p|flecher;sub:pre;2;p",
 "flechions": "flecher;ind:imp;1;p|flecher;sub:pre;1;p",
@@ -20727,7 +20216,6 @@
 "fourragiez": "fourrager;ind:imp;2;p|fourrager;sub:pre;2;p",
 "fourragions": "fourrager;ind:imp;1;p|fourrager;sub:pre;1;p",
 "fourvoyiez": "fourvoyer;ind:imp;2;p|fourvoyer;sub:pre;2;p",
-"foutit": "foutre;sub:imp;3;s|foutre;ind:pas;3;s",
 "fraieront": null,
 "frangions": "franger;ind:imp;1;p|franger;sub:pre;1;p",
 "frayeraient": "frayer;cnd:pre;3;p",
@@ -20926,7 +20414,6 @@
 "mejugiez": "mejuger;ind:imp;2;p|mejuger;sub:pre;2;p",
 "mejugions": "mejuger;ind:imp;1;p|mejuger;sub:pre;1;p",
 "menagions": "menager;ind:imp;1;p|menager;sub:pre;1;p",
-"meprit": "meprendre;ind:pas;3;s",
 "merdoyiez": "merdoyer;ind:imp;2;p|merdoyer;sub:pre;2;p",
 "merdoyions": "merdoyer;ind:imp;1;p|merdoyer;sub:pre;1;p",
 "metastasiez": "metastaser;ind:imp;2;p|metastaser;sub:pre;2;p",
@@ -21019,7 +20506,6 @@
 "paques": "paquer;ind:pre;2;s|paquer;sub:pre;2;s",
 "parametriez": "parametrer;ind:imp;2;p|parametrer;sub:pre;2;p",
 "parametrions": "parametrer;ind:imp;1;p|parametrer;sub:pre;1;p",
-"parfit": "parfaire;ind:pas;3;s",
 "parvins": "parvenir;ind:pas;1;s|parvenir;ind:pas;2;s",
 "pause": "pauser;ind:pre;1;s|pauser;ind:pre;3;s|pauser;sub:pre;3;s|pauser;sub:pre;1;s",
 "peigniez": "peigner;ind:imp;2;p|peindre;ind:imp;2;p|peindre;sub:pre;2;p",
@@ -21064,7 +20550,6 @@
 "poignez": "poindre;ind:pre;2;p|poigner;ind:pre;2;p",
 "poigniez": "poigner;ind:imp;2;p|poigner;sub:pre;2;p|poindre;ind:imp;2;p|poindre;sub:pre;2;p",
 "poignions": "poigner;ind:imp;1;p|poigner;sub:pre;1;p|poindre;ind:imp;1;p|poindre;sub:pre;1;p",
-"poignit": "poindre;ind:pas;3;s",
 "poignons": "poindre;ind:pre;1;p|poigner;ind:pre;1;p",
 "poisse": "poisser;ind:pre;1;s|poisser;ind:pre;3;s|poisser;sub:pre;3;s|poisser;sub:pre;1;s",
 "police": "policer;ind:pre;1;s|policer;ind:pre;3;s|policer;sub:pre;3;s|policer;sub:pre;1;s",
@@ -21142,7 +20627,6 @@
 "rancions": "rancer;ind:imp;1;p|rancer;sub:pre;1;p",
 "rapieciez": "rapiecer;ind:imp;2;p|rapiecer;sub:pre;2;p",
 "rapiecions": "rapiecer;ind:imp;1;p|rapiecer;sub:pre;1;p",
-"rapprit": "rapprendre;ind:pas;3;s",
 "rassereniez": "rasserener;ind:imp;2;p|rasserener;sub:pre;2;p",
 "rasserenions": "rasserener;ind:imp;1;p|rasserener;sub:pre;1;p",
 "rasseyait": "rassoir;ind:imp;3;s",

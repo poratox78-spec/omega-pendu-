@@ -32,9 +32,11 @@ OUT = os.path.join(HERE, 'ver_justes_lex_fr.tsv.gz')
 sys.path.insert(0, HERE); import lots_dictionnaire
 LOTS = lots_dictionnaire.avant('ver_justes_lex_fr.tsv.gz')   # base : Lexique + les lots nés AVANT celui-ci, ni lui ni ceux d'après (ligne 142)
 TAGS_ECARTES = {'misspelling', 'alt-of', 'nonstandard', 'erroneous', 'abbreviation', 'form-of'}   # rare / vieilli / archaïque = juste : pas écarté
-TEMOINS_OUI = ('avouions', 'écoutas', 'gâchai', 'dragua')
+TEMOINS_OUI = ('avouions', 'écoutas', 'gâchai', 'dragua', 'prévit', 'appartint', 'crusses')   # ⭐ ligne 148 : les trois derniers
 TEMOINS_NON = ('developpé', 'diplomé', 'débarasser')
 TEMOINS_NOM = ('intailles', 'ocelles')
+FINS = {('indicative', 'simplePast'), ('subjunctive', 'imperfect')}   # ⭐ ligne 148 : temps dont 1990 garde le circonflexe de terminaison
+FIN_CIRC = re.compile(r'(t|nt|mes|tes|nmes|ntes)$')   # ⭐ ligne 148 : ce qui suit î / û de terminaison (prévît, vînt, suivîmes, vîntes)
 CATS = {'Nom commun': 'NOM'}   # le NOM seul : une règle « verbe seul » tirait sur des noms ; l'adjectif ne change rien de mesuré
 
 
@@ -52,11 +54,21 @@ def ordinaire(r):
     return False
 
 
-def rectifiees(w):
-    """Les graphies traditionnelles d'une forme écrite à la mode de 1990 : è → é (« frèterai » / fréterai), i → î, u → û (« aouté » / aoûté)."""
+def rectifiees(w, fins=frozenset()):
+    """Les graphies traditionnelles d'une forme écrite à la mode de 1990 : è → é (« frèterai » / fréterai), i → î, u → û (« aouté » / aoûté).
+    ⭐ Ligne 148 (24/10/2026) : 1990 GARDE le circonflexe de TERMINAISON du passé simple et du subjonctif imparfait (« qu'il prévît »,
+    « nous vînmes ») — celui-là (forme de `fins`, accent juste avant -t, -nt, -mes, -tes) n'est la graphie traditionnelle de personne ;
+    celui du radical, si (« abîmai » / abimai)."""
     for i, ch in enumerate(w):
         for a, b in (('è', 'é'), ('i', 'î'), ('u', 'û')):
-            if ch == a: yield w[:i] + b + w[i + 1:]
+            if ch == a:
+                v = w[:i] + b + w[i + 1:]
+                if b != 'é' and v in fins and FIN_CIRC.match(w[i + 1:]): continue
+                yield v
+
+
+def sans_accent(w):
+    return ''.join(c for c in unicodedata.normalize('NFD', w) if unicodedata.category(c) != 'Mn')
 
 
 def ouvrir(p):
@@ -83,13 +95,16 @@ def generer():
             r = json.loads(l)
             if r.get('pos') == 'verb' and r.get('lang_code', 'fr') == 'fr' and ordinaire(r): wk.add(norm(r.get('word', '').lower()))
     ok = re.compile(r"^[a-zà-ÿ]+$")
-    rows, seen, lem, cat, lna, lgen, na, cand = [], set(), None, None, None, '', {}, []
+    rows, seen, lem, cat, lna, lgen, na, cand, fins, verbes_de = [], set(), None, None, None, '', {}, [], set(), {}
     with io.open(os.path.join(ROOT, 'data_local', 'morphalou', 'Morphalou3.1_CSV.csv'), encoding='utf-8', errors='replace') as fh:
         for l in fh:
             p = l.rstrip('\n').split(';')
             if len(p) < 18: continue
             if p[0].strip():
                 cat = p[2].strip(); lna = norm(p[0].strip().lower()); lem = lna if cat == 'Verbe' else None; lgen = p[5].strip().lower().strip('-')[:1]
+            if cat == 'Verbe':                                           # ⭐ ligne 148 : verbe(s) de chaque forme, formes à terminaison gardée
+                f_ = norm(p[9].strip().lower()); verbes_de.setdefault(f_, set()).add(sans_accent(lna))
+                if (p[12].strip(), p[14].strip()) in FINS: fins.add(f_)
             if cat in CATS:                                              # nom / adjectif : nature à compléter (voir plus bas)
                 w = norm(p[9].strip().lower())
                 if len(w) >= 3 and ok.match(w.replace('oe', 'o').replace('ae', 'a')) and len(p[17].split()) >= 2:
@@ -102,7 +117,12 @@ def generer():
             seen.add(w); nb = p[11].strip().lower()[:1]; cand.append((w, lem, nb if nb in ('s', 'p') else ''))
     tous, r90 = base | seen, 0
     for w, lem, nb in cand:                                          # graphie RECTIFIÉE de 1990 (« frèterais », « aouté ») : sa forme
-        if any(v in tous for v in rectifiees(w)): seen.discard(w); r90 += 1; continue   # traditionnelle existe — elle entre par le lot de la liste n° 109 (rect90)
+        # traditionnelle existe — elle entre par le lot de la liste n° 109 (rect90). ⭐ Ligne 148 : à condition que 1990 change vraiment
+        # cet accent (rectifiees) et que la forme traditionnelle soit du MÊME verbe, accents du lemme mis à part (abîmer / abimer ; mais
+        # « crûsses » est à croître, « crusses » à croire : 1990 garde l'accent qui les sépare). Sans ces deux réserves, « il prévit »,
+        # « il provint », « il appartint » passaient pour des graphies de 1990, étaient laissés au lot 1990… qui ne les prenait pas :
+        # 81 formes justes manquaient au lot (67 au dictionnaire), « Il prévit la tempête. » recevait un orange.
+        if any(v in tous and sans_accent(lem) in verbes_de.get(v, {sans_accent(lem)}) for v in rectifiees(w, fins)): seen.discard(w); r90 += 1; continue
         row = [''] * 37; row[0] = w; row[3] = lem; row[4] = 'VER'; row[5] = 'VER'; row[7] = nb; row[9] = '0'; row[10] = '0'; row[11] = '0'
         rows.append('\t'.join(row))
     nat = 0                                                         # nature NOM : formes du lot + verbes rares connus comme verbe seul
