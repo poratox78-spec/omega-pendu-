@@ -26,11 +26,23 @@ ligne 143 — adoptées le 24/10, 0 marque changée sur 28 772 textes réels) ; 
 
 FIGÉE : cgram_gender_relaxed.json (genre « relâché », build_gender_relaxed.py, 10/07) — ni la Lexique ni le dictionnaire de sa
 naissance ne la redonnent (±780 noms selon le seuil de fréquence) ; la recette la LIT (genre du moteur, étape 6), ne la réécrit pas.
+⭐ Ligne 146 (25/10) : la refaire serait une PERTE, mesurée. Relancé sur le dictionnaire d'aujourd'hui, son script retire 941 noms et
+n'en ajoute aucun : des lots plus récents ont donné la nature adjectif à des noms courants (police, fromage, langue, jambe), et « Il
+appelle le police. », « Elle mange la fromage. » ne seraient plus corrigés. Les 28 772 textes réels ne bougent pas (0 marque changée) :
+aucun ne contient ces fautes, le banc ne pouvait pas le voir. Exclure les seuls épicènes (genre « e » de Lexique) ou les adjectifs
+dominants ne la redonne pas non plus (+5 908 / +3 171 mots, des participes : abattu, abonné). Elle reste figée ; --check exige ses
+témoins (GR_TEMOINS) dans la table et dans l'asset que lit le produit, et build_gender_relaxed.py refuse d'écrire sans --force.
 
 L'HÉRITAGE. La conjugaison livrée a été complétée par des versions successives de complete_conj_morphalou, chacune sur l'état du
 dictionnaire de son jour ; la version actuelle ne redonne pas toutes ces cases (et en propose d'autres). conj_heritage.json écrit la
 différence, case par case et lecture par lecture : recette + héritage == table livrée. L'héritage n'est pas une vérité, c'est une
 dette nommée : chaque case qui en sort doit le faire par une règle mesurée (alors --heritage le recalcule).
+⭐ Ligne 146 (25/10) : la dette lue garde par garde. Confrontée à Morphalou (--classer) elle est juste à 99 % ; chacune de ses cases est
+une forme que la complétion d'aujourd'hui refuse, et la garde qui la refuse est connue (cgram_hf.json, 794 cases à valeur) : 359 formes
+lues presque toujours comme des noms (P(verbe) < 1 % : « acte » d'acter), 224 doubles graphies (aiguaye / aiguaie : la recette prend
+l'autre), 74 clés d'un mot non verbal plus fréquent, 67 formes que le dictionnaire ne note pas verbes (« aviendra »), 57 formes déjà
+lues à un verbe plus fréquent, 13 graphies que Morphalou ne confirme pas. Ce qui est sorti par une règle mesurée : 75 cases adoptées
+(#1045), les cases fausses de Lexique et 10 verbes mal nommés (#1046), les cases que le dictionnaire bloquait (#1047) — 4 963 → 4 571.
 
   python dictee/tables_grammaire.py --check          # garde (dev.sh + CI) : l'héritage est appliqué aux tables livrées
   python dictee/tables_grammaire.py --verifier       # rejoue les 10 étapes en place, compare au commité, restaure (sources locales)
@@ -58,6 +70,7 @@ LIVRAISON = ('dictee/build_gacc_js.py', 'dictee/inject_gacc.py', 'dictee/inject_
 TABLES = ('cgram_hf.json', 'cgram_conj.json', 'cgram_adj.json', 'cgram_gender.json', 'cgram_words.json', 'cgram_guard.json', 'cgram_det.json',
           'cgram_verbs.json', 'cgram_plural.json', 'cgram_noun_post.json', 'gender_acc.json', 'conj_morphalou.json')
 CONJ = ('cgram_conj.json', 'cgram_hf.json')
+GR_TEMOINS = {'police': 'f', 'fromage': 'm', 'langue': 'f', 'nuage': 'm'}   # ⭐ ligne 146 : noms que la table figée DOIT garder (voir l'en-tête)
 HERITAGE = os.path.join(HERE, 'conj_heritage.json')
 SOURCES = (os.path.join(ROOT, 'data_local', 'morphalou', 'Morphalou3.1_CSV.csv'), os.path.join(ROOT, 'data_local', 'fr', 'kaikki-fr.jsonl'),
            os.environ.get('LEFFF', 'C:/tmp/lefff/lefff-3.4.mlex'))
@@ -119,6 +132,13 @@ def check():
         print('✗ héritage de la conjugaison NON appliqué aux tables livrées : %d écart(s) (ex. %s) — une table reconstruite sans l\'étape 10 '
               '(python dictee/tables_grammaire.py --reconstruire), ou l\'héritage à recalculer (--heritage)' % (len(ko), ko[:3])); return 1
     print('✓ héritage de la conjugaison appliqué aux tables livrées (%d case(s) et lecture(s) que la recette seule ne redonne pas)' % n)
+    import gzip                                                           # ⭐ ligne 146 : le genre relâché FIGÉ, dans la table et dans l'asset
+    R = json.load(io.open(os.path.join(HERE, 'cgram_gender_relaxed.json'), encoding='utf-8'))
+    A = dict(l.rstrip('\n').split('\t')[:2] for l in gzip.open(os.path.join(ROOT, 'extension', 'assets', 'gender-relaxed.tsv.gz'), 'rt', encoding='utf-8') if '\t' in l)
+    perdus = [w for w, g in GR_TEMOINS.items() if R.get(w) != g or A.get(w) != ('1' if g == 'f' else '0')]
+    if perdus:
+        print('✗ genre relâché : témoin(s) %s perdu(s) — la table figée a été réécrite ; la refaire retire des noms courants (ligne 146)' % perdus); return 1
+    print('✓ genre relâché figé : %d témoins présents (table et asset embarqué)' % len(GR_TEMOINS))
     return 0
 
 
