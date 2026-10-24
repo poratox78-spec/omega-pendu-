@@ -1741,7 +1741,7 @@ function svReads(w){if(w.toLowerCase()==='debout')return[];   /* ⭐ 20/10/2026 
     _PS_DONE=true;
     for(var lem in CONJ_C){
       var d=CONJ_C[lem],imp=_ps1(d,'ind:imp','3s'),fut=_ps1(d,'ind:fut','3s'),pas=_ps1(d,'ind:pas','3s'),cand=null,r,r2,st,st3,b,m;
-      if(imp&&imp.slice(-6)==='issait'){r=imp.slice(0,-6);cand={'1p':r+'îmes','2p':r+'îtes','3p':r+'irent'};}   // 2e groupe : SEUL -issait l'identifie (venir/ouvrir finissent en -ir mais sont du 3e)
+      if(imp&&imp.slice(-6)==='issait'&&lem.slice(-2)!=='er'){   /* ⭐ 24/10/2026 (ligne 147) : un verbe en -er n'est jamais du 2e groupe — « vissait » finit aussi en -issait : visser recevait le passé simple de voir (vîmes, vîtes, virent), tisser « tirent », affaisser « affairent » ; le lexique les validait, ce sont de vrais mots */r=imp.slice(0,-6);cand={'1p':r+'îmes','2p':r+'îtes','3p':r+'irent'};}   // 2e groupe : SEUL -issait l'identifie (venir/ouvrir finissent en -ir mais sont du 3e)
       else if(lem.slice(-2)==='er'){   // 1er groupe RÉGULIER : radical de l'imparfait (il porte le e de « mangeait », la cédille de « commençait »), du futur pour -èrent
         r=lem.slice(0,-2);r2=(r.slice(-1)==='c')?r.slice(0,-1)+'ç':(r.slice(-1)==='g'?r+'e':r);
         st=(imp&&imp.slice(-3)==='ait')?imp.slice(0,-3):r2;st3=(fut&&fut.slice(-3)==='era')?fut.slice(0,-3):r;

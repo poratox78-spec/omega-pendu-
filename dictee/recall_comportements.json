@@ -292,7 +292,11 @@
 "Je vais dormir tôt.",
 "J'irai voir la mer.",
 "Je vais manger tôt.",
-"Tu vas partir tôt."
+"Tu vas partir tôt.",
+"Hier, nous vissâmes l'étagère.",
+"Ils vissèrent les planches.",
+"Elles tissèrent la toile.",
+"Les murs s'affaissèrent."
 ],
 "elide": [
 [
@@ -644,6 +648,21 @@
 "Tu allez partir tôt.",
 "allez",
 "vas"
+],
+[
+"Il vissèrent les planches.",
+"vissèrent",
+"vissa"
+],
+[
+"Nous vissèrent les planches.",
+"vissèrent",
+"vissâmes"
+],
+[
+"Il tissèrent la toile.",
+"tissèrent",
+"tissa"
 ]
 ],
 "palier": [

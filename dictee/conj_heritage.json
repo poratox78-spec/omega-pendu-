@@ -33,11 +33,6 @@
 "1s": "affaire"
 }
 },
-"affaisser": {
-"ind:pas": {
-"2p": "affaissâtes"
-}
-},
 "affaiter": {
 "ind:pas": {
 "3s": "affaîta"
@@ -405,9 +400,6 @@
 "sub:pre": null
 },
 "bruisser": {
-"ind:pas": {
-"2p": "bruissâtes"
-},
 "sub:pre": {
 "1s": "bruisse",
 "3s": "bruisse"
@@ -1000,11 +992,6 @@
 "sub:pre": {
 "1s": "devise",
 "3s": "devise"
-}
-},
-"devisser": {
-"ind:pas": {
-"3p": "dévissèrent"
 }
 },
 "differer": {
@@ -2027,12 +2014,6 @@
 "2s": "parfaites"
 }
 },
-"patisser": {
-"ind:pas": {
-"1p": "pâtissâmes",
-"2p": "pâtissâtes"
-}
-},
 "pauser": {
 "sub:pre": {
 "1s": "pause",
@@ -2877,11 +2858,6 @@
 },
 "sub:pre": null
 },
-"tapisser": {
-"ind:pas": {
-"2p": "tapissâtes"
-}
-},
 "tatillonner": {
 "ind:pas": {
 "3s": null
@@ -3140,8 +3116,6 @@
 "admirent": "admirer;ind:pre;3;p|admirer;sub:pre;3;p|admettre;ind:pas;3;p",
 "aereras": "aerer;ind:fut;2;s",
 "affaire": "affairer;ind:pre;1;s|affairer;ind:pre;3;s|affairer;sub:pre;3;s|affairer;sub:pre;1;s",
-"affaissates": "affaisser;ind:pas;2;p",
-"affaites": "affaiter;ind:pre;2;s|affaiter;sub:pre;2;s",
 "affligiez": "affliger;ind:imp;2;p|affliger;sub:pre;2;p",
 "affligions": "affliger;ind:imp;1;p|affliger;sub:pre;1;p",
 "affretiez": "affreter;ind:imp;2;p|affreter;sub:pre;2;p",
@@ -3284,11 +3258,9 @@
 "brouit": "brouir;sub:imp;3;s|brouir;ind:pas;3;s|brouir;ind:pre;3;s",
 "broyions": "broyer;ind:imp;1;p|broyer;sub:pre;1;p",
 "bruissais": "bruisser;ind:imp;1;s|bruisser;ind:imp;2;s",
-"bruissates": "bruisser;ind:pas;2;p",
 "bruisse": "bruisser;ind:pre;1;s|bruisser;ind:pre;3;s|bruisser;sub:pre;1;s|bruisser;sub:pre;3;s|bruire;sub:pre;3;s",
 "bruissiez": "bruisser;ind:imp;2;p|bruisser;sub:pre;2;p",
 "bruissions": "bruisser;ind:imp;1;p|bruisser;sub:pre;1;p",
-"bruites": "bruiter;ind:pre;2;s|bruiter;sub:pre;2;s",
 "bruyait": null,
 "budgetiez": "budgeter;ind:imp;2;p|budgeter;sub:pre;2;p",
 "budgetions": "budgeter;ind:imp;1;p|budgeter;sub:pre;1;p",
@@ -3576,10 +3548,8 @@
 "detruisis": "detruire;ind:pas;1;s|detruire;ind:pas;2;s",
 "devancions": "devancer;ind:imp;1;p|devancer;sub:pre;1;p",
 "devins": "devenir;ind:pas;1;s|devenir;ind:pas;2;s",
-"devirent": "devirer;ind:pre;3;p|devirer;sub:pre;3;p",
 "devisagions": "devisager;ind:imp;1;p|devisager;sub:pre;1;p",
 "devise": "deviser;ind:pre;1;s|deviser;ind:pre;3;s|deviser;sub:pre;3;s|deviser;sub:pre;1;s",
-"devisserent": "devisser;ind:pas;3;p",
 "devoyiez": "devoyer;ind:imp;2;p|devoyer;sub:pre;2;p",
 "devoyions": "devoyer;ind:imp;1;p|devoyer;sub:pre;1;p",
 "different": "differer;ind:pre;3;p|differer;sub:pre;3;p",
@@ -4065,8 +4035,6 @@
 "parfaites": "parfaire;ind:pre;2;s",
 "parfit": "parfaire;ind:pas;3;s",
 "parvins": "parvenir;ind:pas;1;s|parvenir;ind:pas;2;s",
-"patissames": "patisser;ind:pas;1;p",
-"patissates": "patisser;ind:pas;2;p",
 "pause": "pauser;ind:pre;1;s|pauser;ind:pre;3;s|pauser;sub:pre;3;s|pauser;sub:pre;1;s",
 "pecha": null,
 "peigniez": "peigner;ind:imp;2;p|peindre;ind:imp;2;p|peindre;sub:pre;2;p",
@@ -4500,10 +4468,8 @@
 "tachetes": null,
 "tanciez": "tancer;ind:imp;2;p|tancer;sub:pre;2;p",
 "tancions": "tancer;ind:imp;1;p|tancer;sub:pre;1;p",
-"tapissates": "tapisser;ind:pas;2;p",
 "tapissiez": "tapisser;ind:imp;2;p|tapisser;sub:pre;2;p",
 "tapissions": "tapisser;ind:imp;1;p|tapisser;sub:pre;1;p",
-"tapites": "tapir;ind:pas;2;p",
 "tartit": "tartir;sub:imp;3;s|tartir;ind:pas;3;s|tartir;ind:pre;3;s",
 "tata": "tater;ind:pas;3;s",
 "tatillonna": null,
@@ -17571,11 +17537,6 @@
 "1s": "affaire"
 }
 },
-"affaisser": {
-"ind:pas": {
-"2p": "affaissâtes"
-}
-},
 "affaiter": {
 "ind:pas": {
 "3s": "affaîta"
@@ -17989,9 +17950,6 @@
 "sub:pre": null
 },
 "bruisser": {
-"ind:pas": {
-"2p": "bruissâtes"
-},
 "sub:pre": {
 "1s": "bruisse",
 "3s": "bruisse"
@@ -18600,11 +18558,6 @@
 "sub:pre": {
 "1s": "devise",
 "3s": "devise"
-}
-},
-"devisser": {
-"ind:pas": {
-"3p": "dévissèrent"
 }
 },
 "differer": {
@@ -19721,12 +19674,6 @@
 "2s": "parfaites"
 }
 },
-"patisser": {
-"ind:pas": {
-"1p": "pâtissâmes",
-"2p": "pâtissâtes"
-}
-},
 "pauser": {
 "sub:pre": {
 "1s": "pause",
@@ -20609,11 +20556,6 @@
 },
 "sub:pre": null
 },
-"tapisser": {
-"ind:pas": {
-"2p": "tapissâtes"
-}
-},
 "tatillonner": {
 "ind:pas": {
 "3s": null
@@ -20872,8 +20814,6 @@
 "admirent": "admirer;ind:pre;3;p|admirer;sub:pre;3;p|admettre;ind:pas;3;p",
 "aereras": "aerer;ind:fut;2;s",
 "affaire": "affairer;ind:pre;1;s|affairer;ind:pre;3;s|affairer;sub:pre;3;s|affairer;sub:pre;1;s",
-"affaissates": "affaisser;ind:pas;2;p",
-"affaites": "affaiter;ind:pre;2;s|affaiter;sub:pre;2;s",
 "affligiez": "affliger;ind:imp;2;p|affliger;sub:pre;2;p",
 "affligions": "affliger;ind:imp;1;p|affliger;sub:pre;1;p",
 "affretiez": "affreter;ind:imp;2;p|affreter;sub:pre;2;p",
@@ -21030,11 +20970,9 @@
 "brouit": "brouir;sub:imp;3;s|brouir;ind:pas;3;s|brouir;ind:pre;3;s",
 "broyions": "broyer;ind:imp;1;p|broyer;sub:pre;1;p",
 "bruissais": "bruisser;ind:imp;1;s|bruisser;ind:imp;2;s",
-"bruissates": "bruisser;ind:pas;2;p",
 "bruisse": "bruisser;ind:pre;1;s|bruisser;ind:pre;3;s|bruisser;sub:pre;1;s|bruisser;sub:pre;3;s|bruire;sub:pre;3;s",
 "bruissiez": "bruisser;ind:imp;2;p|bruisser;sub:pre;2;p",
 "bruissions": "bruisser;ind:imp;1;p|bruisser;sub:pre;1;p",
-"bruites": "bruiter;ind:pre;2;s|bruiter;sub:pre;2;s",
 "bruyait": null,
 "budgetiez": "budgeter;ind:imp;2;p|budgeter;sub:pre;2;p",
 "budgetions": "budgeter;ind:imp;1;p|budgeter;sub:pre;1;p",
@@ -21337,10 +21275,8 @@
 "detruisis": "detruire;ind:pas;1;s|detruire;ind:pas;2;s",
 "devancions": "devancer;ind:imp;1;p|devancer;sub:pre;1;p",
 "devins": "devenir;ind:pas;1;s|devenir;ind:pas;2;s",
-"devirent": "devirer;ind:pre;3;p|devirer;sub:pre;3;p",
 "devisagions": "devisager;ind:imp;1;p|devisager;sub:pre;1;p",
 "devise": "deviser;ind:pre;1;s|deviser;ind:pre;3;s|deviser;sub:pre;3;s|deviser;sub:pre;1;s",
-"devisserent": "devisser;ind:pas;3;p",
 "devoyiez": "devoyer;ind:imp;2;p|devoyer;sub:pre;2;p",
 "devoyions": "devoyer;ind:imp;1;p|devoyer;sub:pre;1;p",
 "different": "differer;ind:pre;3;p|differer;sub:pre;3;p",
@@ -21864,8 +21800,6 @@
 "parfaites": "parfaire;ind:pre;2;s",
 "parfit": "parfaire;ind:pas;3;s",
 "parvins": "parvenir;ind:pas;1;s|parvenir;ind:pas;2;s",
-"patissames": "patisser;ind:pas;1;p",
-"patissates": "patisser;ind:pas;2;p",
 "pause": "pauser;ind:pre;1;s|pauser;ind:pre;3;s|pauser;sub:pre;3;s|pauser;sub:pre;1;s",
 "pecha": null,
 "peigniez": "peigner;ind:imp;2;p|peindre;ind:imp;2;p|peindre;sub:pre;2;p",
@@ -22313,10 +22247,8 @@
 "tachetes": null,
 "tanciez": "tancer;ind:imp;2;p|tancer;sub:pre;2;p",
 "tancions": "tancer;ind:imp;1;p|tancer;sub:pre;1;p",
-"tapissates": "tapisser;ind:pas;2;p",
 "tapissiez": "tapisser;ind:imp;2;p|tapisser;sub:pre;2;p",
 "tapissions": "tapisser;ind:imp;1;p|tapisser;sub:pre;1;p",
-"tapites": "tapir;ind:pas;2;p",
 "tartit": "tartir;sub:imp;3;s|tartir;ind:pas;3;s|tartir;ind:pre;3;s",
 "tata": "tater;ind:pas;3;s",
 "tatillonna": null,

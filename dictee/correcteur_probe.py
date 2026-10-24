@@ -4855,7 +4855,8 @@ def _ps_completer():
     _PS_DONE = True
     for lem, d in CONJ_C.items():
         imp, fut, pas = _ps1(d, 'ind:imp', '3s'), _ps1(d, 'ind:fut', '3s'), _ps1(d, 'ind:pas', '3s')
-        if imp and imp.endswith('issait'):
+        if imp and imp.endswith('issait') and not lem.endswith('er'):   # ⭐ 24/10/2026 (ligne 147) : un verbe en -er n'est jamais du 2e
+            # groupe — « vissait » finit aussi en -issait (visser recevait vîmes / vîtes / virent, ceux de voir ; miroir JS)
             # 2e groupe : SEUL l'imparfait en -issait l'identifie (« venir »/« ouvrir » finissent aussi en -ir
             # mais sont du 3e groupe — « vînmes », pas « venîmes »).
             r = imp[:-6]
