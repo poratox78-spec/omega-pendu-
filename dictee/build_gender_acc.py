@@ -29,9 +29,9 @@ import os, sys, io, json, lzma, unicodedata
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-OUT = os.path.join(HERE, 'gender_acc.json')
+OUT = os.environ.get('GACC_SORTIE') or os.path.join(HERE, 'gender_acc.json')   # $GACC_SORTIE / $GACC_LEX4_XZ : dictee/ordre_probe.py (ligne 143)
 KAIKKI = os.path.join(ROOT, 'data_local', 'fr', 'kaikki-fr.jsonl')
-LEX4 = os.path.join(ROOT, 'Lexique4.tsv.xz')
+LEX4 = os.environ.get('GACC_LEX4_XZ') or os.path.join(ROOT, 'Lexique4.tsv.xz')
 
 
 def deacc(s):
@@ -118,7 +118,10 @@ if __name__ == '__main__':
     GP = table_actuelle()
 
     delta, corrige, ajoute = {}, 0, 0
-    for w, g in G.items():
+    for w, g in sorted(G.items()):
+        # ⭐ ligne 143 (23/10/2026) : « Ami » (sigle, féminin) et « ami » (masculin) tombent sur la même clé en minuscules ; l'ordre d'un
+        # set Python (le hasard, à chaque lancement) décidait. Le mot écrit en minuscules l'emporte sur sa forme à majuscule.
+        if w != w.lower() and w.lower() in G: continue
         actuel = GP.get(deacc(w.lower()))
         if actuel == g:
             continue                        # déjà juste -> ne rien livrer, la table existante suffit

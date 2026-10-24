@@ -242,6 +242,7 @@ run "genre des formes rares nom + verbe : JSON commité == ligne _G114 des 2 mot
 run "extrait Wiktionnaire du speller : TSV commité bien formé, sans doublon" python3 dictee/build_wikt_lex.py --check
 run "lot MÉTIER du speller (liste curée) : TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole)" python3 dictee/build_metier_lex.py --check
 run "dictionnaire livré == Lexique + 12 lots, mot pour mot (la recette, ligne 142)" python3 dictee/lots_dictionnaire.py --check
+run "constructeurs de tables indépendants de l'ordre des lignes de Lexique et du hasard (ligne 143)" python3 dictee/ordre_probe.py
 run "paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise)" python3 build_lexiques.py --check
 
 echo "── LIVRAISON ──"

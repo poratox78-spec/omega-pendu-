@@ -29,7 +29,7 @@ Sortie : réécrit dictee/cgram_adj.json (Python) + le champ `a` de dictee/cgram
 extension/build_assets.py après. FP=0 rouge vérifié sur les 2 bancs.
 Usage : python dictee/build_adj_invariable.py
 """
-import os, io, json, lzma, unicodedata
+import os, io, json, lzma, sys, unicodedata
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,6 +39,7 @@ _STOP_S = {"expres", "tiers", "tors"}         # ⭐ 14/10/2026 : emplois figés 
 ADJ = os.path.join(ROOT, "dictee", "cgram_adj.json")
 HF = os.path.join(ROOT, "dictee", "cgram_hf.json")
 FREQ_MIN = 0.5
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from build_cgram import rang_adj   # même choix de forme que build_cgram
 
 def deacc(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
@@ -56,18 +57,25 @@ def invariable_pairs():
             if len(p) < 12 or not p[4].startswith("ADJ"):
                 continue
             g = p[6].strip().lower(); nb = (p[7].strip().lower()[:1] or '')
-            lem = deacc(p[3].strip().lower()); mot = p[0].strip().lower()
+            lem = p[3].strip().lower(); mot = p[0].strip().lower()   # lemme ACCENTUÉ (ligne 143 : béat ≠ beat, fermé ≠ ferme)
             try: fr = float(p[11].replace(",", "."))
             except ValueError: fr = 0.0
             if fr < FREQ_MIN or g not in ("m", "f"):
                 continue
+            # ⭐ ligne 143 (23/10/2026) : la forme retenue suit rang_adj (build_cgram), pas la première lue — l'ordre des lignes de
+            # Lexique décidait (« artério-veineuses », « médico-légaux » changeaient d'une Lexique réordonnée à l'autre)
+            r = (rang_adj(mot, lem, g, 'p' if nb == 'i' else nb, fr), mot)
+            garde = lambda d: d.__setitem__(g, min(d.get(g, r), r))
             if nb == 'i':                       # invariable -x : vaut sing ET pluriel
                 if g == 'm': minv.add(mot)
-                sing[lem].setdefault(g, mot); plur[lem].setdefault(g, mot)
-            elif nb == 's': sing[lem].setdefault(g, mot)
-            elif nb == 'p': plur[lem].setdefault(g, mot)
-    pairs = {}                                  # deacc(forme) -> [genre, contrepartie accentuée]
-    for lem in set(sing) | set(plur):
+                garde(sing[lem]); garde(plur[lem])
+            elif nb == 's': garde(sing[lem])
+            elif nb == 'p': garde(plur[lem])
+    for bucket in (sing, plur):
+        for d in bucket.values():
+            for g in d: d[g] = d[g][1]
+    cand = {}                                   # deacc(forme) -> {[genre, contrepartie accentuée]} : une seule réponse, ou écartée
+    for lem in sorted(set(sing) | set(plur)):
         for bucket in (sing, plur):
             d = bucket.get(lem, {})
             if 'm' in d and 'f' in d and d['m'] != d['f']:
@@ -78,9 +86,9 @@ def invariable_pairs():
                     pass                         # ⭐ 14/10/2026 : -s qui n'est pas une forme verbale (mauvais, gros, précis, français)
                 else:
                     continue
-                pairs.setdefault(deacc(m), ['m', f])
-                pairs.setdefault(deacc(f), ['f', m])
-    return pairs
+                cand.setdefault(deacc(m), set()).add(('m', f))
+                cand.setdefault(deacc(f), set()).add(('f', m))
+    return {k: list(next(iter(v))) for k, v in cand.items() if len(v) == 1}
 
 def main():
     pairs = invariable_pairs()

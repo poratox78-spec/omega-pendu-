@@ -102,6 +102,8 @@ jobs:
         run: python3 dictee/build_metier_lex.py --check
       - name: Dictionnaire livré == Lexique + 12 lots, mot pour mot (la recette, ligne 142)
         run: python3 dictee/lots_dictionnaire.py --check
+      - name: Constructeurs de tables indépendants de l'ordre des lignes de Lexique et du hasard (ligne 143)
+        run: python3 dictee/ordre_probe.py
       - name: paquet de données ouvertes du site (omega-lexiques.zip frais)
         run: python3 build_lexiques.py --check
       - name: Boucle descendante (apprend le lexique de genre)
