@@ -296,7 +296,12 @@
 "Hier, nous vissâmes l'étagère.",
 "Ils vissèrent les planches.",
 "Elles tissèrent la toile.",
-"Les murs s'affaissèrent."
+"Les murs s'affaissèrent.",
+"Il faut que je dégage la table.",
+"Hier nous pariions sur le gagnant.",
+"Ils surjouent leur rôle.",
+"Elles réouvrent la boutique.",
+"Je voulais partir tôt."
 ],
 "elide": [
 [
@@ -663,6 +668,16 @@
 "Il tissèrent la toile.",
 "tissèrent",
 "tissa"
+],
+[
+"Ils soulais leurs voisins.",
+"soulais",
+"soûlaient"
+],
+[
+"Il faut que je dégages la table.",
+"dégages",
+"dégage"
 ]
 ],
 "palier": [

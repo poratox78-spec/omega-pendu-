@@ -102,11 +102,6 @@
 "anter": {
 "ind:pas": null
 },
-"antijouer": {
-"ind:pas": {
-"3s": null
-}
-},
 "aouter": {
 "ind:pas": {
 "3s": "aoûta"
@@ -183,11 +178,6 @@
 "1s": "babèle",
 "2s": "babèles",
 "3s": "babèle"
-}
-},
-"bacher": {
-"ind:pas": {
-"3s": "bâcha"
 }
 },
 "baguer": {
@@ -641,11 +631,6 @@
 "sub:pre": {
 "1s": "corde",
 "3s": "corde"
-}
-},
-"correler": {
-"ind:pas": {
-"3s": "corréla"
 }
 },
 "correspondre": {
@@ -1147,11 +1132,6 @@
 "excepter": {
 "ind:imp": {
 "1p": "exceptions"
-}
-},
-"excreter": {
-"ind:pas": {
-"3s": "excréta"
 }
 },
 "failler": {
@@ -2196,12 +2176,6 @@
 "2p": "régneriez"
 }
 },
-"regouter": {
-"ind:pas": {
-"3p": "regoûtèrent",
-"3s": "regoûta"
-}
-},
 "relater": {
 "sub:pre": {
 "1p": "relations"
@@ -2227,11 +2201,6 @@
 "remblayer": {
 "sub:pre": {
 "3p": "remblayent"
-}
-},
-"rendre": {
-"sub:pre": {
-"3p": "rendent"
 }
 },
 "rentamer": {
@@ -2867,7 +2836,6 @@
 "avoyions": "avoyer;ind:imp;1;p|avoyer;sub:pre;1;p",
 "babelle": null,
 "babelles": null,
-"bacha": "bacher;ind:pas;3;s",
 "badions": "bader;ind:imp;1;p|bader;sub:pre;1;p",
 "bague": "baguer;ind:pre;1;s|baguer;ind:pre;3;s|baguer;sub:pre;3;s|baguer;sub:pre;1;s",
 "baie": "bayer;ind:pre;1;s|bayer;ind:pre;3;s|bayer;sub:pre;3;s|bayer;sub:pre;1;s",
@@ -3369,7 +3337,6 @@
 "excediez": "exceder;ind:imp;2;p|exceder;sub:pre;2;p",
 "excedions": "exceder;ind:imp;1;p|exceder;sub:pre;1;p",
 "exceptions": "excepter;sub:pre;1;p|excepter;ind:imp;1;p",
-"excreta": "excreter;ind:pas;3;s",
 "excretiez": "excreter;ind:imp;2;p|excreter;sub:pre;2;p",
 "execriez": "execrer;ind:imp;2;p|execrer;sub:pre;2;p",
 "execrions": "execrer;ind:imp;1;p|execrer;sub:pre;1;p",
@@ -3707,6 +3674,7 @@
 "perpetrions": "perpetrer;ind:imp;1;p|perpetrer;sub:pre;1;p",
 "persecutions": "persecuter;sub:pre;1;p|persecuter;ind:imp;1;p",
 "petasse": "peter;sub:imp;1;s",
+"petasses": "peter;sub:imp;2;s",
 "phrase": "phraser;ind:pre;1;s|phraser;ind:pre;3;s|phraser;sub:pre;3;s|phraser;sub:pre;1;s",
 "piaule": "piauler;ind:pre;1;s|piauler;ind:pre;3;s|piauler;sub:pre;3;s|piauler;sub:pre;1;s",
 "piniez": "piner;ind:imp;2;p|piner;sub:pre;2;p",
@@ -3944,8 +3912,6 @@
 "remuneriez": "remunerer;ind:imp;2;p|remunerer;sub:pre;2;p",
 "renagiez": "renager;ind:imp;2;p|renager;sub:pre;2;p",
 "renagions": "renager;ind:imp;1;p|renager;sub:pre;1;p",
-"rende": "rendre;sub:pre;1;s|rendre;sub:pre;3;s",
-"rendent": "rendre;ind:pre;3;p|rendre;sub:pre;3;p",
 "rendis": "rendre;ind:pas;1;s|rendre;ind:pas;2;s",
 "renettoyiez": "renettoyer;ind:imp;2;p|renettoyer;sub:pre;2;p",
 "renettoyions": "renettoyer;ind:imp;1;p|renettoyer;sub:pre;1;p",
@@ -4851,7 +4817,6 @@
 "interferer",
 "incarner",
 "importuner",
-"reouvrer",
 "contourner",
 "reparer",
 "chouiner",
@@ -7586,7 +7551,6 @@
 "essoriller",
 "bancher",
 "reactualiser",
-"antijouer",
 "ameuter",
 "ronchonner",
 "crisser",
@@ -7838,7 +7802,6 @@
 "tarabuster",
 "fluter",
 "reimprimer",
-"demourir",
 "flageller",
 "loguer",
 "banaliser",
@@ -8019,7 +7982,6 @@
 "attendre",
 "medicaliser",
 "recalculer",
-"antivetir",
 "plomber",
 "remarcher",
 "jalonner",
@@ -9086,7 +9048,6 @@
 "revenger",
 "ourler",
 "entredevorer",
-"antimedicamenter",
 "rejurer",
 "patouiller",
 "carminer",
@@ -9441,7 +9402,6 @@
 "pyramider",
 "decombrer",
 "refarcir",
-"antireagir",
 "emplafonner",
 "euphoriser",
 "raper",
@@ -9736,7 +9696,6 @@
 "evaser",
 "interloquer",
 "briquer",
-"antidouer",
 "reapplaudir",
 "preenregistrer",
 "chlorer",
@@ -10058,7 +10017,6 @@
 "brimbaler",
 "clapir",
 "boguer",
-"antiqualifier",
 "dichotomiser",
 "grappiner",
 "entraimer",
@@ -10108,8 +10066,6 @@
 "sacraliser",
 "reparametrer",
 "desenlacer",
-"anticuire",
-"antivitaminer",
 "recollecter",
 "repauser",
 "souter",
@@ -17248,11 +17204,6 @@
 "anter": {
 "ind:pas": null
 },
-"antijouer": {
-"ind:pas": {
-"3s": null
-}
-},
 "aouter": {
 "ind:pas": {
 "3s": "aoûta"
@@ -17350,11 +17301,6 @@
 "1s": "babèle",
 "2s": "babèles",
 "3s": "babèle"
-}
-},
-"bacher": {
-"ind:pas": {
-"3s": "bâcha"
 }
 },
 "baguer": {
@@ -17849,11 +17795,6 @@
 "sub:pre": {
 "1s": "corde",
 "3s": "corde"
-}
-},
-"correler": {
-"ind:pas": {
-"3s": "corréla"
 }
 },
 "correspondre": {
@@ -18371,11 +18312,6 @@
 "excepter": {
 "ind:imp": {
 "1p": "exceptions"
-}
-},
-"excreter": {
-"ind:pas": {
-"3s": "excréta"
 }
 },
 "externaliser": {
@@ -19524,12 +19460,6 @@
 "2p": "régneriez"
 }
 },
-"regouter": {
-"ind:pas": {
-"3p": "regoûtèrent",
-"3s": "regoûta"
-}
-},
 "relater": {
 "sub:pre": {
 "1p": "relations"
@@ -19555,11 +19485,6 @@
 "remblayer": {
 "sub:pre": {
 "3p": "remblayent"
-}
-},
-"rendre": {
-"sub:pre": {
-"3p": "rendent"
 }
 },
 "rentamer": {
@@ -20214,7 +20139,6 @@
 "avoyions": "avoyer;ind:imp;1;p|avoyer;sub:pre;1;p",
 "babelle": null,
 "babelles": null,
-"bacha": "bacher;ind:pas;3;s",
 "badions": "bader;ind:imp;1;p|bader;sub:pre;1;p",
 "bague": "baguer;ind:pre;1;s|baguer;ind:pre;3;s|baguer;sub:pre;3;s|baguer;sub:pre;1;s",
 "baie": "bayer;ind:pre;1;s|bayer;ind:pre;3;s|bayer;sub:pre;3;s|bayer;sub:pre;1;s",
@@ -20757,7 +20681,6 @@
 "excediez": "exceder;ind:imp;2;p|exceder;sub:pre;2;p",
 "excedions": "exceder;ind:imp;1;p|exceder;sub:pre;1;p",
 "exceptions": "excepter;sub:pre;1;p|excepter;ind:imp;1;p",
-"excreta": "excreter;ind:pas;3;s",
 "excretiez": "excreter;ind:imp;2;p|excreter;sub:pre;2;p",
 "execriez": "execrer;ind:imp;2;p|execrer;sub:pre;2;p",
 "execrions": "execrer;ind:imp;1;p|execrer;sub:pre;1;p",
@@ -21114,6 +21037,7 @@
 "perpetrions": "perpetrer;ind:imp;1;p|perpetrer;sub:pre;1;p",
 "persecutions": "persecuter;sub:pre;1;p|persecuter;ind:imp;1;p",
 "petasse": "peter;sub:imp;1;s",
+"petasses": "peter;sub:imp;2;s",
 "phrase": "phraser;ind:pre;1;s|phraser;ind:pre;3;s|phraser;sub:pre;3;s|phraser;sub:pre;1;s",
 "piaule": "piauler;ind:pre;1;s|piauler;ind:pre;3;s|piauler;sub:pre;3;s|piauler;sub:pre;1;s",
 "piniez": "piner;ind:imp;2;p|piner;sub:pre;2;p",
@@ -21361,8 +21285,6 @@
 "remuneriez": "remunerer;ind:imp;2;p|remunerer;sub:pre;2;p",
 "renagiez": "renager;ind:imp;2;p|renager;sub:pre;2;p",
 "renagions": "renager;ind:imp;1;p|renager;sub:pre;1;p",
-"rende": "rendre;sub:pre;1;s|rendre;sub:pre;3;s",
-"rendent": "rendre;ind:pre;3;p|rendre;sub:pre;3;p",
 "rendis": "rendre;ind:pas;1;s|rendre;ind:pas;2;s",
 "renettoyiez": "renettoyer;ind:imp;2;p|renettoyer;sub:pre;2;p",
 "renettoyions": "renettoyer;ind:imp;1;p|renettoyer;sub:pre;1;p",
@@ -22272,7 +22194,6 @@
 "interferer",
 "incarner",
 "importuner",
-"reouvrer",
 "contourner",
 "reparer",
 "chouiner",
@@ -25007,7 +24928,6 @@
 "essoriller",
 "bancher",
 "reactualiser",
-"antijouer",
 "ameuter",
 "ronchonner",
 "crisser",
@@ -25259,7 +25179,6 @@
 "tarabuster",
 "fluter",
 "reimprimer",
-"demourir",
 "flageller",
 "loguer",
 "banaliser",
@@ -25440,7 +25359,6 @@
 "attendre",
 "medicaliser",
 "recalculer",
-"antivetir",
 "plomber",
 "remarcher",
 "jalonner",
@@ -26507,7 +26425,6 @@
 "revenger",
 "ourler",
 "entredevorer",
-"antimedicamenter",
 "rejurer",
 "patouiller",
 "carminer",
@@ -26862,7 +26779,6 @@
 "pyramider",
 "decombrer",
 "refarcir",
-"antireagir",
 "emplafonner",
 "euphoriser",
 "raper",
@@ -27157,7 +27073,6 @@
 "evaser",
 "interloquer",
 "briquer",
-"antidouer",
 "reapplaudir",
 "preenregistrer",
 "chlorer",
@@ -27479,7 +27394,6 @@
 "brimbaler",
 "clapir",
 "boguer",
-"antiqualifier",
 "dichotomiser",
 "grappiner",
 "entraimer",
@@ -27529,8 +27443,6 @@
 "sacraliser",
 "reparametrer",
 "desenlacer",
-"anticuire",
-"antivitaminer",
 "recollecter",
 "repauser",
 "souter",
