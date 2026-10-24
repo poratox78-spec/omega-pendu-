@@ -4266,6 +4266,14 @@ function estQuestion(t,maxMots){
   var _AVOIR_HOMO_STOP={aussi:1,meme:1,memes:1,seuls:1,seules:1,tous:1,toutes:1,non:1,ni:1};   // « ils ont eux aussi des droits » : juste
   var _AVOIR_EUX_DET={un:1,une:1,des:1,du:1,le:1,la:1,les:1,beaucoup:1,peur:1,faim:1,mal:1,raison:1,tort:1,besoin:1};   // après « a » seul, « eux » + déterminant seulement (« c'est à eux », « à eux de jouer »)
   function _avoirPp(x){var d=deacc(x.toLowerCase());return !!(IRREG_PART[d]||_PPL_IRR2[d]||_isPpl(x));}
+  /* ⭐ 24/10/2026 (liste n° 149) — le participe d'un verbe RARE : « elle a complut » → complu, « il a rapprit » → rappris. Les listes
+     de participes (IRREG_PART, _PPL_IRR2, _isPpl) ignorent les verbes rares, et _isPpl écarte les -u exprès (noms : « revenu »). Après
+     l'auxiliaire seulement : un mot du dictionnaire noté VERBE que la conjugaison ne lit jamais fini, ni infinitif ni participe
+     présent, est un participe. Jamais à travers une ponctuation de l'auteur (« tu l'as ? » reprit-il), et en ORANGE (_AVOIR_DICO).
+     Mesuré sur 1 668 lignes « auxiliaire + forme » de français juste (UD, 700 000 lignes web) : 1 tir, une vraie faute (« avait
+     reprit » → repris) ; corpus dys : 0 changement. */
+  var _AVOIR_DICO={};
+  function _ppDico(x){var lx=x.toLowerCase(),d=deacc(lx);return SP.WORDS.has(lx)&&(_spos(lx)||'').indexOf('V')>=0&&!svReads(lx).length&&!/(er|ir|re|oir|ant)$/.test(d)&&!/e$/.test(lx);}   /* e muet final : un présent que la table n'a pas (« lambrisse »), jamais un participe */
   function rAvoirFini(T,i){if(i<1)return null;var w=T[i];if(w!==w.toLowerCase())return null;
     /* ⭐ 19/10/2026 — « n'a pas était », « n'a jamais êtes », « a toujours était » → été ; « a êtes » → été. L'auxiliaire doit être ÉCRIT par
        l'auteur, l'apostrophe seule peut manquer (« na pas »). Mêmes pièges gardés (relative « qu'il a », sigle). Miroir Python. */
@@ -4295,6 +4303,7 @@ function estQuestion(t,maxMots){
     var d=deacc(w),lc=d.charAt(d.length-1);if(lc!=='s'&&lc!=='t')return null;
     var cc=[w.slice(0,-1),w.slice(0,-1)+(lc==='s'?'t':'s')];            // consonne finale MUETTE ôtée ou échangée : même son
     for(var q=0;q<cc.length;q++){if(deacc(cc[q]).length>=2&&_avoirPp(cc[q]))return _AVOIR_PP_ACC[deacc(cc[q])]||cc[q];}
+    if(!(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]))for(var q=0;q<cc.length;q++){if(deacc(cc[q]).length>=2&&_ppDico(cc[q])){_AVOIR_DICO[deacc(w)]=1;return cc[q];}}   // ⭐ liste n° 149
     return null;}
   /* ⭐ 12/10/2026 — FORME FINIE APRÈS ÊTRE (lot 13) : « il est partit » → parti, « elle est sortit » → sortie, « c'est finit » →
      fini, « je me suis fais mal » → fait, « il est prit » → pris. La règle d'avoir (rAvoirFini) le faisait déjà après « a » ; après
@@ -4312,6 +4321,7 @@ function estQuestion(t,maxMots){
     var lc=d.charAt(d.length-1);if(lc!=='s'&&lc!=='t')return null;
     var cc=[w.slice(0,-1),w.slice(0,-1)+(lc==='s'?'t':'s')],pp=null;
     for(var q=0;q<cc.length;q++){if(deacc(cc[q]).length>=2&&_avoirPp(cc[q])){pp=_AVOIR_PP_ACC[deacc(cc[q])]||cc[q];break;}}
+    if(!pp)for(var q=0;q<cc.length;q++){if(deacc(cc[q]).length>=2&&_ppDico(cc[q])){pp=cc[q];break;}}   // ⭐ liste n° 149 : participe d'un verbe rare (déjà en orange ici)
     if(!pp)return null;
     var suf='';if(_EF_MOUV[rd[0][0]]){var sb=_etreSubject(T,i)[0];if(sb!==null)suf=(_SUBJ3[sb]!==undefined)?_SUBJ3[sb]:(_SUBJ12[sb]||'');}
     return {sugg:pp+suf,vig:1};}
@@ -4766,7 +4776,7 @@ function estQuestion(t,maxMots){
       return (_wordKnown(dn)&&!/[sx]$/.test(dn))?'auto':'vigilance';}
     if(name==='genre déterminant'){if(i+1>=n)return 'vigilance';var nx=T[i+1].toLowerCase();if(nx!==deacc(nx)){if(SP&&SP.ready&&!SP.WORDS.has(nx)&&(spD(deaccS(nx))||[]).reduce(function(m,x){return Math.max(m,spF(x)||0);},0)<1.0)return 'vigilance';return 'auto';}   // ⭐ 21/10/2026 (ligne 130) : non-mot accentué au jumeau rare (« le balè ») → orange — miroir Python
       return 'vigilance';}   // nom NU : mesuré 7/12 sur texte dys (« La pont », « Le sole » = nom mal écrit qui existe) → orange
-    if(name==='participe après avoir')return _AVOIR_HOMO[deacc(T[i].toLowerCase())]?'vigilance':'auto';
+    if(name==='participe après avoir'){var _ka=deacc(T[i].toLowerCase());return (_AVOIR_HOMO[_ka]||_AVOIR_DICO[_ka])?'vigilance':'auto';}   // ⭐ liste n° 149 : participe du dictionnaire → orange
     if(name==='accord grammatical (é/er)'||name==='terminaison -er/-é/-ez/-ai')return _etreAttrEr(T,i)==='N'?'vigilance':'auto';   // ⭐ 09/10/2026 : « est boulanger » / « est boucher » — un métier, ou un participe mal écrit : orange (_etreAttrEr)
     if(name==='aux mal orthographié')return deacc(T[i].toLowerCase()).split("'").pop()==='ete'?'vigilance':'auto';   // ⭐ 29/09/2026 : « il été » → était (ou « a été ») = orange ; le reste = rouge   // ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge (miroir tier_of)
     if(name==='accord participe'){for(var j=i-1;j>=Math.max(0,i-3);j--){var t=deacc(T[j].toLowerCase());if(_SUBJ_PRON[t])return 'auto';if(PRENOMS[T[j]])return 'auto';}return 'vigilance';}
