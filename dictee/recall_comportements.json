@@ -307,7 +307,9 @@
 "Cela correspondit à nos attentes.",
 "Cette maison appartint à mon grand-père.",
 "Il provint de loin.",
-"Il rapprit à lire."
+"Il rapprit à lire.",
+"Il a repris sa leçon.",
+"Elle a complu à tous."
 ],
 "elide": [
 [
@@ -684,9 +686,24 @@
 "Il faut que je dégages la table.",
 "dégages",
 "dégage"
+],
+[
+"Elle a complut.",
+"complut",
+"complu"
+],
+[
+"Il a rapprit sa leçon.",
+"rapprit",
+"rappris"
 ]
 ],
 "palier": [
+[
+"Elle a complut.",
+"complut",
+"vigilance"
+],
 [
 "Elle s'mariée l'an dernier",
 "s'mariée",
