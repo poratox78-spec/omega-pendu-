@@ -244,6 +244,7 @@ run "lot MÉTIER du speller (liste curée) : TSV commité suit la liste, chaque 
 run "dictionnaire livré == Lexique + 12 lots, mot pour mot (la recette, ligne 142)" python3 dictee/lots_dictionnaire.py --check
 run "constructeurs de tables indépendants de l'ordre des lignes de Lexique et du hasard (ligne 143)" python3 dictee/ordre_probe.py
 run "tables de grammaire : l'héritage de la conjugaison est appliqué (la recette, ligne 144)" python3 dictee/tables_grammaire.py --check
+run "moteur indépendant de l'ordre des verbes de sa table de conjugaison (ligne 145)" node dictee/ordre_moteur_probe.js
 run "paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise)" python3 build_lexiques.py --check
 
 echo "── LIVRAISON ──"
