@@ -49,6 +49,19 @@ dictionnaire » croit le dictionnaire, qui note quelques verbes comme noms (« p
 cgram_noun_post.json) atteint 10 % : « procrastine » 27 % entre, « crise », « article », « bouteille » (< 1 %) restent dehors. Et
 `--check` (dev.sh) échoue si le script remplirait encore une case : le retard ne peut plus revenir en silence.
 
+⭐ Ligne 146 (24/10/2026) — les cases FAUSSES. completer ne touche jamais une case remplie : une faute de Lexique y restait pour toujours.
+La table entière confrontée à Morphalou, case par case : 553 289 cases confirmées, 134 contredites — 90 sont des cases jumelles
+(Morphalou écrit une seule fois la forme de deux cases que le français écrit pareil : « gérerais » rangé à tu, « gèrerais » seul à je),
+le reste des fautes : « que je dégages », « nous parions » à l'imparfait, « que tu pétasses », « soulais » rangé à vouloir (je),
+« interpénétre », « décroîs ». Deux règles, avant completer :
+  · contredites() : une case remplie que Morphalou contredit reçoit la forme de Morphalou — sauf si la forme livrée y est attestée à une
+    case jumelle (« sors », « vêtis »), pour un verbe à double conjugaison (VARL), ou si la forme nouvelle échoue aux filtres de completer
+    ou ne commence pas comme le lemme (Morphalou réunit parfois deux homographes : son « raller » porte aussi « rvais ») ;
+  · mal_nommes() : un verbe inconnu de Morphalou dont chaque forme y est, à la même case, celle d'un seul autre verbe de la table sort
+    de la table. Lexique range « surjoue, surjouais… » sous « antijouer » (8 verbes en sur- ainsi), « réouvrait » sous « réouvrer » : la
+    lecture prise par le faux verbe empêchait completer de rendre ces formes au vrai (surjouer était sans présent au singulier).
+Mesuré : 34 cases corrigées, 10 verbes retirés ; au produit, « Il faut que je dégage la table. » perd un orange faux (→ dégages).
+
 Sources hors dépôt : data_local/morphalou/Morphalou3.1_CSV.csv (ATILF/CNRS, LGPL-LR — voir donnees.html). Sérialisation identique à
 build_cgram.py (compact, ensure_ascii=False), aller-retour vérifié octet à octet avant d'écrire. Idempotent.
     python3 dictee/complete_conj_morphalou.py [--dry | --check]
@@ -252,6 +265,66 @@ def fantomes(cj, tous):
     return n
 
 
+JUMELLES = {'ind:pre': ({'1s', '2s'}, {'1s', '3s'}), 'ind:imp': ({'1s', '2s'},), 'ind:pas': ({'1s', '2s'},), 'cnd:pre': ({'1s', '2s'},),
+            'sub:pre': ({'1s', '3s'},)}   # ⭐ ligne 146 : cases que le français écrit pareil (sors / sors, que je dorme / qu'il dorme)
+
+
+def _sans_lecture(F, k, pred):
+    u"""Retire de F[k] les lectures r où pred(r) ; la clé disparaît quand rien ne reste."""
+    if k not in F: return
+    g = [r for r in F[k].split('|') if not pred(r)]
+    if g: F[k] = '|'.join(g)
+    else: del F[k]
+
+
+def mal_nommes(cj, tous, mor):
+    u"""⭐ Ligne 146 : les verbes MAL NOMMÉS de Lexique sortent de la table (voir l'en-tête). Rend leur liste."""
+    C, F = cj['c'], cj['f']
+    inv = {}                                                          # (temps, case, forme désaccentuée) → verbes de Morphalou
+    for l, tt in tous.items():
+        for t, ss in tt.items():
+            for s, fs in ss.items():
+                for f in fs: inv.setdefault((t, s, f), set()).add(l)
+    out = []
+    for l in sorted(C):
+        if l in tous: continue
+        com = None
+        for t, sl in C[l].items():
+            for s, v in sl.items():
+                if not v or isinstance(v, list): continue
+                o = inv.get((t, s, deacc(v.lower())), set()); com = o if com is None else com & o
+        vrai = next(iter(com)) if com and len(com) == 1 else None
+        if vrai and (vrai in C or vrai in mor): out.append(l)          # le vrai verbe est dans la table, ou y entre par completer (surjouer)
+    for l in out:
+        for t, sl in C.pop(l).items():
+            for s, v in sl.items():
+                for f in (v if isinstance(v, list) else [v]):
+                    if f: _sans_lecture(F, deacc(f.lower()), lambda r: r.split(';')[0] == l)
+    return out
+
+
+def contredites(cj, mor, ppl):
+    u"""⭐ Ligne 146 : une case remplie que Morphalou CONTREDIT reçoit la forme de Morphalou (voir l'en-tête). Rend le nombre de cases."""
+    C, F = cj['c'], cj['f']; n = 0
+    low = lambda xs: {x.lower() for x in xs}
+    for l in C:
+        if l not in mor or l in VARL: continue
+        for t, sl in C[l].items():
+            mt = mor[l].get(t)
+            if not mt: continue
+            for s, v in list(sl.items()):
+                m = mt.get(s)
+                if not v or isinstance(v, list) or not m or v.lower() in low(m): continue
+                if any(v.lower() in low(mt.get(s2, ())) for j in JUMELLES.get(t, ()) if s in j for s2 in j - {s}): continue
+                ok = [fo for fo in m if _verbe(fo.lower(), deacc(fo.lower())) and fo.lower() not in ppl
+                      and (NPOST.get(deacc(fo.lower())) or [0, 1000])[1] >= 10 and deacc(fo.lower())[:2] == l[:2]]
+                if not ok: continue
+                sl[s] = ok[0]; n += 1
+                r = '%s;%s;%s;%s' % (l, t, s[0], s[1])
+                if deacc(v.lower()) != deacc(ok[0].lower()): _sans_lecture(F, deacc(v.lower()), lambda x: x == r)   # lire_cases lit la nouvelle
+    return n
+
+
 def remplissage(C):
     return {k: round(100.0 * sum(len(C[l].get(k, {})) for l in C) / ((3 if k == 'imp:pre' else 6) * len(C)), 1) for k in ('ind:pre', 'ind:imp', 'ind:fut', 'cnd:pre', 'sub:pre', 'ind:pas', 'sub:imp', 'imp:pre')}
 
@@ -270,12 +343,14 @@ def main():
             raise SystemExit('%s : la sérialisation ne rend pas les mêmes octets — réécrire changerait des octets qu on n a pas touchés' % fn)
         cj = d if fn == 'cgram_conj.json' else d['cj']
         avant = remplissage(cj['c'])
+        mal = mal_nommes(cj, tous, mor)
+        contre = contredites(cj, mor, ppl)
         cases, lect = completer(cj, mor, ppl, spos, lfreq)
         lus = lire_cases(cj, ppl, spos, lfreq)
         fant = fantomes(cj, tous)
         out = conj_io.serialiser(d)
-        print('%-16s +%d case(s), +%d lecture(s), +%d lecture(s) de cases déjà remplies, -%d fantôme(s) · remplissage %s → %s%s' % (fn, cases, lect, lus, fant, avant, remplissage(cj['c']), ' (dry)' if DRY else ''))
-        reste += cases + lect + lus + fant
+        print('%-16s -%d verbe(s) mal nommé(s), %d case(s) contredite(s) corrigée(s), +%d case(s), +%d lecture(s), +%d lecture(s) de cases déjà remplies, -%d fantôme(s) · remplissage %s → %s%s' % (fn, len(mal), contre, cases, lect, lus, fant, avant, remplissage(cj['c']), ' (dry)' if DRY else ''))
+        reste += len(mal) + contre + cases + lect + lus + fant
         if out != raw and not DRY:
             io.open(p, 'w', encoding='utf-8', newline='').write(out)
     if CHECK:
