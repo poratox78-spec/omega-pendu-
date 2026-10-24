@@ -3445,6 +3445,11 @@ function estQuestion(t,maxMots){
     if(detIdx-1>=lo&&PREP[deacc(T[detIdx].toLowerCase())]&&_NP_QUANT_UN[deacc(T[detIdx-1].toLowerCase())])return null;   // ⭐ 13/10/2026 (conjugaison 11) : « chacun DES enfants a reçu » — le sujet est le quantifieur (chacun, aucun, l'un…), pas le groupe qui suit « des » (orange faux « ont ») — miroir Python
     if(PREP[deacc(T[detIdx].toLowerCase())]&&detIdx-1>=lo&&tg&&detIdx-1<tg.length&&(tg[detIdx-1]==='NOUN'||tg[detIdx-1]==='PROPN'))return null;   // Un déterminant qui est AUSSI une préposition contractée (du/des/au/aux) et qui suit un NOM ouvre un COMPLÉMENT, pas le sujet : « de nombreux pouvoirs DU GOUVERNEUR ont été délégués », « 50 000 Allemands DU WARTHELAND ont péri ». Aucun vrai déterminant plus à gauche ⇒ la remontée ne peut pas réparer ⇒ abstention.
     if(detIdx-1>=lo&&PREP[deacc(T[detIdx-1].toLowerCase())])return null;
+    /* ⭐ 25/10/2026 (liste n° 150) — le groupe [dét + nom] est DANS une relative ouverte avant lui (qui / que / dont / où, puis un
+       verbe) : « ceux qui ont oublié leur autorisation doivent » — « leur autorisation » est le complément du verbe de la relative,
+       pas le sujet de « doivent » (le moteur proposait « doit » sur du français juste). Abstention ; vaut pour toutes les règles qui
+       lisent le sujet ici (accord sujet-verbe, flexion, participe après être). */
+    for(var _r0=detIdx-1;_r0>=lo;_r0--){var _rl=T[_r0].toLowerCase();if(_rl==='qui'||_rl==='que'||_rl==='dont'||_rl==='où'){var _rv=false,_r1;for(_r1=_r0+1;_r1<detIdx;_r1++){var _rt=tg&&_r1<tg.length?tg[_r1]:'',_rw=deacc(T[_r1].toLowerCase()).replace(/['’]$/,'');if(_rt==='VERB'||_rt==='AUX'){_rv=true;continue;}if(_rt==='ADV'||CLITIC[_rw]||_rw==='ne'||_rw==='n'||_rw==='pas')continue;break;}if(_rv&&_r1===detIdx)return null;break;}}   /* le relatif le PLUS PROCHE, et entre lui et le groupe RIEN que le groupe verbal (verbes, adverbes, pronoms, négation) : « qui ont oublié leur autorisation » ; une proposition entière entre les deux (« que l'on sache que les animaux meurent ») rouvre un sujet */
     if(_elid){var _h=_ELID_DET.exec(T[detIdx].toLowerCase())[1];   // « l'équipe » : le déterminant ET la tête sont le MÊME token
       var _g=_nounGender(_h,'s')||GENDER_PURE[deacc(_h)];
       if(_g!=='m'&&_g!=='f')return null;   // genre inconnu → on ne sait pas rendre le déterminant → abstention
