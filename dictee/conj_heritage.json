@@ -143,9 +143,6 @@
 "assener": {
 "ind:fut": {
 "1s": "assénerai"
-},
-"ind:pas": {
-"3s": null
 }
 },
 "assieger": {
@@ -199,11 +196,6 @@
 "3s": "bague"
 }
 },
-"bailler": {
-"ind:pas": {
-"3s": null
-}
-},
 "baillonner": {
 "ind:fut": {
 "2p": "bâillonnerez"
@@ -231,11 +223,6 @@
 "baqueter": {
 "sub:pre": {
 "2s": "baquètes"
-}
-},
-"barder": {
-"ind:pas": {
-"3s": null
 }
 },
 "bateler": {
@@ -273,16 +260,6 @@
 "1s": "baie"
 }
 },
-"becher": {
-"ind:pas": {
-"3s": null
-}
-},
-"beer": {
-"ind:pas": {
-"2p": null
-}
-},
 "begueter": {
 "imp:pre": {
 "2s": "béguète"
@@ -297,11 +274,6 @@
 "3s": "béguète"
 }
 },
-"benir": {
-"ind:pas": {
-"2p": null
-}
-},
 "bequiller": {
 "sub:pre": {
 "1s": "béquille",
@@ -312,11 +284,6 @@
 "sub:pre": {
 "1s": "bêtise",
 "3s": "bêtise"
-}
-},
-"biler": {
-"ind:pas": {
-"1p": null
 }
 },
 "bitumer": {
@@ -433,11 +400,6 @@
 "3s": "cafete"
 }
 },
-"cagner": {
-"ind:pas": {
-"3s": null
-}
-},
 "caleter": {
 "imp:pre": {
 "2s": "calète"
@@ -464,9 +426,6 @@
 }
 },
 "canner": {
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1s": "canne",
 "3s": "canne"
@@ -487,11 +446,6 @@
 "caqueter": {
 "sub:pre": {
 "1s": "caquette"
-}
-},
-"carapater": {
-"ind:pas": {
-"3s": null
 }
 },
 "carier": {
@@ -529,11 +483,6 @@
 "sub:pre": {
 "1s": "caserne",
 "3s": "caserne"
-}
-},
-"casser": {
-"ind:pas": {
-"2p": null
 }
 },
 "catastropher": {
@@ -601,11 +550,6 @@
 "3s": "chevit"
 }
 },
-"chlorer": {
-"ind:pas": {
-"2p": null
-}
-},
 "choir": {
 "cnd:pre": {
 "2p": "cherriez",
@@ -635,11 +579,6 @@
 "3s": "choie"
 }
 },
-"chromer": {
-"ind:pas": {
-"2p": null
-}
-},
 "cliqueter": {
 "sub:pre": {
 "1s": "cliquette",
@@ -660,17 +599,6 @@
 "sub:pre": {
 "1s": "clope",
 "3s": "clope"
-}
-},
-"cocher": {
-"ind:pas": {
-"3p": null,
-"3s": null
-}
-},
-"coder": {
-"ind:pas": {
-"3s": null
 }
 },
 "colleter": {
@@ -761,12 +689,6 @@
 "sub:pre": {
 "1s": "cousine",
 "3s": "cousine"
-}
-},
-"craner": {
-"ind:pas": {
-"2p": null,
-"3s": null
 }
 },
 "crapuler": {
@@ -977,11 +899,6 @@
 "3p": "dérayent"
 }
 },
-"designer": {
-"ind:pas": {
-"3s": null
-}
-},
 "detresser": {
 "sub:pre": {
 "1s": "détresse",
@@ -1005,11 +922,6 @@
 },
 "sub:pre": {
 "3p": "dilayent"
-}
-},
-"diner": {
-"ind:pas": {
-"3s": null
 }
 },
 "diviser": {
@@ -1107,16 +1019,6 @@
 "empoussierer": {
 "sub:pre": {
 "2s": "empoussières"
-}
-},
-"enamourer": {
-"ind:pas": {
-"3s": null
-}
-},
-"enchasser": {
-"ind:pas": {
-"3s": null
 }
 },
 "encrer": {
@@ -1252,11 +1154,6 @@
 "3s": "excréta"
 }
 },
-"fader": {
-"ind:pas": {
-"3s": null
-}
-},
 "failler": {
 "imp:pre": null,
 "ind:imp": {
@@ -1275,9 +1172,6 @@
 "ind:imp": {
 "2p": "faillissiez"
 },
-"ind:pas": {
-"2p": null
-},
 "sub:pre": {
 "2p": "faillissiez",
 "3s": "faillisse"
@@ -1287,16 +1181,6 @@
 "sub:pre": {
 "1s": "fainéante",
 "3s": "fainéante"
-}
-},
-"faner": {
-"ind:pas": {
-"3s": null
-}
-},
-"fantasier": {
-"ind:pas": {
-"3s": null
 }
 },
 "fariner": {
@@ -1332,9 +1216,6 @@
 }
 },
 "fluorer": {
-"ind:pas": {
-"2p": null
-},
 "sub:pre": {
 "1s": "fluore",
 "3s": "fluore"
@@ -1410,11 +1291,6 @@
 "3s": "fusèle"
 }
 },
-"gaber": {
-"ind:pas": {
-"3s": null
-}
-},
 "gainer": {
 "cnd:pre": {
 "1s": "gainerais",
@@ -1469,11 +1345,6 @@
 "1s": "gamine"
 }
 },
-"gangrener": {
-"ind:pas": {
-"3s": null
-}
-},
 "gater": {
 "sub:pre": {
 "2s": "gâtes"
@@ -1495,16 +1366,6 @@
 "3s": "gita"
 }
 },
-"gourer": {
-"ind:pas": {
-"3s": null
-}
-},
-"gouter": {
-"ind:pas": {
-"3p": null
-}
-},
 "grainer": {
 "sub:pre": {
 "1s": "graine",
@@ -1521,11 +1382,6 @@
 "2s": "gravites"
 }
 },
-"grever": {
-"ind:pas": {
-"3s": null
-}
-},
 "grommeler": {
 "sub:pre": {
 "1s": "grommelle"
@@ -1537,26 +1393,10 @@
 "3s": "groupe"
 }
 },
-"guerir": {
-"ind:pas": {
-"2p": null
-}
-},
-"haler": {
-"ind:pas": {
-"1p": null,
-"3s": null
-}
-},
 "hancher": {
 "sub:pre": {
 "1s": "hanche",
 "3s": "hanche"
-}
-},
-"hater": {
-"ind:pas": {
-"3s": null
 }
 },
 "herber": {
@@ -1739,11 +1579,6 @@
 "3s": "machine"
 }
 },
-"maculer": {
-"ind:pas": {
-"3s": null
-}
-},
 "mailleter": {
 "sub:pre": {
 "2s": "maillètes"
@@ -1780,25 +1615,10 @@
 "2s": "marquètes"
 }
 },
-"mater": {
-"ind:pas": {
-"2p": null
-}
-},
-"maudire": {
-"ind:pas": {
-"2p": null
-}
-},
 "mazouter": {
 "sub:pre": {
 "1s": "mazoute",
 "3s": "mazoute"
-}
-},
-"mecher": {
-"ind:pas": {
-"3s": null
 }
 },
 "meprendre": {
@@ -1864,9 +1684,6 @@
 "2p": "mouliez",
 "2s": "moulais"
 },
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1p": "moulions",
 "1s": "moule",
@@ -1899,9 +1716,6 @@
 "cnd:pre": {
 "1s": "nécessiterais",
 "2s": "nécessiterais"
-},
-"ind:pas": {
-"3s": null
 },
 "sub:pre": {
 "2s": "nécessites"
@@ -2009,9 +1823,6 @@
 "parfaire": {
 "ind:pas": {
 "3s": "parfit"
-},
-"ind:pre": {
-"2s": "parfaites"
 }
 },
 "pauser": {
@@ -2026,9 +1837,6 @@
 }
 },
 "pecher": {
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "3p": "pèchent"
 }
@@ -2201,11 +2009,6 @@
 "3s": "prévit"
 }
 },
-"primer": {
-"ind:pas": {
-"2p": null
-}
-},
 "prosperer": {
 "ind:fut": {
 "1s": "prospérerai"
@@ -2228,11 +2031,6 @@
 "3s": "quille"
 }
 },
-"raboutir": {
-"ind:pas": {
-"3s": null
-}
-},
 "raire": {
 "ind:imp": null,
 "sub:pre": null
@@ -2240,11 +2038,6 @@
 "ramifier": {
 "sub:pre": {
 "2s": "ramifies"
-}
-},
-"raper": {
-"ind:pas": {
-"3s": null
 }
 },
 "rapprendre": {
@@ -2277,11 +2070,6 @@
 "3p": "rayeraient"
 }
 },
-"razzier": {
-"ind:pas": {
-"3s": null
-}
-},
 "reanalyser": {
 "sub:pre": {
 "1s": "réanalyse",
@@ -2309,11 +2097,6 @@
 "1s": "recachette"
 }
 },
-"receler": {
-"ind:pas": {
-"3s": null
-}
-},
 "recomparaitre": {
 "ind:pre": {
 "3s": null
@@ -2330,11 +2113,6 @@
 "3s": "reconfirme"
 }
 },
-"recontrer": {
-"ind:pas": {
-"3s": null
-}
-},
 "recouvrer": {
 "ind:imp": {
 "1s": null
@@ -2342,9 +2120,6 @@
 "sub:pre": null
 },
 "recreer": {
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "1s": "récrée",
 "2s": "récrées",
@@ -2395,18 +2170,7 @@
 "3p": "réformeront"
 },
 "ind:pas": {
-"2p": null,
-"3s": null
-}
-},
-"refranchir": {
-"ind:pas": {
-"3s": null
-}
-},
-"refrener": {
-"ind:pas": {
-"3s": null
+"2p": null
 }
 },
 "refuir": {
@@ -2420,11 +2184,6 @@
 },
 "sub:pre": {
 "3p": "regayent"
-}
-},
-"regir": {
-"ind:pas": {
-"1p": null
 }
 },
 "regler": {
@@ -2441,16 +2200,6 @@
 "ind:pas": {
 "3p": "regoûtèrent",
 "3s": "regoûta"
-}
-},
-"regravir": {
-"ind:pas": {
-"3s": null
-}
-},
-"regrossir": {
-"ind:pas": {
-"3s": null
 }
 },
 "relater": {
@@ -2554,11 +2303,6 @@
 "2s": "réprimes"
 }
 },
-"reprouver": {
-"ind:pas": {
-"3s": null
-}
-},
 "requeter": {
 "sub:pre": {
 "1s": "requête",
@@ -2632,11 +2376,6 @@
 "2s": "reveux"
 }
 },
-"rhodier": {
-"ind:pas": {
-"3s": null
-}
-},
 "rhumer": {
 "sub:pre": {
 "1s": "rhume",
@@ -2650,9 +2389,6 @@
 }
 },
 "roder": {
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "3p": "rodent"
 }
@@ -2710,11 +2446,6 @@
 "3s": "sable"
 }
 },
-"sauner": {
-"ind:pas": {
-"3s": null
-}
-},
 "saurer": {
 "imp:pre": {
 "2p": null
@@ -2731,9 +2462,6 @@
 }
 },
 "secreter": {
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "3p": "secrètent"
 }
@@ -2761,11 +2489,6 @@
 "3s": "sieste"
 }
 },
-"solder": {
-"ind:pas": {
-"2p": null
-}
-},
 "soucheter": {
 "imp:pre": {
 "2s": "souchète"
@@ -2782,11 +2505,6 @@
 "speeder": {
 "sub:pre": {
 "2s": "speedes"
-}
-},
-"subir": {
-"ind:pas": {
-"2p": null
 }
 },
 "surentrainer": {
@@ -2818,9 +2536,6 @@
 }
 },
 "tabler": {
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1s": "table",
 "3s": "table"
@@ -2833,9 +2548,6 @@
 "ind:fut": {
 "3p": "tacheront"
 },
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "3p": "tachent"
 }
@@ -2845,11 +2557,6 @@
 "1s": "tachette"
 }
 },
-"taler": {
-"ind:pas": {
-"3s": null
-}
-},
 "tapir": {
 "ind:imp": null,
 "sub:imp": {
@@ -2857,11 +2564,6 @@
 "2p": null
 },
 "sub:pre": null
-},
-"tatillonner": {
-"ind:pas": {
-"3s": null
-}
 },
 "tauper": {
 "sub:pre": {
@@ -2875,9 +2577,6 @@
 },
 "ind:fut": {
 "1s": "tempérerai"
-},
-"ind:pas": {
-"3s": null
 }
 },
 "terrer": {
@@ -2898,9 +2597,6 @@
 "ind:fut": {
 "1s": "téterai"
 },
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1s": "tète",
 "2s": "tètes",
@@ -2916,11 +2612,6 @@
 "sub:pre": {
 "1s": "toile",
 "3s": "toile"
-}
-},
-"tomer": {
-"ind:pas": {
-"2p": null
 }
 },
 "torrefier": {
@@ -2941,11 +2632,6 @@
 "transfuser": {
 "sub:pre": {
 "1p": "transfusions"
-}
-},
-"tuber": {
-"ind:pas": {
-"3s": null
 }
 },
 "tuter": {
@@ -3027,11 +2713,6 @@
 "3s": "viande"
 }
 },
-"viner": {
-"ind:pas": {
-"3s": null
-}
-},
 "violacer": {
 "sub:pre": {
 "2s": "violaces"
@@ -3054,11 +2735,6 @@
 "vivre": {
 "imp:pre": {
 "2s": null
-}
-},
-"voiler": {
-"ind:pas": {
-"3s": null
 }
 },
 "voisiner": {
@@ -3085,9 +2761,6 @@
 }
 },
 "zoner": {
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1s": "zone",
 "3s": "zone"
@@ -3167,7 +2840,6 @@
 "assecheras": "assecher;ind:fut;2;s",
 "assechiez": "assecher;ind:imp;2;p|assecher;sub:pre;2;p",
 "assechions": "assecher;ind:imp;1;p|assecher;sub:pre;1;p",
-"assena": null,
 "assente": null,
 "assiegeraient": "assieger;cnd:pre;3;p",
 "assiegiez": "assieger;ind:imp;2;p|assieger;sub:pre;2;p",
@@ -3207,7 +2879,6 @@
 "baierions": null,
 "baierons": null,
 "baieront": null,
-"bailla": null,
 "baillonnerez": "baillonner;ind:fut;2;p",
 "balayent": "balayer;sub:pre;3;p",
 "baleine": "baleiner;ind:pre;1;s|baleiner;ind:pre;3;s|baleiner;sub:pre;3;s|baleiner;sub:pre;1;s",
@@ -3222,7 +2893,6 @@
 "battis": "battre;ind:pas;1;s|battre;ind:pas;2;s",
 "baudit": "baudir;sub:imp;3;s|baudir;ind:pas;3;s|baudir;ind:pre;3;s",
 "bayions": "bayer;ind:imp;1;p|bayer;sub:pre;1;p",
-"becha": null,
 "begayions": "begayer;ind:imp;1;p|begayer;sub:pre;1;p",
 "beguette": null,
 "beguettes": null,
@@ -3335,8 +3005,6 @@
 "cliquettes": "cliqueter;ind:pre;2;s",
 "cloches": "clocher;ind:pre;2;s|clocher;sub:pre;2;s",
 "clope": "cloper;ind:pre;1;s|cloper;ind:pre;3;s|cloper;sub:pre;1;s|cloper;sub:pre;3;s",
-"cocha": null,
-"cocherent": null,
 "codirigiez": "codiriger;ind:imp;2;p|codiriger;sub:pre;2;p",
 "codirigions": "codiriger;ind:imp;1;p|codiriger;sub:pre;1;p",
 "cofinanciez": "cofinancer;ind:imp;2;p|cofinancer;sub:pre;2;p",
@@ -3400,8 +3068,6 @@
 "cousis": "coudre;ind:pas;1;s|coudre;ind:pas;2;s",
 "couvris": "couvrir;ind:pas;1;s|couvrir;ind:pas;2;s",
 "craignis": "craindre;ind:pas;1;s|craindre;ind:pas;2;s",
-"crana": null,
-"cranates": null,
 "crapule": "crapuler;ind:pre;1;s|crapuler;ind:pre;3;s|crapuler;sub:pre;3;s|crapuler;sub:pre;1;s",
 "craquettes": "craqueter;ind:pre;2;s",
 "crechiez": "crecher;ind:imp;2;p|crecher;sub:pre;2;p",
@@ -3536,7 +3202,6 @@
 "desennuyions": "desennuyer;ind:imp;1;p|desennuyer;sub:pre;1;p",
 "desentrelaciez": "desentrelacer;ind:imp;2;p|desentrelacer;sub:pre;2;p",
 "desentrelacions": "desentrelacer;ind:imp;1;p|desentrelacer;sub:pre;1;p",
-"designa": null,
 "desintegrions": "desintegrer;ind:imp;1;p|desintegrer;sub:pre;1;p",
 "desobligiez": "desobliger;ind:imp;2;p|desobliger;sub:pre;2;p",
 "desobligions": "desobliger;ind:imp;1;p|desobliger;sub:pre;1;p",
@@ -3616,10 +3281,8 @@
 "empoussieres": "empoussierer;ind:pre;2;s|empoussierer;sub:pre;2;s",
 "empoussieriez": "empoussierer;ind:imp;2;p|empoussierer;sub:pre;2;p",
 "empoussierions": "empoussierer;ind:imp;1;p|empoussierer;sub:pre;1;p",
-"enamoura": null,
 "encagiez": "encager;ind:imp;2;p|encager;sub:pre;2;p",
 "encagions": "encager;ind:imp;1;p|encager;sub:pre;1;p",
-"enchassa": null,
 "encre": "encrer;ind:pre;1;s|encrer;ind:pre;3;s|encrer;sub:pre;3;s|encrer;sub:pre;1;s",
 "encryptiez": "encrypter;ind:imp;2;p|encrypter;sub:pre;2;p",
 "endommagions": "endommager;ind:imp;1;p|endommager;sub:pre;1;p",
@@ -3775,7 +3438,6 @@
 "gambergiez": "gamberger;ind:imp;2;p|gamberger;sub:pre;2;p",
 "gambergions": "gamberger;ind:imp;1;p|gamberger;sub:pre;1;p",
 "gamine": "gaminer;ind:pre;1;s|gaminer;ind:pre;3;s|gaminer;sub:pre;3;s|gaminer;sub:pre;1;s",
-"gangrena": null,
 "gantele": null,
 "gates": "gater;ind:pre;2;s|gater;sub:pre;2;s",
 "geignis": "geindre;ind:pas;1;s|geindre;ind:pas;2;s",
@@ -3791,7 +3453,6 @@
 "gougions": "gouger;ind:imp;1;p|gouger;sub:pre;1;p",
 "graine": "grainer;ind:pre;1;s|grainer;ind:pre;3;s|grainer;sub:pre;3;s|grainer;sub:pre;1;s",
 "gravites": "graviter;ind:pre;2;s|graviter;sub:pre;2;s",
-"greva": null,
 "grimaciez": "grimacer;ind:imp;2;p|grimacer;sub:pre;2;p",
 "grimacions": "grimacer;ind:imp;1;p|grimacer;sub:pre;1;p",
 "grincions": "grincer;ind:imp;1;p|grincer;sub:pre;1;p",
@@ -3802,8 +3463,6 @@
 "grugions": "gruger;ind:imp;1;p|gruger;sub:pre;1;p",
 "guerroyiez": "guerroyer;ind:imp;2;p|guerroyer;sub:pre;2;p",
 "guerroyions": "guerroyer;ind:imp;1;p|guerroyer;sub:pre;1;p",
-"hala": null,
-"halames": null,
 "hanche": "hancher;ind:pre;1;s|hancher;ind:pre;3;s|hancher;sub:pre;3;s|hancher;sub:pre;1;s",
 "havit": "havir;sub:imp;3;s|havir;ind:pas;3;s|havir;ind:pre;3;s",
 "herbe": "herber;ind:pre;1;s|herber;ind:pre;3;s|herber;sub:pre;3;s|herber;sub:pre;1;s",
@@ -3930,7 +3589,6 @@
 "maquettions": "maquetter;ind:imp;1;p|maquetter;sub:pre;1;p",
 "marquetes": "marqueter;sub:pre;2;s",
 "marquettes": "marqueter;ind:pre;2;s",
-"matates": null,
 "matriciez": "matricer;ind:imp;2;p|matricer;sub:pre;2;p",
 "matricions": "matricer;ind:imp;1;p|matricer;sub:pre;1;p",
 "mazoute": "mazouter;ind:pre;1;s|mazouter;ind:pre;3;s|mazouter;sub:pre;3;s|mazouter;sub:pre;1;s",
@@ -4031,12 +3689,9 @@
 "paques": "paquer;ind:pre;2;s|paquer;sub:pre;2;s",
 "parametriez": "parametrer;ind:imp;2;p|parametrer;sub:pre;2;p",
 "parametrions": "parametrer;ind:imp;1;p|parametrer;sub:pre;1;p",
-"parfais": "parfaire;ind:pre;1;s",
-"parfaites": "parfaire;ind:pre;2;s",
 "parfit": "parfaire;ind:pas;3;s",
 "parvins": "parvenir;ind:pas;1;s|parvenir;ind:pas;2;s",
 "pause": "pauser;ind:pre;1;s|pauser;ind:pre;3;s|pauser;sub:pre;3;s|pauser;sub:pre;1;s",
-"pecha": null,
 "peigniez": "peigner;ind:imp;2;p|peindre;ind:imp;2;p|peindre;sub:pre;2;p",
 "peignions": "peigner;ind:imp;1;p|peindre;ind:imp;1;p|peindre;sub:pre;1;p",
 "peignis": "peindre;ind:pas;1;s|peindre;ind:pas;2;s",
@@ -4132,7 +3787,6 @@
 "pus": "pouvoir;ind:pas;1;s|pouvoir;ind:pas;2;s",
 "pyramide": "pyramider;ind:pre;1;s|pyramider;ind:pre;3;s|pyramider;sub:pre;3;s|pyramider;sub:pre;1;s",
 "quille": "quiller;ind:pre;1;s|quiller;ind:pre;3;s|quiller;sub:pre;1;s|quiller;sub:pre;3;s",
-"raboutit": "raboutir;ind:pre;3;s",
 "radioscopiez": "radioscoper;ind:imp;2;p|radioscoper;sub:pre;2;p",
 "radioscopions": "radioscoper;ind:imp;1;p|radioscoper;sub:pre;1;p",
 "raieraient": null,
@@ -4175,7 +3829,6 @@
 "recarrele": null,
 "recediez": "receder;ind:imp;2;p|receder;sub:pre;2;p",
 "recedions": "receder;ind:imp;1;p|receder;sub:pre;1;p",
-"recela": null,
 "recelebriez": "recelebrer;ind:imp;2;p|recelebrer;sub:pre;2;p",
 "recelebrions": "recelebrer;ind:imp;1;p|recelebrer;sub:pre;1;p",
 "rechangiez": "rechanger;ind:imp;2;p|rechanger;sub:pre;2;p",
@@ -4190,7 +3843,6 @@
 "recouvrais": "recouvrer;ind:imp;2;s|recouvrir;ind:imp;2;s|recouvrir;ind:imp;1;s",
 "recouvrions": "recouvrer;ind:imp;1;p|recouvrir;ind:imp;1;p|recouvrir;sub:pre;1;p",
 "recouvris": "recouvrir;ind:pas;1;s|recouvrir;ind:pas;2;s",
-"recrea": null,
 "recroit": "recroitre;ind:pre;3;s",
 "recroyiez": "recroire;ind:imp;2;p|recroire;sub:pre;2;p",
 "recroyions": "recroire;ind:imp;1;p|recroire;sub:pre;1;p",
@@ -4248,11 +3900,8 @@
 "reforcions": "reforcer;ind:imp;1;p|reforcer;sub:pre;1;p",
 "reforgiez": "reforger;ind:imp;2;p|reforger;sub:pre;2;p",
 "reforgions": "reforger;ind:imp;1;p|reforger;sub:pre;1;p",
-"reforma": null,
 "reformates": "reformater;ind:pre;2;s|reformater;sub:pre;2;s",
-"refranchit": "refranchir;ind:pre;3;s",
 "refrayes": null,
-"refrena": null,
 "refrigeriez": "refrigerer;ind:imp;2;p|refrigerer;sub:pre;2;p",
 "refrigerions": "refrigerer;ind:imp;1;p|refrigerer;sub:pre;1;p",
 "refuit": "refuir;sub:imp;3;s|refuir;ind:pre;3;s",
@@ -4263,8 +3912,6 @@
 "reglerions": "regler;cnd:pre;1;p",
 "regneriez": "regner;cnd:pre;2;p",
 "regorgions": "regorger;ind:imp;1;p|regorger;sub:pre;1;p",
-"regravit": "regravir;ind:pre;3;s",
-"regrossit": "regrossir;ind:pre;3;s",
 "reimmisciez": "reimmiscer;ind:imp;2;p|reimmiscer;sub:pre;2;p",
 "reimmiscions": "reimmiscer;ind:imp;1;p|reimmiscer;sub:pre;1;p",
 "reimpregniez": "reimpregner;ind:imp;2;p|reimpregner;sub:pre;2;p",
@@ -4337,7 +3984,6 @@
 "reproduisis": "reproduire;ind:pas;1;s|reproduire;ind:pas;2;s",
 "reprononciez": "reprononcer;ind:imp;2;p|reprononcer;sub:pre;2;p",
 "reprononcions": "reprononcer;ind:imp;1;p|reprononcer;sub:pre;1;p",
-"reprouva": null,
 "repuis": null,
 "repumes": "repouvoir;ind:pas;1;p|repaitre;ind:pas;1;p",
 "repurent": "repouvoir;ind:pas;3;p|repaitre;ind:pas;3;p",
@@ -4385,7 +4031,6 @@
 "rhume": "rhumer;ind:pre;1;s|rhumer;ind:pre;3;s|rhumer;sub:pre;3;s|rhumer;sub:pre;1;s",
 "rincions": "rincer;ind:imp;1;p|rincer;sub:pre;1;p",
 "roche": "rocher;ind:pre;1;s|rocher;ind:pre;3;s|rocher;sub:pre;3;s|rocher;sub:pre;1;s",
-"roda": null,
 "romanciez": "romancer;ind:imp;2;p|romancer;sub:pre;2;p",
 "romancions": "romancer;ind:imp;1;p|romancer;sub:pre;1;p",
 "rondit": "rondir;sub:imp;3;s|rondir;ind:pas;3;s|rondir;ind:pre;3;s",
@@ -4410,7 +4055,6 @@
 "saurit": "saurir;sub:imp;3;s|saurir;ind:pas;3;s|saurir;ind:pre;3;s",
 "seconde": "seconder;ind:pre;1;s|seconder;ind:pre;3;s|seconder;sub:pre;3;s|seconder;sub:pre;1;s",
 "secondes": "seconder;ind:pre;2;s|seconder;sub:pre;2;s",
-"secreta": null,
 "seduisis": "seduire;ind:pas;1;s|seduire;ind:pas;2;s",
 "semonce": "semoncer;ind:pre;1;s|semoncer;ind:pre;3;s|semoncer;sub:pre;3;s|semoncer;sub:pre;1;s",
 "semonciez": "semoncer;ind:imp;2;p|semoncer;sub:pre;2;p",
@@ -4458,7 +4102,6 @@
 "sursoyions": "surseoir;ind:imp;1;p|surseoir;sub:pre;1;p",
 "syllabe": "syllaber;ind:pre;1;s|syllaber;ind:pre;3;s|syllaber;sub:pre;3;s|syllaber;sub:pre;1;s",
 "table": "tabler;ind:pre;1;s|tabler;ind:pre;3;s|tabler;sub:pre;3;s|tabler;sub:pre;1;s",
-"tacha": null,
 "tachete": null,
 "tachetent": null,
 "tachetera": null,
@@ -4472,7 +4115,6 @@
 "tapissions": "tapisser;ind:imp;1;p|tapisser;sub:pre;1;p",
 "tartit": "tartir;sub:imp;3;s|tartir;ind:pas;3;s|tartir;ind:pre;3;s",
 "tata": "tater;ind:pas;3;s",
-"tatillonna": null,
 "taupe": "tauper;ind:pre;1;s|tauper;ind:pre;3;s|tauper;sub:pre;1;s|tauper;sub:pre;3;s",
 "taupiez": "tauper;ind:imp;2;p|tauper;sub:pre;2;p",
 "taupions": "tauper;ind:imp;1;p|tauper;sub:pre;1;p",
@@ -17647,9 +17289,6 @@
 "assener": {
 "ind:fut": {
 "1s": "assénerai"
-},
-"ind:pas": {
-"3s": null
 }
 },
 "assieger": {
@@ -17724,11 +17363,6 @@
 "3s": "bague"
 }
 },
-"bailler": {
-"ind:pas": {
-"3s": null
-}
-},
 "baillonner": {
 "ind:fut": {
 "2p": "bâillonnerez"
@@ -17756,11 +17390,6 @@
 "baqueter": {
 "sub:pre": {
 "2s": "baquètes"
-}
-},
-"barder": {
-"ind:pas": {
-"3s": null
 }
 },
 "bateler": {
@@ -17798,16 +17427,6 @@
 "1s": "baie"
 }
 },
-"becher": {
-"ind:pas": {
-"3s": null
-}
-},
-"beer": {
-"ind:pas": {
-"2p": null
-}
-},
 "begueter": {
 "imp:pre": {
 "2s": "béguète"
@@ -17822,11 +17441,6 @@
 "3s": "béguète"
 }
 },
-"benir": {
-"ind:pas": {
-"2p": null
-}
-},
 "bequiller": {
 "sub:pre": {
 "1s": "béquille",
@@ -17837,11 +17451,6 @@
 "sub:pre": {
 "1s": "bêtise",
 "3s": "bêtise"
-}
-},
-"biler": {
-"ind:pas": {
-"1p": null
 }
 },
 "bitumer": {
@@ -17983,11 +17592,6 @@
 "3s": "cafete"
 }
 },
-"cagner": {
-"ind:pas": {
-"3s": null
-}
-},
 "caleter": {
 "imp:pre": {
 "2s": "calète"
@@ -18014,9 +17618,6 @@
 }
 },
 "canner": {
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1s": "canne",
 "3s": "canne"
@@ -18037,11 +17638,6 @@
 "caqueter": {
 "sub:pre": {
 "1s": "caquette"
-}
-},
-"carapater": {
-"ind:pas": {
-"3s": null
 }
 },
 "carier": {
@@ -18079,11 +17675,6 @@
 "sub:pre": {
 "1s": "caserne",
 "3s": "caserne"
-}
-},
-"casser": {
-"ind:pas": {
-"2p": null
 }
 },
 "catastropher": {
@@ -18151,11 +17742,6 @@
 "3s": "chevit"
 }
 },
-"chlorer": {
-"ind:pas": {
-"2p": null
-}
-},
 "choir": {
 "cnd:pre": {
 "2p": "cherriez",
@@ -18185,11 +17771,6 @@
 "3s": "choie"
 }
 },
-"chromer": {
-"ind:pas": {
-"2p": null
-}
-},
 "cliqueter": {
 "sub:pre": {
 "1s": "cliquette",
@@ -18210,17 +17791,6 @@
 "sub:pre": {
 "1s": "clope",
 "3s": "clope"
-}
-},
-"cocher": {
-"ind:pas": {
-"3p": null,
-"3s": null
-}
-},
-"coder": {
-"ind:pas": {
-"3s": null
 }
 },
 "colleter": {
@@ -18327,12 +17897,6 @@
 "sub:pre": {
 "1s": "cousine",
 "3s": "cousine"
-}
-},
-"craner": {
-"ind:pas": {
-"2p": null,
-"3s": null
 }
 },
 "crapuler": {
@@ -18543,11 +18107,6 @@
 "3p": "dérayent"
 }
 },
-"designer": {
-"ind:pas": {
-"3s": null
-}
-},
 "detresser": {
 "sub:pre": {
 "1s": "détresse",
@@ -18571,11 +18130,6 @@
 },
 "sub:pre": {
 "3p": "dilayent"
-}
-},
-"diner": {
-"ind:pas": {
-"3s": null
 }
 },
 "diviser": {
@@ -18673,16 +18227,6 @@
 "empoussierer": {
 "sub:pre": {
 "2s": "empoussières"
-}
-},
-"enamourer": {
-"ind:pas": {
-"3s": null
-}
-},
-"enchasser": {
-"ind:pas": {
-"3s": null
 }
 },
 "encrer": {
@@ -18842,11 +18386,6 @@
 "2s": "externalises"
 }
 },
-"fader": {
-"ind:pas": {
-"3s": null
-}
-},
 "failler": {
 "imp:pre": null,
 "ind:imp": {
@@ -18865,9 +18404,6 @@
 "ind:imp": {
 "2p": "faillissiez"
 },
-"ind:pas": {
-"2p": null
-},
 "sub:pre": {
 "2p": "faillissiez",
 "3s": "faillisse"
@@ -18877,16 +18413,6 @@
 "sub:pre": {
 "1s": "fainéante",
 "3s": "fainéante"
-}
-},
-"faner": {
-"ind:pas": {
-"3s": null
-}
-},
-"fantasier": {
-"ind:pas": {
-"3s": null
 }
 },
 "fariner": {
@@ -18932,9 +18458,6 @@
 }
 },
 "fluorer": {
-"ind:pas": {
-"2p": null
-},
 "sub:pre": {
 "1s": "fluore",
 "3s": "fluore"
@@ -19010,11 +18533,6 @@
 "3s": "fusèle"
 }
 },
-"gaber": {
-"ind:pas": {
-"3s": null
-}
-},
 "gainer": {
 "cnd:pre": {
 "1p": "gainerions",
@@ -19087,11 +18605,6 @@
 "1s": "gamine"
 }
 },
-"gangrener": {
-"ind:pas": {
-"3s": null
-}
-},
 "gater": {
 "sub:pre": {
 "2s": "gâtes"
@@ -19113,16 +18626,6 @@
 "3s": "gita"
 }
 },
-"gourer": {
-"ind:pas": {
-"3s": null
-}
-},
-"gouter": {
-"ind:pas": {
-"3p": null
-}
-},
 "grainer": {
 "sub:pre": {
 "1s": "graine",
@@ -19139,11 +18642,6 @@
 "2s": "gravites"
 }
 },
-"grever": {
-"ind:pas": {
-"3s": null
-}
-},
 "grommeler": {
 "sub:pre": {
 "1s": "grommelle"
@@ -19153,17 +18651,6 @@
 "sub:pre": {
 "1s": "groupe",
 "3s": "groupe"
-}
-},
-"guerir": {
-"ind:pas": {
-"2p": null
-}
-},
-"haler": {
-"ind:pas": {
-"1p": null,
-"3s": null
 }
 },
 "hancher": {
@@ -19182,11 +18669,6 @@
 "1s": "harpe",
 "2s": "harpes",
 "3s": "harpe"
-}
-},
-"hater": {
-"ind:pas": {
-"3s": null
 }
 },
 "herber": {
@@ -19393,11 +18875,6 @@
 "3s": "machine"
 }
 },
-"maculer": {
-"ind:pas": {
-"3s": null
-}
-},
 "mailleter": {
 "sub:pre": {
 "2s": "maillètes"
@@ -19434,25 +18911,10 @@
 "2s": "marquètes"
 }
 },
-"mater": {
-"ind:pas": {
-"2p": null
-}
-},
-"maudire": {
-"ind:pas": {
-"2p": null
-}
-},
 "mazouter": {
 "sub:pre": {
 "1s": "mazoute",
 "3s": "mazoute"
-}
-},
-"mecher": {
-"ind:pas": {
-"3s": null
 }
 },
 "meprendre": {
@@ -19518,9 +18980,6 @@
 "2p": "mouliez",
 "2s": "moulais"
 },
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1p": "moulions",
 "1s": "moule",
@@ -19553,9 +19012,6 @@
 "cnd:pre": {
 "1s": "nécessiterais",
 "2s": "nécessiterais"
-},
-"ind:pas": {
-"3s": null
 },
 "sub:pre": {
 "2s": "nécessites"
@@ -19669,9 +19125,6 @@
 "parfaire": {
 "ind:pas": {
 "3s": "parfit"
-},
-"ind:pre": {
-"2s": "parfaites"
 }
 },
 "pauser": {
@@ -19686,9 +19139,6 @@
 }
 },
 "pecher": {
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "3p": "pèchent"
 }
@@ -19887,11 +19337,6 @@
 "3s": "prévit"
 }
 },
-"primer": {
-"ind:pas": {
-"2p": null
-}
-},
 "prosperer": {
 "ind:fut": {
 "1s": "prospérerai"
@@ -19914,11 +19359,6 @@
 "3s": "quille"
 }
 },
-"raboutir": {
-"ind:pas": {
-"3s": null
-}
-},
 "raire": {
 "ind:imp": null,
 "sub:pre": null
@@ -19926,11 +19366,6 @@
 "ramifier": {
 "sub:pre": {
 "2s": "ramifies"
-}
-},
-"raper": {
-"ind:pas": {
-"3s": null
 }
 },
 "rapprendre": {
@@ -19963,11 +19398,6 @@
 "3p": "rayeraient"
 }
 },
-"razzier": {
-"ind:pas": {
-"3s": null
-}
-},
 "reanalyser": {
 "sub:pre": {
 "1s": "réanalyse",
@@ -19995,11 +19425,6 @@
 "1s": "recachette"
 }
 },
-"receler": {
-"ind:pas": {
-"3s": null
-}
-},
 "recomparaitre": {
 "ind:pre": {
 "3s": null
@@ -20016,11 +19441,6 @@
 "3s": "reconfirme"
 }
 },
-"recontrer": {
-"ind:pas": {
-"3s": null
-}
-},
 "recouvrer": {
 "ind:imp": {
 "1s": null
@@ -20028,9 +19448,6 @@
 "sub:pre": null
 },
 "recreer": {
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "1s": "récrée",
 "2s": "récrées",
@@ -20081,18 +19498,7 @@
 "3p": "réformeront"
 },
 "ind:pas": {
-"2p": null,
-"3s": null
-}
-},
-"refranchir": {
-"ind:pas": {
-"3s": null
-}
-},
-"refrener": {
-"ind:pas": {
-"3s": null
+"2p": null
 }
 },
 "refuir": {
@@ -20106,11 +19512,6 @@
 },
 "sub:pre": {
 "3p": "regayent"
-}
-},
-"regir": {
-"ind:pas": {
-"1p": null
 }
 },
 "regler": {
@@ -20127,16 +19528,6 @@
 "ind:pas": {
 "3p": "regoûtèrent",
 "3s": "regoûta"
-}
-},
-"regravir": {
-"ind:pas": {
-"3s": null
-}
-},
-"regrossir": {
-"ind:pas": {
-"3s": null
 }
 },
 "relater": {
@@ -20240,11 +19631,6 @@
 "2s": "réprimes"
 }
 },
-"reprouver": {
-"ind:pas": {
-"3s": null
-}
-},
 "requeter": {
 "sub:pre": {
 "1s": "requête",
@@ -20318,11 +19704,6 @@
 "2s": "reveux"
 }
 },
-"rhodier": {
-"ind:pas": {
-"3s": null
-}
-},
 "rhumer": {
 "sub:pre": {
 "1s": "rhume",
@@ -20336,9 +19717,6 @@
 }
 },
 "roder": {
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "3p": "rodent"
 }
@@ -20396,11 +19774,6 @@
 "3s": "sable"
 }
 },
-"sauner": {
-"ind:pas": {
-"3s": null
-}
-},
 "saurer": {
 "imp:pre": {
 "2p": null
@@ -20417,9 +19790,6 @@
 }
 },
 "secreter": {
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "3p": "secrètent"
 }
@@ -20459,11 +19829,6 @@
 "3s": "silence"
 }
 },
-"solder": {
-"ind:pas": {
-"2p": null
-}
-},
 "soucheter": {
 "imp:pre": {
 "2s": "souchète"
@@ -20480,11 +19845,6 @@
 "speeder": {
 "sub:pre": {
 "2s": "speedes"
-}
-},
-"subir": {
-"ind:pas": {
-"2p": null
 }
 },
 "surentrainer": {
@@ -20516,9 +19876,6 @@
 }
 },
 "tabler": {
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1s": "table",
 "3s": "table"
@@ -20531,9 +19888,6 @@
 "ind:fut": {
 "3p": "tacheront"
 },
-"ind:pas": {
-"3s": null
-},
 "ind:pre": {
 "3p": "tachent"
 }
@@ -20543,11 +19897,6 @@
 "1s": "tachette"
 }
 },
-"taler": {
-"ind:pas": {
-"3s": null
-}
-},
 "tapir": {
 "ind:imp": null,
 "sub:imp": {
@@ -20555,11 +19904,6 @@
 "2p": null
 },
 "sub:pre": null
-},
-"tatillonner": {
-"ind:pas": {
-"3s": null
-}
 },
 "tauper": {
 "sub:pre": {
@@ -20573,9 +19917,6 @@
 },
 "ind:fut": {
 "1s": "tempérerai"
-},
-"ind:pas": {
-"3s": null
 }
 },
 "terrer": {
@@ -20596,9 +19937,6 @@
 "ind:fut": {
 "1s": "téterai"
 },
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1s": "tète",
 "2s": "tètes",
@@ -20614,11 +19952,6 @@
 "sub:pre": {
 "1s": "toile",
 "3s": "toile"
-}
-},
-"tomer": {
-"ind:pas": {
-"2p": null
 }
 },
 "torrefier": {
@@ -20639,11 +19972,6 @@
 "transfuser": {
 "sub:pre": {
 "1p": "transfusions"
-}
-},
-"tuber": {
-"ind:pas": {
-"3s": null
 }
 },
 "tuter": {
@@ -20725,11 +20053,6 @@
 "3s": "viande"
 }
 },
-"viner": {
-"ind:pas": {
-"3s": null
-}
-},
 "violacer": {
 "sub:pre": {
 "2s": "violaces"
@@ -20752,11 +20075,6 @@
 "vivre": {
 "imp:pre": {
 "2s": null
-}
-},
-"voiler": {
-"ind:pas": {
-"3s": null
 }
 },
 "voisiner": {
@@ -20783,9 +20101,6 @@
 }
 },
 "zoner": {
-"ind:pas": {
-"3s": null
-},
 "sub:pre": {
 "1s": "zone",
 "3s": "zone"
@@ -20865,7 +20180,6 @@
 "assecheras": "assecher;ind:fut;2;s",
 "assechiez": "assecher;ind:imp;2;p|assecher;sub:pre;2;p",
 "assechions": "assecher;ind:imp;1;p|assecher;sub:pre;1;p",
-"assena": null,
 "assente": null,
 "assiegeraient": "assieger;cnd:pre;3;p",
 "assiegiez": "assieger;ind:imp;2;p|assieger;sub:pre;2;p",
@@ -20912,7 +20226,6 @@
 "baierions": null,
 "baierons": null,
 "baieront": null,
-"bailla": null,
 "baillonnerez": "baillonner;ind:fut;2;p",
 "balayent": "balayer;sub:pre;3;p",
 "baleine": "baleiner;ind:pre;1;s|baleiner;ind:pre;3;s|baleiner;sub:pre;3;s|baleiner;sub:pre;1;s",
@@ -20927,7 +20240,6 @@
 "battis": "battre;ind:pas;1;s|battre;ind:pas;2;s",
 "baudit": "baudir;sub:imp;3;s|baudir;ind:pas;3;s|baudir;ind:pre;3;s",
 "bayions": "bayer;ind:imp;1;p|bayer;sub:pre;1;p",
-"becha": null,
 "begayions": "begayer;ind:imp;1;p|begayer;sub:pre;1;p",
 "beguette": null,
 "beguettes": null,
@@ -21047,8 +20359,6 @@
 "cliquettes": "cliqueter;ind:pre;2;s",
 "cloches": "clocher;ind:pre;2;s|clocher;sub:pre;2;s",
 "clope": "cloper;ind:pre;1;s|cloper;ind:pre;3;s|cloper;sub:pre;1;s|cloper;sub:pre;3;s",
-"cocha": null,
-"cocherent": null,
 "codirigiez": "codiriger;ind:imp;2;p|codiriger;sub:pre;2;p",
 "codirigions": "codiriger;ind:imp;1;p|codiriger;sub:pre;1;p",
 "cofinanciez": "cofinancer;ind:imp;2;p|cofinancer;sub:pre;2;p",
@@ -21127,8 +20437,6 @@
 "cousis": "coudre;ind:pas;1;s|coudre;ind:pas;2;s",
 "couvris": "couvrir;ind:pas;1;s|couvrir;ind:pas;2;s",
 "craignis": "craindre;ind:pas;1;s|craindre;ind:pas;2;s",
-"crana": null,
-"cranates": null,
 "crapule": "crapuler;ind:pre;1;s|crapuler;ind:pre;3;s|crapuler;sub:pre;3;s|crapuler;sub:pre;1;s",
 "craquettes": "craqueter;ind:pre;2;s",
 "crechiez": "crecher;ind:imp;2;p|crecher;sub:pre;2;p",
@@ -21263,7 +20571,6 @@
 "desennuyions": "desennuyer;ind:imp;1;p|desennuyer;sub:pre;1;p",
 "desentrelaciez": "desentrelacer;ind:imp;2;p|desentrelacer;sub:pre;2;p",
 "desentrelacions": "desentrelacer;ind:imp;1;p|desentrelacer;sub:pre;1;p",
-"designa": null,
 "desintegrions": "desintegrer;ind:imp;1;p|desintegrer;sub:pre;1;p",
 "desobligiez": "desobliger;ind:imp;2;p|desobliger;sub:pre;2;p",
 "desobligions": "desobliger;ind:imp;1;p|desobliger;sub:pre;1;p",
@@ -21358,10 +20665,8 @@
 "empoussieres": "empoussierer;ind:pre;2;s|empoussierer;sub:pre;2;s",
 "empoussieriez": "empoussierer;ind:imp;2;p|empoussierer;sub:pre;2;p",
 "empoussierions": "empoussierer;ind:imp;1;p|empoussierer;sub:pre;1;p",
-"enamoura": null,
 "encagiez": "encager;ind:imp;2;p|encager;sub:pre;2;p",
 "encagions": "encager;ind:imp;1;p|encager;sub:pre;1;p",
-"enchassa": null,
 "encre": "encrer;ind:pre;1;s|encrer;ind:pre;3;s|encrer;sub:pre;3;s|encrer;sub:pre;1;s",
 "encryptiez": "encrypter;ind:imp;2;p|encrypter;sub:pre;2;p",
 "endommagions": "endommager;ind:imp;1;p|endommager;sub:pre;1;p",
@@ -21531,7 +20836,6 @@
 "gambergiez": "gamberger;ind:imp;2;p|gamberger;sub:pre;2;p",
 "gambergions": "gamberger;ind:imp;1;p|gamberger;sub:pre;1;p",
 "gamine": "gaminer;ind:pre;1;s|gaminer;ind:pre;3;s|gaminer;sub:pre;3;s|gaminer;sub:pre;1;s",
-"gangrena": null,
 "gantele": null,
 "gates": "gater;ind:pre;2;s|gater;sub:pre;2;s",
 "geignis": "geindre;ind:pas;1;s|geindre;ind:pas;2;s",
@@ -21547,7 +20851,6 @@
 "gougions": "gouger;ind:imp;1;p|gouger;sub:pre;1;p",
 "graine": "grainer;ind:pre;1;s|grainer;ind:pre;3;s|grainer;sub:pre;3;s|grainer;sub:pre;1;s",
 "gravites": "graviter;ind:pre;2;s|graviter;sub:pre;2;s",
-"greva": null,
 "grimaciez": "grimacer;ind:imp;2;p|grimacer;sub:pre;2;p",
 "grimacions": "grimacer;ind:imp;1;p|grimacer;sub:pre;1;p",
 "grincions": "grincer;ind:imp;1;p|grincer;sub:pre;1;p",
@@ -21558,8 +20861,6 @@
 "grugions": "gruger;ind:imp;1;p|gruger;sub:pre;1;p",
 "guerroyiez": "guerroyer;ind:imp;2;p|guerroyer;sub:pre;2;p",
 "guerroyions": "guerroyer;ind:imp;1;p|guerroyer;sub:pre;1;p",
-"hala": null,
-"halames": null,
 "hanche": "hancher;ind:pre;1;s|hancher;ind:pre;3;s|hancher;sub:pre;3;s|hancher;sub:pre;1;s",
 "harpe": "harper;ind:pre;1;s|harper;ind:pre;3;s|harper;sub:pre;3;s|harper;sub:pre;1;s",
 "harpes": "harper;ind:pre;2;s|harper;sub:pre;2;s",
@@ -21694,7 +20995,6 @@
 "maquettions": "maquetter;ind:imp;1;p|maquetter;sub:pre;1;p",
 "marquetes": "marqueter;sub:pre;2;s",
 "marquettes": "marqueter;ind:pre;2;s",
-"matates": null,
 "matriciez": "matricer;ind:imp;2;p|matricer;sub:pre;2;p",
 "matricions": "matricer;ind:imp;1;p|matricer;sub:pre;1;p",
 "mazoute": "mazouter;ind:pre;1;s|mazouter;ind:pre;3;s|mazouter;sub:pre;3;s|mazouter;sub:pre;1;s",
@@ -21796,12 +21096,9 @@
 "paques": "paquer;ind:pre;2;s|paquer;sub:pre;2;s",
 "parametriez": "parametrer;ind:imp;2;p|parametrer;sub:pre;2;p",
 "parametrions": "parametrer;ind:imp;1;p|parametrer;sub:pre;1;p",
-"parfais": "parfaire;ind:pre;1;s",
-"parfaites": "parfaire;ind:pre;2;s",
 "parfit": "parfaire;ind:pas;3;s",
 "parvins": "parvenir;ind:pas;1;s|parvenir;ind:pas;2;s",
 "pause": "pauser;ind:pre;1;s|pauser;ind:pre;3;s|pauser;sub:pre;3;s|pauser;sub:pre;1;s",
-"pecha": null,
 "peigniez": "peigner;ind:imp;2;p|peindre;ind:imp;2;p|peindre;sub:pre;2;p",
 "peignions": "peigner;ind:imp;1;p|peindre;ind:imp;1;p|peindre;sub:pre;1;p",
 "peignis": "peindre;ind:pas;1;s|peindre;ind:pas;2;s",
@@ -21907,7 +21204,6 @@
 "pus": "pouvoir;ind:pas;1;s|pouvoir;ind:pas;2;s",
 "pyramide": "pyramider;ind:pre;1;s|pyramider;ind:pre;3;s|pyramider;sub:pre;3;s|pyramider;sub:pre;1;s",
 "quille": "quiller;ind:pre;1;s|quiller;ind:pre;3;s|quiller;sub:pre;1;s|quiller;sub:pre;3;s",
-"raboutit": "raboutir;ind:pre;3;s",
 "radioscopiez": "radioscoper;ind:imp;2;p|radioscoper;sub:pre;2;p",
 "radioscopions": "radioscoper;ind:imp;1;p|radioscoper;sub:pre;1;p",
 "raieraient": null,
@@ -21950,7 +21246,6 @@
 "recarrele": null,
 "recediez": "receder;ind:imp;2;p|receder;sub:pre;2;p",
 "recedions": "receder;ind:imp;1;p|receder;sub:pre;1;p",
-"recela": null,
 "recelebriez": "recelebrer;ind:imp;2;p|recelebrer;sub:pre;2;p",
 "recelebrions": "recelebrer;ind:imp;1;p|recelebrer;sub:pre;1;p",
 "rechangiez": "rechanger;ind:imp;2;p|rechanger;sub:pre;2;p",
@@ -21965,7 +21260,6 @@
 "recouvrais": "recouvrer;ind:imp;2;s|recouvrir;ind:imp;2;s|recouvrir;ind:imp;1;s",
 "recouvrions": "recouvrer;ind:imp;1;p|recouvrir;ind:imp;1;p|recouvrir;sub:pre;1;p",
 "recouvris": "recouvrir;ind:pas;1;s|recouvrir;ind:pas;2;s",
-"recrea": null,
 "recroit": "recroitre;ind:pre;3;s",
 "recroyiez": "recroire;ind:imp;2;p|recroire;sub:pre;2;p",
 "recroyions": "recroire;ind:imp;1;p|recroire;sub:pre;1;p",
@@ -22023,11 +21317,8 @@
 "reforcions": "reforcer;ind:imp;1;p|reforcer;sub:pre;1;p",
 "reforgiez": "reforger;ind:imp;2;p|reforger;sub:pre;2;p",
 "reforgions": "reforger;ind:imp;1;p|reforger;sub:pre;1;p",
-"reforma": null,
 "reformates": "reformater;ind:pre;2;s|reformater;sub:pre;2;s",
-"refranchit": "refranchir;ind:pre;3;s",
 "refrayes": null,
-"refrena": null,
 "refrigeriez": "refrigerer;ind:imp;2;p|refrigerer;sub:pre;2;p",
 "refrigerions": "refrigerer;ind:imp;1;p|refrigerer;sub:pre;1;p",
 "refuit": "refuir;sub:imp;3;s|refuir;ind:pre;3;s",
@@ -22038,8 +21329,6 @@
 "reglerions": "regler;cnd:pre;1;p",
 "regneriez": "regner;cnd:pre;2;p",
 "regorgions": "regorger;ind:imp;1;p|regorger;sub:pre;1;p",
-"regravit": "regravir;ind:pre;3;s",
-"regrossit": "regrossir;ind:pre;3;s",
 "reimmisciez": "reimmiscer;ind:imp;2;p|reimmiscer;sub:pre;2;p",
 "reimmiscions": "reimmiscer;ind:imp;1;p|reimmiscer;sub:pre;1;p",
 "reimpregniez": "reimpregner;ind:imp;2;p|reimpregner;sub:pre;2;p",
@@ -22112,7 +21401,6 @@
 "reproduisis": "reproduire;ind:pas;1;s|reproduire;ind:pas;2;s",
 "reprononciez": "reprononcer;ind:imp;2;p|reprononcer;sub:pre;2;p",
 "reprononcions": "reprononcer;ind:imp;1;p|reprononcer;sub:pre;1;p",
-"reprouva": null,
 "repuis": null,
 "repumes": "repouvoir;ind:pas;1;p|repaitre;ind:pas;1;p",
 "repurent": "repouvoir;ind:pas;3;p|repaitre;ind:pas;3;p",
@@ -22160,7 +21448,6 @@
 "rhume": "rhumer;ind:pre;1;s|rhumer;ind:pre;3;s|rhumer;sub:pre;3;s|rhumer;sub:pre;1;s",
 "rincions": "rincer;ind:imp;1;p|rincer;sub:pre;1;p",
 "roche": "rocher;ind:pre;1;s|rocher;ind:pre;3;s|rocher;sub:pre;3;s|rocher;sub:pre;1;s",
-"roda": null,
 "romanciez": "romancer;ind:imp;2;p|romancer;sub:pre;2;p",
 "romancions": "romancer;ind:imp;1;p|romancer;sub:pre;1;p",
 "rondit": "rondir;sub:imp;3;s|rondir;ind:pas;3;s|rondir;ind:pre;3;s",
@@ -22185,7 +21472,6 @@
 "saurit": "saurir;sub:imp;3;s|saurir;ind:pas;3;s|saurir;ind:pre;3;s",
 "seconde": "seconder;ind:pre;1;s|seconder;ind:pre;3;s|seconder;sub:pre;3;s|seconder;sub:pre;1;s",
 "secondes": "seconder;ind:pre;2;s|seconder;sub:pre;2;s",
-"secreta": null,
 "seduisis": "seduire;ind:pas;1;s|seduire;ind:pas;2;s",
 "semonce": "semoncer;ind:pre;1;s|semoncer;ind:pre;3;s|semoncer;sub:pre;3;s|semoncer;sub:pre;1;s",
 "semonciez": "semoncer;ind:imp;2;p|semoncer;sub:pre;2;p",
@@ -22237,7 +21523,6 @@
 "sursoyions": "surseoir;ind:imp;1;p|surseoir;sub:pre;1;p",
 "syllabe": "syllaber;ind:pre;1;s|syllaber;ind:pre;3;s|syllaber;sub:pre;3;s|syllaber;sub:pre;1;s",
 "table": "tabler;ind:pre;1;s|tabler;ind:pre;3;s|tabler;sub:pre;3;s|tabler;sub:pre;1;s",
-"tacha": null,
 "tachete": null,
 "tachetent": null,
 "tachetera": null,
@@ -22251,7 +21536,6 @@
 "tapissions": "tapisser;ind:imp;1;p|tapisser;sub:pre;1;p",
 "tartit": "tartir;sub:imp;3;s|tartir;ind:pas;3;s|tartir;ind:pre;3;s",
 "tata": "tater;ind:pas;3;s",
-"tatillonna": null,
 "taupe": "tauper;ind:pre;1;s|tauper;ind:pre;3;s|tauper;sub:pre;1;s|tauper;sub:pre;3;s",
 "taupiez": "tauper;ind:imp;2;p|tauper;sub:pre;2;p",
 "taupions": "tauper;ind:imp;1;p|tauper;sub:pre;1;p",
