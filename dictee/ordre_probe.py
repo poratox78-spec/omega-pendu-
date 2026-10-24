@@ -61,9 +61,9 @@ def main():
             e = ecarts(sorties['A'][n], sorties['B'].get(n, {})) if isinstance(sorties['A'][n], dict) else ((0, []) if sorties['A'][n] == sorties['B'].get(n) else (1, ['(liste)']))
             ko += bool(e[0]); print('%s build_cgram %-22s %s' % ('✗' if e[0] else '✓', n, '%d entrée(s) changent (ex. %s)' % e if e[0] else 'stable'))
         # build_adj_invariable : ses paires, calculées sans rien écrire
-        code = ('import json, sys; sys.path.insert(0, "dictee"); import build_adj_invariable as B; B.LEX_XZ = ""; B.LEX_TSV = sys.argv[1]; '
+        code = ('import json, sys; sys.path.insert(0, "dictee"); import build_adj_invariable as B; '
                 'print(json.dumps(B.invariable_pairs(), sort_keys=True, ensure_ascii=False))')
-        p = {nom: json.loads(lancer(['-c', code, src], {'PYTHONHASHSEED': seed})) for nom, src, seed in passages}
+        p = {nom: json.loads(lancer(['-c', code], {'PYTHONHASHSEED': seed, 'LEX4': src})) for nom, src, seed in passages}
         e = ecarts(p['A'], p['B']); ko += bool(e[0])
         print('%s build_adj_invariable paires %8s %s' % ('✗' if e[0] else '✓', '', '%d entrée(s) changent (ex. %s)' % e if e[0] else 'stable (%d paires)' % len(p['A'])))
         # build_gender_acc : seulement là où le Wiktionnaire est présent
@@ -76,6 +76,15 @@ def main():
                 g[nom] = json.load(io.open(o, encoding='utf-8'))
             e = ecarts(g['A'], g['B']); ko += bool(e[0])
             print('%s build_gender_acc %13s %s' % ('✗' if e[0] else '✓', '', '%d entrée(s) changent (ex. %s)' % e if e[0] else 'stable (%d entrées)' % len(g['A'])))
+            # build_gender_acc_morphalou : celui de la recette (tables_grammaire.py, ligne 144) — Morphalou en plus
+            if os.path.exists(os.path.join(ROOT, 'data_local', 'morphalou', 'Morphalou3.1_CSV.csv')):
+                g = {}
+                for nom, src, seed in passages:
+                    o = os.path.join(tmp, 'gaccm_' + nom + '.json')
+                    lancer(['dictee/build_gender_acc_morphalou.py'], {'GACC_LEX4': src, 'GACC_SORTIE': o, 'PYTHONHASHSEED': seed})
+                    g[nom] = json.load(io.open(o, encoding='utf-8'))
+                e = ecarts(g['A'], g['B']); ko += bool(e[0])
+                print('%s build_gender_acc_morphalou %3s %s' % ('✗' if e[0] else '✓', '', '%d entrée(s) changent (ex. %s)' % e if e[0] else 'stable (%d entrées)' % len(g['A'])))
         else:
             print('· build_gender_acc : SAUTÉ — Wiktionnaire (data_local/fr/kaikki-fr.jsonl) absent')
     finally:

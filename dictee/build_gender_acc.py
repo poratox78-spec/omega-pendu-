@@ -24,6 +24,7 @@ Exemple : `livre` -> kaikki dit `f`, Lexique4 le marque épicène (le livre / la
 deux genres ne peut pas trancher un accord -> il DOIT être écarté, pas arbitré.
 
   python dictee/build_gender_acc.py        # écrit dictee/gender_acc.json (le DELTA)
+La table LIVRÉE vient de build_gender_acc_morphalou.py (cet algorithme + Morphalou en ajout), étape 6 de tables_grammaire.py (ligne 144).
 """
 import os, sys, io, json, lzma, unicodedata
 

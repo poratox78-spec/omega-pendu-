@@ -21,8 +21,8 @@ mauvais, gros, bas, frais, français, précis, gris, épais… (308 adjectifs, A
 table : « une robe gris », « une voiture français » étaient muets). Ajoutés SAUF quand la forme masculine est
 AUSSI une forme verbale dans Lexique4 — c'est exactement le champ de mines des participes (compris, assis,
 surpris, clos, inclus…), désormais repéré par la donnée et plus par la finale — et sauf trois emplois figés
-invariables (exprès : « une lettre exprès » ; tiers ; tors). Le Lexique se lit en .xz (racine) OU en .tsv
-(LEX4=… ou data_local/Lexique4.tsv).
+invariables (exprès : « une lettre exprès » ; tiers ; tors). Le Lexique : celui de la recette (lots_dictionnaire.lexique() :
+$LEX4, sinon la 4.00 locale, sinon le .xz commité — ligne 144).
 
 Sortie : réécrit dictee/cgram_adj.json (Python) + le champ `a` de dictee/cgram_hf.json
 (source de l'embed app/ext via inject_vdc + build_assets). Re-lancer inject_vdc.py +
@@ -33,8 +33,8 @@ import os, io, json, lzma, sys, unicodedata
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LEX_XZ = os.path.join(ROOT, "Lexique4.tsv.xz")
-LEX_TSV = os.environ.get("LEX4") or os.path.join(ROOT, "data_local", "Lexique4.tsv")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import lots_dictionnaire   # la Lexique de la recette (ligne 144) :
+#   $LEX4, sinon la 4.00 locale, sinon celle de la CI, sinon le .xz commité — avant, le .xz passait d'abord (la 4.10 depuis la ligne 138)
 _STOP_S = {"expres", "tiers", "tors"}         # ⭐ 14/10/2026 : emplois figés invariables (« une lettre exprès »)
 ADJ = os.path.join(ROOT, "dictee", "cgram_adj.json")
 HF = os.path.join(ROOT, "dictee", "cgram_hf.json")
@@ -48,8 +48,7 @@ def invariable_pairs():
     sing, plur = defaultdict(dict), defaultdict(dict)
     verf = set()                                # ⭐ 14/10/2026 : formes VERBALES (participes compris/assis/clos…) → jamais appariées
     minv = set()                                # ⭐ 14/10/2026 : masculins notés « i » (le bug) — les paires régulières écartées par build_cgram restent écartées
-    ouvrir = (lambda: lzma.open(LEX_XZ, mode="rt", encoding="utf-8")) if os.path.exists(LEX_XZ) else (lambda: io.open(LEX_TSV, encoding="utf-8"))
-    with ouvrir() as f:
+    with lots_dictionnaire.ouvrir(lots_dictionnaire.lexique()) as f:
         for ln in f:
             p = ln.rstrip("\n").split("\t")
             if len(p) > 4 and p[4].startswith("VER"):
@@ -74,9 +73,9 @@ def invariable_pairs():
     for bucket in (sing, plur):
         for d in bucket.values():
             for g in d: d[g] = d[g][1]
-    cand = {}                                   # deacc(forme) -> {[genre, contrepartie accentuée]} : une seule réponse, ou écartée
+    cand = {}                                   # deacc(forme) -> ({réponses au singulier}, {au pluriel}) : une seule réponse, ou écartée
     for lem in sorted(set(sing) | set(plur)):
-        for bucket in (sing, plur):
+        for nb_i, bucket in enumerate((sing, plur)):
             d = bucket.get(lem, {})
             if 'm' in d and 'f' in d and d['m'] != d['f']:
                 m, f = d['m'], d['f']
@@ -86,9 +85,12 @@ def invariable_pairs():
                     pass                         # ⭐ 14/10/2026 : -s qui n'est pas une forme verbale (mauvais, gros, précis, français)
                 else:
                     continue
-                cand.setdefault(deacc(m), set()).add(('m', f))
-                cand.setdefault(deacc(f), set()).add(('f', m))
-    return {k: list(next(iter(v))) for k, v in cand.items() if len(v) == 1}
+                cand.setdefault(deacc(m), (set(), set()))[nb_i].add(('m', f))
+                cand.setdefault(deacc(f), (set(), set()))[nb_i].add(('f', m))
+    # ⭐ ligne 144 : le masculin invariable (affectueux, gris) vaut au singulier ET au pluriel — deux contreparties (affectueuse /
+    # affectueuses), qui ne sont pas une ambiguïté : le singulier passe d'abord, comme avant la 143 (la règle d'unanimité seule effaçait
+    # 210 masculins à la reconstruction, vu en rejouant la chaîne)
+    return {k: list(next(iter(v[0] or v[1]))) for k, v in cand.items() if len(v[0] or v[1]) == 1}
 
 def main():
     pairs = invariable_pairs()

@@ -59,9 +59,9 @@ def load_lex4_freq():
     u"""Fréquence VERBALE uniquement (ligne CGRAM=VER/AUX) — pas la fréquence toutes catégories
     confondues : « avenir » (verbe rare, archaïque) partage sa clé avec « l'avenir » (nom, freq 60+),
     et confondre les deux aurait fait passer le filtre à un verbe qui ne le mérite pas."""
-    p = os.path.join(ROOT, 'Lexique4.tsv.xz')
+    sys.path.insert(0, HERE); import lots_dictionnaire   # la Lexique de la recette (ligne 144) : $LEX4, sinon la 4.00 locale, sinon le .xz
     F = {}
-    f = lzma.open(p, 'rt', encoding='utf-8')
+    f = lots_dictionnaire.ouvrir(lots_dictionnaire.lexique())
     H = f.readline().rstrip('\n').split('\t')
     ci = {h.split('_', 1)[1].lower() if '_' in h else h.lower(): i for i, h in enumerate(H)}
     cm, cf, cg = ci['mot'], ci['freqortho'], ci['cgram']
