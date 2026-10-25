@@ -316,7 +316,10 @@
 "Toutes les lettres sont arrivées.",
 "Ses yeux sont bleu clair.",
 "Les murs sont blanc cassé.",
-"Des yeux bleu clair."
+"Des yeux bleu clair.",
+"Il fait froid et les enfants dorment mal.",
+"Le chat et les enfants dorment.",
+"Il mange et le chien aboie."
 ],
 "elide": [
 [
@@ -728,6 +731,16 @@
 "Les règles sont simple. Marie les connaît.",
 "simple",
 "simples"
+],
+[
+"Il fait froid et mes enfants dorme mal.",
+"dorme",
+"dorment"
+],
+[
+"Je travaille et mes enfants dorme.",
+"dorme",
+"dorment"
 ]
 ],
 "palier": [
