@@ -344,7 +344,9 @@
 "Il range tous les porte-clés.",
 "C'est la vie.",
 "La voiture hybride a une batterie.",
-"Un objet animé a un comportement étrange."
+"Un objet animé a un comportement étrange.",
+"Le mur fait 3 m et la porte 2 m.",
+"La variable M est positive."
 ],
 "elide": [
 [
@@ -886,6 +888,11 @@
 "La pluie continue a tomber.",
 "a",
 "à"
+],
+[
+"C est vrai.",
+"C",
+"C'est"
 ]
 ],
 "palier": [
