@@ -335,7 +335,9 @@
 "Je suis mal à l'aise.",
 "Ses très belles robes sont là.",
 "Il aime ses très vieux livres.",
-"Elle soigne ses malades et ses blessés."
+"Elle soigne ses malades et ses blessés.",
+"Le matin et le soir sont froids.",
+"Il aime le soir et la nuit."
 ],
 "elide": [
 [
@@ -817,6 +819,16 @@
 "Ses facile à faire.",
 "Ses",
 "C'est"
+],
+[
+"Il pleut la nuit et les chiens aboie fort.",
+"aboie",
+"aboient"
+],
+[
+"On travaille lundi et les élèves reste chez eux.",
+"reste",
+"restent"
 ]
 ],
 "palier": [
