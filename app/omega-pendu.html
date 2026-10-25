@@ -31147,14 +31147,16 @@ function spellUnknown(tok,atStart,T,idx){
      1 orange fausse retirée, 0 perte sur les 3 corpus dys ; UD 14 450 : aucune marque changée. Miroir Python
      rule_cest_ces_vig (_ces_cest). */
   var _CEST_SUIV={le:1,la:1,les:1,un:1,une:1,des:1,du:1,au:1,aux:1,mon:1,ton:1,son:1,ma:1,ta:1,sa:1,mes:1,tes:1,ses:1,ce:1,cet:1,cette:1,ces:1,notre:1,votre:1,nos:1,vos:1,leur:1,leurs:1,que:1,qui:1,quand:1,car:1,parce:1,pourquoi:1,comme:1,si:1,mais:1,donc:1,ou:1,et:1,dans:1,pour:1,avec:1,sans:1,sur:1,sous:1,chez:1,par:1,entre:1,vers:1,contre:1,depuis:1,pendant:1,avant:1,apres:1,a:1,en:1,de:1,grace:1};
+  var _DEG156={tres:1,vraiment:1,trop:1,assez:1,tellement:1,super:1,hyper:1,plutot:1,plus:1,moins:1,bien:1,vachement:1,carrement:1,franchement:1,completement:1,totalement:1};   // liste n° 156 : adverbes de degré
   function cesCestVig(T,i){if(i<0)return null;var w=deacc(T[i].toLowerCase());if(w!=='ces'&&w!=='ses')return null;if(i+1>=T.length)return null;
     if(_SEG&&((i+1<_SEG.bb.length&&_SEG.bb[i+1])||(i+1<_SEG.hy.length&&_SEG.hy[i+1])||(i+2<_SEG.hy.length&&_SEG.hy[i+2])))return null;
     var nx=T[i+1];if(nx.charAt(0)!==nx.charAt(0).toLowerCase())return null;var nlw=nx.toLowerCase(),nl=deacc(nlw).split("'")[0];
     if(_CEST_SUIV[nl]&&PREP[nl]&&i+2<T.length){var _n2=deacc(T[i+2].toLowerCase()),_p2=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(_n2):NOUN_POST[_n2]):null;if(/[sx]$/.test(_n2)&&_p2&&_p2[0]>=PL_TAU_M)return null;}
     if(_CEST_SUIV[nl]||/^[ld]'/.test(nlw))return ckeepcase(T[i],"c'est");
+    if(_DEG156[nl]&&i+2<T.length&&!(_SEG&&i+2<_SEG.bb.length&&_SEG.bb[i+2])){var a156=T[i+2],d156=deacc(a156.toLowerCase()),p156=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(d156):NOUN_POST[d156]):null;if(a156===a156.toLowerCase()&&!/[sx]$/.test(d156)&&!(p156&&p156[0]>=PL_TAU_M)&&(_ADJ_ANTE_PL[d156]||_isPpl(a156)||ADJP[d156]||_spos(a156).indexOf('A')>=0||d156==='bien')){var f156=(i+3>=T.length)||(_SEG&&i+3<_SEG.bb.length&&_SEG.bb[i+3]),n156=f156?'':deacc(T[i+3].toLowerCase()).split("'")[0];if(f156||_CEST_SUIV[n156])return ckeepcase(T[i],"c'est");}}   /* ⭐ 25/10/2026 (liste n° 156) — « Ses vraiment simple et… » → C'est ? : un adverbe de degré (très, vraiment, trop…) entre « ses / ces » et un adjectif au singulier, puis la fin de la phrase ou un mot qui ne commence pas un nom (et, que, pour…) : le déterminant pluriel n'a pas de nom derrière. Un « s » à l'adjectif (« ses très belles robes ») ou un nom derrière lui, et rien. */
     var pp=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(nl):NOUN_POST[nl]):null;if(pp&&pp[0]>=PL_TAU_M)return null;
     if(/(er|ir|re|oir)$/.test(nl)&&CONJ_C[nl]&&!_NOM_INF57[nl])return ckeepcase(T[i],"c'est");   // ⭐ liste n° 57 : « ses devoir » = le NOM sans s, pas « c'est devoir »
-    if(!/[sx]$/.test(nl)&&(_ADJ_ANTE_PL[nl]||_isPpl(nx))){var fin=(i+2>=T.length)||(_SEG&&i+2<_SEG.bb.length&&_SEG.bb[i+2]),n2=fin?'':deacc(T[i+2].toLowerCase()).split("'")[0];
+    if(!/[sx]$/.test(nl)&&(_ADJ_ANTE_PL[nl]||_isPpl(nx)||_spos(nx)==='A')){var fin=(i+2>=T.length)||(_SEG&&i+2<_SEG.bb.length&&_SEG.bb[i+2]),n2=fin?'':deacc(T[i+2].toLowerCase()).split("'")[0];
       if(fin||_CEST_SUIV[n2])return ckeepcase(T[i],"c'est");}
     return null;}
   function cesVig(T,i){var w=T[i].toLowerCase();if(w!=='ces'&&w!=='ses')return null;var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());var s=_cesScore(F,i),pred=s>=0?'ces':'ses';return (Math.abs(s)>CESSES_MODEL.tau&&pred!==w)?pred:null;}
