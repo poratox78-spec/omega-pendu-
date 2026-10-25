@@ -346,7 +346,9 @@
 "La voiture hybride a une batterie.",
 "Un objet animé a un comportement étrange.",
 "Le mur fait 3 m et la porte 2 m.",
-"La variable M est positive."
+"La variable M est positive.",
+"Il va faire faire des travaux.",
+"Je m'en offrirai un un jour."
 ],
 "elide": [
 [
@@ -893,6 +895,11 @@
 "C est vrai.",
 "C",
 "C'est"
+],
+[
+"Il a le le livre.",
+"le",
+"le"
 ]
 ],
 "palier": [
