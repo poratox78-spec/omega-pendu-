@@ -309,7 +309,10 @@
 "Il provint de loin.",
 "Il rapprit à lire.",
 "Il a repris sa leçon.",
-"Elle a complu à tous."
+"Elle a complu à tous.",
+"Ceux qui ont oublié leur autorisation doivent la ramener signée.",
+"Les élèves qui ont oublié leur cahier doivent le rapporter.",
+"Celles qui ont perdu leur clé doivent attendre."
 ],
 "elide": [
 [
@@ -696,6 +699,11 @@
 "Il a rapprit sa leçon.",
 "rapprit",
 "rappris"
+],
+[
+"Je veux que tu saches que les voisins arrive demain.",
+"arrive",
+"arrivent"
 ]
 ],
 "palier": [
