@@ -353,7 +353,10 @@
 "Il nivèle le terrain.",
 "Il faut règlementer la pêche.",
 "Elle feuillète le livre.",
-"Il étiquète les boîtes."
+"Il étiquète les boîtes.",
+"Il est arrivé in extremis.",
+"Ils sont ex aequo.",
+"Un argument ad hominem."
 ],
 "elide": [
 [
@@ -1022,6 +1025,11 @@
 "C'est moi qui veut partir.",
 "veut",
 "auto"
+],
+[
+"Il a gagné extremis.",
+"extremis",
+"vigilance"
 ]
 ],
 "vig": [
