@@ -84,7 +84,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 65 | accord sujet-verbe | `rAccordRelObj` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, prénoms, genre accentué |
 | 66 | accord sujet-verbe | `rAccordIncise` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 67 | genre déterminant | `rDetGenre` | `—` | rouge ou orange (sous-cas mesuré, _tierOf) | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM |
-| 68 | accord tout | `rTout` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post |
+| 68 | accord tout | `rTout` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, genre accentué |
 | 69 | infinitif après pronom sujet à vérifier | `rPronInf` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels) |
 | 70 | accord adjectif antéposé | `rAdjAntePl` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
 | 71 | accord adjectif antéposé | `rAdjAnteGenre` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM |
@@ -188,7 +188,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 44 / 103 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 103 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
 | prénoms | `_applyPrenoms` | `PRENOMS` | 16 / 103 | `_rAbase` `rAccordSVcoord` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
-| genre accentué | `_applyGaccLex` | `_GACC` | 23 / 103 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` |
+| genre accentué | `_applyGaccLex` | `_GACC` | 24 / 103 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` |
 | confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 103 | `_vigOne` `vigText` |
 | genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 103 | `getAuteur` `auteurSugg` `auteurPasse` |
 | ponctuation vocale | `setPonctLm` | `_PLM` | 0 / 103 | `ponctReady` `ponctDist` |

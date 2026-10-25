@@ -312,7 +312,8 @@
 "Elle a complu à tous.",
 "Ceux qui ont oublié leur autorisation doivent la ramener signée.",
 "Les élèves qui ont oublié leur cahier doivent le rapporter.",
-"Celles qui ont perdu leur clé doivent attendre."
+"Celles qui ont perdu leur clé doivent attendre.",
+"Toutes les lettres sont arrivées."
 ],
 "elide": [
 [
@@ -704,6 +705,16 @@
 "Je veux que tu saches que les voisins arrive demain.",
 "arrive",
 "arrivent"
+],
+[
+"Elle lit toute les lettres.",
+"toute",
+"toutes"
+],
+[
+"Tout les gens sont là.",
+"Tout",
+"Tous"
 ]
 ],
 "palier": [
