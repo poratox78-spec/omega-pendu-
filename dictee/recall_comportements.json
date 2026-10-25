@@ -313,7 +313,10 @@
 "Ceux qui ont oublié leur autorisation doivent la ramener signée.",
 "Les élèves qui ont oublié leur cahier doivent le rapporter.",
 "Celles qui ont perdu leur clé doivent attendre.",
-"Toutes les lettres sont arrivées."
+"Toutes les lettres sont arrivées.",
+"Ses yeux sont bleu clair.",
+"Les murs sont blanc cassé.",
+"Des yeux bleu clair."
 ],
 "elide": [
 [
@@ -715,6 +718,16 @@
 "Tout les gens sont là.",
 "Tout",
 "Tous"
+],
+[
+"Les maillots de bain et les bonnets sont obligatoire. Pensez aussi à prendre un goûter.",
+"obligatoire",
+"obligatoires"
+],
+[
+"Les règles sont simple. Marie les connaît.",
+"simple",
+"simples"
 ]
 ],
 "palier": [
