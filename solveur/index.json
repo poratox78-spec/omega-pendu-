@@ -2,39 +2,39 @@
  "longueurs": {
   "10": {
    "courants": 29654,
-   "mots": 100403,
-   "octets": 337186,
-   "sha": "e53c30a5ec0d0b4e"
+   "mots": 100525,
+   "octets": 337495,
+   "sha": "91668b83dc3892e4"
   },
   "11": {
    "courants": 24199,
-   "mots": 98962,
-   "octets": 336520,
-   "sha": "1dfd8276a413f8d1"
+   "mots": 99134,
+   "octets": 336995,
+   "sha": "85025948acd184aa"
   },
   "12": {
    "courants": 17607,
-   "mots": 85854,
-   "octets": 297195,
-   "sha": "df30fddd23017218"
+   "mots": 86011,
+   "octets": 297596,
+   "sha": "f47497aec6685024"
   },
   "13": {
    "courants": 11498,
-   "mots": 66572,
-   "octets": 236151,
-   "sha": "03cc9f1b2d7da948"
+   "mots": 66693,
+   "octets": 236479,
+   "sha": "90a47077046c4865"
   },
   "14": {
    "courants": 7077,
-   "mots": 46575,
-   "octets": 171680,
-   "sha": "be3bb167cb432e75"
+   "mots": 46664,
+   "octets": 171897,
+   "sha": "bb6f37178bf97227"
   },
   "15": {
    "courants": 4170,
-   "mots": 30146,
-   "octets": 115886,
-   "sha": "d35b9201532a2348"
+   "mots": 30202,
+   "octets": 116020,
+   "sha": "a6e40f770cf50f9d"
   },
   "3": {
    "courants": 904,
@@ -56,28 +56,28 @@
   },
   "6": {
    "courants": 13352,
-   "mots": 21970,
-   "octets": 68813,
-   "sha": "cdd41ac143f08b9b"
+   "mots": 21972,
+   "octets": 68816,
+   "sha": "3f0753e55db9ca86"
   },
   "7": {
    "courants": 21024,
-   "mots": 41944,
-   "octets": 133482,
-   "sha": "37102ff8b3bcaa6f"
+   "mots": 41946,
+   "octets": 133485,
+   "sha": "8f69d135b634122a"
   },
   "8": {
    "courants": 28113,
-   "mots": 66819,
-   "octets": 219038,
-   "sha": "3c301d47ada5abf1"
+   "mots": 66833,
+   "octets": 219066,
+   "sha": "e193aebcd06a17a6"
   },
   "9": {
    "courants": 31256,
-   "mots": 88663,
-   "octets": 294637,
-   "sha": "403fdbd0e55a3987"
+   "mots": 88722,
+   "octets": 294807,
+   "sha": "dea664b7705d709f"
   }
  },
- "total": 661645
+ "total": 662439
 }

@@ -12,7 +12,10 @@ Trois règles, appliquées à la base du dictionnaire (Lexique 4 + les lots — 
      grammatical (passé simple « nous fîmes, vous fûtes », subjonctif imparfait « qu'il fît ») ;
   2. é → è au futur et au conditionnel (« je cèderai », « tu préfèrerais ») ;
   3. les graphies de Morphalou attestées par Dicollecte (dictionnaire de Grammalecte, réforme 1990) dont le jumeau traditionnel
-     est connu (è/é, i/î, u/û).
+     est connu (è/é, i/î, u/û) ;
+  4. (liste n° 166, 25/10) les verbes en -eler / -eter conjugués comme peler et acheter (« il nivèle », « il étiquète »), sauf appeler,
+     jeter et leurs composés, et leurs noms en -èlement / -ètement ; la règle 2 compte « gu » / « qu » pour une consonne (« il délèguera ») ;
+  5. la famille de « règlementer » (règlementaire, règlementation).
 Même contrat que les autres lots : FreqOrtho 0 → connues, jamais proposées (la graphie traditionnelle reste celle que le
 correcteur propose), jamais concurrentes au tri. Nature : celle du jumeau traditionnel.
 
@@ -24,7 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..
 OUT = os.path.join(HERE, 'rect90_lex_fr.tsv.gz')
 sys.path.insert(0, HERE); import lots_dictionnaire
 LOTS = lots_dictionnaire.avant('rect90_lex_fr.tsv.gz')   # base : Lexique + les lots nés AVANT celui-ci, ni lui ni ceux d'après (ligne 142)
-TEMOINS_OUI = ('apparait', 'coute', 'cèderai', 'abimer', 'goulument')
+TEMOINS_OUI = ('apparait', 'coute', 'cèderai', 'abimer', 'goulument', 'délèguera', 'nivèle', 'règlementer')   # + liste n° 166
 TEMOINS_NON = ('fimes', 'futes')   # « nous fîmes », « vous fûtes » gardent le circonflexe
 GARDE = {'dû', 'mûr', 'mûre', 'mûrs', 'mûres', 'sûr', 'sûre', 'sûrs', 'sûres'}
 CAT = {'N': 'NOM', 'V': 'VER', 'A': 'ADJ'}
@@ -69,7 +72,8 @@ def generer():
         if w in GARDE or w.startswith('jeûn') or w in croitre or w in gramm: continue
         if B[w] == {'V'} and re.search(r'(îmes|îtes|[^ao]ît|ûmes|ûtes|ût)$', w): continue   # passé simple / subjonctif imparfait, même hors table (« -aît », « -oît » : présent, « apparait »)
         add(w.replace('î', 'i').replace('û', 'u'), w)
-    futc = re.compile(r'^(.*)é([^aeiouyéèêëàâîïôûù]+)er(ai|as|a|ons|ez|ont|ais|ait|ions|iez|aient)$')
+    futc = re.compile(r'^(.*)é([^aeiouyéèêëàâîïôûù]+|[^aeiouyéèêëàâîïôûù]*[gq]u)er(ai|as|a|ons|ez|ont|ais|ait|ions|iez|aient)$')   # ⭐ liste n° 166 : « gu » / « qu »
+    # JUSTE avant -er comptent pour une consonne (« il délèguera », « il hypothèquera » ; pas « dégustera », « régulera » : leur u se prononce)
     for lem, tps in cj.items():                                       # 2. é → è au futur et au conditionnel
         for t in ('ind:fut', 'cnd:pre'):
             for pn, fo in (tps.get(t) or {}).items():
@@ -77,6 +81,18 @@ def generer():
                     if not f: continue
                     m = futc.match(f.lower())
                     if m and f.lower() in B: add(m.group(1) + 'è' + m.group(2) + 'er' + m.group(3), f.lower())
+    eler = re.compile(r'^(.*)e(ll|tt)(e|es|ent|era|erai|eras|erons|erez|eront|erais|erait|erions|eriez|eraient)$')   # 4. ⭐ liste n° 166
+    ELER = {lem for lem in cj if re.search(r'e[lt]er$', lem) and not re.search(r'(appeler|jeter|interpeler)$', lem)}   # 1990 : les verbes en -eler / -eter se
+    for lem in ELER:                                                  # conjuguent comme peler et acheter (« il nivèle », « il étiquète »), SAUF appeler,
+        for t, sl in cj[lem].items():                                 # jeter et leurs composés ; et les noms en -ellement / -ettement d'un tel verbe
+            for pn, fo in sl.items():                                 # (« nivèlement », « renouvèlement »)
+                for f in (fo if isinstance(fo, list) else [fo]):
+                    m = eler.match((f or '').lower())
+                    if m and f.lower() in B: add(m.group(1) + 'è' + m.group(2)[0] + m.group(3), f.lower())
+    for w in B:
+        m = re.match(r'^(.*)e(ll|tt)ement(s?)$', w)
+        if m and (m.group(1) + 'e' + m.group(2)[0] + 'er') in ELER: add(m.group(1) + 'è' + m.group(2)[0] + 'ement' + m.group(3), w)
+        if w.startswith(('réglement', 'déréglement')): add(w.replace('réglement', 'règlement', 1), w)   # 5. règlementer, règlementaire, règlementation (1990)
     with io.open(os.path.join(ROOT, 'data_local', 'morphalou', 'Morphalou3.1_CSV.csv'), encoding='utf-8', errors='replace') as fh:   # 3. Dicollecte
         for l in fh:
             p = l.rstrip('\n').split(';')

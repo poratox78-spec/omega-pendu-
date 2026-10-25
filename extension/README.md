@@ -62,7 +62,7 @@ L'en-tête du panneau porte **🌐 omegapendu.com** (globe seul en panneau étro
 | Fichier | Rôle |
 |---|---|
 | `dys-core.js` | **Le moteur** — copie **verbatim** des règles de l'app : GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, `j'est→j'ai`) **+ ORTHOGRAPHE** (`spellToken`/`spellText` : non-mots/accents/typos, AUTO/FLAG, élision) + couche dys (familles, remédiation) + **`complete()`** (complétion préfixe accentuée, hors parité). Sans DOM. |
-| `assets/` | Lexiques tirés des blocs de l'app (`vdc-lex.json`, `gender-relaxed.tsv.gz`, `speller.tsv.gz` = le dictionnaire d'orthographe, ~739 000 formes accentuées). Régénérés par `build_assets.py`. Données : Lexique 4 et Wiktionnaire → **CC BY-SA 4.0** ; Morphalou 3.1 → **LGPL-LR**. |
+| `assets/` | Lexiques tirés des blocs de l'app (`vdc-lex.json`, `gender-relaxed.tsv.gz`, `speller.tsv.gz` = le dictionnaire d'orthographe, ~741 000 formes accentuées). Régénérés par `build_assets.py`. Données : Lexique 4 et Wiktionnaire → **CC BY-SA 4.0** ; Morphalou 3.1 → **LGPL-LR**. |
 | `content.js` | S'accroche aux champs (`textarea`, `input`, `contenteditable`), lance le moteur (`diagnoseAll` = grammaire + orthographe), **applique en place** (gère la fusion de 2 tokens pour l'élision) ; affiche aussi les **complétions** du mot en cours (`DYSCORE.complete`). |
 | `icons/` | Icônes 16/32/48/128 exigées par Chrome et le Store — **dérivées** de `icon-512.png` par `build_icons.py` (pur Python, déterministe, gardé en CI). |
 | `build_zip.py` | Paquet livré : sans option = zip du **site** (à dézipper → extension non empaquetée) ; `--store` = paquet **Chrome Web Store** (manifeste à la racine) ; `--check` = garde de fraîcheur CI. |
