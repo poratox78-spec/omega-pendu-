@@ -27345,7 +27345,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var p=cprev(T,i);if((PREP[p]&&num!=='pl')||NUM_DET[p]||TOUT_EXTRA[p])return null;   // ⭐ 30/09/2026 : « à tout les enfants » → tous — la préposition ne garde que le singulier (« à tout le monde ») ; miroir Python
     if(T[i+2].toLowerCase().indexOf("'")>=0)return null;
     var nd=deacc(T[i+2].toLowerCase());var pp=NOUN_POST&&NOUN_POST[nd];if(!(pp&&pp[0]>=PL_TAU_M))return null;
-    var g=GENDER_PURE[nd];if(g===undefined)g=GENDER_MAP[nd];if(g!=='m'&&g!=='f')return null;   // ⭐ liste n° 101 : « tout la classe » — nom aussi verbe, absent du genre pur → table des noms
+    var g=GENDER_PURE[nd];if(g===undefined)g=GENDER_MAP[nd];if(g!=='m'&&g!=='f')g=_nounGender(T[i+2],num==='pl'?'p':'s',true);if(g!=='m'&&g!=='f')return null;   /* ⭐ liste n° 151 : « toute les lettres » — genre de la forme accentuée (Morphalou) et du singulier, comme la règle du déterminant (_nounGender) */   // ⭐ liste n° 101 : « tout la classe » — nom aussi verbe, absent du genre pur → table des noms
     var target=(num==='pl')?(g==='m'?'tous':'toutes'):(g==='m'?'tout':'toute');
     return target!==lw?ckeepcase(T[i],target):null;}
   // accord PLURIEL du NOM (déterminant pluriel + nom singulier) — MÊME logique que correcteur_probe.rule_noun_plural (parité)
