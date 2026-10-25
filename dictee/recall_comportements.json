@@ -319,7 +319,9 @@
 "Des yeux bleu clair.",
 "Il fait froid et les enfants dorment mal.",
 "Le chat et les enfants dorment.",
-"Il mange et le chien aboie."
+"Il mange et le chien aboie.",
+"Il faut se hâter.",
+"Pourriez-vous venir ?"
 ],
 "elide": [
 [
@@ -741,6 +743,26 @@
 "Je travaille et mes enfants dorme.",
 "dorme",
 "dorment"
+],
+[
+"Est-ce que vous pouvez me envoyer le compte rendu ?",
+"me envoyer",
+"m'envoyer"
+],
+[
+"Elle va se occuper de tout.",
+"se occuper",
+"s'occuper"
+],
+[
+"Pourriez vous envoyer quelqu'un rapidement ?",
+"Pourriez vous",
+"Pourriez-vous"
+],
+[
+"A il fini ?",
+"A il",
+"A-t-il"
 ]
 ],
 "palier": [
