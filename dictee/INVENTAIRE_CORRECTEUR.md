@@ -170,7 +170,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | point final | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 | répétition | 1 | selon la couche | repetition (sans conseil) | — | — |
 | sait/s'est à vérifier | 1 | orange | homophone_gram | — | — |
-| trait d'union | 1 | selon la couche | ponctuation (sans conseil) | — | — |
+| trait d'union | 2 | selon la couche | ponctuation (sans conseil) | — | — |
 | typographie | 3 | selon la couche | style (sans conseil) | — | — |
 | virgule | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 | virgule doublée | 1 | selon la couche | ponctuation (sans conseil) | — | — |
