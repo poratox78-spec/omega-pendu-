@@ -332,7 +332,10 @@
 "Pourriez-vous venir ?",
 "Je lui suis fidèle.",
 "Il m'est venu une idée.",
-"Je suis mal à l'aise."
+"Je suis mal à l'aise.",
+"Ses très belles robes sont là.",
+"Il aime ses très vieux livres.",
+"Elle soigne ses malades et ses blessés."
 ],
 "elide": [
 [
@@ -799,6 +802,21 @@
 "Je est faim.",
 "Je est",
 "J'ai"
+],
+[
+"Ses vraiment facile.",
+"Ses",
+"C'est"
+],
+[
+"Ces très simple et rapide.",
+"Ces",
+"C'est"
+],
+[
+"Ses facile à faire.",
+"Ses",
+"C'est"
 ]
 ],
 "palier": [
