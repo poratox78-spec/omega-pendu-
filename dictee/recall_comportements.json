@@ -356,7 +356,9 @@
 "Il étiquète les boîtes.",
 "Il est arrivé in extremis.",
 "Ils sont ex aequo.",
-"Un argument ad hominem."
+"Un argument ad hominem.",
+"La production des usines centuple chaque année.",
+"Les gens précisent que tout va bien."
 ],
 "elide": [
 [
@@ -1029,6 +1031,11 @@
 [
 "Il a gagné extremis.",
 "extremis",
+"vigilance"
+],
+[
+"Le train part à sept heures précise.",
+"précise",
 "vigilance"
 ]
 ],
