@@ -337,7 +337,12 @@
 "Il aime ses très vieux livres.",
 "Elle soigne ses malades et ses blessés.",
 "Le matin et le soir sont froids.",
-"Il aime le soir et la nuit."
+"Il aime le soir et la nuit.",
+"Je suis la reine.",
+"Elle est la une du journal.",
+"Elle est la toute première.",
+"Il range tous les porte-clés.",
+"C'est la vie."
 ],
 "elide": [
 [
@@ -829,6 +834,31 @@
 "On travaille lundi et les élèves reste chez eux.",
 "reste",
 "restent"
+],
+[
+"Je suis la tous les jours.",
+"la",
+"là"
+],
+[
+"Il est la depuis hier.",
+"la",
+"là"
+],
+[
+"C'est la que je travaille.",
+"la",
+"là"
+],
+[
+"Tout les après-midi, il dort.",
+"Tout",
+"Tous"
+],
+[
+"Il aime tout les petits-enfants.",
+"tout",
+"tous"
 ]
 ],
 "palier": [
