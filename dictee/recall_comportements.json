@@ -63,6 +63,14 @@
 [
 "j'est dans ma chambre",
 "je suis"
+],
+[
+"j'est besoin d'un stylo",
+"j'ai"
+],
+[
+"j'est soif après le sport",
+"j'ai"
 ]
 ],
 "abstain": [],
@@ -321,7 +329,10 @@
 "Le chat et les enfants dorment.",
 "Il mange et le chien aboie.",
 "Il faut se hâter.",
-"Pourriez-vous venir ?"
+"Pourriez-vous venir ?",
+"Je lui suis fidèle.",
+"Il m'est venu une idée.",
+"Je suis mal à l'aise."
 ],
 "elide": [
 [
@@ -763,6 +774,31 @@
 "A il fini ?",
 "A il",
 "A-t-il"
+],
+[
+"Je lui est dit merci.",
+"est",
+"ai"
+],
+[
+"Je ne l'est pas reçu.",
+"l'est",
+"l'ai"
+],
+[
+"Tu l'est vu hier ?",
+"l'est",
+"l'as"
+],
+[
+"Je m'est levé tôt.",
+"m'est",
+"me suis"
+],
+[
+"Je est faim.",
+"Je est",
+"J'ai"
 ]
 ],
 "palier": [
@@ -860,6 +896,11 @@
 "cest vrai",
 "cest",
 "auto"
+],
+[
+"j'est froid aux mains",
+"j'est",
+"vigilance"
 ]
 ],
 "vig": [
