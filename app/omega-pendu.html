@@ -28829,6 +28829,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var suj=(i>=2)?deacc(T[i-2].toLowerCase()):'';                        // le sujet immédiat accorde : « elle s'est marier » → mariée (le choix du genre ne change pas le TIR, juste la suggestion)
     var _gn2=(suj==='elle')?'f':((i>=2&&suj!=='il'&&suj!=='on')?_nounGender(T[i-2],'s',true):null);   // sujet NOMINAL : « la voisine s'est marier » → mariée (genre du nom ; 0 occurrence s'est+inf sur 16 950 correct)
     return w.slice(0,-2)+(_gn2==='f'?'ée':'é');}
+  var _H_ASP160=/^(hauss|hach|hant|harcel|harass|hasard|heurt|hiss|hurl|hat|henn|herss|heriss|houspill|hu[ae]|hai[st]|hais|hai$|hoch|hott|huch|hupp|hong)/,_H_MUET160=/^(habit|habill|hesit|herit|heberg|honor|humili|hydrat|halluc|harmonis|hiber|homolog|horrif|hospitalis|humect|hypnotis|histor|humanis|hum[aeio])/;   // liste n° 160 : radicaux de verbes à h aspiré / muet (listes fermées)
   function rNegNe(T,i){if(i+1>=T.length)return null;var lw=T[i].toLowerCase(),d=deacc(lw);
     var nx=deacc(T[i+1].toLowerCase()),n2=i+2<T.length?deacc(T[i+2].toLowerCase()):'';
     if(d==='y'){if(!(_NEG_AUXV[nx]&&i>=1&&deacc(T[i-1].toLowerCase())==='il'&&_NEG_NEXT[n2]))return null;   // « il y a pas » → « il n'y a pas »
@@ -28845,6 +28846,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var pv=deacc(T[i-1].toLowerCase()),ap=pv.lastIndexOf("'");if(ap>=0)pv=pv.slice(ap+1);   // qu'on / l'on / lorsqu'il → sujet nu
     if(!_NEG_SUJ[pv])return null;
     if(i>=2){var p2=T[i-2].toLowerCase();if(deacc(p2)==='ne'||p2==="n'")return null;}
+    if(d.charAt(0)==='h'){if(_H_ASP160.test(d))return 'ne '+T[i];if(!_H_MUET160.test(d))return null;}   /* ⭐ 25/10/2026 (liste n° 160) — « je haussais pas » recevait « n'haussais » en ROUGE : h aspiré → « ne » ; h muet connu → « n' » ; autre h → rien (pas de table du h aspiré) */
     return ((/^[aeiouyh]/.test(d))?"n'":'ne ')+T[i];}   // n' devant voyelle/h, « ne » sinon (« je vais jamais » → ne vais)
   var _SICOND={aurais:'avais',aurait:'avait',aurions:'avions',auriez:'aviez',auraient:'avaient',serais:'étais',serait:'était',serions:'étions',seriez:'étiez',seraient:'étaient'};
   var _SI_SAVOIR={sais:1,sait:1,savais:1,savait:1,savent:1,savoir:1,demande:1,demandes:1,demandent:1,demandait:1,demander:1,demandez:1,demandons:1,ignore:1,ignorent:1,ignorait:1,dis:1,dit:1,dire:1,disait:1,voir:1,vois:1,voit:1,comprendre:1,devine:1,deviner:1,verifier:1,verifie:1,regarde:1,regarder:1};
