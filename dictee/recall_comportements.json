@@ -348,7 +348,12 @@
 "Le mur fait 3 m et la porte 2 m.",
 "La variable M est positive.",
 "Il va faire faire des travaux.",
-"Je m'en offrirai un un jour."
+"Je m'en offrirai un un jour.",
+"Elle délèguera la tâche.",
+"Il nivèle le terrain.",
+"Il faut règlementer la pêche.",
+"Elle feuillète le livre.",
+"Il étiquète les boîtes."
 ],
 "elide": [
 [
@@ -900,6 +905,11 @@
 "Il a le le livre.",
 "le",
 "le"
+],
+[
+"Ils nivèle le sol.",
+"nivèle",
+"nivèlent"
 ]
 ],
 "palier": [

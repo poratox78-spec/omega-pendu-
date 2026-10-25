@@ -1843,10 +1843,10 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var dw=deacc(T[i].toLowerCase());if(dw.length<4||svReads(T[i]).length)return null;
     var pn=svSubject(T,i);if(!pn||pn[0]!=='3'||pn[1]!=='p')return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
-    var bases=[];if(/es$/.test(dw))bases.push(dw.slice(0,-2));if(/e$/.test(dw))bases.push(dw.slice(0,-1));
+    var _lw166=T[i].toLowerCase(),bases=[],_acc=[];if(/es$/.test(dw)){bases.push(dw.slice(0,-2));_acc.push(_lw166.slice(0,-2));}if(/e$/.test(dw)){bases.push(dw.slice(0,-1));_acc.push(_lw166.slice(0,-1));}   // ⭐ 25/10/2026 (liste n° 166) : le radical ÉCRIT, accent compris (« nivèle » → nivèlent, pas « nivelent »)
     for(var b=0;b<bases.length;b++){var cand=bases[b]+'ent';if(cand===dw)continue;var r=svReads(cand),lems={},n=0,k;
       for(k=0;k<r.length;k++)if(r[k][2]==='3'&&r[k][3]==='p'&&!lems[r[k][0]]){lems[r[k][0]]=1;n++;}   // n=='p' STRICT : -ent≠pluriel (vient/tient=3sg ; famille venir corrompue dans Lexique) → 0 mauvaise correction
-      if(n===1)return ckeepcase(T[i],cand);}
+      if(n===1){var _c166=_acc[b]+'ent';if(_c166!==cand&&!(SP&&SP.WORDS&&SP.WORDS.has(_c166)))return null;return ckeepcase(T[i],_c166);}}
     return null;}
   var CONJ_WORDS={};('et ou ni mais car donc or que qu qui quand comme si lorsque puisque dont lequel laquelle lesquels lesquelles').split(' ').forEach(function(w){CONJ_WORDS[w]=1;});
   // accord sujet-VERBE à sujet NOM via le VRAI PARSEUR _npSubject (sujet ÉLOIGNÉ, mots-écrans « de X ») — MIROIR correcteur_probe.rule_accord_sv_noun, FP=0
@@ -6008,7 +6008,7 @@ function spellUnknown(tok,atStart,T,idx){
     for(var _q=0;_q<_rx.length;_q++)if(_rx[_q][0]==='etre'||_rx[_q][0]==='avoir')return null;   // « il suis » : être ou suivre ? on ne choisit pas
     var lx=x.toLowerCase(),c=SP.PHON[phonKey(lx)]||[],best=null,lem=null,bd=99,bf=-1,k,q;
     var _sx=lx.replace(/[sx]$/,'');if(_sx!==lx&&_sx.length>=3&&SP.WORDS.has(_sx)){var _r0=_psonReads(_sx),_ls={};if(svAgrees(_r0,per[0],per[1])){for(q=0;q<_r0.length;q++)if(_r0[q][2]===per[0])_ls[_r0[q][0]]=1;if(Object.keys(_ls).length===1)return pre+(pre?_sx:ckeepcase(x,_sx));}}   // ⭐ 12/10/2026 (conjugaison 7) : « il faits » → fait — la bonne forme + un -s / -x de trop ; un homophone plus long d'un autre verbe (« fêtait ») faisait abstenir
-    for(k=0;k<c.length;k++){var w=c[k];if(w===lx||!/^[a-zà-ÿœ]+$/.test(w))continue;var r=_psonReads(w);if(!svAgrees(r,per[0],per[1]))continue;
+    for(k=0;k<c.length;k++){var w=c[k];if(w===lx||!/^[a-zà-ÿœ]+$/.test(w))continue;if(w.replace(/e([lt])\1(e|es|ent)$/,'è$1$2')===lx)continue;   /* ⭐ 25/10/2026 (liste n° 166) : « il nivèle », « elle feuillète » — graphie de 1990 de la forme traditionnelle (nivelle, feuillette) : la même forme, pas une faute de personne */var r=_psonReads(w);if(!svAgrees(r,per[0],per[1]))continue;
       if(!_xv&&deaccS(w).slice(0,4)!==dx.slice(0,4))continue;                             // un nom/adjectif écrit : seulement la forme qui en garde le début (envois → envoie)
       if(Math.abs(deaccS(w).length-dx.length)>2)continue;                                  // ⭐ 11/10/2026 : pas une forme bien plus longue que l'écrit — « il plan » (bout de chaîne d'un « pran » mal écrit) recevait « plantait »
       var ls={};for(q=0;q<r.length;q++)if(r[q][2]===per[0])ls[r[q][0]]=1;var l1=Object.keys(ls);if(l1.length!==1)return null;
