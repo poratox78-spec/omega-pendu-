@@ -25542,6 +25542,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return null;}
   var MODAL={};("veux veut veulent peux peut peuvent dois doit doivent va vais vas vont faut sais sait aime aimes aiment adore espere souhaite prefere preferent vient viens allons allez laisse laissent ose pour sans afin de devons devez pouvons pouvez voulons voulez").split(/\s+/).forEach(function(w){MODAL[w]=1;});
   var CAUX={};Object.keys(AUX_ETRE).forEach(function(k){CAUX[k]=1;});Object.keys(AUX_AVOIR).forEach(function(k){CAUX[k]=1;});
+  function _horsElision163(text,P,i){var w=P[i][2];if(w.length!==1)return false;var av=text.slice(0,P[i][0]);if(/\d[\s\u00a0]*$/.test(av))return true;return w!==w.toLowerCase()&&av.trim()!==''&&!/[.!?…:]\s*$/.test(av);}   /* ⭐ 25/10/2026 (liste n° 163) — « La largeur de 1,5 m est grande », « Si M est une matrice » recevaient « m'est » : une lettre seule après un NOMBRE est une unité, une MAJUSCULE seule au milieu d'une phrase est une variable ou une initiale. En tête de phrase, « C est » → C'est, comme avant. */
   function cprev(T,i){return i>0?deacc(T[i-1].toLowerCase()):null;}
   function _pplRe66(w){var d=deacc(String(w).toLowerCase());return /[^aeiou]u$/.test(d)&&d.length>=5&&!!COMMON_VERBS[d.slice(0,-1)+'re'];}   // ⭐ liste n° 66 : participe en -u d'un verbe en -re (répondu, vendu, rendu) — LOCAL à « ma / ta + participe » : _isPpl écarte -u à dessein (revenu, menu)
   function _isPpl(w){var lw=w.toLowerCase(),d=deacc(lw),stem,inf;   // participe RÉEL (infinitif reconstruit ∈ lexique verbal) ≠ nom en -é/-ée
@@ -31611,7 +31612,7 @@ function spellUnknown(tok,atStart,T,idx){
         if(!/^\s+$/.test(text.slice(P[i][1],P[i+1][0])))continue;   // écart non purement blanc (apostrophe ' ou ’ déjà là, ponctuation) → déjà élidé
         var a=P[i][2].toLowerCase(),b=P[i+1][2].toLowerCase(),vow=/^[aeiouyh]/.test(deaccS(b));
         if(a==='aujourd'&&b==='hui'){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'hui",name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
-        else if(vow&&SP.WORDS.has(deaccS(b))&&((a.length===1&&'cjldmtns'.indexOf(a)>=0)||a==='qu')){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'"+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
+        else if(vow&&SP.WORDS.has(deaccS(b))&&((a.length===1&&'cjldmtns'.indexOf(a)>=0)||a==='qu')&&!_horsElision163(text,P,i)){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'"+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
         /* ⭐ 30/09/2026 (catalogue des muets) — ÉLISION MANQUANTE : la forme PLEINE devant voyelle (« je ai », « que il », « le arbre »,
            « de eau », « ne a », « me appelle », « si il ») était muette partout ; seule l'apostrophe remplacée par une espace (« c est »)
            était vue. Gardes, chacune née d'une mesure : écart BLANC seulement (« le 12 avril » : le chiffre mangé par le tokeniseur) ;
