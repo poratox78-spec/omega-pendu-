@@ -364,7 +364,10 @@
 "Il a les cheveux longs.",
 "Ils sont juste.",
 "Ils ont presque fini.",
-"Une robe longue et une jupe courte."
+"Une robe longue et une jupe courte.",
+"Les langues française et anglaise.",
+"Les gouvernements français et allemand ont signé.",
+"Les premier et deuxième étages."
 ],
 "elide": [
 [
@@ -1083,6 +1086,11 @@
 "Ils sont presque prêt.",
 "prêt",
 "auto"
+],
+[
+"Les enfants malade et fatigué.",
+"malade",
+"vigilance"
 ]
 ],
 "vig": [
