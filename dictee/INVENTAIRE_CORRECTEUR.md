@@ -5,7 +5,7 @@
 
 ## En chiffres
 
-- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **105** entrées, **78** noms affichés ; rouge : 64 · rouge avec un cas orange posé par la règle : 16 · rouge ou orange selon le sous-cas : 13 · orange : 12.
+- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **105** entrées, **78** noms affichés ; rouge : 63 · rouge avec un cas orange posé par la règle : 17 · rouge ou orange selon le sous-cas : 13 · orange : 12.
 - Moteur Python : débranché de dev.sh et de la CI le 22/10/2026 (ligne 25b) — la chaîne n'est plus comparée ; la parité directe app ≡ extension la garde (`dictee/parity_app_ext.js`).
 - Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **47**.
 - Tables chargées : 11 (le chargeur unique `extension/charger_node.js` les charge toutes pour les bancs).
@@ -86,7 +86,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 67 | accord sujet-verbe | `rAccordRelObj` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM, prénoms, genre accentué |
 | 68 | accord sujet-verbe | `rAccordIncise` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 69 | genre déterminant | `rDetGenre` | `—` | rouge ou orange (sous-cas mesuré, _tierOf) | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM |
-| 70 | accord tout | `rTout` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, genre accentué |
+| 70 | accord tout | `rTout` | `—` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post, genre accentué |
 | 71 | infinitif après pronom sujet à vérifier | `rPronInf` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels) |
 | 72 | accord adjectif antéposé | `rAdjAntePl` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
 | 73 | accord adjectif antéposé | `rAdjAnteGenre` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM |
