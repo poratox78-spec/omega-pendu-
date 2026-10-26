@@ -363,7 +363,8 @@
 "Il a parlé de la poussée des eaux.",
 "Il a les cheveux longs.",
 "Ils sont juste.",
-"Ils ont presque fini."
+"Ils ont presque fini.",
+"Une robe longue et une jupe courte."
 ],
 "elide": [
 [
@@ -935,6 +936,16 @@
 "Elles sont juste fatigué.",
 "fatigué",
 "fatiguées"
+],
+[
+"Des cheveux bouclés et blond.",
+"blond",
+"blonds"
+],
+[
+"Une fille aux cheveux frisés et blond.",
+"blond",
+"blonds"
 ]
 ],
 "palier": [
@@ -1066,7 +1077,7 @@
 [
 "Une fille aux cheveux long.",
 "long",
-"vigilance"
+"auto"
 ],
 [
 "Ils sont presque prêt.",
