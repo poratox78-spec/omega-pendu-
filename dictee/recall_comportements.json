@@ -367,7 +367,9 @@
 "Une robe longue et une jupe courte.",
 "Les langues française et anglaise.",
 "Les gouvernements français et allemand ont signé.",
-"Les premier et deuxième étages."
+"Les premier et deuxième étages.",
+"Le sondage de 1998 comptait 300 réponses.",
+"La loi de 1905 visait la paix."
 ],
 "elide": [
 [
@@ -1091,6 +1093,21 @@
 "Les enfants malade et fatigué.",
 "malade",
 "vigilance"
+],
+[
+"Il doi partir.",
+"doi",
+"auto"
+],
+[
+"Elle voi la mer.",
+"voi",
+"auto"
+],
+[
+"Je crois qu'il doi partir.",
+"doi",
+"flag"
 ]
 ],
 "vig": [
