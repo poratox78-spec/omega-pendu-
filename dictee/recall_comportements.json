@@ -373,7 +373,8 @@
 "Elle connaît tout des livres anciens.",
 "On ignore tout des habitants de cette île.",
 "Ils ont tous les trois raison.",
-"Vous avez tous les deux tort."
+"Vous avez tous les deux tort.",
+"Nous jouons tous les quatre ensemble."
 ],
 "elide": [
 [
@@ -1239,6 +1240,11 @@
 "Un outil permettan de lire",
 "permettan",
 "permettant"
+],
+[
+"Il a écrit trois ensemble de règles.",
+"ensemble",
+"ensembles"
 ]
 ],
 "a_participe": [
