@@ -389,7 +389,9 @@
 "Sa mère, faite prisonnière, attend.",
 "Je sais qui il est.",
 "Je ne sais pas qui il est.",
-"Tu as demandé à Paul qui il préfère ?"
+"Tu as demandé à Paul qui il préfère ?",
+"Quelles fleurs aimez-vous ?",
+"Quels plats préparez-vous ce soir ?"
 ],
 "elide": [
 [
@@ -1355,6 +1357,11 @@
 "Les dépenses ont augmentés de 10 %.",
 "augmentés",
 "augmenté"
+],
+[
+"Les enfants proposez une idée.",
+"proposez",
+"proposent"
 ]
 ],
 "a_participe": [
