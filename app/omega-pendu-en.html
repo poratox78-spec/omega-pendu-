@@ -30605,8 +30605,9 @@ function spellTokenCore(tok,atStart,T,idx){
        (séléctionnable → sélectionnable, pas « sélectionnables » ; désservie → desservie, façilitant → facilitant), au lieu du silence
        ou d'une autre forme. Le « ç » à condition qu'il n'y ait qu'UNE restauration d'accent : « commençe » a trois lectures, on n'y touche pas.
        Mesuré : 3 corpus dys, 36 mots faux deviennent exacts (28 jusque-là muets), 0 perte ; UD 14 450 : 0 marque. */
+    /* ⭐ 27/10/2026 (liste n° 179) : « è » devant UNE consonne suivie d'une voyelle prononcée n'existe pas non plus (« crèva », « lèva », « crèvons » ; le « è » ne vient que devant une syllabe muette : lève, crèverai) — sauf devant qu / gu (chèque, collègue) */
     var _nAcc=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)_nAcc++;
-    var _accX=(low!==d&&p1===2&&deaccS(w1)===d&&d.length>=4&&(tok===low||atStart)&&(/[éè](x|([bcdfgjklmnpqrstvz])\2|[cp]t)/.test(low)||(/ç[eiyéèêë]/.test(low)&&_nAcc===1)));
+    var _accX=(low!==d&&p1===2&&deaccS(w1)===d&&d.length>=4&&(tok===low||atStart)&&(/[éè](x|([bcdfgjklmnpqrstvz])\2|[cp]t)/.test(low)||/è(?!qu|gu)(ch|gn|ph|th|[bcdfghjklmnpqrstvwxz])([aàâiîïoôuûyéèê]|e[zr]$)/.test(low)||(/ç[eiyéèêë]/.test(low)&&_nAcc===1)));
     var _kV=(low!==d&&p1===2&&deaccS(w1)===d&&d.length>=4&&(tok===low||atStart)&&_kAcc(w1)===1&&keys.some(function(k){return cand[k][0]===2&&_kAcc(k)===0;}));   // ⭐ liste n° 5b : la forme qui GARDE les accents écrits a gagné le tri contre une forme qui les écrasait — rare, elle est proposée en orange plutôt que tue
     if(f1<0.1&&!_accX&&!_kV)return null;
     /* ⭐ 19/10/2026 — DEUX FAITS DE CONTEXTE AVANT LES AUTOS (miroir Python) : « pour / sans / de » + verbe CONJUGUÉ est impossible
