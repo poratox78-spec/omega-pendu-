@@ -25990,6 +25990,7 @@ if(i>=1&&/^n['’]on$/.test(deacc(T[i].toLowerCase()))){var _pn2=_prevPron(T,i),
       return _pl2?T[i].slice(0,2)+'ont':null;}
 var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(_SEG&&i<_SEG.hy.length&&_SEG.hy[i])return null;   // « avait-on », « peut-on » : trait d'union → pronom inversé
+    if(lw==='on'&&i+1<T.length){var _r184b=svReads(T[i+1]);if(_r184b.length&&_r184b.every(function(x){return x[1]==='ind:fut'||x[1]==='cnd:pre';}))return null;}   // ⭐ 27/10/2026 (liste n° 184) : « les voisins on pourrait les inviter » — un futur ou un conditionnel ne suit jamais « ont »
     if(lw==='on'&&i>=1&&deacc(T[i-1].toLowerCase())==='qui'&&i+1<T.length){var _qn=deacc(T[i+1].toLowerCase());   /* ⭐ 13/09/2026 — « QUI ON » + NON-VERBE : « qui » est déjà sujet → « qui ont » (« les pays qui on un port ») ; miroir Python rule_on_ont */
       if(!_verbeFini(_qn)&&!CLITIC[_qn]&&!/^[nlmts]'/.test(_qn)&&(NUM_DET[_qn]||PART_ART[_qn]||(_wordKnown(_qn)&&!svReads(_qn).length)))return ckeepcase(T[i],'ont');}
     if(lw==='ont'){var _tgo=posTags(T),_so=_tgo?_npSubject(T,_tgo,i):null;   // « on » est un PRONOM SUJET : il ne peut PAS suivre un sujet NOMINAL. « La direction ont modifier » ne peut pas devenir « La direction ON modifier » — impossible en français. Ce test passe AVANT tous les autres, sinon le raccourci « mot suivant en -e » tranche le premier (« L'équipe ont rencontre » → « on rencontre »).
@@ -28299,6 +28300,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var nx=deacc(String(T[i+1]||'').toLowerCase());
     if(!nx||_ON_CLIT[nx])return null;                       // « Le chat on le voit » est correct
     if(!CONJ_F||(!CONJ_F[nx]&&!CONJ_F[nx+'s']))return null; // le mot d'après doit être un verbe
+    {var _pv184=deacc(String(T[i-1]||'').toLowerCase()),_r184=svReads(String(T[i+1]));if(_pv184==='et'||_pv184==='ou'||_pv184==='mais')return null;if(_r184.length&&_r184.every(function(x){return x[1]==='ind:fut'||x[1]==='cnd:pre';}))return null;}   /* ⭐ 27/10/2026 (liste n° 184) : « des crêpes et on regardera » — après et / ou / mais, « on » ouvre la proposition ; un futur ou un conditionnel ne suit jamais « ont » (le présent, si : « on mange » pour « ont mangé », reste marqué) */
     /* ⭐ RELATIVE : « où » et « dont » ouvrent une proposition dont « on » est le SUJET —
        « les endroits où on va », « les auteurs dont on cite les livres » sont CORRECTS (2 FP trouvés
        par la batterie de PARITÉ). `qui` reste HORS liste : « qui on gagné » est une vraie faute. */
