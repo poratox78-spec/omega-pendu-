@@ -28398,6 +28398,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(!p)return true;
     rd=svReads(T[i]);for(z=0;z<rd.length;z++)if(rd[z][2]===p[0]&&(rd[z][3]===p[1]||rd[z][3]==='x'))return true;
     return false;}
+  function _nomVerbal187(T,i,j,tg){if(!(tg&&j<tg.length&&tg[j]==='NOUN'&&j>=1&&NUM_DET[deacc(T[j-1].toLowerCase())]))return false;if(!(j===1||(_SEG&&_SEG.bb&&j-1<_SEG.bb.length&&_SEG.bb[j-1])))return false;var v=T[i].toLowerCase(),dv=deacc(v);if(!/(ons|ez)$/.test(dv))return false;var r=svReads(T[i]);if(!r.length||!r.every(function(x){return x[3]==='p'&&(x[2]==='1'||x[2]==='2');}))return false;var n=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(dv):NOUN_POST[dv]):null;return !(n&&n[0]>=PL_TAU_M);}   // liste n° 187 : déterminant en tête + NOM aussi verbe (invités, élèves) + forme de nous / vous (pas un nom : avions) → c'est le sujet
   function _sujetFlexion(T,i,tg){   /* (personne, nombre) du sujet de T[i] — miroir Python _sujet_flexion. On remonte jusqu'à la
      frontière de proposition en traversant CLITIQUES et ADVERBES, on s'arrête au premier candidat sujet. nous/vous ne sont SUJETS
      que si rien avant eux dans la proposition ne peut l'être (« il nous parle », « qui vous passionnera » = compléments). */
@@ -28425,7 +28426,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       }
       if(d==='qui')return null;
       if(_SVN_CA[w]||_SVN_CA[w.charAt(0).toLowerCase()+w.slice(1)])return ['3','s','nom'];   // ⭐ 04/10/2026 : ça / cela / ceci = il (« CA » n'en est pas)
-      if(svReads(w).length)return null;
+      if(svReads(w).length&&!_nomVerbal187(T,i,j,tg))return null;   /* ⭐ 27/10/2026 (liste n° 187) : « Les invités arriverons », « Les élèves partirons » — le nom a aussi une lecture verbale (inviter, élever). En tête de phrase, déterminant + NOM (étiqueteur) + forme de nous / vous (-ons, -ez, pas un nom : « avions ») : impossible après un sujet nominal, c'est le sujet. La version large (tout verbe) RÉFUTÉE : 8 fausses alertes, 0 gain */
       if(tg&&j<tg.length&&(tg[j]==='NOUN'||tg[j]==='PROPN')){var _np=_npSubject(T,tg,i);if(!_np||(_np.n!=='s'&&_np.n!=='p'))return null;   // sujet NOMINAL → palier ORANGE (miroir Python)
         var _dd=deacc(String(_np.dtxt||'').toLowerCase());if((_dd==='des'||_dd==='du'||_dd==='au'||_dd==='aux')&&_np.idx>=2){var _av=_np.idx-2;if(_av>=0&&(svReads(T[_av]).length||(tg&&_av<tg.length&&(tg[_av]==='NOUN'||tg[_av]==='PROPN'||tg[_av]==='VERB'||tg[_av]==='AUX'))))return null;}   /* ⭐ 12/09/2026 : contracté des/du/au/aux derrière un verbe ou un nom = COMPLÉMENT, pas le sujet (miroir Python, garde absente ici) — « dégoûtés du système partent » ne donne plus « part » */
         return ['3',_np.n,'nom'];}
