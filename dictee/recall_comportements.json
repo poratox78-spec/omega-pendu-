@@ -371,7 +371,9 @@
 "Le sondage de 1998 comptait 300 réponses.",
 "La loi de 1905 visait la paix.",
 "Elle connaît tout des livres anciens.",
-"On ignore tout des habitants de cette île."
+"On ignore tout des habitants de cette île.",
+"Ils ont tous les trois raison.",
+"Vous avez tous les deux tort."
 ],
 "elide": [
 [
@@ -973,6 +975,11 @@
 "Elles viennent toute les deux.",
 "toute",
 "toutes"
+],
+[
+"Il passe tous les deux jour.",
+"jour",
+"jours"
 ]
 ],
 "palier": [
