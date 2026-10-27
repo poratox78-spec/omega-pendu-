@@ -370,7 +370,8 @@
 "Les premier et deuxième étages.",
 "Le sondage de 1998 comptait 300 réponses.",
 "La loi de 1905 visait la paix.",
-"Elle connaît tout des livres anciens."
+"Elle connaît tout des livres anciens.",
+"On ignore tout des habitants de cette île."
 ],
 "elide": [
 [
@@ -957,6 +958,11 @@
 "Il a rangé tout les livres.",
 "tout",
 "tous"
+],
+[
+"Ce sont tout des menteurs.",
+"tout",
+"tous"
 ]
 ],
 "palier": [
@@ -1117,6 +1123,16 @@
 ],
 [
 "Il a rangé tout les livres.",
+"tout",
+"vigilance"
+],
+[
+"Ce sont tout des menteurs.",
+"tout",
+"auto"
+],
+[
+"Ils ont tout des vélos rouges.",
 "tout",
 "vigilance"
 ]
