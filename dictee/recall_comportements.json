@@ -384,7 +384,8 @@
 "Je passe l'écrit demain.",
 "Les invités arriveront tard.",
 "Il reste de l'émincé de poulet.",
-"Il prend ma plus belle robe."
+"Il prend ma plus belle robe.",
+"Les pommes que les enfants ont mangées sont bonnes."
 ],
 "elide": [
 [
@@ -1335,6 +1336,11 @@
 "Les élèves partirons en bus.",
 "partirons",
 "partiront"
+],
+[
+"Les dépenses ont augmentés de 10 %.",
+"augmentés",
+"augmenté"
 ]
 ],
 "a_participe": [
