@@ -378,7 +378,9 @@
 "Il regarde les écrans vidéo.",
 "Elle écoute des postes radio.",
 "J'étais en retard.",
-"J'aurai le temps demain."
+"J'aurai le temps demain.",
+"On mangera des crêpes et on regardera un film.",
+"Les voisins on pourrait les inviter."
 ],
 "elide": [
 [
@@ -1000,6 +1002,11 @@
 "J'étions content de te voir.",
 "J'étions",
 "J'étais"
+],
+[
+"Les enfants on mangé tout le gâteau.",
+"on",
+"ont"
 ]
 ],
 "palier": [
