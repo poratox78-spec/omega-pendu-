@@ -151,7 +151,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | espacement | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 | forme en -ant à vérifier | 1 | orange | participe | — | — |
 | genre de la personne qui écrit | 1 | selon la couche | participe | — | — |
-| homophone à vérifier | 3 | orange | homophone_lex | — | — |
+| homophone à vérifier | 4 | orange | homophone_lex | — | — |
 | impératif (pronom) | 1 | selon la couche | segmentation | — | — |
 | infinitif après semi-auxiliaire à vérifier | 1 | orange | personne | — | correcteur_probe.py |
 | j'est/j'ai à vérifier | 1 | orange | personne | — | correcteur_probe.py |
