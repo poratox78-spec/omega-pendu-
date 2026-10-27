@@ -29062,8 +29062,10 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   var _IMPS_SUB={si:1,que:1,quand:1,lorsque:1,comme:1,parce:1,pourquoi:1,comment:1,combien:1,puisque:1};   // ⭐ 17/10/2026 (liste n° 50)
   var _IMPS2={ton:1,ta:1,tes:1,toi:1,te:1},_IMPS2P={votre:1,vos:1,vous:1},_IMPS_SPEC={etre:['sois','soyez'],avoir:['aie','ayez'],savoir:['sache','sachez'],vouloir:['veuille','veuillez'],aller:['va','allez']};
   var _DET95={};'ce cet cette ces le la les un une des du mon ma mes son sa ses notre nos leur leurs'.split(' ').forEach(function(w){_DET95[w]=1;});   // ⭐ liste n° 95
+  function _ordreEnTete191(T,i){var j=i-1;while(j>0&&!(_SEG&&_SEG.ss&&j<_SEG.ss.length&&_SEG.ss[j]))j--;var w=T[j],d=deacc(String(w||'').toLowerCase());if(!/ez$/.test(d)||d.length<4)return false;if(j>0&&deacc(T[j-1].toLowerCase())==='vous')return false;return svReads(w).some(function(x){return x[1]==='ind:pre'&&x[2]==='2'&&x[3]==='p';});}   // liste n° 191 : la phrase (ou la proposition après un point) commence par un présent de « vous » sans « vous » : un ordre
   function rImperatifSeul(T,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw),k;
     if(lw.indexOf("'")>=0||i+1>=T.length||d==='a')return null;   // « a » / « à » : jamais (UD : « …, à Târgovişte » → aie)
+    if(d==='faite'&&i>=2&&w===lw&&_isInfinitive(T[i+1])&&(/^(et|puis|ensuite)$/.test(deacc(T[i-1].toLowerCase()))||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i]))&&_ordreEnTete191(T,i))return {sugg:'faites',vig:1};   /* ⭐ 27/10/2026 (liste n° 191) : « Versez la pâte et faite cuire » — la phrase commence par un ordre en -ez : une suite d'ordres */
     if(!(i===0||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])))return null;
     var hy=!!(_SEG&&_SEG.hy&&i+1<_SEG.hy.length&&_SEG.hy[i+1]),n1=deacc(T[i+1].toLowerCase());
     if(hy&&!_IMP_PRON[n1]&&n1!=='nous'&&n1!=='vous')return null;                       // « dit-il », « vas-y » : inversion ou forme juste
