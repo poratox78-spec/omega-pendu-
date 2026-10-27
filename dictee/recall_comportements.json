@@ -376,7 +376,9 @@
 "Vous avez tous les deux tort.",
 "Nous jouons tous les quatre ensemble.",
 "Il regarde les écrans vidéo.",
-"Elle écoute des postes radio."
+"Elle écoute des postes radio.",
+"J'étais en retard.",
+"J'aurai le temps demain."
 ],
 "elide": [
 [
@@ -988,6 +990,16 @@
 "Il regarde des vidéo le soir.",
 "vidéo",
 "vidéos"
+],
+[
+"Hier j'avait froid.",
+"j'avait",
+"j'avais"
+],
+[
+"J'étions content de te voir.",
+"J'étions",
+"J'étais"
 ]
 ],
 "palier": [
@@ -1169,6 +1181,16 @@
 [
 "Elles viennent toute les deux.",
 "toute",
+"vigilance"
+],
+[
+"Hier j'avait froid.",
+"j'avait",
+"auto"
+],
+[
+"J'étions content de te voir.",
+"J'étions",
 "vigilance"
 ]
 ],
