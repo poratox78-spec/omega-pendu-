@@ -144,7 +144,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | ces/ses à vérifier | 1 | orange | homophone_gram | — | — |
 | conjugaison après je à vérifier | 1 | orange | personne | — | — |
 | contraction | 1 | selon la couche | contraction (sans conseil) | — | — |
-| élision | 7 | selon la couche | segmentation | — | correcteur_probe.py |
+| élision | 8 | selon la couche | segmentation | — | correcteur_probe.py |
 | espace après la virgule | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 | espace avant la ponctuation | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 | espace double | 1 | selon la couche | ponctuation (sans conseil) | — | — |

@@ -383,7 +383,8 @@
 "Les voisins on pourrait les inviter.",
 "Je passe l'écrit demain.",
 "Les invités arriveront tard.",
-"Il reste de l'émincé de poulet."
+"Il reste de l'émincé de poulet.",
+"Il prend ma plus belle robe."
 ],
 "elide": [
 [
@@ -1025,6 +1026,11 @@
 "Avant de démoulé le gâteau, attends.",
 "démoulé",
 "démouler"
+],
+[
+"Il ne ma jamais répondu.",
+"ma",
+"m'a"
 ]
 ],
 "palier": [
