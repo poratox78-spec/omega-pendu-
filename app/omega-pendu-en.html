@@ -28848,12 +28848,14 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(i+2<T.length){var d2=deacc(T[i+2].toLowerCase());if(d2==='la'||d2==='sa'||d2==='ma'||d2==='ta'||d2==='cette'||d2==='une')fem=true;}
     return ckeepcase(T[i],pl?(fem?'quelles que':'quels que'):(fem?'quelle que':'quel que'));}
   var _QUI_PREP={avec:1,a:1,pour:1,chez:1,contre:1,sans:1,sur:1,sous:1,vers:1,envers:1,par:1,entre:1,derriere:1,devant:1,apres:1,selon:1,de:1,dont:1};
+  var _QQ196=/^(sai[st]|sav(ais|ait|aient|ent|ez|ons|oir)|su|demand(e|es|ent|ait|aient|er|ez|ons)?|ignor(e|es|ent|ait|aient|er|ez|ons)|di[st]|dire|disai[st]|dites|disons|compren(ds|d|dre|ez|nent)|compris|devin(e|es|er|ez)|expliqu(e|es|er|ez)|racont(e|es|er|ez)|montr(e|es|er|ez)|indiqu(e|es|er|ez)|precis(e|es|er|ez)|oubli(e|es|er|ez)|cherch(e|es|er|ez)|imagin(e|es|er|ez)|voi[st]|voir|voyez|regard(e|es|er|ez)|verifi(e|es|er|ez)|decid(e|es|er|ez)|choisi[rst]?|choisissez)$/,_QQ196_SAUT={moi:1,toi:1,lui:1,nous:1,vous:1,leur:1,me:1,te:1,se:1,m:1,t:1,s:1,pas:1,plus:1,jamais:1,vraiment:1,bien:1,toujours:1,encore:1,meme:1};
+  function _quiQuestion196(T,i){var k=i-1,n=0;while(k>=0&&n<4){var d=deacc(String(T[k]).toLowerCase()).replace(/['’]$/,'');if(_QQ196.test(d))return true;if(_QQ196_SAUT[d]){k--;n++;continue;}if(k>=1&&deacc(String(T[k-1]).toLowerCase())==='a'&&String(T[k-1])==='à'){k-=2;n++;continue;}return false;}return false;}   // liste n° 196 : verbe de question indirecte avant « qui » (à travers un pronom complément ou « à » + un mot)
   function rQuiPron(T,i){if(deacc(T[i].toLowerCase())!=='qui')return null;
     if(T[i].charAt(0)==='Q')return null;                                               // « Qui il a choisi ? » interrogatif oral
     if(i<1||i+1>=T.length)return null;
     var px=deacc(T[i+1].toLowerCase());if(px!=='il'&&px!=='ils'&&px!=='elle'&&px!=='elles'&&px!=='on')return null;
     var pv=deacc(T[i-1].toLowerCase());
-    if(_QUI_PREP[pv]||_SI_SAVOIR[pv])return null;                                      // « avec qui il est ami » / « je sais qui il est »
+    if(_QUI_PREP[pv]||_SI_SAVOIR[pv]||_quiQuestion196(T,i))return null;   // ⭐ liste n° 196 : « dis-moi qui il », « demandé à Paul qui il » — question indirecte                                      // « avec qui il est ami » / « je sais qui il est »
     // ⭐ « QUI ON » = « QUI ONT » (mesuré 22/08 sur gold dys réel, parité Python rule_qui_pron) : le
     // scripteur dys écrit « on » pour « ont ». Fusionner en « qu'on » DÉTRUIT le « qui » du gold ET
     // masque la vraie faute — c'était la plus grosse famille de casses sur UNE règle (5 sur 36).
@@ -31678,7 +31680,7 @@ function spellUnknown(tok,atStart,T,idx){
             out.push({i:i,word:P[i][2]+' '+P[i+1][2],sugg:ckeepcase(P[i][2],ctr),name:'contraction',tier:'flag',span:2});done[i]=done[i+1]=1;}}
         else if(a==='qui'&&(b==='il'||b==='elle'||b==='on'||b==='ils'||b==='elles')&&i>0&&!done[i-1]&&!(b==='on'&&i+2<P.length&&!_verbeFini(deaccS(P[i+2][2].toLowerCase()))&&!CLITIC[deaccS(P[i+2][2].toLowerCase())]&&!/^[nlmts]['’]/.test(P[i+2][2].toLowerCase()))){   // ⭐ 13/09/2026 : « qui on » + NON-verbe n'est pas « qu'on » mais « qui ont » (rOn) — la fusion était appliquée par défaut (« les pays qu'on un port »)   // « le film qui il a vu »→qu'il (croisement EMF) : relatif sujet + sujet = jamais ; garde : pas de préposition avant (« avec qui il »)
           var pq=deaccS(P[i-1][2].toLowerCase());
-          if(!PREP[pq]&&P[i-1][2].indexOf("'")<0&&pq!=='ce'&&pq!=='celui'&&pq!=='celle'&&pq!=='ceux'&&pq!=='celles'){
+          if(!PREP[pq]&&P[i-1][2].indexOf("'")<0&&pq!=='ce'&&pq!=='celui'&&pq!=='celle'&&pq!=='ceux'&&pq!=='celles'&&!_quiQuestion196(P.map(function(x){return x[2];}),i)){   /* ⭐ 27/10/2026 (liste n° 196) : « je sais qui il est » — question indirecte : rien */
             out.push({i:i,word:P[i][2]+' '+P[i+1][2],sugg:ckeepcase(P[i][2],"qu'")+P[i+1][2],name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}
         // sujet « je » mal écrit + AVOIR/ÊTRE 1sg à initiale VOYELLE → « j'ai/j'étais » (« ke ai », « ce avais », « se étais »). Séquence IMPOSSIBLE (FP=0, 0/2500+14450 UD) → 2e temps de rJeSubject (formes voyelle = élision « j' »).
         else if(vow&&(a==='ke'||a==='ge'||a==='ce'||a==='se')&&/^(ai|avais|aurai|aurais|etais|eus|eusse|aie)$/.test(deaccS(b))){out.push({i:i,word:P[i][2],sugg:(/^[A-ZÀ-Ö]/.test(P[i][2])?"J'":"j'")+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}

@@ -386,7 +386,10 @@
 "Il reste de l'émincé de poulet.",
 "Il prend ma plus belle robe.",
 "Les pommes que les enfants ont mangées sont bonnes.",
-"Sa mère, faite prisonnière, attend."
+"Sa mère, faite prisonnière, attend.",
+"Je sais qui il est.",
+"Je ne sais pas qui il est.",
+"Tu as demandé à Paul qui il préfère ?"
 ],
 "elide": [
 [
@@ -1038,6 +1041,11 @@
 "Versez la pâte et faite cuire 25 minutes.",
 "faite",
 "faites"
+],
+[
+"C'est lui qui il faut voir.",
+"qui",
+"qu'il"
 ]
 ],
 "palier": [
