@@ -374,7 +374,9 @@
 "On ignore tout des habitants de cette île.",
 "Ils ont tous les trois raison.",
 "Vous avez tous les deux tort.",
-"Nous jouons tous les quatre ensemble."
+"Nous jouons tous les quatre ensemble.",
+"Il regarde les écrans vidéo.",
+"Elle écoute des postes radio."
 ],
 "elide": [
 [
@@ -981,6 +983,11 @@
 "Il passe tous les deux jour.",
 "jour",
 "jours"
+],
+[
+"Il regarde des vidéo le soir.",
+"vidéo",
+"vidéos"
 ]
 ],
 "palier": [
