@@ -27430,7 +27430,8 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   /* ⭐ 17/10/2026 (liste n° 57) — noms qui sont aussi des infinitifs : après un déterminant pluriel la règle les lisait verbes (muette), et la
      vigilance ces/c'est proposait « c'est devoir ». 2 = aussi après « les » (devoir, dîner… : jamais pronom + infinitif sans autre verbe). */
   var _NOM_INF57={devoir:2,diner:2,dejeuner:2,souper:2,pouvoir:1,savoir:1,rire:1,sourire:1};
-  function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
+  function _tousCard182(T,i){if(i<2||!_AVOIR_IDIOM[deacc(T[i].toLowerCase())]||!_CARD181[deacc(T[i-1].toLowerCase())])return false;var q=deacc(T[i-2].toLowerCase());if(q==='les'&&i>=3)q=deacc(T[i-3].toLowerCase());return /^tou(t|te|s|tes)$/.test(q);}   /* ⭐ 27/10/2026 (liste n° 182) : « ils ont tous les trois raison » — « tous les trois » désigne des personnes, « raison » est celui d'« avoir raison » : pas de pluriel (« tous les deux jour » → jours reste corrigé) */
+  function rNounPlural(T,i){if(_tousCard182(T,i))return null;if(!NOUN_POST||i===0)return null;
     var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&(PLURAL_DET[deacc(T[i-2].toLowerCase())]||_PL_DET_X[deacc(T[i-2].toLowerCase())]))_pd=deacc(T[i-2].toLowerCase());
     if(/^(dès|dés|lès)$/i.test(_pd===deacc(T[i-1].toLowerCase())?T[i-1]:T[i-2]))return null;   // ⭐ 13/10/2026 (conjugaison 14) : + « dés » (« il est parti dés lundi » → lundis en ROUGE)   // ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE (accents ôtés avant la comparaison)   // ⑤-b (13/09/2026) : traversée d'UN adjectif antéposé (« les prochaines demande ») — miroir Python
     var _card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
@@ -31045,7 +31046,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(!tg||i>=tg.length)return null;
     var w=deaccS(T[i].toLowerCase());
     if(w.length<3||/[sxz]$/.test(w)||_couleurComposee(T,i))return null;
-    if(_distrib176(T,i))return null;   // ⭐ liste n° 176 : « les langues française et anglaise » — un adjectif par chose                       // déjà pluriel/invariable ; couleur composée (liste n° 152)
+    if(_distrib176(T,i))return null;if(_tousCard182(T,i))return null;   // ⭐ liste n° 182 : « tous les trois raison » (avoir raison) — ni rouge ni orange   // ⭐ liste n° 176 : « les langues française et anglaise » — un adjectif par chose                       // déjà pluriel/invariable ; couleur composée (liste n° 152)
     if(typeof SP!=='undefined'&&SP&&SP.ready){var _lw108=T[i].toLowerCase();if((spP(_lw108)||'')==='V'&&(spF(_lw108)||0)<0.01)return null;}   // ⭐ liste n° 108 : un mot connu SEULEMENT comme verbe rare n'est pas un nom à mettre au pluriel (« des hancha » → hanchas) — la règle du verbe rare propose le nom
     /* ⭐ 04/10/2026 — APRÈS UN NOMBRE EN CHIFFRES, encore muets : « pour 5 euro », « 20 hectare », « 10 minute », « 3 kilo », « il mesure 2 mètre ».
        ① l'étiqueteur ne voit pas le chiffre (ce n'est pas un mot) et tague le nom PROPN : un mot EN MINUSCULE que la table des noms
