@@ -380,7 +380,8 @@
 "J'étais en retard.",
 "J'aurai le temps demain.",
 "On mangera des crêpes et on regardera un film.",
-"Les voisins on pourrait les inviter."
+"Les voisins on pourrait les inviter.",
+"Je passe l'écrit demain."
 ],
 "elide": [
 [
@@ -1007,6 +1008,16 @@
 "Les enfants on mangé tout le gâteau.",
 "on",
 "ont"
+],
+[
+"Je t'écrit vite.",
+"t'écrit",
+"t'écris"
+],
+[
+"Je n'écrit pas.",
+"n'écrit",
+"n'écris"
 ]
 ],
 "palier": [
@@ -1198,6 +1209,11 @@
 [
 "J'étions content de te voir.",
 "J'étions",
+"vigilance"
+],
+[
+"Je l'arroserait demain.",
+"l'arroserait",
 "vigilance"
 ]
 ],
