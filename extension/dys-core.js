@@ -1532,10 +1532,11 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
      « retraiter ». C'est la garde qui a fait tomber le dernier faux positif. */
   function _ouClauseVerbe(T,i){var k,fin=Math.min(T.length,i+7);for(k=i+1;k<fin;k++){if(_ouFini(T[k].toLowerCase())&&!(k>0&&_OU_PREP[deacc(T[k-1].toLowerCase())]))return true;}return false;}
   var _OU_ETRE62={est:1,sont:1,etait:1,etaient:1,sera:1,seront:1,ai:1,es:1,etes:1,sommes:1};   // ⭐ liste n° 62
+  function _ouChoix192(T,i){if(i<1)return false;var _pv=deacc(T[i-1].toLowerCase());if(_pv==='la'||_pv==='partout')return false;if(typeof SP!=='undefined'&&SP&&SP.ready&&SP.WORDS&&!SP.WORDS.has(T[i-1].toLowerCase()))return false;if(_quiQuestion196(T,i))return false;var tg=posTags(T);if(!tg||i-1>=tg.length)return false;var t=tg[i-1];return t!=='NOUN'&&t!=='PROPN'&&t!=='DET'&&t!=='ADP';}   // liste n° 192 : le mot avant « ou » n'est ni un nom ni un verbe de question → « ou » du choix
   function rOuOu(T,i){
     if(deacc(T[i].toLowerCase())!=='ou'||T[i].toLowerCase()==='où')return null;
     var n=T.length;
-    if(i+1<n&&_OU_PRON[T[i+1].toLowerCase()]&&!_ouCorrel(T,i))return {sugg:ckeepcase(T[i],'où'),vig:1};
+    if(i+1<n&&_OU_PRON[T[i+1].toLowerCase()]&&!_ouCorrel(T,i)&&!_ouChoix192(T,i))return {sugg:ckeepcase(T[i],'où'),vig:1};   /* ⭐ 27/10/2026 (liste n° 192) : « tu viens ou tu restes » — pas après un nom ni un verbe de question : le choix, rien */
     if(i+2<n&&deacc(T[i+1].toLowerCase())==='en'&&_OU_ETRE62[deacc(T[i+2].toLowerCase())])return {sugg:ckeepcase(T[i],'où'),vig:1};   // ⭐ 17/10/2026 (liste n° 62) : « dis-moi ou en est le dossier » → où (UD 14 450 : 0 « ou en » + être)
     /* ⛔ GARDE 1 (FP mesuré) : le nom de lieu doit porter SON déterminant. « camarade DE classe ou
        une personne » est une coordination, pas une relative — « de » n'est pas un déterminant. */
@@ -6183,7 +6184,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(i>=1&&T[i-1]===T[i-1].toLowerCase()&&_CORPS171[deaccS(T[i-1])]&&(tg[i]==='ADJ'||ADJP[w])&&!svReads(T[i]).length&&!_COLOR_ADJ[w]&&!_INVAR_COLOR[w]&&!(_SEG&&_SEG.bb&&(_SEG.bb[i]||(_SEG.hy&&_SEG.hy[i])))&&!(i+1<T.length&&tg[i+1]==='NOUN')&&!(i>=2&&_DETSG171[deaccS(T[i-2].toLowerCase())])){var _p171=_plu(T[i].toLowerCase());if(_p171!==T[i].toLowerCase())return ckeepcase(T[i],_p171);}   /* ⭐ 25/10/2026 (liste n° 171) — « aux cheveux long », « au cheveux brun » : l'adjectif derrière cheveux / yeux / sourcils / cils (toujours pluriels), même sans déterminant pluriel devant (préposition, « au » mal écrit). ORANGE. La version large — tout nom sûrement pluriel — a été RÉFUTÉE à la mesure : 1 gain pour 13 marques fausses (« jeux vidéo », « radio », « les mains haut », « mixte »). Gardes : pas un verbe, pas une couleur invariable, ni ponctuation ni trait d'union entre eux, pas un nom juste après, pas de déterminant singulier devant. */
     return null;}
   var _OUV={};'est sont etait etaient sera seront es vas va vais allons allez vont habite habites habitent habitait vis vit vivent'.split(' ').forEach(function(x){_OUV[x]=1;});
-  function ouVig(T,i){if(T[i].toLowerCase()!=='ou'||i+1>=T.length)return null;var nx=deacc(T[i+1].toLowerCase());
+  function ouVig(T,i){if(T[i].toLowerCase()!=='ou'||i+1>=T.length)return null;if(_ouChoix192(T,i))return null;   /* ⭐ liste n° 192 : le « ou » du choix (« tu viens ou tu restes ») */var nx=deacc(T[i+1].toLowerCase());
     return (_OUV[nx]||nx==='se'||nx==='ce'||nx==='je'||nx==='tu'||nx==='il'||nx==='elle'||nx==='nous'||nx==='vous'||nx==='ils'||nx==='elles')?'où':null;}   // + « ou » + pronom sujet (ou je/il/tu…) → où probable (relatif/interrogatif) ; 'on' EXCLU (« ou on…, ou on… » either/or). ORANGE (à vérifier), 0 faux sur 2500 UD.   // « ce » = graphie dys fréquente de « se » (« ou ce trouve la gare »)
   // ACCORD PARTICIPE après ÊTRE 3pl (« les élèves sont arrivé »→arrivés) → VIGILANCE orange. Miroir app : participe (VERB,
   // hors nom/adj homographe -té) après sont/étaient/furent/êtes → accord pluriel. Gardes mesurées : pronominal/être-immédiat/homographe.
