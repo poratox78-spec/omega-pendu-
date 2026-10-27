@@ -381,7 +381,8 @@
 "J'aurai le temps demain.",
 "On mangera des crêpes et on regardera un film.",
 "Les voisins on pourrait les inviter.",
-"Je passe l'écrit demain."
+"Je passe l'écrit demain.",
+"Les invités arriveront tard."
 ],
 "elide": [
 [
@@ -1312,6 +1313,16 @@
 "Il fait chaut en ce moment.",
 "chaut",
 "chaud"
+],
+[
+"Les invités arriverons tard.",
+"arriverons",
+"arriveront"
+],
+[
+"Les élèves partirons en bus.",
+"partirons",
+"partiront"
 ]
 ],
 "a_participe": [
