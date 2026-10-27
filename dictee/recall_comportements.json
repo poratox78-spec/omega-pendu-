@@ -385,7 +385,8 @@
 "Les invités arriveront tard.",
 "Il reste de l'émincé de poulet.",
 "Il prend ma plus belle robe.",
-"Les pommes que les enfants ont mangées sont bonnes."
+"Les pommes que les enfants ont mangées sont bonnes.",
+"Sa mère, faite prisonnière, attend."
 ],
 "elide": [
 [
@@ -1032,6 +1033,11 @@
 "Il ne ma jamais répondu.",
 "ma",
 "m'a"
+],
+[
+"Versez la pâte et faite cuire 25 minutes.",
+"faite",
+"faites"
 ]
 ],
 "palier": [
