@@ -3850,6 +3850,8 @@ function estQuestion(t,maxMots){
      chercher, hésiter, parvenir ; facile, difficile, impossible, prêt) : après eux, « à » (ou « a » écrit pour « à ») + un mot en -é n'est jamais
      un participe. Miroir Python. */
   var _QUE_REL_ANT={ce:1,tout:1,celui:1,celle:1,ceux:1,celles:1,chose:1,rien:1,autre:1,autres:1};   // ⭐ liste n° 32 : antécédents pronominaux de « que » relatif
+  var _METEO185={chaut:'chaud',frai:'frais',nui:'nuit'},_METEO185_ADV={pas:1,plus:1,tres:1,trop:1,vraiment:1,si:1,assez:1,encore:1,toujours:1,deja:1};   // liste n° 185 : après « il fait », homophones (vrais mots) d'un adjectif de météo
+  function _meteo185(T,i){var lw=deacc(String(T[i]||'').toLowerCase());if(!_METEO185[lw]||T[i]!==T[i].toLowerCase())return null;var k=i-1;while(k>0&&_METEO185_ADV[deacc(T[k].toLowerCase())])k--;if(k<1||!_FAIRE_SEMI[deacc(T[k].toLowerCase())])return null;var m=k-1;if(m>0&&/^n(e|['’])$/.test(deacc(T[m].toLowerCase())))m--;if(deacc(T[m].toLowerCase())!=='il')return null;if(_SEG&&_SEG.bb){for(var _b=m+1;_b<=i;_b++)if(_SEG.bb[_b])return null;}return _METEO185[lw];}
   function semiInfVig(T,i){
     if(!CONJ_F)return null;
     var w=T[i];if(!w)return null;
@@ -6552,6 +6554,7 @@ function spellUnknown(tok,atStart,T,idx){
     {var gv2=gerondifVig(T,i);if(gv2&&gv2.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:gv2,name:'participe présent après « en » à vérifier',tier:'vigilance'};}}
     {var spv=sestPpVig(T,i);if(spv){return {i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'};}}   // « elle s'est marié » → mariée ? (pronominal = orange)
     {var ppv=pronPpVig(T,i);if(ppv){return {i:i,word:T[i],sugg:ppv,name:'accord participe à vérifier',tier:'vigilance'};}}   // ⭐ 12/10/2026 (conjugaison 9) : « elles se sont levé » → levées ?
+    {var _m185=_meteo185(T,i);if(_m185){return {i:i,word:T[i],sugg:_m185,name:'homophone à vérifier',tier:'vigilance'};}}   // ⭐ 27/10/2026 (liste n° 185) : « il fait chaut » → chaud ? (orange) — avant l'infinitif, qui proposait « chaloir »
     {var siv=semiInfVig(T,i);if(siv){return {i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'};}}   // « je vais mange » → manger ? (orange)
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg,!!(st&&st.chaine));if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // OS-sujet : accord de nombre, sujet arbitré par l'OS + LM (résiduel « de N »)
