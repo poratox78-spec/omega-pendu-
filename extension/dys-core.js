@@ -4196,6 +4196,7 @@ function estQuestion(t,maxMots){
     if(!(SP&&SP.ready&&SP.WORDS&&/V/.test(spP(lw)||''))&&!CONJ_C[deacc(lw.slice(0,-2))+'er'])return null;
     return ckeepcase(w,cible);}
   function _verbeFini(lw){var rd=svReads(lw);for(var k=0;k<rd.length;k++){var mt=rd[k][1]||'';if(mt.indexOf('ind')===0||mt.indexOf('cnd')===0||mt.indexOf('sub')===0)return true;}return false;}
+  function _ppU198(lw){return lw.length>=4&&/u$/.test(lw)&&typeof SP!=='undefined'&&SP&&SP.ready&&(spP(lw)||'').indexOf('V')>=0&&(spP(lw+'e')||'').indexOf('V')>=0;}   // liste n° 198 : participe en -u (prévu, vendu, perdu, venu…) — le mot ET sa forme en -ue sont des formes de verbe au dictionnaire
   function rPpEpithetFem(T,i){var w=T[i],lw=w.toLowerCase();
     // sœur SINGULIER-FÉMININ de rPpEpithetNum (audit rappel dys PR#505 : « une femme cultivé » ×3) — mêmes
     // gardes + « fois » (« une fois emprisonné, Michael… » : l'accord suit le sujet), coordination dans le GN
@@ -4204,7 +4205,7 @@ function estQuestion(t,maxMots){
     // Flood 16 950 phrases correctes : 3 tirs, TOUS de vraies fautes du corpus (patinoire situé, postérité
     // laissé, émission diffusé). Marques MUETTES seulement (é→ée, i→ie : homophones), doctrine d'audibilité.
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
-    var _lc=lw.charAt(lw.length-1);if((_lc!=='é'&&_lc!=='i')||!_isPpl(w))return null;
+    var _lc=lw.charAt(lw.length-1);if(!((_lc==='é'||_lc==='i')&&_isPpl(w))&&!_ppU198(lw))return null;   /* ⭐ 28/10/2026 (liste n° 198) : + la finale -u, muette elle aussi (« la fête prévu » → prévue) ; pas pu, eu, vu, su, lu */
     if(i<2||!_FEM_SG_DET[deacc(T[i-2].toLowerCase())])return null;
     if(deacc(T[i-1].toLowerCase())==='fois')return null;
     var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='ADJ')||tg[i-1]!=='NOUN')return null;
@@ -4227,7 +4228,7 @@ function estQuestion(t,maxMots){
     var tgt=_ppAccord(lw,'s','f');return tgt!==lw?ckeepcase(w,tgt):null;}
   function rPpEpithetNum(T,i){var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
-    var _lc=lw.charAt(lw.length-1);if((_lc!=='é'&&_lc!=='i')||!(_isPpl(w)||_isPplWideEr(w)))return null;
+    var _lc=lw.charAt(lw.length-1);if(!((_lc==='é'||_lc==='i')&&(_isPpl(w)||_isPplWideEr(w)))&&!_ppU198(lw))return null;   /* ⭐ 28/10/2026 (liste n° 198) : + la finale -u (« les livres vendu » → vendus) */
     if(i<2||!PLURAL_DET[deacc(T[i-2].toLowerCase())])return null;
     var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='ADJ')||tg[i-1]!=='NOUN')return null;
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;

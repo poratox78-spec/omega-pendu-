@@ -396,7 +396,9 @@
 "On reste ici ou on part ?",
 "La voiture roule très vite.",
 "Un homme très gentil.",
-"Il parle aussi fort que toi."
+"Il parle aussi fort que toi.",
+"Le gâteau vendu hier.",
+"Une amie venue de loin."
 ],
 "elide": [
 [
@@ -1063,6 +1065,16 @@
 "Les chiens très méchant.",
 "méchant",
 "méchants"
+],
+[
+"La fête prévu samedi.",
+"prévu",
+"prévue"
+],
+[
+"Les gâteaux vendu hier.",
+"vendu",
+"vendus"
 ]
 ],
 "palier": [
