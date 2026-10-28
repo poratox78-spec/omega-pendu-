@@ -393,7 +393,10 @@
 "Quelles fleurs aimez-vous ?",
 "Quels plats préparez-vous ce soir ?",
 "Tu viens ou tu restes ?",
-"On reste ici ou on part ?"
+"On reste ici ou on part ?",
+"La voiture roule très vite.",
+"Un homme très gentil.",
+"Il parle aussi fort que toi."
 ],
 "elide": [
 [
@@ -1050,6 +1053,16 @@
 "C'est lui qui il faut voir.",
 "qui",
 "qu'il"
+],
+[
+"Une maison très grand.",
+"grand",
+"grande"
+],
+[
+"Les chiens très méchant.",
+"méchant",
+"méchants"
 ]
 ],
 "palier": [
