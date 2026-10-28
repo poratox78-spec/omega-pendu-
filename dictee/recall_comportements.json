@@ -398,7 +398,11 @@
 "Un homme très gentil.",
 "Il parle aussi fort que toi.",
 "Le gâteau vendu hier.",
-"Une amie venue de loin."
+"Une amie venue de loin.",
+"La réunion fin octobre est annulée.",
+"La route existant depuis longtemps.",
+"Nos amis aimant la mer partent.",
+"Il leur donne un livre."
 ],
 "elide": [
 [
@@ -1075,6 +1079,21 @@
 "Les gâteaux vendu hier.",
 "vendu",
 "vendus"
+],
+[
+"Elle met sa robe blanc.",
+"blanc",
+"blanche"
+],
+[
+"Ses chaussures noir sont neuves.",
+"noir",
+"noires"
+],
+[
+"Il revient la semaine suivant en voiture.",
+"suivant",
+"suivante"
 ]
 ],
 "palier": [
