@@ -28734,24 +28734,26 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     else if(!(_ppm&&/é|i|u/.test(_ppm[1].slice(-1))&&(_ppm[2]==='e')===(g==='f')&&(_ppm[3]==='s')===(num==='p')))return null;
     if(!/é(s?)$/.test(lw)){var rv=svReads(w);for(var k=0;k<rv.length;k++)if(rv[k][2]==='3'&&rv[k][3]===num)return null;}   // « motivé » ≠ « il motive » : une forme en -é/-és n'est jamais conjuguée (la table est désaccentuée)
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(w,sugg):null;}
-  function rAdjEpithet(T,i){var _el=(i>=1&&_elidKind(T[i-1])==='det');
+  var _ADV198={tres:1,trop:1,si:1,assez:1,vraiment:1,tellement:1,particulierement:1,extremement:1,totalement:1,completement:1,entierement:1,parfaitement:1,super:1},_INTENS198={tres:1,trop:1,si:1,assez:1,tellement:1};
+  function _adv198(T,i){if(i<3||!_ADV198[deacc(T[i-1].toLowerCase())])return 1;if(_SEG&&_SEG.bb&&((i<_SEG.bb.length&&_SEG.bb[i])||(i-1<_SEG.bb.length&&_SEG.bb[i-1])))return 1;if(T[i-2].indexOf("'")>=0||T[i-2].indexOf('’')>=0)return 1;var d=deacc(T[i].toLowerCase());if(typeof _ADV_ADJ_INVAR!=='undefined'&&_ADV_ADJ_INVAR[d])return 1;var tg=posTags(T);return (tg&&i-2<tg.length&&tg[i-2]==='NOUN')?2:1;}   // liste n° 198 : un adverbe d'intensité entre le nom et l'adjectif (« une maison très grand ») → le nom est en T[i-2] ; pas aussi / plus / moins (comparatifs), pas un nom élidé, pas un adjectif qui sert d'adverbe (fort, bas…)
+  function rAdjEpithet(T,i){var _o=_adv198(T,i);   /* ⭐ 28/10/2026 (liste n° 198) : nom et déterminant décalés d'un cran quand un adverbe les sépare de l'adjectif */var _el=(i>=1&&_elidKind(T[i-_o])==='det');
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     /* ⭐ FRONTIÈRE APRÈS L'ADJECTIF = ÉNUMÉRATION DISTRIBUTIVE (08/09/2026, miroir Python) : « des mondes grec, albanais et slave » — chaque adjectif porte sur UN monde, le singulier est juste. La règle SŒUR rAdjNumber a exactement cette ligne depuis toujours ; celle-ci ne l'avait pas. Exemption : une CAPITALE après la frontière n'est pas une énumération mais une phrase neuve (« une fête convivial ⏎ Question : … »), seule correction que la garde nue perdait. Mesuré : 0 perdue, 2 FP éteints (grec, local), 0 tir sur UD. */
     if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1]&&T[i+1].charAt(0)===T[i+1].charAt(0).toLowerCase())return null;
-    if(i<2&&!_el)return null;var w=T[i],lw=w.toLowerCase();
+    if(i<_o+1&&!_el)return null;var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
     var d=deacc(lw);
     if(!ADJP[d]||_adjEstem(lw)!==null)return null;                                   // inconnu / épicène (radical -e) → pas de genre à trancher
     if(!_adjAccOk(lw,d))return null;                                                 // collision d'accent déacc (« teinté »≠paire teint/teinte)
     if(d==='tout'||d==='tous'||d==='toute'||d==='toutes')return null;
     if(i+1<T.length){var nx=deacc(T[i+1].toLowerCase());if(nx==='de'||nx==='et'||nx==='ou'||nx==='ni')return null;if((deacc(lw)==='bon'||deacc(lw)==='meilleur')&&nx==='marche')return null;if(_ADJ_INVAR_LOC[d+' '+nx])return null;}   // figé « haut de gamme » + coordination + locution invariable (« dernier cri », « grand public »)
-    var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ')return null;
+    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='ADJ'&&!(_o===2&&tg[i]==='VERB'&&_INTENS198[deacc(T[i-1].toLowerCase())]&&!/(e|es|ee|ees|i|is|ie|ies|u|us|ue|ues)$/.test(deacc(T[i].toLowerCase())))))return null;
     if(_ADV_ADJ_INVAR[d]&&i+1<tg.length&&(tg[i+1]==='DET'||tg[i+1]==='VERB'||tg[i+1]==='ADJ'||_elidKind(T[i+1])==='det'))return null;   // emploi ADVERBIAL invariable (« plein les yeux »/« haut placées »)
-    if(tg[i-1]!=='NOUN'&&!_el)return null;if(_COLOR_ADJ[deacc(lw)]&&i+1<tg.length&&(tg[i+1]==='ADJ'||tg[i+1]==='NOUN'||tg[i+1]==='VERB'))return null;   /* ⭐ 14/10/2026 : + VERBE (« les ailes gris argenté ») */
-    if(_headText(T[i-1]).charAt(0)!==_headText(T[i-1]).charAt(0).toLowerCase())return null;                 // nom propre → genre non fiable
-    var _hdG=_headText(T[i-1]).toLowerCase(),dn=deacc(_hdG),g=_GCOLL[_hdG]||GENDER_PURE[dn];   /* ⭐ 18/09/2026 (cas de Rem : « le marché provençale », muet) — « marché » (m) et « marche » (f) partagent la clé nue « marche » : GENDER_PURE ne connaît ni l'un ni l'autre, et la règle se taisait. La table des COLLISIONS D'ACCENT (_GCOLL, celle de rDetGenre) répare exactement cette perte. ⚠️ PAS la table accentuée brute (_GACC) : essayée et mesurée sur 14 450 phrases correctes, elle donne « f » aux noms épicènes et fabriquait 8 ROUGES faux (« un peintre italien » → italienne) — que la référence Python avait, et n'a plus. */
+    if(tg[i-_o]!=='NOUN'&&!_el)return null;if(_COLOR_ADJ[deacc(lw)]&&i+1<tg.length&&(tg[i+1]==='ADJ'||tg[i+1]==='NOUN'||tg[i+1]==='VERB'))return null;   /* ⭐ 14/10/2026 : + VERBE (« les ailes gris argenté ») */
+    if(_headText(T[i-_o]).charAt(0)!==_headText(T[i-_o]).charAt(0).toLowerCase())return null;                 // nom propre → genre non fiable
+    var _hdG=_headText(T[i-_o]).toLowerCase(),dn=deacc(_hdG),g=_GCOLL[_hdG]||GENDER_PURE[dn];   /* ⭐ 18/09/2026 (cas de Rem : « le marché provençale », muet) — « marché » (m) et « marche » (f) partagent la clé nue « marche » : GENDER_PURE ne connaît ni l'un ni l'autre, et la règle se taisait. La table des COLLISIONS D'ACCENT (_GCOLL, celle de rDetGenre) répare exactement cette perte. ⚠️ PAS la table accentuée brute (_GACC) : essayée et mesurée sur 14 450 phrases correctes, elle donne « f » aux noms épicènes et fabriquait 8 ROUGES faux (« un peintre italien » → italienne) — que la référence Python avait, et n'a plus. */
     if((g!=='m'&&g!=='f')||_SG_STOP[dn])return null;                                  // genre connu (nom pur) ET pas invariant -s/-x
-    var num=_el?'s':(i>=2?_EPI_ART[deacc(T[i-2].toLowerCase())]:null);
+    var num=_el?'s':(i>=_o+1?_EPI_ART[deacc(T[i-_o-1].toLowerCase())]:null);
     if(!num)return null;                                                             // nombre non net (pas d'article) → abstention
     var _rv=svReads(w),_kv;for(_kv=0;_kv<_rv.length;_kv++)if(_rv[_kv][2]==='3'&&_rv[_kv][3]===num)return null;   // VERBE lu comme épithète : « La taupe COURT pour semer » → « courte » (le tagger dit ADJ après [DET NOUN]). Discriminant = l'ACCORD : lecture verbale 3e pers. accordée avec le sujet = verbe de la phrase. Rappel préservé quand le verbe n'accorde pas (« les situations critique »). Miroir Python rule_adj_epithet
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
