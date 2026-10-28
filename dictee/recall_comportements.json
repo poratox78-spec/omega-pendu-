@@ -402,7 +402,9 @@
 "La réunion fin octobre est annulée.",
 "La route existant depuis longtemps.",
 "Nos amis aimant la mer partent.",
-"Il leur donne un livre."
+"Il leur donne un livre.",
+"Les pères et les mères invités hier.",
+"Les garçons envoyés hier."
 ],
 "elide": [
 [
@@ -1094,6 +1096,16 @@
 "Il revient la semaine suivant en voiture.",
 "suivant",
 "suivante"
+],
+[
+"Les lettres envoyés hier.",
+"envoyés",
+"envoyées"
+],
+[
+"Les tables vendus hier.",
+"vendus",
+"vendues"
 ]
 ],
 "palier": [

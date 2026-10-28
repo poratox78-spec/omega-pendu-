@@ -4228,9 +4228,10 @@ function estQuestion(t,maxMots){
     if(i>=3&&tg[i-3]==='ADP')return null;
     var g=_nounGender(T[i-1],'s',true);if(g!=='f')return null;
     var tgt=_ppAccord(lw,'s','f');return tgt!==lw?ckeepcase(w,tgt):null;}
+  function _ppFemPl198(lw){if(lw.length<4||lw.charAt(lw.length-1)!=='s')return null;var b=lw.slice(0,-1),c=b.charAt(b.length-1);return ((c==='é'||c==='i')&&_isPpl(b))||(c==='u'&&_ppU198(b))?b:null;}   // liste n° 198 : participe masculin pluriel (-és / -is / -us) → sa base au singulier, sinon null
   function rPpEpithetNum(T,i){var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
-    var _lc=lw.charAt(lw.length-1);if(!((_lc==='é'||_lc==='i')&&(_isPpl(w)||_isPplWideEr(w)))&&!_ppU198(lw))return null;   /* ⭐ 28/10/2026 (liste n° 198) : + la finale -u (« les livres vendu » → vendus) */
+    var _fs198=_ppFemPl198(lw);var _lc=lw.charAt(lw.length-1);if(!_fs198&&!((_lc==='é'||_lc==='i')&&(_isPpl(w)||_isPplWideEr(w)))&&!_ppU198(lw))return null;   /* ⭐ 28/10/2026 (liste n° 198) : + le participe déjà au pluriel, sans le e du féminin (« les portes fermés ») */   /* ⭐ 28/10/2026 (liste n° 198) : + la finale -u (« les livres vendu » → vendus) */
     if(i<2||!PLURAL_DET[deacc(T[i-2].toLowerCase())])return null;
     var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='ADJ')||tg[i-1]!=='NOUN')return null;
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
@@ -4240,6 +4241,7 @@ function estQuestion(t,maxMots){
     if(i>=3&&(deacc(T[i-3].toLowerCase())==='de'||deacc(T[i-3].toLowerCase())==="d'")&&tg[i-3]==='ADP')return null;
     if(i>=3&&(deacc(T[i-2].toLowerCase())==='des'||deacc(T[i-2].toLowerCase())==='aux')&&(tg[i-3]==='NOUN'||tg[i-3]==='PROPN'))return null;
     var g=_nounGender(T[i-1],'p',true);if(g!=='m'&&g!=='f')return null;
+    if(_fs198){if(g!=='f')return null;for(var _k198=Math.max(0,i-5);_k198<i-1;_k198++){var _dk198=deacc(T[_k198].toLowerCase());if(_dk198==='et'||_dk198==='ou'||_dk198==='ni')return null;}lw=_fs198;}   // liste n° 198 : -és / -is / -us → base sans s, accord au féminin pluriel
     var tgt=_ppAccord(lw,'p',g);return tgt!==lw?ckeepcase(w,tgt):null;}
   /* ⭐ 14/10/2026 (liste n° 12 : accords dans un groupe nominal) — L'ADJECTIF COORDONNÉ. « des idées claires et précis », « une équipe
      soudée et motivé » : rAdjEpithet ne lit que l'adjectif collé au nom, et se tait exprès devant « et » ; le 2e adjectif n'était jamais
