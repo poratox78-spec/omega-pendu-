@@ -127,6 +127,7 @@
   "grammaire:espacement|flag·pollué": 0.0,
   "grammaire:est/et (proposition)|vigilance·propre": 100.0,
   "grammaire:et/est|vigilance·propre": 100.0,
+  "grammaire:il y a|auto·propre": 100.0,
   "grammaire:impératif (pronom)|flag·pollué": 100.0,
   "grammaire:la/là|auto·propre": 100.0,
   "grammaire:leur/leurs|auto·pollué": 100.0,
