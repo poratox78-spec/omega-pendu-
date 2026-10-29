@@ -409,7 +409,10 @@
 "Nous sommes contentes.",
 "Ils sont toute la journée dehors.",
 "Le film est présenté demain soir.",
-"Le colis est diffusé partout."
+"Le colis est diffusé partout.",
+"Prends-la il faut partir.",
+"Je la vois tous les jours.",
+"Il la lui donne."
 ],
 "elide": [
 [
@@ -1111,6 +1114,16 @@
 "Les tables vendus hier.",
 "vendus",
 "vendues"
+],
+[
+"Ensuite la tu verras le lac.",
+"la",
+"là"
+],
+[
+"Soudain la c'est le silence.",
+"la",
+"là"
 ]
 ],
 "palier": [
