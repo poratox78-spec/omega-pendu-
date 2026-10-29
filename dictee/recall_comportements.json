@@ -415,7 +415,11 @@
 "Il la lui donne.",
 "Pierre, lui, a faim.",
 "Il y en a en tout trois.",
-"Il comprend tout deux fois plus vite."
+"Il comprend tout deux fois plus vite.",
+"Il fallait qu'il pût partir.",
+"C'était le seul homme qui pût le faire.",
+"Il eût fallu partir.",
+"Pût-il venir demain !"
 ],
 "elide": [
 [
@@ -1162,6 +1166,21 @@
 "Il faut qu'elle ai le temps.",
 "ai",
 "ait"
+],
+[
+"Le soir, il pût dormir.",
+"pût",
+"put"
+],
+[
+"Elle vînt le lendemain.",
+"vînt",
+"vint"
+],
+[
+"On chantât toute la nuit.",
+"chantât",
+"chanta"
 ]
 ],
 "palier": [
