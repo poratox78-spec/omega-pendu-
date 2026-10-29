@@ -412,7 +412,8 @@
 "Le colis est diffusé partout.",
 "Prends-la il faut partir.",
 "Je la vois tous les jours.",
-"Il la lui donne."
+"Il la lui donne.",
+"Pierre, lui, a faim."
 ],
 "elide": [
 [
@@ -1124,6 +1125,16 @@
 "Soudain la c'est le silence.",
 "la",
 "là"
+],
+[
+"a cause du froid il reste.",
+"a",
+"à"
+],
+[
+"Il pleut. a partir de demain il fera beau.",
+"a",
+"à"
 ]
 ],
 "palier": [

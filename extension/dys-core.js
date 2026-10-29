@@ -1192,7 +1192,9 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var k;if(/^[ld]['’]./.test(T[i-1].toLowerCase()))k=i-2;else if(i>=3&&_EER_DET[deacc(T[i-2].toLowerCase())])k=i-3;else return false;if(k<0)return false;
     var g=T[k].toLowerCase().replace(/^(j|n|m|t|s|qu)['’]/,''),r=svReads(g);for(var q=0;q<r.length;q++)if(_A_INF_TR73[deacc(r[q][0])])return true;return false;}
   function _rAnouveau(T,i,sans4){
-    if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase()||i<1)return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
+    if(deacc(T[i].toLowerCase())!=='a'||T[i]!==T[i].toLowerCase())return null;
+    if(i<1||(_SEG&&_SEG.ss&&i<_SEG.ss.length&&_SEG.ss[i])){if(i>0&&T[i-1].charAt(0)!==T[i-1].charAt(0).toLowerCase())return null;if(T[i]!=='a'||i+1>=T.length||!/^[a-zà-ÿœæ]/i.test(T[i+1])||(_SEG&&_SEG.hy&&i+1<_SEG.hy.length&&_SEG.hy[i+1]))return null;var _d201=deacc(T[i+1].toLowerCase()),_e201=i+2<T.length?deacc(T[i+2].toLowerCase()):'';if((_d201==='cause'||_d201==='partir')&&/^(de|des|du|d['’].+)$/.test(_e201))return 'à';if(_isPpl(T[i+1])||vlike(T,i+1)||svReads(T[i+1]).length)return null;return 'à';}   /* ⭐ 29/10/2026 (liste n° 201) : en tête de phrase, « a » minuscule n'a pas de sujet → à ; pas devant un participe ou un verbe (sujet omis) */
+    if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(_aaLocution(T,i))return 'à';                                      // ⑤ locution prépositive (sans infinitif)
     if(_aaApresAdverbe(T,i))return 'à';                                  // ⑥ verbe + adverbe + « a »
     if(_aaPronVerbe(T,i))return 'à';                                     // ⑨ « a » + pronom préverbal + verbe (liste n° 47)
