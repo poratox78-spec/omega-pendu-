@@ -404,7 +404,12 @@
 "Nos amis aimant la mer partent.",
 "Il leur donne un livre.",
 "Les pères et les mères invités hier.",
-"Les garçons envoyés hier."
+"Les garçons envoyés hier.",
+"Elles sont contentes.",
+"Nous sommes contentes.",
+"Ils sont toute la journée dehors.",
+"Le film est présenté demain soir.",
+"Le colis est diffusé partout."
 ],
 "elide": [
 [
@@ -1420,6 +1425,21 @@
 "Les enfants proposez une idée.",
 "proposez",
 "proposent"
+],
+[
+"Ils sont contentes de venir.",
+"contentes",
+"contents"
+],
+[
+"Ils sont fière.",
+"fière",
+"fiers"
+],
+[
+"Le chat est noire.",
+"noire",
+"noir"
 ]
 ],
 "a_participe": [

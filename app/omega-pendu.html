@@ -27980,7 +27980,8 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var epi=_adjEstem(lw)!==null;
     var sp=deacc(T[a-1].toLowerCase()),gender,num;
     if(sp==='il'||sp==='elle'||sp==='ils'||sp==='elles'){gender=(sp==='elle'||sp==='elles')?'f':'m';num=(sp==='ils'||sp==='elles')?'p':'s';}
-    else{var subj=_npSubject(T,tg,a);if(!subj)return null;num=subj.n;gender=subj.g;if(gender==='?'){if(!epi)return null;gender='m';}}
+    else{var subj=_npSubject(T,tg,a);if(!subj)return null;num=subj.n;gender=subj.g;var _sg199=gender;if(gender==='?'){if(!epi)return null;gender='m';}}
+    if(ADJP[d][0]==='f'&&(sp==='il'||sp==='ils'||_sg199==='m'))return null;   // ⭐ 28/10/2026 (liste n° 199) : « ils sont fière » → pas « fières » en rouge ; l'orange genreAttrVig propose « fiers ? »
     if(num!==auxNum)return null;
     var sugg=_adjAgree(w,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
   /* ⭐ 01/10/2026 — GENRE DE LA PERSONNE QUI ÉCRIT (réglage facultatif, décidé par Rem ; revue : dictee/LITTERATURE_GENRE_ET_SENS.md).
@@ -31245,6 +31246,25 @@ function spellUnknown(tok,atStart,T,idx){
     if((m=/^(.*[^e])(es|e|s)$/.exec(lw))&&IRREG_PART[deacc(m[1])])return m[1];
     if(_isPpl(lw))return lw.replace(/(ées|ée|és)$/,'é').replace(/(ies|ie|is)$/,'i');
     return null;}
+  var _GAV199={tout:1,toute:1,toutes:1,tous:1};
+  function genreAttrVig(T,tg,i){   // ⭐ 28/10/2026 (liste n° 199) : « ils sont contentes » → contents ? — sujet masculin sûr + forme féminine après être ; orange, le scripteur choisit
+    if(!tg||i<2||i>=T.length||i>=tg.length)return null;
+    var w=T[i],lw=w.toLowerCase();if(!/^[a-zàâäéèêëîïôöùûüÿçœæ]+$/.test(lw)||w.charAt(0)!==lw.charAt(0))return null;
+    var d=deacc(lw),pl=/[sx]$/.test(d),e=ADJP[d];if(!e||e[0]!=='f'||!e[1]||ADJ_STOP[d]||_GAV199[d]||_INVAR_COLOR[d]||_EPICENE_ADJ[d]||_couleurComposee(T,i))return null;
+    if(tg[i]!=='ADJ'&&tg[i]!=='VERB')return null;if(!_adjAccOk(lw,d))return null;var pp=_atplPpBase(lw)!==null;   // accent exact (« diffusé » ≠ féminin de « diffus »)
+    if(_SEG&&_SEG.hy&&(_SEG.hy[i]||(i+1<_SEG.hy.length&&_SEG.hy[i+1])))return null;
+    var a=-1;for(var j=i-1;j>=1&&j>=i-3;j--){var dj=deacc(T[j].toLowerCase()).replace(/^n'/,'');if(PPE_AUX[dj]){a=j;break;}if(ADJ_MID[dj]||_GAV199[dj])continue;return null;}
+    if(a<1)return null;var da=deacc(T[a].toLowerCase()).replace(/^n'/,''),num=PPE_AUXP[da]?'p':'s';
+    if(da==='suis'||da==='es'||da==='sommes'||da==='etes'||da==='sois'||da==='soyons'||da==='soyez'||da==='etais'||da==='etions'||da==='etiez'||da==='seras'||da==='serons'||da==='serez'||da==='serais')return null;   // 1re / 2e personne : genre inconnu
+    var sp=deacc(T[a-1].toLowerCase());
+    if(sp==='il'||sp==='ils'){if((sp==='ils')!==(num==='p'))return null;if(_SEG&&_SEG.hy&&a-1<_SEG.hy.length&&_SEG.hy[a-1])return null;}   // pas l'« il » d'une incise (« poursuit-il »)
+    else{if(pp||tg[a-1]!=='NOUN')return null;var np=_npSubject(T,tg,a);if(!np||np.g!=='m'||np.n!==num||np.idx!==a-1)return null;   // sujet nominal : le nom collé à « être »
+      var _el199=T[a-1].indexOf("'")>=0||T[a-1].indexOf('’')>=0,_pv=_el199?a-2:np.det-1;if(!_el199&&np.det!==a-2)return null;
+      if(_pv>=0){var _dpv=deacc(T[_pv].toLowerCase());if(tg[_pv]==='ADP'||_dpv==='de'||_dpv==='du'||_dpv==='des'||/^d['’]/.test(_dpv))return null;}}   // complément d'un autre nom (« la puissance de l'appareil est… »)
+    if(i+1<T.length&&i+1<tg.length&&!(_SEG&&_SEG.bb&&i+1<_SEG.bb.length&&_SEG.bb[i+1])&&(tg[i+1]==='NOUN'||tg[i+1]==='PROPN'||tg[i+1]==='ADJ'||tg[i+1]==='VERB'))return null;   // épithète d'un nom qui suit
+    var ms=e[1].toLowerCase();if(pl&&num==='s'){var e1=ADJP[d.replace(/s$/,'')];if(!e1||e1[0]!=='f'||!e1[1])return null;ms=e1[1].toLowerCase();}
+    else if(!pl&&num==='p'){var dm=deacc(ms);ms=/[sx]$/.test(dm)?ms:(/al$/.test(dm)?ms.slice(0,-2)+'aux':(/eau$/.test(dm)?ms+'x':ms+'s'));}
+    return ms!==lw?ms:null;}
   function attributPlVig(T,tg,i){
     if(!tg||i<2||i>=T.length||i>=tg.length)return null;
     var w=T[i],lw=w.toLowerCase();
@@ -31643,6 +31663,7 @@ function spellUnknown(tok,atStart,T,idx){
     {var psv=_distrib176(T,i)?null:plurielSonVig(T,i);if(psv){return {i:i,word:T[i],sugg:ckeepcase(T[i],psv),name:'pluriel par le son à vérifier',tier:'vigilance'};}}   // ⭐ 28/09/2026 : le son donne le mot quand la grammaire exige le pluriel
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){return {i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'};}}
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var apv=attributPlVig(T,_tg,i);if(apv){if(apv.pp)return {i:i,word:T[i],sugg:ckeepcase(T[i],apv.s),name:'accord participe à vérifier',tier:'vigilance'};return {i:i,word:T[i],sugg:ckeepcase(T[i],apv.s),name:'accord adjectif à vérifier',tier:'vigilance'};}}   // ⭐ 28/09/2026 : « sont exploitable » → exploitables, « sont prise » → prises (participeEtreVig étendu)
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];var gav=genreAttrVig(T,_tg,i);if(gav){return {i:i,word:T[i],sugg:ckeepcase(T[i],gav),name:'accord genre à vérifier',tier:'vigilance'};}}   // ⭐ 28/10/2026 (liste n° 199) : « ils sont contentes » → contents ?
     {if(_tg===null)_tg=st.tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (le rouge se limite au sujet en tête = FP=0 ; l'orange couvre le reste). DOCTRINE : doute → orange, jamais silence. Le rouge gagne au même token (fusion grammaire-prioritaire).
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()&&!svTaisCarte(T,i,st&&st.chaine)){return {i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'};}}}
     /* ORDRE (03/09/2026, mesure) : une faute de FORME (« vont cherchait » → chercher, « s'est mariaient » → mariée) est plus
