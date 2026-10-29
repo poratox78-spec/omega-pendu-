@@ -413,7 +413,9 @@
 "Prends-la il faut partir.",
 "Je la vois tous les jours.",
 "Il la lui donne.",
-"Pierre, lui, a faim."
+"Pierre, lui, a faim.",
+"Il y en a en tout trois.",
+"Il comprend tout deux fois plus vite."
 ],
 "elide": [
 [
@@ -1135,6 +1137,16 @@
 "Il pleut. a partir de demain il fera beau.",
 "a",
 "à"
+],
+[
+"Ils étaient tout trois contents.",
+"tout",
+"tous"
+],
+[
+"Elles sont parties toute quatre.",
+"toute",
+"toutes"
 ]
 ],
 "palier": [
