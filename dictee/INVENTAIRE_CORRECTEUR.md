@@ -5,7 +5,7 @@
 
 ## En chiffres
 
-- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **107** entrées, **80** noms affichés ; rouge : 64 · rouge avec un cas orange posé par la règle : 18 · rouge ou orange selon le sous-cas : 13 · orange : 12.
+- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **109** entrées, **80** noms affichés ; rouge : 64 · rouge avec un cas orange posé par la règle : 18 · rouge ou orange selon le sous-cas : 14 · orange : 13.
 - Moteur Python : débranché de dev.sh et de la CI le 22/10/2026 (ligne 25b) — la chaîne n'est plus comparée ; la parité directe app ≡ extension la garde (`dictee/parity_app_ext.js`).
 - Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **47**.
 - Tables chargées : 11 (le chargeur unique `extension/charger_node.js` les charge toutes pour les bancs).
@@ -108,22 +108,24 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 89 | que/dont | `rQueDont` | `—` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 90 | qui/que | `rQuiQue` | `—` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 91 | près/prêt | `rPresPret` | `—` | rouge, orange dans un cas posé par la règle | homophone_gram | dictionnaire (speller), étiqueteur HMM |
-| 92 | cher/chez | `rCherChez` | `—` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 93 | davantage | `rDavantage` | `—` | rouge, orange dans un cas posé par la règle | segmentation | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
-| 94 | conditionnel à vérifier | `rCondSi` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 95 | temps du verbe à vérifier | `rTempsProtase` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 96 | impératif à vérifier | `rImperatifSeul` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
-| 97 | subjonctif à vérifier | `rSubjonctif` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 98 | mot-outil à vérifier | `rHomophoneMo` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
-| 99 | petit mot après le sujet à vérifier | `rApresSujet` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 100 | expression figée à vérifier | `rFige` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels) |
-| 101 | mot soudé à vérifier | `rSoude` | `—` | orange | segmentation | vdc-lex (conjugaison, genre, pluriels) |
-| 102 | plutôt / plus tôt à vérifier | `rPlutot` | `—` | orange | segmentation | vdc-lex (conjugaison, genre, pluriels) |
-| 103 | adjectif en -ant/-ent | `rAntAdj` | `—` | rouge, orange dans un cas posé par la règle | homophone_lex | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
-| 104 | vingt/cent | `rVingtCent` | `—` | rouge | accord | — |
-| 105 | personne du verbe | `rVousIrr` | `—` | rouge | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 106 | personne du verbe | `sujFlexVig` | `—` | rouge, orange dans un cas posé par la règle | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
-| 107 | majuscule | `rCapital` | `—` | rouge | majuscule | — |
+| 92 | expression figée à vérifier | `rFairePartie206` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
+| 93 | participe après avoir | `rAvoirPus206` | `—` | rouge ou orange (sous-cas mesuré, _tierOf) | participe | — |
+| 94 | cher/chez | `rCherChez` | `—` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
+| 95 | davantage | `rDavantage` | `—` | rouge, orange dans un cas posé par la règle | segmentation | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
+| 96 | conditionnel à vérifier | `rCondSi` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
+| 97 | temps du verbe à vérifier | `rTempsProtase` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
+| 98 | impératif à vérifier | `rImperatifSeul` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
+| 99 | subjonctif à vérifier | `rSubjonctif` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
+| 100 | mot-outil à vérifier | `rHomophoneMo` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
+| 101 | petit mot après le sujet à vérifier | `rApresSujet` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
+| 102 | expression figée à vérifier | `rFige` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels) |
+| 103 | mot soudé à vérifier | `rSoude` | `—` | orange | segmentation | vdc-lex (conjugaison, genre, pluriels) |
+| 104 | plutôt / plus tôt à vérifier | `rPlutot` | `—` | orange | segmentation | vdc-lex (conjugaison, genre, pluriels) |
+| 105 | adjectif en -ant/-ent | `rAntAdj` | `—` | rouge, orange dans un cas posé par la règle | homophone_lex | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
+| 106 | vingt/cent | `rVingtCent` | `—` | rouge | accord | — |
+| 107 | personne du verbe | `rVousIrr` | `—` | rouge | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
+| 108 | personne du verbe | `sujFlexVig` | `—` | rouge, orange dans un cas posé par la règle | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
+| 109 | majuscule | `rCapital` | `—` | rouge | majuscule | — |
 
 ## Noms posés hors de la chaîne (extension)
 
@@ -185,14 +187,14 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 
 | table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |
 |---|---|---|---|---|
-| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 99 / 107 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `rFlexionEr` … (114) |
-| genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 82 / 107 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rAccordIncise` `rDetGenre` `_tousFem101` `rTout` … (24) |
-| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 61 / 107 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (69) |
-| noun-post | `_applyNounPost` | `NOUN_POST` | 26 / 107 | `_etreAttrEr` `_eerVerbeRare188` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` … (36) |
-| étiqueteur HMM | `setPosHmm` | `_HMM` | 47 / 107 | `posTags` |
-| modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 107 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
-| prénoms | `_applyPrenoms` | `PRENOMS` | 17 / 107 | `_rAbase` `rAccordSVcoord` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
-| genre accentué | `_applyGaccLex` | `_GACC` | 24 / 107 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` |
-| confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 107 | `_vigOne` `vigText` |
-| genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 107 | `getAuteur` `auteurSugg` `auteurPasse` |
-| ponctuation vocale | `setPonctLm` | `_PLM` | 0 / 107 | `ponctReady` `ponctDist` |
+| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 100 / 109 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `rFlexionEr` … (114) |
+| genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 83 / 109 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rAccordIncise` `rDetGenre` `_tousFem101` `rTout` … (24) |
+| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 61 / 109 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (69) |
+| noun-post | `_applyNounPost` | `NOUN_POST` | 26 / 109 | `_etreAttrEr` `_eerVerbeRare188` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` … (36) |
+| étiqueteur HMM | `setPosHmm` | `_HMM` | 47 / 109 | `posTags` |
+| modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 109 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
+| prénoms | `_applyPrenoms` | `PRENOMS` | 17 / 109 | `_rAbase` `rAccordSVcoord` `_npSubject` `_tierOf` `spellTokenCore` `_suPrenom` `nomVerbeVig` |
+| genre accentué | `_applyGaccLex` | `_GACC` | 24 / 109 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` |
+| confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 109 | `_vigOne` `vigText` |
+| genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 109 | `getAuteur` `auteurSugg` `auteurPasse` |
+| ponctuation vocale | `setPonctLm` | `_PLM` | 0 / 109 | `ponctReady` `ponctDist` |

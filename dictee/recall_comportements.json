@@ -422,7 +422,10 @@
 "Pût-il venir demain !",
 "Ce faisant, il gagna.",
 "Ce restaurant est bon.",
-"Ce charmant garçon chante."
+"Ce charmant garçon chante.",
+"Le pré du voisin est vert.",
+"Les prés de la ferme sont verts.",
+"On y voit une couche de pus."
 ],
 "elide": [
 [
@@ -1189,6 +1192,26 @@
 "Il partit en ce cachant derrière un arbre.",
 "ce",
 "se"
+],
+[
+"Elle fera parti du groupe.",
+"parti",
+"partie"
+],
+[
+"C'est à peu prés fini.",
+"prés",
+"près"
+],
+[
+"La ville sera pré de la mer.",
+"pré",
+"près"
+],
+[
+"Il regrette d'avoir pus venir.",
+"pus",
+"pu"
 ]
 ],
 "palier": [
