@@ -427,7 +427,9 @@
 "Les prés de la ferme sont verts.",
 "On y voit une couche de pus.",
 "Un vélo rouillé a grincé.",
-"Le vieux tapis troué a glissé."
+"Le vieux tapis troué a glissé.",
+"Il est passé de fatigué à épuisé.",
+"Le ciel vire de gris à noir."
 ],
 "elide": [
 [
@@ -1214,6 +1216,11 @@
 "Il regrette d'avoir pus venir.",
 "pus",
 "pu"
+],
+[
+"Il a fini de lavé la voiture.",
+"lavé",
+"laver"
 ]
 ],
 "palier": [
