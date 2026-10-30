@@ -3110,7 +3110,7 @@ function estQuestion(t,maxMots){
       var _tgS=posTags(T);if(_tgS&&i<_tgS.length&&_tgS[i]==='NOUN')return {sugg:n.slice(0,-1),vig:1};}    // -s retiré. ORANGE (à vérifier) : direction ambiguë (la boîte OU les boîtes ?) — décision Rem. Miroir app.
     return null;}
   // === ponctuation/majuscules (sens & contexte) : couche segments + majuscule début de phrase (parité correcteur_probe.py) ===
-  var _SEG=null,ABBREV={};'m mme mlle mr dr pr me mgr st ste etc cf ex vs no nos art av bd env fig vol ed p pp al co inc ave apr jc subsp ssp var sp spp gen fam'.split(' ').forEach(function(w){ABBREV[w]=1;});
+  var _SEG=null,ABBREV={};'m mme mlle mr dr pr me mgr st ste etc cf ex vs no nos art av bd env fig vol ed p pp al co inc ave apr jc subsp ssp var sp spp gen fam jr sr'.split(' ').forEach(function(w){ABBREV[w]=1;});
   /* ⭐ 14/10/2026 (liste n° 22) — ADRESSES : courriel, lien (http, www), domaine nu (.fr, .com…). Leurs morceaux étaient corrigés comme des
      mots : « gmail » → mail, un prénom d'adresse → famille, « hotmail » → hôtel, et « velo » → vélo EN ROUGE dans un lien (l'appliquer
      cassait le lien). Masque calculé une fois par _segInfo (champ url) ; l'orthographe (spellText) et la grammaire (correctTokens) sautent
