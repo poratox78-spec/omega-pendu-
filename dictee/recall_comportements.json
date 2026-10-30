@@ -419,7 +419,10 @@
 "Il fallait qu'il pût partir.",
 "C'était le seul homme qui pût le faire.",
 "Il eût fallu partir.",
-"Pût-il venir demain !"
+"Pût-il venir demain !",
+"Ce faisant, il gagna.",
+"Ce restaurant est bon.",
+"Ce charmant garçon chante."
 ],
 "elide": [
 [
@@ -1181,6 +1184,11 @@
 "On chantât toute la nuit.",
 "chantât",
 "chanta"
+],
+[
+"Il partit en ce cachant derrière un arbre.",
+"ce",
+"se"
 ]
 ],
 "palier": [
