@@ -16,10 +16,17 @@ surfaces[1].src += fs.readFileSync(path.join(H, 'son_pages.js'), 'utf8');   // �
 const PAR_SURFACE = { 'content.js': new Set(['ponct-lm.json.gz',                  // la ponctuation VOCALE vit dans le panneau (micro), pas dans la bulle de page
   'g2p.js', 'son_core.js', 'OmegaDys-Regular.ttf', 'OmegaDys-Light.ttf', 'OmegaDys-Heavy.ttf']),   // POLICE DE SON : surface PANNEAU seulement (on n'habille jamais un champ de site tiers)
   'sidepanel.js': new Set(['ent-3p.txt.gz']) };   // ⭐ 13/10/2026 : la table des « -ent » sert la police de son SANS moteur (page lue) ; le panneau charge le moteur complet, qui la contient
+const LICENCES = new Set(['Atkinson-OFL.txt']);   // ⭐ 30/10/2026 : le texte de la licence accompagne la police (OFL) : il se lit, il ne se charge pas
+const PAR_PAGE = { 'atkinson-hyperlegible-latin-400-normal.woff2': ['sidepanel.html', 'aide.html'],   // ⭐ 30/10/2026 : la police du panneau se charge par le CSS des pages, pas par un script : on lit donc ces pages
+  'atkinson-hyperlegible-latin-700-normal.woff2': ['sidepanel.html', 'aide.html'] };
 const echecs = [];
 let verifies = 0;
 for (const a of assets) {
-  if (OPTIONNELS.has(a)) continue;
+  if (OPTIONNELS.has(a) || LICENCES.has(a)) continue;
+  if (PAR_PAGE[a]) {
+    for (const p of PAR_PAGE[a]) { verifies++; if (fs.readFileSync(path.join(H, p), 'utf8').indexOf('assets/' + a) < 0) echecs.push(a + " n'est pas câblé dans " + p); }
+    continue;
+  }
   for (const s of surfaces) {
     if ((PAR_SURFACE[s.f] || new Set()).has(a)) continue;
     verifies++;
