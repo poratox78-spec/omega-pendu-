@@ -592,7 +592,7 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
     // b) chaque commande du panneau est expliquée
     const ids = new Set();
     for (const m of lireSrc('sidepanel.html').matchAll(/<(button|input|select|details|a|div)\b[^>]*\bid="(omdys-[^"]+)"[^>]*>/g)) {
-      if (m[1] === 'div' && !/role="textbox"/.test(m[0])) continue;   // une div n'est une commande que si c'est la zone de saisie
+      if (m[1] === 'div' && !/role="(textbox|radiogroup)"/.test(m[0])) continue;   // une div n'est une commande que si c'est la zone de saisie ou un groupe de boutons à choix
       ids.add(m[2]);
     }
     const cmds = new Set([...corps.matchAll(/data-cmd="([^"]+)"/g)].map((m) => m[1]));
@@ -614,6 +614,18 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
       for (const x of ed) { if (x[0] < last) continue; out += t.slice(last, x[0]) + x[2]; last = x[1]; }
       return out + t.slice(last);
     };
+    /* ⭐ 30/10/2026 — le panneau affiche les noms du moteur en mots simples (FAM_SIMPLE, sidepanel.js) : chaque nom que le moteur peut donner y est. */
+    const fs9m = /var FAM_SIMPLE = (\{[\s\S]*?\n  \});/.exec(lireSrc('sidepanel.js'));
+    let FAM9 = {};
+    if (!fs9m) fail('panneau : table FAM_SIMPLE introuvable dans sidepanel.js');
+    else {
+      try { FAM9 = JSON.parse(fs9m[1]); } catch (e) { fail('panneau : FAM_SIMPLE illisible (' + e.message + ')'); }
+      const core9 = lireSrc('dys-core.js'), noms9 = new Set();
+      for (const re of [/\['([^']+)',\s*r[A-Za-z0-9_]+\]/g, /name:\s*'([^']+)'/g, /name:\s*"([^"]+)"/g]) for (const m of core9.matchAll(re)) noms9.add(m[1]);
+      if (noms9.size < 80) fail('panneau : seulement ' + noms9.size + ' noms de corrections lus dans dys-core.js — la lecture est cassée (garde muette)');
+      for (const n of noms9) if (!FAM9[n]) fail('panneau : la correction « ' + n + ' » n’a pas de nom en mots simples dans FAM_SIMPLE (sidepanel.js)');
+      console.log('  ✓ panneau : ' + noms9.size + ' noms de corrections du moteur ont leur nom en mots simples');
+    }
     const n9 = { item: 0, out: 0, remed: 0, vig: 0, ud: 0 };
     for (const m of corps.matchAll(/<div class="(item [a-z ]+|out|remed|vig)"([^>]*)>/g)) {
       const cls = m[1], tag = m[0], phrase = attr(tag, 'data-phrase'), inner = blocDiv(corps, m.index + tag.length);
@@ -629,25 +641,24 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
         const vig = f.tier === 'vigilance';
         if (vig !== /\btvig\b/.test(cls) || (!vig && !/\b(done|off)\b/.test(cls))) fail('mode d’emploi : l’exemple « ' + mot + ' » a la classe « ' + cls + ' », le panneau lui donnerait « ' + (vig ? 'item tvig' : 'item done') + ' »');
         const astuce = /<div class="astuce">([\s\S]*?)<\/div>/.exec(inner), sans = sp9(txt9(inner.replace(/<div class="astuce">[\s\S]*?<\/div>/, '')));
-        const attendu = '« ' + mot + ' » → « ' + sugg + ' » [' + f.name + (f.tier === 'auto' ? ' · sûr' : (vig ? ' · à vérifier' : '')) + ']';
+        const attendu = mot + ' → ' + sugg + ' ' + (FAM9[f.name] || f.name);
         if (sans.indexOf(attendu) !== 0) fail('mode d’emploi : l’exemple s’affiche « ' + sans + ' », le panneau afficherait « ' + attendu + ' »');
-        const etat = /\boff\b/.test(cls) ? 'annulé · clique pour réappliquer' : (vig ? null : '✓ appliqué à la copie · clique pour annuler');
-        if (etat && sans.indexOf(etat) < 0) fail('mode d’emploi : l’exemple « ' + mot + ' » n’a pas la mention « ' + etat + ' » du panneau');
-        if (!etat && /appliqué|annulé/.test(sans)) fail('mode d’emploi : l’exemple orange « ' + mot + ' » porte une mention d’application que le panneau ne met pas');
-        if (!!f.hint !== /class="why"/.test(inner)) fail('mode d’emploi : l’exemple « ' + mot + ' » ' + (f.hint ? 'n’a pas le 💡 que le panneau afficherait' : 'a un 💡 que le panneau n’afficherait pas'));
+        const etat = /\boff\b/.test(cls) ? 'Remettre' : (vig ? 'Appliquer' : 'Annuler');
+        if (sans.indexOf(etat) < 0) fail('mode d’emploi : l’exemple « ' + mot + ' » n’a pas le bouton « ' + etat + ' » du panneau');
+        if (!!f.hint !== /class="[^"]*\bwhy\b[^"]*"/.test(inner)) fail('mode d’emploi : l’exemple « ' + mot + ' » ' + (f.hint ? 'n’a pas le 💡 que le panneau afficherait' : 'a un 💡 que le panneau n’afficherait pas'));
         const ud9 = !!(D.udMot && D.udMot(f));   // 📗 (01/10/2026) : le panneau l'affiche là où DYSCORE.udMot rend un mot
-        if (ud9 !== /class="ud"/.test(inner)) fail('mode d’emploi : l’exemple « ' + mot + ' » ' + (ud9 ? 'n’a pas le 📗 que le panneau afficherait' : 'a un 📗 que le panneau n’afficherait pas'));
-        if (ud9 && /class="ud"/.test(inner)) n9.ud++;   // compté s'il est MONTRÉ (et dû), pas seulement dû
+        if (ud9 !== /class="[^"]*\bud\b[^"]*"/.test(inner)) fail('mode d’emploi : l’exemple « ' + mot + ' » ' + (ud9 ? 'n’a pas le 📗 que le panneau afficherait' : 'a un 📗 que le panneau n’afficherait pas'));
+        if (ud9 && /class="[^"]*\bud\b[^"]*"/.test(inner)) n9.ud++;   // compté s'il est MONTRÉ (et dû), pas seulement dû
         if (astuce && sp9(txt9(astuce[1])) !== sp9(f.hint || '')) fail('mode d’emploi : le 💡 de « ' + mot + ' » dit « ' + sp9(txt9(astuce[1])) + ' », le moteur dit « ' + (f.hint || '') + ' »');
       } else if (cls === 'out') {
         n9.out++;
-        const lab = 'texte corrigé (c\'est lui que « Copier » copie) :', montre = sp9(txt9(inner));
+        const lab = 'Texte corrigé', montre = sp9(txt9(inner));
         if (montre.indexOf(lab) !== 0) fail('mode d’emploi : la boîte « texte corrigé » n’a pas l’étiquette du panneau');
         else if (sp9(montre.slice(lab.length)) !== sp9(corrige9(phrase, flags))) fail('mode d’emploi : texte corrigé montré « ' + sp9(montre.slice(lab.length)) + ' », le panneau copierait « ' + corrige9(phrase, flags) + ' »');
       } else if (cls === 'remed') {
         n9.remed++;
         const lignes = txt9(inner).split('\n').map(sp9).filter(Boolean);
-        if (lignes[0] !== '🛠️ Remédiation') fail('mode d’emploi : la boîte remède ne commence pas par « 🛠️ Remédiation »');
+        if (lignes[0] !== 'Pour retenir') fail('mode d’emploi : la boîte remède ne commence pas par « Pour retenir »');
         for (const l of lignes.slice(1)) if (!(dg.remed || []).map(sp9).includes(l)) fail('mode d’emploi : remède « ' + l + ' » absent du moteur pour « ' + phrase + ' » (eu : ' + JSON.stringify(dg.remed || []) + ')');
       } else {
         n9.vig++;
@@ -658,7 +669,7 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
       }
     }
     if (n9.item < 3 || !n9.out || !n9.remed || !n9.vig) fail('mode d’emploi : exemples trop maigres (' + JSON.stringify(n9) + ') — la lecture est cassée ou des exemples ont disparu');
-    if (!n9.ud) fail('mode d’emploi : aucun exemple ne montre le 📗 du panneau (« ce mot est correct ») — sans la bulle, c’est la seule façon d’ajouter un mot');
+    if (!n9.ud) fail('mode d’emploi : aucun exemple ne montre le bouton « Mot juste » du panneau — sans la bulle, c’est la seule façon d’ajouter un mot');
 
     // d) le CSS recopié est celui du panneau, et le sommaire mène quelque part
     const bloc = /⇣⇣ COPIE EXACTE[^\n]*\n([\s\S]*?)\n[^\n]*⇡⇡ fin de la copie exacte/.exec(aide);

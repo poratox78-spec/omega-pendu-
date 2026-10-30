@@ -3,7 +3,7 @@
  * (sidepanel.html). Textes INVENTÉS. Chaque scène = une page d'écriture neutre (860×800) + le panneau réel (420×800), assemblés par
  * captures_store.py ; le mode d'emploi (aide.html) est capturé seul à 1280×800.
  *   node extension/captures_store.js && python extension/captures_store.py   → data_local/store/captures/*.png (non commité)
- * La case « Recopier ce que je tape sur la page » est décochée pour écrire dans le panneau, puis remontrée cochée sur l'image :
+ * « Recopier ce que je tape » est éteint pour écrire dans le panneau, puis remontré allumé sur l'image :
  * c'est son état par défaut, et le texte de la page y est justement recopié.
  */
 'use strict';
@@ -43,7 +43,7 @@ label{display:block;font-size:13px;letter-spacing:.02em;color:#5a6b7c;margin:0 0
       await c.envoyer('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false });
       c.js = async (expr) => { const r = await c.envoyer('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true, timeout: 120000 });
         if (r.exceptionDetails) throw new Error(JSON.stringify(r.exceptionDetails).slice(0, 400)); return r.result.value; };
-      c.photo = async (nom) => { try { await c.envoyer('Runtime.evaluate', { expression: "(() => { const m = document.getElementById('omdys-mirror'); if (m) m.checked = true; })()" }); } catch (e) {}
+      c.photo = async (nom) => { try { await c.envoyer('Runtime.evaluate', { expression: "(() => { const m = document.getElementById('omdys-mirror'); if (m) { m.checked = true; const p = document.getElementById('om-recopie'); if (p) p.hidden = false; } })()" }); } catch (e) {}
         const r = await c.envoyer('Page.captureScreenshot', { format: 'png' });
         fs.writeFileSync(path.join(BRUT, nom), Buffer.from(r.data, 'base64')); console.log('✓', nom); };
       return c; };
@@ -65,13 +65,13 @@ label{display:block;font-size:13px;letter-spacing:.02em;color:#5a6b7c;margin:0 0
       await until(() => document.querySelectorAll('#omdys-corr .item').length > 0, 30000); await w(1500); ta.blur();
       return document.querySelectorAll('#omdys-corr .item').length + ' corrections'; })()`));
     // ① le panneau en action
-    await pp.js('window.scrollTo(0, 0)'); await H.attendre(300); await pp.photo('p1-panneau.png');
-    // ② le pourquoi : les 💡 de « joue → jouent » et de « a → à » dépliés
+    await pp.js("document.getElementById('om-corps').scrollTop = 0"); await H.attendre(300); await pp.photo('p1-panneau.png');
+    // ② le pourquoi : les explications de « joue → jouent » et de « a → à » dépliées
     console.log('astuces :', await pp.js(`(async () => { ${AIDE}
       const its = Array.from(document.querySelectorAll('#omdys-corr .item')); const out = [];
-      for (const it of its) { if (/« joue »|« a »/.test(it.textContent || '')) { const b = it.querySelector('button.why'); if (b) { b.click(); await w(400); }
+      for (const it of its) { const de = (it.querySelector('.de') || {}).textContent; if (de === 'joue' || de === 'a') { const b = it.querySelector('button.why'); if (b) { b.click(); await w(400); }
         const a = it.querySelector('.astuce'); out.push(a && !a.hidden ? a.textContent.slice(0, 90) : '(fermée)'); } }
-      const premier = its.find(it => /« enfant »/.test(it.textContent || '')); if (premier) premier.scrollIntoView({ block: 'start' }); window.scrollBy(0, -12); await w(400);
+      const premier = its.find(it => (it.querySelector('.de') || {}).textContent === 'enfant'); if (premier) premier.scrollIntoView({ block: 'start' }); document.getElementById('om-corps').scrollBy(0, -12); await w(400);
       return out.join(' | '); })()`));
     await pp.photo('p2-pourquoi.png');
     // ③ la police de son (+ syllabes)
@@ -79,7 +79,7 @@ label{display:block;font-size:13px;letter-spacing:.02em;color:#5a6b7c;margin:0 0
       document.querySelectorAll('.astuce').forEach(a => { a.hidden = true; });
       const ps = caseTexte(/Police de son/i), sy = caseTexte(/Syllabes/i);
       for (const c of [ps, sy]) if (c && !c.checked) { c.click(); await w(1500); }
-      window.scrollTo(0, 0); await w(800); return 'police=' + (ps && ps.checked) + ' syllabes=' + (sy && sy.checked); })()`));
+      document.getElementById('om-corps').scrollTop = 0; await w(800); return 'police=' + (ps && ps.checked) + ' syllabes=' + (sy && sy.checked); })()`));
     await pp.photo('p3-police-de-son.png');
     console.log('police off :', await pp.js(`(async () => { ${AIDE}
       const ps = caseTexte(/Police de son/i), sy = caseTexte(/Syllabes/i);
@@ -87,11 +87,11 @@ label{display:block;font-size:13px;letter-spacing:.02em;color:#5a6b7c;margin:0 0
       return 'ok'; })()`));
     // ④ l'aide au nombre
     console.log('nombre :', await pp.js(`(async () => { ${AIDE}
-      const t = Array.from(document.querySelectorAll('summary, button, h2, h3, div')).find(x => /Aide au nombre/.test(x.textContent || '') && x.children.length <= 3);
+      const t = document.getElementById('omdys-tab-nombres');
       if (t) { t.click(); await w(800); }
-      const champ = Array.from(document.querySelectorAll('input, textarea')).find(x => x.offsetParent && x.id !== 'omdys-ta' && (x.type === 'text' || x.tagName === 'TEXTAREA' || x.type === 'search'));
+      const champ = document.getElementById('omdys-num');
       if (champ) { champ.focus(); champ.value = '1 234 567 + 305'; champ.dispatchEvent(new Event('input', { bubbles: true })); await w(1500); champ.blur(); }
-      const zone = t ? (t.closest('details') || t.parentElement) : null; if (zone) zone.scrollIntoView({ block: 'start' }); await w(500);
+      await w(500);
       return (t ? 'titre ok' : 'titre absent') + ' / champ ' + (champ ? (champ.id || champ.className || champ.tagName) : 'absent'); })()`));
     await pp.photo('p4-nombre.png');
     // ⑤ le mode d'emploi, seul

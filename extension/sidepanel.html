@@ -3,51 +3,120 @@
 <head>
 <meta charset="utf-8">
 <style>
+  /* ⭐ 30/10/2026 — REFONTE (maquette validée par Rem, version A : trois onglets Écrire / Nombres / Réglages). Mesuré sur l'ancien panneau :
+     8 réglages en vrac avant la zone d'écriture (qui commençait à 176 px, 206 px en panneau étroit), explications visibles au survol seulement,
+     4 couleurs de boutons. Identité = l'icône (bleu nuit, Ω blanc, trait ambre). Contrastes des paires de texte vérifiés : 5,19 à 17,47.
+     La barre du haut est bleu nuit dans les DEUX thèmes ; tout le reste passe par les couleurs ci-dessous. */
   :root{ --fs:15px; }
+  :root{ --bg:#F3F5F9; --sf:#FFFFFF; --sf2:#EAEEF4; --bd:#CBD3DF; --fg:#141A23; --fg2:#4A5666; --ac:#2553C9; --acfg:#FFFFFF; --acsoft:#E4EBFB; --warn:#7A4300; --warnbg:#FFF3E0; --warnbd:#D9892B; --ok:#17603A; --okbg:#E6F4EB; --okbd:#2E8B57; --swoff:#8A96A8; }
+  body.dark{ --bg:#0D1117; --sf:#161B22; --sf2:#1C232C; --bd:#30363D; --fg:#E6EDF3; --fg2:#AEB9C5; --ac:#8FB0FA; --acfg:#0D1117; --acsoft:#1A2A4A; --warn:#F2C38D; --warnbg:#2B2112; --warnbd:#B9792B; --ok:#A7DDB9; --okbg:#14291C; --okbd:#2E8B57; --swoff:#5B6673; }
   *{ box-sizing:border-box; }
-  body{ margin:0; font:var(--fs)/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; color:#1a1a1a; background:#fff; }
-  header{ background:#2a6f97; color:#fff; padding:9px 12px; display:flex; align-items:center; gap:8px; position:sticky; top:0; z-index:5; }   /* ⭐ 01/10/2026 : sans z-index, les boutons 💡/🔊 (opacité < 1 = contexte d'empilement) passaient PAR-DESSUS l'en-tête en défilant */
-  header b{ font-size:1.05em; }
-  header .st{ margin-left:auto; font-size:.8em; opacity:.9; }
-  header a.site{ color:#fff; font-size:.8em; text-decoration:none; border:1px solid rgba(255,255,255,.55); border-radius:6px; padding:1px 7px; white-space:nowrap; }   /* lien vers le site : app complète, dictée, pendu */
-  header a.site:hover, header a.site:focus-visible{ background:rgba(255,255,255,.18); outline:none; }
-  @media (max-width:420px){ header a.site .t{ display:none; } }   /* panneau étroit : le globe seul, le statut garde sa ligne (mesuré 340 px) */
-  @media (max-width:560px){ header a#omdys-site .t{ display:none; } }   /* ❓ Mode d'emploi garde son mot plus longtemps que le site : c'est lui qu'on cherche la première fois */
-  .wrap{ padding:10px; }
-  #omdys-ta{ width:100%; min-height:140px; font:inherit; padding:9px 10px; border:1px solid #c9c9c9; border-radius:9px; line-height:1.6; background:#fff; color:#1a1a1a; white-space:pre-wrap; overflow-wrap:break-word; outline:none; cursor:text; }
-  #omdys-ta:empty:before{ content:attr(data-ph); color:#8a94a0; pointer-events:none; }
-  #omdys-ta:focus{ outline:2px solid #2a6f97; border-color:#2a6f97; }
+  [hidden]{ display:none !important; }
+  html,body{ height:100%; }
+  body{ margin:0; display:flex; flex-direction:column; overflow:hidden; font:var(--fs)/1.5 'Atkinson Hyperlegible',Verdana,Tahoma,sans-serif; color:var(--fg); background:var(--bg); }
+  button,input{ font:inherit; letter-spacing:inherit; word-spacing:inherit; }
+  :focus-visible{ outline:3px solid var(--ac); outline-offset:2px; }
+  .barre :focus-visible{ outline-color:#8FB0FA; }
+  .ic{ width:1.3em; height:1.3em; flex:0 0 auto; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .vsr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+
+  /* ── la barre : titre, état, mode d'emploi, onglets ── */
+  .barre{ flex:0 0 auto; background:#0D1117; color:#FFFFFF; border-bottom:1px solid #30363D; }
+  .bhaut{ display:flex; align-items:center; gap:10px; padding:6px 6px 2px 12px; }
+  .logo{ flex:0 0 auto; width:30px; height:30px; border-radius:7px; }
+  .titre{ font-weight:700; font-size:1.13em; }
+  .st{ margin-left:auto; min-width:0; font-size:.88em; line-height:1.25; color:#D7DEE8; text-align:right; }   /* les messages de la dictée sont longs : ils passent à la ligne, ils ne poussent rien */
+  .st.ok::before{ content:''; display:inline-block; width:8px; height:8px; margin-right:6px; border-radius:50%; background:#7BD88F; vertical-align:.08em; }
+  .ico{ flex:0 0 auto; width:44px; height:44px; border-radius:10px; color:#FFFFFF; display:inline-flex; align-items:center; justify-content:center; }
+  .ico:hover{ background:#1C232C; }
+  .onglets{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .ong{ min-height:46px; border:0; border-bottom:3px solid transparent; background:transparent; color:#B8C4D6; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:0 4px; font-size:min(1em,17px); font-weight:700; cursor:pointer; }
+  .ong:hover{ color:#FFFFFF; }
+  .ong[aria-selected="true"]{ color:#FFFFFF; border-bottom-color:#F0A63C; }
+  @media (max-width:380px){ .ong{ font-size:min(1em,15.5px); gap:4px; } }
+  @media (max-width:330px){ .ong .ic{ display:none; } }   /* panneau au plus étroit (320 px) : le mot d'abord */
+
+  /* ── le corps : la seule zone qui défile ── */
+  .corps{ flex:1 1 auto; min-height:0; overflow-y:auto; padding:12px; }
+  .vue{ display:flex; flex-direction:column; gap:12px; }
+  .carte{ background:var(--sf); border:1px solid var(--bd); border-radius:14px; padding:12px 14px; }
+  .h2{ margin:4px 2px 0; font-size:1em; font-weight:700; }
+  .etiq{ display:block; margin-bottom:2px; font-size:.9em; color:var(--fg2); }
+  .note{ margin:0; font-size:.92em; color:var(--fg2); }
+  .lignebt{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .bt{ min-height:44px; border:1px solid var(--bd); border-radius:10px; background:var(--sf); color:var(--fg); display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:0 12px; font-weight:700; cursor:pointer; }
+  .bt:hover{ background:var(--sf2); }
+  .bt.pri{ background:var(--ac); border-color:var(--ac); color:var(--acfg); }
+  .bt.pri:hover{ background:var(--ac); }
+  .bt.car{ width:44px; padding:0; }
+  .bt:disabled{ background:var(--sf2); border-color:var(--bd); color:var(--fg2); cursor:default; }
+
+  /* ── Écrire : la zone de texte et ses deux outils ── */
+  .edit{ padding:0; overflow:hidden; }
+  .edit:has(#omdys-ta:focus){ outline:2px solid var(--ac); outline-offset:-1px; }
+  #omdys-ta{ display:block; width:100%; min-height:8.6em; font:inherit; font-size:1.05em; padding:12px 14px; border:0; line-height:1.65; background:transparent; color:var(--fg); white-space:pre-wrap; overflow-wrap:break-word; outline:none; cursor:text; }
+  #omdys-ta:empty:before{ content:attr(data-ph); color:var(--fg2); pointer-events:none; }
   /* police de son (habillage : spans sur les nœuds texte, texte inchangé) */
   .son-seg{ font-size:1.12em; } .son-mute{ color:#a34700; } .son-mute.son-on-dark{ color:#f0a04b; } .son-syl{ color:#0072b2; } .son-syl.son-on-dark{ color:#6cc0f0; } .son-syl.son-mute{ color:#a34700; } .son-syl.son-mute.son-on-dark{ color:#f0a04b; }
   /* (le bleu Okabe-Ito reste uniforme : sans fond sous le mot corrigé, la syllabe remonte à 4,77.) */
-  .acts{ display:flex; gap:8px; align-items:center; margin:9px 0; flex-wrap:wrap; }
-  .acts button{ font:inherit; font-weight:700; border:0; border-radius:8px; padding:6px 13px; cursor:pointer; }
-  #omdys-fixall{ background:#1f7a3d; color:#fff; }
-  #omdys-fixall:disabled{ background:#b9c6bd; cursor:default; }
-  #omdys-copy{ background:#2a6f97; color:#fff; }
-  #omdys-lire{ background:#7a4fb5; color:#fff; }
-  #omdys-lire[aria-pressed="true"]{ background:#c0392b; }
+  .boutils{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:6px 8px; border-top:1px solid var(--bd); background:var(--sf2); }
+  .bt.leger{ background:transparent; border-color:transparent; padding:0 9px; }
+  .bt.leger:hover{ background:var(--sf); }
+  .bt.leger:disabled{ background:transparent; border-color:transparent; }
+  .ic-b{ display:none; }
+  #omdys-mic.rec .ic-a, #omdys-lire[aria-pressed="true"] .ic-a{ display:none; }
+  #omdys-mic.rec .ic-b, #omdys-lire[aria-pressed="true"] .ic-b{ display:inline; }
+  #omdys-mic.rec{ background:#C0392B; color:#FFFFFF; animation:ompulse 1s infinite; }
+  @keyframes ompulse{ 0%,100%{ opacity:1; } 50%{ opacity:.6; } }
+  #omdys-lire[aria-pressed="true"]{ background:var(--acsoft); color:var(--ac); }
+  #omdys-mic.demande{ background:var(--acsoft); color:var(--ac); }
+  .recopie{ margin-left:auto; min-height:44px; border:0; background:transparent; color:var(--fg2); display:inline-flex; align-items:center; gap:5px; padding:0 6px; font-size:.92em; cursor:pointer; }
+  .recopie:hover{ color:var(--fg); }
+  .voix{ padding:12px 14px; border-top:1px solid var(--bd); }
+  .voix p{ margin:0 0 10px; }
   /* karaoké : le mot LU est surligné pendant la lecture. Contraste FORT — jamais de pâle sur clair
      (doctrine contraste dys). La zone « texte corrigé » sert d'écran, puis est RESTAURÉE. */
   .kara.lit{ background:#1f5fa8; color:#fff !important; border-radius:4px; padding:1px 3px; }
   .karabox{ line-height:2; }
-  #omdys-copy.ok{ background:#1f7a3d; }
-  #omdys-count{ color:#666; font-size:.9em; }
-  .mir{ display:flex; align-items:center; gap:6px; font-size:.85em; color:#555; margin-bottom:8px; }
-  .corr{ display:flex; flex-direction:column; gap:4px; }
-  .item{ cursor:pointer; padding:5px 8px; border-radius:7px; border-left:3px solid #c0392b; background:#fcf3f2; }
-  .item:hover{ background:#f6e2df; }
-  .item.orth{ border-left-color:#2a6f97; background:#eef5fb; }
-  .item.orth:hover{ background:#dcebf7; }
-  .item.tvig{ border-left:3px dashed #e8920c; background:#fff8ea; }
-  .fam{ color:#777; font-size:.82em; }
-  .item.done{ border-left-color:#2e8b57; background:#eef8f0; }   /* rouge APPLIQUÉ à la copie (clic = annuler) */
-  .item.done:hover{ background:#dff0e3; }
-  .item.off{ opacity:.6; border-left-style:dotted; }             /* rouge ANNULÉ par l'utilisateur (clic = réappliquer) */
-  .etat{ color:#2e8b57; font-size:.78em; margin-left:6px; }
-  .item.off .etat{ color:#888; }
-  .out{ margin:6px 0; padding:7px 9px; border-radius:8px; background:#eef8f0; border-left:3px solid #2e8b57; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
-  .out .lab{ color:#4f7f5f; font-size:.78em; }
+  /* ⭐ LE PANNEAU DIT POURQUOI IL NE VOIT RIEN (19/09/2026). À la TAILLE DU TEXTE : c'est un message qu'un lecteur dys doit pouvoir lire,
+     pas une mention légale. */
+  .nobranch{ padding:10px 12px; border:1px solid var(--warnbd); border-radius:14px; background:var(--warnbg); color:var(--warn); }
+  .nobranch b{ display:block; margin-bottom:2px; }
+  .nobranch .petit{ display:block; margin-top:4px; font-size:.9em; }
+  .nobranch button{ margin-top:7px; }
+  /* aide-frappe : complétions du mot sous le curseur (portée de la barre flottante) */
+  .comps{ display:flex; flex-wrap:wrap; align-items:center; gap:5px; }
+  .comps:empty{ display:none; }
+  .comps .lab{ color:var(--fg2); font-size:.9em; }
+  .cbtn{ min-height:40px; border:1px solid var(--ac); border-radius:9px; background:var(--acsoft); color:var(--ac); padding:0 10px; cursor:pointer; }
+  .cbtn:hover{ background:var(--ac); color:var(--acfg); }
+  #omdys-count{ font-size:.92em; color:var(--fg2); }
+  #omdys-count:empty, #omdys-vig:empty, #omdys-stade:empty, #omdys-corr:empty{ display:none; }
+
+  /* ── les corrections ── */
+  .tuiles{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .tuile{ display:flex; align-items:baseline; gap:8px; padding:8px 14px; border-radius:14px; font-weight:700; }
+  .gros{ font-size:2.1em; line-height:1.15; }
+  .twarn{ background:var(--warnbg); color:var(--warn); }
+  .tok{ background:var(--okbg); color:var(--ok); }
+  .corr{ display:flex; flex-direction:column; gap:10px; }
+  .item{ display:flex; flex-direction:column; gap:8px; padding:10px 12px; border:1px solid var(--bd); border-radius:14px; background:var(--sf); }
+  .item.tvig{ border-color:var(--warnbd); }
+  .item.done{ border-color:var(--okbd); }
+  .item.off{ border-style:dashed; }
+  .ihaut{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 8px; }
+  .paire{ display:flex; flex-wrap:wrap; align-items:center; gap:0 7px; font-size:1.1em; }
+  .de{ color:var(--fg2); }
+  .vers{ font-weight:700; }
+  .fleche{ color:var(--fg2); }
+  .fam{ color:var(--fg2); font-size:.93em; }
+  .astuce{ padding:8px 10px; border-radius:10px; background:var(--sf2); font-size:.97em; line-height:1.45; }
+  .out{ padding:10px 14px; border:1px solid var(--bd); border-radius:14px; background:var(--sf); line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .out .lab{ display:block; color:var(--fg2); font-size:.92em; font-weight:700; }
+  .vig{ padding:10px 12px; border:1px solid var(--bd); border-radius:14px; background:var(--sf); font-size:.95em; }
+  .vlab{ font-weight:700; margin-bottom:3px; }
+  .remed{ padding:10px 12px; border-radius:14px; background:var(--sf2); font-size:.95em; }
+  .ok-msg{ color:var(--ok); font-weight:700; padding:4px 2px; }
   /* SOULIGNÉ, pas surligné : le fond ne contrastait que 1,15 avec celui de la boîte (seuil 3,0),
      et aucun fond ne peut satisfaire à la fois « visible » et « le texte reste lisible dessus »
      (à 2,58 de visibilité la lettre muette est déjà tombée à 2,17). Le trait est un canal libre :
@@ -55,105 +124,72 @@
      PLEIN et non ondulé : ces mots sont les corrections DÉJÀ APPLIQUÉES, pas des fautes. */
   .out b{ text-decoration:underline; text-decoration-color:#2e8b57; text-decoration-thickness:2px;
           text-underline-offset:2px; }
-  .why,.tts,.ud{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
-  .why:hover,.tts:hover,.ud:hover{ opacity:1; }
-  .astuce{ margin-top:4px; padding:5px 8px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:5px; font-size:.9em; color:#22303c; line-height:1.45; }
-  .remed{ margin-top:5px; padding:6px 9px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:5px; font-size:.92em; }
-  .ok-msg{ color:#1f7a3d; font-weight:700; padding:6px 2px; }
-  .foot{ margin-top:12px; padding-top:9px; border-top:1px solid #e3e3e3; color:#8a94a0; font-size:.82em; }
-  /* aide-frappe : complétions du mot sous le curseur (portée de la barre flottante) */
-  .comps{ display:flex; gap:5px; flex-wrap:wrap; align-items:center; margin:7px 0; }
-  .comps .lab{ color:#666; font-size:.85em; }
-  .cbtn{ font:inherit; font-size:.9em; border:1px solid #2a6f97; background:#eef5fb; color:#1b4b68; border-radius:6px; padding:2px 9px; cursor:pointer; }
-  .cbtn:hover{ background:#2a6f97; color:#fff; }
-  /* couche VERTE : n'affirme pas une faute → aucun clic d'application */
-  .vig{ margin-top:8px; padding:6px 9px; border-left:4px solid #1f7a3d; background:#eefaf1; border-radius:5px; font-size:.9em; }
-  .vlab{ font-weight:700; color:#1f7a3d; margin-bottom:3px; }
-  .vitem{ color:#28483a; }
-  #omdys-undo{ background:#8a94a0; color:#fff; }
-  /* SAISIE VOCALE (opt-in, voie A : Web Speech du navigateur) */
-  .voicerow{ display:flex; gap:8px; align-items:center; margin:8px 0 4px; flex-wrap:wrap; }
-  #omdys-mic{ font:inherit; font-weight:700; border:0; border-radius:8px; padding:6px 13px; cursor:pointer; background:#7a4fb5; color:#fff; }
-  #omdys-mic:disabled{ background:#c3b8d6; cursor:default; }
-  #omdys-mic.rec{ background:#c0392b; animation:ompulse 1s infinite; }
-  @keyframes ompulse{ 0%,100%{ opacity:1; } 50%{ opacity:.5; } }
-  .voicecfg{ font-size:.9em; color:#555; display:flex; align-items:center; gap:5px; cursor:pointer; }
-  /* ⭐ LE PANNEAU DIT POURQUOI IL NE VOIT RIEN (19/09/2026). Même palette que .vnote, mais à la
-     TAILLE DU TEXTE : c'est un message qu'un lecteur dys doit pouvoir lire, pas une mention légale. */
-  .nobranch{ color:#6a5b2e; background:#fff8ea; border-left:3px solid #e8920c; border-radius:5px;
-             padding:8px 10px; margin:0 0 9px; line-height:1.5; }
-  .nobranch b{ display:block; margin-bottom:2px; }
-  .nobranch .petit{ font-size:.82em; opacity:.85; display:block; margin-top:4px; }
-  .nobranch button{ font:inherit; font-weight:700; border:0; border-radius:8px; padding:5px 12px;
-                    margin-top:7px; cursor:pointer; background:#e8920c; color:#fff; }
-  body.dark .nobranch{ background:#2b2412; color:#f0e2bd; }
-  .vnote{ font-size:.8em; color:#6a5b2e; background:#fff8ea; border-left:3px solid #e8920c; border-radius:5px; padding:6px 9px; margin:0 0 8px; line-height:1.45; }
-  /* ⭐ REPLIÉES, PAS RACCOURCIES (Rem, 2026-08-25 : « ces deux textes sont trop longs, les cacher
-     derrière un i encerclé »). Ce sont des PROMESSES faites à quelqu'un : elles doivent décrire ce que
-     le code fait EN ENTIER. Mais deux pavés dans un panneau étroit destiné à des dys, c'est un mur —
-     donc <details> : une ligne par défaut, le détail sur demande. <details> et pas un tooltip JS,
-     parce qu'il est NATIF, accessible au clavier et au lecteur d'écran, et qu'il survit sans JS.
-     ⚠️ SI LE CODE CHANGE, LE TEXTE DÉPLIÉ CHANGE. Même patron que saisie-vocale.html. */
-  details.vnote summary, details.foot summary{ cursor:pointer; list-style:none; display:flex; align-items:center; gap:6px; }
-  details.vnote summary::-webkit-details-marker, details.foot summary::-webkit-details-marker{ display:none; }
-  .vi{ flex:0 0 auto; width:15px; height:15px; border-radius:50%; border:1.4px solid currentColor;
-       font:italic 700 10px/13px system-ui,sans-serif; text-align:center; margin-left:auto; opacity:.85; }
-  details[open] .vi{ font-style:normal; }
-  details.vnote .vdet, details.foot .vdet{ margin-top:6px; padding-top:5px; border-top:1px solid rgba(128,128,128,.28); }
-  .vsr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
-  /* ── AIDE AU NOMBRE (dyscalculie). Repliée par défaut : elle ne doit pas manger la place du
-     correcteur pour ceux qui n'en ont pas besoin. */
-  details.calc summary, details.mots summary{ cursor:pointer; list-style:none; display:flex; align-items:center; gap:6px;
-    font-weight:700; color:#2a6f97; }
-  details.calc summary::-webkit-details-marker, details.mots summary::-webkit-details-marker{ display:none; }
-  /* 📗 MES MOTS : le dictionnaire de l'utilisateur, VISIBLE et RÉVERSIBLE — sans lui, un 📗 cliqué par erreur sur une faute
-     la cachait pour toujours. Replié comme l'aide au nombre : une ligne, le détail sur demande ; absent tant qu'il est vide. */
-  details.mots{ margin-top:8px; }
-  .motsbox{ margin:7px 0 10px; display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
-  .motsbox .note{ flex-basis:100%; font-size:.85em; color:#555; }
-  .mot{ display:inline-flex; align-items:center; border:1px solid #2a6f97; background:#eef5fb; color:#1b4b68; border-radius:6px; padding:1px 2px 1px 8px; font-size:.9em; }
-  .motx{ font:inherit; border:0; background:none; cursor:pointer; color:#8a1f11; padding:0 5px; }
-  .motx:hover, .motx:focus-visible{ color:#fff; background:#8a1f11; border-radius:4px; outline:none; }
-  body.dark details.calc summary, body.dark details.mots summary{ color:#8fc2f5; }   /* le bleu #2a6f97 ne contrastait qu'à 3,2 sur le fond sombre ; 9,5 ici */
-  body.dark .mot{ background:#16242f; color:#9fc6e0; }
-  body.dark .motx{ color:#f0a0a0; }
-  body.dark .motsbox .note{ color:#9aa7b4; }
-  .calcbox{ margin-top:7px; }
-  .calcbox input{ width:100%; font:inherit; font-size:1.15em; padding:7px 9px; border:1px solid #cfd6dd;
-    border-radius:8px; box-sizing:border-box; }
-  .cgroupe{ font-size:1.5em; font-weight:700; letter-spacing:.04em; margin:8px 0 2px; font-variant-numeric:tabular-nums; }
-  .clettres{ font-size:1.02em; color:#1f5fa8; margin-bottom:7px; }
-  /* valeur de position : une COULEUR par rang, la même du chiffre à son étiquette — c'est le lien
-     qu'un dyscalculique ne fait pas spontanément (« le 3 de 305 vaut trois cents »). */
-  .cpos{ display:flex; flex-wrap:wrap; gap:4px; }
-  .cp{ border-radius:6px; padding:3px 6px; font-size:.82em; line-height:1.35; text-align:center; }
-  .cp b{ display:block; font-size:1.5em; font-variant-numeric:tabular-nums; }
+
+  /* ── le bas : les deux gestes qu'on cherche, toujours visibles ── */
+  .pied{ flex:0 0 auto; display:flex; gap:8px; padding:8px 12px; background:var(--sf); border-top:1px solid var(--bd); }
+  #omdys-fixall{ flex:1 1 0; }
+  #omdys-copy{ flex:1.25 1 0; }
+  #omdys-undo{ flex:0 0 auto; }
+  #omdys-copy.ok{ background:var(--okbd); border-color:var(--okbd); color:#FFFFFF; }
+
+  /* ── Nombres : valeur de position, une COULEUR par rang, la même du chiffre à son étiquette — c'est le lien
+     qu'un dyscalculique ne fait pas spontanément (« le 3 de 305 vaut trois cents »). ── */
+  .calcbox input{ width:100%; min-height:48px; padding:8px 12px; border:1px solid var(--bd); border-radius:10px; background:var(--bg); color:var(--fg); font-size:1.15em; }
+  .cgroupe{ margin:12px 0 2px; font-size:2.1em; font-weight:700; line-height:1.15; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+  .clettres{ color:var(--ac); font-size:1.1em; }
+  .cpos{ display:flex; flex-wrap:wrap; gap:6px; }
+  #vue-nombres:has(.cpos:empty) .rangs{ display:none; }
+  .cp{ flex:1 1 4.6em; border-radius:10px; padding:8px 6px; font-size:.9em; line-height:1.3; text-align:center; }
+  .cp b{ display:block; font-size:1.9em; line-height:1.15; font-variant-numeric:tabular-nums; }
   .cp0{ background:#e8f1fb; color:#14456e; } .cp1{ background:#e9f6ec; color:#14532d; }
   .cp2{ background:#fdf0e3; color:#7a4408; } .cp3{ background:#f0eafa; color:#3f2a6b; }
-  body.dark .clettres{ color:#8fc2f5; }
-  body.dark .calcbox input{ background:#141a20; color:#e6edf3; border-color:#2a333c; }
   body.dark .cp0{ background:#12283d; color:#bcd9f5; } body.dark .cp1{ background:#14301f; color:#bfe6c9; }
   body.dark .cp2{ background:#3a2a12; color:#f0d6ab; } body.dark .cp3{ background:#241c3a; color:#d3c6f2; }
-  body.dark .voicecfg{ color:#9aa7b4; }
-  body.dark .vnote{ background:#2b2412; color:#f0e2bd; }
-  /* accessibilité (réglages ex-popup, devenus injoignables quand l'icône a basculé sur le panneau) */
-  .prefs{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:.85em; color:#555; margin-bottom:8px;
-          padding-bottom:8px; border-bottom:1px solid #eee; }
-  .prefs select{ font:inherit; font-size:.95em; }
-  body.dark{ background:#14181c; color:#e8edf2; }
-  body.dark #omdys-ta{ background:#1d2329; color:#e8edf2; border-color:#3a444e; caret-color:#b9a3e6; }
-  body.dark .item{ background:#2a1e1d; }
-  body.dark .item.orth{ background:#16242f; }
-  body.dark .item.done{ background:#17281c; } body.dark .out{ background:#17281c; } /* le trait #2e8b57 passe le seuil sur les deux fonds : rien à surcharger ici. */
-  body.dark .item.tvig{ background:#2b2412; }
-  body.dark .astuce{ background:#16242f; color:#cfe0ee; }
-  body.dark .remed{ background:#2b2412; color:#f0e2bd; }
-  body.dark .vig{ background:#14251b; }
-  body.dark .vitem{ color:#bfe0cc; }
-  body.dark .cbtn{ background:#16242f; color:#9fc6e0; }
-  body.dark .prefs, body.dark .mir, body.dark #omdys-count{ color:#9aa7b4; }
-  body.dark .foot{ color:#7c8894; border-top-color:#2a333c; }
-  /* ⭐ 09/10/2026 — « Aa OMEGA Dys » (case du panneau, clé omDysFont) : notre police + espacement large ; famille à part pour ne
+
+  /* ── Réglages : chaque réglage dit ce qu'il fait, en toutes lettres (avant : au survol seulement) ── */
+  .apercu{ margin-bottom:10px; padding:10px 12px; border:1px solid var(--bd); border-radius:10px; background:var(--bg); font-size:1.05em; line-height:1.65; }
+  .seg{ display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:3px; margin-bottom:10px; padding:3px; border-radius:12px; background:var(--sf2); }
+  .sb{ position:relative; display:block; cursor:pointer; }
+  .sb input{ position:absolute; opacity:0; width:1px; height:1px; }
+  .sb span{ display:flex; align-items:center; justify-content:center; min-height:44px; padding:0 4px; border-radius:9px; font-weight:700; text-align:center; line-height:1.2; }
+  .sb input:checked + span{ background:var(--ac); color:var(--acfg); }
+  .sb input:focus-visible + span{ outline:3px solid var(--ac); outline-offset:2px; }
+  .ligne{ position:relative; display:flex; align-items:center; gap:12px; min-height:52px; padding:9px 0; border-top:1px solid var(--bd); cursor:pointer; }
+  .ligne.prem{ border-top:0; }
+  .ligne input{ position:absolute; opacity:0; width:1px; height:1px; }
+  .ltx{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
+  .ltx b{ font-weight:700; }
+  .des{ font-size:.92em; color:var(--fg2); }
+  .sw{ flex:0 0 auto; position:relative; width:46px; height:28px; border-radius:14px; background:var(--swoff); }
+  .kn{ position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#FFFFFF; }
+  .ligne input:checked + .sw{ background:var(--ac); }
+  .ligne input:checked + .sw .kn{ left:21px; background:var(--acfg); }
+  .ligne input:focus-visible + .sw{ outline:3px solid var(--ac); outline-offset:2px; }
+  .ligne input:disabled ~ .sw{ opacity:.5; }
+  /* MES MOTS : le dictionnaire de l'utilisateur, VISIBLE et RÉVERSIBLE — sans lui, un mot ajouté par erreur sur une faute
+     la cachait pour toujours. Absent tant qu'il est vide. */
+  details.mots summary{ cursor:pointer; list-style:none; font-weight:700; }
+  details.mots summary::-webkit-details-marker{ display:none; }
+  .motsbox{ margin-top:6px; display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .motsbox .note{ flex-basis:100%; }
+  .mot{ display:inline-flex; align-items:center; gap:2px; padding-left:10px; border:1px solid var(--bd); border-radius:10px; background:var(--bg); }
+  .motx{ width:40px; height:40px; border:0; border-radius:9px; background:transparent; color:var(--fg2); cursor:pointer; }
+  .motx:hover, .motx:focus-visible{ background:var(--sf2); color:var(--fg); }
+  .lien{ display:flex; align-items:center; gap:8px; min-height:44px; color:var(--ac); font-weight:700; text-decoration:none; }
+  .lien:hover{ text-decoration:underline; }
+  /* ⭐ REPLIÉES, PAS RACCOURCIES (Rem, 2026-08-25 : « ces deux textes sont trop longs, les cacher
+     derrière un i encerclé »). Ce sont des PROMESSES faites à quelqu'un : elles doivent décrire ce que
+     le code fait EN ENTIER. <details> et pas un tooltip JS, parce qu'il est NATIF, accessible au clavier
+     et au lecteur d'écran, et qu'il survit sans JS.
+     ⚠️ SI LE CODE CHANGE, LE TEXTE DÉPLIÉ CHANGE. Même patron que saisie-vocale.html. */
+  details.foot{ margin-top:4px; padding-top:8px; border-top:1px solid var(--bd); font-size:.92em; color:var(--fg2); }
+  details.foot summary{ cursor:pointer; list-style:none; display:flex; align-items:center; gap:6px; min-height:32px; }
+  details.foot summary::-webkit-details-marker{ display:none; }
+  details.foot a{ color:var(--ac); }
+  .vi{ flex:0 0 auto; width:16px; height:16px; margin-left:auto; border:1.4px solid currentColor; border-radius:50%; font:italic 700 10px/14px system-ui,sans-serif; text-align:center; }
+  details[open] .vi{ font-style:normal; }
+  details.foot .vdet{ margin-top:6px; }
+  /* ⭐ 09/10/2026 — « Police OMEGA Dys » (clé omDysFont) : notre police + espacement large ; famille à part pour ne
      pas toucher aux trois graisses de la police de son (OMEGA Dys / Light / Heavy). */
   @font-face{ font-family:'OMEGA Dys Texte'; src:url('assets/OmegaDys-Regular.ttf') format('truetype'); font-weight:1 1000; font-display:swap; }
   body.omfont, body.omfont :is(button,input,textarea,select){ font-family:'OMEGA Dys Texte',Verdana,Tahoma,sans-serif; }
@@ -161,70 +197,134 @@
 </style>
 </head>
 <body>
-<header><b>🩹 Correcteur dys</b><a class="site" id="omdys-aide" href="aide.html" target="_blank" rel="noopener" aria-label="Mode d'emploi" title="Mode d'emploi : comment utiliser le correcteur (s'ouvre dans un onglet)">❓<span class="t"> Mode d'emploi</span></a><a class="site" id="omdys-site" href="https://omegapendu.com/" target="_blank" rel="noopener" title="Ouvrir le site OMEGA-Ω (app complète, dictée, pendu) dans un nouvel onglet">🌐<span class="t"> omegapendu.com</span></a><span class="st" id="omdys-st">chargement…</span></header>
-<div class="wrap">
-  <div class="prefs">
-    <label>Texte
-      <select id="omdys-size"><option value="p">normal</option><option value="m">grand</option><option value="g">très grand</option></select>
-    </label>
-    <label><input type="checkbox" id="omdys-dark"> Sombre</label>
-    <label title="Les sites que tu consultes, ce panneau, la bulle et le mode d'emploi passent dans notre police OMEGA Dys, avec plus d'espace entre les lettres et les mots. Le texte ne change pas. Fermer ce panneau rend aux sites leur police."><input type="checkbox" id="omdys-font"> Aa OMEGA Dys</label>
-    <label title="La bulle flottante dans la page. Décochée : ce panneau est la SEULE zone de correction."><input type="checkbox" id="omdys-bubble"> Bulle dans la page</label>
-    <label title="Police OMEGA Dys : phonème voisé = épais, sourd = fin, lettre muette = vermillon (le texte ne change pas)"><input type="checkbox" id="omdys-son"> 🔡 Police de son</label>
-    <label title="Alterne la couleur des syllabes (avec la police de son)"><input type="checkbox" id="omdys-syl"> ✂️ Syllabes</label>
-    <label title="Sur les sites que tu consultes : lettres muettes en vermillon, syllabes alternées en bleu, sons qui font vibrer la gorge plus épais. Le texte des sites ne change pas : les couleurs sont peintes par-dessus. Fermer ce panneau les retire."><input type="checkbox" id="omdys-sonsites"> 🎨 Couleurs sur les sites</label>
-    <label title="Pour accorder « je suis allé / allée », « je suis content / contente » : la proposition reste orange, à toi de choisir. Le choix reste sur cet ordinateur.">J'écris
-      <select id="omdys-genre"><option value="">sans préciser</option><option value="f">au féminin</option><option value="m">au masculin</option></select>
-    </label>
+<header class="barre">
+  <div class="bhaut">
+    <img class="logo" src="icons/icon48.png" alt="">
+    <span class="titre">Correcteur</span>
+    <span class="st" id="omdys-st">Chargement…</span>
+    <a class="ico" id="omdys-aide" href="aide.html" target="_blank" rel="noopener" aria-label="Mode d'emploi" title="Mode d'emploi : comment utiliser le correcteur (s'ouvre dans un onglet)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 1c0 1.7-2.5 2.2-2.5 3.8"/><path d="M12 17.5h.01"/></svg></a>
   </div>
-  <label class="mir"><input type="checkbox" id="omdys-mirror" checked> Recopier ce que je tape sur la page</label>
-  <div class="nobranch" id="omdys-nobranch" hidden>
-    <b>Cette page ne se recopie pas ici.</b>
-    Elle était déjà ouverte quand le correcteur est arrivé. Recharge-la : il s'y branchera.
-    <button id="omdys-recharger" type="button">↻ Recharger la page</button>
-    <span class="petit">Sur les pages de Chrome (réglages, Web Store), il ne peut pas venir : écris directement ici.</span>
+  <div class="onglets" role="tablist" aria-label="Menu du panneau">
+    <button class="ong" id="omdys-tab-ecrire" type="button" role="tab" aria-selected="true" aria-controls="vue-ecrire"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>Écrire</button>
+    <button class="ong" id="omdys-tab-nombres" type="button" role="tab" aria-selected="false" aria-controls="vue-nombres" tabindex="-1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h15"/><path d="M4 15h15"/><path d="M10 4L8 20"/><path d="M16 4l-2 16"/></svg>Nombres</button>
+    <button class="ong" id="omdys-tab-reglages" type="button" role="tab" aria-selected="false" aria-controls="vue-reglages" tabindex="-1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9"/><path d="M17 7h3"/><circle cx="15" cy="7" r="2"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="9" cy="17" r="2"/></svg>Réglages</button>
   </div>
-  <div id="omdys-ta" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Ton texte" spellcheck="false" data-ph="Écris ou colle ton texte ici — ou tape dans un champ de la page, il se recopie ici. Puis clique les corrections et « Copier »."></div>
-  <div class="voicerow">
-    <button id="omdys-mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
-    <label class="voicecfg"><input type="checkbox" id="omdys-voice-ok"> Activer la dictée vocale</label>
-  </div>
-  <details class="vnote">
-    <summary>🔒 Ton micro n'est écouté que pendant la dictée.<span class="vi" aria-hidden="true">i</span><span class="vsr"> — voir le détail</span></summary>
-    <div class="vdet">La dictée vocale envoie l'audio de ton micro au <b>service vocal de ton navigateur (Google)</b> pour le transcrire en texte. Le correcteur, lui, reste 100 % hors-ligne. Désactivable à tout moment.</div>
-  </details>
-  <div class="acts">
-    <button id="omdys-fixall" disabled>✓ Tout corriger</button>
-    <button id="omdys-undo" hidden>↩ Annuler</button>
-    <button id="omdys-lire" title="Écouter ton texte à voix haute — le mot lu est surligné.">🔊 Lire</button>
-    <button id="omdys-copy">📋 Copier</button>
-    <span id="omdys-count"></span>
-  </div>
-  <div class="comps" id="omdys-comps"></div>
-  <div class="out" id="omdys-out" aria-live="polite" hidden></div>
-  <div class="corr" id="omdys-corr" aria-live="polite"></div>
-  <div id="omdys-vig"></div>
-  <div id="omdys-stade" aria-live="polite"></div>
-  <details class="mots" id="omdys-mots" hidden>
-    <summary>📗 Mes mots <span id="omdys-motsn"></span></summary>
-    <div class="motsbox"><span class="note">Ces mots ne sont plus signalés. ✕ en retire un : il sera de nouveau signalé.</span><span id="omdys-motsliste" style="display:contents"></span></div>
-  </details>
-  <details class="calc" id="omdys-calc">
-    <summary>🔢 Aide au nombre<span class="vi" aria-hidden="true">i</span></summary>
-    <div class="calcbox">
-      <label class="vsr" for="omdys-num">Écris un nombre en chiffres</label>
+</header>
+
+<main class="corps" id="om-corps">
+
+  <section class="vue" id="vue-ecrire" role="tabpanel" aria-labelledby="omdys-tab-ecrire">
+    <div class="nobranch" id="omdys-nobranch" hidden>
+      <b>Cette page ne se recopie pas ici.</b>
+      Elle était déjà ouverte quand le correcteur est arrivé. Recharge-la : il s'y branchera.
+      <button class="bt" id="omdys-recharger" type="button">↻ Recharger la page</button>
+      <span class="petit">Sur les pages de Chrome (réglages, Web Store), il ne peut pas venir : écris directement ici.</span>
+    </div>
+    <div class="carte edit">
+      <div id="omdys-ta" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Ton texte" spellcheck="false" data-ph="Écris ou colle ton texte ici. Tu peux aussi taper dans un champ de la page : il arrive ici."></div>
+      <div class="boutils">
+        <button class="bt leger" id="omdys-mic" type="button" title="Dicter à la voix"><svg class="ic ic-a" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg><svg class="ic ic-b" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span class="lbl">Dicter</span></button>
+        <button class="bt leger" id="omdys-lire" type="button" aria-pressed="false" title="Écouter ton texte à voix haute : le mot lu est surligné."><svg class="ic ic-a" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></svg><svg class="ic ic-b" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span class="lbl">Écouter</span></button>
+        <button class="recopie" id="om-recopie" type="button" title="Ce que tu tapes sur la page arrive ici. À changer dans Réglages."><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg>Recopie</button>
+      </div>
+      <div class="voix" id="om-voix-demande" hidden>
+        <p>La dictée envoie le son de ton micro au <b>service vocal de ton navigateur (Google)</b>, qui l'écrit. Ton micro n'est écouté que pendant la dictée. Le correcteur, lui, reste 100 % hors-ligne.</p>
+        <div class="lignebt">
+          <button class="bt pri" id="omdys-voix-oui" type="button">Activer la dictée</button>
+          <button class="bt" id="omdys-voix-non" type="button">Pas maintenant</button>
+        </div>
+      </div>
+    </div>
+    <div class="comps" id="omdys-comps"></div>
+    <div id="omdys-count" aria-live="polite"></div>
+    <div class="out" id="omdys-out" aria-live="polite" hidden></div>
+    <div class="tuiles" id="om-tuiles" hidden>
+      <div class="tuile twarn"><span class="gros" id="om-nvig">0</span><span>à vérifier</span></div>
+      <div class="tuile tok"><span class="gros" id="om-nfait">0</span><span id="om-nfaitlab">corrigés</span></div>
+    </div>
+    <div class="corr" id="omdys-corr" aria-live="polite"></div>
+    <div id="omdys-vig"></div>
+    <div id="omdys-stade" aria-live="polite"></div>
+  </section>
+
+  <section class="vue" id="vue-nombres" role="tabpanel" aria-labelledby="omdys-tab-nombres" hidden>
+    <div class="carte calcbox">
+      <label class="h2" for="omdys-num" style="display:block;margin:0 0 6px">Écris un nombre ou un calcul</label>
       <input id="omdys-num" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-             placeholder="Un nombre ou un calcul : 305, 12+5, 1000000…">
+             placeholder="305, 12+5, 1000000…">
       <div class="cgroupe" id="omdys-cgroupe" aria-live="polite"></div>
       <div class="clettres" id="omdys-clettres" aria-live="polite"></div>
-      <div class="cpos" id="omdys-cpos"></div>
     </div>
-  </details>
-  <details class="foot">
-    <summary>Correcteur 100 % hors-ligne.<span class="vi" aria-hidden="true">i</span><span class="vsr"> — voir le détail</span></summary>
-    <div class="vdet">La correction ne sort pas de ta machine (moteur identique à l'app, FP=0). La <b>dictée vocale</b>, si tu l'actives, utilise le service vocal du navigateur. La <b>lecture à voix haute</b> prend une voix installée sur ton ordinateur ; s'il n'a pas de voix française, Chrome utilise sa voix Google, en ligne. Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux. Le site complet (dictée, pendu, réglages) : <a href="https://omegapendu.com/" target="_blank" rel="noopener">omegapendu.com</a>.</div>
-  </details>
-</div>
+    <h2 class="h2 rangs">Ce que vaut chaque chiffre</h2>
+    <div class="cpos" id="omdys-cpos"></div>
+  </section>
+
+  <section class="vue" id="vue-reglages" role="tabpanel" aria-labelledby="omdys-tab-reglages" hidden>
+    <h2 class="h2">Mieux lire</h2>
+    <div class="carte">
+      <span class="etiq">Aperçu</span>
+      <div class="apercu" id="omdys-apercu">Les enfants jouent dans le jardin.</div>
+      <span class="etiq">Taille du texte</span>
+      <div class="seg" id="omdys-size" role="radiogroup" aria-label="Taille du texte">
+        <label class="sb"><input type="radio" name="omdys-size" value="p" checked><span>Normal</span></label>
+        <label class="sb"><input type="radio" name="omdys-size" value="m"><span>Grand</span></label>
+        <label class="sb"><input type="radio" name="omdys-size" value="g"><span>Très grand</span></label>
+      </div>
+      <span class="etiq">Couleurs du panneau</span>
+      <div class="seg" id="omdys-dark" role="radiogroup" aria-label="Couleurs du panneau">
+        <label class="sb"><input type="radio" name="omdys-dark" value="clair" checked><span>Clair</span></label>
+        <label class="sb"><input type="radio" name="omdys-dark" value="sombre"><span>Sombre</span></label>
+      </div>
+      <label class="ligne"><span class="ltx"><b>Police OMEGA Dys</b><span class="des">Plus d'espace entre les lettres et les mots, ici et sur les sites que tu consultes. Le texte ne change pas. Fermer ce panneau rend aux sites leur police.</span></span><input type="checkbox" id="omdys-font"><span class="sw"><span class="kn"></span></span></label>
+      <label class="ligne"><span class="ltx"><b>Police de son</b><span class="des">Les sons qui vibrent en épais, les autres en fin, les lettres muettes en couleur. Le texte ne change pas.</span></span><input type="checkbox" id="omdys-son"><span class="sw"><span class="kn"></span></span></label>
+      <label class="ligne"><span class="ltx"><b>Syllabes</b><span class="des">Une syllabe sur deux en bleu, avec la police de son.</span></span><input type="checkbox" id="omdys-syl"><span class="sw"><span class="kn"></span></span></label>
+      <label class="ligne"><span class="ltx"><b>Couleurs sur les sites</b><span class="des">Les mêmes couleurs sur les pages que tu lis. Leur texte ne change pas : les couleurs sont peintes par-dessus. Fermer ce panneau les retire.</span></span><input type="checkbox" id="omdys-sonsites"><span class="sw"><span class="kn"></span></span></label>
+    </div>
+
+    <h2 class="h2">Sur la page</h2>
+    <div class="carte" style="padding-top:3px;padding-bottom:3px">
+      <label class="ligne prem"><span class="ltx"><b>Recopier ce que je tape</b><span class="des">Ce que tu écris dans un champ de la page arrive ici.</span></span><input type="checkbox" id="omdys-mirror" checked><span class="sw"><span class="kn"></span></span></label>
+      <label class="ligne"><span class="ltx"><b>Bulle dans la page</b><span class="des">Une bulle de correction dans le site. Sans elle, tout se passe ici.</span></span><input type="checkbox" id="omdys-bubble"><span class="sw"><span class="kn"></span></span></label>
+    </div>
+
+    <h2 class="h2">Accords</h2>
+    <div class="carte">
+      <span class="etiq">J'écris</span>
+      <div class="seg" id="omdys-genre" role="radiogroup" aria-label="J'écris" style="margin-bottom:6px">
+        <label class="sb"><input type="radio" name="omdys-genre" value="" checked><span>Sans préciser</span></label>
+        <label class="sb"><input type="radio" name="omdys-genre" value="f"><span>Au féminin</span></label>
+        <label class="sb"><input type="radio" name="omdys-genre" value="m"><span>Au masculin</span></label>
+      </div>
+      <p class="note">Pour « je suis allé / allée », « je suis content / contente » : la proposition reste orange, à toi de choisir. Le choix reste sur cet ordinateur.</p>
+    </div>
+
+    <h2 class="h2">Dictée</h2>
+    <div class="carte" style="padding-top:3px;padding-bottom:3px">
+      <label class="ligne prem"><span class="ltx"><b>Dictée vocale</b><span class="des">Le son de ton micro part au service vocal de ton navigateur (Google), qui l'écrit. Il n'est écouté que pendant la dictée.</span></span><input type="checkbox" id="omdys-voice-ok"><span class="sw"><span class="kn"></span></span></label>
+    </div>
+
+    <details class="carte mots" id="omdys-mots" open hidden>
+      <summary>Mes mots <span id="omdys-motsn"></span></summary>
+      <div class="motsbox"><span class="note">Ces mots ne sont plus signalés. ✕ en retire un : il sera de nouveau signalé.</span><span id="omdys-motsliste" style="display:contents"></span></div>
+    </details>
+
+    <h2 class="h2">Aide</h2>
+    <div class="carte" style="padding-top:4px;padding-bottom:8px">
+      <a class="lien" href="aide.html" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 1c0 1.7-2.5 2.2-2.5 3.8"/><path d="M12 17.5h.01"/></svg>Mode d'emploi</a>
+      <a class="lien" id="omdys-site" href="https://omegapendu.com/" target="_blank" rel="noopener" title="Ouvrir le site OMEGA-Ω (app complète, dictée, pendu) dans un nouvel onglet"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg>omegapendu.com</a>
+      <details class="foot">
+        <summary>Correcteur 100 % hors-ligne.<span class="vi" aria-hidden="true">i</span><span class="vsr"> — voir le détail</span></summary>
+        <div class="vdet">La correction ne sort pas de ta machine. La <b>dictée vocale</b>, si tu l'actives, utilise le service vocal du navigateur. La <b>lecture à voix haute</b> prend une voix installée sur ton ordinateur ; s'il n'a pas de voix française, Chrome utilise sa voix Google, en ligne. Le site complet (dictée, pendu, réglages) : <a href="https://omegapendu.com/" target="_blank" rel="noopener">omegapendu.com</a>.</div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer class="pied" id="om-pied">
+  <button class="bt" id="omdys-fixall" type="button" disabled>Tout corriger</button>
+  <button class="bt" id="omdys-undo" type="button" hidden>Annuler</button>
+  <button class="bt pri" id="omdys-copy" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span class="lbl">Copier</span></button>
+</footer>
 <script src="calc_dys.js"></script>
 <script src="dys-core.js"></script>
 <script src="assets/g2p.js"></script><!-- ⭐ 16/10/2026 (liste n° 36) : le speller lit _DECL2.g2p dès l ouverture, pas seulement quand la police de son le charge -->

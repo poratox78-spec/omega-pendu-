@@ -78,9 +78,9 @@ node    extension/test_speller.js       # orthographe : FP=0 + parité ext ≡ a
 
 ## Police de son (panneau latéral)
 
-Case **« 🔡 Police de son »** (OFF par défaut) dans les réglages du panneau : ta saisie, et la liste
+Interrupteur **« Police de son »** (éteint par défaut) dans l'onglet Réglages du panneau : ta saisie, et la liste
 des corrections, s'affichent en police OMEGA Dys — phonème **voisé = épais**, **sourd = fin**,
-lettre **muette = vermillon** (teinte adaptée au fond clair/sombre). **« ✂️ Syllabes »** alterne la couleur
+lettre **muette = vermillon** (teinte adaptée au fond clair/sombre). **« Syllabes »** alterne la couleur
 des syllabes (règle de l'attaque maximale). Le texte ne change jamais : seuls des `<span>` d'habillage
 sont posés sur les nœuds texte (copier-coller = texte normal). Moteur : `assets/g2p.js` (g2p du moteur
 OMEGA, extrait verbatim de l'app par `build_assets.py`) + `assets/son_core.js` (identique à
@@ -89,7 +89,7 @@ première activation. Surface panneau seulement : on n'habille jamais un champ d
 
 ## Aide au nombre & calcul (panneau latéral)
 
-Bloc **« 🔢 Aide au nombre »** (repliable, `#omdys-calc`) dans le panneau : on y écrit un nombre ou une expression, et
+Onglet **« Nombres »** (`#omdys-tab-nombres`) du panneau : on y écrit un nombre ou une expression, et
 l'extension rend la réponse sous **trois formes** — groupé (`1 234 567`), **en toutes lettres**, et
 la **valeur de position** chiffre par chiffre (« le 3 de 305 vaut 300 »). C'est l'outil **rapide** :
 on écrit ailleurs, on veut le résultat, lisible.

@@ -73,7 +73,7 @@
   });
 
   // ---------- 2. police de son ----------
-  var sonCb = document.getElementById('omdys-son'), sylCb = document.getElementById('omdys-syl'), corr = document.getElementById('omdys-corr');
+  var sonCb = document.getElementById('omdys-son'), sylCb = document.getElementById('omdys-syl'), corr = document.getElementById('omdys-corr'), apercu = document.getElementById('omdys-apercu');
   if (!sonCb || !sylCb) return;
   var on = false, syl = false;
   try { on = localStorage.getItem('omdys_son') === '1'; syl = localStorage.getItem('omdys_syl') === '1'; } catch (e) {}
@@ -147,7 +147,7 @@
       if (keepCaret && off == null) off = caretOff();
       var dark = isDarkBg(container);
       var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null), nodes = [], n;
-      while ((n = walker.nextNode())) if (n.nodeValue && /[A-Za-zÀ-ÿœ]/.test(n.nodeValue)) nodes.push(n);
+      while ((n = walker.nextNode())) if (n.nodeValue && /[A-Za-zÀ-ÿœ]/.test(n.nodeValue) && !(n.parentNode.closest && n.parentNode.closest('button,.h2'))) nodes.push(n);   // ⭐ 30/10/2026 : le texte à lire, pas les commandes (« Appliquer » devenait illisible en chasse fixe)
       nodes.forEach(function (tn) { tn.parentNode.replaceChild(fragmentFor(tn.nodeValue, dark), tn); });
       if (keepCaret && off != null) setSel(off, off);
     } finally { busy = false; }
@@ -163,6 +163,7 @@
     deshabiller(ta);
     if (on) habiller(ta, true, off); else if (off != null) try { setSel(off, off); } catch (e) {}
     if (corr) { deshabiller(corr); if (on) habiller(corr); }
+    if (apercu) { deshabiller(apercu); if (on) habiller(apercu); }   // ⭐ 30/10/2026 : l'aperçu de Réglages montre tout de suite ce que change le réglage
   }
   var tAns = null;
   ta.addEventListener('input', function () { clearTimeout(tAns); tAns = setTimeout(function () { if (on) refresh(); }, 300); });
@@ -170,6 +171,7 @@
     for (var k = 0; k < muts.length; k++) if (muts[k].type === 'childList' && !busy) { habiller(ta, true); return; }
   }).observe(ta, {childList: true, subtree: true});
   if (corr) new MutationObserver(function () { if (!busy) habiller(corr); }).observe(corr, {childList: true});
+  new MutationObserver(function () { if (on && ready) refresh(); }).observe(document.body, {attributes: true, attributeFilter: ['class']});   // ⭐ 30/10/2026 : thème changé → couleurs des lettres recalculées (son-on-dark), l'aperçu est sur le même écran
   sonCb.addEventListener('change', function () {
     on = sonCb.checked;
     try { localStorage.setItem('omdys_son', on ? '1' : '0'); } catch (e) {}

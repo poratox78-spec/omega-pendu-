@@ -254,7 +254,7 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
         + '   ta.dispatchEvent(new Event("input", { bubbles: true }));'
         + '   const it = await until(() => [...document.querySelectorAll("#omdys-corr .item")].find(e => (e.textContent || "").indexOf(c.attendu.slice(-1)) >= 0), 30000);'
         + '   if (!it) { out.push({ txt: c.txt, item: null, valeur: ta.value }); continue; }'
-        + '   const lib = (it.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 60); it.click(); await w(300);'
+        + '   const lib = (it.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 60); (it.querySelector(".act") || it).click(); await w(300);'
         + '   out.push({ txt: c.txt, item: lib, valeur: ta.value }); }'
         + ' return { out }; })()' });
     if (rp.exceptionDetails) throw new Error('panneau : ' + ((rp.exceptionDetails.exception || {}).description || 'exception'));
@@ -742,7 +742,7 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       + ' const ta = document.getElementById("omdys-ta"), st = document.getElementById("omdys-st"); if (!ta) return { fatal: "zone omdys-ta introuvable" };'
       + ' if (!(await until(() => st && /pr[êe]t/i.test(st.textContent || ""), 30000))) return { fatal: "le panneau ne se dit jamais prêt" };'
       + ' const mir = document.getElementById("omdys-mirror"); if (mir && mir.checked) { mir.checked = false; mir.dispatchEvent(new Event("change", { bubbles: true })); }'
-      + ' const item = () => [...document.querySelectorAll("#omdys-corr .item")].find((e) => (e.textContent || "").indexOf(' + JSON.stringify('« ' + MOT12 + ' »') + ') === 0) || null;'
+      + ' const item = () => [...document.querySelectorAll("#omdys-corr .item")].find((e) => (e.textContent || "").indexOf(' + JSON.stringify(MOT12 + ' →') + ') === 0) || null;'
       + ' const mots = () => { const d = document.getElementById("omdys-mots"); return d ? { visible: !d.hidden, liste: [...d.querySelectorAll(".mot")].map((m) => (m.firstChild && m.firstChild.textContent) || "") } : null; };'
       + ' ta.focus(); ta.value = ' + JSON.stringify(TXT12) + '; ta.dispatchEvent(new Event("input", { bubbles: true }));'
       + ' const it = await until(item, 20000); if (!it) return { fatal: "aucune ligne « ' + MOT12 + ' » dans le panneau" };'
