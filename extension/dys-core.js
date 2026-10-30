@@ -665,6 +665,7 @@
     if(i>=2){var _pse=deacc(T[i-1].toLowerCase());
       if((_pse==='sais'||_pse==='sait')&&(function(){var _p2=deacc(T[i-2].toLowerCase());return _p2==='il'||_p2==='elle'||_p2==='on';})()&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}   // « il sais trompé » = frame s'est (orange saisVig) — ne pas fabriquer « sait tromper » ; « je sais nagé »→nager reste corrigé
 var w=T[i],lw=w.toLowerCase(),f;
+    if(_deXaY195(T,i))return null;   // ⭐ 30/10/2026 (liste n° 195) : « de fatigué à épuisé » — de X à Y
     if(lw.indexOf("d'")===0&&lw.indexOf("'")===lw.lastIndexOf("'")&&/é$/.test(lw)&&lw.length>4&&/^[a-zà-ÿœ]+$/.test(lw.slice(2))&&w.charAt(2)===w.charAt(2).toLowerCase()){   /* ⭐ 12/09/2026 : « d'utilisé un bateau » → d'utiliser — préposition ÉLIDÉE dans le token, mêmes gardes que la branche préposition (verbe -er du jeu curé, pas un nom : NOUN_E, _GACC). Miroir Python rule_e_er. */
       var _rd=lw.slice(2),_infd=_rd.slice(0,-1)+'er',_gd=_GACC[_rd];if(!NOUN_E[deacc(_rd)]&&COMMON_VERBS[deacc(_infd)]&&_gd!=='m'&&_gd!=='f')return w.slice(0,2)+_infd;return null;}
     if(_SEG&&_SEG.bb&&_SEG.bb[i])return null;   /* ⭐ 11/10/2026 — ponctuation de l'AUTEUR juste avant : le mot de gauche ne gouverne pas ce participe. « il doit, épuisé, s'arrêter » recevait « épuiser » en ROUGE, « il va, pressé, vers la gare » → presser. Miroir Python rule_e_er. */
@@ -697,6 +698,9 @@ var w=T[i],lw=w.toLowerCase(),f;
     else if(/er$/.test(d)&&d.length>3)inf=lw;else return null;
     return (inf.length>=4&&COMMON_VERBS[deacc(inf)])?inf:null;}
   function _catE(x){var d=deacc(x);if(/(ées|ée|és|é)$/.test(x))return 'part';if(/erai$/.test(d)||/ai$/.test(d))return 'fut1';if(/ez$/.test(d))return 'p2pl';if(/er$/.test(d))return 'inf';return null;}
+  function _ppOuAdj195(w){var d=deacc(w.toLowerCase());return _isPpl(w)||_isPplWideEr(w)||!!ADJP[d];}
+  function _deXaY195(T,i){if(i>=1&&deacc(T[i-1].toLowerCase())==='de'&&i+2<T.length&&/^(a|à)$/.test(T[i+1].toLowerCase())&&_ppOuAdj195(T[i+2]))return true;   // côté X : [de] X [à] Y
+    return i>=3&&/^(a|à)$/.test(T[i-1].toLowerCase())&&deacc(T[i-3].toLowerCase())==='de'&&_ppOuAdj195(T[i-2]);}   // côté Y — liste n° 195 : de X à Y, deux adjectifs ou participes
   function rFlexionEr(T,i){
     if(i>=2){var _psf=deacc(T[i-1].toLowerCase());
       if((_psf==='sais'||_psf==='sait')){var _p2f=deacc(T[i-2].toLowerCase());
@@ -712,6 +716,7 @@ var w=T[i],lw=w.toLowerCase();
     var d=deacc(lw);if(NOUN_E[d]||_FLEX_STOP[d]||NOUN_EE[d])return null;
     var stem=inf.slice(0,-2),forms={inf:inf,part:stem+'é',p2pl:stem+'ez',fut1:inf+'ai'},cur=_catE(lw);
     var praw=T[i-1].toLowerCase(),p=deacc(praw),tgt;
+    if(_deXaY195(T,i))return null;   // ⭐ 30/10/2026 (liste n° 195) : « passé de fatigué à épuisé » — de X à Y, ni « de + infinitif » ni « à + infinitif »
     var hypv=(nx==='vous'&&_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1]);
     if(hypv)tgt='p2pl';
     else if(praw==='à'||T[i-1]==='A'||T[i-1]==='À'){if(rA(T,i-1)==='a')return null;tgt='inf';}   // MÊME CASCADE que rEer : si le correcteur juge lui-même ce « à » faux (« statue à conservé »→« a »), l'ancre ne vaut rien — proposer l'infinitif fabriquerait « a conserver » (miroir Python rule_flexion_er)
@@ -1050,7 +1055,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var pb=(_SEG&&i<_SEG.bb.length)?_SEG.bb[i]:false;var tg=posTags(T);var p=cprev(T,i);   // POS PLEINE-PHRASE : sépare les FAUX participes (nom homographe / -ment nominal) du vrai participe → tue les FP à→a par élimination
     var pel=i>0?_ELIDED_PRON.exec(T[i-1].toLowerCase()):null;if(pel)p=deacc(pel[1]);   // « Lorsqu'il à faim » : le sujet vit DANS le token élidé ; le préfixe (qu'/s'/lorsqu'…) prouve un sujet PRÉVERBAL → le test d'inversion « avait-il » ne s'applique pas
     if(!pb&&(p==='il'||p==='elle'||p==='on'||p==='qui'||p==='ca'||p==='c')&&(pel||!_aaInverted(T,i)))return 'a';   // sujet 3sg net (pas à travers une virgule, pas inversé « avait-il ») → avoir
-    if(i+1<T.length&&_isPpl(T[i+1])&&!/ee$/.test(deacc(T[i+1].toLowerCase()))){var dn=deacc(T[i+1].toLowerCase()),nt=(tg&&i+1<tg.length)?tg[i+1]:'';if(T[i].toLowerCase()==='à'&&i>0&&_AA_ADJ_INF[deacc(T[i-1].toLowerCase())])return null;if(T[i].toLowerCase()==='à'&&i>0){var _ka=i-1;while(_ka>0&&_EER_ADV[deacc(T[_ka].toLowerCase())])_ka--;if(_aInfGouv(T,_ka))return null;}   /* ⭐ 04/10/2026 : « apprend à nagé » — le « à » reste, le verbe se corrige */if(!(_PP_NOUN_HOMO[dn]&&nt==='NOUN'))return 'a';}   // « a + participe » → AVOIR, jamais « à ». Écarte -ée FÉMININ (« à durée » reste prép) ET le nom-homographe tagué NOM (« condamnée à mort », « tout à fait »)
+    if(i+1<T.length&&_isPpl(T[i+1])&&!/ee$/.test(deacc(T[i+1].toLowerCase()))){var dn=deacc(T[i+1].toLowerCase()),nt=(tg&&i+1<tg.length)?tg[i+1]:'';if(T[i].toLowerCase()==='à'&&i>=2&&deacc(T[i-2].toLowerCase())==='de'&&_ppOuAdj195(T[i-1]))return null;   /* ⭐ 30/10/2026 (liste n° 195) : « de fatigué à épuisé » — de X à Y, pas avoir */if(T[i].toLowerCase()==='à'&&i>0&&_AA_ADJ_INF[deacc(T[i-1].toLowerCase())])return null;if(T[i].toLowerCase()==='à'&&i>0){var _ka=i-1;while(_ka>0&&_EER_ADV[deacc(T[_ka].toLowerCase())])_ka--;if(_aInfGouv(T,_ka))return null;}   /* ⭐ 04/10/2026 : « apprend à nagé » — le « à » reste, le verbe se corrige */if(!(_PP_NOUN_HOMO[dn]&&nt==='NOUN'))return 'a';}   // « a + participe » → AVOIR, jamais « à ». Écarte -ée FÉMININ (« à durée » reste prép) ET le nom-homographe tagué NOM (« condamnée à mort », « tout à fait »)
     if(i+2<T.length&&/ment$/.test(deacc(T[i+1].toLowerCase()))&&(tg&&i+1<tg.length&&tg[i+1]==='ADV')&&_isPpl(T[i+2]))return 'a';   // « a + ADVERBE(-ment) RÉEL + participe » ; exige POS=ADV → exclut « à l'emplacement », « à l'effondrement » (NOM en -ment)
     if(!pb&&vlike(T,i-1)&&!_adjSujet162(T,i)){if(T[i]==='a'&&i+1<T.length&&_isPplWideEr(T[i+1]))return null;   /* ⭐ 30/10/2026 (liste n° 194) : « un vélo rouillé a grincé » — « a » + participe d'un verbe du dictionnaire = avoir, même hors COMMON_VERBS */var pv=i>0&&NOUN_POST?NOUN_POST.get(deacc(T[i-1].toLowerCase())):null;if(pv&&pv[0]>=PL_TAU_M&&pv[1]<PL_EPS_M)return null;if(i>0&&T[i-1].charAt(0)!==T[i-1].charAt(0).toLowerCase()&&(i-1>0||PRENOMS[T[i-1]]))return null;return 'à';}   /* ⭐ ligne 38 : « Marie a dormie » — un nom propre avant « a » est un SUJET, pas le verbe « marie » (en tête de phrase : prénom connu seulement) ; le mot suivant ne décide pas ici (« elle continue a chantée » = à + infinitif mal écrit) */
     // ⭐ « a » devant NOM NU (31/08, chantier a→à — miroir Python) : AVOIR exige un déterminant
