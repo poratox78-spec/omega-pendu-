@@ -9,9 +9,184 @@
       stadeEl = document.getElementById('omdys-stade'), fixBtn = document.getElementById('omdys-fixall'),
       copyBtn = document.getElementById('omdys-copy'), mirCb = document.getElementById('omdys-mirror'),
       vigEl = document.getElementById('omdys-vig'), compsEl = document.getElementById('omdys-comps'),
-      undoBtn = document.getElementById('omdys-undo'), szSel = document.getElementById('omdys-size'),
-      dkCb = document.getElementById('omdys-dark'), bubCb = document.getElementById('omdys-bubble'),
+      undoBtn = document.getElementById('omdys-undo'), szSel = segment('omdys-size'),
+      dkCb = segSombre(), bubCb = document.getElementById('omdys-bubble'),
       ftCb = document.getElementById('omdys-font'), ssCb = document.getElementById('omdys-sonsites');
+
+  /* ⭐ 30/10/2026 — REFONTE DU PANNEAU (maquette validée par Rem, version A). Les réglages à choix sont des groupes de boutons radio :
+     même usage qu'un <select> (value, change), pour que le stockage et les règles ci-dessous restent identiques. */
+  function segment(id) {
+    var g = document.getElementById(id);
+    return {
+      get value() { var c = g && g.querySelector('input:checked'); return c ? c.value : ''; },
+      set value(v) { var c = g && g.querySelector('input[value="' + v + '"]'); if (c) c.checked = true; },
+      addEventListener: function (t, f) { if (g) g.addEventListener(t, f); }
+    };
+  }
+  function segSombre() {   // « Couleurs du panneau » : deux boutons, une seule clé (omDark)
+    var s = segment('omdys-dark');
+    return {
+      get checked() { return s.value === 'sombre'; },
+      set checked(v) { s.value = v ? 'sombre' : 'clair'; },
+      addEventListener: s.addEventListener
+    };
+  }
+  function lbl(b, t) { var s = b.querySelector('.lbl'); if (s) s.textContent = t; else b.textContent = t; }   // le mot change, l'icône reste
+  function majPill() { var p = document.getElementById('om-recopie'); if (p) p.hidden = !mirCb.checked; }
+
+  /* LES ONGLETS : Écrire, Nombres, Réglages. Le panneau s'ouvre toujours sur Écrire. Les boutons du bas ne servent qu'au texte. */
+  var VUES = ['ecrire', 'nombres', 'reglages'];
+  function montrerVue(v, focus) {
+    VUES.forEach(function (x) {
+      var o = document.getElementById('omdys-tab-' + x), s = document.getElementById('vue-' + x), oui = x === v;
+      o.setAttribute('aria-selected', oui ? 'true' : 'false'); o.tabIndex = oui ? 0 : -1; s.hidden = !oui;
+      if (oui && focus) o.focus();
+    });
+    document.getElementById('om-pied').hidden = v !== 'ecrire';
+    document.getElementById('om-corps').scrollTop = 0;
+  }
+  VUES.forEach(function (x, i) {
+    var o = document.getElementById('omdys-tab-' + x);
+    o.addEventListener('click', function () { montrerVue(x); });
+    o.addEventListener('keydown', function (e) {
+      var j = e.key === 'ArrowRight' ? (i + 1) % VUES.length : e.key === 'ArrowLeft' ? (i + VUES.length - 1) % VUES.length : e.key === 'Home' ? 0 : e.key === 'End' ? VUES.length - 1 : -1;
+      if (j >= 0) { e.preventDefault(); montrerVue(VUES[j], true); }
+    });
+  });
+  document.getElementById('om-recopie').addEventListener('click', function () { montrerVue('reglages'); });
+  new MutationObserver(function () { stEl.classList.toggle('ok', stEl.textContent === 'Prêt'); }).observe(stEl, { childList: true, characterData: true, subtree: true });
+
+  /* LES NOMS DES CORRECTIONS, EN MOTS SIMPLES. Le moteur garde ses noms (mesures, explications) ; seul l'affichage du panneau change.
+     dictee/textes_probe.js §9 vérifie que chaque nom du moteur est ici. Le ? marque une proposition à vérifier. */
+  var FAM_SIMPLE = {
+    "-e/-é (participe)": "e ou é",
+    "a/à": "a ou à",
+    "abréviation": "Abréviation",
+    "accent (âge)": "Accent",
+    "accord adjectif": "Accord de l'adjectif",
+    "accord adjectif antéposé": "Accord de l'adjectif",
+    "accord adjectif à vérifier": "Accord de l'adjectif ?",
+    "accord adjectif épithète": "Accord de l'adjectif",
+    "accord du participe après avoir à vérifier": "Participe après « avoir » ?",
+    "accord du verbe au sujet nominal à vérifier": "Accord du verbe ?",
+    "accord genre à vérifier": "Féminin ou masculin ?",
+    "accord grammatical (é/er)": "é ou er",
+    "accord participe": "Accord du participe",
+    "accord participe (COD avoir)": "Accord du participe",
+    "accord participe (dont)": "Accord du participe",
+    "accord participe à vérifier": "Accord du participe ?",
+    "accord participe épithète": "Accord du participe",
+    "accord pluriel nom": "Accord du nom",
+    "accord pluriel à vérifier": "Pluriel ?",
+    "accord singulier nom": "Accord du nom",
+    "accord sujet-verbe": "Accord du verbe",
+    "accord sujet-verbe à vérifier": "Accord du verbe ?",
+    "accord tout": "Accord de « tout »",
+    "accord verbe à vérifier": "Accord du verbe ?",
+    "adjectif en -ant/-ent": "-ant ou -ent",
+    "anglicisme": "Mot anglais",
+    "aux mal orthographié": "Orthographe",
+    "auxiliaire manquant à vérifier": "Mot oublié ?",
+    "c'est/ces à vérifier": "c'est ou ces ?",
+    "ce/se": "ce ou se",
+    "ces/ses à vérifier": "ces ou ses ?",
+    "cher/chez": "cher ou chez",
+    "conditionnel à vérifier": "Conditionnel ?",
+    "conjugaison après je à vérifier": "Verbe après « je » ?",
+    "contraction": "du, au, aux",
+    "davantage": "davantage",
+    "des/dès": "des ou dès",
+    "du/de": "du ou de",
+    "du/dû": "du ou dû",
+    "espace après la virgule": "Espace",
+    "espace avant la ponctuation": "Espace",
+    "espace double": "Espace",
+    "espacement": "Espace",
+    "est/et (proposition)": "est ou et",
+    "et/est": "et ou est",
+    "expression figée à vérifier": "Expression ?",
+    "forme en -ant à vérifier": "Forme en -ant ?",
+    "genre de la personne qui écrit": "Féminin ou masculin ?",
+    "genre déterminant": "Féminin ou masculin ?",
+    "guère/guerre": "guère ou guerre",
+    "homophone à vérifier": "Même son, autre mot ?",
+    "il y a": "il y a",
+    "impératif": "Impératif",
+    "impératif (pronom)": "Trait d'union",
+    "impératif à vérifier": "Impératif ?",
+    "infinitif après pronom sujet à vérifier": "Forme du verbe ?",
+    "infinitif après semi-auxiliaire à vérifier": "Forme du verbe ?",
+    "infinitif de but": "Forme du verbe",
+    "j'est/j'ai à vérifier": "j'ai ou je suis ?",
+    "la/là": "la ou là",
+    "leur/leurs": "leur ou leurs",
+    "mai/mais": "mai ou mais",
+    "mais/mes": "mais ou mes",
+    "majuscule": "Majuscule",
+    "majuscule initiale à vérifier": "Majuscule ?",
+    "met/mais": "met ou mais",
+    "mot coupé": "Mot coupé",
+    "mot inconnu": "Mot inconnu",
+    "mot soudé à vérifier": "Mots collés ?",
+    "mot-outil à vérifier": "Petit mot ?",
+    "nom féminin en -ée": "Nom féminin en -ée",
+    "nombre": "Nombre",
+    "nombre du déterminant à vérifier": "Singulier ou pluriel ?",
+    "négation": "Négation",
+    "on/ont": "on ou ont",
+    "on/ont après un sujet pluriel à vérifier": "on ou ont ?",
+    "orthographe": "Orthographe",
+    "ou/où": "ou, où",
+    "ou/où à vérifier": "ou, où ?",
+    "participe après auxiliaire": "Participe",
+    "participe après avoir": "Participe après « avoir »",
+    "participe après être à vérifier": "Participe après « être » ?",
+    "participe présent après « en » à vérifier": "Forme en -ant ?",
+    "passé simple (sans accent)": "Passé simple",
+    "personne du verbe": "Accord du verbe",
+    "personne du verbe par le son à vérifier": "Accord du verbe ?",
+    "personne du verbe à vérifier": "Accord du verbe ?",
+    "petit mot après le sujet à vérifier": "Petit mot ?",
+    "peu/peux/peut": "peu, peux ou peut",
+    "pluriel par le son à vérifier": "Pluriel ?",
+    "plutôt / plus tôt à vérifier": "plutôt ou plus tôt ?",
+    "pléonasme": "Mot en trop",
+    "point d'interrogation": "Point d'interrogation",
+    "point final": "Point final",
+    "près/prêt": "près ou prêt",
+    "qu'il (élision)": "Apostrophe",
+    "que/dont": "que ou dont",
+    "quel que soit": "quel que soit",
+    "qui/que": "qui ou que",
+    "répétition": "Mot répété",
+    "sais/sait": "sais ou sait",
+    "sait/s'est à vérifier": "sait ou s'est ?",
+    "si + conditionnel": "Après « si »",
+    "son/sont": "son ou sont",
+    "subjonctif à vérifier": "Subjonctif ?",
+    "sujet je": "Après « je »",
+    "sur/sûr": "sur ou sûr",
+    "temps du verbe à vérifier": "Temps du verbe ?",
+    "terminaison -er/-é/-ez/-ai": "-er, -é, -ez ou -ai",
+    "trait d'union": "Trait d'union",
+    "typographie": "Ponctuation",
+    "usage être/avoir": "être ou avoir",
+    "vingt/cent": "vingt, cent",
+    "virgule": "Virgule",
+    "virgule doublée": "Virgule en double",
+    "vit/vie": "vit ou vie",
+    "ça/sa": "ça ou sa",
+    "élision": "Apostrophe",
+    "élision fusionnée": "Apostrophe",
+    "élision inversée": "Apostrophe",
+    "être (ête)": "Orthographe"
+  };
+  var ICO = {
+    fleche: '<svg class="ic fleche" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>',
+    pourquoi: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.8 10.6c.7.6 1.1 1.3 1.2 2.4h5.2c.1-1.1.5-1.8 1.2-2.4A6 6 0 0 0 12 3z"/></svg>',
+    son: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg>',
+    livre: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg>'
+  };
 
   // ===== UNE SEULE ZONE DE CORRECTION (Rem, 07/2026 : « on garde que le panneau, c'est plus lisible ») : la bulle
   // flottante est DÉCOCHÉE par défaut. Elle reste à un clic — décocher ne coupe QUE la bulle et la correction auto
@@ -60,7 +235,7 @@
       var bulle = !!(o && o.enabled === true);
       var mir = (o && typeof o.omMir === 'boolean') ? o.omMir : !bulle;
       if (bulle && mir) mir = false;              // stockage incohérent (legacy) : la bulle stockée gagne
-      bubCb.checked = bulle; mirCb.checked = mir;
+      bubCb.checked = bulle; mirCb.checked = mir; majPill();
     });
     /* ⭐⭐ BULLE ET MIROIR SONT EXCLUSIFS (Rem, 2026-08-25 — il l'avait signalé avant, je ne l'avais
        pas cru). LE CONFLIT : `omdys-ta` est UNE SEULE zone écrite par DEUX sources — ce que
@@ -107,7 +282,7 @@
   // Accorde « je suis allé / allée », « je me suis trompé / trompée » : la marque reste ORANGE, jamais appliquée seule. Gardé dans
   // chrome.storage.local (PAS sync : rien ne suit le compte Google, rien n'est envoyé) ; « sans préciser » EFFACE la valeur.
   // Même clé que la bulle de la page (content.js), qui suit sans recharger.
-  var gnSel = document.getElementById('omdys-genre');
+  var gnSel = segment('omdys-genre');
   function appliqueGenre(v) { try { if (DC && DC.setAuteur) DC.setAuteur(v || null); } catch (e) {} }
   try {
     chrome.storage.local.get(['omGenre'], function (o) { var v = (o && o.omGenre) || ''; if (gnSel) gnSel.value = v; appliqueGenre(v); runNow(); });
@@ -131,7 +306,7 @@
     DC.loadLex({ vdc: chrome.runtime.getURL('assets/vdc-lex.json'), genderRelaxed: chrome.runtime.getURL('assets/gender-relaxed.tsv.gz'),
                  speller: sp, nom: nom, hmm: chrome.runtime.getURL('assets/pos-hmm.json.gz'), osLm: chrome.runtime.getURL('assets/os-subj-lm.json.gz'),
                  prenoms: chrome.runtime.getURL('assets/prenoms.tsv.gz'), gacc: chrome.runtime.getURL('assets/gender-acc.json.gz') })   // PRÉNOMS : l'asset était LIVRÉ mais JAMAIS CHARGÉ ici (« Marie est venu » muet dans l'extension, vu au banc navigateur réel 2026-08-21)
-      .then(function () { ready = true; stEl.textContent = 'prêt'; runNow(); })
+      .then(function () { ready = true; stEl.textContent = 'Prêt'; runNow(); })
       .catch(function (e) { stEl.textContent = 'erreur moteur'; });
     if (DC.loadSpellerLex) DC.loadSpellerLex(sp).then(runNow);
     if (DC.loadNounPost) DC.loadNounPost(nom).then(runNow);
@@ -273,7 +448,8 @@
     var flags = lastDg.flags || [];
     var redn = flags.filter(function (f) { return f.tier !== 'vigilance'; }).length;
     fixBtn.disabled = !redn;
-    cntEl.textContent = flags.length ? (flags.length + ' correction' + (flags.length > 1 ? 's' : '')) : (ta.value.trim() ? '✓ rien à corriger' : '');
+    copyBtn.disabled = !ta.value.trim();
+    cntEl.textContent = '';
     if (!ta.value.trim()) _ign = {};
     lastOut = corrige(ta.value, flags);
     var outEl = document.getElementById('omdys-out');
@@ -281,27 +457,42 @@
        rafraîchissement effacerait le mot surligné. Précaution ÉTROITE — on ne saute que CETTE mise
        à jour, jamais le reste du rendu. Le lecteur restaure la zone lui-même à l'arrêt. */
     if (window.__omLireEnCours) outEl = null;
-    if (outEl) { var oh = lastOut !== ta.value ? corrige(ta.value, flags, true) : ''; outEl.hidden = !oh; outEl.innerHTML = oh ? '<span class="lab">texte corrigé (c\'est lui que « Copier » copie) :</span><br>' + oh : ''; }
-    var h = '';
+    if (outEl) { var oh = lastOut !== ta.value ? corrige(ta.value, flags, true) : ''; outEl.hidden = !oh; outEl.innerHTML = oh ? '<span class="lab">Texte corrigé</span>' + oh : ''; }
+    /* ⭐ 30/10/2026 : d'abord ce qui demande un geste (« À vérifier » : c'est toi qui appliques), puis ce qui est déjà fait (« Déjà corrigé » : Annuler).
+       Un clic n'agit plus que sur un bouton : avant, toute la ligne était un bouton, et sélectionner un mot l'appliquait. */
+    var hVig = '', hFait = '', nVig = 0, nFait = 0;
     flags.forEach(function (f, k) {
-      var vig = f.tier === 'vigilance', orth = /orthographe|[ée]lision/.test(f.name || ''), off = !vig && !!_ign[_fk(f)];
-      h += '<div class="item' + (vig ? ' tvig' : (orth ? ' orth' : '')) + (vig ? '' : (off ? ' off' : ' done')) + '" data-k="' + k + '">' + (f.word ? '« ' + esc(f.word) + ' » → ' : 'ajouter ') + '<b>« ' + esc(f.word ? f.sugg : f.sugg.trim()) + ' »</b>'
-        + ' <span class="fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vig ? ' · à vérifier' : '')) + ']</span>'
-        + (vig ? '' : '<span class="etat">' + (off ? 'annulé · clique pour réappliquer' : '✓ appliqué à la copie · clique pour annuler') + '</span>')
-        + (f.hint ? '<button class="why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')
-        + '<button class="tts" data-k="' + k + '" type="button" title="écouter">🔊</button>'
-        + ((DC.udMot && DC.udMot(f)) ? '<button class="ud" data-k="' + k + '" type="button" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗</button>' : '')
-        + (f.hint ? '<div class="astuce" data-k="' + k + '" hidden>' + esc(f.hint) + '</div>' : '')
-        + '</div>';
+      var vig = f.tier === 'vigilance', off = !vig && !!_ign[_fk(f)], ud = !!(DC.udMot && DC.udMot(f));
+      var txt = '<div class="itxt"><div class="paire">' + (f.word ? '<span class="de">' + esc(f.word) + '</span><span class="vsr"> → </span>' + ICO.fleche : '<span class="de">ajouter</span> ') + '<span class="vers">' + esc(f.word ? f.sugg : f.sugg.trim()) + '</span></div>'
+        + ' <div class="fam">' + esc(FAM_SIMPLE[f.name] || f.name) + (off ? ' · annulé' : '') + '</div></div>';
+      var ast = f.hint ? '<div class="astuce" data-k="' + k + '" hidden>' + esc(f.hint) + '</div>' : '';
+      var tts = '<button class="bt car tts" data-k="' + k + '" type="button" title="Écouter" aria-label="Écouter">' + ICO.son + '</button>';
+      if (vig) {
+        nVig++;
+        hVig += '<div class="item tvig" data-k="' + k + '">' + txt + ast + '<div class="lignebt"><button class="bt pri act" data-k="' + k + '" type="button">Appliquer</button> '
+          + (f.hint ? '<button class="bt why" data-k="' + k + '" type="button">' + ICO.pourquoi + 'Pourquoi</button> ' : '')
+          + (ud ? '<button class="bt ud" data-k="' + k + '" type="button" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">' + ICO.livre + 'Mot juste</button> ' : '')
+          + tts + '</div></div>';
+      } else {
+        if (!off) nFait++;
+        hFait += '<div class="item ' + (off ? 'off' : 'done') + '" data-k="' + k + '"><div class="ihaut">' + txt + ' <div class="lignebt">'
+          + (f.hint ? '<button class="bt car why" data-k="' + k + '" type="button" title="Pourquoi" aria-label="Pourquoi">' + ICO.pourquoi + '</button> ' : '')
+          + (ud ? '<button class="bt car ud" data-k="' + k + '" type="button" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler" aria-label="Mot juste">' + ICO.livre + '</button> ' : '')
+          + tts + ' <button class="bt act" data-k="' + k + '" type="button">' + (off ? 'Remettre' : 'Annuler') + '</button></div></div>' + ast + '</div>';
+      }
     });
-    corr.innerHTML = h;
-    var items = corr.querySelectorAll('.item');
-    for (var z = 0; z < items.length; z++) (function (node) {
-      node.onclick = function (ev) { if (ev.target.closest('.why') || ev.target.closest('.astuce') || ev.target.closest('.tts') || ev.target.closest('.ud')) return;
-        var f = flags[+node.getAttribute('data-k')]; if (!f) return;
+    corr.innerHTML = (hVig ? '<h2 class="h2">À vérifier</h2>' + hVig : '') + (hFait ? '<h2 class="h2">Déjà corrigé</h2>' + hFait : '');
+    document.getElementById('om-tuiles').hidden = !flags.length;
+    document.getElementById('om-nvig').textContent = nVig;
+    document.getElementById('om-nfait').textContent = nFait;
+    document.getElementById('om-nfaitlab').textContent = nFait > 1 ? 'corrigés' : 'corrigé';
+    var acts = corr.querySelectorAll('.act');
+    for (var z = 0; z < acts.length; z++) (function (b) {
+      b.onclick = function () {
+        var f = flags[+b.getAttribute('data-k')]; if (!f) return;
         if (f.tier === 'vigilance') { applyFlag(f); return; }                 // ORANGE : au clic, dans la zone (inchangé)
         var key = _fk(f); if (_ign[key]) delete _ign[key]; else _ign[key] = true; runNow(); };   // ROUGE : bascule appliqué/annulé dans la copie
-    })(items[z]);
+    })(acts[z]);
     var whys = corr.querySelectorAll('.why');
     for (var w = 0; w < whys.length; w++) (function (b) { b.onclick = function (e) { e.stopPropagation(); var a = corr.querySelector('.astuce[data-k="' + b.getAttribute('data-k') + '"]'); if (a) a.hidden = !a.hidden; }; })(whys[w]);
     var tts = corr.querySelectorAll('.tts');
@@ -311,7 +502,7 @@
     // aide-frappe (clic pour insérer le mot en cours)
     var cs = compsAt(), ch = '';
     if (cs.length) {
-      ch = '<span class="lab">✏️ compléter :</span>' + cs.map(function (c, j) {
+      ch = '<span class="lab">Compléter :</span>' + cs.map(function (c, j) {
         return '<button class="cbtn" data-j="' + j + '" type="button">' + esc(c.word) + '</button>';
       }).join('');
     }
@@ -324,12 +515,12 @@
     var conf = (DC.vigText && txt.trim()) ? DC.vigText(txt) : [];          // confusables
     var ro = (DC.runonText && txt.trim()) ? DC.runonText(txt) : [];        // ponctuation manquante entre 2 propositions
     if (conf.length) {
-      vg += '<div class="vig"><div class="vlab">🟢 à vérifier — mots confusables</div>';
+      vg += '<div class="vig"><div class="vlab">À relire : mots qui se ressemblent</div>';
       conf.forEach(function (v) { vg += '<div class="vitem">« ' + esc(v.word) + ' » — ' + esc(v.info) + '</div>'; });
       vg += '</div>';
     }
     if (ro.length) {
-      vg += '<div class="vig"><div class="vlab">🟢 à vérifier — ponctuation</div>';
+      vg += '<div class="vig"><div class="vlab">À relire : ponctuation</div>';
       ro.forEach(function (r) { vg += '<div class="vitem">entre « ' + esc(r.a) + ' » et « ' + esc(r.b) + ' » — ponctuation manquante ? (virgule ou point selon le sens)</div>'; });
       vg += '</div>';
     }
@@ -339,7 +530,7 @@
 
     // remédiation (couche dys) — ⛔ plus de « Stade » (14/09/2026, rapport de Rem : affiché presque partout, message souvent faux ; cf. dys-core.js)
     var s = '';
-    if (dg && dg.remed && dg.remed.length) s = '<div class="remed"><b>🛠️ Remédiation</b><br>' + dg.remed.map(esc).join('<br>') + '</div>';
+    if (dg && dg.remed && dg.remed.length) s = '<div class="remed"><b>Pour retenir</b><br>' + dg.remed.map(esc).join('<br>') + '</div>';
     else if (ta.value.trim() && !flags.length && !conf.length && !ro.length) s = '<div class="ok-msg">✓ Aucune faute détectée.</div>';
     stadeEl.innerHTML = s;
   }
@@ -360,8 +551,8 @@
   copyBtn.onclick = function () {
     function fini(ok) {
       copyBtn.classList.toggle('ok', ok);
-      copyBtn.textContent = ok ? '✓ Copié' : '⚠ copie refusée — Ctrl+C';
-      setTimeout(function () { copyBtn.classList.remove('ok'); copyBtn.textContent = '📋 Copier'; }, ok ? 1400 : 3200);
+      lbl(copyBtn, ok ? 'Copié' : 'copie refusée — Ctrl+C');
+      setTimeout(function () { copyBtn.classList.remove('ok'); lbl(copyBtn, 'Copier'); }, ok ? 1400 : 3200);
     }
     var txt = (lastOut != null ? lastOut : ta.value);              // ROUGES D'OFFICE : la copie sort corrigée (auto + rouge non révoqués)
     function repli() {
@@ -385,8 +576,8 @@
   var SR = self.SpeechRecognition || self.webkitSpeechRecognition;
   var rec = null, recording = false, vstop = null;   // vstop : posé par startRec(), c'est LUI qui arrête pour de vrai (cf. onend)
   function voiceStatus(m) { stEl.textContent = m; }
-  function setVoiceEnabled(on) { micBtn.disabled = !(on && SR); if (!on && recording) stopRec(); }
-  if (!SR) { voiceCb.disabled = true; voiceCb.parentNode.title = 'Reconnaissance vocale non supportée par ce navigateur'; }
+  function setVoiceEnabled(on) { micBtn.disabled = !SR; if (!on && recording) stopRec(); }
+  if (!SR) { voiceCb.disabled = true; voiceCb.parentNode.title = micBtn.title = 'Reconnaissance vocale non supportée par ce navigateur'; }
   try { chrome.storage.local.get(['omVoice'], function (o) { var on = !!(o && o.omVoice); voiceCb.checked = on; if (on) { mirCb.checked = false; majMir(); } setVoiceEnabled(on); }); } catch (e) {}
   // EXCLUSION MUTUELLE voix ↔ miroir : les deux écrivent dans la MÊME textarea et se battaient (il fallait décocher/recocher).
   // Activer l'un désactive l'autre. Le miroir lit `mirCb.checked` en direct (l.~185) → le décocher le coupe aussitôt.
@@ -394,6 +585,7 @@
     if (voiceCb.checked && mirCb.checked) { mirCb.checked = false; majMir(); }   // ⭐ 09/09 : persister, sinon la recopie revenait cochée au retour
     try { chrome.storage.local.set({ omVoice: voiceCb.checked }); } catch (e) {}
     setVoiceEnabled(voiceCb.checked);
+    fermerDemandeVoix();
     if (voiceCb.checked) demanderMicro();
   });
   /* ⚠️⚠️ CORRECTION 2026-08-10 — LA PRÉ-DEMANDE NE POUVAIT PAS MARCHER, ET ELLE ÉCHOUAIT EN SILENCE.
@@ -412,12 +604,12 @@
     };
     if (!navigator.permissions || !navigator.permissions.query) { ouvre(); return; }
     navigator.permissions.query({ name: 'microphone' }).then(function (p) {
-      if (p.state === 'granted') voiceStatus('micro autorisé — clique 🎤 Dicter');
+      if (p.state === 'granted') voiceStatus('micro autorisé — clique Dicter');
       else if (p.state === 'denied') voiceStatus('micro bloqué : réautorise-le dans les réglages de site de Chrome');
       else ouvre();                                   // 'prompt' : l'invite ne peut pas s'afficher ICI → onglet
     }).catch(function () { ouvre(); });
   }
-  function majMir() { try { chrome.storage.local.set({ omMir: mirCb.checked }); } catch (e) {} verifBranche(0); }   // ⭐ 09/09 : la recopie n'était PAS persistée du tout
+  function majMir() { majPill(); try { chrome.storage.local.set({ omMir: mirCb.checked }); } catch (e) {} verifBranche(0); }   // ⭐ 09/09 : la recopie n'était PAS persistée du tout
 
   /* ⭐ DIRE POURQUOI LE PANNEAU RESTE VIDE (19/09/2026, rapport de Rem : « si l'extension est chargée
      après la page ça marche pas »). Reproduit et mesuré : un `content_scripts` ne s'injecte jamais dans
@@ -468,7 +660,7 @@
     if (mirCb.checked && bubCb.checked) { bubCb.checked = false; try { chrome.storage.local.set({ enabled: false }); } catch (e) {} }
     if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
   });
-  function stopRec() { if (vstop) { vstop(); } else { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} } }
+  function stopRec() { if (vstop) { vstop(); } else { recording = false; lbl(micBtn, 'Dicter'); micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} } }
   // ── PROSODIE PARALLÈLE (voie A) — identique au site : Web Speech ne donne que du texte ; on capte le micro
   //    nous-mêmes (Web Audio, zéro modèle) → silence → « , . », pitch (F0) → « ? », ancrés sur les segments
   //    finaux. Dégradant : getUserMedia async ne peut pas casser startRec, fallback capitalize() seul. NON testé sans micro.
@@ -1003,35 +1195,44 @@
           var fatale = (lastErr === 'not-allowed' || lastErr === 'service-not-allowed' || lastErr === 'audio-capture');   // relancer ne réparera pas un micro refusé/absent
           if (!userStop && !fatale) {   // NE PAS toucher S.finals/S.ftimes (cf. commentaire plus haut) — juste décaler l'index du prochain objet SR
             decalage = 1 + Object.keys(S.finals).reduce(function (m, k) { return Math.max(m, +k); }, -1); lastErr = ''; armer(false); return; }
-          recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); vstop = null;
+          recording = false; lbl(micBtn, 'Dicter'); micBtn.classList.remove('rec'); vstop = null;
           S.tEnd = Date.now() - S.t0;
           audioStop(S);   // ⛔ était AVALÉ dans le commentaire ci-dessous depuis le miroir PR#493 : le micro (voie A) ne se relâchait plus en fin de dictée
           S.finals = _dedupFinalsSur(S.finals);   // deltas propres avant la ponctuation
           var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
           ta.value = pt || capitalize(ta.value);
           runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
-          if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — clique la case « dictée vocale » pour rouvrir la page d’autorisation', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
+          if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — dans Réglages, éteins puis rallume la dictée vocale pour rouvrir la page d’autorisation', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
           else if (!gotAny) voiceStatus(tr.a && !tr.s ? 'rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans les réglages de Chrome' : 'aucun son capté — micro non détecté');
           else if (ready) voiceStatus('✓ ponctué + corrigé — copie & colle  ·  audio ' + ((S.au && S.au.tl) ? S.au.tl.length : 0) + 'f');
         };
-        recording = true; micBtn.textContent = '⏹ Stop'; micBtn.classList.add('rec');
+        recording = true; lbl(micBtn, 'Arrêter'); micBtn.classList.add('rec');
         if (premiere) voiceStatus('🎤 démarrage…');
         rec.start();
         // filet : si dans 1,5 s rien n'a démarré (ni onstart, ni onerror, ni onend), le prévenir
         if (premiere) setTimeout(function () { if (recording && stEl.textContent.indexOf('démarrage') >= 0) voiceStatus('le micro tarde à répondre… vérifie l’autorisation et le micro par défaut de Chrome'); }, 1500);
-      } catch (e) { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); vstop = null; voiceStatus('démarrage impossible : ' + ((e && (e.name + ' — ' + e.message)) || 'erreur inconnue')); }
+      } catch (e) { recording = false; lbl(micBtn, 'Dicter'); micBtn.classList.remove('rec'); vstop = null; voiceStatus('démarrage impossible : ' + ((e && (e.name + ' — ' + e.message)) || 'erreur inconnue')); }
     })(true);
   }
-  micBtn.addEventListener('click', function () { if (recording) stopRec(); else startRec(); ta.focus(); });
+  /* ⭐ 30/10/2026 : un seul bouton « Dicter ». Dictée éteinte, le premier clic dit où part le son et demande l'accord, AVANT tout accès au micro :
+     le consentement reste explicite (même clé omVoice, même chemin que l'interrupteur de Réglages). */
+  var voixDem = document.getElementById('om-voix-demande');
+  function fermerDemandeVoix() { if (voixDem) voixDem.hidden = true; micBtn.classList.remove('demande'); }
+  micBtn.addEventListener('click', function () {
+    if (!voiceCb.checked) { var montre = voixDem.hidden; voixDem.hidden = !montre; micBtn.classList.toggle('demande', montre); return; }
+    if (recording) stopRec(); else startRec(); ta.focus();
+  });
+  document.getElementById('omdys-voix-oui').addEventListener('click', function () { voiceCb.checked = true; voiceCb.dispatchEvent(new Event('change', { bubbles: true })); });
+  document.getElementById('omdys-voix-non').addEventListener('click', fermerDemandeVoix);
 
   /* ⭐ AIDE AU NOMBRE (dyscalculie) — voir l'en-tête de calc_dys.js pour le pourquoi.
      On n'affiche PAS un résultat de calcul : on montre le nombre sous ses trois formes, parce que
      c'est là que ça coince. Groupé (1 000 000 se lit d'un coup d'œil), en LETTRES (la police de son
      sait habiller ça, elle est inerte sur les chiffres — mesuré), et découpé par VALEUR DE POSITION
      avec une couleur par rang (« le 3 de 305 vaut trois cents »).
-     ⚠️ Dégradation : si `calc_dys.js` n'a pas chargé, le bloc est RETIRÉ plutôt que présent et muet. */
+     ⚠️ Dégradation : si `calc_dys.js` n'a pas chargé, l'onglet est RETIRÉ plutôt que présent et muet. */
   (function () {
-    var det = document.getElementById('omdys-calc'), inp = document.getElementById('omdys-num');
+    var det = document.getElementById('omdys-tab-nombres'), inp = document.getElementById('omdys-num');
     if (!det || !inp) return;
     if (typeof CALCDYS === 'undefined') { det.style.display = 'none'; return; }
     var gEl = document.getElementById('omdys-cgroupe'), lEl = document.getElementById('omdys-clettres'),
@@ -1070,7 +1271,7 @@
     });
   })();
 
-  /* ⭐ LIRE À VOIX HAUTE — MIROIR du bouton « 🔊 Lire » de l'app (vdc-lire). Il MANQUAIT au panneau :
+  /* ⭐ LIRE À VOIX HAUTE (bouton « Écouter ») — MIROIR du bouton « 🔊 Lire » de l'app (vdc-lire). Il MANQUAIT au panneau :
      `speak()` n'y servait qu'à lire l'EXPLICATION d'une correction, jamais le TEXTE. Or beaucoup de
      fautes s'entendent mieux qu'elles ne se voient — un mot oublié, une tournure bancale, une
      répétition (doctrine de l'audibilité).
@@ -1089,7 +1290,7 @@
     function stop() {
       try { speechSynthesis.cancel(); } catch (e) {}
       enCours = false; window.__omLireEnCours = false;
-      br.setAttribute('aria-pressed', 'false'); br.textContent = '🔊 Lire';
+      br.setAttribute('aria-pressed', 'false'); lbl(br, 'Écouter');
       var o = document.getElementById('omdys-out');
       if (o && avant !== null) { o.innerHTML = avant; o.hidden = !!avantHidden; avant = null; }
     }
@@ -1137,7 +1338,7 @@
           } catch (e2) {}
         };
         enCours = true; window.__omLireEnCours = true;
-        br.setAttribute('aria-pressed', 'true'); br.textContent = '⏹ Stop';
+        br.setAttribute('aria-pressed', 'true'); lbl(br, 'Arrêter');
         speechSynthesis.speak(u);
       } catch (e) { stop(); }
     });

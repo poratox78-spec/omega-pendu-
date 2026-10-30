@@ -189,8 +189,8 @@ const SCRIPT_EXT = (cas) => `(async () => {
   try {
     const ta = await jusqua('textarea omdys-ta', () => document.getElementById('omdys-ta'), 30000);
     const lire = () => [...document.querySelectorAll('#omdys-corr .item')].map(e => {
-      const m = (e.textContent || '').match(/«\\s*(.+?)\\s*»\\s*→\\s*«\\s*(.+?)\\s*»/);
-      return { word: m ? m[1] : '', sugg: m ? m[2] : '', vig: /tvig/.test(e.className) }; });
+      const de = e.querySelector('.de'), vers = e.querySelector('.vers');
+      return { word: de ? de.textContent.trim() : '', sugg: vers ? vers.textContent.trim() : '', vig: /tvig/.test(e.className) }; });
     /* ATTENDRE SANS HARCELER : re-déclencher « input » toutes les 150 ms relance le debounce du
        panneau à chaque tour et il ne rend JAMAIS (vécu : « venue » invisible alors que le moteur
        répondait). Une frappe, puis on observe ; on re-frappe toutes les 3 s au plus. */
