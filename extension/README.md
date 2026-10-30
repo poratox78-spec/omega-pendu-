@@ -123,3 +123,4 @@ la division en potence — est sur le site, pas ici : le panneau sert à aller v
 
 ## Licence
 Code MIT. Données de `assets/` dérivées de Lexique 4 et du Wiktionnaire (**CC BY-SA 4.0**) et de Morphalou 3.1 (ATILF, CNRS - Université de Lorraine, **LGPL-LR**) — voir `../NOTICE` et `../LICENSE-LGPL-LR.txt` dans le dépôt, et la page Données du site (omegapendu.com/donnees).
+Police du panneau : Atkinson Hyperlegible (Braille Institute, **SIL OFL 1.1**), texte de la licence dans `assets/Atkinson-OFL.txt`.
