@@ -524,7 +524,28 @@
 "Le retard est dû à la neige.",
 "Les yeux fermés, il écoute.",
 "A-t-elle fini son café ?",
-"Sans aucun doute qu'ils ont faim."
+"Sans aucun doute qu'ils ont faim.",
+"Ma tante s'est coupée.",
+"Les voisines se sont croisées.",
+"Elle s'est coupé la main.",
+"Le chat et le chien dorment.",
+"La grange qui est restée vide tombe.",
+"Il y a eu un orage.",
+"Elles ont été vues.",
+"Tant que tu dors, je lis.",
+"La porte dans laquelle il entre est bleue.",
+"Le mur sur lequel il grimpe est haut.",
+"Quelle porte ouvrir ?",
+"N'importe quelle veste ira.",
+"Aucun élève ne bouge.",
+"Chers voisins, merci.",
+"Différents fruits mûrissent.",
+"Une demi-heure passe.",
+"Il est trois heures et demie.",
+"De vieilles caves sentent le vin.",
+"Elle est toute contente.",
+"Le meuble mesure deux mètres de long, trois de large.",
+"Lundi et mardi sont des jours calmes."
 ],
 "elide": [
 [
@@ -1656,6 +1677,96 @@
 "Ne court pas ici.",
 "court",
 "cours"
+],
+[
+"Ma tante s'est coupé.",
+"coupé",
+"coupée"
+],
+[
+"Les filles se sont croisé.",
+"croisé",
+"croisées"
+],
+[
+"La voisine et partie tôt.",
+"et",
+"est"
+],
+[
+"Il y a eus deux orages.",
+"eus",
+"eu"
+],
+[
+"Elles ont étés vues.",
+"étés",
+"été"
+],
+[
+"Temps que tu dors, je lis.",
+"Temps",
+"Tant"
+],
+[
+"La porte dans lequel il entre est bleue.",
+"lequel",
+"laquelle"
+],
+[
+"Je me demande quel veste choisir.",
+"quel",
+"quelle"
+],
+[
+"Aucuns élève ne bouge.",
+"Aucuns",
+"Aucun"
+],
+[
+"Cher voisins, merci.",
+"Cher",
+"Chers"
+],
+[
+"Il goûte différent fruits.",
+"différent",
+"différents"
+],
+[
+"Il reste quelques trente chaises.",
+"quelques",
+"quelque"
+],
+[
+"Une demie-heure passe.",
+"demie",
+"demi"
+],
+[
+"Il est trois heures et demi.",
+"demi",
+"demie"
+],
+[
+"De vieille caves sentent le vin.",
+"vieille",
+"vieilles"
+],
+[
+"Elle est tout contente.",
+"tout",
+"toute"
+],
+[
+"Ce sont ces prunes que mon père a planté.",
+"planté",
+"plantées"
+],
+[
+"Ils s'endort vite.",
+"s'endort",
+"s'endorment"
 ]
 ],
 "palier": [
