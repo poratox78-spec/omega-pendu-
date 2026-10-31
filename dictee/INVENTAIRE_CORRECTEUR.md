@@ -81,7 +81,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 62 | mot-outil à vérifier | `rTant299` | `—` | orange | homophone_gram | — |
 | 63 | accord adjectif antéposé | `rLequel299` | `—` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), genre accentué |
 | 64 | accord adjectif antéposé | `rQuelNom299` | `—` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
-| 65 | accord adjectif antéposé | `rPetits299` | `—` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, noun-post |
+| 65 | accord adjectif antéposé | `rPetits299` | `—` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post |
 | 66 | accent manquant | `rDemi299` | `—` | rouge | accent | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 67 | accord adjectif antéposé | `rDeAdj299` | `—` | rouge, orange dans un cas posé par la règle | accord | noun-post |
 | 68 | accord tout | `rToutFem299` | `—` | rouge, orange dans un cas posé par la règle | accord | vdc-lex (conjugaison, genre, pluriels) |
@@ -247,7 +247,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 |---|---|---|---|---|
 | vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 147 / 167 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `_ppOuAdj195` … (135) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 115 / 167 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rAccordIncise` `rDetGenre` `_tousFem101` … (25) |
-| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 68 / 167 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (70) |
+| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 69 / 167 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (70) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 37 / 167 | `_etreAttrEr` `_eerVerbeRare188` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` … (36) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 52 / 167 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 167 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
