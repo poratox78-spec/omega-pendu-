@@ -606,7 +606,75 @@
 "Le prix est juste a dit Paul.",
 "Mon frère est né à Rennes sa sœur est peintre.",
 "Elle a pris le bus.",
-"Ce qu'il a met fin au doute."
+"Ce qu'il a met fin au doute.",
+"Certains mangent des pommes.",
+"Plusieurs viennent ce soir.",
+"Certains élèvent des chèvres.",
+"Les règles prises par le club.",
+"La maison est grande.",
+"Elle est seule.",
+"Elle est grand-mère.",
+"Les portes sont grandes ouvertes.",
+"Il est grand.",
+"Des murs hauts et solides.",
+"Les gouvernements français et allemand.",
+"Les tables très solides.",
+"La grande usine mondiale.",
+"Une clé mise de côté.",
+"Un cahier rempli.",
+"Une cuisine remplie.",
+"Un nouveau jeu.",
+"Un vieux jeu.",
+"Une belle fleur.",
+"Il a une plus grande maison.",
+"Il ferme une porte.",
+"Un porte-clés.",
+"L'un porte un chapeau.",
+"D'autre part, il vient.",
+"D'autres pays arrivent.",
+"Il parle au voisin.",
+"Il parle aux voisins.",
+"De nombreuses photos.",
+"Paul veut venir.",
+"Je veux partir.",
+"Beaucoup de gens utilisent ça.",
+"Tu manges.",
+"Les rues avancent vite.",
+"Les murs les isolent.",
+"Là où des savants travaillent.",
+"Ils répondent et punissent.",
+"Il a mangé.",
+"Il a des portes.",
+"Elle a ses raisons.",
+"On chantait.",
+"Ils ont chanté.",
+"Je me suis douché.",
+"Il aime le marché.",
+"Il aime marcher.",
+"Vis-à-vis de lui.",
+"Il a pris part aux jeux.",
+"Il coûte cher le pain.",
+"Les dés roulent.",
+"Un jeu de dés.",
+"Noir de jais.",
+"Il va au marché.",
+"Le mois de mars.",
+"Le mois prochain.",
+"Il s'ensuit un débat.",
+"L'or du roi brille.",
+"Il est bien sur la table.",
+"C'est moi la reine.",
+"Le poste me plaît.",
+"Un poste calme.",
+"Un manche court.",
+"Un voile blanc.",
+"Un livre ouvert.",
+"Il passe au marché.",
+"Elle ouvre son sac.",
+"Mes chers amis.",
+"Mon fils casse tout exprès.",
+"Elle mange, mais il dort.",
+"Il dort mais rêve."
 ],
 "elide": [
 [
@@ -2078,6 +2146,331 @@
 "Dis-moi qu'elle robe tu préfères.",
 "qu'elle",
 "quelle"
+],
+[
+"Certains élève dorment.",
+"élève",
+"élèves"
+],
+[
+"Plusieurs chose étonnent.",
+"chose",
+"choses"
+],
+[
+"Les règles prise par le club.",
+"prise",
+"prises"
+],
+[
+"La maison est grand.",
+"grand",
+"grande"
+],
+[
+"Elle est seul.",
+"seul",
+"seule"
+],
+[
+"Des murs hauts et solide.",
+"solide",
+"solides"
+],
+[
+"Les murs sont hauts et solide.",
+"solide",
+"solides"
+],
+[
+"Des fleurs rouges et blanche.",
+"blanche",
+"blanches"
+],
+[
+"Les tables très solide.",
+"solide",
+"solides"
+],
+[
+"La grande usine mondial.",
+"mondial",
+"mondiale"
+],
+[
+"Une clé mis.",
+"mis",
+"mise"
+],
+[
+"Un cahier remplie.",
+"remplie",
+"rempli"
+],
+[
+"Un chat perdue.",
+"perdue",
+"perdu"
+],
+[
+"Le poème écrite.",
+"écrite",
+"écrit"
+],
+[
+"Un nouveaux jeu.",
+"nouveaux",
+"nouveau"
+],
+[
+"Une belles fleur.",
+"belles",
+"belle"
+],
+[
+"Elle veut un plus jolie robe.",
+"un",
+"une"
+],
+[
+"Il ferme un porte.",
+"un",
+"une"
+],
+[
+"D'autre clients arrivent.",
+"D'autre",
+"D'autres"
+],
+[
+"Il pense au diverses règles.",
+"au",
+"aux"
+],
+[
+"Il parle aux voisin.",
+"voisin",
+"voisins"
+],
+[
+"Il a pris de nombreuses photo.",
+"photo",
+"photos"
+],
+[
+"Paul veux partir.",
+"veux",
+"veut"
+],
+[
+"Ma tante peux venir.",
+"peux",
+"peut"
+],
+[
+"Le maire n'avais aucun doute.",
+"n'avais",
+"n'avait"
+],
+[
+"Beaucoup de gens utilises ça.",
+"utilises",
+"utilisent"
+],
+[
+"Quelques voisins en utilises.",
+"utilises",
+"utilisent"
+],
+[
+"Les murs les isole du bruit.",
+"isole",
+"isolent"
+],
+[
+"Là où des savants travaille.",
+"travaille",
+"travaillent"
+],
+[
+"Les profs répondent et punisse.",
+"punisse",
+"punissent"
+],
+[
+"Il a manges.",
+"manges",
+"mangé"
+],
+[
+"Elle a chantes.",
+"chantes",
+"chanté"
+],
+[
+"Ils ont chantais.",
+"chantais",
+"chanté"
+],
+[
+"Nous avons tous eux la grippe.",
+"eux",
+"eu"
+],
+[
+"Je me suis peignes.",
+"peignes",
+"peigné"
+],
+[
+"Il aime marché.",
+"marché",
+"marcher"
+],
+[
+"Vis à vie de lui.",
+"vie",
+"vis"
+],
+[
+"Il a écrit part erreur.",
+"part",
+"par"
+],
+[
+"Elle essaie des me répondre.",
+"des",
+"de"
+],
+[
+"Nous allons cher Paul.",
+"cher",
+"chez"
+],
+[
+"Paul dort chez luit.",
+"luit",
+"lui"
+],
+[
+"En pane depuis mardi.",
+"pane",
+"panne"
+],
+[
+"Il va o marché.",
+"o",
+"au"
+],
+[
+"Il joue o foot.",
+"o",
+"au"
+],
+[
+"Bon sé ma clé.",
+"sé",
+"c'est"
+],
+[
+"Il sé trompé.",
+"sé",
+"s'est"
+],
+[
+"Elle é grande.",
+"é",
+"est"
+],
+[
+"Mon oncle a u peur.",
+"u",
+"eu"
+],
+[
+"Je vous lé promis.",
+"lé",
+"l'ai"
+],
+[
+"Il pose le vase cher le voisin.",
+"cher",
+"chez"
+],
+[
+"Elle dort chai elle.",
+"chai",
+"chez"
+],
+[
+"Nous avons mangé dés pommes.",
+"dés",
+"des"
+],
+[
+"Elle chante dés que tu pars.",
+"dés",
+"dès"
+],
+[
+"On na mangé du pain.",
+"na",
+"a"
+],
+[
+"Je mange mais tartines.",
+"mais",
+"mes"
+],
+[
+"Il sort pour teste son vélo.",
+"teste",
+"tester"
+],
+[
+"Il est mois cher.",
+"mois",
+"moins"
+],
+[
+"Ensuit il part.",
+"Ensuit",
+"Ensuite"
+],
+[
+"Il dort or du chalet.",
+"or",
+"hors"
+],
+[
+"Il viendra pe être.",
+"pe",
+"peut"
+],
+[
+"Il vient pour ton montrer.",
+"ton",
+"te"
+],
+[
+"Heureusement moi maison reste propre.",
+"moi",
+"ma"
+],
+[
+"Il passe par son côter nord.",
+"côter",
+"côté"
+],
+[
+"Bien sur il vient.",
+"sur",
+"sûr"
+],
+[
+"Laisse-moi continué.",
+"continué",
+"continuer"
 ]
 ],
 "palier": [
