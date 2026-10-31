@@ -96,5 +96,9 @@ ok(sig['oreille'].default is True and 'viterbi([cands(w) for w in phs])' in src_
    u'run() décode par cands() (l\'oreille) par défaut')
 ok('load_oreille()' in src_init and 'load_lm(FREQ, LAM_ORAL)' in src_init, u'init() charge l\'oreille et le LM oral')
 
+# ⑥ le dernier étage : les rouges du produit, la ponctuation reste
+ok('regles_produit(' in src_run and A.regles_produit(u'Il a manger une pomme, puis elle part.') == u'Il a mangé une pomme, puis elle part.',
+   u'dernier étage : le texte décodé passe dans le correcteur du produit')
+
 print(u'\n%s' % (u'✅ voie B : oreille apprise et LM oral branchés' if not KO else u'❌ %d contrôle(s) en échec' % len(KO)))
 sys.exit(1 if KO else 0)
