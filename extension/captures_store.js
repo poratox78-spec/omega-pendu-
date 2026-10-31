@@ -71,7 +71,7 @@ label{display:block;font-size:13px;letter-spacing:.02em;color:#5a6b7c;margin:0 0
       const its = Array.from(document.querySelectorAll('#omdys-corr .item')); const out = [];
       for (const it of its) { const de = (it.querySelector('.de') || {}).textContent; if (de === 'joue' || de === 'a') { const b = it.querySelector('button.why'); if (b) { b.click(); await w(400); }
         const a = it.querySelector('.astuce'); out.push(a && !a.hidden ? a.textContent.slice(0, 90) : '(fermée)'); } }
-      const premier = its.find(it => (it.querySelector('.de') || {}).textContent === 'enfant'); if (premier) premier.scrollIntoView({ block: 'start' }); document.getElementById('om-corps').scrollBy(0, -12); await w(400);
+      const corps = document.getElementById('om-corps'), premier = its.find(it => (it.querySelector('.de') || {}).textContent === 'enfant'); if (premier) corps.scrollTop += premier.getBoundingClientRect().top - corps.getBoundingClientRect().top - 12; await w(400);   // pas scrollIntoView : il fait aussi défiler la page entière, et la barre du haut sort de l'image
       return out.join(' | '); })()`));
     await pp.photo('p2-pourquoi.png');
     // ③ la police de son (+ syllabes)
