@@ -1910,7 +1910,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   function _bb270(i){return !!(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i]);}
   function _pp270(w){var d=deacc(String(w).toLowerCase());return _isPpl(w)||IRR_PP[d]!==undefined;}
   function rSestCest270(T,i){if(deacc(T[i].toLowerCase())!=="s'est")return null;if(_SEG&&_SEG.hy&&i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;var c=T[i].charAt(0)==='S'?"C'est":"c'est";if(i+1>=T.length||_bb270(i+1))return (i>=1&&deacc(T[i-1].toLowerCase())==='qui')?{sugg:c,vig:1}:null;var nx=T[i+1],d=deacc(nx.toLowerCase());if(i+2<T.length&&_SEG&&_SEG.hyt&&_SEG.hyt[i+2])return null;if(_DET270[d]||/^(lui|moi|toi|eux|pourquoi|cela|ca)$/.test(d))return {sugg:c,vig:1};if(_bb270(i)&&ADJP[d]&&!_pp270(nx)&&!/^(bien|mal|tout)$/.test(d)&&ADJP[d][0]==='m'&&!COMMON_VERBS[d])return {sugg:c,vig:1};return null;}   // liste n° 270 : « s'est lui », « , s'est important », « qui s'est. »
-  function rCestSest271(T,i){if(deacc(T[i].toLowerCase())!=="c'est"||i<1||i+1>=T.length)return null;var p=deacc(T[i-1].toLowerCase());if((p==='qui'||p==='ne')&&_pp270(T[i+1]))return ckeepcase(T[i],"s'est");return null;}   // liste n° 271 : « ne c'est pas levé » ; après « qui » aussi
+  function rCestSest271(T,i){if(deacc(T[i].toLowerCase())!=="c'est"||i<1||i+1>=T.length)return null;var p=deacc(T[i-1].toLowerCase()),j=i+1;while(j<T.length&&j<=i+2&&PPMID[deacc(T[j].toLowerCase())])j++;if((p==='qui'||p==='ne')&&j<T.length&&_pp270(T[j]))return ckeepcase(T[i],"s'est");return null;}   // liste n° 271 : « ne c'est pas levé » ; après « qui » aussi
   function _sujLa272(T,i){if(i<1)return false;var t=T[i-1];if(_bb270(i))return false;var d=deacc(t.toLowerCase());if(/^(il|elle|on)$/.test(d)||/^qu['’](il|elle|on)$/.test(d))return true;return t.charAt(0)!==t.charAt(0).toLowerCase()&&!!PRENOMS[t];}
   function rLaLa272(T,i){var w=T[i];if(w!=='la'||i+1>=T.length||!_pp270(T[i+1]))return null;if(_sujLa272(T,i))return {sugg:"l'a",vig:1};return null;}   // liste n° 272 : « Marie la vu », « il la pris »
   function rSurDet273(T,i){if(T[i].toLowerCase()!=='sûr'||i+1>=T.length)return null;var p=i>=1?deacc(T[i-1].toLowerCase()):'';if(p==='bien'||p==='pour'||p==='est'||_bb270(i+1))return null;return _DET270[deacc(T[i+1].toLowerCase())]?ckeepcase(T[i],'sur'):null;}   // liste n° 273 : « sûr la chaise »
@@ -7171,7 +7171,7 @@ function spellUnknown(tok,atStart,T,idx){
   function _diagnoseAllInner(text){
     var sf=SP.ready?spellText(text):[];
     _SEG=_segInfo(text);var _T=toks(text),_Tc=_T.slice();_TORIG=_T;
-    sf.forEach(function(f){if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
+    sf.forEach(function(f){var _f265=_FORMES265[String(f.word||'').toLowerCase()];if(_f265){f.sugg=ckeepcase(f.word,_f265);f.tier='auto';}if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
     _SEG.pb=_predBounds(_Tc,_SEG);   // bornes prédites sur les tokens NETTOYÉS (les tags y sont plus fiables) — même choix que la sonde pipeline Python
     var _cur=_Tc.slice(),_gbt={},_it,_gf2,_gj,_g2,_add;
     for(_it=0;_it<4;_it++){_gf2=correctTokens(_cur);_add=false;                                   // CASCADE : la grammaire re-tourne sur ses PROPRES corrections jusqu'au point fixe
