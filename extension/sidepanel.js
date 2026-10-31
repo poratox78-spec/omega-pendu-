@@ -1239,33 +1239,19 @@
         pEl = document.getElementById('omdys-cpos');
     function vide() { gEl.textContent = ''; lEl.textContent = ''; pEl.innerHTML = ''; }
     inp.addEventListener('input', function () {
-      var saisie = String(inp.value || '');
-      var brut = saisie.replace(/[\s ]/g, '').replace(',', '.');
-      if (!brut) { vide(); return; }
-      /* ⭐ L'EXTENSION CALCULE (Rem, 2026-08-25 : « le but rapide pour le calcul aussi »). Si la
-         saisie contient une opération, on donne la RÉPONSE — mais rendue sous les mêmes trois formes
-         que le reste, donc LISIBLE. La version qui apprend à POSER l'opération ira sur le site, où
-         l'utilisateur vient pour travailler et non pour écrire vite.
-         ⛔ Si le calcul est invalide (division par zéro, expression incomplète), on le DIT — on
-         n'affiche JAMAIS un résultat inventé. */
-      var op = null;
-      if (typeof CALCDYS.calcule === 'function' && /[+\-*\/×÷]/.test(saisie.slice(1))) {
-        op = CALCDYS.calcule(saisie);
-        if (op === null) { vide(); lEl.textContent = "Calcul impossible (vérifie l'opération)."; return; }
-        brut = String(op);
-      } else if (!/^-?\d+(\.\d+)?$/.test(brut)) {
-        vide(); lEl.textContent = 'Écris un nombre ou un calcul (12+5).'; return;
-      }
-      var n = Number(brut);
-      if (!isFinite(n) || Math.abs(n) > 1e15) { vide(); lEl.textContent = 'Nombre trop grand.'; return; }
-      gEl.textContent = (op !== null ? saisie.trim() + ' = ' : '') +
-                        CALCDYS.groupe(brut.indexOf('.') >= 0 ? brut.replace('.', ',') : n);
-      lEl.textContent = CALCDYS.enLettres(n);
-      var pos = CALCDYS.positions(n), h = '', i;
+      /* ⭐ L'EXTENSION CALCULE (Rem, 2026-08-25 : « le but rapide pour le calcul aussi »). La saisie
+         se lit dans le moteur (CALCDYS.lireSaisie, testée par calc_dys_probe) : nombre, calcul, ou
+         nombre en lettres. ⛔ Un calcul invalide se DIT ; on n'affiche JAMAIS un résultat inventé. */
+      var r = CALCDYS.lireSaisie(inp.value);
+      if (r.etat === 'vide') { vide(); return; }
+      if (r.etat !== 'ok') { vide(); lEl.textContent = r.texte; return; }
+      gEl.textContent = (r.calcul ? r.calcul + ' = ' : '') + CALCDYS.groupe(r.brut);
+      lEl.textContent = CALCDYS.enLettres(r.n);
+      var pos = CALCDYS.positions(r.n).concat(CALCDYS.positionsDecimales(r.brut)), h = '', i;
       for (i = 0; i < pos.length; i++) {
         var p = pos[i];
-        h += '<span class="cp cp' + (p.rang % 4) + '"><b>' + p.chiffre + '</b>' + p.nom + '<br>= ' +
-             CALCDYS.groupe(p.vaut) + '</span>';
+        h += '<span class="cp cp' + (((p.rang % 4) + 4) % 4) + '"><b>' + p.chiffre + '</b>' + p.nom + '<br>= ' +
+             (typeof p.vaut === 'string' ? p.vaut : CALCDYS.groupe(p.vaut)) + '</span>';
       }
       pEl.innerHTML = h;
     });

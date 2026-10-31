@@ -36,7 +36,7 @@ if (!C) { console.log('✗ CALCDYS non exporté'); process.exit(1); }
 /* un export renommé doit rendre un message, pas une pile d'appels : la sonde doit dire CE QUI
    manque, sinon celui qui la lit part chercher au mauvais endroit. */
 const ATTENDUS = ['enLettres', 'groupe', 'positions', 'lire', 'calcule', 'versNombre',
-                  'poseAddition', 'poseSoustraction', 'poseMultiplication', 'poseDivision'];
+                  'poseAddition', 'poseSoustraction', 'poseMultiplication', 'poseDivision', 'lireSaisie', 'positionsDecimales'];
 const absents = ATTENDUS.filter(f => typeof C[f] !== 'function');
 if (absents.length) {
   console.log('✗ moteur de calcul : export(s) manquant(s) — ' + absents.join(', '));
@@ -130,6 +130,29 @@ const appels = new Set();
 let mm, re = /\bC\.([A-Za-z_$][\w$]*)/g;
 while ((mm = re.exec(page))) appels.add(mm[1]);
 for (const f of appels) if (typeof C[f] !== 'function') echec.push('calcul.html appelle C.' + f + '() — absent du moteur');
+
+/* ── 7. L'ONGLET NOMBRES (liste n° 212) : ce que le panneau affiche pour une saisie de tous les jours.
+ *      Chaque cas a été vu faux avant d'être réparé : « 12,5 » s'affichait « 1 2,5 », « 3x4 » était
+ *      refusé, « 12+ » criait à l'erreur pendant la frappe. ──────────────────────────────────── */
+const _ns = (s) => String(s).replace(/[\s\u00a0\u202f]/g, ' ');
+for (const [src, g] of [['12,5', '12,5'], ['1,25', '1,25'], ['1 000,50', '1 000,50'], ['-12,5', '-12,5'], ['12,50+3,20', '15,7'],
+                        ['3x4', '12'], ['3 x 4', '12'], ['3X4', '12'], ['12:4', '3'], ['12+5=', '17'], ['1000000', '1 000 000'],
+                        ['trois cent cinq', '305'], ['quatre-vingt-dix-sept', '97'], ['12,', '12']]) {
+  const r = C.lireSaisie(src);
+  if (r.etat !== 'ok' || _ns(C.groupe(r.brut)) !== g) echec.push('saisie « ' + src + ' » : attendu ' + g + ', rendu ' + JSON.stringify(r));
+}
+for (const src of ['12+', '(2+3', '12*', '5-']) if (C.lireSaisie(src).etat !== 'attente') echec.push('saisie « ' + src + ' » : un calcul en cours n\'est pas une erreur');
+for (const src of ['1/0', 'bonjour', '1.2.3', '12 chats']) if (C.lireSaisie(src).etat !== 'erreur') echec.push('saisie « ' + src + ' » : doit être refusée');
+if (C.lireSaisie('').etat !== 'vide') echec.push('saisie vide');
+{
+  const pos = C.positions(-12.5);
+  if (pos.map(x => x.chiffre).join('') !== '12') echec.push('positions(-12,5) : chiffres ' + pos.map(x => x.chiffre).join(''));
+  if (C.positions(1)[0].nom !== 'unité' || C.positions(0)[0].nom !== 'unité' || C.positions(2)[0].nom !== 'unités') echec.push('positions : singulier de l\'unité');
+  if (C.positions(10)[0].nom !== 'dizaine' || C.positions(1000000)[0].nom !== 'million') echec.push('positions : singulier des rangs');
+  if (C.positions(2e15)[0].nom !== 'billiards') echec.push('positions : rang du billiard');
+  const dec = C.positionsDecimales('12.05');
+  if (dec.length !== 2 || dec[0].nom !== 'dixième' || dec[1].nom !== 'centièmes' || dec[1].vaut !== '0,05') echec.push('positionsDecimales(12,05) : ' + JSON.stringify(dec));
+}
 
 if (echec.length) {
   console.log('✗ moteur de calcul :');
