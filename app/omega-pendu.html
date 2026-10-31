@@ -26956,7 +26956,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var d=deacc(T[i].toLowerCase());if(_INVAR_COLOR[d])return false;   // couleur/matière invariable (« des gants crème », « bleu marine ») → jamais un verbe
     if(GENDER_MAP[d]||ADJP[d]||_EPICENE_ADJ[d]||PREP[d])return false;   // adj épicène homographe (« conforme »/« calme ») = « qui est-ce qui ? » → l'adjectif, pas le verbe
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||PREP[deacc(T[i-1].toLowerCase())]))return false;return svReads(T[i]).length>0;}
-  function _auxElide227(T,i){if(i<1)return false;var m=/^[jlmtnsd]['’](.+)$/.exec(T[i-1].toLowerCase());return !!m&&!!FULL_AUX[deacc(m[1])];}   /* ⭐ 31/10/2026 (liste n° 227) : « Quand je l'ai fait hier, » → font en ROUGE, « comme l'ont fait ses parents » → font en orange : l'auxiliaire est collé au pronom */
+  function _auxElide227(T,i){if(i<1)return false;var m=/^[jlmtnsd]['’](.+)$/.exec(T[i-1].toLowerCase());return !!m&&!!FULL_AUX[deacc(m[1])];}   /* ⭐ 31/10/2026 (liste n° 227) : « Quand tu l'as fait hier, » → font en ROUGE, « comme l'ont fait ses parents » → font en orange : l'auxiliaire est collé au pronom */
   function rPostpose(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;if(_auxElide227(T,i))return null;   // accord SUJET-VERBE à sujet POSTPOSÉ (inversion) : ordre changé → scan AVANT. FP=0 mesuré. Miroir Python rule_accord_postpose.
     if(/(é|és|ée|ées)$/.test(lw))return null;
     if(i>0&&NUM_DET[T[i-1].toLowerCase()]!==undefined)return null;
