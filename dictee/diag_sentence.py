@@ -45,7 +45,7 @@ def is_verb(T,idx):
     return not (idx>0 and T[idx-1].lower() in NUM_DET)
 # (1) PARTICIPE PASSÉ : agrée avec le SUJET via être, invariable via avoir (sauf COD antéposé).
 AUX_ETRE={'est','sont','furent','fut','etait','etaient','sera','seront','suis','es','sommes','etes','soit'}
-AUX_AVOIR={'a','ont','avons','avez','ai','as','avait','avaient','aurait','aura','auront','aurais','eu'}
+AUX_AVOIR={'a','ont','avons','avez','ai','as','avait','avaient','aurait','aura','auront','aurais','eu','aurai','auras','aurons','aurez','aurions','auriez','auraient','ayant','avoir','eut','eurent','avions','aviez','avais'}
 PART_FORMS={'arrive','arrives','arrivee','arrivees','peint','peints','peinte','peintes','cueilli','cueillie',
             'cueillis','cueillies','trouve','trouves','trouvee','trouvees','prefere','preferes','preferee',
             'preferees','abandonne','abandonnes','abandonnee','abandonnees'}
