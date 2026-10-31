@@ -431,7 +431,8 @@
 "Il est passé de fatigué à épuisé.",
 "Le ciel vire de gris à noir.",
 "Paul Martin Jr. a gagné le match.",
-"Jean Dupont Sr. a vendu la ferme."
+"Jean Dupont Sr. a vendu la ferme.",
+"Tu es content ou tu restes ?"
 ],
 "elide": [
 [
@@ -1223,6 +1224,11 @@
 "Il a fini de lavé la voiture.",
 "lavé",
 "laver"
+],
+[
+"C'est une petite ville tranquille ou il fait bon vivre.",
+"ou",
+"où"
 ]
 ],
 "palier": [
@@ -1419,6 +1425,11 @@
 [
 "Je l'arroserait demain.",
 "l'arroserait",
+"vigilance"
+],
+[
+"C'est une petite ville tranquille ou il fait bon vivre.",
+"ou",
 "vigilance"
 ]
 ],
