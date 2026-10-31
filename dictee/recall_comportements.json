@@ -432,7 +432,60 @@
 "Le ciel vire de gris à noir.",
 "Paul Martin Jr. a gagné le match.",
 "Jean Dupont Sr. a vendu la ferme.",
-"Tu es content ou tu restes ?"
+"Tu es content ou tu restes ?",
+"Nora et Inès sont rentrées.",
+"Théo et Hugo sont arrivés.",
+"Paul et Luc sont pris.",
+"Nora et Inès sont prises.",
+"Je sers un clafoutis.",
+"Il a gardé un seul pois.",
+"Elle a vu un abus.",
+"Le tréfonds reste noir.",
+"Je mange une chips.",
+"C'est un fait vérifié par tous.",
+"Elle parle d'un fait signalé hier.",
+"Ce fait rapporté reste vrai.",
+"C'est un fait bien expliqué.",
+"Ils ont un savoir-faire développé.",
+"Nager a un coût.",
+"Dormir a des effets sur la santé.",
+"Écrire a toujours été ma joie.",
+"Le vélo volé a enfin retrouvé son maître.",
+"Le train retardé a encore perdu dix minutes.",
+"Le vent, la neige, la glace bloquaient la route.",
+"Le lait, le pain, le sel manquaient.",
+"Je me demande où dorment tes chats.",
+"Il cherche où se cachent les clés.",
+"Voici ce que tu leur as juré.",
+"Tu leur as parlé hier.",
+"Ne te l'ai-je pas écrit ?",
+"Ne vous l'avais-je pas écrit ?",
+"Te l'ai-je dit ?",
+"Les pages se suivent et se répondent d'une ligne à l'autre.",
+"Si vous étiez sortis plus tôt, vous auriez évité l'orage.",
+"Il décrit la course alors qu'elle a eu lieu.",
+"Elle garde la robe alors qu'elle a acheté un manteau.",
+"C'est un pays sous-développé.",
+"Un enfant sous-alimenté dort.",
+"J'ai acheté des petits-beurre.",
+"Quand tu l'as fait hier, il pleuvait.",
+"Comme l'ont fait ses parents, il part tôt.",
+"Tu partis tôt.",
+"Elles se sont offert deux jours de repos.",
+"Elle s'est plu à lire ce roman.",
+"Ce film vous a rendus tristes.",
+"Il cherche un autre référent.",
+"On peut trier les fruits en tenant compte de leur goût.",
+"Elles sont côte à côte.",
+"Elle a l'air contente.",
+"Tout content qu'il est, il reste calme.",
+"Il fait sombre ici.",
+"Les autres sont parties.",
+"Les fleurs les plus fréquentes sont jaunes.",
+"Les enfants jouent les uns avec les autres grâce au ballon.",
+"Des trois frères, seul le premier parle.",
+"Je connais bien ces rues.",
+"Où vendent-ils leurs produits ?"
 ],
 "elide": [
 [
@@ -1229,6 +1282,91 @@
 "C'est une petite ville tranquille ou il fait bon vivre.",
 "ou",
 "où"
+],
+[
+"Théo et Hugo sont arrivé.",
+"arrivé",
+"arrivés"
+],
+[
+"Nora et Inès sont arrivée en retard.",
+"arrivée",
+"arrivées"
+],
+[
+"Il garde un chiens.",
+"chiens",
+"chien"
+],
+[
+"Il gagne un tournois.",
+"tournois",
+"tournoi"
+],
+[
+"Il le fait chanté devant nous.",
+"chanté",
+"chanter"
+],
+[
+"Elle a fait réparé sa voiture.",
+"réparé",
+"réparer"
+],
+[
+"Elle continue a bien manger.",
+"a",
+"à"
+],
+[
+"Dans la maison, la fille mangent.",
+"mangent",
+"mange"
+],
+[
+"Le soir, la fille mangent.",
+"mangent",
+"mange"
+],
+[
+"Les enfants mangent ou boit.",
+"boit",
+"boivent"
+],
+[
+"Tu leurs as parlé.",
+"leurs",
+"leur"
+],
+[
+"Je ne dit rien.",
+"dit",
+"dis"
+],
+[
+"Il est monté au grenier cherché des clés.",
+"cherché",
+"chercher"
+],
+[
+"La robe qu'elle a acheté est belle.",
+"acheté",
+"achetée"
+],
+[
+"Ce prof nous a donnés un livre.",
+"donnés",
+"donné"
+],
+[
+"Elles sont parti hier.",
+"parti",
+"parties"
+],
+[
+"Il fait chante les enfants.",
+"chante",
+"chanter"
 ]
 ],
 "palier": [
