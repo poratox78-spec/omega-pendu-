@@ -36,7 +36,7 @@ if (!C) { console.log('✗ CALCDYS non exporté'); process.exit(1); }
 /* un export renommé doit rendre un message, pas une pile d'appels : la sonde doit dire CE QUI
    manque, sinon celui qui la lit part chercher au mauvais endroit. */
 const ATTENDUS = ['enLettres', 'groupe', 'positions', 'lire', 'calcule', 'versNombre',
-                  'poseAddition', 'poseSoustraction', 'poseMultiplication', 'poseDivision', 'lireSaisie', 'positionsDecimales'];
+                  'poseAddition', 'poseSoustraction', 'poseMultiplication', 'poseDivision', 'lireSaisie', 'positionsDecimales', 'detailSaisie'];
 const absents = ATTENDUS.filter(f => typeof C[f] !== 'function');
 if (absents.length) {
   console.log('✗ moteur de calcul : export(s) manquant(s) — ' + absents.join(', '));
@@ -152,6 +152,32 @@ if (C.lireSaisie('').etat !== 'vide') echec.push('saisie vide');
   if (C.positions(2e15)[0].nom !== 'billiards') echec.push('positions : rang du billiard');
   const dec = C.positionsDecimales('12.05');
   if (dec.length !== 2 || dec[0].nom !== 'dixième' || dec[1].nom !== 'centièmes' || dec[1].vaut !== '0,05') echec.push('positionsDecimales(12,05) : ' + JSON.stringify(dec));
+}
+
+/* ── 8. VERSION A DE L'ONGLET (liste n° 298) : le chemin sous le résultat. Chaque valeur montrée est recalculée ici. ── */
+{
+  const d = (s) => C.detailSaisie(s), ns = (x) => String(x).replace(/[\s  ]/g, ' ');
+  const A = d('1234 + 567');
+  if (ns(A.affichage) !== '1 801' || A.etapes.join('|') !== '4 + 7 = 11 : je pose 1, je retiens 1.|3 + 6 + 1 = 10 : je pose 0, je retiens 1.|2 + 5 + 1 = 8 : je pose 8.|Il reste 1 : je le descends.') echec.push('addition posée : ' + JSON.stringify(A.etapes));
+  if (A.grille.colonnes !== 4 || A.grille.lignes[0].type !== 'retenue') echec.push('addition posée : grille');
+  const S = d('502 - 347');
+  if (S.affichage !== '155' || S.etapes.join('|') !== '2 − 7, je ne peux pas : 12 − 7 = 5. Je retiens 1.|4 + 1 = 5. 0 − 5, je ne peux pas : 10 − 5 = 5. Je retiens 1.|3 + 1 = 4. 5 − 4 = 1.') echec.push('soustraction posée : ' + JSON.stringify(S.etapes));
+  if (JSON.stringify(S).indexOf('-1') >= 0) echec.push('soustraction posée : un négatif affiché');
+  const M = d('12 x 34');
+  if (M.affichage !== '408' || M.etapes.join('|') !== "12 × 4 = 48.|12 × 3 = 36 ; décalé de 1 rang : 360.|J'additionne : 48 + 360 = 408.") echec.push('multiplication posée : ' + JSON.stringify(M.etapes));
+  const V = d('245 : 3');
+  if (ns(V.affichage) !== '81, reste 2' || V.etapes[V.etapes.length - 1] !== 'Vérification : 81 × 3 + 2 = 245.') echec.push('division posée : ' + JSON.stringify(V));
+  const P = d('20 % de 150 €');
+  if (P.type !== 'pourcent' || P.affichage !== '30 €' || P.lettres !== 'trente euros' || P.etapes.join('|') !== "1 % de 150 € : 150 ÷ 100 = 1,50 €.|20 %, c'est 20 fois plus : 1,50 × 20 = 30 €." || P.duo[0].valeur !== '120 €' || P.duo[1].valeur !== '180 €') echec.push('pourcentage : ' + JSON.stringify(P));
+  if (d('20% de 150').affichage !== '30' || d('20 % de 150').duo[0].texte !== 'si on retire 20 %') echec.push('pourcentage sans euros');
+  const E = d('3,50 € + 1,20 €');
+  if (E.affichage !== '4,70 €' || E.lettres !== 'quatre euros soixante-dix' || E.etapes.join('|') !== 'Les centimes : 50 + 20 = 70.|Les euros : 3 + 1 = 4.') echec.push('euros : ' + JSON.stringify(E));
+  const E2 = d('2,80 € + 1,50 €');
+  if (E2.affichage !== '4,30 €' || E2.etapes[1] !== '100 centimes font 1 € : je pose 30 centimes, je retiens 1 €.') echec.push('euros, retenue : ' + JSON.stringify(E2));
+  const T = d('1 h 45 + 30 min');
+  if (T.affichage !== '2 h 15' || T.lettres !== 'deux heures et quinze minutes' || T.etapes.join('|') !== 'Les minutes : 45 + 30 = 75 min.|60 min font 1 h : 75 min = 1 h 15.|Les heures : 1 h + 1 h 15 = 2 h 15.') echec.push('durée : ' + JSON.stringify(T));
+  if (d('1 h 05').affichage !== '1 h 05' || d('1 h').lettres !== 'une heure' || d('30 min - 1 h').etat !== 'erreur') echec.push('durée : formes simples');
+  if (d('12,5').type !== 'nombre' || d('12+').etat !== 'attente' || d('').etat !== 'vide' || d('bonjour').etat !== 'erreur') echec.push('detailSaisie : mêmes états que lireSaisie');
 }
 
 if (echec.length) {

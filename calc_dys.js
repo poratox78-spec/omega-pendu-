@@ -289,6 +289,148 @@
   }
 
 
+  /* ── L'ONGLET NOMBRES, VERSION A (Rem, 31/10/2026) : sous la saisie, le résultat, puis COMMENT on l'obtient.
+     `detailSaisie` part de `lireSaisie` et ajoute ce qu'il faut pour montrer le chemin : l'opération posée (grille + étapes),
+     le pourcentage, les euros, les durées. Tout passe par le moteur, testable sans le panneau (calc_dys_probe). */
+  function _eur(n) { var r = Math.round(n * 100) / 100; return groupe(r === Math.floor(r) ? String(r) : r.toFixed(2)) + ' €'; }
+  function _nb(n, euro) { return euro ? _eur(n) : groupe(String(Math.round(n * 1e10) / 1e10)); }
+  function _enEuros(n) {
+    var c = Math.round(Math.abs(n) * 100), e = Math.floor(c / 100); c = c % 100;
+    if (!e) return c ? enLettres(c) + ' centime' + (c > 1 ? 's' : '') : 'zéro euro';
+    return enLettres(e) + ' euro' + (e > 1 ? 's' : '') + (c ? ' ' + enLettres(c) : '');
+  }
+  function _feminin(n) { return enLettres(n).replace(/un$/, 'une'); }
+  function _dureeTxt(m) { var h = Math.floor(m / 60), r = m % 60; return h ? h + ' h' + (r ? ' ' + (r < 10 ? '0' : '') + r : '') : r + ' min'; }
+  function _dureeLettres(m) {
+    var h = Math.floor(m / 60), r = m % 60, p = [];
+    if (h) p.push(_feminin(h) + ' heure' + (h > 1 ? 's' : ''));
+    if (r || !h) p.push(_feminin(r) + ' minute' + (r > 1 ? 's' : ''));
+    return p.join(' et ');
+  }
+  /* « 1 h 45 », « 30 min », « 2 h » → minutes ; null si ce n'est pas une durée. */
+  function _dureeMin(t) {
+    var m = /^(?:(\d+)\s*h(?:\s*(\d{1,2}))?(?:\s*min)?|(\d+)\s*min)$/i.exec(t.trim());
+    return m ? (m[3] !== undefined ? +m[3] : (+m[1]) * 60 + (+(m[2] || 0))) : null;
+  }
+  function _lireDuree(s) {
+    var morceaux = s.split(/([+\-−])/), vals = [], ops = [], i;
+    for (i = 0; i < morceaux.length; i++) {
+      if (i % 2) { ops.push(morceaux[i]); continue; }
+      var v = _dureeMin(morceaux[i]);
+      if (v === null) return null;
+      vals.push(v);
+    }
+    return vals.length ? { vals: vals, ops: ops } : null;
+  }
+  function _detailDuree(d) {
+    var tot = d.vals[0], i, etapes = [];
+    for (i = 0; i < d.ops.length; i++) tot += d.ops[i] === '+' ? d.vals[i + 1] : -d.vals[i + 1];
+    if (tot < 0) return { etat: 'erreur', texte: 'Le résultat serait négatif : vérifie les durées.' };
+    if (d.vals.length === 2 && d.ops[0] === '+') {
+      var a = d.vals[0], b = d.vals[1], ma = a % 60, mb = b % 60, s = ma + mb, ha = Math.floor(a / 60), hb = Math.floor(b / 60);
+      etapes.push('Les minutes : ' + ma + ' + ' + mb + ' = ' + s + ' min.');
+      if (s >= 60) etapes.push('60 min font 1 h : ' + s + ' min = ' + _dureeTxt(s) + '.');
+      if (ha || hb || s >= 60) etapes.push('Les heures : ' + [ha ? ha + ' h' : null, hb ? hb + ' h' : null, s >= 60 ? _dureeTxt(s) : null].filter(Boolean).join(' + ') + ' = ' + _dureeTxt(tot) + '.');
+    } else if (d.vals.length === 2) {
+      etapes.push('En minutes : ' + d.vals[0] + ' − ' + d.vals[1] + ' = ' + tot + ' min.');
+      if (tot >= 60) etapes.push('60 min font 1 h : ' + tot + ' min = ' + _dureeTxt(tot) + '.');
+    }
+    return { etat: 'ok', type: 'duree', n: tot, brut: String(tot), affichage: _dureeTxt(tot), lettres: _dureeLettres(tot), titre: 'Comment on le trouve', etapes: etapes };
+  }
+  function _detailPourcent(p, b, euro) {
+    var un = Math.round(b) === b ? b / 100 : Math.round(b * 100) / 10000, res = Math.round(un * p * 1e8) / 1e8, etapes = [];
+    etapes.push('1 % de ' + _nb(b, euro) + ' : ' + _nb(b, false) + ' ÷ 100 = ' + _nb(un, euro) + '.');
+    if (p !== 1) etapes.push(_nb(p, false) + ' %, c\'est ' + _nb(p, false) + ' fois plus : ' + (euro ? _eur(un).replace(' €', '') : _nb(un, false)) + ' × ' + _nb(p, false) + ' = ' + _nb(res, euro) + '.');
+    return { etat: 'ok', type: 'pourcent', n: res, brut: String(res), affichage: _nb(res, euro), lettres: euro ? _enEuros(res) : enLettres(res), titre: 'Comment on le trouve', etapes: etapes,
+             duo: [{ valeur: _nb(b - res, euro), texte: euro ? 'prix après la remise' : 'si on retire ' + _nb(p, false) + ' %' },
+                   { valeur: _nb(b + res, euro), texte: euro ? 'prix après la hausse' : 'si on ajoute ' + _nb(p, false) + ' %' }] };
+  }
+  function _detailEuros(exp) {
+    var m = /^(\d+(?:[.,]\d+)?)\s*([+\-−])\s*(\d+(?:[.,]\d+)?)$/.exec(exp), v, etapes = [];
+    var propre = exp.replace(/[\s  ]/g, '');
+    if (/[+\-*\/×÷−]/.test(propre.slice(1))) { v = calcule(exp); if (v === null) return { etat: 'erreur', texte: "Calcul impossible (vérifie l'opération)." }; }
+    else { v = Number(propre.replace(',', '.')); if (!isFinite(v)) return { etat: 'erreur', texte: 'Écris un nombre ou un calcul (12+5).' }; }
+    if (m && m[2] === '+') {
+      var ca = Math.round(Number(m[1].replace(',', '.')) * 100), cb = Math.round(Number(m[3].replace(',', '.')) * 100), s = ca % 100 + cb % 100;
+      etapes.push('Les centimes : ' + (ca % 100) + ' + ' + (cb % 100) + ' = ' + s + '.');
+      if (s >= 100) etapes.push('100 centimes font 1 € : je pose ' + (s - 100) + ' centimes, je retiens 1 €.');
+      etapes.push('Les euros : ' + Math.floor(ca / 100) + ' + ' + Math.floor(cb / 100) + (s >= 100 ? ' + 1' : '') + ' = ' + (Math.floor(ca / 100) + Math.floor(cb / 100) + (s >= 100 ? 1 : 0)) + '.');
+    }
+    return { etat: 'ok', type: 'euros', n: v, brut: String(v), affichage: _eur(v), lettres: (v < 0 ? 'moins ' : '') + _enEuros(v), titre: etapes.length ? 'Comment on le trouve' : null, etapes: etapes };
+  }
+  /* La grille posée : des lignes de cases, à droite les unités ; `r` = le rang (la couleur), null = case vide. */
+  function _ligne(s, larg, signe) { var c = [], t = String(s), i; for (i = 0; i < larg; i++) { var k = t.length - larg + i; c.push(k >= 0 ? { t: t.charAt(k), r: larg - 1 - i } : null); } return { type: 'chiffres', signe: signe || '', cases: c }; }
+  function _detailPose(a, op, b) {
+    var res, etapes = [], i, larg, L = [], col;
+    if (op === '+') {
+      var A = poseAddition(a, b); res = A.resultat; larg = String(res).length;
+      col = A.colonnes.slice(-larg);
+      var ret = col.map(function (x) { return x.retenueEntrante ? { t: '1', r: x.rang } : null; });
+      if (ret.some(Boolean)) L.push({ type: 'retenue', signe: '', cases: ret });
+      L.push(_ligne(a, larg)); L.push(_ligne(b, larg, '+')); L.push({ type: 'trait' }); L.push(_ligne(res, larg));
+      for (i = col.length - 1; i >= 0; i--) {
+        var x = col[i], av = x.a === null ? null : x.a, bv = x.b === null ? null : x.b, e = x.retenueEntrante;
+        if (av === null && bv === null) { etapes.push('Je descends la retenue : ' + x.pose + '.'); continue; }
+        if (!e && (av === null || bv === null)) { etapes.push('Il reste ' + (av === null ? bv : av) + ' : je le descends.'); continue; }
+        var parts = [av, bv].filter(function (v) { return v !== null; }); if (e) parts.push(1);
+        etapes.push(parts.join(' + ') + ' = ' + x.total + ' : je pose ' + x.pose + (x.retenue ? ', je retiens 1.' : '.'));
+      }
+    } else if (op === '-') {
+      var S = poseSoustraction(a, b); if (!S) return null; res = S.resultat; larg = S.largeur; col = S.colonnes;
+      L.push(_ligne(a, larg)); L.push(_ligne(b, larg, '−'));
+      var em = col.map(function (x) { return x.empruntEntrant ? { t: '+1', r: x.rang } : null; });
+      if (em.some(Boolean)) L.push({ type: 'retenue', signe: '', cases: em });
+      L.push({ type: 'trait' }); L.push(_ligne(res, larg));
+      for (i = col.length - 1; i >= 0; i--) {
+        var y = col[i], tete = y.empruntEntrant ? (y.b || 0) + ' + 1 = ' + y.bAvecEmprunt + '. ' : '';
+        if (y.a === null) continue;
+        if (y.emprunt) etapes.push(tete + y.a + ' − ' + y.bAvecEmprunt + ', je ne peux pas : ' + y.aEffectif + ' − ' + y.bAvecEmprunt + ' = ' + y.pose + '. Je retiens 1.');
+        else etapes.push(tete + y.a + ' − ' + y.bAvecEmprunt + ' = ' + y.pose + '.');
+      }
+    } else if (op === '*') {
+      var M = poseMultiplication(a, b); res = M.resultat; larg = Math.max(String(res).length, String(a).length, String(b).length);
+      L.push(_ligne(a, larg)); L.push(_ligne(b, larg, '×')); L.push({ type: 'trait' });
+      M.lignes.forEach(function (l) {
+        if (M.lignes.length > 1) L.push(_ligne(l.decale, larg));
+        etapes.push(a + ' × ' + l.chiffre + ' = ' + l.produit + (l.rang ? ' ; décalé de ' + l.rang + ' rang' + (l.rang > 1 ? 's' : '') + ' : ' + l.decale : '') + '.');
+      });
+      if (M.lignes.length > 1) { L.push({ type: 'trait' }); L.push(_ligne(res, larg)); etapes.push("J'additionne : " + M.lignes.map(function (l) { return l.decale; }).join(' + ') + ' = ' + res + '.'); }
+      else L.push(_ligne(res, larg));
+    } else {
+      var D = poseDivision(a, b); if (!D) return null; res = D.quotient;
+      D.etapes.forEach(function (x) { if (x.ecrit) etapes.push('Dans ' + x.courant + ', ' + b + ' va ' + x.chiffre + ' fois : ' + x.chiffre + ' × ' + b + ' = ' + x.produit + ', il reste ' + x.reste + '.'); });
+      etapes.push('Vérification : ' + D.quotient + ' × ' + b + (D.reste ? ' + ' + D.reste : '') + ' = ' + a + '.');
+      return { titre: "Je pose l'opération", etapes: etapes, grille: null, reste: D.reste, quotient: D.quotient };
+    }
+    return { titre: "Je pose l'opération", etapes: etapes, grille: { colonnes: larg, lignes: L } };
+  }
+  function detailSaisie(src) {
+    var saisie = String(src === null || src === undefined ? '' : src).trim();
+    var net = saisie.replace(/=\s*$/, '').trim(), euro = /€|\beuros?\b/i.test(net), sans = net.replace(/€|\beuros?\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    var mp = /^(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+|d['’]\s*)(\d[\d\s  ]*(?:[.,]\d+)?)$/i.exec(sans);
+    if (mp) {
+      var p = Number(mp[1].replace(',', '.')), b = Number(mp[2].replace(/[\s  ]/g, '').replace(',', '.'));
+      if (Math.abs(b) > 1e12 || p > 1e6) return { etat: 'erreur', texte: 'Nombre trop grand.' };
+      return _detailPourcent(p, b, euro);
+    }
+    if (euro && /\d/.test(sans)) return _detailEuros(sans);
+    if (/\d\s*(h|min)/i.test(net)) { var d = _lireDuree(net); if (d) return _detailDuree(d); }
+    var r = lireSaisie(saisie);
+    if (r.etat !== 'ok') return r;
+    r.type = r.calcul ? 'calcul' : 'nombre';
+    r.affichage = groupe(r.brut);
+    r.lettres = enLettres(r.n);
+    if (r.calcul) {
+      var mo = /^(\d+)([+\-*\/])(\d+)$/.exec(r.calcul.replace(/[\s  ]/g, '').replace(/[×xX]/g, '*').replace(/[÷:]/g, '/').replace(/−/g, '-'));
+      if (mo && mo[1].length <= 12 && mo[3].length <= 12) {
+        var P = _detailPose(+mo[1], mo[2], +mo[3]);
+        if (P) { r.titre = P.titre; r.etapes = P.etapes; r.grille = P.grille; if (mo[2] === '/' && P.reste) { r.affichage = groupe(String(P.quotient)) + ', reste ' + P.reste; r.lettres = enLettres(P.quotient) + ', reste ' + enLettres(P.reste); r.sansRangs = true; } }
+      }
+    }
+    return r;
+  }
+
+
   /* ── POSER L'OPÉRATION — le cœur pédagogique, pour la page du SITE.
      Ce que l'extension NE fait pas : elle donne la réponse. Ici on montre COMMENT on l'obtient,
      colonne par colonne, parce que c'est exactement là que la dyscalculie bute — aligner les
@@ -374,7 +516,7 @@
   }
 
   root.CALCDYS = { enLettres: enLettres, groupe: groupe, positions: positions, lire: lire,
-                    calcule: calcule, versNombre: versNombre, lireSaisie: lireSaisie, positionsDecimales: positionsDecimales,
+                    calcule: calcule, versNombre: versNombre, lireSaisie: lireSaisie, positionsDecimales: positionsDecimales, detailSaisie: detailSaisie,
                     poseAddition: poseAddition, poseSoustraction: poseSoustraction,
                     poseMultiplication: poseMultiplication, poseDivision: poseDivision };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
