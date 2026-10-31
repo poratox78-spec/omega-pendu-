@@ -1241,16 +1241,33 @@
     if (typeof CALCDYS === 'undefined') { det.style.display = 'none'; return; }
     var gEl = document.getElementById('omdys-cgroupe'), lEl = document.getElementById('omdys-clettres'),
         pEl = document.getElementById('omdys-cpos');
-    function vide() { gEl.textContent = ''; lEl.textContent = ''; pEl.innerHTML = ''; }
+    var dEl = document.getElementById('omdys-cdetail'), dtEl = document.getElementById('omdys-cdtitre'), griEl = document.getElementById('omdys-cgrille'),
+        etEl = document.getElementById('omdys-cetapes'), duoEl = document.getElementById('omdys-cduo'), exEl = document.getElementById('omdys-cex');
+    function vide() { gEl.textContent = ''; lEl.textContent = ''; pEl.innerHTML = ''; dEl.hidden = true; griEl.hidden = true; griEl.textContent = ''; etEl.textContent = ''; duoEl.hidden = true; duoEl.textContent = ''; exEl.hidden = false; }
     inp.addEventListener('input', function () {
-      /* ⭐ L'EXTENSION CALCULE (Rem, 2026-08-25 : « le but rapide pour le calcul aussi »). La saisie
-         se lit dans le moteur (CALCDYS.lireSaisie, testée par calc_dys_probe) : nombre, calcul, ou
-         nombre en lettres. ⛔ Un calcul invalide se DIT ; on n'affiche JAMAIS un résultat inventé. */
-      var r = CALCDYS.lireSaisie(inp.value);
-      if (r.etat === 'vide') { vide(); return; }
-      if (r.etat !== 'ok') { vide(); lEl.textContent = r.texte; return; }
-      gEl.textContent = (r.calcul ? r.calcul + ' = ' : '') + CALCDYS.groupe(r.brut);
-      lEl.textContent = CALCDYS.enLettres(r.n);
+      /* ⭐ L'EXTENSION CALCULE (Rem, 2026-08-25 : « le but rapide pour le calcul aussi »), et depuis la version A (31/10/2026) elle montre
+         le chemin sous le résultat. La saisie se lit dans le moteur (CALCDYS.detailSaisie, testée par calc_dys_probe).
+         ⛔ Un calcul invalide se DIT ; on n'affiche JAMAIS un résultat inventé. */
+      var r = CALCDYS.detailSaisie(inp.value);
+      vide();
+      if (r.etat === 'vide') return;
+      if (r.etat !== 'ok') { lEl.textContent = r.texte; return; }
+      gEl.textContent = (r.type === 'nombre' ? '' : '= ') + r.affichage;
+      lEl.textContent = r.lettres;
+      exEl.hidden = !!r.grille;
+      if (r.titre && r.etapes && r.etapes.length) {
+        dEl.hidden = false; dtEl.textContent = r.titre;
+        r.etapes.forEach(function (t) { var li = document.createElement('li'); li.textContent = t; etEl.appendChild(li); });
+        if (r.grille) { griEl.hidden = false; griEl.style.gridTemplateColumns = 'repeat(' + (r.grille.colonnes + 1) + ', 1.7em)';
+          r.grille.lignes.forEach(function (l) {
+            var c = document.createElement('div');
+            if (l.type === 'trait') { c.className = 'trait'; griEl.appendChild(c); return; }
+            c.textContent = l.signe; griEl.appendChild(c);
+            l.cases.forEach(function (k) { var d = document.createElement('div'); if (k) { d.textContent = k.t; d.className = 'cc' + (k.r % 4) + (l.type === 'retenue' ? ' ret' : ''); } griEl.appendChild(d); });
+          }); }
+        if (r.duo) { duoEl.hidden = false; r.duo.forEach(function (x, n) { var d = document.createElement('div'), v = document.createElement('b'); d.className = 'cp cp' + (n ? 2 : 0); v.textContent = x.valeur; d.appendChild(v); d.appendChild(document.createTextNode(x.texte)); duoEl.appendChild(d); }); }
+      }
+      if (r.type !== 'nombre' && r.type !== 'calcul' || r.sansRangs) return;
       var pos = CALCDYS.positions(r.n).concat(CALCDYS.positionsDecimales(r.brut)), h = '', i;
       for (i = 0; i < pos.length; i++) {
         var p = pos[i];
