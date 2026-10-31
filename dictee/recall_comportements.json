@@ -674,7 +674,43 @@
 "Mes chers amis.",
 "Mon fils casse tout exprès.",
 "Elle mange, mais il dort.",
-"Il dort mais rêve."
+"Il dort mais rêve.",
+"Elle a mangé, a dit Paul.",
+"Il dit que Paul a faim.",
+"Il croit Paul a raison.",
+"Nous savons qui a gagné.",
+"Il veut ce qu'elle a.",
+"Un an plus tard.",
+"Il gagne mille euros par an.",
+"Il ne pue pas.",
+"Il me dit oui.",
+"Un pull décoré de plumes.",
+"Cet ami rit.",
+"Cet autre ami rit.",
+"Voilà.",
+"Elles s'en vont.",
+"Non, aucun souci.",
+"Afin d'en parler.",
+"Il entre dans la cour.",
+"Je me sers.",
+"Si tu viens.",
+"Tu es grand.",
+"Tu es mes yeux.",
+"Il rit a dit Paul.",
+"Il sent le pain.",
+"Il voit passer les trains.",
+"Il voit le passé.",
+"Elle semble fatiguer ses amis.",
+"Il reste dormir ici.",
+"Peu de chose change.",
+"Ou autre chose.",
+"Une autre fois.",
+"Un autre pays.",
+"La fille qui est là.",
+"Certaine de gagner, elle court.",
+"Il veut le voir partir.",
+"Le pain chaud sort du four.",
+"Une table bancale."
 ],
 "elide": [
 [
@@ -2471,6 +2507,141 @@
 "Laisse-moi continué.",
 "continué",
 "continuer"
+],
+[
+"Nous parlons vite a nos amis.",
+"a",
+"à"
+],
+[
+"Il coupe es branches du pommier.",
+"es",
+"les"
+],
+[
+"Il part an Italie.",
+"an",
+"en"
+],
+[
+"Elle ne pue répondre.",
+"pue",
+"peut"
+],
+[
+"Il sen va vite.",
+"sen",
+"s'en"
+],
+[
+"Cet hiver en ne peut rien semer.",
+"en",
+"on"
+],
+[
+"Mon chat avé faim.",
+"avé",
+"avait"
+],
+[
+"Il neige me je sors.",
+"me",
+"mais"
+],
+[
+"Elle chante fort si qui plaît.",
+"si",
+"ce"
+],
+[
+"Elle veut ne plus passé ici.",
+"passé",
+"passer"
+],
+[
+"Elle ne voit pas filé les heures.",
+"filé",
+"filer"
+],
+[
+"Un homme d'une voix cassé.",
+"cassé",
+"cassée"
+],
+[
+"Un chapeau décorée de plumes.",
+"décorée",
+"décoré"
+],
+[
+"Cet belle maison.",
+"Cet",
+"Cette"
+],
+[
+"Le voila.",
+"voila",
+"voilà"
+],
+[
+"Elles s'en va vite.",
+"va",
+"vont"
+],
+[
+"Ces clubs non aucun souci.",
+"non",
+"n'ont"
+],
+[
+"Il s'y rend afin dans parler.",
+"dans",
+"d'en"
+],
+[
+"Une fille au yeux verts.",
+"au",
+"aux"
+],
+[
+"Il pose plein de question.",
+"question",
+"questions"
+],
+[
+"Il a peu de problème.",
+"problème",
+"problèmes"
+],
+[
+"Il a de multiple soucis.",
+"multiple",
+"multiples"
+],
+[
+"La tante qui est parti.",
+"parti",
+"partie"
+],
+[
+"Sa nièce qui est venu.",
+"venu",
+"venue"
+],
+[
+"Certaine ne viennent pas.",
+"Certaine",
+"Certaines"
+],
+[
+"Il reste fâcher.",
+"fâcher",
+"fâché"
+],
+[
+"Un contrat signer.",
+"signer",
+"signé"
 ]
 ],
 "palier": [
