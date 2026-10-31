@@ -545,7 +545,68 @@
 "De vieilles caves sentent le vin.",
 "Elle est toute contente.",
 "Le meuble mesure deux mètres de long, trois de large.",
-"Lundi et mardi sont des jours calmes."
+"Lundi et mardi sont des jours calmes.",
+"Ce qui brille est beau.",
+"Il dit que le vélo est neuf.",
+"Le vélo et le sac sont dans le garage.",
+"Ce son de cloche me plaît.",
+"Ils sont petit à petit partis.",
+"Celle la plus grande reste ici.",
+"Cette clé la ferme mal.",
+"Mon oncle la regarde.",
+"Une fille a la grippe.",
+"Il veut tout ou rien.",
+"Ils ont tous le même âge.",
+"On a tous le droit de rire.",
+"Je me sens la force de courir.",
+"Il a fait part de sa joie.",
+"Deux heures et quart il arrive.",
+"En mai, nous partons.",
+"En mai nous partons.",
+"Il pleut, donc je reste.",
+"Le livre dont je parle est ici.",
+"Le livre, dont je parle, est ici.",
+"Chacun pense à soi.",
+"Une robe de soie noire.",
+"Ils ne rient pas.",
+"Les enfants rient pour rien.",
+"Quelle porte ouvres-tu ?",
+"Je pense qu'elle est son amie.",
+"Elle sait qu'elle porte ce pull.",
+"Son frère et sa sœur.",
+"Son grand frère dort.",
+"Son beau vélo brille.",
+"Il aime son travail.",
+"Tout est prêt.",
+"Tout ou rien.",
+"Ou bien il part, ou bien il reste.",
+"Je ne sais pas, ou alors il est parti.",
+"Il mange ou il dort.",
+"Ce chat la mange.",
+"Ce matin, la lune brille.",
+"Le vélo et une trottinette.",
+"Une pomme et une poire.",
+"Est-ce que le train part ?",
+"Il dit : le pain est bon.",
+"Elle pense : tout est fini.",
+"C'est là question de goût.",
+"Il est là chaque jour.",
+"De là vient le bruit.",
+"Il est prêt à partir.",
+"Le seul à savoir, c'est lui.",
+"Elle a dû partir.",
+"Il a dû payer son dû.",
+"Il était une fois un roi.",
+"Mon fils a vu la lune.",
+"Le chat a mangé.",
+"La robe verte a plu.",
+"Pour ce faire, il part.",
+"Ce doit être lui.",
+"Il vit avec son chien.",
+"Le prix est juste a dit Paul.",
+"Mon frère est né à Rennes sa sœur est peintre.",
+"Elle a pris le bus.",
+"Ce qu'il a met fin au doute."
 ],
 "elide": [
 [
@@ -1767,6 +1828,256 @@
 "Ils s'endort vite.",
 "s'endort",
 "s'endorment"
+],
+[
+"Il range du riz est des pommes.",
+"est",
+"et"
+],
+[
+"Elle chante est danse.",
+"est",
+"et"
+],
+[
+"Il lit est elle dort.",
+"est",
+"et"
+],
+[
+"Le vélo et dans le garage.",
+"et",
+"est"
+],
+[
+"Notre lampe et sur le bureau.",
+"et",
+"est"
+],
+[
+"Ce et une idée.",
+"et",
+"est"
+],
+[
+"Tu et là.",
+"et",
+"es"
+],
+[
+"Ce son mes cousins.",
+"son",
+"sont"
+],
+[
+"Les deux pulls son identiques.",
+"son",
+"sont"
+],
+[
+"Il range sont petit camion.",
+"sont",
+"son"
+],
+[
+"Mon oncle la vendu.",
+"la",
+"l'a"
+],
+[
+"On l'a voit partout.",
+"l'a",
+"la"
+],
+[
+"Je veux celui la.",
+"la",
+"là"
+],
+[
+"Ce matin la, il neigeait.",
+"la",
+"là"
+],
+[
+"Il pose là table.",
+"là",
+"la"
+],
+[
+"Il est fidèle a ses amis.",
+"a",
+"à"
+],
+[
+"De deux a cinq ans.",
+"a",
+"à"
+],
+[
+"Tu es la seule a savoir.",
+"a",
+"à"
+],
+[
+"Le lac brille ; a droite, un bois.",
+"a",
+"à"
+],
+[
+"Elle ne savait pas ou aller.",
+"ou",
+"où"
+],
+[
+"Il ignore ou ses clés sont.",
+"ou",
+"où"
+],
+[
+"Ou que tu sois, je pense à toi.",
+"Ou",
+"Où"
+],
+[
+"Une rue ou personne ne passe.",
+"ou",
+"où"
+],
+[
+"Nous irons ou il y a du soleil.",
+"ou",
+"où"
+],
+[
+"Le garçon ce lave.",
+"ce",
+"se"
+],
+[
+"Les enfants ce sont perdus.",
+"ce",
+"se"
+],
+[
+"Avec c'est deux chiens.",
+"c'est",
+"ces"
+],
+[
+"Aucun ne c'est plaint.",
+"c'est",
+"s'est"
+],
+[
+"Partir tôt, s'est important.",
+"s'est",
+"c'est"
+],
+[
+"Elle aime ça grand-mère.",
+"ça",
+"sa"
+],
+[
+"Il boit dû thé.",
+"dû",
+"du"
+],
+[
+"Il pleut, mai je sors.",
+"mai",
+"mais"
+],
+[
+"Tu prends t'a veste.",
+"t'a",
+"ta"
+],
+[
+"Ni thé n'y café.",
+"n'y",
+"ni"
+],
+[
+"Il demande s'y tu viens.",
+"s'y",
+"si"
+],
+[
+"Les gens si perdent.",
+"si",
+"s'y"
+],
+[
+"Il pleut, dont je reste.",
+"dont",
+"donc"
+],
+[
+"Nous irons dont demain.",
+"dont",
+"donc"
+],
+[
+"Le livre donc je parle.",
+"donc",
+"dont"
+],
+[
+"Je veux que tout soi prêt.",
+"soi",
+"soit"
+],
+[
+"Il part sens son sac.",
+"sens",
+"sans"
+],
+[
+"Le mur est peint part mon père.",
+"part",
+"par"
+],
+[
+"Il reste quart il pleut.",
+"quart",
+"car"
+],
+[
+"Il ne voit rient.",
+"rient",
+"rien"
+],
+[
+"Ils sont venus, tout ont mangé.",
+"tout",
+"tous"
+],
+[
+"Il a mangé tous le gâteau.",
+"tous",
+"tout"
+],
+[
+"Le pull quelle porte.",
+"quelle",
+"qu'elle"
+],
+[
+"Il a prend le bus.",
+"prend",
+"pris"
+],
+[
+"Elle a boit du lait.",
+"boit",
+"bu"
+],
+[
+"Dis-moi qu'elle robe tu préfères.",
+"qu'elle",
+"quelle"
 ]
 ],
 "palier": [
