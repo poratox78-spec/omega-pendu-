@@ -132,7 +132,7 @@ while ((mm = re.exec(page))) appels.add(mm[1]);
 for (const f of appels) if (typeof C[f] !== 'function') echec.push('calcul.html appelle C.' + f + '() — absent du moteur');
 
 /* ── 7. L'ONGLET NOMBRES (liste n° 212) : ce que le panneau affiche pour une saisie de tous les jours.
- *      Chaque cas a été vu faux avant d'être réparé : « 12,5 » s'affichait « 1 2,5 », « 3x4 » était
+ *      Chaque cas a été vu faux, puis réparé : « 12,5 » s'affichait « 1 2,5 », « 3x4 » était
  *      refusé, « 12+ » criait à l'erreur pendant la frappe. ──────────────────────────────────── */
 const _ns = (s) => String(s).replace(/[\s\u00a0\u202f]/g, ' ');
 for (const [src, g] of [['12,5', '12,5'], ['1,25', '1,25'], ['1 000,50', '1 000,50'], ['-12,5', '-12,5'], ['12,50+3,20', '15,7'],
