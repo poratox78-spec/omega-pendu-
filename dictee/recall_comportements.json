@@ -710,7 +710,25 @@
 "Certaine de gagner, elle court.",
 "Il veut le voir partir.",
 "Le pain chaud sort du four.",
-"Une table bancale."
+"Une table bancale.",
+"The Beatles chantent.",
+"Le match Lyon vs Paris.",
+"La robe en plastique.",
+"La vie publique change.",
+"Il la voit.",
+"Il reste la nuit.",
+"Les lés du tapis.",
+"Son fils est le chef.",
+"Le chat dort et le chien aboie.",
+"Le pain est bon.",
+"Fixer le prix et surveiller le stock.",
+"Il mange du pain et du beurre.",
+"Les prix restent sur place.",
+"Elle sort en noir.",
+"Une robe en soie noire.",
+"Les tiges fines et souples.",
+"Il pense au taux.",
+"Il vit au pays."
 ],
 "elide": [
 [
@@ -2642,6 +2660,101 @@
 "Un contrat signer.",
 "signer",
 "signé"
+],
+[
+"Le chat dort est le chien aboie.",
+"est",
+"et"
+],
+[
+"Ils dansent est chantent.",
+"est",
+"et"
+],
+[
+"Ta lampe et sur le lit.",
+"et",
+"est"
+],
+[
+"Elle a bcp de chance.",
+"bcp",
+"beaucoup"
+],
+[
+"Elle est tjr là.",
+"tjr",
+"toujours"
+],
+[
+"Je vs écris.",
+"vs",
+"vous"
+],
+[
+"Un seau en plastic.",
+"plastic",
+"plastique"
+],
+[
+"Sa penne dure.",
+"penne",
+"panne"
+],
+[
+"Le publique applaudit.",
+"publique",
+"public"
+],
+[
+"Il reste la à dormir.",
+"la",
+"là"
+],
+[
+"Il voit lés arbres.",
+"lés",
+"les"
+],
+[
+"Elle boit du the vert.",
+"the",
+"thé"
+],
+[
+"C'est du au fait qu'il pleut.",
+"du",
+"dû"
+],
+[
+"Un club ayant été crée.",
+"crée",
+"créé"
+],
+[
+"Les murs semblent solide.",
+"solide",
+"solides"
+],
+[
+"Elle sort en blanche.",
+"blanche",
+"blanc"
+],
+[
+"Les longues tiges fines et souple.",
+"souple",
+"souples"
+],
+[
+"Ses gants sont sals.",
+"sals",
+"sales"
+],
+[
+"Il na chanter hier.",
+"na",
+"a"
 ]
 ],
 "palier": [

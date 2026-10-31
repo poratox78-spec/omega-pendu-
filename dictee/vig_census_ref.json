@@ -1,10 +1,11 @@
 {
- "justes": 398,
- "pointeuses": 207,
+ "justes": 400,
+ "pointeuses": 210,
  "fatigue": 125,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
+  "Lés→les [homophone à vérifier] accent",
   "Pesnez→Pensez [orthographe] inversion",
   "Pôuruqoi→Pourquoi [orthographe] autre",
   "Rapiedment→Rapidement [orthographe] inversion",
@@ -205,6 +206,7 @@
   "lycés→lycée [mot inconnu] terminaison",
   "lègislature→législature [orthographe] accent",
   "léggitime→légitime [orthographe] lettre_trop",
+  "lés→les [homophone à vérifier] accent",
   "magnifiqus→magnifique [orthographe] terminaison",
   "magsain→magasin [orthographe] inversion",
   "maiss→mais [orthographe] lettre_trop",
