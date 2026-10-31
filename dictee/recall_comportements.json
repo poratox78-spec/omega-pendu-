@@ -509,7 +509,22 @@
 "Quelque pressés qu'ils soient, ils attendent.",
 "Des rideaux bleu clair pendent.",
 "Il sort dimanche.",
-"Une odeur de brûlé monte."
+"Une odeur de brûlé monte.",
+"Ce chat, dit-il, est drôle.",
+"Il reste car il pleut.",
+"Fût-elle reine, je ne viendrai pas.",
+"Trop de voitures roulent ici.",
+"Elle prit son sac.",
+"Elle s'est lavé les pieds.",
+"Elles se sont offert des fleurs.",
+"Elle s'est lavée.",
+"Fermez la porte.",
+"Elle a de belles poires rouges.",
+"Il a des gants orange.",
+"Le retard est dû à la neige.",
+"Les yeux fermés, il écoute.",
+"A-t-elle fini son café ?",
+"Sans aucun doute qu'ils ont faim."
 ],
 "elide": [
 [
@@ -1541,6 +1556,106 @@
 "Cette note a été écrit hier.",
 "écrit",
 "écrite"
+],
+[
+"Trop de voitures roule ici.",
+"roule",
+"roulent"
+],
+[
+"Il a plu pendent la nuit.",
+"pendent",
+"pendant"
+],
+[
+"Elle pris son sac.",
+"pris",
+"prit"
+],
+[
+"Elle s'est lavée les pieds.",
+"lavée",
+"lavé"
+],
+[
+"Fermé la porte en partant.",
+"Fermé",
+"Fermez"
+],
+[
+"Appeler-moi ce soir.",
+"Appeler",
+"Appelez"
+],
+[
+"Elle a de belles poires rouge.",
+"rouge",
+"rouges"
+],
+[
+"Il a des gants oranges.",
+"oranges",
+"orange"
+],
+[
+"Dis-moi qu'elle veste tu veux.",
+"qu'elle",
+"quelle"
+],
+[
+"Quel sont tes projets ?",
+"Quel",
+"Quels"
+],
+[
+"Le retard est du à la neige.",
+"du",
+"dû"
+],
+[
+"Les ouvriers ont construits un mur.",
+"construits",
+"construit"
+],
+[
+"Il est parti sans dit un mot.",
+"dit",
+"dire"
+],
+[
+"Quoiqu'elle est petite, elle court.",
+"est",
+"soit"
+],
+[
+"Les yeux fermé, il écoute.",
+"fermé",
+"fermés"
+],
+[
+"Nous serions parti tôt.",
+"parti",
+"partis"
+],
+[
+"Ces plantes semblent séché.",
+"séché",
+"séchées"
+],
+[
+"Je doute qu'il vient.",
+"vient",
+"vienne"
+],
+[
+"Elle porte des chapeaus.",
+"chapeaus",
+"chapeaux"
+],
+[
+"Ne court pas ici.",
+"court",
+"cours"
 ]
 ],
 "palier": [
