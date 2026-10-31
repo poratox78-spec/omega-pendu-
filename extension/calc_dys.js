@@ -87,7 +87,7 @@
   /* GROUPAGE par tranches de 3, avec une ESPACE INSÉCABLE fine — la norme française, et surtout
      ce qui rend 1000000 lisible d'un coup d'œil : 1 000 000. */
   function groupe(n) {
-    var s = String(n), neg = s.charAt(0) === '-';
+    var s = String(n).replace(',', '.'), neg = s.charAt(0) === '-';
     if (neg) s = s.slice(1);
     var p = s.split('.'), ent = p[0], out = '', c = 0, i;
     for (i = ent.length - 1; i >= 0; i--) {
@@ -99,17 +99,33 @@
 
   var NOMS_POS = ['unités', 'dizaines', 'centaines', 'milliers', 'dizaines de mille',
                   'centaines de mille', 'millions', 'dizaines de millions', 'centaines de millions',
-                  'milliards'];
+                  'milliards', 'dizaines de milliards', 'centaines de milliards', 'billions',
+                  'dizaines de billions', 'centaines de billions', 'billiards'];
+  var NOMS_DEC = ['dixièmes', 'centièmes', 'millièmes', 'dix-millièmes', 'cent-millièmes', 'millionièmes'];
+  /* « 1 dizaine », « 0 unité » : au-dessous de 2, le premier mot du rang reste au singulier. */
+  function _nomRang(nom, chiffre) { return chiffre >= 2 ? nom : nom.replace(/^([^ ]+)s\b/, '$1'); }
 
   /* VALEUR DE POSITION, chiffre par chiffre — « le 3 de 305 vaut 300 ». C'est le point que ni la
      police de son ni une calculette ne touchent, et c'est le cœur de la difficulté. */
   function positions(n) {
-    var s = String(Math.abs(Math.floor(Number(n))));
+    var s = String(Math.floor(Math.abs(Number(n))));
     var out = [];
     for (var i = 0; i < s.length; i++) {
       var rang = s.length - 1 - i, d = +s.charAt(i);
-      out.push({ chiffre: s.charAt(i), rang: rang, nom: NOMS_POS[rang] || ('10^' + rang),
+      out.push({ chiffre: s.charAt(i), rang: rang, nom: _nomRang(NOMS_POS[rang] || ('10^' + rang), d),
                  vaut: d * Math.pow(10, rang) });
+    }
+    return out;
+  }
+
+  /* Les chiffres APRÈS la virgule : « le 5 de 0,5 vaut cinq dixièmes ». `brut` est une chaîne (« 12.50 »)
+     pour garder le zéro écrit, qu'un nombre perdrait. `vaut` est une chaîne, sans bruit binaire. */
+  function positionsDecimales(brut) {
+    var p = (String(brut).replace(',', '.').split('.')[1] || '').slice(0, 6), out = [];   // au-delà des millionièmes, rien de lisible
+    for (var i = 0; i < p.length; i++) {
+      var d = +p.charAt(i), z = '';
+      for (var k = 0; k < i; k++) z += '0';
+      out.push({ chiffre: p.charAt(i), rang: -(i + 1), nom: _nomRang(NOMS_DEC[i] || ('10^-' + (i + 1)), d), vaut: '0,' + z + d });
     }
     return out;
   }
@@ -178,7 +194,7 @@
      titre. Analyseur descendant, 4 opérations, parenthèses, décimales à la virgule française. */
   function _tokens(src) {
     var t = [], i = 0, s = String(src).replace(/[\s\u00a0]/g, '').replace(/,/g, '.')
-      .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+      .replace(/[×xX]/g, '*').replace(/[÷:]/g, '/').replace(/−/g, '-').replace(/=$/, '');
     while (i < s.length) {
       var c = s.charAt(i);
       if (c >= '0' && c <= '9' || c === '.') {
@@ -241,6 +257,35 @@
     var v = _parse(t);
     if (v === null || !isFinite(v)) return null;
     return Math.round(v * 1e10) / 1e10;                             // rabote le bruit binaire (0,1+0,2)
+  }
+
+
+  /* CE QUE L'ONGLET FAIT DE LA SAISIE. Rend { etat } : 'vide', 'attente' (un calcul en train de
+     s'écrire : « 12+ » n'est pas une erreur), 'erreur' (avec son texte) ou 'ok' (n, brut, calcul, mots).
+     x et : valent × et ÷, « = » final s'ignore, et les mots vont vers les chiffres (`versNombre`) :
+     écrire « trois cent cinq » pour voir 305 est l'erreur canonique que ce fichier existe pour aider. */
+  function lireSaisie(src) {
+    var saisie = String(src === null || src === undefined ? '' : src).trim();
+    if (!saisie) return { etat: 'vide' };
+    if (/^[a-zà-ÿœ\s\u00a0'’-]+$/i.test(saisie)) {
+      var vn = versNombre(saisie.replace(/['’]/g, ' '));
+      if (vn === null) return { etat: 'erreur', texte: "Je ne reconnais pas ce nombre en lettres." };
+      return { etat: 'ok', n: vn, brut: String(vn), mots: true };
+    }
+    var exp = saisie.replace(/[xX]/g, '*').replace(/:/g, '/').replace(/=\s*$/, ''),
+        brut = exp.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.');
+    if (/\.$/.test(brut)) brut = brut.slice(0, -1);
+    if (/[+\-*\/×÷−]/.test(brut.slice(1))) {
+      var ouv = (brut.match(/\(/g) || []).length, fer = (brut.match(/\)/g) || []).length;
+      if (/[+\-*\/×÷−(]$/.test(brut) || ouv > fer) return { etat: 'attente', texte: 'Continue ton calcul…' };
+      var op = calcule(exp);
+      if (op === null) return { etat: 'erreur', texte: "Calcul impossible (vérifie l'opération)." };
+      if (Math.abs(op) > 1e15) return { etat: 'erreur', texte: 'Nombre trop grand.' };
+      return { etat: 'ok', n: op, brut: String(op), calcul: saisie.replace(/=\s*$/, '').trim() };
+    }
+    if (!/^-?\d+(\.\d+)?$/.test(brut)) return { etat: 'erreur', texte: 'Écris un nombre ou un calcul (12+5).' };
+    if (Math.abs(Number(brut)) > 1e15) return { etat: 'erreur', texte: 'Nombre trop grand.' };
+    return { etat: 'ok', n: Number(brut), brut: brut };
   }
 
 
@@ -329,7 +374,7 @@
   }
 
   root.CALCDYS = { enLettres: enLettres, groupe: groupe, positions: positions, lire: lire,
-                    calcule: calcule, versNombre: versNombre,
+                    calcule: calcule, versNombre: versNombre, lireSaisie: lireSaisie, positionsDecimales: positionsDecimales,
                     poseAddition: poseAddition, poseSoustraction: poseSoustraction,
                     poseMultiplication: poseMultiplication, poseDivision: poseDivision };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
