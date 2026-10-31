@@ -485,7 +485,31 @@
 "Les enfants jouent les uns avec les autres grâce au ballon.",
 "Des trois frères, seul le premier parle.",
 "Je connais bien ces rues.",
-"Où vendent-ils leurs produits ?"
+"Où vendent-ils leurs produits ?",
+"Les prunes que ma tante a cueillies sont mûres.",
+"Quelles prunes as-tu cueillies ?",
+"Quelle veste tu as choisie ?",
+"Ces caisses semblent lourdes.",
+"La grille est restée ouverte.",
+"Cette note a été écrite hier.",
+"Les nappes, pliées avec soin, sont rangées.",
+"Pendant ce temps, la pluie tombe.",
+"Du côté du port, la brume monte.",
+"Elle regarde un arc-en-ciel.",
+"Il répond à un appel.",
+"Grâce à toi, on avance.",
+"Les participants aux jeux partent.",
+"Les habitants au bord du lac dorment.",
+"Ils voient leur rôle modifié.",
+"Elle s'est tout de suite levée.",
+"La plus grande partie du groupe part.",
+"Soit tous les mots sont justes, soit aucun.",
+"Trente et un chats dorment.",
+"Les leurs sont dans le sac.",
+"Quelque pressés qu'ils soient, ils attendent.",
+"Des rideaux bleu clair pendent.",
+"Il sort dimanche.",
+"Une odeur de brûlé monte."
 ],
 "elide": [
 [
@@ -1367,6 +1391,156 @@
 "Il fait chante les enfants.",
 "chante",
 "chanter"
+],
+[
+"Peut-être partira-il demain.",
+"il",
+"t-il"
+],
+[
+"Y a-t'il du pain ?",
+"t'il",
+"t-il"
+],
+[
+"Que pense-tu de ce pull ?",
+"pense",
+"penses"
+],
+[
+"Il y à une souris.",
+"à",
+"a"
+],
+[
+"Votre pré est plus grand que le notre.",
+"notre",
+"nôtre"
+],
+[
+"Sa histoire plaît.",
+"Sa",
+"Son"
+],
+[
+"Cet printemps sera doux.",
+"Cet",
+"Ce"
+],
+[
+"Une tel joie surprend.",
+"tel",
+"telle"
+],
+[
+"Chaque foi il rit.",
+"foi",
+"fois"
+],
+[
+"Il passe du coté droit.",
+"coté",
+"côté"
+],
+[
+"Sil pleut, on reste.",
+"Sil",
+"S'il"
+],
+[
+"Deux million de gens votent.",
+"million",
+"millions"
+],
+[
+"Fermes la fenêtre.",
+"Fermes",
+"Ferme"
+],
+[
+"Les prunes que ma tante a cueilli sont mûres.",
+"cueilli",
+"cueillies"
+],
+[
+"Quelles prunes as-tu cueilli ?",
+"cueilli",
+"cueillies"
+],
+[
+"Quand tu auras laver le sol, tu sors.",
+"laver",
+"lavé"
+],
+[
+"Pour ne pas réveillé le chat, il se tait.",
+"réveillé",
+"réveiller"
+],
+[
+"Elle a vu un chat traversé la rue.",
+"traversé",
+"traverser"
+],
+[
+"Il jète un sac.",
+"jète",
+"jette"
+],
+[
+"Il mangait vite.",
+"mangait",
+"mangeait"
+],
+[
+"Il faut que je prend ce train.",
+"prend",
+"prenne"
+],
+[
+"Il pensait qu'il gagnerai.",
+"gagnerai",
+"gagnerait"
+],
+[
+"Dis-moi où habite tes amis.",
+"habite",
+"habitent"
+],
+[
+"Range sa dans le sac.",
+"sa",
+"ça"
+],
+[
+"Pose ton sac sûr la table.",
+"sûr",
+"sur"
+],
+[
+"Il ne c'est pas levé.",
+"c'est",
+"s'est"
+],
+[
+"Où est-elle parti ?",
+"parti",
+"partie"
+],
+[
+"Nous leurs avons parlé.",
+"leurs",
+"leur"
+],
+[
+"Ces caisses semblent lourde.",
+"lourde",
+"lourdes"
+],
+[
+"Cette note a été écrit hier.",
+"écrit",
+"écrite"
 ]
 ],
 "palier": [
