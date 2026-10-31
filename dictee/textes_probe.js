@@ -116,7 +116,7 @@ const CAS = [
   // témoins : ce qui était JUSTE le 11/09 doit le rester
   { t: "Je suis allé a la plage et j'ai manger des glace.",
     mots: { a: { sugg: 'à', oui: ['remplace par « avait »', '« à » (préposition)'] }, glace: { sugg: 'glaces', oui: ['« des » (pluriel)'] } } },
-  { t: 'Il faut que tu fait attention.', mots: { fait: { sugg: 'fais', oui: ['« tu » (singulier)'] } } },
+  { t: 'Il faut que tu fait attention.', mots: { fait: { sugg: 'fasses', oui: ['« tu » (singulier)'] } } },
   { t: 'Je me suis habitue ici.', mots: { habitue: { sugg: 'habitué', oui: ['PARTICIPE', 'installée'] } } },
   { t: "J'ai termine le travail.", mots: { termine: { sugg: 'terminé' } } },
   { t: 'Ils ont marche longtemps.', mots: { marche: { sugg: 'marché' } } },
