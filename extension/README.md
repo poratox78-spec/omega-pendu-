@@ -14,11 +14,11 @@ conseil. (Le « stade développemental » n'est plus affiché depuis la 0.6.35 :
 dedans, il tombait presque toujours sur « alphabétique » et son message était souvent faux — mesuré, voir `dys-core.js`.)
 
 ## Mode d'emploi (utilisateur)
-Le bouton **❓ Mode d'emploi** du panneau ouvre `aide.html`, une page du paquet (hors-ligne, sans script en ligne) : ouvrir le
+Le bouton **? Mode d'emploi** du panneau ouvre `aide.html`, une page du paquet (hors-ligne, sans script en ligne) : ouvrir le
 correcteur, lire les couleurs, copier, écouter, dicter, la bulle et le clic droit, les réglages, la vie privée, les pannes.
 Il décrit le code, et c'est gardé : `dictee/textes_probe.js` §9 (chaque libellé cité existe, chaque commande du panneau est
 expliquée, les exemples sont de vraies sorties du moteur, le CSS des exemples est celui du panneau) et
-`extension/navigateur_ext_probe.js` (bouton ❓ visible, page ouverte dans Chrome sans erreur, réglages suivis en direct).
+`extension/navigateur_ext_probe.js` (bouton ? visible, page ouverte dans Chrome sans erreur, réglages suivis en direct).
 `build_zip.py` refuse un paquet dont une page, un script ou une image référencés manquent.
 
 ## Publier sur le Chrome Web Store
@@ -35,7 +35,7 @@ développeur (5 $) et les captures d'écran.
 3. Cliquer l'icône Ω de l'extension : le panneau latéral s'ouvre. Écrire ou coller un texte (ex. `les enfants joue`,
    `le voiture`, `il son contents`) : les corrections sûres sont appliquées au texte corrigé, « 📋 Copier » le copie.
    La bulle dans la page (clic sur une faute → appliqué **dans le champ**) est une option du panneau, décochée par défaut.
-   Le bouton **❓** ouvre le mode d'emploi.
+   Le bouton **?** ouvre le mode d'emploi.
 
 ## Aide-frappe (complétion)
 Pendant la frappe, pour le mot **sous le curseur**, la barre propose aussi des **complétions** — mots plus longs du
