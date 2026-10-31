@@ -728,7 +728,18 @@
 "Une robe en soie noire.",
 "Les tiges fines et souples.",
 "Il pense au taux.",
-"Il vit au pays."
+"Il vit au pays.",
+"Moi qui chantais fort.",
+"Toi qui veux partir.",
+"C'est moi qui veux.",
+"Tu te lèves tôt.",
+"Une aire de jeu.",
+"Il a une aire de jeu.",
+"Ce fils est qui ?",
+"Un homme, qui lui plaît, entre.",
+"Des pommes rouges et vertes.",
+"Le sens me plaît.",
+"Son enfance le sens."
 ],
 "elide": [
 [
@@ -2755,6 +2766,76 @@
 "Il na chanter hier.",
 "na",
 "a"
+],
+[
+"Un garçon qui chantais fort.",
+"chantais",
+"chantait"
+],
+[
+"Des pigeons qui dormais ici.",
+"dormais",
+"dormaient"
+],
+[
+"Il se lèves tôt.",
+"lèves",
+"lève"
+],
+[
+"Ta lampe le brûlerais.",
+"brûlerais",
+"brûlerait"
+],
+[
+"Les bruits qui nous gêne.",
+"gêne",
+"gênent"
+],
+[
+"Un âne qui étai là.",
+"étai",
+"était"
+],
+[
+"Des pommes rouge et vertes.",
+"rouge",
+"rouges"
+],
+[
+"Elles n'on rien.",
+"n'on",
+"n'ont"
+],
+[
+"Les poules est qui pondent.",
+"est",
+"et"
+],
+[
+"Les soucis sociaux et humain.",
+"humain",
+"humains"
+],
+[
+"De simple cailloux.",
+"simple",
+"simples"
+],
+[
+"Mait il dort.",
+"Mait",
+"Mais"
+],
+[
+"Sa fem dort.",
+"fem",
+"femme"
+],
+[
+"Elle a l'aire triste.",
+"l'aire",
+"l'air"
 ]
 ],
 "palier": [
