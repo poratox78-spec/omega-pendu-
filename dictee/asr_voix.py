@@ -9,7 +9,7 @@ Chaîne :  audio WAV  ->  wav2vec2-french-phonemizer (phonèmes IPA + pauses)  -
   2. grammaire : décodage Viterbi trigramme (os-subj-lm, unigramme mélangé aux fréquences orales du speller)
   3. ponctuation PROSODIQUE : les silences (timing wav2vec2) posent points/virgules
   4. parseur de sujet MODE-CONFIANCE : accord son/sont, adj/participe (flips de genre gratuits à l'oral)
-  5. correcteur rouge FP=0 + majuscules
+  5. correcteur rouge FP=0 + majuscules, puis les rouges du correcteur du produit (dictee/voix_corrige.js)
 Mesuré sur voix propre (TTS) : 13,6 % (phonèmes bruts) -> 76,9 % de mots justes.
 
 Dépendances LOCALES (NON embarquables navigateur -> pour le web, voie A/Web Speech) :
@@ -77,7 +77,7 @@ def load_am():
 
 # ── index de prononciation (homophones + voisins) sur les 214 k du speller ──
 def build_index():
-    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v4.pkl')   # v3 apostrophes ; v4 : + prononciations Wiktionnaire IPA
+    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v5.pkl')   # v3 apostrophes ; v4 : + prononciations Wiktionnaire IPA
     if os.path.exists(cache):
         return pickle.load(open(cache, 'rb'))
     print('… construction de l’index de prononciation (une fois)', file=sys.stderr)
@@ -124,6 +124,7 @@ def build_index():
                 if len(p) >= 3: POS[p[0]] = p[2]
     PH2W = defaultdict(list)
     for w in FREQ:
+        if FREQ[w] < 1: continue   # 31/10/2026 (liste n° 329) : une forme sans aucune fréquence (525 838 sur 740 579) n'est pas un candidat de l'oreille : elle ne fait que confondre. Parlement 75,2 → 76,4 %, parlé 81,4 %, Rem 46 → 48 sur 53, bruité 29 → 30, trois fois plus rapide
         ph = D.W2P.get(w) or wikt_ph(w) or g2p_sampa(w)   # W2P > Wiktionnaire IPA > g2p deviné
         if ph: PH2W[ph].append(w)
     for w, ph in D.W2P.items():
@@ -510,7 +511,15 @@ def run(wav, dbg=None, oreille=True):
         term = '?' if rise >= QRISE else '.'
         if dbg is not None: dbg.append('  pitch %+.1f 1/2t -> %s' % (rise, term))
         out.append(assemble(dec, pz) + term)
-    return ' '.join(out)
+    return regles_produit(' '.join(out))
+
+def regles_produit(texte):   # 31/10/2026 (liste n° 329) : dernier étage, les rouges du correcteur du PRODUIT (le moteur Python n'évolue plus) : parlé B 81,4 → 82,3 %, Rem 48 → 49 sur 53. Sans node, le texte reste tel quel
+    import subprocess
+    try:
+        r = subprocess.run(['node', os.path.join(HERE, 'voix_corrige.js')], input=texte.encode('utf-8'), capture_output=True, timeout=120)
+        return r.stdout.decode('utf-8') if r.returncode == 0 and r.stdout else texte
+    except Exception:
+        return texte
 
 # ── Front-end WHISPER LOCAL (poids ouverts, PAS Google) — mesuré 98 % sur voix dys réelle, ponctuation
 #    + majuscules + « ? » inclus (small). Écrase la voie phon (81 %) pour un usage réel ; la voie phon
