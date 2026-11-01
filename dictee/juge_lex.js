@@ -3,7 +3,7 @@
 const path = require('path'), fs = require('fs'), zlib = require('zlib');
 module.exports = function (R) {
   const D = require(path.join(R, 'extension', 'charger_node.js'))({ ext: path.join(R, 'extension') });
-  const son = D.sonKey, ph = D.phonKey, dec = D.deacc;
+  const son = D.sonKey, ph = (s) => D.phonKey(s).replace(/É$/, ''), dec = D.deacc;
   const low = (s) => String(s || '').toLowerCase().replace(/[’ʼ]/g, "'");
   const F = new Map();
   for (const l of zlib.gunzipSync(fs.readFileSync(path.join(R, 'extension', 'assets', 'speller.tsv.gz'))).toString('utf8').split('\n')) { const p = l.split('\t'); if (p.length >= 2) { const f = +p[1]; if (f >= 1) F.set(p[0], f); } }
