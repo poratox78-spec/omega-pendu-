@@ -68,6 +68,8 @@ jobs:
         run: node extension/navigateur_ext_probe.js --check
       - name: ORDRE DE CHARGEMENT — page ouverte AVANT l'extension, le panneau le DIT
         run: node extension/ordre_chargement_probe.js --check
+      - name: Profils Chrome effacés — un passage de sonde ne laisse rien dans le dossier temporaire
+        run: node extension/profil_chrome_probe.js
       - name: Précision par famille AU PRODUIT — extension réelle dans Chrome (sautée sans corpus dys privé)
         run: python3 dictee/dys_precision_probe.py --navigateur
       - name: Résiduel — tokens CORRECTS détruits (FP=0, plafond dur ; sauté sans corpus local)

@@ -55,15 +55,17 @@ def textes_gold():
 
 
 def dump_produit(textes):
-    d = tempfile.mkdtemp(prefix='omega-palier-')
-    fin, fout = os.path.join(d, 'in.json'), os.path.join(d, 'out.json')
-    json.dump(textes, io.open(fin, 'w', encoding='utf-8'), ensure_ascii=False)
-    r = subprocess.run(['node', DUMP_JS, fin, fout], capture_output=True, text=True, encoding='utf-8', cwd=ROOT)
-    if r.returncode != 0 or not os.path.exists(fout):
-        print(u'✗ ACCORD DE PALIER : le dump du produit a échoué (node dictee/palier_gold_dump.js)')
-        print((r.stderr or r.stdout or '')[-400:])
-        return None
-    return json.load(io.open(fout, encoding='utf-8'))
+    with tempfile.TemporaryDirectory(prefix='omega-palier-') as d:
+        fin, fout = os.path.join(d, 'in.json'), os.path.join(d, 'out.json')
+        with io.open(fin, 'w', encoding='utf-8') as f:
+            json.dump(textes, f, ensure_ascii=False)
+        r = subprocess.run(['node', DUMP_JS, fin, fout], capture_output=True, text=True, encoding='utf-8', cwd=ROOT)
+        if r.returncode != 0 or not os.path.exists(fout):
+            print(u'✗ ACCORD DE PALIER : le dump du produit a échoué (node dictee/palier_gold_dump.js)')
+            print((r.stderr or r.stdout or '')[-400:])
+            return None
+        with io.open(fout, encoding='utf-8') as f:
+            return json.load(f)
 
 
 def apparier(py, js):

@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-11-01 — Un passage de sonde ne laisse plus son profil Chrome dans le dossier temporaire
+
+- Rem : « va falloir faire de la place sur C ». Mesuré : 1 338 dossiers `omega-*` dans %TEMP%, 31,7 Go en 13 jours (2 à 5 Go/jour),
+  C: à 33 Go libres. Chaque sonde Chrome laissait son profil à CHAQUE passage (146 passages, 146 profils `omega-a11y`).
+- Cause, mesurée : `proc.kill()` rend la main AVANT que Chrome ait lâché ses fichiers ; `rmSync` juste après échoue (EPERM, 12 fois
+  sur 12) et le try/catch muet le cachait (§1.7). Le même effacement passe 200 à 360 ms plus tard (10 sur 10, rien ne réapparaît).
+- **Réfuté en chemin** : « des processus fils restent, `taskkill /T` réglera ça » (même EPERM, même délai) ; « `maxRetries`/`retryDelay`
+  de rmSync suffisent » (Node 24 rend EPERM en ≤ 10 ms, sans attendre).
+- Correction : `eteindreChrome(proc, profil)` dans `extension/cdp_chrome.js` (attend en synchrone, dit un échec sans changer le verdict) ;
+  11 scripts Chrome branchés, dont `captures_store`/`promo_store` qui n'effaçaient rien ; 3 scripts Python passent à `TemporaryDirectory`.
+- Garde : `extension/profil_chrome_probe.js` (dev.sh ≡ CI), vue ROUGE d'abord (11 scripts Chrome, 3 Python), puis vrai Chrome éteint 3 fois.
+- Vérifié : 9 sondes rejouées, chacune dans son dossier temporaire : 0 dossier `omega-*`, verdicts inchangés. `palier_gold_probe` sort 1
+  avec et sans la correction (sortie identique, 98,7 %, hors dev.sh depuis le débranchement du Python, #1032).
+- **Non couvert** : une sonde TUÉE en cours laisse encore son profil ; les scripts jetables non suivis par git (`dump_juge.js`…)
+  doivent appeler `eteindreChrome` eux-mêmes ; Chrome laisse quelques petits `.tmp` (≤ 1 Mo par passage).
+
 ## 2026-10-23 — ligne 25b : le moteur Python débranché, sans perte (#1024 → #1034)
 
 - Rem (paraphrase) : débrancher le moteur Python sans le supprimer, mesurer chaque étape, aucune régression.

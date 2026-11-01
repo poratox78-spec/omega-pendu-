@@ -17,7 +17,7 @@
  *   node dictee/sonsite_probe.js --check    # CI : silencieux si vert, sort 1 si rouge
  */
 'use strict';
-const { trouverChrome, attendre, lirePortDevTools, connecter, onglet, spawn, fs, path, os } =
+const { trouverChrome, attendre, lirePortDevTools, connecter, onglet, eteindreChrome, spawn, fs, path, os } =
   require('../extension/cdp_chrome.js');
 const http = require('http');
 
@@ -197,9 +197,8 @@ async function main() {
   } catch (e) { console.error('✗ POLICE DE SON (site) : ' + e.message); code = 1; }
   finally {
     try { sess && sess.fermer(); } catch (e) {}
-    try { proc.kill(); } catch (e) {}
     try { srv.close(); } catch (e) {}
-    try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {}
+    eteindreChrome(proc, profil);
   }
   process.exit(code);
 }

@@ -27,6 +27,7 @@
 'use strict';
 const fs = require('fs'), path = require('path'), http = require('http'), os = require('os');
 const { spawn } = require('child_process');
+const { eteindreChrome } = require('../extension/cdp_chrome.js');
 
 const RACINE = path.join(__dirname, '..');
 const CHECK = process.argv.includes('--check');
@@ -621,8 +622,8 @@ async function main() {
   if (!TETE) args.unshift('--headless=new');
   const proc = spawn(chrome, args, { stdio: 'ignore' });
   let sess = null, code = 0;
-  const nettoyer = () => { try { sess && sess.fermer(); } catch (e) {} try { proc.kill(); } catch (e) {}
-    try { srv.close(); } catch (e) {} try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {} };
+  const nettoyer = () => { try { sess && sess.fermer(); } catch (e) {}
+    try { srv.close(); } catch (e) {} eteindreChrome(proc, profil); };
 
   try {
     const url = 'http://127.0.0.1:' + port + '/app/omega-pendu.html';
