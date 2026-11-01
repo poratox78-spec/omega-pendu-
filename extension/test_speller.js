@@ -227,6 +227,8 @@ if (DC.phonKey('tou') !== DC.phonKey('tout') || DC.phonKey('tu') === DC.phonKey(
 if (DC.phonKey('parlé') === DC.phonKey('parle') || DC.phonKey('parlait') !== DC.phonKey('parlé') || DC.phonKey('parler') === DC.phonKey('parlé')) fail.push('clé phonétique : la fin en /e/ doit rester séparée du e muet, et de -er');
 { const f = DC.diagnoseAll('Et terminne ton assiette avant de sortir.').flags.find((x) => x.word === 'terminne'); if (!f || f.sugg !== 'termine') fail.push('liste n° 339 : un mot écrit en -e propose la forme en -e, eu ' + (f && f.sugg)); }
 { const f = DC.diagnoseAll("Il l'a terminne hier soir.").flags.find((x) => x.word === 'terminne'); if (!f || f.sugg !== 'terminé') fail.push('liste n° 339 : après un auxiliaire, le mot écrit en -e reste proche du -é, eu ' + (f && f.sugg)); }
+{ const f = DC.diagnoseAll('Il dessinne un bateau sur son cahier.').flags.find((x) => x.word === 'dessinne'); if (!f || f.sugg !== 'dessine') fail.push('liste n° 341 : après un pronom sujet, le présent reste le présent, eu ' + (f && f.sugg)); }
+{ const f = DC.diagnoseAll('La soupe préparrée hier reste au frais.').flags.find((x) => x.word === 'préparrée'); if (!f || f.sugg !== 'préparée') fail.push('liste n° 341 : un mot écrit en -ée garde sa fin, eu ' + (f && f.sugg)); }
 if (DC.phonKey('cette') !== 'set' || DC.phonKey('fêtes') !== DC.phonKey('fête') || DC.phonKey('mangez') !== DC.phonKey('mangé')) fail.push('clé phonétique : cette=' + DC.phonKey('cette') + ' fêtes/fête=' + DC.phonKey('fêtes') + '/' + DC.phonKey('fête') + ' mangez/mangé=' + DC.phonKey('mangez') + '/' + DC.phonKey('mangé'));
 const sp = t => DC.spell(t);
 const find = (t, w) => sp(t).find(x => x.word.toLowerCase() === w);
