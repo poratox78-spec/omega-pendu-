@@ -1,6 +1,6 @@
 {
- "justes": 400,
- "pointeuses": 210,
+ "justes": 401,
+ "pointeuses": 213,
  "fatigue": 125,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -274,6 +274,7 @@
   "priosn→prison [orthographe] inversion",
   "procédais→procédés [pluriel par le son à vérifier] terminaison",
   "produtis→produits [orthographe] inversion",
+  "proje→projet [orthographe] lettre_manque",
   "prolnogation→prolongation [mot inconnu] inversion",
   "proose→propose [orthographe] lettre_manque",
   "propriétaire→propriétaires [accord pluriel à vérifier] accord",
