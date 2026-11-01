@@ -18,13 +18,15 @@ const { fs, path, os, spawn } = H;
 const { execFileSync } = require('child_process');
 const RACINE = path.join(__dirname, '..');
 const PASSAGES = 3;
+const MOI = 'extension/profil_chrome_probe.js';   // elle cite le vieux motif pour le décrire : le ② la juge, pas le ①
 
 function controleStatique() {
   const fautes = [];
   const suivis = execFileSync('git', ['ls-files', '*.js', '*.cjs', '*.mjs', '*.py'], { cwd: RACINE, encoding: 'utf8' })
     .split('\n').filter(Boolean);
   for (const f of suivis) {
-    const src = fs.readFileSync(path.join(RACINE, f), 'utf8');
+    if (f === MOI) continue;
+    const src =fs.readFileSync(path.join(RACINE, f), 'utf8');
     if (f.endsWith('.py')) {
       if (src.includes('tempfile.mkdtemp(') && !src.includes('rmtree')) fautes.push(f + ' : mkdtemp jamais effacé (prendre TemporaryDirectory)');
     } else if (src.includes('--user-data-dir')) {
