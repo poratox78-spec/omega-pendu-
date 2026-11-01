@@ -3,7 +3,8 @@
 // ① même fichier dans l'app et l'extension, et il reste léger ; ② sans modèle chargé, aucune marque ;
 // ③ le moteur du navigateur note comme le modèle entraîné ; ④ phrases inventées : il parle où les règles se taisent, se tait sur du français correct,
 // ne touche jamais un mot déjà marqué ; ⑤ plafond de fausses alertes sur 2 500 phrases de français public (une partie de ces marques sont de vraies fautes du corpus) ;
-// ⑥ ponctuation (liste n° 333) : virgule, point et « ? » sur des phrases inventées, silence sur des phrases justes, plafond à part ; ⑦ les fins de mots (liste n° 337) sont parmi les candidats.
+// ⑥ ponctuation (liste n° 333) : virgule, point et « ? » sur des phrases inventées, silence sur des phrases justes, plafond à part ; ⑦ les fins de mots (liste n° 337) sont parmi les candidats ;
+// ⑧ arbitre (liste n° 334) : une orange d'accord fausse se tait, les oranges justes restent, et le silence ne relance aucun calcul.
 'use strict';
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..'), EXT = path.join(ROOT, 'extension'), err = [];
@@ -43,6 +44,14 @@ for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants r
 }
 for (const t of ['Il regarde par la fenêtre pendant que sa fille dessine un bateau.', 'Nous mangerons des crêpes samedi soir chez ma tante']) { const f = marques(t).filter((x) => x.juge && x.typo); if (f.length) err.push('« ' + t + ' » : fausse ponctuation ' + JSON.stringify(f.map((x) => x.name))); }
 for (const [w, ms] of [['parle', ['parlé', 'parlent']], ['parlé', ['parler', 'parlez']]]) { const c = D._juge.cands(w).map((x) => x.m); for (const m of ms) if (!c.includes(m)) err.push('candidats de « ' + w + ' » : ' + m + ' manque'); }
+
+{ const G = D._juge, T = 'Les fruits que la voisine a cueillis sentent très bon.', tA = G.TA; marques(T);
+  G.TA = 1e9; const avant = D.diagnoseAll(T).flags.filter((x) => x.word === 'sentent' && x.tier === 'vigilance').length; G.TA = tA;
+  if (!avant) err.push('arbitre : la phrase témoin n\'a plus d\'orange à faire taire, en choisir une autre');
+  if (marques(T).some((x) => x.word === 'sentent')) err.push('arbitre : l\'orange fausse « sentent » devait se taire');
+  if (D.jugeAnalyseSync(T) !== 0 || D.jugeAnalyse(T, D.diagnoseAll(T).flags, null) !== false) err.push('arbitre : le silence relance un calcul');
+  for (const [t, w] of [['Nous avons rencontré des gens très gentil au marché.', 'gentil'], ['Mes amies sont arrivé hier soir par le train.', 'arrivé'], ['Beaucoup de gens pense que la pluie reviendra demain.', 'pense'], ['Elle a acheté quatre belle assiettes au marché.', 'belle']]) if (!marques(t).some((x) => x.word === w && !x.juge)) err.push('arbitre : « ' + t + ' » : l\'orange juste sur « ' + w + ' » devait rester');
+}
 
 const PLAFOND = 32, PLAFOND_P = 30; let n = 0, ph = 0, np = 0;
 const L = fs.readFileSync(path.join(__dirname, 'fp_scale_corpus.txt'), 'utf8').split('\n').map((s) => s.trim()).filter(Boolean);

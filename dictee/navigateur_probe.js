@@ -165,6 +165,7 @@ const CAS = [
   { txt: 'je suis à la boure.', corrigeAttendu: ['boure', 'bourre'], pourquoi: 'le mot pollueur est corrigé, alors qu’il était « valide » au lexique' },
   { txt: 'je suis à la boure.', rien: false, orangeInterdit: 'la', pourquoi: 'CONTRE-GARDE : plus de fausse correction sur le déterminant — c’est tout l’objet du chantier' },
   { txt: 'le comandant a donné l’ordre.', corrigeAttendu: ['comandant', 'commandant'], pourquoi: 'même famille, nom' },
+  { txt: 'Les fruits que la voisine a cueillis sentent très bon.', rien: true, pourquoi: 'arbitre du juge (liste n° 334) : l’orange « sente » se tait dans le vrai navigateur' },
   { txt: 'la pane du marteau frappe le clou.', rien: true, orangeInterdit: 'pane', pourquoi: 'CONTRE-GARDE : « pane » est un VRAI mot (partie du marteau) — écarté du tri à la main ; « la pane du moteur », le juge propose panne, en orange' },
   { txt: 'je suis à la bourre.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase juste reste muette' },
   /* ⭐ « NOUS SOMME » → SOMMONS (10/09/2026, cas de Rem) : la règle de personne conjuguait le lemme qu'elle lisait, *sommer*,
