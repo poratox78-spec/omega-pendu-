@@ -26,6 +26,8 @@ jobs:
       # 22/10/2026 (ligne 25b, étape 2) — la même garde sur la grammaire du PRODUIT (dys-core), sans le moteur Python.
       - name: Garde FP À L'ÉCHELLE AU PRODUIT (grammaire de dys-core + ses oranges, sur les 2500 phrases UD)
         run: node dictee/fp_scale_produit.js --check
+      - name: Juge léger (même fichier app ≡ extension, parité navigateur / modèle, phrases inventées, plafond de fausses alertes)
+        run: node dictee/juge_probe.js
       - name: COUVERTURE de la conjugaison AU PRODUIT (mêmes cas, moteur de l'extension) — couverture_conj_produit.js
         run: node dictee/couverture_conj_produit.js
       - name: MUETTES justes — r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain

@@ -119,6 +119,7 @@ run "parité ces/ses extension == app (vigilance-enseignante ; Python débranch�
 run "parité genre à clé partagée extension == app (âme/amé, affaire/affairé ; Python débranché)" node dictee/parity_gender_coll.js --sans-python
 run "parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas)" node dictee/parity_diag.js
 run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
+run "juge léger : même fichier app ≡ extension, parité navigateur / modèle, phrases inventées, plafond de fausses alertes sur 2 500 phrases" node dictee/juge_probe.js
 run "textes d'explication (💡 + conseils attendus, anciens textes faux interdits ; couche dys app ≡ ext ; routage de chaque règle ; plus de Stade au correcteur)" node dictee/textes_probe.js
 run "INVENTAIRE du correcteur à jour (règles ext ≡ app, paliers, conseils, tables et qui les lit ; Python débranché)" node dictee/inventaire_correcteur.js --check --sans-python
 run "clé phonétique Python ≡ dys-core ≡ app ≡ app EN (« oeu » : cœur → ker, sœur → ser)" python3 dictee/phonkey_parity_probe.py

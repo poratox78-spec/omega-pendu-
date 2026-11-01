@@ -24916,7 +24916,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'du/dû':'homophone_gram','du/de':'homophone_gram','des/dès':'homophone_gram','sur/sûr':'homophone_gram','près/prêt':'homophone_gram','cher/chez':'homophone_gram',
     'mais/mes':'homophone_gram','met/mais':'homophone_gram','mai/mais':'homophone_gram','peu/peux/peut':'homophone_gram','leur/leurs':'homophone_gram',
     'ces/ses à vérifier':'homophone_gram','que/dont':'homophone_gram','qui/que':'homophone_gram',
-    'guère/guerre':'homophone_lex','vit/vie':'homophone_lex','homophone à vérifier':'homophone_lex','adjectif en -ant/-ent':'homophone_lex',
+    'guère/guerre':'homophone_lex','choix du mot à vérifier':'homophone_lex','vit/vie':'homophone_lex','homophone à vérifier':'homophone_lex','adjectif en -ant/-ent':'homophone_lex',
     'personne du verbe':'personne','personne du verbe à vérifier':'personne','personne du verbe par le son à vérifier':'personne','sais/sait':'personne',"j'est/j'ai":'personne',"j'est/j'ai à vérifier":'personne',
     "c'ai/c'est":'personne',"étais après c'/s'":'personne','être (ête)':'personne','conjugaison après je à vérifier':'personne','si + conditionnel':'personne',
     'infinitif après semi-auxiliaire à vérifier':'personne','infinitif après pronom sujet à vérifier':'personne','impératif':'personne','usage être/avoir':'personne','sujet je':'personne',
@@ -32428,6 +32428,98 @@ function spellUnknown(tok,atStart,T,idx){
     if(f.src==='g')return true;if(f.tier==='auto')return true;if(f.tier==='flag'&&f.name==='orthographe')return true;return false;}
   function _isOn(f){return _dfltOn(f)?!_off[f.key]:!!_on[f.key];}
   function _tokPos(t){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,a=[];while((m=re.exec(t)))a.push([m.index,m.index+m[0].length,m[0]]);return a;}   // ’ dans la classe : mêmes frontières de tokens que toks() normalisé → index alignés entre analyse et rendu
+  /* ⭐ 01/11/2026 (liste n° 332) — LE JUGE LÉGER : là où TOUTES les règles se taisent, un petit modèle lit la phrase entière (gauche et droite) et
+     choisit parmi les mots au MÊME SON que le lexique fournit. Il ne fabrique aucun mot, ne remplace aucune marque, ne pose que de l'orange.
+     3 Mo, JavaScript pur (aucun GPU, aucune bibliothèque), une passe par phrase ; le texte ne sort jamais de la machine. Entraîné sur du français
+     public fauté au hasard (dictee/juge_train.py) ; le corpus dys privé ne sert qu'à le mesurer. Modèle ≠ poids : réentraîner = changer le .bin.
+     Le calcul est ASYNCHRONE (jugeAnalyse, tranche par tranche, puis re-rendu) ; diagnoseAll ne lit que le cache, donc sans modèle chargé rien ne change. */
+  var _JG={m:null,cache:new Map(),TAU:3};
+  function _jgMoteur(buf){
+    var u8=new Uint8Array(buf.buffer||buf,buf.byteOffset||0,buf.byteLength),dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+    var hl=dv.getUint32(4,true),H=JSON.parse(new TextDecoder().decode(u8.subarray(8,8+hl))),o=8+hl,P={},cfg=H.cfg;
+    H.t.forEach(function(t){var n=t[1].reduce(function(a,b){return a*b;},1),i8=new Int8Array(u8.buffer,u8.byteOffset+o,n);o+=n;
+      if(t[0]==='ng.weight'){P.ng=i8;P.ngS=t[2];return;}
+      var f=new Float32Array(n),s=t[2];for(var k=0;k<n;k++)f[k]=i8[k]*s;P[t[0]]=f;});
+    var B=cfg.B,DE=cfg.DE,DM=cfg.DM,NL=cfg.NL,NH=cfg.NH,FF=cfg.FF,DP=cfg.DP,HD=DM/NH,NG=14,SQ=Math.sqrt(HD);
+    function fnv(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619)>>>0;return 1+h%(B-1);}
+    function morceaux(w){var out=['<'+w+'>'],k;for(k=1;k<=4;k++)if(w.length>k)out.push(w.slice(-k)+'>');for(k=1;k<=3;k++)if(w.length>k)out.push('<'+w.slice(0,k));for(k=1;k<w.length-2;k++)out.push(w.slice(k,k+3));return out.slice(0,NG).map(fnv);}
+    var memoV=new Map();
+    function vec(w){var v=memoV.get(w);if(v)return v;v=new Float32Array(DE);var ids=morceaux(w),s=P.ngS/ids.length;for(var a=0;a<ids.length;a++){var d=ids[a]*DE;for(var j=0;j<DE;j++)v[j]+=P.ng[d+j]*s;}if(memoV.size>20000)memoV.clear();memoV.set(w,v);return v;}
+    function erf(x){var a=Math.abs(x),t=1/(1+0.5*a),r=t*Math.exp(-a*a-1.26551223+t*(1.00002368+t*(0.37409196+t*(0.09678418+t*(-0.18628806+t*(0.27886807+t*(-1.13520398+t*(1.48851587+t*(-0.82215223+t*0.17087277)))))))));return x>=0?1-r:r-1;}
+    function gelu(x){return 0.5*x*(1+erf(x*0.7071067811865476));}
+    function ln(x,T,w,b,out){for(var t=0;t<T;t++){var o=t*DM,m=0,va=0,j;for(j=0;j<DM;j++)m+=x[o+j];m/=DM;for(j=0;j<DM;j++){var d=x[o+j]-m;va+=d*d;}var e=1/Math.sqrt(va/DM+1e-5);for(j=0;j<DM;j++)out[o+j]=(x[o+j]-m)*e*w[j]+b[j];}}
+    function lire(toks,flags){   // mots en minuscules, [connu, majuscule] par mot → T x DM
+      var T=toks.length,x=new Float32Array(T*DM),EW=P['ent.weight'],EB=P['ent.bias'],PO=P['pos.weight'],t,i,j,k,E2=DE+2;
+      for(t=0;t<T;t++){var v=vec(toks[t]),f0=flags[t][0],f1=flags[t][1],ox=t*DM;for(i=0;i<DM;i++){var r=i*E2,s=EB[i]+EW[r+DE]*f0+EW[r+DE+1]*f1;for(j=0;j<DE;j++)s+=EW[r+j]*v[j];x[ox+i]=s+PO[ox+i];}}
+      var h=new Float32Array(T*DM),qkv=new Float32Array(T*3*DM),sor=new Float32Array(T*DM),g=new Float32Array(T*FF),sc=new Float32Array(T);
+      for(var l=0;l<NL;l++){var pre='blocs.'+l+'.';ln(x,T,P[pre+'ln1.weight'],P[pre+'ln1.bias'],h);
+        var IW=P[pre+'att.in_proj_weight'],IB=P[pre+'att.in_proj_bias'];
+        for(t=0;t<T;t++)for(i=0;i<3*DM;i++){var r2=i*DM,s2=IB[i],ot=t*DM;for(j=0;j<DM;j++)s2+=IW[r2+j]*h[ot+j];qkv[t*3*DM+i]=s2;}
+        sor.fill(0);
+        for(var a=0;a<NH;a++){var dq=a*HD,dk=DM+dq,dv2=2*DM+dq;
+          for(t=0;t<T;t++){var qo=t*3*DM+dq,mx=-1e30;for(k=0;k<T;k++){var d2=0,ko=k*3*DM+dk;for(j=0;j<HD;j++)d2+=qkv[qo+j]*qkv[ko+j];d2/=SQ;sc[k]=d2;if(d2>mx)mx=d2;}
+            var so=0;for(k=0;k<T;k++){sc[k]=Math.exp(sc[k]-mx);so+=sc[k];}
+            var oo=t*DM+dq;for(k=0;k<T;k++){var w=sc[k]/so,vo=k*3*DM+dv2;for(j=0;j<HD;j++)sor[oo+j]+=w*qkv[vo+j];}}}
+        var OW=P[pre+'att.out_proj.weight'],OB=P[pre+'att.out_proj.bias'];
+        for(t=0;t<T;t++){var o3=t*DM;for(i=0;i<DM;i++){var s3=OB[i],r3=i*DM;for(j=0;j<DM;j++)s3+=OW[r3+j]*sor[o3+j];x[o3+i]+=s3;}}
+        ln(x,T,P[pre+'ln2.weight'],P[pre+'ln2.bias'],h);
+        var F0=P[pre+'ff.0.weight'],B0=P[pre+'ff.0.bias'],F2=P[pre+'ff.2.weight'],B2=P[pre+'ff.2.bias'];
+        for(t=0;t<T;t++){var o4=t*DM,og=t*FF;for(i=0;i<FF;i++){var s4=B0[i],r4=i*DM;for(j=0;j<DM;j++)s4+=F0[r4+j]*h[o4+j];g[og+i]=gelu(s4);}
+          for(i=0;i<DM;i++){var s5=B2[i],r5=i*FF;for(j=0;j<FF;j++)s5+=F2[r5+j]*g[og+j];x[o4+i]+=s5;}}}
+      ln(x,T,P['lnf.weight'],P['lnf.bias'],h);return h;}
+    function lin(W,Bi,nIn,nOut,x,xo,out,oo){for(var i=0;i<nOut;i++){var s=Bi[i],r=i*nIn;for(var j=0;j<nIn;j++)s+=W[r+j]*x[xo+j];out[oo+i]=s;}}
+    var hp=new Float32Array(DP),cp=new Float32Array(DP),wp=new Float32Array(DP),NI=4*DP+12,inp=new Float32Array(NI),mh=new Float32Array(128);
+    function noter(h,t,w,cands){   // cands : [{m, tr:[même son large, même son strict, distance, accent seul, fréquence, écrit]}]
+      lin(P['ph.weight'],P['ph.bias'],DM,DP,h,t*DM,hp,0);lin(P['pc.weight'],P['pc.bias'],DE,DP,vec(w),0,wp,0);
+      var M0=P['mlp.0.weight'],B0=P['mlp.0.bias'],M2=P['mlp.2.weight'],B2=P['mlp.2.bias'],TR=P['tr.weight'],notes=[];
+      for(var c=0;c<cands.length;c++){var cd=cands[c],tr=cd.tr,j,dot=0;lin(P['pc.weight'],P['pc.bias'],DE,DP,vec(cd.m),0,cp,0);
+        for(j=0;j<DP;j++){inp[j]=hp[j];inp[DP+j]=cp[j];inp[2*DP+j]=wp[j];var z=hp[j]*cp[j];inp[3*DP+j]=z;dot+=z;}
+        for(j=0;j<6;j++)inp[4*DP+j]=TR[tr[2]*6+j];
+        var q=4*DP+6;inp[q]=tr[0];inp[q+1]=tr[1];inp[q+2]=tr[3];inp[q+3]=tr[4]/16;inp[q+4]=tr[5];inp[q+5]=dot/8;
+        lin(M0,B0,NI,128,inp,0,mh,0);var s=B2[0];for(j=0;j<128;j++)s+=M2[j]*gelu(mh[j]);notes.push(s);}
+      return notes;}
+    return {cfg:cfg,lire:lire,noter:noter,octets:u8.byteLength};}
+  function setJuge(buf){_JG.m=_jgMoteur(buf);_JG.cache=new Map();return true;}
+  function loadJuge(url){return fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(setJuge).catch(function(){return false;});}
+  var _JGG={};[["a","à"],["ou","où"],["son","sont"],["ces","ses","c'est","s'est"],["ce","se"],["la","là","l'a"],["ma","m'a"],["ta","t'a"],["sa","ça"],["on","ont"],["mes","mais","met"],["du","dû"],["leur","leurs"],["ni","n'y"],["si","s'y"],["soi","soit"],["dont","donc"],["tout","tous"],["peu","peut","peux"],["par","part"],["sur","sûr"],["quand","quant"],["qu'elle","quelle","quel"],["sans","sens","cent"],["et","est","es"],["en","an"]].forEach(function(g){g.forEach(function(x){_JGG[x]=(_JGG[x]||[]).concat(g);});});
+  var _JGM=new Map();
+  function _jgLev(a,b){var n=a.length,m=b.length,j;if(Math.abs(n-m)>3)return 3;var p=[];for(j=0;j<=m;j++)p[j]=j;for(var i=1;i<=n;i++){var c=[i];for(j=1;j<=m;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c;}return Math.min(3,p[m]);}
+  function _jgFq(w){var f=spF(w.split("'").pop());return f===undefined?0:Math.round(Math.log2(1+f*1000));}
+  function _jgConnu(w){return spF(w)>=0.001||spF(w.split("'").pop())>=0.001?1:0;}
+  // Les candidats d'un mot : même clé de son, ou même mot sans ses accents. Rien d'autre : le juge choisit, il n'invente pas.
+  function _jgCands(w){var c=_JGM.get(w);if(c)return c;var mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),pre=mm?mm[1]:'',nu=mm?mm[2]:w,S=new Map();
+    var aj=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,f);}};
+    (_JGG[w]||[]).forEach(function(x){if(x!==w)S.set(x,1e9);});
+    if(nu.length>=2){(SP.PHON[phonKey(nu)]||[]).forEach(aj);(spD(deacc(nu))||[]).forEach(aj);}
+    var ph=phonKey(nu),so=_sonKey(nu),de=deacc(nu);
+    c=Array.from(S.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,16).map(function(e){var x=e[0],gr=e[1]===1e9,m=gr?x:pre+x,b=m.split("'").pop();return {m:m,tr:[phonKey(b)===ph?1:0,_sonKey(b)===so?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0]};}).filter(function(x){return x.tr[0]||x.tr[1]||x.tr[3];});
+    if(_JGM.size>30000)_JGM.clear();_JGM.set(w,c);return c;}
+  // Le texte tel que le produit le voit (marques des règles appliquées), en tranches : une phrase, ou des fenêtres si elle n'en finit pas.
+  function _jgTranches(text,flags){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+|\d+|[^\sA-Za-zÀ-ÿœŒ'’ʼ\d]/g,x,rang=-1,sg={},couv={},cur=[],out=[];
+    flags.forEach(function(f){if(typeof f.i!=='number'||f.juge)return;for(var c=0;c<(f.span||1);c++)couv[f.i+c]=1;if((f.span||1)<2&&typeof f.sugg==='string'&&/^[A-Za-zÀ-ÿœŒ']+$/.test(f.sugg))sg[f.i]=f.sugg;});
+    var fin=function(){if(!cur.length)return;for(var a=0;a<cur.length;a+=40){var b=Math.min(cur.length,a+64),t=cur.slice(a,b);out.push({t:t,de:a===0?0:12,a:b===cur.length?t.length:52,cle:t.map(function(y){return y.m;}).join('\u0001')});if(b===cur.length)break;}cur=[];};
+    while((x=re.exec(text))){var w=x[0],mot=/^[A-Za-zÀ-ÿœŒ'’ʼ]+$/.test(w);if(mot)rang++;var vu=mot&&sg[rang]!=null?sg[rang]:w,tk={m:vu,k:mot?rang:-1,brut:w,cs:x.index,ce:x.index+w.length,tu:mot&&!!couv[rang]};cur.push(tk);if(/^[.!?…]$/.test(w))fin();}
+    fin();return out;}
+  function _jgLow(s){return s.toLowerCase().replace(/[’ʼ]/g,"'");}
+  function _jgPasse(tr){var T=tr.t.map(function(y){return _jgLow(y.m);}),fl=tr.t.map(function(y){return [/[a-zà-ÿœ]/.test(_jgLow(y.m))?_jgConnu(_jgLow(y.m)):0,/^[A-ZÀ-Þ]/.test(y.m)?1:0];}),h=_JG.m.lire(T,fl),rep=[];
+    for(var p=0;p<T.length;p++){if(tr.t[p].k<0)continue;var w=T[p],c=_jgCands(w);if(!c.length)continue;
+      var sc=_JG.m.noter(h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]}].concat(c)),bi=-1,bv=-1e9;for(var q=1;q<sc.length;q++)if(sc[q]>bv){bv=sc[q];bi=q;}
+      if(bi>0&&bv-sc[0]>0)rep[p]={m:c[bi-1].m,d:bv-sc[0]};}
+    return rep;}
+  function _jgGarde(cache,cle,r){if(cache.size>3000)cache.clear();cache.set(cle,r);}
+  // Le calcul : tranche par tranche, en rendant la main entre deux ; cb() relance l'affichage si du nouveau est arrivé. Une nouvelle analyse annule la précédente.
+  var _jgTour=0;
+  function jugeAnalyse(text,flags,cb){if(!_JG.m||!SP.ready)return false;var ts=_jgTranches(text,flags||[]).filter(function(t){return !_JG.cache.has(t.cle);});if(!ts.length)return false;var id=++_jgTour,k=0;
+    var pas=function(){if(id!==_jgTour)return;var t=ts[k++];try{_jgGarde(_JG.cache,t.cle,_jgPasse(t));}catch(e){_JG.m=null;return;}if(k<ts.length)setTimeout(pas,0);else if(cb)cb();};setTimeout(pas,0);return true;}
+  function jugeAnalyseSync(text){if(!_JG.m||!SP.ready)return 0;var f=diagnoseAll(text).flags,n=0;_jgTranches(text,f).forEach(function(t){if(!_JG.cache.has(t.cle)){_jgGarde(_JG.cache,t.cle,_jgPasse(t));n++;}});return n;}
+  // Lecture du cache : l'orange va seulement où aucune règle n'a parlé. Silence sur les noms propres, les sigles, les adresses, les mots à trait d'union.
+  function _jugeMarques(text,flags){if(!_JG.m||!_JG.cache.size)return [];var out=[];
+    _jgTranches(text,flags).forEach(function(tr){var r=_JG.cache.get(tr.cle);if(!r)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var x=r[p],tk=tr.t[p];if(!x||x.d<=_JG.TAU||tk.tu||tk.k<0)continue;
+      var av=tk.cs>0?text.charAt(tk.cs-1):'',ap=text.charAt(tk.ce),w=tk.brut;if(/[-@\/_#\\\d]/.test(av)||/[-@\/_#\\\d]/.test(ap)||(ap==='.'&&/[A-Za-z]/.test(text.charAt(tk.ce+1))))continue;
+      if(w.length>1&&w===w.toUpperCase())continue;
+      if(/^[A-ZÀ-Þ]/.test(w)){var pv=p>0?tr.t[p-1].m:'';if(p>0&&!/^[.!?…:]$/.test(pv))continue;}
+      out.push({i:tk.k,word:w,sugg:ckeepcase(w,x.m),name:'choix du mot à vérifier',tier:'vigilance',juge:1,marge:x.d});}});
+    return out;}
   var _VOISIN_OK={'a/à':1,'ou/où':1,'élision fusionnée':1,'accord grammatical (é/er)':1,'est/et (proposition)':1,'peu/peux/peut':1,'et/est':1,'homophone à vérifier':1,'accord pluriel à vérifier':1,'accord verbe à vérifier':1,'participe après avoir':1,'accord pluriel nom':1,'accord adjectif antéposé':1,'mot-outil à vérifier':1};   /* ⭐ 31/10/2026 (liste n° 326) : + les règles qui lisent le mot-outil ou le nombre ; pas le genre ni le sujet : un voisin mal deviné les trompe */   // lot B1 : règles qui décident sur la NATURE du voisin ; + est/et (29/09/2026 : un adverbe mal écrit entre « est » et un pronom sujet)
   var _TORIG=null;   /* ⭐ ligne 38 : les tokens tels que l'utilisateur les a ÉCRITS pendant une passe de grammaire sur le texte nettoyé par l'orthographe — a/à juge le mot suivant sur ce que l'auteur a écrit (« a éré » n'est pas « a ère ») */
   function _computeCorrs(t){_TORIG=null;try{return _computeCorrsInner(t);}finally{_TORIG=null;}}
@@ -32509,7 +32601,7 @@ function spellUnknown(tok,atStart,T,idx){
           _SEG=_segSp;_o=vigAt(_Tv,f.i,{tg:_tv,chaine:1},null);}catch(e){_o=null;}
       if(_o&&typeof _o.sugg==='string'&&(_o.span==null||_o.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_o.sugg)&&_o.sugg.toLowerCase()!==f.sugg.toLowerCase()){f.sugg=_o.sugg;f.tier='vigilance';f.chaine=_o.name;}});
     _SEG=_segMain;
-    list=auteurPasse(list,_T,_Tc,t);   // ⭐ 01/10/2026 : genre de la personne qui écrit (réglage ; sans réglage, rien ne change)
+    list=auteurPasse(list,_T,_Tc,t);list=list.concat(_jugeMarques(t,list));   // ⭐ 01/10/2026 : genre de la personne qui écrit (réglage ; sans réglage, rien ne change)
     list.forEach(function(f){f.key=_ckey(f.word,f.sugg);f.on=_isOn(f);});
     /* TYPOGRAPHIE — clé ancrée CARACTÈRE (préfixe 'T', pas de collision avec les clés mot) ;
        f.word = from, pour la carte et DysProfile.
@@ -33069,6 +33161,7 @@ function spellUnknown(tok,atStart,T,idx){
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
     if(t.length>_CORR_MAX){_corrs=[];_navRender();$('vdc-count').innerHTML='';var _rzL=$('vdc-result');if(_rzL)_rzL.innerHTML='';$('vdc-out').innerHTML='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea;font-size:14px">📏 <b>Texte trop long</b> ('+t.length.toLocaleString('fr-FR')+' caractères) pour la correction en temps réel. Au-delà de ~'+_CORR_MAX.toLocaleString('fr-FR')+' caractères, corrige par sections (un paragraphe à la fois). Ton texte n’est pas modifié.</div>';return;}   // #UI plafond MESURÉ (Chrome) : au-delà, le rendu O(n) de milliers de spans FIGE l'onglet (~30k). Dégradation douce, texte intact.
     _corrs=SP.ready?_computeCorrs(t):[];
+    if(SP.ready&&document.documentElement.lang!=='en'){if(!_JG.ch){_JG.ch=1;loadJuge('juge-mini.bin').then(function(ok){if(ok)runCorr();});}jugeAnalyse(t,_corrs,runCorr);}
     if(_b2.on&&!_b2.charge)_b2Charge();_b2Analyse(t,_corrs);   // greffe juge-aval + arbitre : chargement paresseux + verdicts async (re-déclenchent runCorr via le cache)
     _corrs=_corrs.filter(function(f){return !_b2Tais(f);});    // l'arbitre a jugé : les oranges que le contexte dément se taisent (opt-in, cache par texte)
     var _ceoff=_ceCaret($('vdc-in'));$('vdc-in').innerHTML=_renderView(t,_corrs,false);_ceSetCaret($('vdc-in'),_ceoff);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées

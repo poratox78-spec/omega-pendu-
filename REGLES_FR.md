@@ -425,6 +425,42 @@ tolèrent le faux positif. Notre contrat est inverse (FP=0 sur l'affirmatif) et 
 dys : chaque signalement non indispensable est de la fatigue. Le différentiel de compte (6 854 vs
 ~60 phénomènes) est un choix, pas un retard.
 
+## Le JUGE LÉGER (liste n° 332, 2026-11-01) — un modèle maison de 3,4 Mo, pour tout le monde
+
+**Ce qu'il fait.** Là où TOUTES les règles se taisent, il lit la phrase entière (gauche et droite) et choisit parmi les mots au MÊME SON que le lexique fournit. Il ne fabrique aucun mot, ne remplace aucune marque, ne pose que de l'orange (`choix du mot à vérifier`, seuil τ=3). Sur les noms propres, sigles, adresses et mots à trait d'union, il se tait.
+
+**Pourquoi un modèle.** Après les lots 301-327, ce qui reste sur les textes dys demande le sens de la phrase. Mesuré d'abord : le bon mot est déjà à portée pour 489 des 578 fautes muettes.
+
+**La place.** `extension/assets/juge-mini.bin` ≡ `app/juge-mini.bin` : 3,41 Mo en int8 (2,84 Mo compressé), 67 tables, 3,4 M de paramètres. JavaScript pur (`_jgMoteur` dans dys-core et l'app) : aucun GPU, aucune bibliothèque, quelques dizaines de millisecondes par phrase, parité avec le modèle entraîné gardée par `dictee/juge_probe.js`. Le paquet de l'extension passe de 7,0 à 9,8 Mo.
+
+**La courbe de taille, même banc** (fautes muettes des textes dys, candidats au même son, moitiés A + B ; réparées / fausses, mots justes touchés sur 3 000) :
+
+| modèle | taille | réparées / fausses | justes touchés |
+|---|---|---|---|
+| juge 1,2 M, mots seuls | 1,2 Mo | 80 / 19 | 9 |
+| juge 3 M, mots seuls | 3 Mo | 98 / 20 | 8 |
+| juge 3 M, mots + ponctuation | 3 Mo | 87 / 26 | 9 |
+| **juge 3,4 M, mots + ponctuation (livré)** | **3,4 Mo** | **103 / 22** | **10** |
+| juge 5,3 M, mots seuls | 5,3 Mo | 99 / 19 | 9 |
+| juge 13 M, mots + ponctuation | 13 Mo | 99 / 21 | 7 |
+| B2 caractères (`b2_web.bin`) | 15 Mo | 72 / 28 | 9 |
+| asi/gpt-fr-cased-small (plafond, jamais livré) | 250 Mo | 109 / 26 | 9 |
+
+Quatre fois plus gros (13 M) n'apporte rien de net, et rien en conjugaison : ce n'est plus la taille qui limite.
+
+**Au produit, moteur réel** (banc local privé ; 2 347 fautes alignées, 8 003 mots justes) : τ=3 → 76 bons mots, 15 mauvais mots, 9 mots justes touchés. Sur les 2 500 phrases de français public (`fp_scale`) : 22 marques (0,9 % des phrases) ; relues à la version précédente, environ la moitié sont de vraies fautes du corpus.
+
+**Ce qu'il comble, famille par famille** (τ=2, fautes muettes → rattrapées / fausses) : homophones petits mots 93 → 29 / 2 · autres homophones 29 → 9 / 1 · non-mots sans proposition 36 → 14 / 1 · grammaire 177 → 33 / 5 · accents 19 → 4 / 0 · conjugaison 193 → 14 / 9 · vocabulaire 31 → 0 / 4. La conjugaison reste le plus gros trou : le modèle met le bon mot en tête 99 fois sur 167, mais préfère garder l'écrit dans 116 cas. Les 295 fautes où une règle propose un mauvais mot restent hors de sa portée.
+
+**Refusé, chiffres à l'appui.**
+- Lui laisser REMPLACER la suggestion d'une règle : il répare autant qu'il casse (τ=6 : 20 réparées, 16 fausses, 17 bonnes cassées, moitié A). Il n'agit donc que sur le silence.
+- Candidats sans le même son : plus de fausses alertes (120 → 92 mots sur 2 500 phrases à τ=2), à peine plus de réparations.
+- Modèle plus gros : voir la courbe.
+
+**L'entraînement.** Corpus PUBLIC seulement (`data_local/b2_train.txt` : UD + exemples du Wiktionnaire, 645 215 phrases), fautes tirées au sort par `dictee/juge_gen.js` : petits mots, même racine, même son, non-mots. Le corpus dys privé ne sert qu'à mesurer, et la moitié B n'a servi à régler aucun seuil. Les livres protégés n'entrent pas dans le fichier. Morceaux de mots hachés au lieu d'un dictionnaire : une faute voisine ne l'aveugle pas et aucune table de mots n'est livrée. 30 min sur une RTX 3060 : `juge_gen.js` → `juge_train.py` (`{"DM":192,"FF":384}`, 5 époques) → `juge_export.py` → `juge_refs.py`. Modèle ≠ poids : réentraîner = changer le `.bin`. Le fichier porte déjà une tête de ponctuation, branchée dans une ligne à part.
+
+**Asynchrone.** `jugeAnalyse` calcule par tranches et relance l'affichage ; `diagnoseAll` ne lit que le cache. Sans modèle chargé, aucune marque : les autres bancs mesurent les règles seules (28 772 textes identiques), `dictee/juge_probe.js` mesure le juge.
+
 ## La GREFFE juge-aval (2026-08-21, PR#517-518+) — le premier organe non mécanique
 
 Le mur assumé de `saisVig` — « [il/elle/on] sait + INFINITIF » exige la sémantique — est couvert

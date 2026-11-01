@@ -68,6 +68,7 @@
     }).catch(function (e) { try { chrome.storage.local.set({ omdysStatus: { ready: false, error: String(e && e.message || e) } }); } catch (e2) {} });
     if (DC.loadSpellerLex) DC.loadSpellerLex(spellerUrl).then(function () { if (active) schedule(active); });  // re-render quand l'orthographe (non-mots/accents) est prête
     if (DC.loadNounPost) DC.loadNounPost(nomUrl).then(function () { if (active) schedule(active); });  // re-render quand le posterior (genre + pluriel) est prêt
+    if (DC.loadJuge) DC.loadJuge(chrome.runtime.getURL('assets/juge-mini.bin')).then(function (ok) { if (ok && active) schedule(active); });  // juge léger : orange là où les règles se taisent (3 Mo, local)
     if (DC.loadConfusables) DC.loadConfusables(chrome.runtime.getURL('assets/confusables.json')).then(function () { if (active) schedule(active); });  // couche VERTE vigilance (confusables)
   } catch (e) {}
   }
@@ -451,6 +452,7 @@
     var dg = DC.diagnoseAll ? DC.diagnoseAll(text) : DC.diagnose(text);   // grammaire + orthographe (non-mots/accents)
     var autos = dg.flags.filter(function (f) { return f.tier === 'auto'; });
     if (autos.length && applyAutos(el, autos)) return;                    // AUTO sûr → corrigé tout seul
+    if (DC.jugeAnalyse) DC.jugeAnalyse(text, dg.flags, function () { if (el === active) run(el); });   // juge léger : calcul en tâche de fond, re-rendu quand des résultats arrivent
     var comps = computeComps(el);                                         // aide-frappe : complétions du mot en cours
     var vig = DC.vigText ? DC.vigText(text) : [];                         // couche VERTE : confusables (vigilance, n'affirme pas)
     var ro = DC.runonText ? DC.runonText(text) : [];                      // couche VERTE : run-on (ponctuation manquante entre 2 propositions)

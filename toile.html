@@ -144,6 +144,7 @@ const N = [
   // moteurs
   {id:'tag', f:'engine', r:16, label:'Tagger HMM', desc:"Viterbi. Donne la NATURE de chaque mot en contexte. Le sujet plafonne à ~94 % = le mur syntaxique (hors parseur). ⭐ MESURÉ 08/09/2026 : il ne donne JAMAIS la FONCTION. « nous mangeons » (sujet) et « il nous voit » (objet) rendent le MÊME PRON — sujet et objet ne sont pas des catégories de mot, ce sont des relations, et ce modèle n'en produit pas. Demander au tagger de trancher nous/vous, c'était lui demander ce qu'il ne calcule pas. Trois limites de même nature déjà mesurées : clitique préverbal lu DET, « que » relatif lu SCONJ, participe adjectival lu VERB."},
   {id:'spell', f:'engine', r:15, label:'Speller', desc:"Canal bruité (édition + phon_key). Émet ortho (rouge/orange) + spans multi-tokens (répétition, espacement, trait d'union, élision)."},
+  {id:'juge', f:'engine', r:13, label:'Juge léger', desc:"Modèle maison de 3,4 Mo (juge-mini.bin), en JavaScript pur, sans serveur. Là où toutes les règles se taisent, il lit la phrase entière et choisit parmi les mots au même son que le lexique fournit. Il ne fabrique aucun mot, ne remplace aucune marque, ne pose que de l'orange. Entraîné sur du français public fauté au hasard."},
   {id:'bout', f:'engine', r:12, label:'Bout de chaîne', desc:"Après la chaîne des règles : on relit la phrase avec les corrections ORANGE appliquées. Ce que les règles rouges y trouvent EN PLUS reste orange (la marque n'existe que si l'on accepte la correction d'à côté) ; une orange que le rouge ramène au mot écrit est retirée."},
   {id:'expl', f:'engine', r:12, label:'Conseils · 💡', desc:"Chaque règle a une FAMILLE de conseil par son nom (accent, son muet, homophone, accord, personne, participe, découpage…) ; le 💡 dit pourquoi, au mot près. Ponctuation, style et répétition n'ont pas de conseil, voulu. Un conseil contradictoire vaut moins que le silence."},
   {id:'os', f:'engine', r:13, label:'OS-sujet', desc:"Arbitrage μ = r/(1+r) : fiabilité = piqué de la distribution. Trouve le sujet éloigné en ORANGE là où le parseur s'abstient."},
@@ -189,6 +190,7 @@ const E = [
   ['spw','spell'],['hmm','tag'],['pers','tag'],['pers','conj'],['pers','sv'],['pers','term'],['conj','sv'],['conj','pp'],['conj','term'],['gn','genre'],['np','genre'],['np','gn'],
   ['ipa','spell'],['colL','filet'],['colL','plu'],
   // engines internal / -> rules
+  ['spw','juge'],['ipa','juge'],['juge','ORANGE'],['juge','core'],
   ['tag','filet'],['tag','core'],['spell','core'],['os','core'],['filet','sv'],
   ['tag','sv'],['tag','pp'],['tag','genre'],['tag','homo'],['tag','nom'],['tag','plu'],
   ['spell','span'],['spell','unk'],['os','osv'],
