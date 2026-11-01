@@ -113,6 +113,7 @@
     "genre de la personne qui écrit": "Féminin ou masculin ?",
     "genre déterminant": "Féminin ou masculin ?",
     "guère/guerre": "guère ou guerre",
+    "choix du mot à vérifier": "Même son, autre mot ?",
     "homophone à vérifier": "Même son, autre mot ?",
     "il y a": "il y a",
     "impératif": "Impératif",
@@ -314,6 +315,7 @@
       .catch(function (e) { stEl.textContent = 'erreur moteur'; });
     if (DC.loadSpellerLex) DC.loadSpellerLex(sp).then(runNow);
     if (DC.loadNounPost) DC.loadNounPost(nom).then(runNow);
+    if (DC.loadJuge) DC.loadJuge(chrome.runtime.getURL('assets/juge-mini.bin')).then(runNow);   // juge léger : orange là où les règles se taisent (3 Mo, local)
     if (DC.loadConfusables) DC.loadConfusables(chrome.runtime.getURL('assets/confusables.json')).then(runNow);
     // ⭐ CANAL TEXTE DE LA PONCTUATION (182 Ko) — surfaces VOCALES seulement (content.js, qui
     // tourne sur toutes les pages web, ne le charge pas). Dégradation douce si absent.
@@ -337,7 +339,7 @@
 
   // ---- correction de NOTRE textarea (on la possède → remplacement direct, aucun framework) ----
   var lastDg = { flags: [] };
-  function diagnose(t) { try { return DC.diagnoseAll ? DC.diagnoseAll(t) : { flags: [] }; } catch (e) { return { flags: [] }; } }
+  function diagnose(t) { try { var d = DC.diagnoseAll ? DC.diagnoseAll(t) : { flags: [] }; if (DC.jugeAnalyse) DC.jugeAnalyse(t, d.flags, runNow); return d; } catch (e) { return { flags: [] }; } }
   function applyFlag(f) {
     var t = ta.value;
     /* INSERTION ANCRÉE CARACTÈRE (« ? » ou « . » manquant, cs===ce) : ces flags n'ont pas d'indice de

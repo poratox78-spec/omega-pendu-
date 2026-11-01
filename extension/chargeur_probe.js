@@ -18,6 +18,7 @@ for (const f of ['content.js', 'sidepanel.js']) {
   const cles = [...bloc.matchAll(/(\w+)\s*:\s*(?:chrome\.runtime\.getURL\(|[a-zA-Z]+Url\b|sp\b|nom\b)/g)].map(m => m[1]);
   if (!cles.length) err.push(f + ' : aucune clé lue dans loadLex');
   for (const k of cles) if (!couvertes.has(k)) err.push(f + ' : la table « ' + k + ' » est chargée par le produit mais PAS par charger_node.js');
+  if (/loadJuge\(/.test(s) && !/setJuge/.test(fs.readFileSync(path.join(__dirname, 'charger_node.js'), 'utf8'))) err.push(f + ' : le juge léger est chargé par le produit mais PAS par charger_node.js');
   if (/loadConfusables\(/.test(s) && !/setConfusables/.test(fs.readFileSync(path.join(__dirname, 'charger_node.js'), 'utf8'))) err.push(f + ' : confusables chargées par le produit, pas par charger_node.js');
 }
 const bancs = [];

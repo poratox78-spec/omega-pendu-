@@ -33,6 +33,7 @@ function chargerProduit(opts) {
     D[m](mode === 'gzjson' ? JSON.parse(gz(f)) : gz(f));
   }
   if (D.setConfusables) D.setConfusables(JSON.parse(lire('confusables.json').toString('utf8')));
+  if (opts.juge && D.setJuge) D.setJuge(lire('juge-mini.bin'));   // juge léger : calculé à part (jugeAnalyseSync) ; seuls ses bancs le chargent, dictee/juge_probe.js
   if (opts.ponct && D.setPonctLm) D.setPonctLm(JSON.parse(gz('ponct-lm.json.gz')));
   return D;
 }
