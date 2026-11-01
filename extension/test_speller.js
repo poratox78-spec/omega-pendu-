@@ -224,6 +224,9 @@ for (const s of ['prends-le avec toi', 'je crois que oui', 'rendez-vous le 12 av
   if (!f || f.sugg !== 'j\'ai mangé' || f.tier !== 'vigilance') fail.push('ma/ta/jais « jais mangé » : attendu « j’ai mangé » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 for (const s of ['ma santé est bonne', 'ma pensée est libre', 'il a les cheveux noir de jais']) { const f = DC.spell(s).find(x => x.name === 'élision'); if (f) fail.push('ma/ta/jais : témoin « ' + s + ' » marqué ' + JSON.stringify(f)); }
 if (DC.phonKey('tou') !== DC.phonKey('tout') || DC.phonKey('tu') === DC.phonKey('tout')) fail.push('clé phonétique : tou=' + DC.phonKey('tou') + ' tout=' + DC.phonKey('tout') + ' tu=' + DC.phonKey('tu'));
+if (DC.phonKey('parlé') === DC.phonKey('parle') || DC.phonKey('parlait') !== DC.phonKey('parlé') || DC.phonKey('parler') === DC.phonKey('parlé')) fail.push('clé phonétique : la fin en /e/ doit rester séparée du e muet, et de -er');
+{ const f = DC.diagnoseAll('Et terminne ton assiette avant de sortir.').flags.find((x) => x.word === 'terminne'); if (!f || f.sugg !== 'termine') fail.push('liste n° 339 : un mot écrit en -e propose la forme en -e, eu ' + (f && f.sugg)); }
+{ const f = DC.diagnoseAll("Il l'a terminne hier soir.").flags.find((x) => x.word === 'terminne'); if (!f || f.sugg !== 'terminé') fail.push('liste n° 339 : après un auxiliaire, le mot écrit en -e reste proche du -é, eu ' + (f && f.sugg)); }
 if (DC.phonKey('cette') !== 'set' || DC.phonKey('fêtes') !== DC.phonKey('fête') || DC.phonKey('mangez') !== DC.phonKey('mangé')) fail.push('clé phonétique : cette=' + DC.phonKey('cette') + ' fêtes/fête=' + DC.phonKey('fêtes') + '/' + DC.phonKey('fête') + ' mangez/mangé=' + DC.phonKey('mangez') + '/' + DC.phonKey('mangé'));
 const sp = t => DC.spell(t);
 const find = (t, w) => sp(t).find(x => x.word.toLowerCase() === w);

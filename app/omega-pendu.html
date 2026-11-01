@@ -29750,7 +29750,10 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
      peneus ≡ pneus : le scripteur dys double une consonne ou insère un e, le g2p contextuel y lit ɛ ou ə) ; le e de -er / -ez finals reste
      (parler ≠ parle). Mesuré : sans cela, les règles de contexte du g2p coûtaient 9 corrections justes sur les 3 corpus, 0 gain. */
   function _sonKey(w){try{var st=_DECL2.g2p(w),o='',i;for(i=0;i<st.length;i++){var p=st[i].ph;if(!p||p==='∅'||p==='ə')continue;if(st[i].g==='e'&&(p==='e'||p==='ɛ')&&!(i===st.length-2&&(st[i+1].g==='r'||st[i+1].g==='z')))continue;o+=p;}return o.replace(/ɔ/g,'o');}catch(e){return '';}}
-  function phonKey(s){s=s.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').replace(/ç/g,'s');s=deaccS(s);
+  /* ⭐ 01/11/2026 (liste n° 339) : la fin écrite é, ée, ez, ai, ait, aient, et, êt, ès… garde sa classe, É, séparée du e muet : parle ≠ parlé = parlez = parlait.
+     Tout était confondu : un non-mot en -é avait pour candidats les formes en -e, plus fréquentes. -er reste à part (parler) : le ranger ici n'apporte rien.
+     Mesuré sur les 28 772 textes : 87 corrections devenues justes, 11 perdues, 1 marque de plus sur le français correct. Miroir Python speller_probe.phon_key. */
+  function phonKey(s){var fe=s.length>2&&/(?:é|ée|és|ées|ez|ai|ais|ait|aient|aie|aies|et|ets|êt|êts|ès|è|ê)$/i.test(s)?'É':'';s=s.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').replace(/ç/g,'s');s=deaccS(s);
     s=s.replace(/oin(?![aeiouy])/g,'w1').replace(/ien(?![aeiouy])/g,'j1').replace(/(?:ain|aim|ein|eim|in|im|yn|ym|un|um)(?![aeiouymn])/g,'1').replace(/(?:an|am|en|em)(?![aeiouymn])/g,'2').replace(/(?:on|om)(?![aeiouymn])/g,'3');   // NASALES → classe unique (in/ain/un→1 /ɛ̃/, an/en→2, on→3) ; +6 pts rappel nasal, FP=0 (MIROIR speller_probe.phon_key)
     s=s.replace(/ph/g,'f').replace(/sch/g,'ch').replace(/th/g,'t').replace(/ch(?=[bcdfgjklmnpqrstvwxz])/g,'k').replace(/ch/g,'§').replace(/gn/g,'¤');
     s=s.replace(/qu/g,'k').replace(/gu/g,'g').replace(/eau/g,'o').replace(/aux/g,'o').replace(/au/g,'o');
@@ -29766,8 +29769,9 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
        Mesuré (produit, avec le départage singulier/pluriel et la garde « rival amputé de l'initiale ») : 141 marques devenues justes,
        23 cassées sur les 3 corpus dys ; UD 14 450 : aucune marque nouvelle ni perdue (90 suggestions changées sur des mots rares déjà
        signalés). Miroir Python speller_probe.phon_key. */
-    if(/[^e]es$/.test(s))s=s.slice(0,-1);if(/[^e]e$/.test(s))return s.slice(0,-1);
-    while(s.length&&'est'.indexOf(s[s.length-1])>=0)s=s.slice(0,-1);return s;}
+    if(/[^e]es$/.test(s))s=s.slice(0,-1);if(/[^e]e$/.test(s))return s.slice(0,-1)+fe;
+    while(s.length&&'est'.indexOf(s[s.length-1])>=0)s=s.slice(0,-1);return s+fe;}
+  function _pkM(w,pk){var k=phonKey(w);return k===pk||k===pk+'É';}   // le mot écrit (clé pk) et le candidat w : même son ? Un mot écrit en -e garde les mots en -é, le dys écrit souvent e pour é ; l'inverse non.
   function sEdits1(d){var res={},i,ci,c,a,b,sp=[];for(i=0;i<=d.length;i++)sp.push([d.slice(0,i),d.slice(i)]);
     for(var k=0;k<sp.length;k++){a=sp[k][0];b=sp[k][1];if(b)res[a+b.slice(1)]=1;if(b.length>1)res[a+b[1]+b[0]+b.slice(2)]=1;
       for(ci=0;ci<26;ci++){c=String.fromCharCode(97+ci);res[a+c+b]=1;if(b)res[a+c+b.slice(1)]=1;}}return Object.keys(res);}
@@ -29869,7 +29873,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
         var ln=lines[k];if(!ln)continue;var pr=ln.split('\t');if(pr.length<2)continue;
         var w=pr[0],_fi=parseInt(pr[1],10),fr=_fi/1000;if(w.charCodeAt(w.length-1)===232&&_egr[w.slice(0,-1)]&&_eai[w.slice(0,-1)]&&w!=='burkinabè')continue;if(_LEX_COQ52[w])continue;_spAdd(w,_fi,pr[2]);   // ⭐ 17/10/2026 (liste n° 52) : coquilles entrées dans le lexique (avie, jammais, commant…) — pas des mots
            // porte EXACTE : seule la fréquence 0 (gacc) est connue-seulement ; ≥ 0,01 retirait 26 % du lexique de BASE et cassait les suggestions « mot inconnu » (mesuré en A/B node)   // ⭐ connu-seulement : sous KNOWN_ONLY le mot est dans WORDS (plus « inconnu ») mais JAMAIS candidat — l'A/B navigateur perdait 3 justes par concurrence d'unicité (miroir Python KNOWN_ONLY_FREQ)
-        if(fr>=0.1){var pk=phonKey(w);(SP.PHON[pk]||(SP.PHON[pk]=[])).push(w);if(w.length>=4&&/^[a-zà-ÿœæ]+$/.test(w))SP.ANAL.push(w);}else if(fr>0&&fr!==0.05)SP.RARE.push(w);}   // ⭐ 13/09/2026 : mots RARES relevés au passage (index bâti par tranches, _phonRareStep)
+        if(fr>=0.1){var pk=phonKey(w);(SP.PHON[pk]||(SP.PHON[pk]=[])).push(w);if(pk.slice(-1)==='É'){var pb=pk.slice(0,-1);(SP.PHON[pb]||(SP.PHON[pb]=[])).push(w);}/* un mot en -é se trouve aussi depuis la clé sans É : « coze » garde causé parmi ses candidats */if(w.length>=4&&/^[a-zà-ÿœæ]+$/.test(w))SP.ANAL.push(w);}else if(fr>0&&fr!==0.05)SP.RARE.push(w);}   // ⭐ 13/09/2026 : mots RARES relevés au passage (index bâti par tranches, _phonRareStep)
       ['postulée','postulées','entretint','entretinrent','armet','armets'].forEach(function(w){SP.WORDS.add(w);});   // MOTS VALIDES manquants du lexique que le speller éditait à tort (« mauvais candidat sur mot valide » : postulée→postulé, entretint→entretient, armet→arme) → protégés (SP.WORDS.has ⇒ ni correction ni vigilance). FP=0 : vrais mots FR ; liste extensible.
       var sf=function(a,b){return spF(b)-spF(a);};
       SP.D2M.forEach(function(v){if(typeof v!=='string')v.sort(sf);});
@@ -30455,7 +30459,7 @@ function estQuestion(t,maxMots){
   function _indre91(c,d,fin){return /[aeo]ind$/.test(d)&&deaccS(c)===d.slice(0,-1)+(fin||'t');}   // ⭐ liste n° 91 : « peind » → peint (peindre), pas « peine » : le -d écrit pour le -t muet des verbes en -indre
   function _initConf(w,d){var a=w.charAt(0),b=d.charAt(0);if(a===b)return true;for(var i=0;i<_INIT_CONF.length;i++)if(_INIT_CONF[i].indexOf(a)>=0&&_INIT_CONF[i].indexOf(b)>=0)return true;return false;}
   function sGender(w){var dw=deaccS(w);if((spP(w)||'').indexOf('A')>=0){var a=ADJP[dw];if(a)return a[0];}var g=GENDER_PURE[dw]||GENDER_MAP[dw];return (g==='m'||g==='f')?g:null;}  // table adj SEULEMENT si adjectif (évite collision pomme/pommé) ; sinon genre du nom
-  function _homophoneEdit1(low){var d=deaccS(low),pk=phonKey(low),e1=sEdits1(d),i,j;for(i=0;i<e1.length;i++){var a=spD(e1[i]);if(!a)continue;for(j=0;j<a.length;j++){var w=a[j];if(w!==low&&(spF(w)||0)>=1.0&&/V/.test(spP(w)||'')&&phonKey(w)===pk)return true;}}return false;}   // un VERBE du lexique à 1 édition et de même clé phonétique existe (aboit→aboie) : la soudure « a + verbe » s'efface devant lui
+  function _homophoneEdit1(low){var d=deaccS(low),pk=phonKey(low),e1=sEdits1(d),i,j;for(i=0;i<e1.length;i++){var a=spD(e1[i]);if(!a)continue;for(j=0;j<a.length;j++){var w=a[j];if(w!==low&&(spF(w)||0)>=1.0&&/V/.test(spP(w)||'')&&_pkM(w,pk))return true;}}return false;}   // un VERBE du lexique à 1 édition et de même clé phonétique existe (aboit→aboie) : la soudure « a + verbe » s'efface devant lui
   var _SCTX_NOG={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,leur:1,notre:1,votre:1,aux:1,plusieurs:1,quelques:1,chaque:1};   // ⭐ liste n° 33 : déterminants SANS genre — collés au mot, ils le gouvernent (on ne remonte pas plus loin) ; « du », « au » sont masculins, pas ici
   var _SPREP_P={de:1,dans:1,pour:1,sur:1,par:1,avec:1,sans:1,sous:1,chez:1,vers:1,entre:1,contre:1,depuis:1,pendant:1,selon:1,malgre:1,apres:1,avant:1,durant:1,parmi:1};   // ⭐ liste n° 33 : après une préposition, pas de verbe conjugué (« de sonn » → son) ; « à » exclu (désaccentué = « a » avoir), « en » exclu (pronom : « il en profite ») ; MUET quand le pool contient une variante d'accent du mot écrit — le tri des accents décide (« pour achete » → acheter par la grammaire, pas achète en rouge)
   var _PREP_NO_V={};('sont est suis es sommes etes ont ai as avons avez etait etais etaient avait avais avaient sera seront serai seras aura auront fut furent soit soient ait aient vont vais vas va peut peuvent veut veulent doit doivent').split(' ').forEach(function(w){_PREP_NO_V[w]=1;});   // ⭐ liste n° 33 : formes finies d'être/avoir/aller/modal — jamais après une préposition (le code N de « sont » est parasite)
@@ -30908,6 +30912,7 @@ function spellTokenCore(tok,atStart,T,idx){
        laisse décider les critères suivants. Neutre pour une saisie sans accent ou un candidat d'un autre squelette. Miroir Python _kacc. */
     var _sqL=deaccS(low);function _kAcc(x){if(x.length!==low.length||deaccS(x)!==_sqL)return 1;for(var q=0;q<low.length;q++){var c=low.charAt(q),e=x.charAt(q);if(c!==deaccS(c)&&e===deaccS(e))return 0;}return 1;}   // une lettre accentuée reste accentuée (é/è/ê : même classe — « posséde » → possède)
     var _f91=(T&&/[aeo]ind$/.test(d)&&/^(je|tu)$/.test(_sujPron(T,idx)||''))?'s':'t';   // ⭐ liste n° 91 : « je peins », « tu rejoins » ; sinon -t (« il peint », « il a peint »)
+    var _ctE=!!(T&&idx>0&&(function(p){p=p.replace(/’/g,"'").replace(/^[a-z]{1,2}'/,'');return SAUXAV[p]||SCOPULA[p]||_SPREP_P[p];})(deaccS(String(T[idx-1]).toLowerCase())));   // ⭐ liste n° 339 : la fin écrite départage, sauf après un auxiliaire ou une préposition, où le dys écrit e pour é (« il l'a decide », « pour achete »)
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
         if(qx>qy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
@@ -30922,7 +30927,7 @@ function spellTokenCore(tok,atStart,T,idx){
       if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
       var _i9x=_indre91(x,d,_f91)?1:0,_i9y=_indre91(y,d,_f91)?1:0;if(_i9x!==_i9y)return _i9y-_i9x;   // ⭐ liste n° 91 : « peind » → peint avant « peine » (la clé phonétique garde le -d écrit)
-      var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1]&&deaccS(y)!==d.slice(1)&&(_initConf(deaccS(y),d)||cand[x][1]<1))return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1]&&deaccS(x)!==d.slice(1)&&(_initConf(deaccS(x),d)||cand[y][1]<1))return -1;return py-px;}   /* ⭐ 30/09/2026 : un rival qui n'est que le mot écrit AMPUTÉ de sa première lettre n'écrase pas un homophone (« aprise » : « prise » écrasait « apprise », la chaîne ne rendait plus « appris ») ; la version large (garder l'initiale) coûtait des fautes dys typiques e/a, g/j (evec → avec, gours → jours) — miroir Python */   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
+      var px=(_ctE?_pkM(x,pk):phonKey(x)===pk)?1:0,py=(_ctE?_pkM(y,pk):phonKey(y)===pk)?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1]&&deaccS(y)!==d.slice(1)&&(_initConf(deaccS(y),d)||cand[x][1]<1))return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1]&&deaccS(x)!==d.slice(1)&&(_initConf(deaccS(x),d)||cand[y][1]<1))return -1;return py-px;}   /* ⭐ 30/09/2026 : un rival qui n'est que le mot écrit AMPUTÉ de sa première lettre n'écrase pas un homophone (« aprise » : « prise » écrasait « apprise », la chaîne ne rendait plus « appris ») ; la version large (garder l'initiale) coûtait des fautes dys typiques e/a, g/j (evec → avec, gours → jours) — miroir Python */   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;
       if(px===1&&py===1&&(x===y+'s'||y===x+'s'||x===y+'x'||y===x+'x')){var _ls=/[sx]$/.test(low);return (/[sx]$/.test(y)===_ls?1:0)-(/[sx]$/.test(x)===_ls?1:0);}   // ⭐ 30/09/2026 : singulier / pluriel HOMOPHONES : la finale -s/-x du mot ÉCRIT départage avant la fréquence (« afreuses » → affreuses) ; restreint à ces paires — le comparateur n'est pas transitif (« rélles » → elles sinon) — miroir Python
       return cand[y][1]-cand[x][1];});
@@ -31064,7 +31069,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(_aux&&p1===2&&/é$/.test(w1)&&/[èê]$/.test(low)&&!(T&&T[idx]&&/^[ld]['’]/i.test(T[idx]))&&cand[w1][1]>=1.0)return['flag',w1];   // ⭐ 14/10/2026 (liste n° 5b) : le tri a gardé l'accent final écrit è/ê (« il a visitè » → visité) — le participe est déjà là, même palier que ci-dessus ; une finale « é » écrite reste à l'étape d'avant (mesuré)
     var _cgd=(T&&idx>0)?DET_G[deaccS(T[idx-1].toLowerCase())]:null;   // GENRE du DETERMINANT immediat (audible, fiable) — pas la marche arriere sCtxGender, qui peut lire un genre POLLUE sur un mot-outil (« des » porte un genre dans le lexique relache)
     if(expPos&&expPos!=='F'){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // ⭐ liste n° 24 : « F » (après qui) trie, n'affirme pas — CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
-      if(cand[_cw][0]>=1&&!(_avA&&_ppSurnum(_cw))&&(!_pp44||/(é|ée|és|ées)$/.test(_cw))&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → la ré-sélection context-first ne re-choisit QUE des candidats à finale AUDIBLE (manjé→mangé, pas mange) — sinon la fréquence réécrasait le tri d'audibilité (12536)
+      if(cand[_cw][0]>=1&&!(_avA&&_ppSurnum(_cw))&&(!_pp44||/(é|ée|és|ées)$/.test(_cw))&&_pkM(_cw,pk)&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → la ré-sélection context-first ne re-choisit QUE des candidats à finale AUDIBLE (manjé→mangé, pas mange) — sinon la fréquence réécrasait le tri d'audibilité (12536)
       if(_b&&_bf>=1.0&&(!_son||_b===w1)&&!(pm(w1)&&cand[w1][0]>=1&&cand[w1][1]>=20*_bf))return['flag',_b];}   /* ⭐ liste n° 36 : un choix du SON n'est jamais remplacé ici (« mangeèt » → mangé, pas mangée), seulement confirmé (« recueili » → recueilli garde son rouge) */   // pri→pris, von→vont, pleu→pleut (plaît/pleure = édit>1, exclus) ; respecte le nombre (« un eleve »→élève). GARDE DE DOMINANCE (2026-08-22) : si le vainqueur du tri colle déjà au POS et est ≫20× plus fréquent, la ré-sélection phonétique ne le détrône pas (« un chein »→chien, pas « chin » 3/M) — même garde que le tri, parité Python (qui rend chien)
     /* ⭐ 13/10/2026 (liste n° 5 : « personalisé » → personnalisé seulement en orange) — UNE LETTRE REDOUBLÉE MANQUE, ET UN SEUL MOT
        LE PERMET. Le palier rouge exigeait un mot d'au moins 1/M : « personnalisé » (0,6/M) tombait au « mot inconnu », en orange, et
@@ -31122,7 +31127,7 @@ function spellTokenCore(tok,atStart,T,idx){
   function _phonRareStep(n){
     if(!SP.PHONR){SP.PHONR={};SP._rareI=0;if(!SP.RARE){SP.RARE=[];for(var w0 of (SP.IDX?SP.IDX.keys():[])){var f0=spF(w0);if(f0>0&&f0<0.1&&f0!==0.05)SP.RARE.push(w0);}}}
     var R=SP.RARE,e=Math.min(R.length,SP._rareI+n);
-    for(var i=SP._rareI;i<e;i++){var pk=phonKey(R[i]);(SP.PHONR[pk]||(SP.PHONR[pk]=[])).push(R[i]);}
+    for(var i=SP._rareI;i<e;i++){var pk=phonKey(R[i]);(SP.PHONR[pk]||(SP.PHONR[pk]=[])).push(R[i]);if(pk.slice(-1)==='É'){var pb=pk.slice(0,-1);(SP.PHONR[pb]||(SP.PHONR[pb]=[])).push(R[i]);}}
     SP._rareI=e;return e>=R.length;}
   function _suPhonRare(low){
     _phonRareStep(1e9);
@@ -31173,7 +31178,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var best=null,bp=-1,bl=-1,bf=-1,pk=phonKey(low);
     for(var kk in keys){var L2=SP.ANA[kk];if(!L2)continue;
       for(var j=0;j<L2.length;j++){var w=L2[j],dw=deaccS(w);if(dw===d||dw.charAt(0)!==d.charAt(0)||Math.abs(dw.length-d.length)>1)continue;
-        var l=_lcsLen(d,dw);if(10*l<7*Math.max(d.length,dw.length))continue;var p=phonKey(w)===pk?1:0,f=spF(w)||0;
+        var l=_lcsLen(d,dw);if(10*l<7*Math.max(d.length,dw.length))continue;var p=_pkM(w,pk)?1:0,f=spF(w)||0;
         if(p>bp||(p===bp&&(l>bl||(l===bl&&(f>bf||(f===bf&&w<best)))))){bp=p;bl=l;bf=f;best=w;}}}
     return best;}
   function _suPhonE1(low){var hits={},best=null,bf=-1,i,j,e1=sEdits1(phonKey(low));
@@ -31200,7 +31205,7 @@ function spellTokenCore(tok,atStart,T,idx){
   function _suFlex(best,arr,pk,T,idx){if(!T||idx==null||idx<1)return best;var i,w,f,b2=null,bf=-1,ps=spP(best)||'',p=T[idx-1].toLowerCase();
     if(!_SU_PLDET[p]&&!_SU_SGDET[p]&&_quantMal(T,idx-1))p='les';   // ⭐ 11/10/2026 : quantifieur mal écrit juste avant → pluriel
     if((_SU_PLDET[p]||_SU_SGDET[p])&&(ps.indexOf('N')>=0||ps.indexOf('A')>=0)&&!_SU_DETX[best]&&!(ps.indexOf('V')>=0&&/^(les|le|la)$/.test(p))){var pl=!!_SU_PLDET[p];
-      if(/[sx]$/.test(deaccS(best))!==pl){for(i=0;i<arr.length;i++){w=arr[i];if(phonKey(w)!==pk)continue;
+      if(/[sx]$/.test(deaccS(best))!==pl){for(i=0;i<arr.length;i++){w=arr[i];if(!_pkM(w,pk))continue;
           if(pl?(w===best+'s'||(/u$/.test(best)&&w===best+'x')||(/al$/.test(best)&&w===best.slice(0,-2)+'aux')):(best===w+'s'||(/u$/.test(w)&&best===w+'x')||(/al$/.test(w)&&best===w.slice(0,-2)+'aux'))){f=spF(w)||0;if(f>bf){bf=f;b2=w;}}}
         if(b2)return b2;}}
     if(_isFinite(best)){var k=idx-1,per=null;while(k>=0&&/^(ne|n'|n’)$/.test(T[k].toLowerCase()))k--;
@@ -31211,7 +31216,7 @@ function spellTokenCore(tok,atStart,T,idx){
           else if(k>=1){var dt=T[k-1].toLowerCase();kd=k-1;if(_SU_SGDET[dt])per=['3','s'];else if(_SU_PLDET[dt]&&dt!=='aux')per=['3','p'];}}
         if(per&&kd>=1&&_SU_PREP[T[kd-1].toLowerCase().replace(/’/g,"'")])per=null;}
       if(per&&!svAgrees(svReads(best),per[0],per[1])){var lb=_suLem(best);
-        for(i=0;i<arr.length;i++){w=arr[i];if(w===best||/é(e?s?)$/.test(w)||phonKey(w)!==pk||!_isFinite(w)||!svAgrees(svReads(w),per[0],per[1]))continue;
+        for(i=0;i<arr.length;i++){w=arr[i];if(w===best||/é(e?s?)$/.test(w)||!_pkM(w,pk)||!_isFinite(w)||!svAgrees(svReads(w),per[0],per[1]))continue;
           var lw=_suLem(w),same=false;for(var q in lw)if(lb[q])same=true;
           if(same){f=spF(w)||0;if(f>bf){bf=f;b2=w;}}}
         if(b2)return b2;}}
@@ -31243,7 +31248,7 @@ function spellUnknown(tok,atStart,T,idx){
        Mesuré : « apré » → après ×5 sur le gold (le juge désaccentué comptait « aprés » juste) ; UD inchangé.
        Miroir Python spell_unknown. */
     var _pkU=phonKey(low),_bh=-1;                                          // AUDIBILITÉ (doctrine) : le dys écrit ce qu'il ENTEND. Un candidat HOMOPHONE passe avant un candidat seulement proche à l'œil — sinon « koi » se corrige en « ko » (fréquent, muet) au lieu de « quoi » (homophone). La garde de même première LETTRE écartait justement k/qu, c/qu, f/ph : on l'ouvre quand la clé phonétique est IDENTIQUE.
-    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=((_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))||(_iaG&&/(ai|ais|ait|aient|aie|aies|et|ets|ès|êt|ey|ay)$/.test(w)))?1:0,_fq=spF(w)||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}
+    for(i=0;i<arr.length;i++){w=arr[i];var _kw=phonKey(w),_hm=_kw===_pkU?2:_kw===_pkU+'É'?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=((_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait|aient|ès|et|êt)$/.test(w))||(_iaG&&/(ai|ais|ait|aient|aie|aies|et|ets|ès|êt|ey|ay)$/.test(w)))?1:0,_fq=spF(w)||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}if(_bh===2)for(i=0;i<arr.length;i++){w=arr[i];if(phonKey(w)===_pkU+'É'&&(spF(w)||0)>=Math.max(20*bf,bf+1)){best=w;bf=spF(w);}}   // ⭐ liste n° 339 : un mot en -é vingt fois plus fréquent passe devant l'homophone rare en -e
     /* ⭐ 30/09/2026 (2e catalogue : le tri des candidats) — L'ACCENT SEUL D'ABORD, comme le tri principal (spellTokenCore le classe en
        tête, mais n'y propose rien sous 1/M : « éclairait » 0,2/M tombait ici, où « éclair », homophone 41 fois plus fréquent, gagnait).
        Seulement si le mot écrit n'a AUCUN accent (le dys pose aussi des accents FAUX : « apré » → âpre serait faux), et sauf si un
@@ -31822,7 +31827,7 @@ function spellUnknown(tok,atStart,T,idx){
     var lem=null,uni=true;for(k=0;k<imp.length;k++){if(lem===null)lem=imp[k][0];else if(lem!==imp[k][0])uni=false;}
     if(!uni||lem===null)return null;
     var slots=(CONJ_C[lem]||{})['ind:imp'];if(!slots)return null;var sugg=slots[per+nb];if(!sugg||sugg===lw)return null;
-    if(phonKey(sugg)!==phonKey(lw))return null;                         // GATE AUDIBLE : la correction DOIT être homophone
+    if(!_pkM(sugg,phonKey(lw)))return null;                         // GATE AUDIBLE : la correction DOIT être homophone
     return sugg;}
   // ===== OS-SUJET (chantier « accord par arbitrage du sujet ») — LM porte-confiance + 4 routes + mix OS μ=r/(1+r) =====
   // MIROIR extension/dys-core.js (osVerbVig) + dictee/os_subject_probe.py. ORANGE « accord verbe à vérifier » sur le
@@ -32490,9 +32495,9 @@ function spellUnknown(tok,atStart,T,idx){
   function _jgCands(w){var c=_JGM.get(w);if(c)return c;var mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),pre=mm?mm[1]:'',nu=mm?mm[2]:w,S=new Map();
     var aj=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,f);}};
     (_JGG[w]||[]).forEach(function(x){if(x!==w)S.set(x,1e9);});
-    if(nu.length>=2){(SP.PHON[phonKey(nu)]||[]).forEach(aj);(spD(deacc(nu))||[]).forEach(aj);}
-    var ph=phonKey(nu),so=_sonKey(nu),de=deacc(nu);
-    c=Array.from(S.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,16).map(function(e){var x=e[0],gr=e[1]===1e9,m=gr?x:pre+x,b=m.split("'").pop();return {m:m,tr:[phonKey(b)===ph?1:0,_sonKey(b)===so?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0]};}).filter(function(x){return x.tr[0]||x.tr[1]||x.tr[3];});
+    var _k0=function(s){return phonKey(s).replace(/É$/,'');};if(nu.length>=2){(SP.PHON[_k0(nu)]||[]).forEach(aj);(spD(deacc(nu))||[]).forEach(aj);}
+    var ph=_k0(nu),so=_sonKey(nu),de=deacc(nu);
+    c=Array.from(S.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,16).map(function(e){var x=e[0],gr=e[1]===1e9,m=gr?x:pre+x,b=m.split("'").pop();return {m:m,tr:[_k0(b)===ph?1:0,_sonKey(b)===so?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0]};}).filter(function(x){return x.tr[0]||x.tr[1]||x.tr[3];});
     if(_JGM.size>30000)_JGM.clear();_JGM.set(w,c);return c;}
   // Le texte tel que le produit le voit (marques des règles appliquées), en tranches : une phrase, ou des fenêtres si elle n'en finit pas.
   function _jgTranches(text,flags){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+|\d+|[^\sA-Za-zÀ-ÿœŒ'’ʼ\d]/g,x,rang=-1,sg={},couv={},cur=[],out=[];
