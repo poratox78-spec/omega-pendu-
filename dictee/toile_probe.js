@@ -70,6 +70,7 @@ const ASSETS = {
   setOsLm: ['OS-sujet', 'os-subj'],
   setConfusables: ['confusable'],
   setPonctLm: ['ponctuation', 'ponct'],
+  setJuge: ['juge léger'],   // liste n° 332 : le modèle de 3,4 Mo
 };
 const setters = [...new Set([...moteur.matchAll(/\b(set[A-Z][A-Za-z]*)\s*:/g)].map((m) => m[1]))];
 const dansToile = (mots) => mots.some((x) => toile.toLowerCase().indexOf(x.toLowerCase()) >= 0);

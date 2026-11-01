@@ -32431,13 +32431,13 @@ function spellUnknown(tok,atStart,T,idx){
     var hp=new Float32Array(DP),cp=new Float32Array(DP),wp=new Float32Array(DP),NI=4*DP+12,inp=new Float32Array(NI),mh=new Float32Array(128);
     function noter(h,t,w,cands){   // cands : [{m, tr:[même son large, même son strict, distance, accent seul, fréquence, écrit]}]
       lin(P['ph.weight'],P['ph.bias'],DM,DP,h,t*DM,hp,0);lin(P['pc.weight'],P['pc.bias'],DE,DP,vec(w),0,wp,0);
-      var M0=P['mlp.0.weight'],B0=P['mlp.0.bias'],M2=P['mlp.2.weight'],B2=P['mlp.2.bias'],TR=P['tr.weight'],res=[];
+      var M0=P['mlp.0.weight'],B0=P['mlp.0.bias'],M2=P['mlp.2.weight'],B2=P['mlp.2.bias'],TR=P['tr.weight'],notes=[];
       for(var c=0;c<cands.length;c++){var cd=cands[c],tr=cd.tr,j,dot=0;lin(P['pc.weight'],P['pc.bias'],DE,DP,vec(cd.m),0,cp,0);
         for(j=0;j<DP;j++){inp[j]=hp[j];inp[DP+j]=cp[j];inp[2*DP+j]=wp[j];var z=hp[j]*cp[j];inp[3*DP+j]=z;dot+=z;}
         for(j=0;j<6;j++)inp[4*DP+j]=TR[tr[2]*6+j];
         var q=4*DP+6;inp[q]=tr[0];inp[q+1]=tr[1];inp[q+2]=tr[3];inp[q+3]=tr[4]/16;inp[q+4]=tr[5];inp[q+5]=dot/8;
-        lin(M0,B0,NI,128,inp,0,mh,0);var s=B2[0];for(j=0;j<128;j++)s+=M2[j]*gelu(mh[j]);res.push(s);}
-      return res;}
+        lin(M0,B0,NI,128,inp,0,mh,0);var s=B2[0];for(j=0;j<128;j++)s+=M2[j]*gelu(mh[j]);notes.push(s);}
+      return notes;}
     return {cfg:cfg,lire:lire,noter:noter,octets:u8.byteLength};}
   function setJuge(buf){_JG.m=_jgMoteur(buf);_JG.cache=new Map();return true;}
   function loadJuge(url){return fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(setJuge).catch(function(){return false;});}
@@ -32461,11 +32461,11 @@ function spellUnknown(tok,atStart,T,idx){
     while((x=re.exec(text))){var w=x[0],mot=/^[A-Za-zÀ-ÿœŒ'’ʼ]+$/.test(w);if(mot)rang++;var vu=mot&&sg[rang]!=null?sg[rang]:w,tk={m:vu,k:mot?rang:-1,brut:w,cs:x.index,ce:x.index+w.length,tu:mot&&!!couv[rang]};cur.push(tk);if(/^[.!?…]$/.test(w))fin();}
     fin();return out;}
   function _jgLow(s){return s.toLowerCase().replace(/[’ʼ]/g,"'");}
-  function _jgPasse(tr){var T=tr.t.map(function(y){return _jgLow(y.m);}),fl=tr.t.map(function(y){return [/[a-zà-ÿœ]/.test(_jgLow(y.m))?_jgConnu(_jgLow(y.m)):0,/^[A-ZÀ-Þ]/.test(y.m)?1:0];}),h=_JG.m.lire(T,fl),res=[];
+  function _jgPasse(tr){var T=tr.t.map(function(y){return _jgLow(y.m);}),fl=tr.t.map(function(y){return [/[a-zà-ÿœ]/.test(_jgLow(y.m))?_jgConnu(_jgLow(y.m)):0,/^[A-ZÀ-Þ]/.test(y.m)?1:0];}),h=_JG.m.lire(T,fl),rep=[];
     for(var p=0;p<T.length;p++){if(tr.t[p].k<0)continue;var w=T[p],c=_jgCands(w);if(!c.length)continue;
       var sc=_JG.m.noter(h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]}].concat(c)),bi=-1,bv=-1e9;for(var q=1;q<sc.length;q++)if(sc[q]>bv){bv=sc[q];bi=q;}
-      if(bi>0&&bv-sc[0]>0)res[p]={m:c[bi-1].m,d:bv-sc[0]};}
-    return res;}
+      if(bi>0&&bv-sc[0]>0)rep[p]={m:c[bi-1].m,d:bv-sc[0]};}
+    return rep;}
   function _jgGarde(cache,cle,r){if(cache.size>3000)cache.clear();cache.set(cle,r);}
   // Le calcul : tranche par tranche, en rendant la main entre deux ; cb() relance l'affichage si du nouveau est arrivé. Une nouvelle analyse annule la précédente.
   var _jgTour=0;
