@@ -30912,8 +30912,9 @@ function spellTokenCore(tok,atStart,T,idx){
        laisse décider les critères suivants. Neutre pour une saisie sans accent ou un candidat d'un autre squelette. Miroir Python _kacc. */
     var _sqL=deaccS(low);function _kAcc(x){if(x.length!==low.length||deaccS(x)!==_sqL)return 1;for(var q=0;q<low.length;q++){var c=low.charAt(q),e=x.charAt(q);if(c!==deaccS(c)&&e===deaccS(e))return 0;}return 1;}   // une lettre accentuée reste accentuée (é/è/ê : même classe — « posséde » → possède)
     var _f91=(T&&/[aeo]ind$/.test(d)&&/^(je|tu)$/.test(_sujPron(T,idx)||''))?'s':'t';   // ⭐ liste n° 91 : « je peins », « tu rejoins » ; sinon -t (« il peint », « il a peint »)
+    var _finEv=low.length>=4&&/[èê]$/.test(low)&&(function(){var a=keys.filter(function(k){return cand[k][0]===2;});return a.length&&!a.some(fin_aud)&&a.some(function(k){return (spF(k)||0)>=1;})&&keys.some(function(k){return cand[k][0]!==2&&fin_aud(k)&&(spF(k)||0)>=1;});})();   // ⭐ liste n° 340 : « poulè » s'entend : la forme nue courante en e muet (poule) ne passe plus d'office devant poulet
     var _ctE=!!(T&&idx>0&&(function(p){p=p.replace(/’/g,"'").replace(/^[a-z]{1,2}'/,'');return SAUXAV[p]||SCOPULA[p]||_SPREP_P[p];})(deaccS(String(T[idx-1]).toLowerCase())));   // ⭐ liste n° 339 : la fin écrite départage, sauf après un auxiliaire ou une préposition, où le dys écrit e pour é (« il l'a decide », « pour achete »)
-    keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
+    keys.sort(function(x,y){var ax=cand[x][0]===2&&!_finEv?1:0,ay=cand[y][0]===2&&!_finEv?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
         if(qx>qy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
         if(qy>qx&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;
