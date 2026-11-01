@@ -76,5 +76,5 @@ const GRANDE = `<!doctype html><html lang="fr"><meta charset="utf-8"><style>${BA
       fs.writeFileSync(path.join(BRUT, nom), Buffer.from(r.data, 'base64')); console.log('✓', nom);
     }
   } catch (e) { console.error('✗', e && e.message || e); code = 1; }
-  finally { for (const s of ouverts) { try { s.fermer(); } catch (e) {} } try { proc.kill(); } catch (e) {} process.exit(code); }
+  finally { for (const s of ouverts) { try { s.fermer(); } catch (e) {} } H.eteindreChrome(proc, profil); process.exit(code); }
 })();

@@ -22,7 +22,7 @@
 
 Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en local · **constat** = mesuré une fois, daté. Le détail (pages, notes) vit dans le registre lui-même.
 
-## 2. Garde-fous actifs — 139 contrôles dans `dev.sh` (= CI, parité gardée)
+## 2. Garde-fous actifs — 140 contrôles dans `dev.sh` (= CI, parité gardée)
 
 | # | contrôle | commande |
 |---:|---|---|
@@ -130,41 +130,42 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 102 | bouton 🔡 police de son du site (vrai Chrome : pages habillées, texte intact, app synchronisée) | `node dictee/sonsite_probe.js --check` |
 | 103 | EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL) | `node extension/navigateur_ext_probe.js --check` |
 | 104 | ORDRE DE CHARGEMENT (page ouverte AVANT l'extension : le panneau le DIT) | `node extension/ordre_chargement_probe.js --check` |
-| 105 | précision par famille AU PRODUIT (extension réelle dans Chrome) | `python3 dictee/dys_precision_probe.py --navigateur` |
-| 106 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
-| 107 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
-| 108 | toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée) | `node dictee/toile_probe.js --check` |
-| 109 | noms épicènes exclus du genre (liste == Lexique4, commité en .xz) | `python3 dictee/build_gacc_epicene_excl.py --check` |
-| 110 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
-| 111 | table de conjugaison SANS RETARD sur son script (Morphalou ; SAUTÉ sans data_local) | `python3 dictee/complete_conj_morphalou.py --check` |
-| 112 | CHARGEUR UNIQUE : les tables du produit == charger_node.js ; chaque banc Node passe par lui ou dit pourquoi | `node extension/chargeur_probe.js --check` |
-| 113 | lot Morphalou accentué du speller : TSV commité bien formé (morph_acc, « calmât ») | `python3 dictee/build_morph_acc_lex.py --check` |
-| 114 | lot de la table de conjugaison du speller : TSV commité bien formé et câblé (outillent, indexent, prototyper) | `python3 dictee/build_conj_lex.py --check` |
-| 115 | lot des formes verbales justes du speller : TSV commité bien formé et câblé (avouions, écoutas ; intailles nom) | `python3 dictee/build_ver_justes_lex.py --check` |
-| 116 | lot des graphies rectifiées de 1990 du speller : TSV commité bien formé et câblé (apparait, coute, cèderai ; fimes hors du lot) | `python3 dictee/build_rect90_lex.py --check` |
-| 117 | lot des noms et adjectifs justes du speller : TSV commité bien formé et câblé (charismes, antiennes, capuce, componée ; developpement hors du lot) | `python3 dictee/build_na_justes_lex.py --check` |
-| 118 | genre des formes rares nom + verbe : JSON commité == ligne _G114 des 2 moteurs JS, formes toujours rares (flue f) | `python3 dictee/build_nv_genre.py --check` |
-| 119 | extrait Wiktionnaire du speller : TSV commité bien formé, sans doublon | `python3 dictee/build_wikt_lex.py --check` |
-| 120 | lot MÉTIER du speller (liste curée) : TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole) | `python3 dictee/build_metier_lex.py --check` |
-| 121 | dictionnaire livré == Lexique + 12 lots, mot pour mot (la recette, ligne 142) | `python3 dictee/lots_dictionnaire.py --check` |
-| 122 | constructeurs de tables indépendants de l'ordre des lignes de Lexique et du hasard (ligne 143) | `python3 dictee/ordre_probe.py` |
-| 123 | tables de grammaire : l'héritage de la conjugaison est appliqué (la recette, ligne 144) | `python3 dictee/tables_grammaire.py --check` |
-| 124 | moteur indépendant de l'ordre des verbes de sa table de conjugaison (ligne 145) | `node dictee/ordre_moteur_probe.js` |
-| 125 | paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise) | `python3 build_lexiques.py --check` |
-| 126 | icônes extension FRAÎCHES (== icon-512.png, exigées par le Store) | `python3 extension/build_icons.py --check` |
-| 127 | icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png) | `python3 build_site_icons.py --check` |
-| 128 | zip extension FRAIS (octets == sources) | `python3 extension/build_zip.py --check` |
-| 129 | table des « -ent » de la police de son == le moteur (ent-3p.txt.gz) | `node extension/build_ent3p.js --check` |
-| 130 | dictionnaire compact : zéro perte, mot par mot (710 872 mots, ancien rangement reconstruit) | `node --max-old-space-size=4096 extension/speller_compact_probe.js` |
-| 131 | pack police OMEGA Dys FRAIS (octets == police/) | `python3 police/build_pack.py --check` |
-| 132 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
-| 133 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
-| 134 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
-| 135 | service worker (version+empreinte, précache, purge, comportement en bac à sable) | `node dictee/sw_probe.js` |
-| 136 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
-| 137 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
-| 138 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
-| 139 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
+| 105 | PROFILS Chrome effacés (un passage de sonde ne laisse rien dans le dossier temporaire) | `node extension/profil_chrome_probe.js` |
+| 106 | précision par famille AU PRODUIT (extension réelle dans Chrome) | `python3 dictee/dys_precision_probe.py --navigateur` |
+| 107 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
+| 108 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
+| 109 | toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée) | `node dictee/toile_probe.js --check` |
+| 110 | noms épicènes exclus du genre (liste == Lexique4, commité en .xz) | `python3 dictee/build_gacc_epicene_excl.py --check` |
+| 111 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
+| 112 | table de conjugaison SANS RETARD sur son script (Morphalou ; SAUTÉ sans data_local) | `python3 dictee/complete_conj_morphalou.py --check` |
+| 113 | CHARGEUR UNIQUE : les tables du produit == charger_node.js ; chaque banc Node passe par lui ou dit pourquoi | `node extension/chargeur_probe.js --check` |
+| 114 | lot Morphalou accentué du speller : TSV commité bien formé (morph_acc, « calmât ») | `python3 dictee/build_morph_acc_lex.py --check` |
+| 115 | lot de la table de conjugaison du speller : TSV commité bien formé et câblé (outillent, indexent, prototyper) | `python3 dictee/build_conj_lex.py --check` |
+| 116 | lot des formes verbales justes du speller : TSV commité bien formé et câblé (avouions, écoutas ; intailles nom) | `python3 dictee/build_ver_justes_lex.py --check` |
+| 117 | lot des graphies rectifiées de 1990 du speller : TSV commité bien formé et câblé (apparait, coute, cèderai ; fimes hors du lot) | `python3 dictee/build_rect90_lex.py --check` |
+| 118 | lot des noms et adjectifs justes du speller : TSV commité bien formé et câblé (charismes, antiennes, capuce, componée ; developpement hors du lot) | `python3 dictee/build_na_justes_lex.py --check` |
+| 119 | genre des formes rares nom + verbe : JSON commité == ligne _G114 des 2 moteurs JS, formes toujours rares (flue f) | `python3 dictee/build_nv_genre.py --check` |
+| 120 | extrait Wiktionnaire du speller : TSV commité bien formé, sans doublon | `python3 dictee/build_wikt_lex.py --check` |
+| 121 | lot MÉTIER du speller (liste curée) : TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole) | `python3 dictee/build_metier_lex.py --check` |
+| 122 | dictionnaire livré == Lexique + 12 lots, mot pour mot (la recette, ligne 142) | `python3 dictee/lots_dictionnaire.py --check` |
+| 123 | constructeurs de tables indépendants de l'ordre des lignes de Lexique et du hasard (ligne 143) | `python3 dictee/ordre_probe.py` |
+| 124 | tables de grammaire : l'héritage de la conjugaison est appliqué (la recette, ligne 144) | `python3 dictee/tables_grammaire.py --check` |
+| 125 | moteur indépendant de l'ordre des verbes de sa table de conjugaison (ligne 145) | `node dictee/ordre_moteur_probe.js` |
+| 126 | paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise) | `python3 build_lexiques.py --check` |
+| 127 | icônes extension FRAÎCHES (== icon-512.png, exigées par le Store) | `python3 extension/build_icons.py --check` |
+| 128 | icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png) | `python3 build_site_icons.py --check` |
+| 129 | zip extension FRAIS (octets == sources) | `python3 extension/build_zip.py --check` |
+| 130 | table des « -ent » de la police de son == le moteur (ent-3p.txt.gz) | `node extension/build_ent3p.js --check` |
+| 131 | dictionnaire compact : zéro perte, mot par mot (710 872 mots, ancien rangement reconstruit) | `node --max-old-space-size=4096 extension/speller_compact_probe.js` |
+| 132 | pack police OMEGA Dys FRAIS (octets == police/) | `python3 police/build_pack.py --check` |
+| 133 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
+| 134 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
+| 135 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
+| 136 | service worker (version+empreinte, précache, purge, comportement en bac à sable) | `node dictee/sw_probe.js` |
+| 137 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
+| 138 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
+| 139 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
+| 140 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
 
 ## 3. Chantiers (source curée : `dictee/etat_chantiers.json`)
 

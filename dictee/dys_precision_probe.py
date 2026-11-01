@@ -211,13 +211,13 @@ def _flags_navigateur(phrases):
     faisait PERDRE « l'eau » et « j'ai ». Il a fallu le reverter.
     """
     import subprocess, tempfile
-    d = tempfile.mkdtemp(prefix='omega-flags-')
-    fin, fout = os.path.join(d, 'in.json'), os.path.join(d, 'out.json')
-    io.open(fin, 'w', encoding='utf-8').write(json.dumps(phrases, ensure_ascii=False))
-    r = subprocess.run(['node', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'navigateur_flags_dump.js'), fin, fout])
-    if r.returncode != 0 or not os.path.exists(fout):
-        return None
-    return json.loads(io.open(fout, encoding='utf-8').read())
+    with tempfile.TemporaryDirectory(prefix='omega-flags-') as d:
+        fin, fout = os.path.join(d, 'in.json'), os.path.join(d, 'out.json')
+        io.open(fin, 'w', encoding='utf-8').write(json.dumps(phrases, ensure_ascii=False))
+        r = subprocess.run(['node', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'navigateur_flags_dump.js'), fin, fout])
+        if r.returncode != 0 or not os.path.exists(fout):
+            return None
+        return json.loads(io.open(fout, encoding='utf-8').read())
 
 
 def main():

@@ -33,7 +33,7 @@
 'use strict';
 const path = require('path');
 const H = require(path.join(__dirname, 'cdp_chrome.js'));
-const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet, verifierDossierExtension, spawn, fs, os } = H;
+const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet, eteindreChrome, verifierDossierExtension, spawn, fs, os } = H;
 
 const EXT = __dirname.replace(/\\/g, '/');
 const CHECK = process.argv.includes('--check');
@@ -58,8 +58,8 @@ const log = (...a) => { if (!CHECK) console.log(...a); };
   let nav = null, pgA = null, pgB = null, sw = null;
   const nettoyer = () => {
     for (const s of [nav, pgA, pgB, sw]) { try { s && s.fermer(); } catch (e) {} }
-    try { proc.kill(); } catch (e) {} try { srv.close(); } catch (e) {}
-    try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {}
+    try { srv.close(); } catch (e) {}
+    eteindreChrome(proc, profil);
   };
   const fail = [];
 

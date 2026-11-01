@@ -106,6 +106,24 @@ async function onglet(port, url) {
   throw new Error('le port de débogage ne répond pas');
 }
 
+/* ÉTEINT CHROME ET EFFACE SON PROFIL. Vécu le 01/11/2026 : chaque passage de sonde laissait son profil dans
+   %TEMP% (31,7 Go en 13 jours, C: à 33 Go libres). `proc.kill()` rend la main AVANT que Chrome ait lâché ses
+   fichiers : 12 effacements immédiats sur 12 en EPERM, cachés par un catch muet. Le même effacement passe 200 à
+   360 ms plus tard (10 sur 10, rien ne réapparaît). `taskkill /T` n'avance à rien, et `maxRetries`/`retryDelay`
+   de rmSync n'attendent pas sous Node 24 (≤ 10 ms), d'où la boucle. SYNCHRONE : les sondes l'appellent dans un
+   finally, juste avant process.exit. Un échec se DIT, sans changer le verdict de la sonde. */
+function eteindreChrome(proc, profil, delaiMs = 15000) {
+  proc.kill();
+  const t0 = Date.now();
+  for (;;) {
+    try { fs.rmSync(profil, { recursive: true, force: true }); return true; }
+    catch (e) {
+      if (Date.now() - t0 > delaiMs) { console.error('⚠ profil Chrome non effacé (' + e.code + ') : ' + profil); return false; }
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+    }
+  }
+}
+
 /* ⚠️ CHROME REFUSE UN DOSSIER D'EXTENSION CONTENANT UN NOM COMMENÇANT PAR « _ » (réservé système).
    Le piège vécu le 05/09/2026 : lancer un script Python depuis extension/ y laisse un `__pycache__`
    (gitignoré, donc invisible au diff) et `Extensions.loadUnpacked` échoue. Le coût réel n'est pas
@@ -122,4 +140,4 @@ function verifierDossierExtension(dir) {
   }
 }
 
-module.exports = { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet, verifierDossierExtension, spawn, fs, path, os };
+module.exports = { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet, eteindreChrome, verifierDossierExtension, spawn, fs, path, os };

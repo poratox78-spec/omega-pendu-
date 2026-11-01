@@ -41,8 +41,8 @@ const PAQUET = 40;   // on interroge par paquets : un seul Runtime.evaluate par 
     '--enable-unsafe-extension-debugging', 'about:blank'], { stdio: 'ignore' });
   let nav = null, pg = null;
   const nettoyer = () => { for (const s of [nav, pg]) { try { s && s.fermer(); } catch (e) {} }
-    try { proc.kill(); } catch (e) {} try { srv.close(); } catch (e) {}
-    try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {} };
+    try { srv.close(); } catch (e) {}
+    H.eteindreChrome(proc, profil); };
   try {
     const dp = await H.lirePortDevTools(profil, 60000);
     const ver = await (await fetch('http://127.0.0.1:' + dp + '/json/version')).json();

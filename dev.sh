@@ -226,6 +226,7 @@ run "bouton Aa OMEGA Dys (vrai Chrome : police chargée, choix retenu, app inté
 run "bouton 🔡 police de son du site (vrai Chrome : pages habillées, texte intact, app synchronisée)" node dictee/sonsite_probe.js --check
 run "EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL)" node extension/navigateur_ext_probe.js --check
 run "ORDRE DE CHARGEMENT (page ouverte AVANT l'extension : le panneau le DIT)" node extension/ordre_chargement_probe.js --check
+run "PROFILS Chrome effacés (un passage de sonde ne laisse rien dans le dossier temporaire)" node extension/profil_chrome_probe.js
 run "précision par famille AU PRODUIT (extension réelle dans Chrome)" python3 dictee/dys_precision_probe.py --navigateur
 run "résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local)" node dictee/residual_audit.js --check
 run "collisions d’accent : JSON == app == extension (non_verbe_acc)" python3 dictee/build_non_verbe_acc.py --check
