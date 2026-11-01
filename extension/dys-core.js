@@ -7410,7 +7410,7 @@ function spellUnknown(tok,atStart,T,idx){
      3 Mo, JavaScript pur (aucun GPU, aucune bibliothèque), une passe par phrase ; le texte ne sort jamais de la machine. Entraîné sur du français
      public fauté au hasard (dictee/juge_train.py) ; le corpus dys privé ne sert qu'à le mesurer. Modèle ≠ poids : réentraîner = changer le .bin.
      Le calcul est ASYNCHRONE (jugeAnalyse, tranche par tranche, puis re-rendu) ; diagnoseAll ne lit que le cache, donc sans modèle chargé rien ne change. */
-  var _JG={m:null,cache:new Map(),TAU:3};
+  var _JG={m:null,cache:new Map(),TAU:4,TV:0.85,TP:0.7,TQ:0.5};
   function _jgMoteur(buf){
     var u8=new Uint8Array(buf.buffer||buf,buf.byteOffset||0,buf.byteLength),dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
     var hl=dv.getUint32(4,true),H=JSON.parse(new TextDecoder().decode(u8.subarray(8,8+hl))),o=8+hl,P={},cfg=H.cfg;
@@ -7455,7 +7455,12 @@ function spellUnknown(tok,atStart,T,idx){
         var q=4*DP+6;inp[q]=tr[0];inp[q+1]=tr[1];inp[q+2]=tr[3];inp[q+3]=tr[4]/16;inp[q+4]=tr[5];inp[q+5]=dot/8;
         lin(M0,B0,NI,128,inp,0,mh,0);var s=B2[0];for(j=0;j<128;j++)s+=M2[j]*gelu(mh[j]);notes.push(s);}
       return notes;}
-    return {cfg:cfg,lire:lire,noter:noter,octets:u8.byteLength};}
+    var px=new Float32Array(2*DM),pm=new Float32Array(96),pv=new Float32Array(4);
+    function ponct(h,t,T){   // l'espace après le mot t, lu avec le mot d'après : [rien, virgule, point, question]
+      for(var j=0;j<DM;j++){px[j]=h[t*DM+j];px[DM+j]=t+1<T?h[(t+1)*DM+j]:0;}
+      lin(P['pt.0.weight'],P['pt.0.bias'],2*DM,96,px,0,pm,0);for(j=0;j<96;j++)pm[j]=gelu(pm[j]);lin(P['pt.2.weight'],P['pt.2.bias'],96,4,pm,0,pv,0);
+      var mx=Math.max(pv[0],pv[1],pv[2],pv[3]),so=0,e=[0,0,0,0];for(j=0;j<4;j++){e[j]=Math.exp(pv[j]-mx);so+=e[j];}for(j=0;j<4;j++)e[j]/=so;return e;}
+    return {cfg:cfg,lire:lire,noter:noter,ponct:ponct,octets:u8.byteLength};}
   function setJuge(buf){_JG.m=_jgMoteur(buf);_JG.cache=new Map();return true;}
   function loadJuge(url){return fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(setJuge).catch(function(){return false;});}
   var _JGG={};[["a","à"],["ou","où"],["son","sont"],["ces","ses","c'est","s'est"],["ce","se"],["la","là","l'a"],["ma","m'a"],["ta","t'a"],["sa","ça"],["on","ont"],["mes","mais","met"],["du","dû"],["leur","leurs"],["ni","n'y"],["si","s'y"],["soi","soit"],["dont","donc"],["tout","tous"],["peu","peut","peux"],["par","part"],["sur","sûr"],["quand","quant"],["qu'elle","quelle","quel"],["sans","sens","cent"],["et","est","es"],["en","an"]].forEach(function(g){g.forEach(function(x){_JGG[x]=(_JGG[x]||[]).concat(g);});});
@@ -7464,12 +7469,16 @@ function spellUnknown(tok,atStart,T,idx){
   function _jgFq(w){var f=spF(w.split("'").pop());return f===undefined?0:Math.round(Math.log2(1+f*1000));}
   function _jgConnu(w){return spF(w)>=0.001||spF(w.split("'").pop())>=0.001?1:0;}
   // Les candidats d'un mot : même clé de son, ou même mot sans ses accents. Rien d'autre : le juge choisit, il n'invente pas.
+  // Les fins qu'on confond à racine égale. La clé de son les sépare (parler/parlé) ou les rate (parle/parlent) : liste fermée, le dictionnaire dit si le mot existe.
+  var _JGFINS=[['er','é','ée','és','ées','ez','ai','ais','ait','aient'],['','s','e','es','x'],['e','es','ent'],['i','is','it','ie','ies','ir'],['u','us','ut','ue','ues'],['t','ent']];
+  function _jgFins(nu){var out=[];_JGFINS.forEach(function(C){var s=null;C.forEach(function(x){if(x&&nu.length>x.length+1&&nu.slice(-x.length)===x&&(s===null||x.length>s.length))s=x;});if(s===null){if(C.indexOf('')<0)return;s='';}var r=nu.slice(0,nu.length-s.length);C.forEach(function(t){var m=r+t;if(t!==s&&spF(m)>=0.001&&out.indexOf(m)<0)out.push(m);});});return out;}
   function _jgCands(w){var c=_JGM.get(w);if(c)return c;var mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),pre=mm?mm[1]:'',nu=mm?mm[2]:w,S=new Map();
-    var aj=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,f);}};
+    var aj=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,f);}},fi=nu.length>=2?_jgFins(nu):[],de=deacc(nu),gd=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,1e6+f);}};   // gd : le top 16 ne les coupe pas
     (_JGG[w]||[]).forEach(function(x){if(x!==w)S.set(x,1e9);});
-    var _k0=function(s){return phonKey(s).replace(/É$/,'');};if(nu.length>=2){(SP.PHON[_k0(nu)]||[]).forEach(aj);(spD(deacc(nu))||[]).forEach(aj);}
-    var ph=_k0(nu),so=_sonKey(nu),de=deacc(nu);
-    c=Array.from(S.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,16).map(function(e){var x=e[0],gr=e[1]===1e9,m=gr?x:pre+x,b=m.split("'").pop();return {m:m,tr:[_k0(b)===ph?1:0,_sonKey(b)===so?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0]};}).filter(function(x){return x.tr[0]||x.tr[1]||x.tr[3];});
+    var _k0=function(s){return phonKey(s).replace(/É$/,'');};   // la clé sans la classe É : celle de l'entraînement
+    if(nu.length>=2){fi.forEach(gd);(spD(de)||[]).forEach(gd);(SP.PHON[_k0(nu)]||[]).forEach(aj);}
+    var ph=_k0(nu),so=_sonKey(nu);
+    c=Array.from(S.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,16).map(function(e){var x=e[0],gr=e[1]===1e9,m=gr?x:pre+x,b=m.split("'").pop();return {m:m,tr:[_k0(b)===ph?1:0,_sonKey(b)===so||fi.indexOf(b)>=0?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0]};}).filter(function(x){return x.tr[0]||x.tr[1]||x.tr[3];});
     if(_JGM.size>30000)_JGM.clear();_JGM.set(w,c);return c;}
   // Le texte tel que le produit le voit (marques des règles appliquées), en tranches : une phrase, ou des fenêtres si elle n'en finit pas.
   function _jgTranches(text,flags){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+|\d+|[^\sA-Za-zÀ-ÿœŒ'’ʼ\d]/g,x,rang=-1,sg={},couv={},cur=[],out=[];
@@ -7477,11 +7486,13 @@ function spellUnknown(tok,atStart,T,idx){
     var fin=function(){if(!cur.length)return;for(var a=0;a<cur.length;a+=40){var b=Math.min(cur.length,a+64),t=cur.slice(a,b);out.push({t:t,de:a===0?0:12,a:b===cur.length?t.length:52,cle:t.map(function(y){return y.m;}).join('\u0001')});if(b===cur.length)break;}cur=[];};
     while((x=re.exec(text))){var w=x[0],mot=/^[A-Za-zÀ-ÿœŒ'’ʼ]+$/.test(w);if(mot)rang++;var vu=mot&&sg[rang]!=null?sg[rang]:w,tk={m:vu,k:mot?rang:-1,brut:w,cs:x.index,ce:x.index+w.length,tu:mot&&!!couv[rang]};cur.push(tk);if(/^[.!?…]$/.test(w))fin();}
     fin();return out;}
+  _JG.cands=_jgCands;
   function _jgLow(s){return s.toLowerCase().replace(/[’ʼ]/g,"'");}
   function _jgPasse(tr){var T=tr.t.map(function(y){return _jgLow(y.m);}),fl=tr.t.map(function(y){return [/[a-zà-ÿœ]/.test(_jgLow(y.m))?_jgConnu(_jgLow(y.m)):0,/^[A-ZÀ-Þ]/.test(y.m)?1:0];}),h=_JG.m.lire(T,fl),rep=[];
     for(var p=0;p<T.length;p++){if(tr.t[p].k<0)continue;var w=T[p],c=_jgCands(w);if(!c.length)continue;
       var sc=_JG.m.noter(h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]}].concat(c)),bi=-1,bv=-1e9;for(var q=1;q<sc.length;q++)if(sc[q]>bv){bv=sc[q];bi=q;}
       if(bi>0&&bv-sc[0]>0)rep[p]={m:c[bi-1].m,d:bv-sc[0]};}
+    rep.pc=[];for(p=0;p<T.length;p++){if(tr.t[p].k<0)continue;var nx=tr.t[p+1];if(!nx||nx.k>=0)rep.pc[p]=_JG.m.ponct(h,p,T.length);}
     return rep;}
   function _jgGarde(cache,cle,r){if(cache.size>3000)cache.clear();cache.set(cle,r);}
   // Le calcul : tranche par tranche, en rendant la main entre deux ; cb() relance l'affichage si du nouveau est arrivé. Une nouvelle analyse annule la précédente.
@@ -7496,6 +7507,16 @@ function spellUnknown(tok,atStart,T,idx){
       if(w.length>1&&w===w.toUpperCase())continue;
       if(/^[A-ZÀ-Þ]/.test(w)){var pv=p>0?tr.t[p-1].m:'';if(p>0&&!/^[.!?…:]$/.test(pv))continue;}
       out.push({i:tk.k,word:w,sugg:ckeepcase(w,x.m),name:'choix du mot à vérifier',tier:'vigilance',juge:1,marge:x.d});}});
+    return out;}
+  /* ⭐ 01/11/2026 (liste n° 333) : la ponctuation lue par le juge, en plus des règles, jamais à leur place : une virgule, un point ou un « ? » entre deux mots
+     séparés d'un blanc simple, un « ? » en fin de texte sans signe. Seuils et plafond dans dictee/juge_probe.js. */
+  function _jugePonct(text,flags,deja){if(!_JG.m||!_JG.cache.size)return [];var out=[],pris={};deja.forEach(function(f){pris[f.cs]=1;});
+    _jgTranches(text,flags).forEach(function(tr){var r=_JG.cache.get(tr.cle);if(!r||!r.pc)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var v=r.pc[p],tk=tr.t[p],nx=tr.t[p+1];if(!v)continue;
+      if(!nx){if(v[3]>=_JG.TQ&&p>=2&&/^\s*$/.test(text.slice(tk.ce))){var pf=deja.filter(function(f){return f.cs===tk.ce&&f.name==='point final';})[0];if(pf){pf.sugg='?';pf.name="point d'interrogation";pf.juge=1;pf.marge=v[3];}else if(!pris[tk.ce])out.push({cs:tk.ce,ce:tk.ce,from:'',sugg:'?',name:"point d'interrogation",tier:'vigilance',typo:1,juge:1,marge:v[3]});}continue;}
+      if(pris[tk.ce])continue;
+      var gap=text.slice(tk.ce,nx.cs);if(!/^[ \t]+$/.test(gap))continue;
+      if((v[2]>=_JG.TP||v[3]>=_JG.TQ)&&(v[2]>=v[1]||v[3]>=v[1])){var l=nx.brut.charAt(0),mi=/^[a-zà-ÿœ]/.test(l),qu=v[3]>=_JG.TQ&&v[3]>=v[2],sg=qu?'?':'.',nm=qu?"point d'interrogation":'point final';out.push({cs:tk.ce,ce:mi?nx.cs+1:nx.cs,from:mi?gap+l:gap,sugg:mi?sg+' '+l.toUpperCase():sg+gap,name:nm,tier:'vigilance',typo:1,juge:1,marge:qu?v[3]:v[2]});}
+      else if(v[1]>=_JG.TV&&_jgLow(nx.brut)!=='car')out.push({cs:tk.ce,ce:nx.cs,from:gap,sugg:','+gap,name:'virgule',tier:'vigilance',typo:1,juge:1,marge:v[1]});}});
     return out;}
   var _VOISIN_OK={'a/à':1,'ou/où':1,'élision fusionnée':1,'accord grammatical (é/er)':1,'est/et (proposition)':1,'peu/peux/peut':1,'et/est':1,'homophone à vérifier':1,'accord pluriel à vérifier':1,'accord verbe à vérifier':1,'participe après avoir':1,'accord pluriel nom':1,'accord adjectif antéposé':1,'mot-outil à vérifier':1};   /* ⭐ 31/10/2026 (liste n° 326) : + les règles qui lisent le mot-outil ou le nombre ; pas le genre ni le sujet : un voisin mal deviné les trompe */   // lot B1 : règles qui décident sur la NATURE du voisin ; + est/et (29/09/2026 : un adverbe mal écrit entre « est » et un pronom sujet)
   var _TORIG=null;   /* ⭐ ligne 38 : les tokens tels que l'utilisateur les a ÉCRITS pendant une passe de grammaire sur le texte nettoyé par l'orthographe — a/à juge le mot suivant sur ce que l'auteur a écrit (« a éré » n'est pas « a ère ») */
@@ -7580,7 +7601,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     flags=auteurPasse(flags,_T,_Tc,text);flags=flags.concat(_jugeMarques(text,flags));   // ⭐ 01/10/2026 : genre de la personne qui écrit (réglage ; sans réglage, rien ne change)
     var _Tt=toks(text);flags.forEach(function(f){var hh=ctxHint(f,_Tt);if(hh)f.hint=hh;});   // hint contextuel par correction (affiché AU CLIC dans content.js)
     var rem=remedFams(flagsToFacts(flags));
-    var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts (aucun conseil de remédiation) ; ajoutée aux flags pour rendu+clic
+    var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ=_typ.concat(_jugePonct(text,flags,_typ));_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts (aucun conseil de remédiation) ; ajoutée aux flags pour rendu+clic
     return {flags:flags.concat(_typ),grammar:gf,spell:sf,
             remed:rem?rem.fams.map(function(t,k){return remedTip(t,rem.rep[k]);}):[]};}
 

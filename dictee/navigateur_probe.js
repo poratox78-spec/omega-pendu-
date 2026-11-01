@@ -165,7 +165,7 @@ const CAS = [
   { txt: 'je suis à la boure.', corrigeAttendu: ['boure', 'bourre'], pourquoi: 'le mot pollueur est corrigé, alors qu’il était « valide » au lexique' },
   { txt: 'je suis à la boure.', rien: false, orangeInterdit: 'la', pourquoi: 'CONTRE-GARDE : plus de fausse correction sur le déterminant — c’est tout l’objet du chantier' },
   { txt: 'le comandant a donné l’ordre.', corrigeAttendu: ['comandant', 'commandant'], pourquoi: 'même famille, nom' },
-  { txt: 'la pane du moteur nous a arrêtés.', rien: true, orangeInterdit: 'pane', pourquoi: 'CONTRE-GARDE : « pane » est un VRAI mot (partie du marteau) — écarté du tri à la main' },
+  { txt: 'la pane du marteau frappe le clou.', rien: true, orangeInterdit: 'pane', pourquoi: 'CONTRE-GARDE : « pane » est un VRAI mot (partie du marteau) — écarté du tri à la main ; « la pane du moteur », le juge propose panne, en orange' },
   { txt: 'je suis à la bourre.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase juste reste muette' },
   /* ⭐ « NOUS SOMME » → SOMMONS (10/09/2026, cas de Rem) : la règle de personne conjuguait le lemme qu'elle lisait, *sommer*,
      et écrivait en ROUGE un mot que personne n'a voulu. Deux gardes de fond : rule_aux_misspell exige le nombre pour
@@ -873,7 +873,7 @@ async function main() {
     const CRIB_NOFIRE = [
       'Dans ses carnets on voit bien.',
       'Les enfants, on mange !',
-      'Le chat on le voit souvent.',
+      'Le chat, on le voit souvent.',
       'Je lui parle souvent.',
       'Je vais manger en ville.',
       'Il faut que tu manges ta soupe.',

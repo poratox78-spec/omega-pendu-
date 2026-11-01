@@ -42,25 +42,33 @@ random.seed(1); idx = list(range(len(X))); random.shuffle(idx); DEV = idx[:6000]
 m = Mini(cfg).to(dev); print('paramètres', taille(m), flush=True)
 opt = torch.optim.AdamW(m.parameters(), lr=1e-3, weight_decay=0.01); BS = 96; steps = EP * (len(TRN) // BS); pas = 0
 def lr(p): return min(1, p / 500) * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * p / steps)))
-def prepare(i, j=None):
+def suite(i, colle):
+    # Plusieurs phrases à la suite, jusqu'à la taille d'un long texte : les textes réels finissent souvent sans ponctuation.
+    if random.random() >= colle: return ()
+    cible = random.randint(12, 64); js = []; n = len(X[i])
+    while n < cible and len(js) < 9:
+        j = TRN[random.randrange(len(TRN))]; js.append(j); n += len(X[j])
+    return js
+def prepare(i, js=()):
     # Ponctuation retirée selon le tirage ; l'étiquette va sur le mot d'avant. -100 : signe laissé (rien à deviner).
     ax = X[i]; ay = Y[i]; am = MJ[i]
-    if j is not None:
-        ax = np.concatenate([ax, X[j]]); ay = np.concatenate([ay, Y[j]]); bm = MJ[j].copy(); bm[0] = 0; am = np.concatenate([am, bm])
-    r = random.random(); tire = 0 if r < 0.25 else (1 if r < 0.55 else 2)   # 0 : tout laisser · 1 : virgules retirées · 2 : tout retirer
+    for j in js:
+        ax = np.concatenate([ax, X[j]]); ay = np.concatenate([ay, Y[j]]); bm = MJ[j].copy(); bm[0] = 0 if random.random() < 0.5 else bm[0]; am = np.concatenate([am, bm])
+    r = random.random(); tire = 0 if r < 0.2 else (1 if r < 0.45 else (2 if r < 0.8 else 3))   # 0 : tout laisser · 1 : virgules retirées · 2 : tout retirer · 3 : seul le dernier signe reste
+    ax_ = ax.tolist(); der = max((k for k, a in enumerate(ax_) if a in PCL), default=-1)
     x = []; y = []; mj = []; e = []
-    for a, b, c in zip(ax.tolist(), ay.tolist(), am.tolist()):
+    for k, (a, b, c) in enumerate(zip(ax_, ay.tolist(), am.tolist())):
         cl = PCL.get(a)
         if cl is not None:
             if e:
-                if tire == 2 or (tire == 1 and cl == 1): e[-1] = max(e[-1], cl); continue
+                if tire == 2 or (tire == 1 and cl == 1) or (tire == 3 and k != der): e[-1] = max(e[-1], cl); continue
                 e[-1] = -100
             x.append(a); y.append(b); mj.append(c); e.append(0)
         else:
             x.append(a); y.append(b); mj.append(c); e.append(0)
     return x[:cfg['L']], y[:cfg['L']], mj[:cfg['L']], e[:cfg['L']]
-def lot(ids, colle=0.3):
-    P = [prepare(i, (TRN[random.randrange(len(TRN))] if random.random() < colle else None)) for i in ids]
+def lot(ids, colle=0.5):
+    P = [prepare(i, suite(i, colle)) for i in ids]
     T = max(len(p[0]) for p in P); n = len(P)
     x = torch.zeros((n, T), dtype=torch.long); y = torch.zeros((n, T), dtype=torch.long); mj = torch.zeros((n, T)); e = torch.full((n, T), -100, dtype=torch.long)
     for a, p in enumerate(P):

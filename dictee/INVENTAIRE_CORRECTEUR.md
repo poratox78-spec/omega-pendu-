@@ -263,13 +263,13 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | personne du verbe par le son à vérifier | 1 | orange | personne | — | — |
 | pléonasme | 1 | selon la couche | style (sans conseil) | — | — |
 | pluriel par le son à vérifier | 1 | orange | accord | — | correcteur_probe.py |
-| point d'interrogation | 2 | selon la couche | ponctuation (sans conseil) | — | — |
+| point d'interrogation | 3 | selon la couche | ponctuation (sans conseil) | — | — |
 | point final | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 | répétition | 1 | selon la couche | repetition (sans conseil) | — | — |
 | sait/s'est à vérifier | 1 | orange | homophone_gram | — | — |
 | trait d'union | 2 | selon la couche | ponctuation (sans conseil) | — | — |
 | typographie | 3 | selon la couche | style (sans conseil) | — | — |
-| virgule | 1 | selon la couche | ponctuation (sans conseil) | — | — |
+| virgule | 2 | selon la couche | ponctuation (sans conseil) | — | — |
 | virgule doublée | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 
 ## Tables et qui les lit

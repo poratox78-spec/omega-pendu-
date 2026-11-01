@@ -14,12 +14,12 @@ with torch.no_grad():
         for w in t:
             a = morceaux(low(w), cfg['B']); ids.append(a + [0] * (NG - len(a)))
         x = torch.tensor([ids]); fl = torch.tensor([[[connu(FQ, low(w)), 1.0 if w[0].isupper() else 0.0] for w in t]])
-        h = m.lire(x, fl, torch.zeros((1, T), dtype=torch.bool))
+        h = m.lire(x, fl, torch.zeros((1, T), dtype=torch.bool)); pc = m.ponct(h).softmax(-1)[0].tolist()
         for i in range(T):
             cs = [low(t[i]), 'mange', 'les', 'manger', 'bateau']; n = len(cs); tr = [[1, 1, 0, 1, freq(FQ, low(t[i])), 1.0]] + [[1, 0, 2, 0, freq(FQ, c), 0.0] for c in cs[1:]]
             ec = torch.tensor([[morceaux(c, cfg['B']) + [0] * (NG - len(morceaux(c, cfg['B']))) for c in cs]])
             ew = torch.tensor([ids[i]])
             sc = m.noter(h[:, i], m.vec(ew), m.vec(ec), torch.tensor([tr]))[0].tolist()
-            out.append({'s': s, 'i': i, 'c': cs, 'tr': tr, 'sc': sc, 't': t, 'fl': fl[0].tolist()})
+            out.append({'s': s, 'i': i, 'c': cs, 'tr': tr, 'sc': sc, 'pc': pc[i], 't': t, 'fl': fl[0].tolist()})
 json.dump(out, io.open(sys.argv[2], 'w', encoding='utf-8'), ensure_ascii=False)
 print('références', len(out))

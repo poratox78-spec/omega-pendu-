@@ -426,9 +426,9 @@ tolèrent le faux positif. Notre contrat est inverse (FP=0 sur l'affirmatif) et 
 dys : chaque signalement non indispensable est de la fatigue. Le différentiel de compte (6 854 vs
 ~60 phénomènes) est un choix, pas un retard.
 
-## Le JUGE LÉGER (liste n° 332, 2026-11-01) — un modèle maison de 3,4 Mo, pour tout le monde
+## Le JUGE LÉGER (listes n° 332-338, 2026-11-01) — un modèle maison de 3,4 Mo, pour tout le monde
 
-**Ce qu'il fait.** Là où TOUTES les règles se taisent, il lit la phrase entière (gauche et droite) et choisit parmi les mots au MÊME SON que le lexique fournit. Il ne fabrique aucun mot, ne remplace aucune marque, ne pose que de l'orange (`choix du mot à vérifier`, seuil τ=3). Sur les noms propres, sigles, adresses et mots à trait d'union, il se tait.
+**Ce qu'il fait.** Là où TOUTES les règles se taisent, il lit la phrase entière (gauche et droite) et choisit parmi les mots au MÊME SON que le lexique fournit. Il ne fabrique aucun mot, ne remplace aucune marque, ne pose que de l'orange (`choix du mot à vérifier`, seuil τ=4). Sur les noms propres, sigles, adresses et mots à trait d'union, il se tait.
 
 **Pourquoi un modèle.** Après les lots 301-327, ce qui reste sur les textes dys demande le sens de la phrase. Mesuré d'abord : le bon mot est déjà à portée pour 489 des 578 fautes muettes.
 
@@ -441,24 +441,30 @@ dys : chaque signalement non indispensable est de la fatigue. Le différentiel d
 | juge 1,2 M, mots seuls | 1,2 Mo | 80 / 19 | 9 |
 | juge 3 M, mots seuls | 3 Mo | 98 / 20 | 8 |
 | juge 3 M, mots + ponctuation | 3 Mo | 87 / 26 | 9 |
-| **juge 3,4 M, mots + ponctuation (livré)** | **3,4 Mo** | **103 / 22** | **10** |
+| juge 3,4 M, mots + ponctuation (#1129) | 3,4 Mo | 103 / 22 | 10 |
+| **juge 3,4 M, fins de mots + phrases du quotidien (livré)** | **3,4 Mo** | **177 / 25** | **14** |
 | juge 5,3 M, mots seuls | 5,3 Mo | 99 / 19 | 9 |
 | juge 13 M, mots + ponctuation | 13 Mo | 99 / 21 | 7 |
 | B2 caractères (`b2_web.bin`) | 15 Mo | 72 / 28 | 9 |
 | asi/gpt-fr-cased-small (plafond, jamais livré) | 250 Mo | 109 / 26 | 9 |
 
-Quatre fois plus gros (13 M) n'apporte rien de net, et rien en conjugaison : ce n'est plus la taille qui limite.
+Quatre fois plus gros (13 M) n'apporte rien de net, et rien en conjugaison : ce n'est pas la taille qui limitait, ce sont les candidats et les phrases d'entraînement.
 
-**Au produit, moteur réel** (banc local privé ; 2 347 fautes alignées, 8 003 mots justes) : τ=3 → 76 bons mots, 15 mauvais mots, 9 mots justes touchés. Sur les 2 500 phrases de français public (`fp_scale`) : 22 marques (0,9 % des phrases) ; relues à la version précédente, environ la moitié sont de vraies fautes du corpus.
+**Au produit, moteur réel** (banc local privé ; 2 347 fautes alignées, 8 003 mots justes) : τ=4 → 105 bons mots, 14 mauvais mots, 13 mots justes touchés. Sur les 2 500 phrases de français public (`fp_scale`) : 30 marques (1,2 % des phrases). Le premier modèle (#1129), τ=3 : 76 bons mots, 15 mauvais, 9 justes touchés, 22 marques.
 
-**Ce qu'il comble, famille par famille** (τ=2, fautes muettes → rattrapées / fausses) : homophones petits mots 93 → 29 / 2 · autres homophones 29 → 9 / 1 · non-mots sans proposition 36 → 14 / 1 · grammaire 177 → 33 / 5 · accents 19 → 4 / 0 · conjugaison 193 → 14 / 9 · vocabulaire 31 → 0 / 4. La conjugaison reste le plus gros trou : le modèle met le bon mot en tête 99 fois sur 167, mais préfère garder l'écrit dans 116 cas. Les 295 fautes où une règle propose un mauvais mot restent hors de sa portée.
+**Ce qu'il comble, famille par famille** (τ=4, fautes muettes → rattrapées / fausses ; le premier modèle à τ=3 entre parenthèses) : conjugaison 193 → 41 / 6 (13 / 6) · grammaire 177 → 28 / 3 (23 / 3) · homophones petits mots 93 → 23 / 0 (25 / 2) · non-mots sans proposition 36 → 9 / 1 (11 / 1) · autres homophones 27 → 4 / 1 (6 / 1) · accents 19 → 2 / 1 (2 / 0) · vocabulaire 33 → 0 / 0 (0 / 2). Paires inventées d'après le livre (340 muettes) : 56 bonnes, 3 fausses, 3 marques sur phrases justes ; le premier modèle : 23, 4, 5. La conjugaison reste le plus gros trou, les accents restent faibles. Les 295 fautes où une règle propose un mauvais mot restent hors de sa portée.
+
+**Pourquoi le premier modèle ratait les verbes.** Ses candidats passaient par la clé de son du moteur, qui sépare parler de parlé et parle de parlent : 89 fautes de verbes muettes sur 193 étaient hors de portée. `_jgFins` ajoute une liste fermée de fins (er, é, ée, és, ées, ez, ai, ais, ait, aient ; e, es, ent ; i, is, it, ie, ies, ir ; u, us, ut, ue, ues ; t, ent) : le dictionnaire dit si la forme existe. Ces formes et les variantes d'accent passent hors du top 16. Il garde la clé d'avant la ligne 339 : celle de son entraînement.
 
 **Refusé, chiffres à l'appui.**
 - Lui laisser REMPLACER la suggestion d'une règle : il répare autant qu'il casse (τ=6 : 20 réparées, 16 fausses, 17 bonnes cassées, moitié A). Il n'agit donc que sur le silence.
 - Candidats sans le même son : plus de fausses alertes (120 → 92 mots sur 2 500 phrases à τ=2), à peine plus de réparations.
 - Modèle plus gros : voir la courbe.
+- Re-choisir la proposition du correcteur sur un non-mot : 1 093 non-mots, 810 déjà justes ; τ=4 : 41 réparés, 41 cassés.
 
-**L'entraînement.** Corpus PUBLIC seulement (`data_local/b2_train.txt` : UD + exemples du Wiktionnaire, 645 215 phrases), fautes tirées au sort par `dictee/juge_gen.js` : petits mots, même racine, même son, non-mots. Le corpus dys privé ne sert qu'à mesurer, et la moitié B n'a servi à régler aucun seuil. Les livres protégés n'entrent pas dans le fichier. Morceaux de mots hachés au lieu d'un dictionnaire : une faute voisine ne l'aveugle pas et aucune table de mots n'est livrée. 30 min sur une RTX 3060 : `juge_gen.js` → `juge_train.py` (`{"DM":192,"FF":384}`, 5 époques) → `juge_export.py` → `juge_refs.py`. Modèle ≠ poids : réentraîner = changer le `.bin`. Le fichier porte déjà une tête de ponctuation, branchée dans une ligne à part.
+**L'entraînement.** Corpus PUBLIC seulement : `data_local/b2_train.txt` (UD + exemples du Wiktionnaire) et `data_local/tatoeba/phrases.txt` (Tatoeba, 719 750 phrases du quotidien, CC BY 2.0 FR, crédit dans `NOTICE`). Les textes à corriger disent surtout « je », posent des questions et finissent souvent sans signe : pour 1 000 mots, « je » 5,9 dans le premier corpus, 33 dans Tatoeba, 24 dans les textes dys. Fautes tirées au sort par `dictee/juge_gen.js` : petits mots, même racine, même son, non-mots, plus de fautes de verbes (VR 2,5), tirées à 85 % dans les formes du même verbe (VF). `dictee/juge_train.py` colle la moitié du temps plusieurs phrases, jusqu'à 64 mots, et retire les signes par tirage : aucun, les virgules, tous, ou tous sauf le dernier. Le corpus dys privé ne sert qu'à mesurer, et la moitié B n'a servi à régler aucun seuil. Les livres protégés n'entrent pas dans le fichier. Morceaux de mots hachés au lieu d'un dictionnaire : une faute voisine ne l'aveugle pas et aucune table de mots n'est livrée. Environ 4 h sur une RTX 3060 : `juge_gen.js` → `juge_train.py` (`{"DM":192,"FF":384}`, 4 époques) → `juge_export.py` → `juge_refs.py`. Modèle ≠ poids : réentraîner = changer le `.bin`.
+
+**La ponctuation (liste n° 333).** Même fichier, deuxième tête. Entre deux mots séparés d'un blanc simple, et seulement où les règles n'ont rien posé : virgule (seuil 0,85), point (0,7), « ? » (0,5). En fin de texte, le juge change le point final proposé par la règle en « ? » s'il lit une question. Toujours en orange. Mesuré au produit : français public tel quel, 25 virgules et 1 point sur 2 500 phrases (1,0 %). Virgules de l'auteur retirées (3 023) : 703 retrouvées, 78 posées ailleurs. Phrases collées, seuil 0,7 : 828 points retrouvés sur 1 193 quand la majuscule reste, 72 ailleurs ; 145 sans majuscule, 78 ailleurs. « ? » retiré : 6 retrouvés sur 46 (les règles en trouvent d'autres), 0 faux sur 2 454 phrases ; phrases collées : 5 sur 46, 0 faux sur 600. Textes dys : 15 virgules et 14 points sur 72 textes. Les textes dys corrigés gardent les signes de l'original : ils ne disent pas si ces signes sont justes, la référence reste le français public dont on retire les signes.
 
 **Asynchrone.** `jugeAnalyse` calcule par tranches et relance l'affichage ; `diagnoseAll` ne lit que le cache. Sans modèle chargé, aucune marque : les autres bancs mesurent les règles seules (28 772 textes identiques), `dictee/juge_probe.js` mesure le juge.
 

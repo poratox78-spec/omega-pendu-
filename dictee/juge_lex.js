@@ -13,11 +13,17 @@ module.exports = function (R) {
   const GR = [["a", "à"], ["et", "est", "es"], ["ou", "où"], ["son", "sont"], ["ces", "ses", "c'est", "s'est"], ["ce", "se"], ["la", "là", "l'a"], ["ma", "m'a"], ["ta", "t'a"], ["sa", "ça"], ["on", "ont"], ["mes", "mais", "met"], ["du", "dû"], ["leur", "leurs"], ["ni", "n'y"], ["si", "s'y"], ["soi", "soit"], ["dont", "donc"], ["tout", "tous"], ["peu", "peut", "peux"], ["par", "part"], ["sur", "sûr"], ["quand", "quant"], ["qu'elle", "quelle", "quel"], ["sans", "sens", "cent"], ["dans", "en"], ["en", "an"]];
   const GRP = new Map(); for (const g of GR) for (const x of g) GRP.set(x, (GRP.get(x) || []).concat(g));
   const connu = (w) => F.has(w) || F.has(w.split("'").pop());
+  // Les fins qu'on confond à racine égale. La clé de son du moteur les sépare (parler/parlé) ou les rate (parle/parlent) : liste fermée, le dictionnaire dit si le mot existe.
+  const FINS = [['er', 'é', 'ée', 'és', 'ées', 'ez', 'ai', 'ais', 'ait', 'aient'], ['', 's', 'e', 'es', 'x'], ['e', 'es', 'ent'], ['i', 'is', 'it', 'ie', 'ies', 'ir'], ['u', 'us', 'ut', 'ue', 'ues'], ['t', 'ent']];
+  function fins(nu) { const out = []; for (const C of FINS) { let s = null; for (const x of C) if (x && nu.length > x.length + 1 && nu.endsWith(x) && (s === null || x.length > s.length)) s = x; if (s === null) { if (!C.includes('')) continue; s = ''; } const r = nu.slice(0, nu.length - s.length); for (const t of C) if (t !== s && F.has(r + t) && !out.includes(r + t)) out.push(r + t); } return out; }
+  const memoF = new Map(), finsM = (a) => { let v = memoF.get(a); if (!v) { v = new Set(fins(a)); memoF.set(a, v); } return v; };
   function cands(w0, max = 16) {
     const w = low(w0), m = /^([a-zà-ÿ]{1,3}')(.+)$/.exec(w), pre = m ? m[1] : '', nu = m ? m[2] : w, d = dec(nu), S = new Map();
     const ajoute = (c) => { if (c !== nu && !S.has(c)) S.set(c, F.get(c) || 0); };
     (GRP.get(w) || []).forEach((c) => { if (c !== w) S.set(c, 1e9); });
     if (nu.length >= 2) {
+      const garde = (c) => { if (c !== nu && !S.has(c) && F.has(c)) S.set(c, 1e6 + F.get(c)); };   // le top 16 ne les coupe pas
+      fins(nu).forEach(garde); (parPh.get(ph(nu)) || []).filter((c) => dec(c) === d).forEach(garde); (parDebut.get(d.slice(0, 4)) || []).filter((c) => dec(c) === d).forEach(garde); (parLen.get(d.length + ':' + d[0]) || []).filter((c) => dec(c) === d).forEach(garde);
       (parPh.get(ph(nu)) || []).forEach(ajoute);
       if (d.length >= 4) (parDebut.get(d.slice(0, 4)) || []).forEach((c) => { if (lev(dec(c), d, 3) <= 3) ajoute(c); });
       for (let n = d.length - 1; n <= d.length + 1; n++) for (const c of (parLen.get(n + ':' + d[0]) || [])) { if (lev(dec(c), d, 1) <= 1) ajoute(c); }
@@ -25,10 +31,10 @@ module.exports = function (R) {
     }
     return Array.from(S.entries()).sort((a, b) => b[1] - a[1]).slice(0, max).map((x) => (x[1] === 1e9 ? x[0] : pre + x[0]));
   }
-  // Traits d'une paire (écrit w, candidat c) : même son large, même son strict, distance, accent seul, fréquence du candidat (log).
+  // Traits d'une paire (écrit w, candidat c) : même son large, même son strict ou même famille de fin, distance, accent seul, fréquence du candidat (log).
   function traits(w0, c0) {
     const w = low(w0), c = low(c0), a = w.split("'").pop(), b = c.split("'").pop();
-    return [ph(a) === ph(b) ? 1 : 0, son(a) === son(b) ? 1 : 0, Math.min(3, lev(dec(a), dec(b), 3)), dec(a) === dec(b) ? 1 : 0, Math.round(Math.log2(1 + (F.get(b) || 0)))];
+    return [ph(a) === ph(b) ? 1 : 0, son(a) === son(b) || finsM(a).has(b) ? 1 : 0, Math.min(3, lev(dec(a), dec(b), 3)), dec(a) === dec(b) ? 1 : 0, Math.round(Math.log2(1 + (F.get(b) || 0)))];
   }
-  return { D, F, low, dec, ph, son, lev, GR, GRP, connu, cands, traits };
+  return { D, F, low, dec, ph, son, lev, GR, GRP, connu, cands, fins, traits };
 };
