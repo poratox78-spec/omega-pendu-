@@ -865,7 +865,9 @@ function testListe130() {   // ligne 130 (21/10/2026) : la finale è / ê écrit
   const rouge = x => x === 'auto' || x === 'flag';
   for (const [t, w, s, pal] of [['Il pose le balè contre le mur du garage.', 'balè', 'balai', 'orange'], ['Elle ouvre le robinè de la cuisine.', 'robinè', 'robinet', 'orange'],
       // témoins : la finale /ɛ/ écrite reste corrigée en rouge ; un mot juste reste muet
-      ['Le jouè rouge est cassé depuis lundi.', 'jouè', 'jouet', 'rouge'], ['Le succès du film surprend tout le monde.', 'succès', null, null]]) {
+      ['Le jouè rouge est cassé depuis lundi.', 'jouè', 'jouet', 'rouge'], ['Le succès du film surprend tout le monde.', 'succès', null, null],
+      // liste n° 340 : la forme nue courante en e muet ne passe plus d'office devant le mot qui s'entend
+      ['Le poulè rôti sent bon.', 'poulè', 'poulet', 'rouge']]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w), det = fl.find(x => x.name === 'genre déterminant');
     if (det || (s === null ? !!f : (!f || f.sugg !== s || (pal === 'rouge') !== rouge(f.tier))))
       fail.push('ligne 130 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + pal) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien') + (det ? ' + ' + det.word + ' → ' + det.sugg : '')); }
