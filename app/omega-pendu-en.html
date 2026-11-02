@@ -32399,7 +32399,7 @@ function spellUnknown(tok,atStart,T,idx){
      3 Mo, JavaScript pur (aucun GPU, aucune bibliothèque), une passe par phrase ; le texte ne sort jamais de la machine. Entraîné sur du français
      public fauté au hasard (dictee/juge_train.py) ; le corpus dys privé ne sert qu'à le mesurer. Modèle ≠ poids : réentraîner = changer le .bin.
      Le calcul est ASYNCHRONE (jugeAnalyse, tranche par tranche, puis re-rendu) ; diagnoseAll ne lit que le cache, donc sans modèle chargé rien ne change. */
-  var _JG={m:null,cache:new Map(),TAU:4,TV:0.85,TP:0.7,TQ:0.5,TA:4,TAIT:{'accord pluriel à vérifier':1,'genre déterminant':1,'accord sujet-verbe à vérifier':1,'accord du verbe au sujet nominal à vérifier':1,'accord verbe à vérifier':1,'nombre du déterminant à vérifier':1,'accord participe':1,'accord participe à vérifier':1,'accord adjectif à vérifier':1,'accord genre à vérifier':1}};
+  var _JG={m:null,cache:new Map(),TAU:4,TV:0.85,TP:0.7,TQ:0.6,TA:4,TAIT:{'accord pluriel à vérifier':1,'genre déterminant':1,'accord sujet-verbe à vérifier':1,'accord du verbe au sujet nominal à vérifier':1,'accord verbe à vérifier':1,'nombre du déterminant à vérifier':1,'accord participe':1,'accord participe à vérifier':1,'accord adjectif à vérifier':1,'accord genre à vérifier':1}};
   function _jgMoteur(buf){
     var u8=new Uint8Array(buf.buffer||buf,buf.byteOffset||0,buf.byteLength),dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
     var hl=dv.getUint32(4,true),H=JSON.parse(new TextDecoder().decode(u8.subarray(8,8+hl))),o=8+hl,P={},cfg=H.cfg;
