@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 u"""Entraîne le juge léger sur le corpus PUBLIC fauté (dictee/juge_gen.js), jamais sur le corpus dys privé qui ne sert qu'à le mesurer.
 Deux tâches sur le même encodeur : choisir le mot + lire l'espace après chaque mot (rien, virgule, point, question). ~20 min sur une RTX 3060.
-  python dictee/juge_train.py <train.jsonl> <memo.json> <sortie.pt> '{}' 4"""
-import io, json, math, random, sys, time
+  python dictee/juge_train.py <train.jsonl> <memo.json> <sortie.pt> '{}' 4
+Variables : BS (96), LR (1e-3). MAITRE=<grand.pt> : le petit apprend aussi les notes d'un grand modèle déjà entraîné (distillation,
+ALPHA 0,7 = part des notes du maître, TAU_KD 2). Ligne 343 : grand '{"DM":512,"NL":8,"NH":8,"FF":2048,"DE":128,"DP":128}' 3 époques
+avec LR=6e-4 (3,5 h), puis l'élève '{"DM":192,"FF":384}' 4 époques avec MAITRE (3 h) : au produit, il bat l'élève sans maître, et le maître lui-même."""
+import io, json, math, os, random, sys, time
 import numpy as np, torch, torch.nn.functional as FN
 from juge_modele import Mini, morceaux, NG, taille, lexique, connu, freq
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -40,7 +43,15 @@ NGt = torch.from_numpy(NGm).long().to(dev); KOt = torch.from_numpy(KO).to(dev); 
 print('tables %.0f s' % (time.time() - t0), flush=True)
 random.seed(1); idx = list(range(len(X))); random.shuffle(idx); DEV = idx[:6000]; TRN = idx[6000:]
 m = Mini(cfg).to(dev); print('paramètres', taille(m), flush=True)
-opt = torch.optim.AdamW(m.parameters(), lr=1e-3, weight_decay=0.01); BS = 96; steps = EP * (len(TRN) // BS); pas = 0
+MA = None
+if os.environ.get('MAITRE'):
+    ckM = torch.load(os.environ['MAITRE'], map_location='cpu', weights_only=False); MA = Mini(ckM['cfg']).to(dev); MA.load_state_dict(ckM['model']); MA.eval()
+    for p_ in MA.parameters(): p_.requires_grad_(False)
+ALPHA = float(os.environ.get('ALPHA', 0.7)) if MA else 0.0; TAU = float(os.environ.get('TAU_KD', 2.0))
+if MA: print('maître', taille(MA), 'alpha', ALPHA, 'tau', TAU, flush=True)
+def kd(s, st):   # écart aux notes du maître, adoucies par TAU
+    return FN.kl_div(FN.log_softmax(s / TAU, -1), FN.softmax(st / TAU, -1), reduction='batchmean') * TAU * TAU
+LR0 = float(os.environ.get('LR', 1e-3)); opt = torch.optim.AdamW(m.parameters(), lr=LR0, weight_decay=0.01); BS = int(os.environ.get('BS', 96)); steps = EP * (len(TRN) // BS); pas = 0
 def lr(p): return min(1, p / 500) * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * p / steps)))
 def suite(i, colle):
     # Plusieurs phrases à la suite, jusqu'à la taille d'un long texte : les textes réels finissent souvent sans ponctuation.
@@ -79,6 +90,8 @@ def perte(x, y, mj, e):
     pad = x == 0
     with torch.autocast('cuda', dtype=torch.float16):
         h = m.lire(NGt[x], torch.stack([KOt[x], mj], -1), pad)
+        if MA:
+            with torch.no_grad(): hM = MA.lire(NGt[x], torch.stack([KOt[x], mj], -1), pad)
         k = CNt[x] > 1
         cmat = CAt[x[k]]; good = (cmat == y[k].unsqueeze(1)); pos = good.any(1)
         cm = cmat[pos]; tgt = good[pos].float().argmax(1)
@@ -88,13 +101,19 @@ def perte(x, y, mj, e):
         l = FN.cross_entropy(sc, tgt, reduction='none'); w = torch.where(tgt == 0, torch.tensor(1.0, device=dev), torch.tensor(3.0, device=dev))
         lc = (l * w).sum() / w.sum()
         lg = m.ponct(h).float().reshape(-1, 4); lp = FN.cross_entropy(lg, e.reshape(-1), weight=POIDS, ignore_index=-100)
+        if MA:
+            with torch.no_grad():
+                scM = MA.noter(hM[k][pos], MA.vec(NGt[x[k][pos]]), MA.vec(NGt[uq])[inv_], TRt[x[k][pos]]).float().masked_fill(cm == 0, -1e4)
+                lgM = MA.ponct(hM).float().reshape(-1, 4)
+            ma = e.reshape(-1) != -100
+            lc = (1 - ALPHA) * lc + ALPHA * kd(sc, scM); lp = (1 - ALPHA) * lp + ALPHA * kd(lg[ma], lgM[ma])
     return lc + 0.5 * lp, sc.detach(), tgt, lc.detach(), lp.detach()
 scaler = torch.amp.GradScaler('cuda')
 for ep in range(EP):
     random.shuffle(TRN); m.train()
     for b in range(0, len(TRN) - BS, BS):
         ids = sorted(TRN[b:b + BS], key=lambda i: len(X[i])); x, y, mj, e = lot(ids); r = perte(x, y, mj, e)
-        for g in opt.param_groups: g['lr'] = 1e-3 * lr(pas)
+        for g in opt.param_groups: g['lr'] = LR0 * lr(pas)
         opt.zero_grad(set_to_none=True); scaler.scale(r[0]).backward(); scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0); scaler.step(opt); scaler.update(); pas += 1
         if pas % 1000 == 0: print('pas', pas, '/', steps, 'choix %.4f ponct %.4f' % (r[3].item(), r[4].item()), '%.0f s' % (time.time() - t0), flush=True)
     m.eval(); ok = {'garde': [0, 0], 'faute': [0, 0]}
