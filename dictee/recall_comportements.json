@@ -747,7 +747,16 @@
 "La boîte de crayons cassés est sur la table.",
 "La bouteille de lait ouvert est au frais.",
 "Des roses dans les vases achetées hier.",
-"Les cahiers achetés hier sont lourds."
+"Les cahiers achetés hier sont lourds.",
+"Cette robe, je l'ai mise hier.",
+"Ces chaussures, je les ai mises hier.",
+"La robe que j'ai mise est là.",
+"Cette tarte, je l'ai cuite hier.",
+"Mes sœurs sont parties hier.",
+"Elles se sont parlé hier.",
+"Marie et Julie sont parties hier.",
+"Paul et Marie sont partis hier.",
+"Ils se sont lavés tôt."
 ],
 "elide": [
 [
@@ -2844,6 +2853,56 @@
 "Elle a l'aire triste.",
 "l'aire",
 "l'air"
+],
+[
+"Elle a mise la robe hier.",
+"mise",
+"mis"
+],
+[
+"Mes sœurs sont parti hier.",
+"parti",
+"parties"
+],
+[
+"Les boîtes ont été ouvert hier.",
+"ouvert",
+"ouvertes"
+],
+[
+"Les cartons ont été ouverte hier.",
+"ouverte",
+"ouverts"
+],
+[
+"Elles se sont laver tôt.",
+"laver",
+"lavées"
+],
+[
+"Marie et Julie sont parti hier.",
+"parti",
+"parties"
+],
+[
+"Ils se sont lavées tôt.",
+"lavées",
+"lavés"
+],
+[
+"Il s'est promenée tôt.",
+"promenée",
+"promené"
+],
+[
+"Le volet fermées est là.",
+"fermées",
+"fermé"
+],
+[
+"Le volet fermés est là.",
+"fermés",
+"fermé"
 ]
 ],
 "palier": [
