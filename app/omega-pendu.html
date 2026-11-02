@@ -30366,7 +30366,12 @@ var QNEG2=/^\s*(?:pas|plus|jamais|rien|gu[èe]re|personne|aucun|aucune)\b/i;
    coupe fait tomber la précision à 47,55 % — le « -t-il » attrape le discours rapporté (« … »,
    a-t-il affirmé), et ce sont les gardes d'incise qui s'en occupent, plus bas. */
 var QMOTS_VOIX=12, QMOTS_CORR=20;
-function estQuestion(t,maxMots){
+/* ⭐ 02/11/2026 (liste n° 346) — « -vous » / « -nous » après le verbe : QINV les écarte, à cause de l'impératif (« Asseyez-vous »).
+   Deux cadres où l'impératif est impossible : avoir, être, pouvoir, vouloir, savoir, devoir, aller (« Avez-vous », « Êtes-vous »,
+   « Pourriez-vous » : leur impératif est ayez, soyez, sachez, veuillez, ou n'existe pas) ; et « ne … pas » autour du verbe,
+   puisque l'impératif négatif met le pronom devant (« Ne vous asseyez pas »). */
+var QINV_NI=/^(?:avez|aviez|aurez|auriez|avons|avions|aurons|aurions|[êe]tes|[ée]tiez|serez|seriez|sommes|[ée]tions|serons|serions|pouvez|pouviez|pourrez|pourriez|pouvons|pouvions|pourrons|pourrions|voulez|vouliez|voudrez|voudriez|voulons|voulions|voudrons|voudrions|savez|saviez|saurez|sauriez|savons|savions|saurons|saurions|devez|deviez|devrez|devriez|devons|devions|devrons|devrions|allez|alliez|irez|iriez|allons|allions|irons|irions)$/i;
+function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques sûres seules — inversion à trait d'union, « est-ce », « n'est-ce pas »
   if(!t) return false;
   var mots=toks(t);
   if(!mots||!mots.length||mots.length>(maxMots||QMOTS_VOIX)) return false;   // au-delà : titre ou subordonnée
@@ -30381,8 +30386,10 @@ function estQuestion(t,maxMots){
   function tag(i){ if(tg===null) tg=posTags(motsTag)||[]; return tg[i]; }
   var qw=QW.test(t)||QW_PREP.test(t);   // « a quoi penses-tu » : la tete interrogative peut etre precedee de sa preposition
   var m=((qw||QUEHEAD.test(t))?QINV_Q:QINV).exec(t);
+  if(!m){var mi=QINV_Q.exec(t);if(mi&&/^(?:nous|vous)$/i.test(mi[2])){var avi=t.slice(0,mi.index),vbi=mi[1].replace(/^n['’]/i,'');
+    if((QINV_NI.test(vbi)&&!toks(avi).length)||((/^\s*ne\s+$/i.test(avi)||(!toks(avi).length&&vbi!==mi[1]))&&QNEG2.test(t.slice(mi.index+mi[0].length))))m=mi;}}   // liste n° 346
   var sansTrait=false;   // inversion SANS trait d'union (graphie dys) : gardée par la conjugaison, pas par le tagger
-  if(!m){var ms=QINV_S.exec(t); if(ms&&_invSansTrait(ms,mots,qw)){m=ms;sansTrait=true;}}
+  if(!m&&!fort){var ms=QINV_S.exec(t); if(ms&&_invSansTrait(ms,mots,qw)){m=ms;sansTrait=true;}}
   // ⭐ ROUTE INTERRO-NÉGATIVE, indépendante du tagger. « n'as-tu pas … » : `toks` rend le token
   // « n'as », et même dé-élidé en « as » le modèle l'étiquette PROPN en tête (mesuré) — « as »
   // y est trop rare comme auxiliaire dans UD. La garde verbale ne s'arme pas et la question
@@ -30394,7 +30401,7 @@ function estQuestion(t,maxMots){
     var iv=toks(t.slice(0,m.index)).length;
     // incise en tête sans ponctuation : un VERBE DE PAROLE inversé au tout début
     if(iv===0 && QPAROLE.test(m[1])) return false;
-    if(QPARTPAROLE.test(t.slice(m.index+m[0].length))) return false;   // « … », a-t-il affirmé » : l'auxiliaire est inverse, le verbe de parole est le PARTICIPE qui suit
+    if(!qw&&QPARTPAROLE.test(t.slice(m.index+m[0].length))) return false;   /* liste n° 346 : une incise ne s'ouvre pas sur un interrogatif (« Pourquoi as-tu lancé ce ballon ») */   // « … », a-t-il affirmé » : l'auxiliaire est inverse, le verbe de parole est le PARTICIPE qui suit
     // ⭐ SANS LE TAGGER : le « t » euphonique (fait d'orthographe) et l'interrogatif en tete
     // (l'imperatif y est impossible). Mesure 2026-08-06 : le tagger lit « a/ADP » dans
     // « a-t-il raison » et « devrions/NOUN » dans « ou devrions-nous » — la regle avait raison,
@@ -30408,6 +30415,7 @@ function estQuestion(t,maxMots){
   if(QEQ.test(t)) return true;
   if(QEQ3.test(t)) return true;   // « est-ce possible ? » — sans « que »
   if(qw && QEQ2.test(t)) return true;
+  if(fort) return false;   // liste n° 346 : « Qui » en tête, l'interrogatif seul, l'inversion sans trait — trop faibles derrière un deux-points (« Sur la porte, une phrase : Qui entre ici se tait »)
   // dernier recours : l'interrogatif seul en ordre affirmatif (4e forme du BDL, celle que
   // seule l'INTONATION signale). Le tagger ferme le FP que la liste ne voyait pas :
   // l'interrogation INDIRECTE enchaîne un GN plein (« comment UNE PERSONNE a obtenu… »).
@@ -32813,6 +32821,10 @@ function spellUnknown(tok,atStart,T,idx){
     if(!_qfin)continue;
     if(_qlast!=='.'&&/[.!?…]/.test(_qlast))continue;            // ! … ? déjà là ou voulus
     var _qcorps=(_qlast==='.')?_qfin.slice(0,-1):_qfin;
+    /* ⭐ 02/11/2026 (liste n° 346) — la question qui suit un deux-points (« Il demande à sa voisine : êtes-vous prête »,
+       « Ma question est simple : est-ce que le train part à midi ») : prise d'un bloc, la phrase n'est pas une question ; ce qui suit le dernier « : » en est une. Mêmes gardes que pour une phrase. */
+    var _qdp=_qcorps.lastIndexOf(':'),_qapres=_qdp>=0?_qcorps.slice(_qdp+1).replace(/^[\s«"“]+/,'').replace(/^(?:\.\.\.|…)\s*/,''):'';
+    var _qestQ=!!_qcorps.trim()&&(estQuestion(_qcorps.trim(),QMOTS_CORR)||(!!_qapres.trim()&&estQuestion(_qapres.trim(),QMOTS_CORR,1)));
     /* ⭐ POINT FINAL MANQUANT (01/09/2026, demandé par Rem). MESURÉ AVANT D'ÉCRIRE :
        · 39 % des productions réellement dys (gold_claude, 28/72) n'ont AUCUNE ponctuation finale —
          contre 2 % sur les 1 720 paires SYNTHÉTIQUES du même chargeur. Facteur VINGT : les bancs
@@ -32830,7 +32842,7 @@ function spellUnknown(tok,atStart,T,idx){
          plus faibles. Retirée. La vraie source des 55 tirs sur fp_scale était ailleurs : 41 d'entre
          eux finissent par `;` ou `:`, déjà ponctués. La garde juste coûte 0 cas réel.
          Couverture après correction : 28/28 des cas réels. Fatigue : 0/333 sentences.json. */
-    if(_qcorps.trim()&&!estQuestion(_qcorps.trim(),QMOTS_CORR)&&_qlast!=='.'
+    if(_qcorps.trim()&&!_qestQ&&_qlast!=='.'
         &&_qm.index+_qs.length>=text.length              // DERNIER segment du texte
         &&';:,'.indexOf(_qlast)<0                        // ; : , sont déjà une ponctuation
         &&_qcorps.trim().split(/\s+/).length>=3          // pas un fragment d'un mot ou deux
@@ -32839,7 +32851,7 @@ function spellUnknown(tok,atStart,T,idx){
       out.push({cs:_pe,ce:_pe,from:'',sugg:'.',name:'point final',tier:'vigilance',typo:1});
       continue;
     }
-    if(!_qcorps.trim()||!estQuestion(_qcorps.trim(),QMOTS_CORR))continue;if(/,\s*[A-Za-zÀ-ÿ]+-(t-)?(il|elle|on|ils|elles|je)\s*(,|\.|$)/.test(_qcorps)||/^f[uû]t-(il|elle)/i.test(_qcorps.trim())||/^qui vivra verra/i.test(_qcorps.trim()))continue;   /* ⭐ 31/10/2026 (liste n° 297) : incise (« ce chat, dit-il, est drôle »), concession (« fût-elle reine ») : pas une question */
+    if(!_qestQ)continue;if(/,\s*[A-Za-zÀ-ÿ]+-(t-)?(il|elle|on|ils|elles|je)\s*(,|\.|;|:|$)/.test(_qcorps)||/^f[uû]t-(il|elle)/i.test(_qcorps.trim())||/^qui vivra verra/i.test(_qcorps.trim()))continue;   /* ⭐ 31/10/2026 (liste n° 297) : incise (« ce chat, dit-il, est drôle »), concession (« fût-elle reine ») : pas une question */
     /* ⛔ ON N'ÉMET QUE SUR UNE PHRASE TERMINÉE PAR UN POINT — contrainte de RENDU, pas de grammaire :
        `_renderView` ne peint les flags ancrés caractère que dans les ESPACES ENTRE MOTS
        (`_typoGapHtml`), ce qui est juste pour tout ce que cette couche gérait (espaces, virgule
