@@ -742,7 +742,12 @@
 "Son enfance le sens.",
 "Je me demande quelle est sa couleur.",
 "Il demande comment est sa maison.",
-"Elle voit combien est grande la cour."
+"Elle voit combien est grande la cour.",
+"Les pots de confiture ouverts sont au frais.",
+"La boîte de crayons cassés est sur la table.",
+"La bouteille de lait ouvert est au frais.",
+"Des roses dans les vases achetées hier.",
+"Les cahiers achetés hier sont lourds."
 ],
 "elide": [
 [
@@ -3173,6 +3178,26 @@
 "Le chat est noire.",
 "noire",
 "noir"
+],
+[
+"Les pots de confiture ouvertes sont au frais.",
+"ouvertes",
+"ouverts"
+],
+[
+"La boîte de crayons cassé est sur la table.",
+"cassé",
+"cassée"
+],
+[
+"Les verres d'eau renversées sèchent au soleil.",
+"renversées",
+"renversés"
+],
+[
+"Les cahiers achetées hier sont lourds.",
+"achetées",
+"achetés"
 ]
 ],
 "a_participe": [
