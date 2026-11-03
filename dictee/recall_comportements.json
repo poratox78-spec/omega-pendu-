@@ -761,7 +761,9 @@
 "On va y arriver.",
 "Allez y voir ce qui se passe.",
 "Elle pense à toi.",
-"Je dis moi aussi que tu as raison."
+"Je dis moi aussi que tu as raison.",
+"Ce titre est coté en bourse.",
+"Ce chef est très coté."
 ],
 "elide": [
 [
@@ -2908,6 +2910,26 @@
 "Je veux celui la.",
 "celui",
 "celui-là"
+],
+[
+"De mon coté, tout va bien.",
+"coté",
+"côté"
+],
+[
+"Il est de l'autre coté du mur.",
+"coté",
+"côté"
+],
+[
+"Les deux cotés sont propres.",
+"cotés",
+"côtés"
+],
+[
+"Il lit le mode d'emplois.",
+"d'emplois",
+"d'emploi"
 ]
 ],
 "palier": [
