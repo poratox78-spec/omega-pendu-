@@ -7844,7 +7844,7 @@ function omegaStep() {
       if ((M_NEO_ASSEMBLED_ENABLED || M_NEO_MUTE_ENABLED) && !_neoDone) {   // (2)(3) assemblee sonore + muette ortho — alignement MASQUE partage
         const _G = _emrg_initOnline(); const _L2 = _G.getL2();
         let _al;
-        if (M_NEO_PHON_COHORT_ENABLED) { _al = _neoPhonCohort(); }                                                  // son board-dérivé (cohorte) : ne lit jamais le son du mot caché
+        if (M_NEO_PHON_COHORT_ENABLED || M_SANS_LONGUEUR_ENABLED) { _al = _neoPhonCohort(); }                       // son board-dérivé (cohorte) : ne lit jamais le son du mot caché. J3 : en mode sans longueur, TOUJOURS cette voie — « entendre » un schéma n'a pas de sens, et le son du mot entier fuirait la longueur
         else { const _ph = _G.wp.get(currentWord); _al = _ph ? _G.align(currentWord, _ph, revealedMask) : null; }   // défaut : son du mot (wp.get) — entrée « mot entendu »
         if (_al) {
           if (M_NEO_ASSEMBLED_ENABLED) {   // (2) positions SONORES
