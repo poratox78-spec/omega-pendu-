@@ -756,7 +756,12 @@
 "Elles se sont parlé hier.",
 "Marie et Julie sont parties hier.",
 "Paul et Marie sont partis hier.",
-"Ils se sont lavés tôt."
+"Ils se sont lavés tôt.",
+"Il a vingt et un ans.",
+"On va y arriver.",
+"Allez y voir ce qui se passe.",
+"Elle pense à toi.",
+"Je dis moi aussi que tu as raison."
 ],
 "elide": [
 [
@@ -2040,11 +2045,6 @@
 "la"
 ],
 [
-"Je veux celui la.",
-"la",
-"là"
-],
-[
 "Ce matin la, il neigeait.",
 "la",
 "là"
@@ -2903,6 +2903,11 @@
 "Le volet fermés est là.",
 "fermés",
 "fermé"
+],
+[
+"Je veux celui la.",
+"celui",
+"celui-là"
 ]
 ],
 "palier": [
@@ -3110,6 +3115,16 @@
 "Mon oncle m'a appris à pêcher et a nager.",
 "a",
 "vigilance"
+],
+[
+"Dis moi la vérité.",
+"Dis",
+"vigilance"
+],
+[
+"Elle a quarante huit ans.",
+"quarante",
+"flag"
 ]
 ],
 "vig": [
@@ -3262,6 +3277,31 @@
 "Les cahiers achetées hier sont lourds.",
 "achetées",
 "achetés"
+],
+[
+"Nous avons rendez vous demain matin.",
+"rendez",
+"rendez-vous"
+],
+[
+"Elle a quarante huit ans.",
+"quarante",
+"quarante-huit"
+],
+[
+"Il reste une demi heure.",
+"demi",
+"demi-heure"
+],
+[
+"Dis moi la vérité.",
+"Dis",
+"Dis-moi"
+],
+[
+"Le chef prépare lui même la sauce.",
+"lui",
+"lui-même"
 ]
 ],
 "a_participe": [
