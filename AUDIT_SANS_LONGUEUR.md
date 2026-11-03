@@ -48,6 +48,15 @@ Mesure (`node evo/sans_longueur_bench.js`, protocole ci_smoke, graines 12345+777
 - 37,5 % est le PLANCHER J1 (machinerie non adaptée) que J2–J5 doivent remonter ; le plafond d'information
   est 98 % (oracle, §2).
 
+### Progression des jonctions (mode ON, protocole ci_smoke ; relancer `node evo/sans_longueur_bench.js`)
+
+| Jonction (03/11/2026) | cognition seule | +NEO config réf. | note |
+|---|---|---|---|
+| J1 couture (2 graines) | 37,5 % | 37,5 % | NEO muet |
+| J2 cohorte flottante (2 graines) | **92,5 %** | 92,5 % | M4_phon nourri ; assemblé encore muet |
+| J3 assemblé board-dérivé (4 graines) | 91,7 % [93,3·91,7·90,0·91,7] | **93,3 %** [86,7·96,7·96,7·93,3] | +NEO > cognition sur 3/4 graines (à 2 graines c'était ambigu : 91,7 vs 92,5 — règle pré-enregistrée, tranché à 4) |
+| — référence board réel (4 graines) | 93,8 % | 99,6 % | l'écart restant (~6 pts) = J4 n-grams relatifs + J5 recall/perception |
+
 ## 3. Census PROFOND — qui lit la longueur/les positions absolues, corps des fonctions lus
 
 Le montant reçoit le board par `cStep(currentWord, revealedMask)` et les declares lisent les mêmes globals.
