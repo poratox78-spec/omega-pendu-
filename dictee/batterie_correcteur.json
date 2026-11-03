@@ -2536,6 +2536,30 @@ null,
 [
 "Il faut qu'il rende le livre.",
 "« rende » 3e du singulier : cellule de génération réparée (elle portait rende en 3e du PLURIEL)."
+],
+[
+"Le matin, il passe chez le boulangé avant le travail.",
+"« boulangé » n'est qu'un verbe : le genre ne se lit pas sur la clé sans accent (« boulange », féminin) — « le » ne devient pas « la » d'office (03/11/2026, liste n° 347).",
+"rouge",
+"le"
+],
+[
+"Mon oncle m'a appris à pêcher et a nager.",
+"à + infinitif, puis « et a » + infinitif : le second « a » est la même préposition — l'infinitif n'est pas changé en participe d'office (liste n° 347).",
+"rouge",
+"nager"
+],
+[
+"Hier soir, je trouvé la fin du film trop triste. Nous irons au cinéma le mois prochain.",
+"le mot de futur est dans une AUTRE phrase : pas de futur posé d'office (liste n° 347).",
+"rouge",
+"trouvé"
+],
+[
+"Pendant deux ans, je vendé des fleurs au marché.",
+"retirer l'accent du « é » final change le son : « vende » n'est pas posé d'office (liste n° 347).",
+"rouge",
+"vendé"
 ]
 ]
 }
