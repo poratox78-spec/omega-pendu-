@@ -3353,6 +3353,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
      conjuguée, ORANGE (imparfait proposé — 6 cas gold sur 9 —, présent dans l'astuce). Recensé : UD 1 motif (« sur qui compter »), exclu par
      la préposition avant le pronom. nous/vous exclus (objets possibles). Miroir Python rule_pron_inf. */
   function rPronInf(T,i){var w=T[i],lw=deacc(w.toLowerCase());if(!/er$/.test(lw)||lw.length<4||w!==w.toLowerCase()||!CONJ_C[lw])return null;
+    if(i>0&&deacc(T[i-1].toLowerCase())==='on'&&rOn(T,i-1)==='ont')return null;   // liste n° 351 : « les voisins on planter » — « on » devient « ont », la cascade rend « ont planté » (pas « plantait »)
     var z=i-1;while(z>=0&&_PRON_INF_CLIT[deacc(T[z].toLowerCase()).replace(/'/g,'')])z--;if(z<0)return null;
     var _el=_ELIDED_PRON.exec(T[z].toLowerCase()),p=_el?deacc(_el[1]):deacc(T[z].toLowerCase()).replace(/'/g,''),slot=_PRON_INF_SLOT[p];if(!slot)return null;   // « qu'il aimer » : pronom dans le token élidé
     if(_SEG&&_SEG.bb){for(var m=z+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}
@@ -4322,7 +4323,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
           if(_ELIDED_PRON.exec(T[k].toLowerCase()))return null;
           if(SUBJ_PRON[dk]||_SUBJ_PRON_PL[dk]||dk==='qui')return null;
           if(/^(que|qu)$/.test(dk.replace(/['’]$/,''))||(tg&&k<tg.length&&tg[k]==='SCONJ'))break;   // la subordonnée COMMENCE ici
-          if(_CONJ_COORD[dk]){if(_ellipseAccorde(T,i,k))return null;break;}   // ⭐ 12/10/2026 (conjugaison 7) : « et nous reviendront » — miroir Python
+          if(_CONJ_COORD[dk]){if(_ellipseAccorde(T,i,k)){_ELL351=true;return [_SUBJ_PRON_PL[d][0],_SUBJ_PRON_PL[d][1],'pron'];}break;}   // ⭐ 12/10/2026 (conjugaison 7) : « et nous reviendront » — miroir Python ; liste n° 351 : l'ellipse (« ils mangent et nous regardent ») est un DOUTE, pas une preuve — la personne de « nous » est proposée en orange (sujFlexVig)
           if(tg&&k<tg.length&&(tg[k]==='NOUN'||tg[k]==='PROPN'||tg[k]==='VERB'||tg[k]==='AUX'))return null;
           if(CLITIC[dk]||(tg&&k<tg.length&&tg[k]==='ADV')){k--;continue;}
           return null;
@@ -4371,7 +4372,13 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
      inconnus) et que toutes les lectures sont d'un verbe courant. « primes » (prendre / primer) reste ambigu. Miroir Python _ps_rare. */
   function _psRare(h,lec){var k,q;for(k=0;k<h.length;k++){q=_lemFreq(h[k][0]);if(q!==null&&q>=1)return false;}
     for(k=0;k<lec.length;k++){q=_lemFreq(lec[k][0]);if(q===null||q<1)return false;}return true;}
-  function sujFlexVig(T,i){   /* « nous iriez » → irions · « tu irai » → iras. Le sujet donne personne et nombre, la forme écrite
+  /* ⭐ 03/11/2026 (liste n° 351) — « les cartons sont lourds et nous devront les porter » : la personne de « nous » se taisait derrière la garde
+     d'ellipse (« nous » complément d'un sujet d'avant). Devant un modal suivi d'un infinitif, « nous » ne peut être que sujet : ORANGE, quand l'oreille ne sépare pas les deux formes. */
+  var _ELL351=false;
+  var _MOD351={devoir:1,pouvoir:1,vouloir:1,savoir:1},_CL351={y:1,en:1,le:1,la:1,les:1,lui:1,leur:1,me:1,te:1,se:1,nous:1,vous:1};
+  function _modInf351(T,i){var rd=svReads(T[i]),m=false,k;for(k=0;k<rd.length;k++)if(_MOD351[deacc(rd[k][0])])m=true;if(!m)return false;k=i+1;while(k<T.length&&_CL351[deacc(T[k].toLowerCase()).replace(/['’].*$/,'')])k++;return k<T.length&&_isInfinitive(T[k]);}
+  function sujFlexVig(T,i){_ELL351=false;var r=_sujFlexVig351(T,i),e=_ELL351;_ELL351=false;if(r&&e){var s=String(typeof r==='object'?r.sugg:r),w=String(T[i]);if(/ont$/i.test(w)&&s.toLowerCase()===w.toLowerCase().replace(/t$/,'s')&&_modInf351(T,i))return {sugg:s,vig:1};return null;}return r;}   // devoir / pouvoir / vouloir / savoir + infinitif : « nous » n'y est jamais complément du verbe (« ils devront nous parler ») ; « les cousins partent et nous rejoindront » reste juste, sans marque
+  function _sujFlexVig351(T,i){   /* « nous iriez » → irions · « tu irai » → iras. Le sujet donne personne et nombre, la forme écrite
      donne le TEMPS (on ne réécrit pas au présent). Miroir Python rule_sujet_flexion. */
     if(!CONJ_F||!CONJ_C)return null;
     var w=T[i];if(!w)return null;

@@ -26,11 +26,11 @@
   },
   "conjugaison": {
    "total": 65,
-   "bon": 48,
-   "rouge juste": 27,
-   "orange juste": 21,
-   "mauvais mot": 4,
-   "muette": 13
+   "bon": 51,
+   "rouge juste": 29,
+   "orange juste": 22,
+   "mauvais mot": 2,
+   "muette": 12
   },
   "orthographe": {
    "total": 46,
@@ -65,7 +65,7 @@
   "T1#16": "rouge juste",
   "T1#17": "muette",
   "T1#18": "rouge juste",
-  "T1#19": "muette",
+  "T1#19": "orange juste",
   "T1#20": "orange juste",
   "T1#21": "rouge juste",
   "T1#22": "muette",
@@ -91,7 +91,7 @@
   "T2#12": "rouge juste",
   "T2#13": "muette",
   "T2#14": "rouge juste",
-  "T2#15": "mauvais mot",
+  "T2#15": "rouge juste",
   "T2#16": "rouge juste",
   "T2#17": "rouge juste",
   "T2#18": "orange juste",
@@ -112,7 +112,7 @@
   "T3#5": "orange juste",
   "T3#6": "muette",
   "T3#7": "rouge juste",
-  "T3#8": "mauvais mot",
+  "T3#8": "rouge juste",
   "T3#9": "rouge juste",
   "T3#10": "rouge juste",
   "T3#11": "rouge juste",
