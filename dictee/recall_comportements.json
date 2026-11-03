@@ -764,7 +764,9 @@
 "Je dis moi aussi que tu as raison.",
 "Ce titre est coté en bourse.",
 "Ce chef est très coté.",
-"Les chats dorment et nous observent."
+"Les chats dorment et nous observent.",
+"Fermé le lundi, le musée ouvre le mardi.",
+"Il faut laisser le gâteau refroidir."
 ],
 "elide": [
 [
@@ -2936,6 +2938,16 @@
 "Les voisins on planter des tomates.",
 "planter",
 "planté"
+],
+[
+"Beurré un moule rond.",
+"Beurré",
+"Beurrez"
+],
+[
+"Laisser-le refroidir une heure.",
+"Laisser",
+"Laissez"
 ]
 ],
 "palier": [
@@ -3157,6 +3169,21 @@
 [
 "Les cartons sont lourds et nous devront les porter.",
 "devront",
+"vigilance"
+],
+[
+"Beurré un moule rond.",
+"Beurré",
+"vigilance"
+],
+[
+"Incorporé ensuite le sucre, la farine et la levure.",
+"Incorporé",
+"vigilance"
+],
+[
+"Laisser-le refroidir une heure.",
+"Laisser",
 "vigilance"
 ]
 ],
