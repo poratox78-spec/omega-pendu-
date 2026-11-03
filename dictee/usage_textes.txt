@@ -1,0 +1,59 @@
+# Contrôle par l'usage (liste n° 357) : textes INVENTÉS de vrais genres, fautes balisées {écrit|attendu|domaine} ou
+# {écrit|attendu|domaine|autre bonne réponse;autre}. Domaines : O orthographe, G grammaire (homophones, participes, genre),
+# C conjugaison, P ponctuation, N pluriels. Sonde : node dictee/usage_probe.js. Chaque texte passe fuite_texte, verif_corpus3,
+# verif_rem et verif_inventes, puis seulement il est ajouté ; un texte neuf d'un autre genre s'ajoute à chaque cycle.
+=== T1 mail pro
+Bonjour Nadia,
+Petit point au sujet de la {réunions|réunion|N} de jeudi. Les chiffres que tu m'as {envoyé|envoyés|G} sont {arrivé|arrivés|G} hier soir, {mes|mais|G} il manque encore les {tableau|tableaux|N} des deux agences du nord. {pourrais|Pourrais|P}-tu les {demandé|demander|C} {a|à|G} Julien{.| ?|P} Il les a {sertainement|certainement|O} {gardé|gardés|G} dans son dossier {partager|partagé|C}.
+De mon {coté|côté|O}, Paul et moi avons {préparer|préparé|C} une première synthèse. Les ventes ont {augmentées|augmenté|G} de trois pour cent, ce qui est plutôt une bonne {nouvelles|nouvelle|N}. {cependant|Cependant|P}{|,|P} les retours clients {reste|restent|C} nombreux et nous {devront|devrons|C} en parler avec l'équipe {logistic|logistique|O}.
+Est-ce que tu {sera|serais|C|seras} disponible lundi matin pour qu'on {relie|relise|C} ensemble la {présentasion|présentation|O}{.| ?|P} {sinon|Sinon|P}, mardi {après midi|après-midi|P} me {convien|convient|C} aussi.
+Merci {beaucoups|beaucoup|O} pour tes {conseil|conseils|N}.
+Bonne journée,
+Karim
+=== T2 message à un proche
+Coucou Léa,
+Nous sommes bien {arrivé|arrivés|G} {a|à|G} Lyon vers midi. Le train {avais|avait|C} une heure de {retar|retard|O} en raison d'un problème sur la voie, alors les enfants étaient {fatigué|fatigués|N} et un peu {énervé|énervés|N}. {heureusement|Heureusement|P}, ta copine Inès nous {attendais|attendait|C} {a|à|G} la sortie du train avec {ça|sa|G} voiture.
+L'appartement est grand et {trés|très|O} {lumineu|lumineux|O}. Les chambres {donne|donnent|C} sur un petit jardin {ou|où|G} les voisins {on|ont|G} {planter|planté|C} des {tomate|tomates|N} et des fraises. Hier soir, nous {avont|avons|C} mangé dans un restaurant {italiens|italien|N} que tu nous avais {conseiller|conseillé|C}. Les pâtes étaient {délicieuse|délicieuses|N} !
+{demain|Demain|P}, on ira voir le musée des Confluences, puis on se {promènra|promènera|C} au bord du Rhône s'il fait {baut|beau|O}. Veux-tu que je te {rapportes|rapporte|C} quelque chose{.| ?|P}
+Gros bisous {a|à|G} toi et {a|à|G} Thomas.
+=== T3 compte rendu
+Compte rendu de la réunion du 14 mars
+Étaient {présent|présents|N} : Mme Perrin, M. Lopez, M. Diallo et quatre {bénévole|bénévoles|N}.
+Le budget de l'année {derniére|dernière|O} a été {présentée|présenté|G} par le {trésorié|trésorier|O}. Les dépenses ont été plus {élevé|élevées|N} que {prévus|prévu|G}, surtout pour la fête de juin. Les membres {on|ont|G} {décider|décidé|C} de demander une {nouvel|nouvelle|G} subvention {a|à|G} la mairie.
+{ensuite|Ensuite|P}, nous avons parlé du jardin {partagée|partagé|G}. Plusieurs habitants se sont {plain|plaints|G} du {brui|bruit|O} le soir. M. Lopez {propos|propose|C} de {fermé|fermer|C} la grille {a|à|G} vingt heures. Cette idée a été {accepter|acceptée|C} {a|à|G} l'unanimité.
+Enfin, la prochaine sortie aura lieu le samedi 12 avril. Les inscriptions sont {ouverte|ouvertes|N} jusqu'au 5 avril. Qui s'{occupra|occupera|C} de {réservé|réserver|C} le car{.| ?|P}
+La séance est {levé|levée|G} {a|à|G} 21 h 30.
+=== T4 rédaction
+L'été {dernié|dernier|O}, je suis partie en Bretagne avec mes parents et mon petit frère. Nous avons {louer|loué|C} une maison {prés|près|O} d'un port. Chaque matin, mon père {allé|allait|C} chercher du pain {frai|frais|O} et des {croissant|croissants|N} chez le {boulangé|boulanger|O} du village.
+{un|Un|P} jour, nous avons {fais|fait|C} une promenade en {bâteau|bateau|O}. La mer {étais|était|C} {agiter|agitée|C} et mon frère {à|a|G} eu peur. Tout pâle, mon frère {c'est|s'est|G} {accrocher|accroché|C} {a|à|G} ma mère pendant tout le trajet. {moi|Moi|P}, je {trouvé|trouvais|C} {sa|ça|G} génial ! Les vagues étaient {haute|hautes|N} et le vent {soufflé|soufflait|C} fort.
+Le soir, nous {jouons|jouions|C} aux cartes sur la terrasse. Ma mère {gagner|gagnait|C} presque toujours, {se|ce|G} qui {énervé|énervait|C|énerve} mon père. Ces vacances étaient vraiment {réussie|réussies|N} et j'espère que nous y {retourneront|retournerons|C} l'année prochaine.
+=== T5 réclamation
+Madame, Monsieur,
+Le 3 février, nous avons {commander|commandé|C} en ligne un {aspirateure|aspirateur|O} et deux {filtre|filtres|N} de rechange. Nous avons {reçus|reçu|G} le colis le 10 février, {mes|mais|G} l'aspirateur ne {fonctionnent|fonctionne|C} pas : il s'{arrètes|arrête|C} au bout de {quelque|quelques|N} secondes. Nous avons suivi {toute|toutes|N} les instructions du mode {d'emplois|d'emploi|O} sans {résulta|résultat|O|résultats}.
+Nous avons {appeler|appelé|C} votre numéro {a|à|G} trois {reprise|reprises|N}. Chaque fois, on nous a {promit|promis|C} qu'un conseiller nous {rapellerait|rappellerait|O} dans les {quarante huit|quarante-huit|P} heures. Personne n'a jamais {rappeler|rappelé|C}.
+Nous vous demandons donc de {remplacé|remplacer|C} cet appareil {où|ou|G} de nous rembourser la somme {payer|payée|C}. Vous trouverez {ci joint|ci-joint|P} la facture et les {photo|photos|N} du produit. {pourriez|Pourriez|P}-vous nous répondre avant la fin du {moi|mois|O}{.| ?|P}
+Veuillez {agréé|agréer|C} nos {salutation|salutations|N} {distingué|distinguées|N}.
+Hélène et Marc Martin
+=== T6 recette
+Gâteau au {yaourth|yaourt|O}
+Pour six {personne|personnes|N}, il {faux|faut|G} un pot de yaourt nature, trois {œuf|œufs|N}, deux pots de sucre, trois {pot|pots|N} de farine, un {demi pot|demi-pot|P} d'huile et un {sachée|sachet|O} de levure.
+Préchauffez le four {a|à|G} 180 degrés. Dans un grand {saladié|saladier|O}, {versé|versez|C} le yaourt, puis ajoutez les œufs un par un en {mélangent|mélangeant|C} bien. {Incorporé|Incorporez|C} ensuite le sucre, la farine et la levure. {quand|Quand|P} la pâte est {lise|lisse|O}, ajoutez {l'huille|l'huile|O}.
+{Beurré|Beurrez|C} un moule rond et {versez y|versez-y|P} la préparation. {Faite|Faites|C} cuire pendant {trente cinq|trente-cinq|P} minutes. Le gâteau est {prés|prêt|O} quand la lame d'un couteau {ressors|ressort|C} {sêche|sèche|O}.
+{Laisser|Laissez|C}-le refroidir avant de le {démoulé|démouler|C}. On {peu|peut|G} le servir avec de la confiture {où|ou|G} du chocolat {fondue|fondu|G}.
+=== T7 avis restaurant
+Très bonne {adresses|adresse|N} ! Nous sommes {venu|venus|G} {a|à|G} quatre un vendredi soir sans avoir {réservée|réservé|G}, et le patron nous {à|a|G} quand même {trouver|trouvé|C} une table {prêt|près|O} de la {fenètre|fenêtre|O}. Les plats sont {copieu|copieux|O} et les prix {reste|restent|C} {raisonnable|raisonnables|N} pour le quartier.
+Pour moi, le poisson du jour, {servit|servi|C} avec des {légume|légumes|N} {grillé|grillés|N}. Mon mari a pris une {entrecote|entrecôte|O} qu'il a {trouvé|trouvée|G} un peu trop {cuit|cuite|G}, {mes|mais|G} il a adoré les {frite|frites|N} maison. Les desserts sont {fait|faits|G} sur place : la tarte aux {pomme|pommes|N} était {excellent|excellente|G}.
+Seul {bémole|bémol|O}, le service était assez {lens|lent|O} et la salle très {bruillante|bruyante|O}. Nous {reviendront|reviendrons|C} quand même, {peut être|peut-être|P} un midi en semaine. Je {recommende|recommande|O} !
+=== T8 candidature
+Madame la Directrice,
+Votre annonce pour un poste d'agent d'accueil {a|à|G} la médiathèque {à|a|G} {retenue|retenu|G} toute mon attention. Pendant cinq {an|ans|N}, {je vendé|je vendais|C|j'ai vendu} des livres dans une {librerie|librairie|O} de quartier, où {j'accueillai|j'accueillais|C|j'accueille} les clients, je les {orienté|orientais|C|oriente} et je {gérai|gérais|C} les commandes.
+{Se|Ce|G} métier m'a {appri|appris|C} {a|à|G} conseiller les {lecteur|lecteurs|N} et {a|à|G} trouver {rapidemment|rapidement|O} le livre qu'ils {cherchait|cherchaient|C}. Avec une collègue, nous avons {organisée|organisé|G} des lectures pour les enfants le mercredi {après midi|après-midi|P}, et ces ateliers {on|ont|G} connu un vrai {succé|succès|O}.
+Je suis {a|à|G} l'aise avec les {logiciel|logiciels|N} de prêt et j'aime {travaillé|travailler|C} en équipe. Les horaires du samedi ne me {pose|posent|C} aucun problème.
+Je serais heureuse de vous rencontrer pour vous {présentez|présenter|C} mes {motivation|motivations|N}. Un {entretient|entretien|O} {a|à|G} la date de votre choix me conviendrait.
+Veuillez {agréé|agréer|C}, Madame la Directrice, l'expression de mes sentiments {respectueu|respectueux|O}.
+Claire Dubois
+=== T9 mail à l'école
+Bonjour Madame Roux,
+Mon fils Lucas sera absent demain matin car il a {rendez vous|rendez-vous|P} chez le {dentise|dentiste|O}{|.|P} {il|Il|P} reviendra en classe vers onze heures. {pouvez|Pouvez|P}-vous lui donner les {exercice|exercices|N} de mathématiques qu'il aura {manqué|manqués|G}{.| ?|P} Je les lui ferai faire le soir.
+Par {ailleur|ailleurs|O}{ ,|, |P}la sortie au {théatre|théâtre|O} est-elle toujours {prévu|prévue|G} le 20{.| ?|P} Lucas en parle tous les jours{|,|P} il a hâte d'y aller.
+Je vous remercie et vous souhaite une bonne {soiré|soirée|O}{|.|P}
