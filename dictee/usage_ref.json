@@ -34,11 +34,11 @@
   },
   "orthographe": {
    "total": 46,
-   "bon": 39,
-   "rouge juste": 18,
+   "bon": 41,
+   "rouge juste": 20,
    "orange juste": 21,
    "mauvais mot": 4,
-   "muette": 3
+   "muette": 1
   }
  },
  "cassesRouge": 0,
@@ -58,7 +58,7 @@
   "T1#9": "orange juste",
   "T1#10": "muette",
   "T1#11": "muette",
-  "T1#12": "muette",
+  "T1#12": "rouge juste",
   "T1#13": "rouge juste",
   "T1#14": "orange juste",
   "T1#15": "orange juste",
@@ -166,7 +166,7 @@
   "T5#6": "rouge juste",
   "T5#7": "rouge juste",
   "T5#8": "rouge juste",
-  "T5#9": "muette",
+  "T5#9": "rouge juste",
   "T5#10": "orange juste",
   "T5#11": "rouge juste",
   "T5#12": "orange juste",
