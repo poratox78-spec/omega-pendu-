@@ -6352,6 +6352,49 @@ function _slCohort() {   // indices OMEGA_LEX4.words compatibles avec le board v
   _slCoh = { key: key, ids: out, game: _slGameSeq };
   return out;
 }
+// --- J4 : N-GRAM RELATIF (les bi/trigrammes de Rem) — tables par CONTEXTE SEUL, sans clé longueur|position ---
+// Les tables _neoNG sont indexées « L|p|contexte » : inutilisables sans longueur. Ici : bl[c]/br[c] (voisin
+// adjacent gauche/droit), tri[g|d] (joint entre deux adjacents), Ld/Rd[d|c] (plus proche voisin révélé à
+// distance d ≤ _NEO_NGRAM_MAXD), agrégées sur TOUT le lexique (len_index = respect Trexquant). Au bord du
+// schéma : PAS de marqueur '#' — bord de brouillard ≠ frontière de mot ; on score une case de brouillard
+// de chaque côté (d=1), voisine de la lettre de bord. Cheat-free (stats agrégées + révélé).
+let _slNG = null, _slNGsrc = null;
+function _slEnsureNG() {
+  if (_slNG && _slNGsrc === OMEGA_LEX4.len_index) return;
+  _slNGsrc = OMEGA_LEX4.len_index;
+  const bl = {}, br = {}, tri = {}, Ld = {}, Rd = {};
+  const add = (T, k, t) => { (T[k] || (T[k] = new Float64Array(26)))[t]++; };
+  const LI = OMEGA_LEX4.len_index, WD = OMEGA_LEX4.words, MAXD = _NEO_NGRAM_MAXD;
+  for (const key in LI) { const arr = LI[key]; for (let i = 0; i < arr.length; i++) { const w = WD[arr[i]]; if (!w || !w.m) continue; const m = w.m;
+    for (let p = 0; p < m.length; p++) { const t = m.charCodeAt(p) - 65; if (t < 0 || t >= 26) continue;
+      for (let d = 1; d <= MAXD; d++) {
+        if (p - d >= 0) { const c = m.charAt(p - d); if (d === 1) add(bl, c, t); else add(Ld, d + '|' + c, t); }
+        if (p + d < m.length) { const c = m.charAt(p + d); if (d === 1) add(br, c, t); else add(Rd, d + '|' + c, t); }
+      }
+      if (p > 0 && p + 1 < m.length) add(tri, m.charAt(p - 1) + '|' + m.charAt(p + 1), t);
+    } } }
+  _slNG = { bl: bl, br: br, tri: tri, Ld: Ld, Rd: Rd };
+}
+function _slNgramDist() {   // distribution lettre (26) : cases '?' du schéma (voisins révélés de l'empan) + 1 case de brouillard par bord
+  if (!currentWord) return null;
+  _slEnsureNG();
+  const s = currentWord, L = s.length, NG = _slNG, MAXD = _NEO_NGRAM_MAXD;
+  const score = new Float64Array(26); let any = false;
+  const _nz = (d) => { if (!d) return null; let t = 0; for (let x = 0; x < 26; x++) t += d[x]; if (t <= 0) return null; const o = new Float64Array(26); for (let x = 0; x < 26; x++) o[x] = d[x] / t; return o; };
+  const addPos = (pos) => { if (!pos) return; for (let x = 0; x < 26; x++) if (!alreadyTried[x]) { score[x] += pos[x]; any = true; } };
+  for (let p = 0; p < L; p++) { if (revealedMask[p]) continue;
+    let ld = 0, lc = null; for (let d = 1; d <= MAXD && p - d >= 0; d++) { if (revealedMask[p - d]) { ld = d; lc = s.charAt(p - d); break; } }
+    let rd = 0, rc = null; for (let d = 1; d <= MAXD && p + d < L; d++) { if (revealedMask[p + d]) { rd = d; rc = s.charAt(p + d); break; } }
+    let pos = null;
+    if (ld === 1 && rd === 1) pos = _nz(NG.tri[lc + '|' + rc]);   // 2 adjacents → trigramme JOINT (meilleur que le produit)
+    if (!pos) { const nl = ld ? _nz(ld === 1 ? NG.bl[lc] : NG.Ld[ld + '|' + lc]) : null, nr = rd ? _nz(rd === 1 ? NG.br[rc] : NG.Rd[rd + '|' + rc]) : null;
+      if (nl && nr) { const pr = new Float64Array(26); let t = 0; for (let x = 0; x < 26; x++) { pr[x] = nl[x] * nr[x]; t += pr[x]; } if (t > 0) { for (let x = 0; x < 26; x++) pr[x] /= t; pos = pr; } else pos = nl; }
+      else pos = nl || nr; }
+    addPos(pos);
+  }
+  if (L) { addPos(_nz(NG.br[s.charAt(0)])); addPos(_nz(NG.bl[s.charAt(L - 1)])); }   // brouillard d=1 : avant le schéma (voisine droite = 1re lettre) et après (voisine gauche = dernière)
+  return any ? score : null;
+}
 let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée+muette) vient du consensus phonémique de la cohorte board-compatible, PAS de wp.get(mot). Supprime la lecture du son du mot caché. OFF par défaut.
 let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohorte alignés par décision
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
@@ -6592,7 +6635,8 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
   return { dist: acc, used: used };
 }
 function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niveau declare : (1−μ)·sublexicale + μ·lexicale, μ=r^α/(β+r^α). Réutilise M_OS_v07_step. Cheat-free, sans currentWord. Rend une lettre ou null.
-  const _useNG = M_NEO_OS_ARB_NGRAM;       // voie sublexicale = n-gram agrégé (généralise à l'OOV) au lieu de la jointe phon-cohorte
+  const _slOn = M_SANS_LONGUEUR_ENABLED;   // J4 : en mode sans longueur, la voie sublexicale = n-gram RELATIF (_slNgramDist), la lexicale = cohorte flottante
+  const _useNG = M_NEO_OS_ARB_NGRAM || _slOn;   // voie sublexicale = n-gram agrégé (généralise à l'OOV) au lieu de la jointe phon-cohorte
   const _pcd = _useNG ? null : _neoPhonCohortDist();
   if (!_useNG && !_pcd) return null;       // (mode jointe) cohorte phon vide → rien à arbitrer ; (mode n-gram) on continue : le n-gram décide MÊME hors cohorte (cas OOV)
   if (!_neoWF) { _neoWF = new Map(); for (const w of OMEGA_LEX4.words) if (w && w.m) _neoWF.set(w.m, (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001); }
@@ -6600,7 +6644,7 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
   // voie SUBLEXICALE : n-gram agrégé (si _useNG) — sinon jointe phon-cohorte (Σ_φ Pcoh·CR, max sur positions non révélées)
   const sub = new Float64Array(26);
   if (_useNG) {
-    const _ng = M_NEO_C_HEAVY ? _neoHeavyCDist() : _neoLetterNgramDist(); if (_ng) for (let x=0;x<26;x++) sub[x] = _ng[x];   // voie sublexicale agrégée : C lourd appris (§1.12) si M_NEO_C_HEAVY, sinon n-gram du lexique (généralise)
+    const _ng = _slOn ? _slNgramDist() : (M_NEO_C_HEAVY ? _neoHeavyCDist() : _neoLetterNgramDist()); if (_ng) for (let x=0;x<26;x++) sub[x] = _ng[x];   // voie sublexicale agrégée : n-gram RELATIF en mode sans longueur ; sinon C lourd appris (§1.12) si M_NEO_C_HEAVY, sinon n-gram positionnel du lexique
   } else {
     const G = _emrg_initOnline(); const _L2 = G.getL2();
     for (let p = 0; p < L; p++) { if (revealedMask[p]) continue; const _dist = _pcd.dist[p]; let _tot = 0; for (const k in _dist) _tot += _dist[k]; if (_tot <= 0) continue;
@@ -6615,8 +6659,15 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
     }
   }
   // voie LEXICALE : distribution lettre = cohorte board pondérée fréquence (cohort model, Marslen-Wilson 1978)
-  _neoEnsureWBL();   // (mode n-gram on ne passe pas par _neoPhonCohortDist qui l'aurait bâti) — idempotent/caché
   const lex = new Float64Array(26);
+  if (_slOn) {   // J4 : cohorte FLOTTANTE — lettres cachées d'un candidat flottant = ses lettres non proposées (exact, cf. bloc J2)
+    const idsl = _slCohort(); const wsl = OMEGA_LEX4.words; let usedl = 0;
+    for (let i = 0; i < idsl.length && usedl < M_NEO_PHON_COHORT_CAP; i++) { const w = wsl[idsl[i]]; const m = w.m; usedl++;
+      const f = (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001; const seen = new Uint8Array(26);
+      for (let p = 0; p < m.length; p++) { const c = m.charCodeAt(p) - 65; if (c >= 0 && c < 26 && !alreadyTried[c] && !seen[c]) { seen[c] = 1; lex[c] += f; } }
+    }
+  } else {
+  _neoEnsureWBL();   // (mode n-gram on ne passe pas par _neoPhonCohortDist qui l'aurait bâti) — idempotent/caché
   const absent = []; for (let x=0;x<26;x++){ if(!alreadyTried[x]) continue; let seen=false; for(let p=0;p<L;p++) if(revealedMask[p]&&currentWord.charCodeAt(p)-65===x){seen=true;break;} if(!seen) absent.push(String.fromCharCode(65+x)); }
   const cand = _neoWBL[L];
   if (cand) { let used = 0;
@@ -6626,6 +6677,7 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
       used++; const f = _neoWF.get(m) || 0.001; const seen = new Uint8Array(26);
       for (let p=0;p<L;p++){ if(revealedMask[p]) continue; const c=m.charCodeAt(p)-65; if(c>=0&&c<26&&!seen[c]){ seen[c]=1; lex[c]+=f; } }
     }
+  }
   }
   let ssub=0,slex=0; for(let x=0;x<26;x++){ssub+=sub[x];slex+=lex[x];}
   if (ssub<=0 && slex<=0) return null;
@@ -7837,7 +7889,7 @@ function omegaStep() {
         const _lg = _neoLetterNgram();
         if (_lg) { proposed = _lg; _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
       }
-      if (M_NEO_OS_ARB && (M_NEO_PHON_COHORT_ENABLED || M_NEO_OS_ARB_NGRAM) && !_neoDone) {   // ARBITRAGE OS des 2 voies DRC (remplace la cascade jointe par un mélange convexe sublexical⟷lexical). Mode n-gram : la voie sub = n-gram agrégé, pas besoin de la cohorte phon.
+      if ((M_SANS_LONGUEUR_ENABLED || (M_NEO_OS_ARB && (M_NEO_PHON_COHORT_ENABLED || M_NEO_OS_ARB_NGRAM))) && !_neoDone) {   // ARBITRAGE OS des 2 voies DRC (remplace la cascade jointe par un mélange convexe sublexical⟷lexical). Mode n-gram : la voie sub = n-gram agrégé, pas besoin de la cohorte phon. J4 : actif en mode sans longueur (sub = n-gram relatif, lex = cohorte flottante).
         const _ar = _neoDeclareOSmix();
         if (_ar) { proposed = _ar; _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
       }

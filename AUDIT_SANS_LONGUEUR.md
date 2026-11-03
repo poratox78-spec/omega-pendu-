@@ -55,7 +55,8 @@ Mesure (`node evo/sans_longueur_bench.js`, protocole ci_smoke, graines 12345+777
 | J1 couture (2 graines) | 37,5 % | 37,5 % | NEO muet |
 | J2 cohorte flottante (2 graines) | **92,5 %** | 92,5 % | M4_phon nourri ; assemblé encore muet |
 | J3 assemblé board-dérivé (4 graines) | 91,7 % [93,3·91,7·90,0·91,7] | **93,3 %** [86,7·96,7·96,7·93,3] | +NEO > cognition sur 3/4 graines (à 2 graines c'était ambigu : 91,7 vs 92,5 — règle pré-enregistrée, tranché à 4) |
-| — référence board réel (4 graines) | 93,8 % | 99,6 % | l'écart restant (~6 pts) = J4 n-grams relatifs + J5 recall/perception |
+| J4 OS-arb : n-gram relatif ⟷ cohorte flottante (4 graines) | 91,7 % (inchangé ✓) | **95,0 %** [98,3·90,0·98,3·93,3] | seuil pré-enregistré ≥93,3 tenu ; l'arbitrage récupère la graine 12345 (86,7→98,3) |
+| — référence board réel (4 graines) | 93,8 % | 99,6 % | l'écart restant (~4,6 pts) = J5 recall re-ancré + perception (ancre M1_d, M4_phon muet pré-première-lettre) |
 
 ## 3. Census PROFOND — qui lit la longueur/les positions absolues, corps des fonctions lus
 
