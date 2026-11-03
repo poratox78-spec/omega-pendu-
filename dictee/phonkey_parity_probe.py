@@ -29,6 +29,7 @@ ATTENDU = {u'cœur': u'ker', u'coeur': u'ker', u'sœur': u'ser', u'soeur': u'ser
            u'cœlacanthe': u'koelak2t', u'coelacanthe': u'koelak2t',   # œ SANS u ; le t devant le e muet ÉCRIT est gardé (30/09/2026)
            u'cette': u'set', u'séte': u'set', u'fête': u'fet', u'fêtes': u'fet', u'reste': u'rest',
            u'tou': u'tU', u'tout': u'tU', u'tu': u'tu', u'cur': u'kur', u'cure': u'kur', u'cours': u'kUr'}   # ⭐ 30/09/2026 : « ou » ≠ « u »   # ⭐ 30/09/2026 : plus de clé vide (« cette » = « sais » = « »)
+ATTENDU.update({u'parle': u'parl', u'parles': u'parl', u'parlé': u'parlÉ', u'parlée': u'parlÉ', u'parlez': u'parlÉ', u'parlait': u'parlÉ', u'parler': u'parler', u'fouet': u'fUÉ', u'forêt': u'forÉ', u'après': u'apr' + u'É'})   # ⭐ 01/11/2026 : la fin en /e/ ≠ le e muet
 AUTRES = [u'chœur', u'Cœur', u'CŒUR', u'œil', u'queue', u'feu', u'peur', u'goéland', u'coexister', u'faute', u'leçon', u'noix']
 MOTS = list(ATTENDU) + AUTRES
 FICHIERS = ['extension/dys-core.js', 'app/omega-pendu.html', 'app/omega-pendu-en.html']

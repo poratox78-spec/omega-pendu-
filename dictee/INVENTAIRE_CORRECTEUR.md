@@ -263,13 +263,13 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | personne du verbe par le son à vérifier | 1 | orange | personne | — | — |
 | pléonasme | 1 | selon la couche | style (sans conseil) | — | — |
 | pluriel par le son à vérifier | 1 | orange | accord | — | correcteur_probe.py |
-| point d'interrogation | 2 | selon la couche | ponctuation (sans conseil) | — | — |
+| point d'interrogation | 3 | selon la couche | ponctuation (sans conseil) | — | — |
 | point final | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 | répétition | 1 | selon la couche | repetition (sans conseil) | — | — |
 | sait/s'est à vérifier | 1 | orange | homophone_gram | — | — |
 | trait d'union | 2 | selon la couche | ponctuation (sans conseil) | — | — |
 | typographie | 3 | selon la couche | style (sans conseil) | — | — |
-| virgule | 1 | selon la couche | ponctuation (sans conseil) | — | — |
+| virgule | 2 | selon la couche | ponctuation (sans conseil) | — | — |
 | virgule doublée | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 
 ## Tables et qui les lit
@@ -278,14 +278,14 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 
 | table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |
 |---|---|---|---|---|
-| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 177 / 199 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `_ppOuAdj195` … (153) |
-| genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 130 / 199 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` `rAnte315` … (33) |
+| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 177 / 199 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `_ppOuAdj195` … (154) |
+| genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 130 / 199 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` `rAnte315` … (34) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 95 / 199 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (74) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 53 / 199 | `_etreAttrEr` `_eerVerbeRare188` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` … (36) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 74 / 199 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 199 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
-| prénoms | `_applyPrenoms` | `PRENOMS` | 28 / 199 | `_rAbase` `_sujLa272` `rAaccent287` `_gnTete301` `rSV318` `rFige320` `rAccordSVcoord` `_npSubject` … (12) |
-| genre accentué | `_applyGaccLex` | `_GACC` | 36 / 199 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` `apposVig262` |
+| prénoms | `_applyPrenoms` | `PRENOMS` | 28 / 199 | `_rAbase` `_sujLa272` `rAaccent287` `_gnTete301` `rSV318` `rFige320` `rAccordSVcoord` `_coordGenre345` … (13) |
+| genre accentué | `_applyGaccLex` | `_GACC` | 36 / 199 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` `apposVig262` `_g1_344` |
 | confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 199 | `_vigOne` `vigText` |
 | genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 199 | `getAuteur` `auteurSugg` `auteurPasse` |
 | ponctuation vocale | `setPonctLm` | `_PLM` | 0 / 199 | `ponctReady` `ponctDist` |

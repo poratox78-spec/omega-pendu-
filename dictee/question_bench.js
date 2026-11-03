@@ -90,7 +90,7 @@ function regleDe(src, DC) {
      mesurer autre chose que la livraison, sans le savoir. Le compteur d'exceptions ajouté en bas
      rend désormais la panne visible au lieu de la déguiser en résultat. */
   const noms = ['QW', 'QW_PREP', 'CLIT', 'QINV', 'QINV_Q', 'QINCISE', 'QPAROLE', 'QADV', 'QTAG', 'QEUPH',
-                'QEQ', 'QEQ2', 'QEQ3', 'QPARTPAROLE', 'QSEUL', 'QPRON', 'QVERBAL', 'QNEG1', 'QNEG2'];
+                'QEQ', 'QEQ2', 'QEQ3', 'QPARTPAROLE', 'QSEUL', 'QPRON', 'QVERBAL', 'QNEG1', 'QNEG2', 'QINV_NI'];
   const bouts = noms.map(lv).filter(Boolean);
   const i = src.indexOf('function estQuestion(');
   if (i < 0) throw new Error('estQuestion introuvable');
@@ -103,6 +103,30 @@ module.exports = { corpus, regleDe };
 /* ── EXÉCUTION ──────────────────────────────────────────────────────────────────────────── */
 if (require.main === module) {
   const cas = corpus();
+  /* ⭐ 02/11/2026 (liste n° 346) — CONTRAT FIXE du « ? » AU PRODUIT (`_questionScan` par `diagnoseAll`), phrases INVENTÉES :
+     il tourne AVANT la garde locale, donc aussi en CI. La question derrière un deux-points, « -vous » après avoir, être, pouvoir,
+     vouloir, savoir, devoir, aller, « ne … -vous pas », l'interrogatif suivi d'un participe de parole ; et ce qui reste sans « ? » :
+     l'impératif, « Qui » en tête derrière un deux-points, l'incise suivie d'un point-virgule. */
+  {
+    require(path.join(RACINE, 'extension', 'dys-core.js'));
+    const DQ = global.DYSCORE;
+    DQ.setPosHmm(JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm.json'), 'utf8')));
+    const CONTRAT = [
+      ['Il demande à sa voisine : êtes-vous prête', true],
+      ['Ma question est simple : est-ce que le train part à midi', true],
+      ['Ne trouvez-vous pas ce gâteau trop sucré', true],
+      ['Pourquoi as-tu lancé ce ballon', true],
+      ['Pourriez-vous fermer la fenêtre', true],
+      ['Asseyez-vous près de la fenêtre', false],
+      ['Sur la porte, une phrase : Qui entre ici se tait', false],
+      ['Il regarde le ciel : belle journée, dit-il; allons marcher', false],
+      ['Ne vous inquiétez pas pour moi', false],
+      ['Allez-vous-en tout de suite', false],
+    ];
+    const malC = CONTRAT.filter(([t, q]) => (DQ.diagnoseAll(t).flags || []).some((f) => f.typo && f.name === "point d'interrogation" && f.cs >= t.length - 1) !== q);
+    if (malC.length) { console.log('✗ QUESTION : contrat du « ? » au produit cassé :'); malC.forEach(([t, q]) => console.log('    ' + (q ? 'attendu « ? » : ' : 'aucun « ? » attendu : ') + t)); process.exit(1); }
+    console.log('✓ QUESTION contrat produit : ' + CONTRAT.length + ' phrases inventées');
+  }
   /* ⚠️ GARDE LOCALE, ET QUI LE DIT. Ce banc vit sur `data_local/` (gitignoré : licences NC ou
      volume), donc la CI ne peut pas le faire tourner. On SAUTE explicitement plutôt que de rendre
      un vert muet — un contrôle qui passe sans avoir rien mesuré est le défaut que le lot 1 répare. */
@@ -191,7 +215,7 @@ if (require.main === module) {
      rappel : sans ce contrat, rien ne l'aurait dit. Mais un plancher de rappel est tout aussi
      nécessaire — une règle qui se tait n'a pas de faux positifs.
      La tolérance de 0,5 pt absorbe le bruit de tokenisation, pas une régression. */
-  const PLANCHER_PREC = 96.8, PLANCHER_RAPP = 19.7;   // relevés le 14/09/2026 (est-ce qui, Qui + verbe)
+  const PLANCHER_PREC = 97.0, PLANCHER_RAPP = 21.0;   // relevés le 02/11/2026 (liste n° 346 : « -vous » après avoir/être/pouvoir…, « ne … -vous pas ») ; 96,8 / 19,7 le 14/09
   if (!scoreLivre) { console.log('✗ QUESTION : variante LIVRÉE non mesurée'); process.exit(1); }
   if (scoreLivre.nerr) {
     console.log('✗ QUESTION : ' + scoreLivre.nerr + ' exception(s) — le score ne veut rien dire');
@@ -208,7 +232,7 @@ if (require.main === module) {
      est frais ou n'y aurait il pas un peu de surgelé quand même.. » : une QUESTION, que l'auteur a fermée
      par « .. » — le corpus l'étiquette non-question parce qu'il lit le dernier caractère. On re-ancre le
      plancher à ce qu'on mesure, en le disant, plutôt que de renoncer à voir « est ce que ». */
-  const PLANCHER_PREC_CORR = 91.3, PLANCHER_RAPP_CORR = 26.7;   // relevés le 14/09/2026 (est-ce qui, Qui + verbe)
+  const PLANCHER_PREC_CORR = 91.7, PLANCHER_RAPP_CORR = 28.3;   // relevés le 02/11/2026 (liste n° 346) ; 91,3 / 26,7 le 14/09
   if (!scoreCorr || scoreCorr.nerr) { console.log('✗ QUESTION : variante CORRECTEUR non mesurable'); process.exit(1); }
   const errC = [];
   if (scoreCorr.prec < PLANCHER_PREC_CORR) errC.push('correcteur : précision ' + scoreCorr.prec.toFixed(2) + ' % < plancher ' + PLANCHER_PREC_CORR + ' %');

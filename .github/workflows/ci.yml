@@ -223,6 +223,10 @@ jobs:
         run: node dictee/miroir_ponct_probe.js
       - name: Détection de QUESTION — précision ET rappel (saute sans data_local)
         run: node dictee/question_bench.js
+      # 03/11/2026 (liste n° 357) — la méthode des textes inventés de vrais genres, au produit avec le juge : aucun domaine ne perd
+      # de bonne réponse, aucune fausse marque de plus (orthographe, grammaire, conjugaison, ponctuation, pluriels).
+      - name: Contrôle par l'USAGE — 9 textes inventés, chaque faute par domaine
+        run: node dictee/usage_probe.js --check
       - name: Parité OCTET du moteur vocal — site == extension
         run: node dictee/voix_parite_probe.js
       - name: Audit structurel du pipeline vocal — 4000 dictées, chaînage et conflits

@@ -233,6 +233,7 @@ def load_lexicon():
         if FREQ[w] > 0.0: DEACC2ACC[deacc(w)].append(w)   # connu-seulement (freq EXACTEMENT 0 = gacc) : jamais candidat. ≥ 0,01 retirait 26 % de la base (miroir JS fr>0)
         if FREQ[w] >= FLAG_FREQ:                   # index phonétique : mots pas trop rares (limite les collisions)
             PHON[phon_key(w)].append(w)
+            if phon_key(w).endswith(u'É'): PHON[phon_key(w)[:-1]].append(w)   # un mot en -é se trouve aussi depuis la clé sans É. Miroir JS.
     for d in DEACC2ACC:
         DEACC2ACC[d].sort(key=lambda w: -FREQ[w])
     for k in PHON:
@@ -332,6 +333,7 @@ def _son_key(w):
     try: return _DXM.g2p_moteur_cle(w)
     except Exception: return ''
 
+_FIN_E = re.compile(u'(?:é|ée|és|ées|ez|ai|ais|ait|aient|aie|aies|et|ets|êt|êts|ès|è|ê)$', re.I)   # ⭐ 01/11/2026 (liste n° 339) : la fin écrite garde sa classe, séparée du e muet. Miroir JS phonKey.
 def phon_key(s):
     """Clé phonétique française approximative : deux mots qui SONNENT pareil → même clé.
     But : rapprocher « fote »≈« faute », « leson »≈« leçon », « ortografe »≈« orthographe ». Approximatif
@@ -340,6 +342,7 @@ def phon_key(s):
     typo↔correct = 85 % avec CETTE clé approximative vs 67 % avec le vrai IPA Lexique. L'IPA préserve les finales
     (faute /fot/, commerce /komɛʁs/) que le dys LAISSE TOMBER ; l'approximation lossy des DEUX côtés EST la feature.
     (Idem swap G2P pendu, réfuté « trop fidèle ». Le mur d'accuracy = canal ORTHOGRAPHIQUE/fréquence, pas phonétique.)"""
+    fe = u'É' if len(s) > 2 and _FIN_E.search(s) else u''
     s = s.lower().replace('œ', 'oe').replace('æ', 'ae').replace('ç', 's')
     s = deacc(s)
     # NASALES : voyelle+n/m NON suivie de voyelle/n/m → une classe nasale unique (rappel : « sertin »≈« certain »,
@@ -388,9 +391,9 @@ def phon_key(s):
     # partagée avec « sais », « ai »…) ; « -es » se lit comme « -e ». Sinon la boucle d'origine (mangé = mangez = mangeait). Exception
     # MESURÉE à la clé approximative ci-dessus (le reste de l'avertissement tient). Miroir JS phonKey.
     if re.search(r'[^e]es$', s): s = s[:-1]
-    if re.search(r'[^e]e$', s): return s[:-1]
+    if re.search(r'[^e]e$', s): return s[:-1] + fe
     while s and s[-1] in 'est': s = s[:-1]                       # consonnes/e finales souvent muettes
-    return s
+    return s + fe
 
 def sed1(a, b):
     """Décalque de `sEd1` (dys-core.js) : distance d'édition ≤ 1, bornée (jamais la matrice complète)."""

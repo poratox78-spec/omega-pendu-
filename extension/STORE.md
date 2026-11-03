@@ -2,16 +2,16 @@
 
 > ✅ **PUBLIÉE le 28/08/2026** — revue Google passée, état « Publié · public ».
 > Fiche : https://chromewebstore.google.com/detail/dbochkbaechbemahapplibbhmfkcldln
-> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.54** (fiche publique relue le 31/10/2026, 9 utilisateurs). Ce que chaque version a changé : `git log -- extension/manifest.json`.
+> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.55** (fiche publique relue le 01/11/2026, 8 utilisateurs). Ce que chaque version a changé : `git log -- extension/manifest.json`.
 >
-> ✅ **Ce qui est en ligne est bien le §3 de la 0.6.54** : relu le **31/10/2026** par comparaison MOT À MOT (fiche lue par `curl`,
-> texte décroché, alignement `difflib`) : **zéro écart**. La 0.6.55 change le §3 : voir la ligne 16. Ne rouvrir ce point qu'après
+> ✅ **Ce qui est en ligne est le §3 de la 0.6.55** : description relue le **01/11/2026**.
+> La 0.6.56 change le §3 : voir la ligne 16. Ne rouvrir ce point qu'après
 > avoir RELU la fiche.
 >
 > Ce fichier reste le **dossier de soumission** : tout ce qui se colle dans la console développeur est
 > écrit ici, prêt à copier, et sert tel quel pour **chaque mise à jour** — le §3 (fiche), le §4
 > (justifications) et le §5 (données) sont redemandés à chaque envoi qui touche aux permissions.
-> ⚠️ Tout envoi au Store exige une `version` **strictement supérieure à 0.6.55 (numéro REMIS le 31/10/2026, donc brûlé)**, et repasse en revue.
+> ⚠️ Tout envoi au Store exige une `version` **strictement supérieure à 0.6.56 (numéro REMIS le 01/11/2026, donc brûlé)**, et repasse en revue.
 
 ## 0. Où on en est
 
@@ -31,8 +31,8 @@
 | 12 | Après publication : mettre à jour `correcteur.html` | ✅ fait le 28/08/2026 — bouton « Ajouter à Chrome », repli manuel gardé dans un `<details>` |
 | 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ **0.6.40 EN LIGNE** (fiche publique relue le 19/09/2026) — 0.6.7 à 0.6.38 remises à Rem : un numéro remis est brûlé ; la **0.6.40 a été REMISE à Rem le 18/09/2026** (les deux correctifs d'accord de genre) : elle est **en ligne depuis le 18/09 à 22 h 26 UTC**. La **0.6.41 a été REMISE à Rem le 19/09/2026** (le panneau dit enfin pourquoi il ne voit rien quand la page était déjà ouverte) : brûlée à son tour, la suivante devra être **> 0.6.41**. La **0.6.42 est REMISE à Rem le 26/09/2026** — les lettres muettes du moteur de son (r final, « -ent » verbal, c et g finaux, le « e » de *les*) : brûlée à son tour, la suivante devra être **> 0.6.42**. La **0.6.43 est REMISE à Rem le 28/09/2026 et TÉLÉVERSÉE par Rem le même jour** (en revue Google) — le pluriel par le son (orange), « dès réception » plus corrigé en rouge, la clé phonétique de « oeu » (« ker » retrouve cœur) : brûlée à son tour, la suivante devra être **> 0.6.43**. La **0.6.44 est REMISE à Rem le 01/10/2026** — le catalogue des fautes encore muettes (#820 → #850) et l'en-tête du panneau : brûlée à son tour, la suivante devra être **> 0.6.44**. La **0.6.45 est REMISE à Rem le 03/10/2026** (PR #859 ; cette ligne disait le 02/10, écrite la veille) — le réglage « J'écris au féminin / au masculin » et le 📗 « ce mot est correct » réparé et étendu (bulle, panneau, « Mes mots ») : brûlée à son tour, la suivante devra être **> 0.6.45**. La **0.6.46 est REMISE à Rem et TÉLÉVERSÉE par Rem le 05/10/2026** — 20 PR de correcteur depuis la 0.6.45 (#860 → #880) : brûlée à son tour, la suivante devra être **> 0.6.46**. La **0.6.47 est REMISE à Rem le 09/10/2026** — deux réglages d'affichage des sites consultés (« Police OMEGA Dys », « 🎨 Couleurs sur les sites ») et 7 PR de correcteur et de police de son : brûlée à son tour, la suivante devra être **> 0.6.47**. La **0.6.48 est REMISE à Rem le 11/10/2026** — fermer le panneau retire des sites la police et les couleurs, « 🎨 » sur Twitch et les applis web, 3 lots du correcteur : brûlée à son tour, la suivante devra être **> 0.6.48** |
 | 14 | Le bloc **« 🔢 Aide au nombre »** est décrit dans la fiche | ✅ collé à l'envoi du 28/08/2026 (en fin de description) ; il fait maintenant partie de la description du §3 |
-| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.55) | ⬜ **0.6.55 remise à Rem le 31/10/2026** — 38 fichiers (3 de plus que la 0.6.54 : les deux fichiers de la police Atkinson Hyperlegible et sa licence, `assets/Atkinson-OFL.txt`), 6,9 Mo, manifest à la racine, **permissions inchangées** (storage, contextMenus, sidePanel ; aucune host_permissions) ; changent le panneau (`sidepanel.html`, `sidepanel.js`, `son_panel.js`), le mode d'emploi (`aide.html`) et le moteur du correcteur (`dys-core.js`). Ce qui change depuis la 0.6.54 : le panneau refait en trois onglets, Écrire, Nombres, Réglages (#1111), sa police (#1112) et 35 lignes de la liste (#1077 → #1110, #1113), chacune mesurée ; puis le produit entier comparé à la 0.6.54 sur 28 772 textes réels — 49 corrections justes en plus, 21 fausses alertes retirées, un recul trouvé et réparé (#1113). ① grammaire : « tout les livres » → tous (#1077), « j'avait » → j'avais (#1084), « je t'écrit » → t'écris (#1087), « Les invités arriverons » → arriveront (#1088), « il ne ma jamais répondu » → m'a (#1090), « Les dépenses ont augmentés de 10 % » → augmenté (#1091), « Versez la pâte et faite cuire » → faites (#1092), « une maison très grand » → grande (#1096), « sa robe blanc » → blanche (#1098), « les lettres envoyés » → envoyées (#1099), « ils sont contentes » → contents ? (#1100), « ensuite la tu verras » → là (#1101), « il ya » → il y a (#1104), « en ce cachant » → se (#1106) ; ② fausses alertes retirées : « ils ont tous les trois raison » (#1080), « des écrans vidéo » (#1082), « je sais qui il est » (#1093), « Quelles fleurs aimez-vous ? » (#1094), « Tu viens ou tu restes ? » (#1095), « un vélo rouillé a grincé » (#1108), « Il est passé de fatigué à épuisé » (#1109), « Paul Martin Jr. a gagné » (#1110). |
-| 16 | La **description en ligne** est celle du §3 | ⬜ **0.6.55 : à recoller, le §3 change à quatre endroits** : le 2e paragraphe nomme les trois onglets, le bouton du mode d'emploi s'écrit « ? » (ce n'est plus un ❓), le dictionnaire nomme le bouton « Mot juste » du panneau, la dernière ligne crédite la police du panneau. §4 et §5 ne changent pas. Avant : ✅ **relu le 31/10/2026** — la fiche en ligne (0.6.54) est mot à mot l'ancien §3, zéro écart : tout ce que les versions d'avant demandaient de recoller est en ligne. |
+| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.56) | ⬜ **0.6.56 remise à Rem le 01/11/2026** : 39 fichiers, 1 de plus que la 0.6.55, le modèle du juge léger (`assets/juge-mini.bin`, 3,41 Mo), 9,8 Mo ; permissions inchangées (`storage`, `contextMenus`, `sidePanel`). Comparée à la 0.6.55 sur les 28 772 textes : deux reculs de la ligne 339 réparés avant de bâtir (#1134) |
+| 16 | La **description en ligne** est celle du §3 | ⬜ **0.6.56 : à recoller, le §3 change à quatre endroits** : la ponctuation dans « Ce qu'il corrige », le petit modèle dans « Ce qui le rend différent », le paragraphe « Hors-ligne » (plus de 740 000 formes, le modèle), la dernière ligne des crédits. Le §4 et le §5 ne changent pas. Texte prêt : `data_local/store/description-0.6.56.txt` |
 
 ## 1. Ce qui était bloquant et qui est corrigé
 
@@ -89,6 +89,7 @@ CE QU'IL CORRIGE
   -é/-er, mais/mes.
 • Les accords : sujet-verbe (« les enfants joue » → jouent), pluriel du nom (« des ami » → amis),
   genre du déterminant (« le voiture » → la), participe passé.
+• La ponctuation : la virgule, le point ou le point d'interrogation qui manque, toujours à vérifier.
 
 AUSSI POUR LES NOMBRES
 Le panneau lit et écrit les nombres : 1 234 567 s'affiche aussi en toutes lettres, et chaque
@@ -97,6 +98,9 @@ et sa réponse rendue sous les mêmes formes lisibles. Pour apprendre à POSER l
 colonnes, avec les retenues expliquées, la version développée est sur omegapendu.com/calcul.
 
 CE QUI LE REND DIFFÉRENT
+• Un petit modèle d'IA maison (3,4 Mo), dans l'extension. Là où les règles se taisent, il lit la phrase entière
+  et propose le bon mot ou le signe qui manque, à vérifier. Il fait aussi taire certaines alertes d'accord
+  fausses. Il tourne sur votre appareil : votre texte ne part nulle part.
 • Deux niveaux de confiance, jamais un seul. Les corrections sûres sont appliquées ; les incertaines
   sont seulement signalées, et se posent d'un clic. On ne réécrit jamais votre texte en douce.
 • Chaque faute est rattachée à une famille d'erreur et reçoit un conseil écrit à partir du mot
@@ -116,7 +120,7 @@ CE QUI LE REND DIFFÉRENT
   masculin » pour accorder « je suis allé / allée ». Les deux restent sur votre appareil.
 
 HORS-LIGNE
-Le dictionnaire (plus de 200 000 formes) et toutes les règles sont embarqués dans l'extension. Aucun
+Le dictionnaire (plus de 740 000 formes), toutes les règles et le modèle sont embarqués dans l'extension. Aucun
 compte, aucune clé, aucun serveur : la correction fonctionne sans connexion, et votre texte n'est jamais
 envoyé pour être corrigé. La dictée vocale, optionnelle et désactivée par défaut, utilise le service de
 reconnaissance vocale du navigateur (Google) — un encart vous le dit au moment de l'activer. La lecture à
@@ -124,7 +128,8 @@ voix haute prend une voix installée sur votre ordinateur ; s'il n'a pas de voix
 sa voix Google, en ligne.
 
 Gratuit, sans publicité, sans traqueur. Code ouvert : github.com/poratox78-spec/omega-pendu-
-Données linguistiques dérivées de Lexique 4 (CC BY-SA 4.0).
+Données linguistiques dérivées de Lexique 4 (CC BY-SA 4.0), de Morphalou 3.1 (LGPL-LR) et du Wiktionnaire (CC BY-SA 4.0).
+Modèle entraîné notamment sur les phrases de Tatoeba (CC BY 2.0 FR).
 Police du panneau : Atkinson Hyperlegible (Braille Institute, licence SIL OFL 1.1).
 ```
 

@@ -224,6 +224,11 @@ for (const s of ['prends-le avec toi', 'je crois que oui', 'rendez-vous le 12 av
   if (!f || f.sugg !== 'j\'ai mangé' || f.tier !== 'vigilance') fail.push('ma/ta/jais « jais mangé » : attendu « j’ai mangé » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
 for (const s of ['ma santé est bonne', 'ma pensée est libre', 'il a les cheveux noir de jais']) { const f = DC.spell(s).find(x => x.name === 'élision'); if (f) fail.push('ma/ta/jais : témoin « ' + s + ' » marqué ' + JSON.stringify(f)); }
 if (DC.phonKey('tou') !== DC.phonKey('tout') || DC.phonKey('tu') === DC.phonKey('tout')) fail.push('clé phonétique : tou=' + DC.phonKey('tou') + ' tout=' + DC.phonKey('tout') + ' tu=' + DC.phonKey('tu'));
+if (DC.phonKey('parlé') === DC.phonKey('parle') || DC.phonKey('parlait') !== DC.phonKey('parlé') || DC.phonKey('parler') === DC.phonKey('parlé')) fail.push('clé phonétique : la fin en /e/ doit rester séparée du e muet, et de -er');
+{ const f = DC.diagnoseAll('Et terminne ton assiette avant de sortir.').flags.find((x) => x.word === 'terminne'); if (!f || f.sugg !== 'termine') fail.push('liste n° 339 : un mot écrit en -e propose la forme en -e, eu ' + (f && f.sugg)); }
+{ const f = DC.diagnoseAll("Il l'a terminne hier soir.").flags.find((x) => x.word === 'terminne'); if (!f || f.sugg !== 'terminé') fail.push('liste n° 339 : après un auxiliaire, le mot écrit en -e reste proche du -é, eu ' + (f && f.sugg)); }
+{ const f = DC.diagnoseAll('Il dessinne un bateau sur son cahier.').flags.find((x) => x.word === 'dessinne'); if (!f || f.sugg !== 'dessine') fail.push('liste n° 341 : après un pronom sujet, le présent reste le présent, eu ' + (f && f.sugg)); }
+{ const f = DC.diagnoseAll('La soupe préparrée hier reste au frais.').flags.find((x) => x.word === 'préparrée'); if (!f || f.sugg !== 'préparée') fail.push('liste n° 341 : un mot écrit en -ée garde sa fin, eu ' + (f && f.sugg)); }
 if (DC.phonKey('cette') !== 'set' || DC.phonKey('fêtes') !== DC.phonKey('fête') || DC.phonKey('mangez') !== DC.phonKey('mangé')) fail.push('clé phonétique : cette=' + DC.phonKey('cette') + ' fêtes/fête=' + DC.phonKey('fêtes') + '/' + DC.phonKey('fête') + ' mangez/mangé=' + DC.phonKey('mangez') + '/' + DC.phonKey('mangé'));
 const sp = t => DC.spell(t);
 const find = (t, w) => sp(t).find(x => x.word.toLowerCase() === w);
@@ -862,7 +867,9 @@ function testListe130() {   // ligne 130 (21/10/2026) : la finale è / ê écrit
   const rouge = x => x === 'auto' || x === 'flag';
   for (const [t, w, s, pal] of [['Il pose le balè contre le mur du garage.', 'balè', 'balai', 'orange'], ['Elle ouvre le robinè de la cuisine.', 'robinè', 'robinet', 'orange'],
       // témoins : la finale /ɛ/ écrite reste corrigée en rouge ; un mot juste reste muet
-      ['Le jouè rouge est cassé depuis lundi.', 'jouè', 'jouet', 'rouge'], ['Le succès du film surprend tout le monde.', 'succès', null, null]]) {
+      ['Le jouè rouge est cassé depuis lundi.', 'jouè', 'jouet', 'rouge'], ['Le succès du film surprend tout le monde.', 'succès', null, null],
+      // liste n° 340 : la forme nue courante en e muet ne passe plus d'office devant le mot qui s'entend
+      ['Le poulè rôti sent bon.', 'poulè', 'poulet', 'rouge']]) {
     const fl = DC.diagnoseAll(t).flags, f = fl.find(x => x.word === w), det = fl.find(x => x.name === 'genre déterminant');
     if (det || (s === null ? !!f : (!f || f.sugg !== s || (pal === 'rouge') !== rouge(f.tier))))
       fail.push('ligne 130 « ' + t + ' » : attendu ' + (s === null ? 'rien' : s + ' en ' + pal) + ', eu ' + (f ? f.sugg + ' en ' + f.tier : 'rien') + (det ? ' + ' + det.word + ' → ' + det.sugg : '')); }

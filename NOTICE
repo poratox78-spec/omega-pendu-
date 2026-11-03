@@ -169,3 +169,12 @@ sont. Fichiers qui en dérivent :
 
     Source : http://www.cnrtl.fr/lexiques/morphalou/ (ortolang.fr)
     Attribution : « Formes fléchies : Morphalou 3.1 (ATILF, CNRS - Université de Lorraine), LGPL-LR »
+
+9. PHRASES D'ENTRAÎNEMENT DU JUGE LÉGER (Tatoeba)
+--------------------------------------------------
+Le modèle `juge-mini.bin` (`app/`, `extension/assets/`) a été entraîné, entre autres, sur les phrases françaises de
+Tatoeba. Ces phrases ne sont pas livrées dans le fichier, qui ne contient que des poids.
+
+    Licence des phrases : Creative Commons Attribution 2.0 France (CC BY 2.0 FR)
+    Source : https://tatoeba.org
+    Attribution : « Phrases d'entraînement : Tatoeba (tatoeba.org), CC BY 2.0 FR »

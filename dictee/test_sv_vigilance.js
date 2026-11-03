@@ -69,7 +69,7 @@ const C = globalThis.__C;
     ['les données sont disponible en ligne', 'adj', 'disponibles'],
     ['les décisions sont prise trop vite', 'pp', 'prises'],      // participe irrégulier, genre écrit gardé
     ['les sommes sont due à la banque', 'pp', 'dues'],
-    ['les retards sont due à la neige', null, null],            // sujet masculin + forme féminine : genre en conflit → rien (pas « dues »)
+    ['les retards sont due à la neige', 'pp', 'dus'],            // sujet masculin sûr + PARTICIPE au féminin : le participe suit le sujet (liste n° 345 ; avant : rien, pour ne pas proposer « dues »)
     ['ils sont bien sûr partis', null, null],                   // « bien sûr » : locution
     ['ils sont mal à l\'aise', null, null],                     // « mal » adverbe
     ['ils sont juste là', null, null],                          // « juste » adverbe
