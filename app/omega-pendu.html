@@ -32517,7 +32517,7 @@ function spellUnknown(tok,atStart,T,idx){
      3 Mo, JavaScript pur (aucun GPU, aucune bibliothèque), une passe par phrase ; le texte ne sort jamais de la machine. Entraîné sur du français
      public fauté au hasard (dictee/juge_train.py) ; le corpus dys privé ne sert qu'à le mesurer. Modèle ≠ poids : réentraîner = changer le .bin.
      Le calcul est ASYNCHRONE (jugeAnalyse, tranche par tranche, puis re-rendu) ; diagnoseAll ne lit que le cache, donc sans modèle chargé rien ne change. */
-  var _JG={m:null,cache:new Map(),TAU:4,TV:0.85,TP:0.7,TQ:0.6,TA:4,TAIT:{'accord pluriel à vérifier':1,'genre déterminant':1,'accord sujet-verbe à vérifier':1,'accord du verbe au sujet nominal à vérifier':1,'accord verbe à vérifier':1,'nombre du déterminant à vérifier':1,'accord participe':1,'accord participe à vérifier':1,'accord adjectif à vérifier':1,'accord genre à vérifier':1}};
+  var _JG={m:null,cache:new Map(),TO:8,FO:500,TAU:4,TV:0.85,TP:0.7,TQ:0.6,TA:4,TAIT:{'accord pluriel à vérifier':1,'genre déterminant':1,'accord sujet-verbe à vérifier':1,'accord du verbe au sujet nominal à vérifier':1,'accord verbe à vérifier':1,'nombre du déterminant à vérifier':1,'accord participe':1,'accord participe à vérifier':1,'accord adjectif à vérifier':1,'accord genre à vérifier':1}};
   function _jgMoteur(buf){
     var u8=new Uint8Array(buf.buffer||buf,buf.byteOffset||0,buf.byteLength),dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
     var hl=dv.getUint32(4,true),H=JSON.parse(new TextDecoder().decode(u8.subarray(8,8+hl))),o=8+hl,P={},cfg=H.cfg;
@@ -32588,10 +32588,10 @@ function spellUnknown(tok,atStart,T,idx){
     c=Array.from(S.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,16).map(function(e){var m=e[1]===1e9?e[0]:pre+e[0];return {m:m,tr:_jgTr(nu,m)};}).filter(function(x){return x.tr[0]||x.tr[1]||x.tr[3];});
     if(_JGM.size>30000)_JGM.clear();_JGM.set(w,c);return c;}
   // Le texte tel que le produit le voit (marques des règles appliquées), en tranches : une phrase, ou des fenêtres si elle n'en finit pas.
-  function _jgTranches(text,flags){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+|\d+|[^\sA-Za-zÀ-ÿœŒ'’ʼ\d]/g,x,rang=-1,sg={},or={},couv={},cur=[],out=[];if(_JG.tus&&_JG.tus.t===text)flags=flags.concat(_JG.tus.f);
-    flags.forEach(function(f){if(typeof f.i!=='number'||f.juge)return;for(var c=0;c<(f.span||1);c++)couv[f.i+c]=1;if((f.span||1)<2&&typeof f.sugg==='string'&&/^[A-Za-zÀ-ÿœŒ']+$/.test(f.sugg)){sg[f.i]=f.sugg;if(f.tier==='vigilance')or[f.i]=f.name;}});
-    var fin=function(){if(!cur.length)return;for(var a=0;a<cur.length;a+=40){var b=Math.min(cur.length,a+64),t=cur.slice(a,b);out.push({t:t,de:a===0?0:12,a:b===cur.length?t.length:52,cle:t.map(function(y){return y.m;}).join('\u0001'),cleA:t.some(function(y){return y.ar;})?'\u0002'+t.map(function(y){return y.vr;}).join('\u0001'):null});if(b===cur.length)break;}cur=[];};
-    while((x=re.exec(text))){var w=x[0],mot=/^[A-Za-zÀ-ÿœŒ'’ʼ]+$/.test(w);if(mot)rang++;var vu=mot&&sg[rang]!=null?sg[rang]:w,tk={m:vu,k:mot?rang:-1,brut:w,cs:x.index,ce:x.index+w.length,tu:mot&&!!couv[rang],vr:mot&&or[rang]?w:vu,ar:mot&&_JG.TAIT[or[rang]]?vu:null};cur.push(tk);if(/^[.!?…]$/.test(w))fin();}
+  function _jgTranches(text,flags){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+|\d+|[^\sA-Za-zÀ-ÿœŒ'’ʼ\d]/g,x,rang=-1,sg={},or={},ao={},couv={},cur=[],out=[];if(_JG.tus&&_JG.tus.t===text)flags=flags.concat(_JG.tus.f);
+    flags.forEach(function(f){if(typeof f.i!=='number'||f.juge)return;for(var c=0;c<(f.span||1);c++)couv[f.i+c]=1;var _s349=f.sugg0||f.sugg;if((f.span||1)<2&&typeof _s349==='string'&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_s349)){sg[f.i]=_s349;if(f.tier==='vigilance'){or[f.i]=f.name;if(f.name==='orthographe'&&spF(_jgLow(String(f.word)))==null)ao[f.i]=_s349;}}});   // liste n° 349 : sugg0 = la proposition d'origine, si le juge l'a remplacée (les clés du cache ne bougent pas)
+    var fin=function(){if(!cur.length)return;for(var a=0;a<cur.length;a+=40){var b=Math.min(cur.length,a+64),t=cur.slice(a,b);out.push({t:t,de:a===0?0:12,a:b===cur.length?t.length:52,cle:t.map(function(y){return y.m;}).join('\u0001'),cleA:t.some(function(y){return y.ar;})?'\u0002'+t.map(function(y){return y.vr;}).join('\u0001'):null,cleO:t.some(function(y){return y.ao;})?'\u0003'+t.map(function(y){return y.vr;}).join('\u0001'):null});if(b===cur.length)break;}cur=[];};
+    while((x=re.exec(text))){var w=x[0],mot=/^[A-Za-zÀ-ÿœŒ'’ʼ]+$/.test(w);if(mot)rang++;var vu=mot&&sg[rang]!=null?sg[rang]:w,tk={m:vu,k:mot?rang:-1,brut:w,cs:x.index,ce:x.index+w.length,tu:mot&&!!couv[rang],vr:mot&&or[rang]?w:vu,ar:mot&&_JG.TAIT[or[rang]]?vu:null,ao:mot&&ao[rang]!=null?ao[rang]:null};cur.push(tk);if(/^[.!?…]$/.test(w))fin();}
     fin();return out;}
   _JG.cands=_jgCands;
   function _jgLow(s){return s.toLowerCase().replace(/[’ʼ]/g,"'");}
@@ -32604,9 +32604,24 @@ function spellUnknown(tok,atStart,T,idx){
     return rep;}
   // L'arbitre : la note du mot écrit moins celle de la suggestion de la règle.
   function _jgArb(tr){var L=_jgLit(tr.t.map(function(y){return y.vr;})),T=L.T,rep=[];for(var p=0;p<T.length;p++){if(!tr.t[p].ar)continue;var w=T[p],s=_jgLow(tr.t[p].ar);if(s===w)continue;var mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),sc=_JG.m.noter(L.h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]},{m:s,tr:_jgTr(mm?mm[2]:w,s)}]);rep[p]=sc[0]-sc[1];}return rep;}
-  function _jgGarde(cache,cle,r){if(cache.size>3000)cache.clear();cache.set(cle,r);}
-  function _jgManque(t){return !_JG.cache.has(t.cle)||(t.cleA&&!_JG.cache.has(t.cleA));}
-  function _jgCalcule(t){if(!_JG.cache.has(t.cle))_jgGarde(_JG.cache,t.cle,_jgPasse(t));if(t.cleA&&!_JG.cache.has(t.cleA))_jgGarde(_JG.cache,t.cleA,_jgArb(t));}
+  /* ⭐ 03/11/2026 (liste n° 349, idée de Rem : croiser le son et l'écrit) — la couche orthographe range ses candidats par paquets (accent, une
+     lettre, même son) puis par fréquence : « saladié » donnait « maladie » (cent fois plus fréquent) plutôt que « saladier » (même son). Le juge
+     croise les deux (même son large ou strict, distance, fréquence, contexte) mais ne parlait que sur les mots laissés sans marque. Quand
+     l'orthographe hésite (orange sur un mot qui n'existe pas), il relit le mot ÉCRIT dans sa phrase et note ses candidats et celui de
+     l'orthographe. Mesuré sur les 3 corpus dys : marge > 8 et proposition d'origine sous 500 par million : 69 réparés, 1 perdu ; sans la garde
+     de fréquence, de petits mots très courants partaient pour des mots rares. Essais écartés : le son devant l'écrit (EcriScol 0 / 3) ; les
+     chances de faute par lettre tirées de WiCoPaCo (EcriScol 2 / 7, fautes de frappe d'adultes, pas de dys). */
+  function _jgOrtho(tr){var L=_jgLit(tr.t.map(function(y){return y.vr;})),T=L.T,rep=[];for(var p=0;p<T.length;p++){var tk=tr.t[p];if(!tk.ao||tk.k<0)continue;
+    var w=T[p],sp=_jgLow(tk.ao),mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),nu=mm?mm[2]:w,c=_jgCands(w).slice();if(!c.some(function(y){return _jgLow(y.m)===sp;}))c.push({m:sp,tr:_jgTr(nu,sp)});
+    var sc=_JG.m.noter(L.h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]}].concat(c)),bi=-1,bv=-1e9,ss=null;for(var q=1;q<sc.length;q++){if(_jgLow(c[q-1].m)===sp)ss=sc[q];if(sc[q]>bv){bv=sc[q];bi=q;}}
+    if(bi>0&&ss!=null&&_jgLow(c[bi-1].m)!==sp)rep[p]={m:c[bi-1].m,d:bv-ss};}return rep;}
+  function _jugeOrtho(text,flags){if(!_JG.m||!_JG.cache.size)return;var par={};flags.forEach(function(f){if(typeof f.i==='number'&&!f.juge&&f.name==='orthographe'&&f.tier==='vigilance'&&(f.span||1)<2)par[f.i]=f;});
+    _jgTranches(text,flags).forEach(function(tr){var r=tr.cleO&&_JG.cache.get(tr.cleO);if(!r)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var x=r[p],f=par[tr.t[p].k];if(!x||!f||x.d<=_JG.TO)continue;
+      var s0=f.sugg0||f.sugg;if((spF(_jgLow(String(s0)))||0)>=_JG.FO)continue;var a0=deacc(_jgLow(String(s0))),b0=deacc(_jgLow(String(x.m)));if(/(ants?|ents?)$/.test(a0)&&/(ants?|ents?)$/.test(b0)&&a0.replace(/(ants?|ents?)$/,'')===b0.replace(/(ants?|ents?)$/,''))continue;   // -ant(s) / -ent : adjectif ou verbe, c'est la grammaire qui tranche
+      f.sugg0=s0;f.sugg=ckeepcase(f.word,x.m);f.jugeOrtho=1;f.marge=x.d;}});}
+  function _jgGarde(cache,cle,r){if(cache.size>3000){var it=cache.keys(),n=0;while(n<1500){var e=it.next();if(e.done)break;cache.delete(e.value);n++;}}cache.set(cle,r);}   // liste n° 349 : la plus ancienne moitié seulement — tout vider d'un coup perdait parfois un calcul du texte en cours
+  function _jgManque(t){return !_JG.cache.has(t.cle)||(t.cleA&&!_JG.cache.has(t.cleA))||(t.cleO&&!_JG.cache.has(t.cleO));}
+  function _jgCalcule(t){if(!_JG.cache.has(t.cle))_jgGarde(_JG.cache,t.cle,_jgPasse(t));if(t.cleA&&!_JG.cache.has(t.cleA))_jgGarde(_JG.cache,t.cleA,_jgArb(t));if(t.cleO&&!_JG.cache.has(t.cleO))_jgGarde(_JG.cache,t.cleO,_jgOrtho(t));}
   // Le calcul : tranche par tranche, en rendant la main entre deux ; cb() relance l'affichage si du nouveau est arrivé. Une nouvelle analyse annule la précédente.
   var _jgTour=0;
   function jugeAnalyse(text,flags,cb){if(!_JG.m||!SP.ready)return false;var ts=_jgTranches(text,flags||[]).filter(_jgManque);if(!ts.length)return false;var id=++_jgTour,k=0;
@@ -32719,7 +32734,7 @@ function spellUnknown(tok,atStart,T,idx){
           _SEG=_segSp;_o=vigAt(_Tv,f.i,{tg:_tv,chaine:1},null);}catch(e){_o=null;}
       if(_o&&typeof _o.sugg==='string'&&(_o.span==null||_o.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_o.sugg)&&_o.sugg.toLowerCase()!==f.sugg.toLowerCase()){f.sugg=_o.sugg;f.tier='vigilance';f.chaine=_o.name;}});
     _SEG=_segMain;
-    list=auteurPasse(list,_T,_Tc,t);list=_jugeTri(t,list);list=list.concat(_jugeMarques(t,list));   // ⭐ 01/10/2026 : genre de la personne qui écrit (réglage ; sans réglage, rien ne change)
+    list=auteurPasse(list,_T,_Tc,t);list=_jugeTri(t,list);list=list.concat(_jugeMarques(t,list));_jugeOrtho(t,list);   // ⭐ 01/10/2026 : genre de la personne qui écrit (réglage ; sans réglage, rien ne change)
     list.forEach(function(f){f.key=_ckey(f.word,f.sugg);f.on=_isOn(f);});
     /* TYPOGRAPHIE — clé ancrée CARACTÈRE (préfixe 'T', pas de collision avec les clés mot) ;
        f.word = from, pour la carte et DysProfile.
