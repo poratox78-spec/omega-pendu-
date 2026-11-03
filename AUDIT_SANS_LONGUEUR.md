@@ -28,6 +28,26 @@ lettre déjà proposée** — sinon elle serait révélée. Perdu à 6 erreurs (
   graines 12345+777, mots 7–12) : cognition seule **93,3 %** · +NEO **99,2 %**. Protocoles différents de
   l'oracle (mots 7–15, sans warmup) : unifier avant toute comparaison chiffrée.
 
+## 2bis. J1 LIVRÉ (03/11/2026) — la couture, mesurée
+
+La couture est posée dans la copie (`M_SANS_LONGUEUR_ENABLED`, défaut OFF) : fenêtre de board virtuel
+dans `omegaStep` — le trio (`currentWord`, `revealedMask`, `_revealedLetters`) devient le schéma relatif
+pour tout le montant (`_slVirtualBoard`), restauré avant `penduEvaluate` ; fenêtre vérifiée sans `return`.
+Mesure (`node evo/sans_longueur_bench.js`, protocole ci_smoke, graines 12345+777) :
+
+| Condition (copie) | Win | Par graine |
+|---|---|---|
+| board réel, cognition seule | 93,3 % | 96,7 · 90,0 |
+| board réel, +NEO | 99,2 % | 98,3 · 100,0 |
+| SANS longueur, cognition seule | **37,5 %** | 41,7 · 33,3 |
+| SANS longueur, +NEO | **37,5 %** | 41,7 · 33,3 |
+
+- **Inertie OFF prouvée** : la copie mode OFF = l'original, graine par graine (bench `APP=app/omega-pendu.html`).
+- **NEO = 0 apport en mode ON** (parties identiques) — conforme au census : recall bloqué par son gate de
+  longueur, assemblé muet (`wp.get(schéma)` = undefined, banc honnête), cohortes sur la mauvaise longueur.
+- 37,5 % est le PLANCHER J1 (machinerie non adaptée) que J2–J5 doivent remonter ; le plafond d'information
+  est 98 % (oracle, §2).
+
 ## 3. Census PROFOND — qui lit la longueur/les positions absolues, corps des fonctions lus
 
 Le montant reçoit le board par `cStep(currentWord, revealedMask)` et les declares lisent les mêmes globals.

@@ -6280,6 +6280,24 @@ let M_NEO_TRIGGER_GAP = 0.005;               // seuil mesuré : NEO muette n'eng
 let M_NEO_COHORT_ENABLED = false;           // brique cohorte : filtre board-derived (lexique autorisé pour DECLARE) — isolable
 let M_NEO_G2P_EXP_ENABLED = false;          // EXP : g2p apprend SEULEMENT des positions révélées (expérience), pas du mot complet — sonde de triche
 let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres fausses (0 = OFF)
+// ================== MODE SANS LONGUEUR (chantier 03/11/2026 — AUDIT_SANS_LONGUEUR.md) ==================
+// La machine joue SANS connaître la longueur du mot : le MONTANT (cStep + declares, avant penduEvaluate)
+// voit un BOARD VIRTUEL = le schéma relatif entre la première et la dernière lettre révélée (« A??A??E »),
+// '?' aux cases intérieures — jamais la longueur réelle ni le préfixe/suffixe cachés. J1 = la COUTURE seule :
+// la machinerie config réf. joue telle quelle sur ce board (ses voies par longueur se dégradent — mesuré,
+// attendu) ; les jonctions J2+ adaptent les voies. OFF (défaut) = comportement intact (preuve : bench A/B).
+// Le jeu (penduEvaluate, 6 erreurs, win) et le DESCENDANT (après la frontière) restent sur le board réel.
+let M_SANS_LONGUEUR_ENABLED = false;
+function _slVirtualBoard(w, m) {   // board virtuel depuis le board réel (connu du JEU seul). '?' ∉ A-Z : une lecture de case cachée rend un non-code — rien ne fuit.
+  let first = -1, last = -1;
+  for (let p = 0; p < w.length; p++) if (m[p]) { if (first < 0) first = p; last = p; }
+  const out = { w: '', m: new Array(MAX_WORD_LEN).fill(false), r: new Array(MAX_WORD_LEN).fill('') };
+  if (first < 0) return out;   // rien de révélé : board vide (≡ premier tick d'une partie réelle, aucun bind)
+  let s = '';
+  for (let p = first; p <= last; p++) { const rv = !!m[p]; s += rv ? w.charAt(p) : '?'; out.m[p - first] = rv; if (rv) out.r[p - first] = w.charAt(p); }
+  out.w = s;
+  return out;
+}
 let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée+muette) vient du consensus phonémique de la cohorte board-compatible, PAS de wp.get(mot). Supprime la lecture du son du mot caché. OFF par défaut.
 let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohorte alignés par décision
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
@@ -7574,6 +7592,17 @@ function omegaStep() {
     }
   }
 
+  // === MODE SANS LONGUEUR (J1) : OUVERTURE de la fenêtre de board virtuel. ===
+  //   Le trio (currentWord, revealedMask, _revealedLetters) devient le schéma relatif pour TOUT le
+  //   montant (cStep, voie phon, declares) ; restauré avant penduEvaluate — le jeu et le descendant
+  //   voient le board réel. Fenêtre vérifiée SANS `return` intermédiaire (audit J1) ; gameActive ne
+  //   change qu'à penduEvaluate/endCurrentGame, donc jamais dans la fenêtre.
+  let _slReal = null;
+  if (M_SANS_LONGUEUR_ENABLED && gameActive) {
+    _slReal = { w: currentWord, m: revealedMask, r: _revealedLetters };
+    const _vb = _slVirtualBoard(_slReal.w, _slReal.m);
+    currentWord = _vb.w; revealedMask = _vb.m; _revealedLetters = _vb.r;
+  }
   // 1. Pipeline blueprint §6.6 : M1_d → M2_d → M3_d → M4_d → M5_d (livré J5')
   //    cStep orchestre les 5 modules + publish D1/D2/D3/D4/D5 + currentPhonState
   cStep(currentWord, revealedMask);
@@ -7765,6 +7794,8 @@ function omegaStep() {
         }
       }
     }
+    // === MODE SANS LONGUEUR (J1) : FERMETURE de la fenêtre — board réel restauré AVANT de jouer. ===
+    if (_slReal) { currentWord = _slReal.w; revealedMask = _slReal.m; _revealedLetters = _slReal.r; _slReal = null; }
     if (proposed === null) {
       endCurrentGame(false);
     } else {
@@ -9345,7 +9376,8 @@ const ALLOWED_TOGGLES = [
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_C_HEAVY','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_C_HEAVY','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED',
+    'M_SANS_LONGUEUR_ENABLED'
 ];
 function ui_initToggles() {
   document.querySelectorAll('.toggle-item').forEach(item => {
