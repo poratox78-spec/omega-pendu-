@@ -763,7 +763,8 @@
 "Elle pense à toi.",
 "Je dis moi aussi que tu as raison.",
 "Ce titre est coté en bourse.",
-"Ce chef est très coté."
+"Ce chef est très coté.",
+"Les chats dorment et nous observent."
 ],
 "elide": [
 [
@@ -2930,6 +2931,11 @@
 "Il lit le mode d'emplois.",
 "d'emplois",
 "d'emploi"
+],
+[
+"Les voisins on planter des tomates.",
+"planter",
+"planté"
 ]
 ],
 "palier": [
@@ -3147,6 +3153,11 @@
 "Elle a quarante huit ans.",
 "quarante",
 "flag"
+],
+[
+"Les cartons sont lourds et nous devront les porter.",
+"devront",
+"vigilance"
 ]
 ],
 "vig": [
