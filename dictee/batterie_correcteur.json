@@ -2560,6 +2560,24 @@ null,
 "retirer l'accent du « é » final change le son : « vende » n'est pas posé d'office (liste n° 347).",
 "rouge",
 "vendé"
+],
+[
+"Il est resté trois ans et demi chez nous.",
+"« et demi » : demi suit le nom, pas de trait d'union (03/11/2026, liste n° 348).",
+"rouge",
+"demi"
+],
+[
+"Il range la cuisine, puis y prépare le repas.",
+"« puis » n'est pas un impératif : pas de « puis-y » (liste n° 348).",
+"",
+"puis"
+],
+[
+"Il marche jusque la rivière.",
+"« jusque la » + nom, sans accent ni fin de phrase, n'est pas « jusque-là » (liste n° 348).",
+"rouge",
+"jusque"
 ]
 ]
 }

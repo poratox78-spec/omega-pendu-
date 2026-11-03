@@ -32242,6 +32242,23 @@ function spellUnknown(tok,atStart,T,idx){
         out.push({i:si,word:sw1,sugg:(sgap===','?sw1+', '+sw2:sw1+' '+sgap+' '+sw2),name:'espacement',tier:'flag',span:2});done[si]=done[si+1]=1;}
       // TRAIT D'UNION manquant dans une LOCUTION FIGÉE non-ambiguë (« au dessus »→« au-dessus », « là bas »→« là-bas », « ci joint »→« ci-joint »). FP=0 mesuré : liste CURÉE d'expressions dont la forme sans trait n'a AUCUNE lecture correcte (les ambiguës « peut être »=verbe, « belle mère »=adj+nom sont EXCLUES). Clé = deacc(« w1 w2 ») → forme canonique accentuée.
       var _HYPHLOC={'au dessus':'au-dessus','au dessous':'au-dessous','au dela':'au-delà','la bas':'là-bas','la haut':'là-haut','la dessus':'là-dessus','la dessous':'là-dessous','la dedans':'là-dedans','ci dessus':'ci-dessus','ci dessous':'ci-dessous','ci contre':'ci-contre','ci joint':'ci-joint','ci jointe':'ci-jointe','ci apres':'ci-après','ci git':'ci-gît','par dessus':'par-dessus','par dessous':'par-dessous','week end':'week-end','week ends':'week-ends','porte monnaie':'porte-monnaie'};
+      /* ⭐ 03/11/2026 (liste n° 348) — la table n'avait que 20 entrées : « rendez vous », « après midi », « quarante huit » passaient sans marque
+         (vu par le contrôle des textes inventés, 8 sur 8). Noms composés courants à lecture UNIQUE (pas « petite fille », « belle mère », « sous sol »,
+         « sans abri », « savoir faire », où les deux écritures existent ; pas « peut être », pas « au revoir »), pronoms démonstratifs en -ci / -là,
+         pronoms + même(s), et les nombres composés sous cent (sans « et » : « vingt et un » reste sans trait d'union). UD 14 450 : chaque forme
+         espacée trouvée est une faute du corpus. */
+      ('après midi:après-midi|après midis:après-midis|rendez vous:rendez-vous|grand mere:grand-mère|grand meres:grand-mères|grand pere:grand-père|grand peres:grands-pères|grands peres:grands-pères|grands parents:grands-parents|grand parents:grands-parents|'+
+       'celui ci:celui-ci|celle ci:celle-ci|ceux ci:ceux-ci|celles ci:celles-ci|celui la:celui-là|celle la:celle-là|ceux la:ceux-là|celles la:celles-là|'+
+       'moi meme:moi-même|toi meme:toi-même|soi meme:soi-même|lui meme:lui-même|elle meme:elle-même|nous memes:nous-mêmes|vous meme:vous-même|vous memes:vous-mêmes|eux memes:eux-mêmes|elles memes:elles-mêmes|'+
+       'quelques uns:quelques-uns|quelques unes:quelques-unes|jusque la:jusque-là|ici bas:ici-bas|mi temps:mi-temps|rond point:rond-point|ronds points:ronds-points|ouvre boite:ouvre-boîte|tire bouchon:tire-bouchon|'+
+       'porte cles:porte-clés|chou fleur:chou-fleur|lave vaisselle:lave-vaisselle|lave linge:lave-linge|seche cheveux:sèche-cheveux|abat jour:abat-jour|pique nique:pique-nique|garde robe:garde-robe|'+
+       'dix sept:dix-sept|dix huit:dix-huit|dix neuf:dix-neuf|soixante dix:soixante-dix|soixante douze:soixante-douze|soixante treize:soixante-treize|soixante quatorze:soixante-quatorze|soixante quinze:soixante-quinze|soixante seize:soixante-seize|quatre vingt:quatre-vingt|quatre vingts:quatre-vingts').split('|').forEach(function(x){var c=x.split(':');_HYPHLOC[deaccS(c[0])]=c[1];});   // clé désaccentuée au chargement, comme la recherche
+      ['vingt','trente','quarante','cinquante','soixante'].forEach(function(d){['deux','trois','quatre','cinq','six','sept','huit','neuf'].forEach(function(u){_HYPHLOC[d+' '+u]=d+'-'+u;});});
+      /* liste n° 348 — l'IMPÉRATIF suivi de moi / toi / y (« Dis moi », « Vas y », « versez y la pâte ») : un verbe en tête de proposition, sans sujet
+         ni pronom devant ; ORANGE (rien ne le mesure dans les corpus : 0 cas dys, 1 sur UD, une faute du corpus). Pas devant un infinitif (« allez y voir »). */
+      var _imp348=function(k){var v=P[k][2],lv=v.toLowerCase();if(/^(puis|plus|mais|sous|dans|sans|tres|alors|ainsi|assez|vers|toujours|jamais|pas|ensuite|depuis|parmi|hors|apres|avant)$/.test(deaccS(lv)))return false;if(!/^[a-zà-ÿœæ]+$/i.test(v)||!/(e|es|s|x|ez|ons)$/.test(lv)||(spP(lv)||'').indexOf('V')<0)return false;
+        if(P[k+1][2].toLowerCase()==='y'&&k+2<P.length&&/(er|ir|re|oir)$/.test(P[k+2][2].toLowerCase())&&(spP(P[k+2][2].toLowerCase())||'').indexOf('V')>=0)return false;
+        if(k===0)return true;if(/[.!?…:;,\n«"(]/.test(text.slice(P[k-1][1],P[k][0])))return true;return /^(et|puis|alors|mais|donc|ensuite|oui|non|bon)$/.test(deaccS(P[k-1][2].toLowerCase()));};
       /* ⭐ LA LOCUTION FIGÉE PRIME SUR UNE DEVINETTE À UN MOT (2026-08-24, mesuré).
          `done` est amorcé depuis les suggestions MOT-À-MOT du speller, et toutes les règles span-2
          lui cèdent. Pour une liste CURÉE dont la forme espacée n'a AUCUNE lecture correcte, c'est la
@@ -32255,13 +32272,17 @@ function spellUnknown(tok,atStart,T,idx){
       var _hlSeul=function(k){var n=0,i2;for(i2=0;i2<out.length;i2++)if(out[i2].i===k){if((out[i2].span||1)>=2)return false;n++;}return n>0;};
       for(var hli=0;hli<P.length-1;hli++){
         if(!/^\s+$/.test(text.slice(P[hli][1],P[hli+1][0])))continue;
-        var hlk=deaccS(P[hli][2].toLowerCase())+' '+deaccS(P[hli+1][2].toLowerCase()),hlv=_HYPHLOC[hlk];if(!hlv)continue;
+        var hlk=deaccS(P[hli][2].toLowerCase())+' '+deaccS(P[hli+1][2].toLowerCase()),hlv=_HYPHLOC[hlk],hlt='flag';if(hlk==='jusque la'&&P[hli+1][2].toLowerCase()!=='là'&&!(hli+2>=P.length||/[.!?…:;,\n]/.test(text.slice(P[hli+1][1],P[hli+2][0]))))hlv=null;   // liste n° 348 : « jusque la » + nom (« jusque la rivière » = jusqu'à la) n'est pas « jusque-là »
+        if(hlv&&/^(celui|celle|ceux|celles) la$/.test(hlk)&&hli+2<P.length&&/^(plus|moins|mieux)$/.test(deaccS(P[hli+2][2].toLowerCase())))hlv=null;   // liste n° 348 : « celle la plus grande » est le superlatif, pas « celle-là »
+        if(!hlv){var _a348=deaccS(P[hli][2].toLowerCase()),_b348=P[hli+1][2].toLowerCase();if(_a348==='demi'&&/^[a-zà-ÿœæ]+$/.test(_b348)&&(spP(_b348)||'').indexOf('N')>=0&&!/^(de|du|des|le|la|les|et|ou|avant|apres|au|aux|en|un|une|sur|pour|par)$/.test(deaccS(_b348))&&!(hli>0&&/^(et|a)$/.test(deaccS(P[hli-1][2].toLowerCase())))&&(function(){var _np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deaccS(_b348)):NOUN_POST[deaccS(_b348)]):null;return !!(_np&&_np[0]>=PL_TAU_M);})())hlv='demi-'+P[hli+1][2];   // liste n° 348 : « demi » devant un nom (« une demi heure ») ; pas après « et » (« deux ans et demi »), ni après « à » (« à demi … »), ni devant un mot-outil (« le demi de mêlée »)
+        else if((_b348==='moi'||_b348==='toi'||_b348==='y')&&_imp348(hli)){hlv=(_a348==='va'&&_b348==='y'?P[hli][2]+'s':P[hli][2])+'-'+P[hli+1][2];hlt='vigilance';}}if(!hlv)continue;
         if(done[hli]||done[hli+1]){
           if(!((!done[hli]||_hlSeul(hli))&&(!done[hli+1]||_hlSeul(hli+1))))continue;   // un span-2 occupe la place → on n'y touche pas
+          if(hlt==='flag'&&out.some(function(f){return (f.i===hli||f.i===hli+1)&&f.tier==='auto';}))hlt='auto';   // liste n° 348 : la locution remplace une correction posée d'office sur l'un de ses mots (un accent rétabli) : elle garde ce palier
           out=out.filter(function(f){return f.i!==hli&&f.i!==hli+1;});                  // sinon : on retire les devinettes à un mot
         }
         if(P[hli][2][0]!==P[hli][2][0].toLowerCase())hlv=hlv.charAt(0).toUpperCase()+hlv.slice(1);
-        out.push({i:hli,word:P[hli][2],sugg:hlv,name:"trait d'union",tier:'flag',span:2});done[hli]=done[hli+1]=1;}
+        out.push({i:hli,word:P[hli][2],sugg:hlv,name:"trait d'union",tier:hlt,span:2});done[hli]=done[hli+1]=1;}
       /* ⭐ 25/10/2026 (liste n° 154) — INVERSION SANS TRAIT D'UNION dans une question : « Pourriez vous envoyer quelqu'un ? » →
          Pourriez-vous, « Peux tu venir ? » → Peux-tu, « Pourquoi avez vous décidé ? » → avez-vous, « A il fini ? » → A-t-il. Un verbe
          conjugué en tête de phrase (ou derrière un mot interrogatif qui l'ouvre), puis le pronom sujet qui s'accorde avec lui, séparés par
