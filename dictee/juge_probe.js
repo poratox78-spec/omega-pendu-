@@ -38,6 +38,8 @@ for (const t of ['Quand il arrive ce soir, nous mangerons ensemble.', 'Tu pourra
   const f = marques(t).filter(deMot); if (f.length) err.push('« ' + t + ' » : fausse alerte ' + JSON.stringify(f.map((x) => x.word + '→' + x.sugg)));
 }
 { const f = marques('Mes parents on une petite maison près du canal.'), n = f.filter((x) => x.word === 'on'); if (n.length !== 1 || n[0].juge) err.push('un mot déjà marqué par une règle doit le rester, sans le juge'); }
+// liste n° 349 : l'orthographe hésite sur un non-mot (orange) — le juge relit le mot écrit et choisit parmi ses candidats et celui de l'orthographe
+{ const f = marques('Il nous rapellerait demain matin.').filter((x) => x.word === 'rapellerait'); if (f.length !== 1 || f[0].sugg !== 'rappellerait' || !f[0].jugeOrtho || f[0].tier !== 'vigilance') err.push('liste n° 349 : « rapellerait » → rappellerait (orange, choisi par le juge), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier))); }
 
 for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants rentrent à la maison.', 'virgule'], ['Mon frère range son vélo dans le garage Il prépare ensuite le repas du soir.', 'point final'], ['On part à quelle heure demain matin', "point d'interrogation"], ['Pourquoi les oiseaux partent vers le sud en hiver', "point d'interrogation"]]) {
   const f = marques(t).filter((x) => x.juge && x.typo); if (!f.some((x) => x.name === nom && x.tier === 'vigilance')) err.push('« ' + t + ' » : attendu ' + nom + ', rendu ' + JSON.stringify(f.map((x) => x.name)));
