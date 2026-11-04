@@ -106,3 +106,9 @@ J'ai {aimer|aimé|C} ce livre parce que les dessins sont {beau|beaux|N} et que l
 Règlement de la piscine
 Les enfants de moins de huit {an|ans|N} {doive|doivent|C} être {accompagné|accompagnés|G} d'un adulte. Le bonnet de bain {et|est|G} {obligatoir|obligatoire|O}. Les chaussures doivent être {laissé|laissées|G} au vestiaire. Il est {interdis|interdit|C} de {couri|courir|O} autour du bassin.
 Les objets {trouvé|trouvés|N} {serons|seront|C} remis {a|à|G} l'accueil. En cas d'orage, la baignade peut être {interrompu|interrompue|G} {a|à|G} tout moment. Merci de respecter les {maître|maîtres|N}-nageurs.
+=== T21 carte de remerciement
+Chère Madame Roux,
+Merci beaucoup pour le {cadeaux|cadeau|N} {offerts|offert|N} à notre fils pour ses dix ans. Le livre {et|est|G} magnifique et il l'a déjà lu deux fois. Votre petite carte, {écrites|écrite|N} {a|à|G} la main, nous a beaucoup touchés.
+La fête s'est très bien {passé|passée|G} : les enfants {on|ont|G} joué dans le jardin jusqu'au soir et la maison {étais|était|C} pleine de rires. Nous {espèrons|espérons|O} vous voir bientôt pour vous remercier.
+Bien amicalement,
+Claire et Paul
