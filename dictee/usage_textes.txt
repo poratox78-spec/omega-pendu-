@@ -121,3 +121,8 @@ Bonjour Monsieur Lemoine,
 Hier soir, votre chien {à|a|G} {aboyer|aboyé|C} pendant deux heures. Mes enfants {n'on|n'ont|G} pas pu dormir et ma fille {avais|avait|C} un examen ce matin. Je {comprend|comprends|C} que vous {travaillé|travaillez|C} tard, mais pourriez-vous le laisser {a|à|G} l'intérieur le soir ?
 Passez me voir {quant|quand|G} vous voulez. Je compte sur votre {compréhention|compréhension|O}.
 Votre voisine du troisième étage
+=== T24 fiche de révision
+{le|Le|P} cycle de l'eau
+Le soleil chauffe l'eau des océans et des {rivière|rivières|N}. L'eau {devien|devient|C} alors de la vapeur et monte dans le ciel. En altitude, l'air est plus froid : la vapeur forme des {nuage|nuages|N} faits de petites gouttes. Quand ces gouttes {devienne|deviennent|C} trop lourdes{|,|P} elles {tombe|tombent|C} : c'est la pluie, ou la neige s'il fait {froit|froid|O}.
+Une partie de l'eau {et|est|G} {absorbé|absorbée|G} par les plantes ; le reste {rejoin|rejoint|C} la mer et le cycle {recommance|recommence|O}.
+{a|À|G} retenir : l'eau existe sous trois {état|états|N}, liquide, solide et {gazeu|gazeux|O}.

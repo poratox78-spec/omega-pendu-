@@ -1,48 +1,48 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 90,
-   "bon": 81,
-   "rouge juste": 48,
-   "orange juste": 33,
+   "total": 93,
+   "bon": 84,
+   "rouge juste": 50,
+   "orange juste": 34,
    "mauvais mot": 0,
    "muette": 9
   },
   "grammaire": {
-   "total": 132,
-   "bon": 123,
+   "total": 135,
+   "bon": 125,
    "rouge juste": 57,
-   "orange juste": 66,
+   "orange juste": 68,
    "mauvais mot": 0,
-   "muette": 9
+   "muette": 10
   },
   "ponctuation": {
-   "total": 56,
-   "bon": 40,
-   "rouge juste": 29,
+   "total": 58,
+   "bon": 43,
+   "rouge juste": 32,
    "orange juste": 11,
    "mauvais mot": 0,
-   "muette": 16
+   "muette": 15
   },
   "conjugaison": {
-   "total": 122,
-   "bon": 111,
-   "rouge juste": 57,
-   "orange juste": 54,
-   "mauvais mot": 2,
+   "total": 126,
+   "bon": 114,
+   "rouge juste": 58,
+   "orange juste": 56,
+   "mauvais mot": 3,
    "muette": 9
   },
   "orthographe": {
-   "total": 76,
-   "bon": 69,
+   "total": 79,
+   "bon": 70,
    "rouge juste": 33,
-   "orange juste": 36,
-   "mauvais mot": 5,
+   "orange juste": 37,
+   "mauvais mot": 7,
    "muette": 2
   }
  },
  "cassesRouge": 0,
- "cassesOrange": 1,
+ "cassesOrange": 2,
  "faussesRouge": 0,
  "faussesOrange": 1,
  "verdicts": {
@@ -416,7 +416,7 @@
   "T15#15": "muette",
   "T15#16": "orange juste",
   "T15#17": "rouge juste",
-  "T16#0": "muette",
+  "T16#0": "rouge juste",
   "T16#1": "rouge juste",
   "T16#2": "rouge juste",
   "T16#3": "orange juste",
@@ -434,7 +434,7 @@
   "T16#15": "rouge juste",
   "T16#16": "rouge juste",
   "T16#17": "orange juste",
-  "T17#0": "muette",
+  "T17#0": "rouge juste",
   "T17#1": "orange juste",
   "T17#2": "orange juste",
   "T17#3": "orange juste",
@@ -521,6 +521,21 @@
   "T23#5": "rouge juste",
   "T23#6": "orange juste",
   "T23#7": "orange juste",
-  "T23#8": "rouge juste"
+  "T23#8": "rouge juste",
+  "T24#0": "rouge juste",
+  "T24#1": "rouge juste",
+  "T24#2": "orange juste",
+  "T24#3": "rouge juste",
+  "T24#4": "orange juste",
+  "T24#5": "muette",
+  "T24#6": "rouge juste",
+  "T24#7": "mauvais mot",
+  "T24#8": "orange juste",
+  "T24#9": "muette",
+  "T24#10": "mauvais mot",
+  "T24#11": "mauvais mot",
+  "T24#12": "orange juste",
+  "T24#13": "orange juste",
+  "T24#14": "orange juste"
  }
 }
