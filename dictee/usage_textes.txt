@@ -62,3 +62,10 @@ Vends {canapée|canapé|O} trois places en {trés|très|O} bon {étas|état|O}. 
 Les housses se {lave|lavent|C} en machine {a|à|G} trente degrés : je les ai {lavé|lavées|G} hier. Le canapé {et|est|G} démontable, les pieds se {dévisse|dévissent|C} facilement.
 Prix : 150 euros, {a|à|G} débattre. À venir chercher sur place, au {troisiéme|troisième|O} étage sans {assenseur|ascenseur|O}. Les visites sont {possible|possibles|N} le soir après dix-huit heures {où|ou|G} en fin de semaine{|.|P} {pas|Pas|P} sérieux s'abstenir.
 {contactez|Contactez|P}-moi par message, je {répond|réponds|C} {vitte|vite|O}.
+=== T11 invitation
+Chers {ami|amis|N},
+Le 14 décembre, nous {fêterrons|fêterons|O} les dix {an|ans|N} de Chloé {a|à|G} la salle des fêtes du village. Vous {ête|êtes|C} tous {invité|invités|N} {a|à|G} partir de quinze heures. Il y {aurat|aura|C} des jeux pour les {enfant|enfants|N}, un {goutter|goûter|O} et un petit spectacle de {magi|magie|O}.
+Les parents qui le {souhaite|souhaitent|C} {pourrons|pourront|C} rester pour boire un café. Merci de nous répondre avant le 5 décembre, pour que nous {puission|puissions|C} prévoir {asser|assez|O} de {gâteau|gâteaux|N}. Si vous avez des {allergie|allergies|N}, {dite|dites|C}-le-nous.
+Les enfants {on|ont|G} déjà choisi {leur|leurs|N} costumes : le thème sera les pirates. Venez {déguisé|déguisés|N} si vous le {voulé|voulez|C}, {sa|ça|G} sera plus drôle{|!|P|.}
+{a|À|G} très bientôt,
+Sophie et Marc
