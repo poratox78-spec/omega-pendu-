@@ -44,6 +44,13 @@ for (const t of ['Quand il arrive ce soir, nous mangerons ensemble.', 'Tu pourra
 for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants rentrent à la maison.', 'virgule'], ['Mon frère range son vélo dans le garage Il prépare ensuite le repas du soir.', 'point final'], ['On part à quelle heure demain matin', "point d'interrogation"], ['Pourquoi les oiseaux partent vers le sud en hiver', "point d'interrogation"]]) {
   const f = marques(t).filter((x) => x.juge && x.typo); if (!f.some((x) => x.name === nom && x.tier === 'vigilance')) err.push('« ' + t + ' » : attendu ' + nom + ', rendu ' + JSON.stringify(f.map((x) => x.name)));
 }
+// liste n° 355 : point final quand le texte finit par un retour à la ligne, majuscule après « ! » suivi d'un retour à la ligne, espace remis après la virgule, virgule après « Cependant » en tête de chaque phrase
+for (const [t, nom, sg] of [['Le chat dort sur le canapé\n', 'point final', '.'], ['Le repas était bon !\ndemain, nous partons.', 'majuscule', 'Demain'], ['Il pleut ,la route est mouillée.', 'espace avant la ponctuation', 't, l'], ['Il fait beau. Cependant le vent souffle fort.', 'virgule', ', ']]) {
+  const f = marques(t); if (!f.some((x) => x.name === nom && x.sugg === sg)) err.push('liste n° 355 : « ' + t + ' » : attendu ' + nom + ' → ' + sg + ', rendu ' + JSON.stringify(f.map((x) => x.name + ' ' + x.sugg)));
+}
+for (const t of ['Ah! comme il est grand.', 'Tu viens ? je pars.']) { if (marques(t).some((x) => x.name === 'majuscule')) err.push('liste n° 355 : « ' + t + ' » : majuscule de trop après « ! » ou « ? » sans retour à la ligne'); }
+if (marques('Le café est bon.. enfin un endroit où on respire.').some((x) => x.name === 'virgule' && !x.juge)) err.push('liste n° 355 : virgule après « enfin » derrière des points de suspension');
+if (marques('La maison est petite mais très jolie. Il fait beau tous les jours.').some((x) => x.name === 'virgule' && !x.juge)) err.push('liste n° 361 : virgule devant « mais » lue sur la phrase suivante');
 for (const t of ['Il regarde par la fenêtre pendant que sa fille dessine un bateau.', 'Nous mangerons des crêpes samedi soir chez ma tante']) { const f = marques(t).filter((x) => x.juge && x.typo); if (f.length) err.push('« ' + t + ' » : fausse ponctuation ' + JSON.stringify(f.map((x) => x.name))); }
 for (const [w, ms] of [['parle', ['parlé', 'parlent']], ['parlé', ['parler', 'parlez']]]) { const c = D._juge.cands(w).map((x) => x.m); for (const m of ms) if (!c.includes(m)) err.push('candidats de « ' + w + ' » : ' + m + ' manque'); }
 
