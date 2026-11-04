@@ -6291,6 +6291,10 @@ let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres f
 // attendu) ; les jonctions J2+ adaptent les voies. OFF (défaut) = comportement intact (preuve : bench A/B).
 // Le jeu (penduEvaluate, 6 erreurs, win) et le DESCENDANT (après la frontière) restent sur le board réel.
 let M_SANS_LONGUEUR_ENABLED = false;
+// J5b FALSIFIÉ (04/11/2026, ne pas re-tenter sans idée neuve) : ré-initialiser les producteurs M1_d quand
+// l'ancre se déplace (schéma étendu à gauche) DÉGRADE la cognition seule 91,7 → 87,1 % (4/4 graines en
+// recul, +NEO inchangé). La mémoire EMA inter-ticks, même partiellement désalignée, porte plus de signal
+// que ce que coûte le désalignement. On laisse donc M1_d re-percevoir par décroissance naturelle.
 function _slVirtualBoard(w, m) {   // board virtuel depuis le board réel (connu du JEU seul). '?' ∉ A-Z : une lecture de case cachée rend un non-code — rien ne fuit.
   let first = -1, last = -1;
   for (let p = 0; p < w.length; p++) if (m[p]) { if (first < 0) first = p; last = p; }
@@ -7877,12 +7881,30 @@ function omegaStep() {
       let _neoDone = false, _nrev = 0;
       for (let p = 0; p < currentWord.length; p++) if (revealedMask[p]) _nrev++;
       if (M_NEO_RECALL_ENABLED && _emrgBank.size > 0 && _nrev > 0 && _nrev / currentWord.length >= 0.25) {   // (1) adressee : recall depuis board REVELE + banc
+        if (M_SANS_LONGUEUR_ENABLED) {   // J5a : recall RE-ANCRÉ — le banc est appris en positions ABSOLUES (mot entier), le board est RELATIF.
+          // On projette donc le schéma dans chaque repère absolu possible (décalage o) et on interroge le banc
+          // dans SON repère ; compat = le candidat rappelé pose le schéma à CE décalage (_slOffsets remplace
+          // l'ancien gate d'égalité de longueur, impossible sans longueur). Marge VSA inchangée.
+          let _bw = null, _bm = -2; const Ls = currentWord.length;
+          for (let o = 0; o + Ls <= MAX_WORD_LEN; o++) {
+            const c = new Float64Array(SDIM); let nb = 0;
+            for (let p = 0; p < Ls; p++) { if (!revealedMask[p]) continue; const idx = currentWord.charCodeAt(p) - 65; if (idx < 0 || idx >= 26) continue; const sv = _emrg_shift(idx, o + p + 1); for (let i = 0; i < SDIM; i++) c[i] += sv[i]; nb++; }
+            if (!nb) break;
+            let nn = 0; for (let i = 0; i < SDIM; i++) nn += c[i] * c[i]; nn = Math.sqrt(nn) || 1; for (let i = 0; i < SDIM; i++) c[i] /= nn;
+            const r = _emrg_recall(c);
+            if (r.w && r.margin > _bm && r.w.length >= o + Ls) { const offs = _slOffsets(r.w, currentWord, alreadyTried); if (offs.indexOf(o) >= 0) { _bm = r.margin; _bw = r.w; } }
+          }
+          if (_bw && _bm > M_DECLARE_NEO_RECALL_MARGIN) {
+            for (let p = 0; p < _bw.length; p++) { const li = _bw.charCodeAt(p) - 65; if (li >= 0 && li < 26 && !alreadyTried[li]) { proposed = _bw.charAt(p); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.rF++; } break; } }   // une lettre non proposée d'un candidat flottant est forcément sur une case non appariée
+          }
+        } else {
         const _ncp = _emrg_bind(currentWord, revealedMask);
         const _nrc = _emrg_recall(_ncp);
         let _ncompat = (_nrc.w && _nrc.w.length === currentWord.length);
         if (_ncompat) { for (let p = 0; p < currentWord.length; p++) if (revealedMask[p] && _nrc.w.charAt(p) !== currentWord.charAt(p)) { _ncompat = false; break; } }   // cheat-free : matche le revele
         if (_ncompat && _nrc.margin > M_DECLARE_NEO_RECALL_MARGIN) {
           for (let p = 0; p < _nrc.w.length; p++) { const li = _nrc.w.charCodeAt(p) - 65; if (li >= 0 && li < 26 && !alreadyTried[li] && !revealedMask[p]) { proposed = _nrc.w.charAt(p); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.rF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.rH++; } break; } }
+        }
         }
       }
       if (M_NEO_LETTER_NGRAM && !_neoDone) {   // VOIE N-GRAM DE LETTRES (sublexicale pré-calculée du lexique) — cheat-free, OFF-inerte
