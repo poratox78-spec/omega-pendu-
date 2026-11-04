@@ -116,3 +116,8 @@ Claire et Paul
 Bonjour {a|à|G} tous,
 Mon vélo fait un bruit bizarre depuis une semaine. Quand je {frène|freine|O}, la roue arrière grince et la chaîne saute parfois. Hier, nous avons {nettoyer|nettoyé|C} les {pignon|pignons|N} et resserré les freins, mais rien n'y fait.
 Les {pièce|pièces|N} que j'ai {acheté|achetées|G} la semaine dernière sont peut-être mal montées. Quelqu'un {sais|sait|C} pourquoi {sa|ça|G} recommence ? Je prends tous vos {conseil|conseils|N} !
+=== T23 mot au voisin
+Bonjour Monsieur Lemoine,
+Hier soir, votre chien {à|a|G} {aboyer|aboyé|C} pendant deux heures. Mes enfants {n'on|n'ont|G} pas pu dormir et ma fille {avais|avait|C} un examen ce matin. Je {comprend|comprends|C} que vous {travaillé|travaillez|C} tard, mais pourriez-vous le laisser {a|à|G} l'intérieur le soir ?
+Passez me voir {quant|quand|G} vous voulez. Je compte sur votre {compréhention|compréhension|O}.
+Votre voisine du troisième étage
