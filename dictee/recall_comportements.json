@@ -1503,11 +1503,6 @@
 "à"
 ],
 [
-"Il pleut. a partir de demain il fera beau.",
-"a",
-"à"
-],
-[
 "Ils étaient tout trois contents.",
 "tout",
 "tous"
@@ -3121,6 +3116,16 @@
 "Prends deux où trois pommes.",
 "où",
 "ou"
+],
+[
+"Il pleut. a partir de demain il fera beau.",
+"a",
+"À"
+],
+[
+"Il a mangé. a la cantine, on rit.",
+"a",
+"À"
 ]
 ],
 "palier": [
@@ -3362,6 +3367,11 @@
 [
 "Les nappes sèchent dehors : je les ai plié.",
 "plié",
+"vigilance"
+],
+[
+"Le soir, nous mangeons des crêpes salé sur le port.",
+"salé",
 "vigilance"
 ]
 ],
