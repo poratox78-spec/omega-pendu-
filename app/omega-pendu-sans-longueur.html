@@ -6662,8 +6662,9 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
 }
 function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niveau declare : (1−μ)·sublexicale + μ·lexicale, μ=r^α/(β+r^α). Réutilise M_OS_v07_step. Cheat-free, sans currentWord. Rend une lettre ou null.
   const _slOn = M_SANS_LONGUEUR_ENABLED && _slWin;   // J4 : en mode sans longueur, la voie sublexicale = n-gram RELATIF (_slNgramDist), la lexicale = cohorte flottante. Fenêtre seulement (BUGFIX 04/11)
-  const _useNG = M_NEO_OS_ARB_NGRAM || _slOn;   // voie sublexicale = n-gram agrégé (généralise à l'OOV) au lieu de la jointe phon-cohorte
-  const _pcd = _useNG ? null : _neoPhonCohortDist();
+  const _pcdSL = _slOn ? _neoPhonCohortDist() : null;   // J7 : en mode, la voie sublexicale essaie d'abord la JOINTE (§3 : Σ_φ Pcoh·CR, croiser pas argmax) sur la distribution molle FLOTTANTE de J2 ; repli n-gram relatif si la cohorte est muette. Les cases non révélées du schéma sont toujours intérieures → le '#' de la jointe garde sa sémantique « voisin non révélé » (pas le piège bord-de-brouillard=frontière évité en J4)
+  const _useNG = (M_NEO_OS_ARB_NGRAM || _slOn) && !_pcdSL;
+  const _pcd = _pcdSL || (_useNG ? null : _neoPhonCohortDist());
   if (!_useNG && !_pcd) return null;       // (mode jointe) cohorte phon vide → rien à arbitrer ; (mode n-gram) on continue : le n-gram décide MÊME hors cohorte (cas OOV)
   if (!_neoWF) { _neoWF = new Map(); for (const w of OMEGA_LEX4.words) if (w && w.m) _neoWF.set(w.m, (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001); }
   const L = currentWord.length;
