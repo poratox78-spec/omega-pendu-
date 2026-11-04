@@ -784,7 +784,8 @@
 "Le nombre des visiteurs est important.",
 "A-t-il compris ?",
 "A lire avant samedi, le règlement du club.",
-"Le village où habitent trois familles est calme."
+"Le village où habitent trois familles est calme.",
+"Vous êtes tous conviés au repas."
 ],
 "elide": [
 [
@@ -3126,6 +3127,26 @@
 "Il a mangé. a la cantine, on rit.",
 "a",
 "À"
+],
+[
+"Chers voisin,\nNous fêtons nos dix ans.",
+"voisin",
+"voisins"
+],
+[
+"Vous êtes tous convié au repas.",
+"convié",
+"conviés"
+],
+[
+"Venez costumé si vous voulez.",
+"costumé",
+"costumés"
+],
+[
+"Si le colis arrive, dite-le-moi.",
+"dite",
+"dites"
 ]
 ],
 "palier": [

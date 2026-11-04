@@ -1,42 +1,42 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 73,
-   "bon": 64,
-   "rouge juste": 37,
-   "orange juste": 27,
+   "total": 76,
+   "bon": 70,
+   "rouge juste": 39,
+   "orange juste": 31,
+   "mauvais mot": 0,
+   "muette": 6
+  },
+  "grammaire": {
+   "total": 107,
+   "bon": 98,
+   "rouge juste": 46,
+   "orange juste": 52,
    "mauvais mot": 0,
    "muette": 9
   },
-  "grammaire": {
-   "total": 101,
-   "bon": 93,
-   "rouge juste": 44,
-   "orange juste": 49,
-   "mauvais mot": 0,
-   "muette": 8
-  },
   "ponctuation": {
-   "total": 50,
-   "bon": 35,
-   "rouge juste": 24,
+   "total": 52,
+   "bon": 36,
+   "rouge juste": 25,
    "orange juste": 11,
    "mauvais mot": 0,
-   "muette": 15
+   "muette": 16
   },
   "conjugaison": {
-   "total": 98,
-   "bon": 86,
-   "rouge juste": 46,
-   "orange juste": 40,
+   "total": 103,
+   "bon": 91,
+   "rouge juste": 50,
+   "orange juste": 41,
    "mauvais mot": 1,
    "muette": 11
   },
   "orthographe": {
-   "total": 66,
-   "bon": 59,
-   "rouge juste": 26,
-   "orange juste": 33,
+   "total": 69,
+   "bon": 62,
+   "rouge juste": 28,
+   "orange juste": 34,
    "mauvais mot": 5,
    "muette": 2
   }
@@ -312,12 +312,12 @@
   "T10#22": "rouge juste",
   "T10#23": "rouge juste",
   "T10#24": "orange juste",
-  "T11#0": "muette",
+  "T11#0": "orange juste",
   "T11#1": "orange juste",
   "T11#2": "orange juste",
   "T11#3": "orange juste",
   "T11#4": "rouge juste",
-  "T11#5": "muette",
+  "T11#5": "orange juste",
   "T11#6": "rouge juste",
   "T11#7": "orange juste",
   "T11#8": "rouge juste",
@@ -329,10 +329,10 @@
   "T11#14": "orange juste",
   "T11#15": "muette",
   "T11#16": "rouge juste",
-  "T11#17": "muette",
+  "T11#17": "orange juste",
   "T11#18": "rouge juste",
   "T11#19": "rouge juste",
-  "T11#20": "muette",
+  "T11#20": "orange juste",
   "T11#21": "orange juste",
   "T11#22": "orange juste",
   "T11#23": "muette",
@@ -433,6 +433,25 @@
   "T16#14": "rouge juste",
   "T16#15": "rouge juste",
   "T16#16": "rouge juste",
-  "T16#17": "orange juste"
+  "T16#17": "orange juste",
+  "T17#0": "muette",
+  "T17#1": "muette",
+  "T17#2": "muette",
+  "T17#3": "orange juste",
+  "T17#4": "orange juste",
+  "T17#5": "rouge juste",
+  "T17#6": "rouge juste",
+  "T17#7": "rouge juste",
+  "T17#8": "rouge juste",
+  "T17#9": "rouge juste",
+  "T17#10": "rouge juste",
+  "T17#11": "rouge juste",
+  "T17#12": "orange juste",
+  "T17#13": "rouge juste",
+  "T17#14": "rouge juste",
+  "T17#15": "rouge juste",
+  "T17#16": "rouge juste",
+  "T17#17": "orange juste",
+  "T17#18": "orange juste"
  }
 }
