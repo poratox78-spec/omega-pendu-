@@ -783,7 +783,8 @@
 "La bague du roi incrustée de perles brille.",
 "Le nombre des visiteurs est important.",
 "A-t-il compris ?",
-"A lire avant samedi, le règlement du club."
+"A lire avant samedi, le règlement du club.",
+"Le village où habitent trois familles est calme."
 ],
 "elide": [
 [
@@ -3110,6 +3111,16 @@
 "Il a compter ses billes.",
 "compter",
 "compté"
+],
+[
+"On se retrouve a cinq où a six chaque matin devant le stade.",
+"où",
+"ou"
+],
+[
+"Prends deux où trois pommes.",
+"où",
+"ou"
 ]
 ],
 "palier": [
