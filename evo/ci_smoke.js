@@ -4,13 +4,21 @@
 // décision (startNewGame/omegaStep) en config de référence cheat-free et ASSERT deux planchers.
 //
 // Réutilise loadEngine (evo/fitness_harness.js) + la CFG de référence et le protocole de ab_cohort.js
-// (in-lexique K=1). Les seuils sont des PLANCHERS conservateurs (sous les valeurs mesurées 91,5 / 97,5)
-// pour ne pas « flaker » à petit N ; une vraie casse (module cassé) fait chuter le winrate bien en-dessous.
+// (in-lexique K=1). Les seuils sont des PLANCHERS conservateurs (sous les valeurs mesurées 93,3 / 99,2,
+// relancer pour vérifier) pour ne pas « flaker » à petit N ; une vraie casse fait chuter bien en-dessous.
 //   Usage : node evo/ci_smoke.js     (réglable via env CI_WARMUP/CI_TEST/CI_SEEDS/CI_FLOOR_COG/CI_FLOOR_NEO)
+//
+// DÉCISION REM 04/11/2026 (AUDIT_SANS_LONGUEUR.md §6) : la CFG de référence devient VRAIMENT cheat-free
+// et gagne l'arbitrage OS à voie n-gram — 3 toggles ajoutés (défauts moteur INCHANGÉS, R66) :
+//   · M_NEO_PHON_COHORT_ENABLED : personne n'entend le mot (avant, l'assemblé lisait wp.get(currentWord),
+//     le 🟠 du census CODE_MAP §3 — l'ancienne référence « mot entendu », ne plus la citer) ;
+//   · M_NEO_OS_ARB + M_NEO_OS_ARB_NGRAM : mesuré evo/osarb_board_reel_bench.js (4 graines, placebo
+//     identique, règle pré-enregistrée) : candidat net, 4/4 graines ≥ réf, triche vérifiée absente
+//     (toute la chaîne ne lit currentWord que sous revealedMask ; tables n-gram = lexique agrégé).
 'use strict';
 const { loadEngine } = require('./fitness_harness.js');
 
-// Config de référence cheat-free — copiée de docs/CONFIG_REFERENCE.md / ab_cohort.js (CFG_INLEX).
+// Config de référence cheat-free — le canon est docs/CONFIG_TOGGLES.md (ex-CONFIG_REFERENCE.md, consolidé).
 const CFG = [
   'L01_A1_M2_ORTHO_ENABLED=false','L01_A2_M4_LEX4_ENABLED=false','L01_A3_M5M_WORDLEX4_ENABLED=false','L01_B2_MOBIUS_ENABLED=false',
   'M_WORD_DECLARE_ENABLED=false','M_IG_SELECT_ENABLED=false','M_IG_PSUCCESS_ENABLED=false','M_BPC_DECLARE_ENABLED=false',
@@ -22,6 +30,7 @@ const CFG = [
   'M_BPC_M3D_ENABLED=true','M_BPC_READOUT_COUPLE_ENABLED=true','M_PHON_READOUT_COUPLE_ENABLED=true','M_PHON_CONCEPT_BIND_ENABLED=true',
   'M_OS_LEARNING_ENABLED=true','M_OS_LEARNING_GUARD_1_BOUNDED=true','M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true','M_OS_LEARNING_GUARD_3_MDL_REGUL=true','M_OS_LEARNING_GUARD_4_COHERENCE=true',
   'M_DECLARE_NEO_ENABLED=true','M_NEO_RECALL_ENABLED=true','M_NEO_ASSEMBLED_ENABLED=true','M_NEO_COHORT_ENABLED=true','M_NEO_G2P_EXP_ENABLED=true',
+  'M_NEO_PHON_COHORT_ENABLED=true','M_NEO_OS_ARB=true','M_NEO_OS_ARB_NGRAM=true',   // décision Rem 04/11/2026 (cheat-free + arbitrage OS n-gram, cf. en-tête)
   'M_DECLARE_NEO_CONF=0.75','M_DECLARE_NEO_RECALL_MARGIN=0.20','M_NEO_G2P_EXP_PEN=0.5',
 ].join(';');
 

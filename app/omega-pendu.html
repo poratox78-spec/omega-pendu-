@@ -9560,7 +9560,8 @@ function ui_majCompteurToggles() {
 }
 
 function applyReferenceConfig() {
-  // Preset : configuration optimale CHEAT-FREE (rapport §8.3 / docs/CONFIG_TOGGLES.md, 97,5 % in-lexique).
+  // Preset : configuration optimale CHEAT-FREE (rapport §8.3 / docs/CONFIG_TOGGLES.md ; ~98,8 % in-lexique
+  // au protocole ci_smoke 4 graines depuis l'ajout du n-gram arbitré, 04/11/2026 — avant : 96,7 %).
   // ⚠️ 24/09/2026 — IL EST DÉSORMAIS APPLIQUÉ AU CHARGEMENT (demande de Rem). Avant, la page démarrait
   // tous interrupteurs OFF (≈ 2,6 % de parties gagnées) et son propre bouton disait « à cliquer en
   // premier » : elle livrait donc un état qu elle demandait elle-même de ne pas garder. Le bouton reste,
@@ -9572,7 +9573,11 @@ function applyReferenceConfig() {
       'M_VOIE_PHON_ENABLED','M_OS_V07_ENABLED','M4_PHON_USE_P_ENABLED','M_SUBSTRAT_ORTHO_PURE_ENABLED','M_PHON_FEEDBACK_ENABLED',
       'M_BPC_M3D_ENABLED','M_BPC_READOUT_COUPLE_ENABLED','M_PHON_READOUT_COUPLE_ENABLED','M_PHON_CONCEPT_BIND_ENABLED',
       'M_OS_LEARNING_ENABLED','M_OS_LEARNING_GUARD_1_BOUNDED','M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT','M_OS_LEARNING_GUARD_3_MDL_REGUL','M_OS_LEARNING_GUARD_4_COHERENCE',
-      'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_NEO_G2P_EXP_ENABLED'];
+      'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_OS_ARB_NGRAM','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_NEO_G2P_EXP_ENABLED'];
+    // + M_NEO_OS_ARB_NGRAM (décision Rem 04/11/2026, AUDIT_SANS_LONGUEUR.md §6) : la voie sublexicale de
+    //   l'arbitrage OS devient le n-gram agrégé du lexique — mesuré candidat net au board réel cheat-free
+    //   (evo/osarb_board_reel_bench.js, 4/4 graines ≥ réf, placebo identique, triche vérifiée absente).
+    //   ≠ M_NEO_LETTER_NGRAM (l'argmax solo qui écrase la cohorte : lui reste OFF, comme le gap-aware).
     // CHEAT-FREE (correction Rem) : M_NEO_PHON_COHORT_ENABLED = l'anti-triche — sans lui, l'assemblé (et la muette)
     //   lisent wp.get(currentWord) = le SON du mot caché (triche). Avec lui, le son vient du consensus de la cohorte
     //   board-compatible (jamais le mot). Il REVALIDE donc 2 toggles (assemblé + muette) en cheat-free (vert).
@@ -9586,7 +9591,7 @@ function applyReferenceConfig() {
     // (« tâtonne / fait plus d'erreurs »). Le bouton garantit désormais la config exacte mesurée.
     ALLOWED_TOGGLES.forEach(function(n){ try { eval(n + ' = ' + (ON.indexOf(n) >= 0 ? 'true' : 'false')); } catch(e){ console.warn('[preset]', n, e); } });
     if (typeof _trexq_restore === 'function') { try { _trexq_restore(); } catch(e){} }   // soigne un lexique amputé par un tour Trexquant précédent
-    _trexqNgramAvant = null;   // Trexquant et n-grams viennent d'être remis à OFF : plus d'état « d'avant » à rendre
+    _trexqNgramAvant = null;   // Trexquant vient d'être remis à OFF et les n-grams à leur état preset (arbitré ON, gap OFF) : plus d'état « d'avant » à rendre
     if (typeof initOmegaGlobals === 'function') initOmegaGlobals();   // (re)bâtit voie phon / substrat avec la config
     if (typeof ui_attachGameEndSub === 'function') ui_attachGameEndSub();
     if (typeof ui_initToggles === 'function') ui_initToggles();        // resync visuels + aria-checked
@@ -9595,7 +9600,7 @@ function applyReferenceConfig() {
     if (typeof ui_renderGame === 'function') ui_renderGame();
     if (typeof ui_renderMath === 'function') ui_renderMath();
     if (typeof ui_renderStats === 'function') ui_renderStats();
-    if (typeof ui_log === 'function') ui_log('CONFIG', 'Config optimale cheat-free activée (preset §8.3, 23 ON) — prêt : ▶ Start ou ▶▶ Auto (~97,5 % in-lexique).');
+    if (typeof ui_log === 'function') ui_log('CONFIG', 'Config optimale cheat-free activée (preset §8.3, 24 ON) — prêt : ▶ Start ou ▶▶ Auto (~98 % in-lexique).');
     if (typeof ui_setStatus === 'function') ui_setStatus('live', 'CONFIG OPTIMALE');
   } catch (e) {
     if (typeof ui_log === 'function') ui_log('ERROR', 'applyReferenceConfig: ' + e.message);
