@@ -3673,6 +3673,12 @@ function M4_phon_step(currentWord, revealedMask, alreadyTried) {
   const phonScores = new Float32Array(26);   // Phase 3.4b : prior issu de la phono réelle (p)
   M4_phon.output = scores;
   M4_phon.candidateCount = 0;
+  // J6 FALSIFIÉ (04/11/2026, ne pas re-tenter sans idée neuve) : ouvrir M4_phon pré-première-lettre sur la
+  // cohorte PLEINE (schéma vide → tous les mots sans lettres ratées) est NEUTRE pour la machine complète
+  // (+NEO 95,0 inchangé, parties identiques graine par graine — les declares préemptent) et DÉGRADE la
+  // cognition seule 91,7 → 88,3 % (3/4 graines en recul) : le prior fréquentiel du lexique ouvre moins
+  // bien que le prior propre de la cognition. Le choix J2 (muet avant la première lettre juste) est donc
+  // CONFIRMÉ par la mesure — la garde !currentWord ci-dessous le réalise.
   if (!OMEGA_LEX4 || !OMEGA_LEX4.words || !currentWord) return scores;   // mode sans longueur : schéma vide (rien de révélé) → silencieux, comme J1 — choix documenté (le prior pré-première-lettre reste à la cognition)
   const wlen = currentWord.length;
   const _sl = M_SANS_LONGUEUR_ENABLED && _slWin;   // J2 : cohorte FLOTTANTE — le schéma se pose à ≥1 décalage, la longueur n'est plus une clé. BUGFIX 04/11 : hors fenêtre (selfTest d'initOmegaGlobals) → voie réelle

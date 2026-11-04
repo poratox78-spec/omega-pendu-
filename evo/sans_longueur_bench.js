@@ -9,6 +9,11 @@
 //
 // PREUVE D'INERTIE (R66) : la copie mode OFF doit rendre EXACTEMENT les winrates de l'original
 // (mêmes graines, moteur déterministe). Tout écart = la couture fuit — ne pas merger.
+//
+// ⚠ DIVERGENCE VOULUE avec ci_smoke (directive Rem 04/11/2026) : les conditions +NEO ajoutent
+// M_NEO_PHON_COHORT_ENABLED=true — le board réel de référence ne doit pas « entendre » le son du mot
+// caché (wp.get). Référence AVANT cette directive (CFG ci_smoke pure, 4 graines) : +NEO board réel
+// 99,6 % — chiffre au « mot entendu », ne plus le citer comme référence du chantier.
 'use strict';
 const path = require('path');
 const { loadEngine } = require('./fitness_harness.js');
@@ -58,6 +63,11 @@ const APP    = process.env.APP
       + `if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
     ev(CFG);
     ev(`M_DECLARE_NEO_ENABLED=${!!neo};`);
+    // Directive Rem 04/11/2026 : PERSONNE n'entend le mot dans ce chantier — la CFG ci_smoke laisse
+    // l'assemblé NEO lire wp.get(currentWord) (« mot entendu », le 🟠 du census CODE_MAP §3) au board
+    // réel ; ici la référence doit être aussi cheat-free que le mode (qui force déjà le son
+    // board-dérivé : ce toggle est un no-op en mode → les chiffres J1→J5 du mode restent comparables).
+    if (neo) ev('M_NEO_PHON_COHORT_ENABLED=true;');
     if (sl) ev('M_SANS_LONGUEUR_ENABLED=true;');   // APRÈS init+CFG : la couture est purement runtime, rien à bâtir
     if (ev("M_VOIE_PHON_ENABLED && !(typeof M1_phon!=='undefined' && M1_phon && M1_phon.output)"))
       throw new Error('voie phon ON mais buffers non alloués — ordre d\'init cassé (AUDIT §1.4.3)');
