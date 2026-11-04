@@ -102,3 +102,7 @@ Les exercices {facultatif|facultatifs|N} sont {noté|notés|G} en bonus. {apport
 === T19 fiche de lecture
 Le livre que j'ai {choisis|choisi|G} est « Une maison pour les oiseaux ». {l'auteur|L'auteur|P} raconte la rencontre entre une {vieil|vieille|G} dame et un enfant {venus|venu|N} d'une autre ville. {au|Au|P} début, la dame {et|est|G} {seul|seule|G} dans sa grande maison. {ensuite|Ensuite|P}, l'enfant lui apprend {a|à|G} soigner les oiseaux du jardin.
 J'ai {aimer|aimé|C} ce livre parce que les dessins sont {beau|beaux|N} et que l'histoire fait {réfléchire|réfléchir|O}. {je|Je|P} le {conseil|conseille|C} {a|à|G} tous ceux qui {aime|aiment|C} les contes.
+=== T20 règlement de piscine
+Règlement de la piscine
+Les enfants de moins de huit {an|ans|N} {doive|doivent|C} être {accompagné|accompagnés|G} d'un adulte. Le bonnet de bain {et|est|G} {obligatoir|obligatoire|O}. Les chaussures doivent être {laissé|laissées|G} au vestiaire. Il est {interdis|interdit|C} de {couri|courir|O} autour du bassin.
+Les objets {trouvé|trouvés|N} {serons|seront|C} remis {a|à|G} l'accueil. En cas d'orage, la baignade peut être {interrompu|interrompue|G} {a|à|G} tout moment. Merci de respecter les {maître|maîtres|N}-nageurs.

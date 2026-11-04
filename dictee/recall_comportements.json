@@ -787,7 +787,9 @@
 "Le village où habitent trois familles est calme.",
 "Vous êtes tous conviés au repas.",
 "Est-il passé ?",
-"A-t-il mangé ?"
+"A-t-il mangé ?",
+"Les colis peuvent être livrés demain.",
+"La salle peut être fermée le soir."
 ],
 "elide": [
 [
@@ -3174,6 +3176,26 @@
 "Je pars. versé le lait chaud.",
 "versé",
 "Versez"
+],
+[
+"Les bureaux doive être fermé le soir.",
+"doive",
+"doivent"
+],
+[
+"Les colis peuvent être livré demain.",
+"livré",
+"livrés"
+],
+[
+"Les tables doivent être nettoyé le soir.",
+"nettoyé",
+"nettoyées"
+],
+[
+"La salle peut être fermé le soir.",
+"fermé",
+"fermée"
 ]
 ],
 "palier": [
