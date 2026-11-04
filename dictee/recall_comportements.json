@@ -781,7 +781,9 @@
 "Les invités étaient ravis et un peu surpris.",
 "Le prix est bas et la qualité bonne.",
 "La bague du roi incrustée de perles brille.",
-"Le nombre des visiteurs est important."
+"Le nombre des visiteurs est important.",
+"A-t-il compris ?",
+"A lire avant samedi, le règlement du club."
 ],
 "elide": [
 [
@@ -3063,6 +3065,51 @@
 "Les livres sont lourd.",
 "lourd",
 "lourds"
+],
+[
+"Les nappes sèchent dehors : je les ai plié.",
+"plié",
+"pliées"
+],
+[
+"Une chambre a louer près de la gare.",
+"a",
+"à"
+],
+[
+"Prix : 80 euros, a débattre.",
+"a",
+"à"
+],
+[
+"Vélo a vendre.",
+"a",
+"à"
+],
+[
+"Ma mère a louer un appartement.",
+"louer",
+"loué"
+],
+[
+"Le chat a jouer dans le jardin.",
+"jouer",
+"joué"
+],
+[
+"Bonjour,\na compter du 9 mars, le bureau ferme.",
+"a",
+"À"
+],
+[
+"Les vieilles chaises sont là : nous les avons rangé hier.",
+"rangé",
+"rangées"
+],
+[
+"Il a compter ses billes.",
+"compter",
+"compté"
 ]
 ],
 "palier": [
@@ -3299,6 +3346,11 @@
 [
 "Laisser-le refroidir une heure.",
 "Laisser",
+"vigilance"
+],
+[
+"Les nappes sèchent dehors : je les ai plié.",
+"plié",
 "vigilance"
 ]
 ],
