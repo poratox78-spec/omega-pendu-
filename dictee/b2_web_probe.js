@@ -14,6 +14,7 @@
 'use strict';
 const fs = require('fs'), path = require('path'), http = require('http'), os = require('os');
 const { spawn } = require('child_process');
+const { eteindreChrome } = require('../extension/cdp_chrome.js');
 
 const RACINE = path.join(__dirname, '..');
 const TETE = process.argv.includes('--tete');
@@ -183,8 +184,7 @@ async function tenter(chrome, port, visible) {
     return res || { pret: false, raison: 'délai (page muette en 2 min)' };
   } finally {
     try { sess && sess.fermer(); } catch (e) {}
-    try { proc.kill(); } catch (e) {}
-    try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {}
+    eteindreChrome(proc, profil);
   }
 }
 

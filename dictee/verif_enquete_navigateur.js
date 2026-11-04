@@ -20,6 +20,7 @@
 'use strict';
 const fs = require('fs'), path = require('path'), http = require('http'), os = require('os');
 const { spawn } = require('child_process');
+const { eteindreChrome } = require('../extension/cdp_chrome.js');
 const RACINE = path.join(__dirname, '..');
 const LOCAL = process.argv.includes('--local');
 const EXT_SEUL = process.argv.includes('--ext-seul');   // itérer vite sur la phase extension
@@ -219,7 +220,7 @@ async function main() {
     '--disable-background-networking', '--load-extension=' + extDir, '--window-size=1280,960', 'about:blank'];   // VISIBLE : c'est le but
   const proc = spawn(chrome, args, { stdio: 'ignore' });
   let sess = null, sess2 = null, code = 0;
-  const nettoyer = () => { try { sess && sess.fermer(); } catch (e) {} try { sess2 && sess2.fermer(); } catch (e) {} try { proc.kill(); } catch (e) {} try { srv && srv.close(); } catch (e) {} try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {} };
+  const nettoyer = () => { try { sess && sess.fermer(); } catch (e) {} try { sess2 && sess2.fermer(); } catch (e) {} try { srv && srv.close(); } catch (e) {} eteindreChrome(proc, profil); };
   const GARDE_MS = 12 * 60 * 1000;   // garde-fou GLOBAL : au-delà, on dit où ça bloque et on sort (1) — jamais d'attente infinie
   const garde = setTimeout(() => { console.log('\n✗ DÉLAI GLOBAL (' + (GARDE_MS / 60000) + ' min) — le banc est resté bloqué ; processus nettoyés.'); nettoyer(); process.exit(1); }, GARDE_MS);
   if (garde.unref) garde.unref();

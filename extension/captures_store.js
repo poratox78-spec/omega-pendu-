@@ -98,5 +98,5 @@ label{display:block;font-size:13px;letter-spacing:.02em;color:#5a6b7c;margin:0 0
     const pa = await tab('chrome-extension://' + r0.id + '/aide.html', 1280, 800);
     await H.attendre(1500); await pa.photo('p5-mode-emploi.png');
   } catch (e) { console.error('✗', e && e.message || e); process.exitCode = 1; }
-  finally { for (const s of ouverts) { try { s.fermer(); } catch (e) {} } try { proc.kill(); } catch (e) {} }
+  finally { for (const s of ouverts) { try { s.fermer(); } catch (e) {} } H.eteindreChrome(proc, profil); }
 })();

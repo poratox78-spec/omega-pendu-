@@ -121,8 +121,8 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
   const proc = spawn(chrome, args, { stdio: 'ignore' });
   let nav = null, pg = null, code = 0;
   const nettoyer = () => { for (const s of [nav, pg]) { try { s && s.fermer(); } catch (e) {} }
-    try { proc.kill(); } catch (e) {} try { srv.close(); } catch (e) {}
-    try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {} };
+    try { srv.close(); } catch (e) {}
+    H.eteindreChrome(proc, profil); };
 
   try {
     const dp = await lirePortDevTools(profil, 60000);

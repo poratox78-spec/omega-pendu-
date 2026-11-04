@@ -128,7 +128,8 @@ def edit(chemin, ancre, nouveau, autoriser_zone_parite=False, autoriser_inerte=F
 if __name__ == '__main__':
     # Auto-test : on rejoue les trois pièges du 2026-08-03 sur des fichiers jetables.
     import tempfile, sys
-    d = tempfile.mkdtemp()
+    _dossier = tempfile.TemporaryDirectory()   # effacé à la sortie, quoi qu'il arrive
+    d = _dossier.name
     ok = []
 
     p1 = os.path.join(d, 'dys-core.js')
