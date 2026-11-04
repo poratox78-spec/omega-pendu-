@@ -766,7 +766,11 @@
 "Ce chef est très coté.",
 "Les chats dorment et nous observent.",
 "Fermé le lundi, le musée ouvre le mardi.",
-"Il faut laisser le gâteau refroidir."
+"Il faut laisser le gâteau refroidir.",
+"Le train est prévu à midi.",
+"Je t'ai envoyé une lettre.",
+"Les dizaines de lettres que j'ai reçues sont là.",
+"Les exercices de maths qu'il a faits sont justes."
 ],
 "elide": [
 [
@@ -2948,6 +2952,41 @@
 "Laisser-le refroidir une heure.",
 "Laisser",
 "Laissez"
+],
+[
+"Les chiffres que tu m'as envoyé sont justes.",
+"envoyé",
+"envoyés"
+],
+[
+"Il les a certainement gardé.",
+"gardé",
+"gardés"
+],
+[
+"La sortie est-elle toujours prévu ?",
+"prévu",
+"prévue"
+],
+[
+"Les dépenses sont plus élevées que prévues.",
+"prévues",
+"prévu"
+],
+[
+"Elle s'est plain du froid.",
+"plain",
+"plainte"
+],
+[
+"Les photos de vacances que j'ai pris sont belles.",
+"pris",
+"prises"
+],
+[
+"Elles s'étaient plain du bruit.",
+"plain",
+"plaintes"
 ]
 ],
 "palier": [
