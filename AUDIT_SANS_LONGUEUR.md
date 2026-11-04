@@ -144,3 +144,29 @@ Toggle maître `M_SANS_LONGUEUR_ENABLED` (défaut OFF ⇒ comportement byte-iden
 - La copie reste **hors précache SW** (liste blanche CORE, vérifié) et **hors nav** (la sonde
   `pages_atteignables_probe` ne scanne que la racine et `en/`, vérifié).
 - Les règles du jeu (6 erreurs, toutes occurrences révélées) ne changent pas : seul le **savoir** de la machine change.
+
+## 6. Retour au board RÉEL : OS-arb + JOINTE sur l'ORIGINAL (04/11/2026 — mesure pure)
+
+Suite directe du bilan J1→J8 : les voies qui portent le mode (arbitrage OS, jointe) **existent déjà dans
+l'original** (OFF par défaut, R66). Que valent-elles longueur connue ? Mesure `node evo/osarb_board_reel_bench.js`
+(protocole ci_smoke, 4 graines, **tout cheat-free** : `M_NEO_PHON_COHORT_ENABLED=true` partout) — règle de
+décision pré-enregistrée dans l'en-tête du bench AVANT de lancer. **Aucun défaut n'a changé** (ni la page,
+ni ci_smoke) : les chiffres vont à Rem.
+
+| Condition (+NEO, board réel, original) | Win | Par graine [12345·777·424242·31337] | Verdict (règle pré-enregistrée) |
+|---|---|---|---|
+| réf. cheat-free | 96,3 % | 98,3 · 96,7 · 96,7 · 93,3 | = la ligne du bench sans-longueur, graine par graine (inertie re-confirmée) |
+| PLACEBO (`M_NEO_OS_ARB_NGRAM` seul) | 96,3 % | identique par graine | ✓ protocole étanche (le toggle n'est lu que sous `M_NEO_OS_ARB`) |
+| +JOINTE seule (assemblé croisé) | **93,8 %** | 96,7 · 96,7 · 90,0 · 91,7 | **CONTRE-INDIQUÉE seule** (−2,5, 3/4 graines en recul) |
+| +OS_ARB (sub = jointe interne) | 97,5 % | 100,0 · 96,7 · 93,3 · 100,0 | candidat (+1,2) mais une graine −3,4 (424242) |
+| **+OS_ARB+NGRAM (sub = n-gram)** | **98,8 %** | 100,0 · 98,3 · 96,7 · 100,0 | **CANDIDAT NET (+2,5, 4/4 graines ≥ réf, aucune en recul)** |
+| +JOINTE+OS_ARB (paire du préréglage page) | 97,5 % | mêmes winrates que +OS_ARB seul | la jointe n'ajoute rien quand l'arbitrage tire d'abord (même leçon que J8) |
+
+Lecture : au board réel comme en mode, **l'arbitrage convexe bat la cascade either/or** ; la meilleure voie
+sublexicale y est le **n-gram** (tables `L|p|contexte`, légitimes longueur connue), pas la jointe — qui, seule
+dans l'assemblé, COÛTE. 98,8 % referme l'essentiel de l'écart ouvert en retirant le « mot entendu ».
+
+**Décisions produit (à Rem, rien d'activé)** : ① ajouter `M_NEO_OS_ARB`+`M_NEO_OS_ARB_NGRAM` à la CFG de
+référence des bancs (ci_smoke — la référence CI passerait à ce chiffre) ? ② ajouter `M_NEO_OS_ARB_NGRAM` au
+préréglage de la page (`applyReferenceConfig` a déjà OS_ARB+JOINTE, pas NGRAM) ? ③ retirer la JOINTE du
+préréglage ou la laisser (elle n'y coûte rien tant qu'OS_ARB tire d'abord — repli seulement) ?
