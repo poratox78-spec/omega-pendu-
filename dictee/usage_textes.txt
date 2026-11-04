@@ -85,3 +85,7 @@ Bonjour {a|à|G} tous,
 Les badges {oublié|oubliés|N} {seron|seront|C} {gardé|gardés|G} {a|à|G} l'accueil jusqu'au vendredi. Les vieilles chaises du réfectoire sont {a|à|G} donner : nous les avons {rangé|rangées|G} dans la salle du fond. Pour toute question, {adressé|adressez|C}-vous {a|à|G} Mme Garnier au premier {étages|étage|N}.
 Bonne {journé|journée|O},
 La direction
+=== T15 mode d'emploi
+Avant la première utilisation, {lavé|lavez|C} le bol et les {lame|lames|N} {a|à|G} l'eau chaude. Posez l'appareil sur une surface plane, loin {dès|des|G} bords du plan de travail{|.|P} {branchez|Branchez|P} le cordon, puis {choisissé|choisissez|C} la vitesse : un pour les soupes, deux {où|ou|G} trois pour les pâtes {épaisse|épaisses|N}.
+Ne {remplissé|remplissez|C} jamais le bol au-dessus du trait. Si le moteur chauffe, {arrêté|arrêtez|C}-le et attendez dix {minute|minutes|N}. Les {pièce|pièces|N} {amovible|amovibles|N} {passe|passent|C} au lave-vaisselle, sauf le couvercle{|.|P}
+Garantie : deux {an|ans|N} {a|à|G} partir de la date d'achat.
