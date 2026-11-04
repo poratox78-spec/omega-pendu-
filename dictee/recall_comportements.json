@@ -776,7 +776,12 @@
 "Elle a cinq heures pour finir.",
 "Mon rêve c'est voyager.",
 "Le club invite ses membres à décorer leur salle.",
-"Il connaît le Grand Village ou la ville voisine, puis il part."
+"Il connaît le Grand Village ou la ville voisine, puis il part.",
+"Les vagues sont hautes ce soir.",
+"Les invités étaient ravis et un peu surpris.",
+"Le prix est bas et la qualité bonne.",
+"La bague du roi incrustée de perles brille.",
+"Le nombre des visiteurs est important."
 ],
 "elide": [
 [
@@ -3028,6 +3033,36 @@
 "Il faut réparer la machine où de nous la changer.",
 "où",
 "ou"
+],
+[
+"Les invités étaient contents et un peu fatigué.",
+"fatigué",
+"fatigués"
+],
+[
+"Les salles sont propres et les tarifs reste correct.",
+"correct",
+"corrects"
+],
+[
+"Sont absent : Léa et Hugo.",
+"absent",
+"absents"
+],
+[
+"On mange des fruits avec du beurre fondue.",
+"fondue",
+"fondu"
+],
+[
+"Les voiles étaient blanche ce matin.",
+"blanche",
+"blanches"
+],
+[
+"Les livres sont lourd.",
+"lourd",
+"lourds"
 ]
 ],
 "palier": [

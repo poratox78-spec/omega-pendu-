@@ -73,3 +73,9 @@ Sophie et Marc
 Le jeu se joue {a|à|G} deux {où|ou|G} {a|à|G} quatre{|.|P} {chaque|Chaque|P} joueur {reçois|reçoit|C} sept {carte|cartes|N}. Le plus jeune {commance|commence|O} : il pose une carte au {millieu|milieu|O} de la table. {ensuite|Ensuite|P}{|,|P} chacun joue {a|à|G} son tour{ ,|, |P}dans le sens des {aiguille|aiguilles|N} d'une montre.
 Si tu {doit|dois|C} passer ton tour, tu {pioche|pioches|C} une carte. {attention|Attention|P} ! Les cartes {spécials|spéciales|N} {change|changent|C} le sens du jeu. Le premier qui n'a plus de cartes {à|a|G} {gagner|gagné|C} la partie.
 Bonne partie !
+=== T13 carte postale
+Chère {mamie|Mamie|P},
+Nous sommes bien {arrivé|arrivés|G} {a|à|G} Biarritz. Les plages sont {immense|immenses|N} et les vagues sont {parfaite|parfaites|N} pour le surf. Papa a pris des {cour|cours|N} avec un moniteur très {patiant|patient|O}. Les enfants {on|ont|G} {ramassés|ramassé|G} des {coquillage|coquillages|N} {blanc|blancs|N} et {rose|roses|N}.
+Le soir, nous {mangons|mangeons|C} des crêpes {salé|salées|N} sur le port. La maison que nous avons {loué|louée|G} est {petit|petite|G} mais très {jolis|jolie|G}. Il fait beau tous les {jour|jours|N}, même si le vent est un peu {fraix|frais|O} le matin. Nous {rentront|rentrons|C} dimanche.
+Gros {bisou|bisous|N} de nous quatre,
+Léa
