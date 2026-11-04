@@ -1,42 +1,42 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 79,
-   "bon": 73,
-   "rouge juste": 42,
+   "total": 81,
+   "bon": 74,
+   "rouge juste": 43,
    "orange juste": 31,
    "mauvais mot": 0,
-   "muette": 6
+   "muette": 7
   },
   "grammaire": {
-   "total": 109,
-   "bon": 100,
-   "rouge juste": 47,
-   "orange juste": 53,
+   "total": 115,
+   "bon": 105,
+   "rouge juste": 50,
+   "orange juste": 55,
    "mauvais mot": 0,
-   "muette": 9
+   "muette": 10
   },
   "ponctuation": {
-   "total": 52,
-   "bon": 36,
-   "rouge juste": 25,
+   "total": 56,
+   "bon": 40,
+   "rouge juste": 29,
    "orange juste": 11,
    "mauvais mot": 0,
    "muette": 16
   },
   "conjugaison": {
-   "total": 109,
-   "bon": 95,
-   "rouge juste": 51,
-   "orange juste": 44,
-   "mauvais mot": 4,
+   "total": 112,
+   "bon": 100,
+   "rouge juste": 53,
+   "orange juste": 47,
+   "mauvais mot": 2,
    "muette": 10
   },
   "orthographe": {
-   "total": 70,
-   "bon": 63,
+   "total": 71,
+   "bon": 64,
    "rouge juste": 29,
-   "orange juste": 34,
+   "orange juste": 35,
    "mauvais mot": 5,
    "muette": 2
   }
@@ -454,16 +454,32 @@
   "T17#17": "orange juste",
   "T17#18": "orange juste",
   "T18#0": "orange juste",
-  "T18#1": "mauvais mot",
+  "T18#1": "orange juste",
   "T18#2": "mauvais mot",
   "T18#3": "rouge juste",
   "T18#4": "rouge juste",
   "T18#5": "orange juste",
   "T18#6": "rouge juste",
   "T18#7": "orange juste",
-  "T18#8": "mauvais mot",
+  "T18#8": "orange juste",
   "T18#9": "rouge juste",
   "T18#10": "rouge juste",
-  "T18#11": "rouge juste"
+  "T18#11": "rouge juste",
+  "T19#0": "orange juste",
+  "T19#1": "rouge juste",
+  "T19#2": "rouge juste",
+  "T19#3": "muette",
+  "T19#4": "rouge juste",
+  "T19#5": "rouge juste",
+  "T19#6": "muette",
+  "T19#7": "rouge juste",
+  "T19#8": "rouge juste",
+  "T19#9": "rouge juste",
+  "T19#10": "rouge juste",
+  "T19#11": "orange juste",
+  "T19#12": "rouge juste",
+  "T19#13": "orange juste",
+  "T19#14": "orange juste",
+  "T19#15": "rouge juste"
  }
 }
