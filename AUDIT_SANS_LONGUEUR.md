@@ -172,7 +172,7 @@ référence des bancs (ci_smoke — la référence CI passerait à ce chiffre) ?
 préréglage de la page (`applyReferenceConfig` a déjà OS_ARB+JOINTE, pas NGRAM) ? ③ retirer la JOINTE du
 préréglage ou la laisser (elle n'y coûte rien tant qu'OS_ARB tire d'abord — repli seulement) ?
 
-### §6 SOLDÉ — décision Rem 04/11/2026 : ① et ② ACTIVÉS (« si pas de triche » — triche re-vérifiée absente)
+### §6 SOLDÉ — décision Rem 04/11/2026 : ① et ② ACTIVÉS (« si pas de triche » — triche re-vérifiée absente) · ③ JOINTE GARDÉE
 
 Avant d'activer, la chaîne complète a été relue sur pièces (pas sur commentaires) : porte du declare →
 `_neoDeclareOSmix` → `_neoEnsureNG`/`_neoLetterNgramDist` → `_neoEnsureWBL` → `M_OS_v07_step` (save/restore).
@@ -189,7 +189,8 @@ Activé (défauts moteur INCHANGÉS, R66 : les `let` restent false — seuls la 
   l'état d'avant (il rejoue la mesure fondatrice).
 - Préréglage des 2 pages (`applyReferenceConfig`, original + copie) : + `M_NEO_OS_ARB_NGRAM` (24 ON) —
   mesuré 96,7 → **98,8 %** board réel (sonde préréglage, 4 graines), mode 96,7 inchangé. La JOINTE y reste
-  (décision ③ ouverte : neutre derrière l'arbitrage). `M_NEO_LETTER_NGRAM` (argmax solo) et `NGRAM_GAP`
+  (③ tranché par Rem le 04/11/2026 : GARDÉE — « on ne sait jamais, OOV ou autre, c'est pour ça que tout
+  est en toggle » ; neutre derrière l'arbitrage, elle est le repli si cette voie se tait). `M_NEO_LETTER_NGRAM` (argmax solo) et `NGRAM_GAP`
   restent OFF. Le clone EN SUIT mécaniquement (il est GÉNÉRÉ du FR par `dictee/build_pendu_en.py`, garde
   de fraîcheur en CI) — son winrate sous ce préréglage n'est pas mesuré (lexique différent) : à mesurer
   si on veut un chiffre EN. La garde `evo/trexquant_ngram_probe.js` suit la décision (le juge suit le
