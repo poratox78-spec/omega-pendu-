@@ -785,7 +785,9 @@
 "A-t-il compris ?",
 "A lire avant samedi, le règlement du club.",
 "Le village où habitent trois familles est calme.",
-"Vous êtes tous conviés au repas."
+"Vous êtes tous conviés au repas.",
+"Est-il passé ?",
+"A-t-il mangé ?"
 ],
 "elide": [
 [
@@ -3147,6 +3149,16 @@
 "Si le colis arrive, dite-le-moi.",
 "dite",
 "dites"
+],
+[
+"Si le moteur chauffe, arrêté-le.",
+"arrêté",
+"arrêtez"
+],
+[
+"Donné-moi la clé.",
+"Donné",
+"Donnez"
 ]
 ],
 "palier": [
