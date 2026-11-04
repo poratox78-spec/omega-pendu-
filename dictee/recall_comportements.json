@@ -789,7 +789,8 @@
 "Est-il passé ?",
 "A-t-il mangé ?",
 "Les colis peuvent être livrés demain.",
-"La salle peut être fermée le soir."
+"La salle peut être fermée le soir.",
+"La dame et le chat sont seuls."
 ],
 "elide": [
 [
@@ -3196,6 +3197,11 @@
 "La salle peut être fermé le soir.",
 "fermé",
 "fermée"
+],
+[
+"Au début, la dame et seul dans sa grande maison.",
+"seul",
+"seule"
 ]
 ],
 "palier": [
