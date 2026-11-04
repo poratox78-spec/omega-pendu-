@@ -860,6 +860,9 @@ footer {
       <!-- letters populated by JS -->
     </div>
 
+    <!-- 🕶️ MODE SANS LONGUEUR — vue machine (additif ; rempli par le script sl-ui en fin de page, vide sinon) -->
+    <div id="sl-vue"></div>
+
     <!-- ⭐ 24/09/2026 — RANGÉ PAR USAGE (demande de Rem). Avant : quinze contrôles sur UNE ligne, où
          « ▶ Start » voisinait avec « β min / max / pas / batch ». Trois groupes : ce qu on fait pour JOUER,
          ce qui touche au MOTEUR, et les bancs de MESURE — ces derniers REPLIÉS, jamais retirés. Chaque
@@ -1432,6 +1435,13 @@ footer {
       <div>
         <div class="toggle-label">🎯 Mode Trexquant (hors-lexique)</div>
         <div class="toggle-desc">le mot joué est retiré du dico — OMEGA généralise (phon→ortho)</div>
+      </div>
+    </div>
+    <div class="toggle-item" data-toggle="M_SANS_LONGUEUR_ENABLED" title="🕶️ Mode sans longueur : la machine joue SANS connaître la longueur du mot — elle ne voit que le SCHÉMA RELATIF des lettres révélées (ex. A??A??E pour INFLAMMABLE), préfixe et suffixe cachés. Machinerie : cohorte flottante (le schéma se pose à tout décalage) + bi/trigrammes RELATIFS + arbitrage OS + recall re-ancré (J1→J5). Mesuré (protocole ci_smoke, 4 graines, in-lexique 7-12) : 95,0 % de victoires en config réf. contre 99,6 % avec longueur. Détail : AUDIT_SANS_LONGUEUR.md. OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🕶️ Mode sans longueur (schéma relatif)</div>
+        <div class="toggle-desc">la machine ignore la longueur du mot — cohorte flottante + n-gram relatif</div>
       </div>
     </div>
   </details>
@@ -34275,6 +34285,118 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
   }
   appliquer();
   window.addEventListener('storage', function (e) { if (e.key === 'omega_dysfont') appliquer(); });
+})();
+</script>
+
+<script>
+// ═══ 🕶️ UI DU MODE SANS LONGUEUR — panneau additif (04/11/2026) ═══════════════════════════════════
+// POURQUOI : le mode (J1→J5, AUDIT_SANS_LONGUEUR.md) est jouable mais invisible ; ce panneau donne
+//   l'interrupteur ET montre ce que la MACHINE voit : le schéma relatif (bords de brouillard), le
+//   nombre de mots compatibles et la distribution des longueurs possibles (les leviers du mode).
+// COMMENT : lecture seule du moteur (_slVirtualBoard + _slCompatible + len_index), cache local à
+//   resserrement monotone — JAMAIS _slCohort() du moteur : son cache mono-entrée est à lui, l'appeler
+//   d'ici avec le mot réel comme « schéma » l'invaliderait à chaque tick. Sondage 300 ms, rendu
+//   seulement au changement d'état. La VRAIE longueur est marquée dans l'histogramme : info
+//   SPECTATEUR (le joueur voit déjà le mot entier au-dessus) — la machine, elle, ne lit que le
+//   schéma (frontière de triche inchangée, aucun écrit moteur ici).
+// OFF-INERTE : interrupteur OFF = seule la ligne d'interrupteur est visible, zéro calcul ; en
+//   headless (harnais) le DOM est un stub et setInterval neutralisé → le bloc ne fait rien.
+(function () {
+  'use strict';
+  try {
+    var zone = document.getElementById('sl-vue');
+    if (!zone || !zone.appendChild) return;
+    var css = document.createElement('style');
+    css.textContent = [
+      '#sl-vue{margin:10px 0 4px}',
+      '#sl-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}',
+      '#sl-head label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}',
+      '#sl-note{color:var(--fg-mute,#888);font-size:11px}',
+      '#sl-corps{display:none;margin-top:8px;padding:8px 10px;border:1px dashed var(--border,#3a3a3a);border-radius:8px}',
+      '#sl-vue.on #sl-corps{display:block}',
+      '#sl-schema{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:2px 0 8px}',
+      '.sl-case{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:28px;padding:0 4px;border-bottom:2px solid var(--accent,#7aa2f7);font-weight:700}',
+      '.sl-case.sl-inc{color:var(--fg-mute,#888);border-bottom-style:dotted;font-weight:400}',
+      '.sl-fog{color:var(--fg-mute,#888);letter-spacing:2px;padding:0 2px}',
+      '#sl-stats{font-size:11px;color:var(--fg-mute,#888);margin-bottom:6px}',
+      '#sl-longs{display:flex;gap:3px;align-items:flex-end;flex-wrap:wrap}',
+      '.sl-bar{flex:0 0 26px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-size:10px;color:var(--fg-mute,#888)}',
+      '.sl-bar i{display:block;width:100%;background:var(--fg-mute,#666);opacity:.55;border-radius:2px 2px 0 0;font-style:normal}',
+      '.sl-bar.sl-vraie i{background:var(--accent,#7aa2f7);opacity:1}',
+      '.sl-bar.sl-vraie span{color:var(--accent,#7aa2f7);font-weight:700}'
+    ].join('\n');
+    document.head.appendChild(css);
+    zone.innerHTML = '<div id="sl-head"><label><input type="checkbox" id="sl-switch"> 🕶️ Mode sans longueur</label>' +
+      '<span id="sl-note">la machine joue sans connaître la longueur du mot</span></div>' +
+      '<div id="sl-corps"><div class="panel-label">CE QUE LA MACHINE VOIT</div>' +
+      '<div id="sl-schema"></div><div id="sl-stats"></div><div id="sl-longs"></div></div>';
+    var sw = document.getElementById('sl-switch');
+    sw.addEventListener('change', function () {
+      var want = !!sw.checked;
+      try {
+        var item = document.querySelector('[data-toggle="M_SANS_LONGUEUR_ENABLED"]');
+        if (item && item.classList && typeof ui_toggle === 'function') {
+          if (item.classList.contains('on') !== want) ui_toggle(item);   // passe par ui_toggle → log CONFIG + panneau de config synchronisé
+        } else { M_SANS_LONGUEUR_ENABLED = want; }
+      } catch (e) { try { M_SANS_LONGUEUR_ENABLED = want; } catch (e2) {} }
+    });
+    // cohorte CÔTÉ UI : même règle que le moteur (_slCompatible sur len_index), cache à soi
+    var cache = { game: -1, key: '', ids: null };
+    function cohorte(schema, tkey) {
+      var g = (typeof _slGameSeq !== 'undefined') ? _slGameSeq : 0;
+      var key = g + '|' + schema + '|' + tkey;
+      if (cache.ids && cache.key === key) return cache.ids;
+      var base = (cache.ids && cache.game === g) ? cache.ids : null;   // les contraintes ne font que se resserrer dans une partie
+      var out = [], words = OMEGA_LEX4.words, LI = OMEGA_LEX4.len_index;
+      if (base) { for (var i = 0; i < base.length; i++) { var w = words[base[i]]; if (w && w.m && _slCompatible(w.m, schema, alreadyTried)) out.push(base[i]); } }
+      else { for (var k in LI) { var arr = LI[k]; for (var j = 0; j < arr.length; j++) { var w2 = words[arr[j]]; if (w2 && w2.m && _slCompatible(w2.m, schema, alreadyTried)) out.push(arr[j]); } } }
+      cache = { game: g, key: key, ids: out };
+      return out;
+    }
+    var lastKey = null;
+    function rendre() {
+      var on = (typeof M_SANS_LONGUEUR_ENABLED !== 'undefined') && M_SANS_LONGUEUR_ENABLED;
+      if (sw.checked !== on) sw.checked = on;   // resync si basculé depuis le panneau de config
+      zone.classList.toggle('on', on);
+      if (!on) { lastKey = null; return; }
+      if (typeof currentWord !== 'string' || !currentWord || typeof OMEGA_LEX4 === 'undefined' || !OMEGA_LEX4 || !OMEGA_LEX4.words) {
+        if (lastKey !== 'vide') { lastKey = 'vide';
+          document.getElementById('sl-schema').innerHTML = '<span class="sl-fog">— pas de partie en cours —</span>';
+          document.getElementById('sl-stats').textContent = '';
+          document.getElementById('sl-longs').innerHTML = ''; }
+        return;
+      }
+      var tkey = ''; for (var x = 0; x < 26; x++) tkey += alreadyTried[x] ? '1' : '0';
+      var vb = _slVirtualBoard(currentWord, revealedMask);
+      var g = (typeof _slGameSeq !== 'undefined') ? _slGameSeq : 0;
+      var key = g + '|' + vb.w + '|' + tkey + '|' + currentWord.length;
+      if (key === lastKey) return;
+      lastKey = key;
+      // schéma relatif, bords de brouillard
+      var h = '<span class="sl-fog" title="préfixe inconnu (longueur cachée)">⋯</span>';
+      if (vb.w) { for (var p = 0; p < vb.w.length; p++) { var c = vb.w.charAt(p);
+          h += (c === '?') ? '<span class="sl-case sl-inc">?</span>' : '<span class="sl-case">' + c + '</span>'; } }
+      else h += '<span class="sl-fog" style="letter-spacing:0"> rien de révélé — la machine joue à l\'aveugle </span>';
+      h += '<span class="sl-fog" title="suffixe inconnu (longueur cachée)">⋯</span>';
+      document.getElementById('sl-schema').innerHTML = h;
+      // cohorte + distribution des longueurs possibles
+      var ids = cohorte(vb.w, tkey), words = OMEGA_LEX4.words;
+      var dist = {}, lmin = 99, lmax = 0;
+      for (var i = 0; i < ids.length; i++) { var L = words[ids[i]].m.length; dist[L] = (dist[L] || 0) + 1; if (L < lmin) lmin = L; if (L > lmax) lmax = L; }
+      var vraie = currentWord.length;
+      document.getElementById('sl-stats').innerHTML = '<b>' + ids.length.toLocaleString('fr-FR') + '</b> mots compatibles · longueurs possibles : ' +
+        (ids.length ? ('<b>' + lmin + '</b> à <b>' + lmax + '</b>') : '—') +
+        ' · la vraie (<b>' + vraie + '</b>) n\'est connue que de vous';
+      var bars = '';
+      if (ids.length) { var mx = 0; for (var d in dist) if (dist[d] > mx) mx = dist[d];
+        for (var Lb = lmin; Lb <= lmax; Lb++) { var n = dist[Lb] || 0, ht = n ? Math.max(2, Math.round(32 * n / mx)) : 0;
+          bars += '<div class="sl-bar' + (Lb === vraie ? ' sl-vraie' : '') + '" title="' + n.toLocaleString('fr-FR') + ' mot(s) de ' + Lb + ' lettres' + (Lb === vraie ? ' — la vraie longueur' : '') + '">' +
+            '<i style="height:' + ht + 'px"></i><span>' + Lb + '</span></div>'; } }
+      document.getElementById('sl-longs').innerHTML = bars;
+    }
+    rendre();
+    setInterval(function () { try { rendre(); } catch (e) {} }, 300);
+  } catch (e) { try { console.warn('[sl-ui]', e); } catch (e2) {} }
 })();
 </script>
 </body>

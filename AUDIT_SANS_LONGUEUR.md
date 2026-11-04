@@ -64,7 +64,16 @@ Mesure (`node evo/sans_longueur_bench.js`, protocole ci_smoke, graines 12345+777
 avec longueur, et 37,5 % machinerie non adaptée). Pistes restantes, non engagées : M4_phon muet
 pré-première-lettre (choix documenté J2), la JOINTE phon-cohorte en mode (`M_NEO_PHON_COHORT_JOINTE`),
 le prior de longueur du brouillard pondéré par la distribution des longueurs de la cohorte (J4 score d=1
-non pondéré), l'UI du mode (bouton + affichage schéma/longueurs possibles — demande produit de Rem).
+non pondéré).
+
+**UI du mode — LIVRÉE (04/11/2026)** : interrupteur dans le panneau de config (toggle-item
+`M_SANS_LONGUEUR_ENABLED`, `ui_toggle`) + case à cocher dans le panneau de jeu + panneau « CE QUE LA
+MACHINE VOIT » : schéma relatif (bords de brouillard `⋯`), nombre de mots compatibles, distribution des
+longueurs possibles (histogramme, vraie longueur marquée côté SPECTATEUR — la machine ne la lit pas).
+Script séparé en fin de page, lecture seule du moteur (`_slVirtualBoard` + `_slCompatible`, cache propre
+à resserrement monotone — jamais `_slCohort()` du moteur, son cache mono-entrée lui appartient).
+Inertie prouvée : bench avant/après l'UI **identique ligne à ligne** (4 conditions) ; en headless le DOM
+est un stub et `setInterval` neutralisé → le bloc ne fait rien.
 
 ## 3. Census PROFOND — qui lit la longueur/les positions absolues, corps des fonctions lus
 
