@@ -240,3 +240,24 @@ différente, les parties divergent au 2e-3e coup et les erreurs sont largement I
    prouvent la décorrélation des erreurs ; après k ratés d'affilée d'une voie, donner la main au prior
    alternatif (agrégé toutes longueurs ⟷ conditionné longueur) plutôt que persister — extension du
    principe OS-arb à « même voie, autre prior ».
+
+### §7 SOLDÉ — les 3 pistes EXPLORÉES (ordre Rem 04/11/2026 : « toujours sans tricher ») — PR des toggles à part
+
+Posées en toggles OFF-inertes dans les 2 pages (R66, défauts inchangés, rien d'activé), cheat-free
+vérifié sur pièces ; instrument CORRIGÉ (la lettre du tick final reprise de `_omLastLetter`, posé par
+`endCurrentGame` AVANT l'effacement — les pertes montrent leurs 6 fautes). Contrôle tout-OFF identique
+par graine ; placebo (réglage sans effet) identique ; `dev.sh check` 141/141 ✓. Mesures board réel,
+12 graines / 720 mots (base 97,1 % · 21 pertes) + protocole canonique 4 graines (base 98,8) :
+
+| Piste | Toggle | 12 graines | Verdict pré-enregistré |
+|---|---|---|---|
+| 2 partition (cohorte 2..16 → lettre max P(présence), égalité max IG) | `M_NEO_PARTITION_ENABLED` | **98,6 % · 10 pertes** · 11/12 ≥ base · mode intact | **candidat net** |
+| 1 support (sub[x]=0 si la cohorte survivante n'a plus x) | `M_NEO_SUPPORT_ENABLED` | seul : 97,8 (+0,7, 12/12 ≥ base) | sous le seuil seul |
+| 1+2 **COMBO** | les deux | **98,8 % · 9 pertes** · 11/12 ≥ base · 4 graines : **99,2** | **le meilleur mesuré** |
+| 3 escompte (sigSub ×= 0,85^ratés) | `M_NEO_SUBMISS_DECAY_ENABLED` | mode +0,5 · réf −0,3 | **falsifié (bruit)** — ne pas re-tenter sans idée neuve |
+
+Leçon fine : la partition COÛTE 2 mots sur une graine (PASSANTE, PAPISTE g777) et en gagne 13 ailleurs —
+elle déplace peu, elle répare surtout les cohortes denses (§7). Le mode sans longueur est STRICTEMENT
+intact partout (porte `!_slOn` ; support/escompte mesurés neutres en mode — ses propres voies restent
+un chantier séparé). Décision à Rem : activer partition+support (préréglage 26 ON + CFG des bancs) ?
+Avant toute activation : re-mesurer l'hors-lexique (Trexquant) sous ces toggles.
