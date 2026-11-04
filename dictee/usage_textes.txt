@@ -126,3 +126,8 @@ Votre voisine du troisième étage
 Le soleil chauffe l'eau des océans et des {rivière|rivières|N}. L'eau {devien|devient|C} alors de la vapeur et monte dans le ciel. En altitude, l'air est plus froid : la vapeur forme des {nuage|nuages|N} faits de petites gouttes. Quand ces gouttes {devienne|deviennent|C} trop lourdes{|,|P} elles {tombe|tombent|C} : c'est la pluie, ou la neige s'il fait {froit|froid|O}.
 Une partie de l'eau {et|est|G} {absorbé|absorbée|G} par les plantes ; le reste {rejoin|rejoint|C} la mer et le cycle {recommance|recommence|O}.
 {a|À|G} retenir : l'eau existe sous trois {état|états|N}, liquide, solide et {gazeu|gazeux|O}.
+=== T25 message de colocation
+{salut|Salut|P} tout le monde,
+Petit rappel pour la semaine : c'est moi qui {fait|fais|C} les courses mardi, puis Léa passe l'aspirateur jeudi. Les {assiette|assiettes|N} sales ne {reste|restent|C} pas dans l'évier, ni sur la table. On {à|a|G} voté ces règles ensemble, mais, comme la dernière fois, personne ne les {suis|suit|C} vraiment.
+{quand|Quant|G} au salon, éteignez la {lumiére|lumière|O} en partant et ne laissez rien traîner dans le {frigot|frigo|O}. Si vous rentrez tard{|,|P} parlez doucement : nos {voisin|voisins|N} se lèvent tôt.
+{merçi|Merci|O} à tous !
