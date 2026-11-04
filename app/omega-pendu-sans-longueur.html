@@ -6434,6 +6434,12 @@ let M_NEO_OS_ARB = false;                    // ARBITRAGE OS niveau DECLARE : m�
 let M_NEO_OS_ARB_CONF = 0.0;                 // seuil sur la lettre mélangée (0 = tire la meilleure non essayée)
 let M_NEO_OS_ARB_ALPHA = 1.0;                // (α,β) PROPRES à l'arbitrage DECLARE (≠ θ de lecture). Défaut 1/1 = forme neutre μ=r/(1+r) → byte-identique à l'ancien comportement. Mesurables (balayage R66, AUDIT_OMEGA §1.6).
 let M_NEO_OS_ARB_BETA = 1.0;                 // β<1 → favorise la voie lexicale (cohorte) ; β>1 → favorise la sublexicale (jointe) ; α = raideur de la bascule sur r=sigLex/sigSub.
+// --- VERSUS mot a mot (AUDIT_SANS_LONGUEUR §7, 04/11/2026) : 3 pistes mesurables, OFF-inertes (R66). Cheat-free : masque + ratés + len_index, jamais le mot caché. ---
+let M_NEO_PARTITION_ENABLED = false;         // piste 2 : cohorte dense PETITE (2..CAP) → jouer la lettre max P(présence) (égalité : max IG binaire) au lieu de laisser le mélange tester les voisins un à un (§7 : HABLEURS, M/N/P joués HORS support). Réutilise _omega_computeLetterIG (caché, cheat-free).
+let M_NEO_PARTITION_CAP = 16;                //   taille de cohorte max où la partition prend la main
+let M_NEO_SUPPORT_ENABLED = false;           // piste 1 : une lettre ABSENTE de toute la cohorte survivante (P(présence)=0) ne peut plus venir de la voie sublexicale : sub[x]=0 si lex[x]=0 (quand la cohorte parle).
+let M_NEO_SUBMISS_DECAY_ENABLED = false;     // piste 3 : k ratés accumulés (publics) → escompte du piqué sublexical : sigSub ×= DECAY^k. Le n-gram agrégé n'absorbe pas les ratés, la cohorte si — à k élevé elle doit reprendre la main.
+let M_NEO_SUBMISS_DECAY = 0.85;              //   escompte par raté
 let M_NEO_OS_ARB_NGRAM = false;              // ARBITRAGE OS — VOIE SUBLEXICALE = N-GRAM AGRÉGÉ (§1.7/§1.8) au lieu de la jointe phon-cohorte. La voie sub devient la table n-gram de lettres pré-calculée (généralise à l'OOV) ; la voie lex reste la cohorte board pondérée fréquence. La fiabilité relative (piqué) bascule AUTO selon le régime : in-lexique → cohorte gagne (~97%), OOV → n-gram gagne (~66%), SANS switch manuel. Cheat-free, OFF-inerte (R66). Ne bail pas sur cohorte phon vide (le cas OOV où le n-gram doit décider).
 let M_NEO_LETTER_NGRAM = false;             // VOIE N-GRAM DE LETTRES (sublexicale pure) : tables positionnelles uni/bi/tri PRÉ-CALCULÉES depuis tout le lexique (len_index) — pas apprises du jeu. Cheat-free (lit le board révélé + stats agrégées du lexique, jamais currentWord caché). OFF-inerte (R66). Conçu après l'audit OOV : un n-gram trivial fait ~57% OOV vs hybride 33% (AUDIT_OMEGA §1.7).
 let M_NEO_LETTER_NGRAM_CONF = 0.0;          // seuil sur le score-lettre (0 = tire la meilleure lettre non essayée)
@@ -6666,6 +6672,15 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
 }
 function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niveau declare : (1−μ)·sublexicale + μ·lexicale, μ=r^α/(β+r^α). Réutilise M_OS_v07_step. Cheat-free, sans currentWord. Rend une lettre ou null.
   const _slOn = M_SANS_LONGUEUR_ENABLED && _slWin;   // J4 : en mode sans longueur, la voie sublexicale = n-gram RELATIF (_slNgramDist), la lexicale = cohorte flottante. Fenêtre seulement (BUGFIX 04/11)
+  if (M_NEO_PARTITION_ENABLED && !_slOn) {         // VERSUS piste 2 (§7) : cohorte dense petite → partition, pas argmax fréquence
+    const _igR = _omega_computeLetterIG(currentWord, revealedMask, alreadyTried);
+    if (_igR && _igR.presence && _igR.nCompat >= 2 && _igR.nCompat <= M_NEO_PARTITION_CAP) {
+      let _bp = -1, _bg = -1, _bl = -1;
+      for (let x = 0; x < 26; x++) { if (alreadyTried[x]) continue; const _p = _igR.presence[x] / _igR.nCompat; if (_p <= 0) continue;
+        if (_p > _bp || (_p === _bp && _igR.ig[x] > _bg)) { _bp = _p; _bg = _igR.ig[x]; _bl = x; } }
+      if (_bl >= 0) return String.fromCharCode(65 + _bl);
+    }
+  }
   const _pcdSL = _slOn ? _neoPhonCohortDist() : null;   // J7 : en mode, la voie sublexicale essaie d'abord la JOINTE (§3 : Σ_φ Pcoh·CR, croiser pas argmax) sur la distribution molle FLOTTANTE de J2 ; repli n-gram relatif si la cohorte est muette. Les cases non révélées du schéma sont toujours intérieures → le '#' de la jointe garde sa sémantique « voisin non révélé » (pas le piège bord-de-brouillard=frontière évité en J4)
   const _useNG = (M_NEO_OS_ARB_NGRAM || _slOn) && !_pcdSL;
   const _pcd = _pcdSL || (_useNG ? null : _neoPhonCohortDist());
@@ -6710,13 +6725,18 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
     }
   }
   }
+  if (M_NEO_SUPPORT_ENABLED) { let _any = false; for (let x = 0; x < 26; x++) { if (lex[x] > 0) { _any = true; break; } }   // VERSUS piste 1 (§7) : support de la cohorte survivante
+    if (_any) for (let x = 0; x < 26; x++) if (lex[x] <= 0) sub[x] = 0; }
   let ssub=0,slex=0; for(let x=0;x<26;x++){ssub+=sub[x];slex+=lex[x];}
   if (ssub<=0 && slex<=0) return null;
   if (ssub>0) for(let x=0;x<26;x++) sub[x]/=ssub; if (slex>0) for(let x=0;x<26;x++) lex[x]/=slex;   // distributions L1
   let sigSub=0,sigLex=0; for(let x=0;x<26;x++){ if(sub[x]>sigSub)sigSub=sub[x]; if(lex[x]>sigLex)sigLex=lex[x]; }   // fiabilité = piqué de chaque voie
   const _o=M_OS_v07.output,_r=M_OS_v07.r,_m=M_OS_v07.mu,_a=M_OS_v07.alpha,_b=M_OS_v07.beta;   // save (ne pas perturber la cognition)
   M_OS_v07.alpha=M_NEO_OS_ARB_ALPHA; M_OS_v07.beta=M_NEO_OS_ARB_BETA;   // (α,β) PROPRES au declare (défaut 1/1 = forme neutre μ=r/(1+r)), DÉCOUPLÉS du θ de LECTURE (ortho→phon) de la cognition — évite le conflit de sens des voies (le declare est phon→ortho). Mesurables (§1.6).
-  const _mix = M_OS_v07_step(sub, sigSub||1e-9, lex, sigLex||1e-9);   // RÉUTILISE l'OS : (1−μ)·sub + μ·lex, μ=r^α/(β+r^α), r=sigLex/sigSub
+  let _sigS = sigSub;
+  if (M_NEO_SUBMISS_DECAY_ENABLED) { let _k = 0; for (let x = 0; x < 26; x++) { if (!alreadyTried[x]) continue; let _v = false; for (let p = 0; p < L; p++) if (revealedMask[p] && currentWord.charCodeAt(p) - 65 === x) { _v = true; break; } if (!_v) _k++; }
+    if (_k) _sigS = sigSub * Math.pow(M_NEO_SUBMISS_DECAY, _k); }   // VERSUS piste 3 (§7) : les ratés (publics) escomptent le prior agrégé
+  const _mix = M_OS_v07_step(sub, _sigS||1e-9, lex, sigLex||1e-9);   // RÉUTILISE l'OS : (1−μ)·sub + μ·lex, μ=r^α/(β+r^α), r=sigLex/sigSub
   const mix = Float64Array.from(_mix);
   M_OS_v07.alpha=_a; M_OS_v07.beta=_b; M_OS_v07.output=_o; M_OS_v07.r=_r; M_OS_v07.mu=_m;   // restore
   let best=-1, bestL=-1; for (let x=0;x<26;x++){ if(alreadyTried[x]) continue; if(mix[x]>best){ best=mix[x]; bestL=x; } }
@@ -9576,7 +9596,7 @@ const ALLOWED_TOGGLES = [
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_C_HEAVY','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED',
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_C_HEAVY','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED','M_NEO_PARTITION_ENABLED','M_NEO_SUPPORT_ENABLED','M_NEO_SUBMISS_DECAY_ENABLED',
     'M_SANS_LONGUEUR_ENABLED'
 ];
 function ui_initToggles() {
