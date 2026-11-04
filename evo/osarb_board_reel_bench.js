@@ -22,11 +22,15 @@
 //     inter-graines de la réf dépasse à lui seul plusieurs points).
 //   · Δ ≥ +1,0 pt ET au moins 3 graines ≥ leur réf → CANDIDAT (à proposer à Rem, pas à activer).
 //   · Δ ≤ −1,0 pt → CONTRE-INDIQUÉ au board réel. Entre les deux → INDÉCIS, le dire tel quel.
+//
+// ⚠ CFG FIGÉE à l'état d'AVANT la décision du 04/11/2026 (Rem a activé OS_ARB+NGRAM+PHON_COHORT dans
+// la CFG de ci_smoke sur la foi de CETTE mesure) : NE PAS resynchroniser — ce bench rejoue la mesure
+// fondatrice, ses conditions n'ont de sens que sur la CFG d'époque (sinon « réf. » = déjà tout ON).
 'use strict';
 const path = require('path');
 const { loadEngine } = require('./fitness_harness.js');
 
-// Config de référence cheat-free — copiée de evo/sans_longueur_bench.js (elle-même de ci_smoke).
+// Config de référence cheat-free d'AVANT la décision (voir ⚠ ci-dessus) — ne pas resynchroniser.
 const CFG = [
   'L01_A1_M2_ORTHO_ENABLED=false','L01_A2_M4_LEX4_ENABLED=false','L01_A3_M5M_WORDLEX4_ENABLED=false','L01_B2_MOBIUS_ENABLED=false',
   'M_WORD_DECLARE_ENABLED=false','M_IG_SELECT_ENABLED=false','M_IG_PSUCCESS_ENABLED=false','M_BPC_DECLARE_ENABLED=false',

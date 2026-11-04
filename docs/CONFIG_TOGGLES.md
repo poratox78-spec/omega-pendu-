@@ -4,6 +4,13 @@
 > Critère doctrinal unique de triche : **le code lit-il le mot caché pour DÉCIDER ?** (lecture pour MESURER = légitime
 > R67 ; lecture pour DÉCIDER = triche). Source de vérité du preset UI/CI. Mesures : `AUDIT_OMEGA.md`.
 >
+> **MAJ 2026-11-04 (décision Rem — n-gram arbitré au jeu normal).** `M_NEO_OS_ARB_NGRAM` passe **ON** dans le
+> preset UI **et** dans la CFG de référence des bancs (`evo/ci_smoke.js`, qui gagne aussi `M_NEO_PHON_COHORT_ENABLED`
+> + `M_NEO_OS_ARB` : la CFG CI était restée au « mot entendu » 🟠 — le preset UI l'avait corrigé dès le 20/06).
+> Fondement : `evo/osarb_board_reel_bench.js` (4 graines, placebo identique, règle pré-enregistrée) — candidat net,
+> 4/4 graines ≥ réf cheat-free ; triche re-vérifiée absente sur toute la chaîne (AUDIT_SANS_LONGUEUR.md §6).
+> `M_NEO_LETTER_NGRAM` (argmax solo) et `M_NEO_NGRAM_GAP` restent OFF en jeu normal. Défauts moteur INCHANGÉS (R66).
+>
 > **MAJ 2026-06-20 (audit régression + cheat-free strict).** Deux corrections sur `applyReferenceConfig()` :
 > 1. **Préréglage DÉTERMINISTE** — le bouton était ADDITIF (allumait la liste ON sans éteindre le reste). Un toggle
 >    expérimental laissé ON (ex. `M_NEO_LETTER_NGRAM`) **survivait** au préréglage → mesuré **100 %→60 % in-lex**
@@ -79,7 +86,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | `M_NEO_G2P_EXP` | **ON** | g2p **révélé-seul** + pénalité 0,5 (cheat-free strict). | 🟢 apprentissage (révélé only) |
 | `M_NEO_MUTE` / `M_NEO_TRIGGER` | **ON** (preset, 20/06) | muette par le son (croisée, board-dérivée) ; trigger = gate sur l'incertitude. | 🟢 (neutres, cf. MOTEUR_HISTORIQUE §D) |
 | `M_NEO_LETTER_NGRAM` | OFF (OOV) | n-gram de lettres pré-calculé du lexique (cascade OOV-only). | 🟢 agrégation lexique |
-| `M_NEO_OS_ARB_NGRAM` | OFF (OOV) | n-gram = voie sublexicale de l'arbitrage OS (auto-régime). | 🟢 |
+| `M_NEO_OS_ARB_NGRAM` | **ON** (preset+CFG, 04/11/2026) | n-gram = voie sublexicale de l'arbitrage OS (auto-régime, in-lex ET OOV). | 🟢 |
 | `M_NEO_NGRAM_GAP` | OFF (OOV) | n-gram **gap-aware** (plus proche voisin révélé d=1..4). | 🟢 |
 | `M_NEO_C_HEAVY` | OFF | C lourd (transformer) en voie sublexicale. **Mesuré §1.12 : parité, non câblé.** | 🟢 (poids `_neoHeavyC` null par défaut = inerte) |
 | `M_TREXQUANT_MODE` | OFF | retire le mot du lexique → test hors-lexique (honnête après fix) ; depuis le 19/10/2026 allume aussi le n-gram de NEO (arbitré + gap-aware : 21,5 → 57,4 % hors lexique) et le rend en s'éteignant. | mode test |
@@ -106,11 +113,11 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 
 **ON** : A4 · A5 · A6 · φ Voie Phon · φ OS v07 · φ Croisement p · φ Substrat pur · φ Feedback ↓ · bPC M3_d · Couplage
 readout · Couplage readout φ · Concept lié φ · θ Apprentissage + 4 gardes · 🧩 Declare NEO maître · 🔁 recall · 🧬 assemblé
-· 🎯 cohorte · **🟢 son board-dérivé (cohorte phon)** · **🔗 jointe phon×ortho** · **🔁 arbitrage OS** · **🔇 muette** ·
-**🎚️ trigger** · 🧪 g2p révélé (pén 0,5).
+· 🎯 cohorte · **🟢 son board-dérivé (cohorte phon)** · **🔗 jointe phon×ortho** · **🔁 arbitrage OS** ·
+**🔁 n-gram arbitré OS** (04/11/2026, §6) · **🔇 muette** · **🎚️ trigger** · 🧪 g2p révélé (pén 0,5).
 **OFF** : θ EN LIGNE · A1/A2/A3 · B2 · 🎯 Declare mot · 🧠 InfoGain · IG×P(succès) · 🎯 Declare BPC · 🧠 Apprendre depuis
-cognition · declares émergents · g2p online · **🦴 Declare DUAL** (préempté par arbitrage OS, §4) · 🔠/🔁/🧩 voies n-gram
-(régime OOV, §6) · 🧪 C lourd · 🎯 Mode Trexquant.
+cognition · declares émergents · g2p online · **🦴 Declare DUAL** (préempté par arbitrage OS, §4) · 🔠 n-gram cascade
+(argmax solo : écrase la cohorte, §6) · 🧩 gap-aware (OOV, §6) · 🧪 C lourd · 🎯 Mode Trexquant.
 Paramètres : `NEO_CONF=0,75` · `RECALL_MARGIN=0,20` · `G2P_EXP_PEN=0,5` · `PHON_COHORT_JOINTE_CONF=0,30`.
 
 **g2p révélé + pénalité (adopté 14/06)** : `learnExp` n'apprend que des positions révélées (≠ mot complet) + pénalité
@@ -133,6 +140,8 @@ l'apprentissage-par-jeu (`AUDIT_OMEGA §1.7/§1.8`).
   avec la cohorte board ; la fiabilité **bascule auto par régime**. Activation : `M_NEO_OS_ARB + M_NEO_OS_ARB_NGRAM`.
   **Mesuré (N=400) : in-lex 96-99 % (≈ cohorte) · OOV 52-63 % (≈ cascade).** Meilleur/égal dans les 2 régimes, config unique
   → **recommandé** à la place de la cascade (activable sans risque même si on ignore si le mot est in-lex).
+  **ACTIVÉ le 04/11/2026** (décision Rem) dans le preset UI et la CFG des bancs, sur re-mesure in-lexique cheat-free
+  (`evo/osarb_board_reel_bench.js`, cf. MAJ en tête et AUDIT_SANS_LONGUEUR.md §6).
 - **🧩 `M_NEO_NGRAM_GAP`** (C, 1er gain cognitif > substrat) : utilise le **plus proche voisin révélé à distance 1..4**.
   **Mesuré : OOV +2 pts (~63-65 %, bande SOTA), in-lex coût nul.** Falsifié avant lui (ne pas refaire) : lissage par
   substrat `letterVecsSDIM`, pooling position-relative.

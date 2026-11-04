@@ -66,7 +66,8 @@ Mesure (`node evo/sans_longueur_bench.js`, protocole ci_smoke, graines 12345+777
 
 **Bilan FINAL J1→J8** : sans connaître la longueur, le moteur complet joue à **96,7 %** — AU-DESSUS de la
 référence cheat-free avec longueur (**96,3 %** ; directive Rem 04/11 : personne n'entend le mot, l'ancien
-99,6 % était au « mot entendu ») et loin des 37,5 % de la machinerie non adaptée. Moins d'information,
+99,6 % était au « mot entendu ») et loin des 37,5 % de la machinerie non adaptée. *(MAJ 04/11 soir : depuis
+la décision §6 — OS_ARB+NGRAM en référence — le board réel est à 98,8 % et le mode repasse à −2,1 dessous.)* Moins d'information,
 meilleures voies (cohorte flottante J2 + arbitrage OS J4 + jointe J7). Falsifiés/inopérants en route,
 tous documentés : J5b (re-perception M1_d), J6 (M4_phon pré-première-lettre), J8 (brouillard pondéré).
 Le chantier des jonctions est CLOS ; restent des décisions produit (OOV du mode, UI avancée).
@@ -170,3 +171,29 @@ dans l'assemblé, COÛTE. 98,8 % referme l'essentiel de l'écart ouvert en retir
 référence des bancs (ci_smoke — la référence CI passerait à ce chiffre) ? ② ajouter `M_NEO_OS_ARB_NGRAM` au
 préréglage de la page (`applyReferenceConfig` a déjà OS_ARB+JOINTE, pas NGRAM) ? ③ retirer la JOINTE du
 préréglage ou la laisser (elle n'y coûte rien tant qu'OS_ARB tire d'abord — repli seulement) ?
+
+### §6 SOLDÉ — décision Rem 04/11/2026 : ① et ② ACTIVÉS (« si pas de triche » — triche re-vérifiée absente)
+
+Avant d'activer, la chaîne complète a été relue sur pièces (pas sur commentaires) : porte du declare →
+`_neoDeclareOSmix` → `_neoEnsureNG`/`_neoLetterNgramDist` → `_neoEnsureWBL` → `M_OS_v07_step` (save/restore).
+`currentWord` n'est lu que sous `revealedMask`, les tables n-gram et la cohorte viennent du `len_index`
+agrégé, aucun `wp.get(mot caché)`, C lourd hors chemin (`_neoHeavyC` null). **Pas de triche.**
+
+Activé (défauts moteur INCHANGÉS, R66 : les `let` restent false — seuls la CFG des bancs et le préréglage changent) :
+- `evo/ci_smoke.js` : CFG + `M_NEO_PHON_COHORT_ENABLED` + `M_NEO_OS_ARB` + `M_NEO_OS_ARB_NGRAM` — la CFG CI
+  devient VRAIMENT cheat-free (elle laissait l'assemblé « entendre » le mot). Re-mesuré : cognition 93,3
+  (inchangée) · +NEO 99,2 [100·98], planchers tenus, OK.
+- `evo/sans_longueur_bench.js` resynchronisé : board réel +NEO **98,8 %** [100,0·98,3·96,7·100,0] = la
+  nouvelle référence ; **le mode est IDENTIQUE par graine** (91,7 / 96,7) — les 3 toggles sont des no-ops
+  en mode, comme prévu (la couture force déjà ses voies). `evo/osarb_board_reel_bench.js` : CFG FIGÉE à
+  l'état d'avant (il rejoue la mesure fondatrice).
+- Préréglage des 2 pages (`applyReferenceConfig`, original + copie) : + `M_NEO_OS_ARB_NGRAM` (24 ON) —
+  mesuré 96,7 → **98,8 %** board réel (sonde préréglage, 4 graines), mode 96,7 inchangé. La JOINTE y reste
+  (décision ③ ouverte : neutre derrière l'arbitrage). `M_NEO_LETTER_NGRAM` (argmax solo) et `NGRAM_GAP`
+  restent OFF. Le clone EN SUIT mécaniquement (il est GÉNÉRÉ du FR par `dictee/build_pendu_en.py`, garde
+  de fraîcheur en CI) — son winrate sous ce préréglage n'est pas mesuré (lexique différent) : à mesurer
+  si on veut un chiffre EN. La garde `evo/trexquant_ngram_probe.js` suit la décision (le juge suit le
+  produit) : état préréglage attendu = arbitré ON / gap OFF, signal de synchro = gap-aware.
+- ⚠ Conséquence honnête : la référence avec longueur remontant à 98,8, le mode sans longueur (96,7,
+  inchangé) repasse DESSOUS : écart −2,1 — le « mode > référence » du bilan J7 était vrai contre la
+  référence du 04/11 au matin (96,3), qui n'avait pas encore ces voies au board réel.
