@@ -3499,7 +3499,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
      les mots masqués. Miroir Python _url_spans. */
   var _URL_RE=/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}|(?:https?:\/\/|www\.)[^\s<>"«»]+|\b[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)*\.(?:com|fr|net|org|io|eu|be|ch|ca|info|app|dev)\b(?:\/[^\s<>"«»]*)?/gi;
   function _urlSpans(text){var sp=[],m;_URL_RE.lastIndex=0;while((m=_URL_RE.exec(text))){sp.push([m.index,m.index+m[0].length]);if(!m[0].length)_URL_RE.lastIndex++;}return sp;}
-  function _segInfo(text){var _us=_urlSpans(text),ur=[],ss=[],bb=[],hy=[],hyt=[],nl=[],cap=[],dig=[],rw=[],nm=[],sb=[],vg=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));sb.push(/[\n:;]/.test(gap));vg.push(/[,()–—]/.test(gap));hy.push(gap.indexOf('-')>=0);hyt.push(gap==='-');nl.push(gap.indexOf('\n')>=0);cap.push((gap.indexOf('.')>=0&&/\s/.test(gap))&&gap.indexOf('..')<0&&!/\d/.test(gap)&&!(gap.indexOf('.')>=0&&!/\s/.test(gap)&&/^(com|net|org|fr|io|co|eu|de|uk|be|ca|ch|us|info|edu|gov|biz|tv|me|app)$/i.test(m[0])))   /* MAJUSCULE : seulement après un POINT + espace ; PAS ! ? … (interjection « Ah! comme », inversion « viendra-t-il? je », suspension = ~100% FP mesuré banc OQLF/BDL) ni domaine collé « oqlf.gouv ». ss/bb gardent s (bornes de proposition). */;dig.push(/\d/.test(gap));rw.push(m[0]);var _inu=false;for(var _q=0;_q<_us.length;_q++)if(m.index>=_us[_q][0]&&m.index<_us[_q][1]){_inu=true;break;}ur.push(_inu);var _gn=/^\s+(\d{1,3}(?:[ \u00a0\u202f]\d{3})*|\d+)\s+$/.exec(gap);nm.push(_gn?parseInt(_gn[1].replace(/\D/g,''),10):null);prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,hyt:hyt,nl:nl,cap:cap,dig:dig,raw:rw,num:nm,sb:sb,vg:vg,url:ur};}   // sb (14/10/2026, liste n° 20) : frontière FORTE — retour à la ligne, « : », « ; » ; vg : virgule, parenthèse, tiret (PAS les guillemets)   // raw (28/09/2026) : le mot tel que l'AUTEUR l'a écrit — les règles voient les tokens nettoyés par l'orthographe
+  function _segInfo(text){var _us=_urlSpans(text),ur=[],ss=[],bb=[],hy=[],hyt=[],nl=[],cap=[],dig=[],rw=[],nm=[],sb=[],vg=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));sb.push(/[\n:;]/.test(gap));vg.push(/[,()–—]/.test(gap));hy.push(gap.indexOf('-')>=0);hyt.push(gap==='-');nl.push(gap.indexOf('\n')>=0);cap.push(/[!?][ \t]*\n/.test(gap)||(gap.indexOf('.')>=0&&/\s/.test(gap))&&gap.indexOf('..')<0&&!/\d/.test(gap)&&!(gap.indexOf('.')>=0&&!/\s/.test(gap)&&/^(com|net|org|fr|io|co|eu|de|uk|be|ca|ch|us|info|edu|gov|biz|tv|me|app)$/i.test(m[0])))   /* MAJUSCULE : seulement après un POINT + espace ; PAS ! ? … (interjection « Ah! comme », inversion « viendra-t-il? je », suspension = ~100% FP mesuré banc OQLF/BDL) ni domaine collé « oqlf.gouv ». ss/bb gardent s (bornes de proposition). */;dig.push(/\d/.test(gap));rw.push(m[0]);var _inu=false;for(var _q=0;_q<_us.length;_q++)if(m.index>=_us[_q][0]&&m.index<_us[_q][1]){_inu=true;break;}ur.push(_inu);var _gn=/^\s+(\d{1,3}(?:[ \u00a0\u202f]\d{3})*|\d+)\s+$/.exec(gap);nm.push(_gn?parseInt(_gn[1].replace(/\D/g,''),10):null);prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,hyt:hyt,nl:nl,cap:cap,dig:dig,raw:rw,num:nm,sb:sb,vg:vg,url:ur};}   // sb (14/10/2026, liste n° 20) : frontière FORTE — retour à la ligne, « : », « ; » ; vg : virgule, parenthèse, tiret (PAS les guillemets)   // raw (28/09/2026) : le mot tel que l'AUTEUR l'a écrit — les règles voient les tokens nettoyés par l'orthographe
   // C : run-on (ponctuation manquante entre 2 propositions) — VIGILANCE (vert) ; conservateur, anti-inversion (trait d'union)
   var RPRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],nous:['1','p'],vous:['2','p'],ils:['3','p'],elles:['3','p']},RCONJ={};'et ou ni mais car donc or que qu qui dont quand lorsque comme si puisque quoique lequel laquelle pour sans a'.split(' ').forEach(function(w){RCONJ[w]=1;});
   function _isFinite(w){var r=svReads(w),k;for(k=0;k<r.length;k++){var md=r[k][1].split(':')[0];if(md==='ind'||md==='sub'||md==='cnd'||md==='cond'||md==='imp')return true;}return false;}
@@ -7365,7 +7365,8 @@ function spellUnknown(tok,atStart,T,idx){
        usages divergent (France/Québec) : ces marques-là ne sont pas mécaniques, elles restent dehors. */
     var re3=/([A-Za-zÀ-ÿœŒ0-9\)\]»])[ 	]+([,.])(?![.\d])/g;
     while((m=re3.exec(text))){
-      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+m[2],name:'espace avant la ponctuation',tier:'auto',typo:1});}
+      var _nx355=m.input.charAt(m.index+m[0].length),_l355=m[2]===','&&/[A-Za-zÀ-ÿœŒ]/.test(_nx355);   // liste n° 355 : « il pleut ,la route » — l'espace passe APRÈS la virgule
+      out.push({cs:m.index,ce:m.index+m[0].length+(_l355?1:0),from:m[0]+(_l355?_nx355:''),sugg:m[1]+m[2]+(_l355?' '+_nx355:''),name:'espace avant la ponctuation',tier:'auto',typo:1});}
     var re4=/([a-zà-ÿœ]),([A-Za-zÀ-ÿœŒ])/g;
     while((m=re4.exec(text))){
       var _a=m.index; while(_a>0&&!/\s/.test(text[_a-1]))_a--;
@@ -7419,6 +7420,9 @@ function spellUnknown(tok,atStart,T,idx){
     var deja={};for(k=0;k<P.length;k++)if(seg.bb[k])deja[k-1]=1;   // une marque est DÉJÀ posée après le mot k-1
     var tg=null;try{tg=posTags(mots);}catch(e){}
     var idx=null;try{idx=ponctReglesVirgule(mots,tg,deja);}catch(e){return out;}
+    /* ⭐ 04/11/2026 (liste n° 355) : la virgule après « Cependant », « Toutefois », « En effet »… en tête de phrase ne se posait qu'au PREMIER mot du texte ;
+       chaque début de phrase compte (« Il pleut. Cependant le car part »), avec les mêmes gardes : pas devant « que », trois mots au moins derrière. */
+    if(idx&&idx.add&&typeof longueurTete==='function'&&typeof estQue==='function')for(k=1;k<P.length;k++){if(!seg.ss[k]||/\.\.|…/.test(text.slice(P[k-1][1],P[k][0])))continue;var nT=longueurTete(mots,k);if(!nT||k+nT>=P.length||estQue(mots[k+nT]))continue;var f=k+nT;while(f<P.length&&!seg.ss[f])f++;if(f-(k+nT)>=3)idx.add(k+nT-1);}
     if(!idx||!idx.forEach)return out;
     idx.forEach(function(i){
       if(i<0||i+1>=P.length)return;
@@ -7489,7 +7493,7 @@ function spellUnknown(tok,atStart,T,idx){
         &&_qm.index+_qs.length>=text.length              // DERNIER segment du texte
         &&';:,'.indexOf(_qlast)<0                        // ; : , sont déjà une ponctuation
         &&_qcorps.trim().split(/\s+/).length>=3          // pas un fragment d'un mot ou deux
-        &&_aVerbeConj(text.slice(text.lastIndexOf('\n')+1))){                         // ⭐ 14/10/2026 (liste n° 19) : une PHRASE (verbe conjugué), pas un titre, une puce, un numéro
+        &&_aVerbeConj(text.replace(/\s+$/,'').slice(text.replace(/\s+$/,'').lastIndexOf('\n')+1))){   // liste n° 355 : la dernière ligne NON VIDE — un texte qui finit par un retour à la ligne perdait son point final                         // ⭐ 14/10/2026 (liste n° 19) : une PHRASE (verbe conjugué), pas un titre, une puce, un numéro
       var _pe=_qm.index+_qfin.length;
       out.push({cs:_pe,ce:_pe,from:'',sugg:'.',name:'point final',tier:'vigilance',typo:1});
       continue;
