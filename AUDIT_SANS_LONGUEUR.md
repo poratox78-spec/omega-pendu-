@@ -198,3 +198,45 @@ Activé (défauts moteur INCHANGÉS, R66 : les `let` restent false — seuls la 
 - ⚠ Conséquence honnête : la référence avec longueur remontant à 98,8, le mode sans longueur (96,7,
   inchangé) repasse DESSOUS : écart −2,1 — le « mode > référence » du bilan J7 était vrai contre la
   référence du 04/11 au matin (96,3), qui n'avait pas encore ces voies au board réel.
+
+## 7. VERSUS mot à mot (question Rem 04/11/2026) : les deux configs échouent sur des mots DIFFÉRENTS
+
+Sonde appariée tracée (scratch, protocole du bench, 12 graines = les 4 canoniques + 8 de récolte,
+720 mots, le sort de CHAQUE mot de test enregistré lettre à lettre PENDANT la course — un rejeu isolé ne
+reproduirait pas la partie, l'état du moteur évolue de partie en partie). Contrôle : les 4 graines
+canoniques rendent les chiffres du bench à l'identique. Piège d'instrumentation payé : `endCurrentGame`
+efface `alreadyTried` au tick final → la DERNIÈRE lettre de chaque partie (la 6e faute, ou la gagnante)
+est invisible dans une trace par diff — toute perte affiche « 5 fautes », c'est un artefact.
+
+**Mesuré (12 graines : réf 97,1 % · mode 93,5 %)** : 52 mots discordants — le mode seul en perd 39, la
+réf seule 13, perdus par les deux : 8. Le recouvrement des échecs est quasi nul : à information
+différente, les parties divergent au 2e-3e coup et les erreurs sont largement INDÉPENDANTES.
+
+- **Où la réf perd et le mode gagne (13)** : cohortes DENSES à longueur connue — familles de flexions et
+  voisins (?A??EURS → TABLEURS/CHALEURS/HABLEURS ; ?A?ERAIENT → LAVERAIENT/GAVERAIENT/PAMERAIENT…) où
+  l'argmax fréquence teste les voisins un à un et brûle les 6 vies. Le classement du mode, agrégé sur
+  toutes les longueurs, est DÉCORRÉLÉ : il tombe parfois plus tôt sur la lettre discriminante (V de
+  GAVERAIENT, B/L de HABLEURS).
+- **Où le mode seul perd (39)** : signature d'ouverture quasi FIXE « E S U N D T » (≈ ¼ des pertes la
+  montrent telle quelle) : 5 vies brûlées sans presque rien révéler. Mécanisme lu sur pièces :
+  ① les tables du n-gram relatif (`_slNgramDist`) sont des agrégats du lexique entier — un raté RETIRE la
+  lettre (`addPos` saute `alreadyTried`) mais ne REPONDÈRE jamais le classement ; ② la cohorte flottante,
+  elle, intègre bien les ratés (`_slCompatible(m, schéma, tried)`) mais l'arbitrage pèse par le « piqué »
+  (r = sigLex/sigSub, `_neoDeclareOSmix`) : cohorte énorme = distribution plate = jugée peu fiable → le
+  n-gram piqué-mais-aveugle-aux-ratés garde la main plusieurs coups de trop. Le plat du début de partie
+  est de l'incertitude honnête ; le piqué du n-gram est de la sur-confiance d'agrégat.
+- **Perdus par les deux (8)** : mots à motifs rares (HOBEREAUX, OXIDANT, VIVOTEZ…) — noyau dur ~1 %.
+
+**Pistes d'amélioration GLOBALES (à mesurer au protocole, placebo, rien d'activé — décisions à Rem) :**
+1. **Mode — l'évidence négative doit atteindre la voie sublexicale** : restreindre/renormaliser la
+   distribution n-gram au SUPPORT de la cohorte flottante (lettres encore présentes dans les candidats
+   survivants), et/ou décroître sigSub après des ratés produits par cette voie. ≠ J8 (repondérer le
+   CONTENU des tables : inopérant) — ici c'est le poids d'arbitrage et le support. Cible : les 39.
+2. **Board réel — cohorte dense en fin de partie** : quand la cohorte (longueur connue) est petite et
+   quasi équiprobable, choisir la lettre qui PARTITIONNE le mieux les candidats (gain d'information)
+   plutôt que l'argmax fréquence. Gater à « cohorte ≤ N ». Vérifier l'histoire de `M_IG_SELECT` (OFF
+   baseline) avant de re-mesurer un mort. Cible : les 13 + une part des 8.
+3. **Général — le prior alternatif comme second avis** : 13 mots gagnés avec MOINS d'information
+   prouvent la décorrélation des erreurs ; après k ratés d'affilée d'une voie, donner la main au prior
+   alternatif (agrégé toutes longueurs ⟷ conditionné longueur) plutôt que persister — extension du
+   principe OS-arb à « même voie, autre prior ».
