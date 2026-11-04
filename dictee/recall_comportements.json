@@ -776,7 +776,22 @@
 "Elle a cinq heures pour finir.",
 "Mon rêve c'est voyager.",
 "Le club invite ses membres à décorer leur salle.",
-"Il connaît le Grand Village ou la ville voisine, puis il part."
+"Il connaît le Grand Village ou la ville voisine, puis il part.",
+"Les vagues sont hautes ce soir.",
+"Les invités étaient ravis et un peu surpris.",
+"Le prix est bas et la qualité bonne.",
+"La bague du roi incrustée de perles brille.",
+"Le nombre des visiteurs est important.",
+"A-t-il compris ?",
+"A lire avant samedi, le règlement du club.",
+"Le village où habitent trois familles est calme.",
+"Vous êtes tous conviés au repas.",
+"Est-il passé ?",
+"A-t-il mangé ?",
+"Les colis peuvent être livrés demain.",
+"La salle peut être fermée le soir.",
+"La dame et le chat sont seuls.",
+"Votre carte nous a beaucoup touchés. La fête est finie."
 ],
 "elide": [
 [
@@ -1491,11 +1506,6 @@
 ],
 [
 "a cause du froid il reste.",
-"a",
-"à"
-],
-[
-"Il pleut. a partir de demain il fera beau.",
 "a",
 "à"
 ],
@@ -3028,6 +3038,171 @@
 "Il faut réparer la machine où de nous la changer.",
 "où",
 "ou"
+],
+[
+"Les invités étaient contents et un peu fatigué.",
+"fatigué",
+"fatigués"
+],
+[
+"Les salles sont propres et les tarifs reste correct.",
+"correct",
+"corrects"
+],
+[
+"Sont absent : Léa et Hugo.",
+"absent",
+"absents"
+],
+[
+"On mange des fruits avec du beurre fondue.",
+"fondue",
+"fondu"
+],
+[
+"Les voiles étaient blanche ce matin.",
+"blanche",
+"blanches"
+],
+[
+"Les livres sont lourd.",
+"lourd",
+"lourds"
+],
+[
+"Les nappes sèchent dehors : je les ai plié.",
+"plié",
+"pliées"
+],
+[
+"Une chambre a louer près de la gare.",
+"a",
+"à"
+],
+[
+"Prix : 80 euros, a débattre.",
+"a",
+"à"
+],
+[
+"Vélo a vendre.",
+"a",
+"à"
+],
+[
+"Ma mère a louer un appartement.",
+"louer",
+"loué"
+],
+[
+"Le chat a jouer dans le jardin.",
+"jouer",
+"joué"
+],
+[
+"Bonjour,\na compter du 9 mars, le bureau ferme.",
+"a",
+"À"
+],
+[
+"Les vieilles chaises sont là : nous les avons rangé hier.",
+"rangé",
+"rangées"
+],
+[
+"Il a compter ses billes.",
+"compter",
+"compté"
+],
+[
+"On se retrouve a cinq où a six chaque matin devant le stade.",
+"où",
+"ou"
+],
+[
+"Prends deux où trois pommes.",
+"où",
+"ou"
+],
+[
+"Il pleut. a partir de demain il fera beau.",
+"a",
+"À"
+],
+[
+"Il a mangé. a la cantine, on rit.",
+"a",
+"À"
+],
+[
+"Chers voisin,\nNous fêtons nos dix ans.",
+"voisin",
+"voisins"
+],
+[
+"Vous êtes tous convié au repas.",
+"convié",
+"conviés"
+],
+[
+"Venez costumé si vous voulez.",
+"costumé",
+"costumés"
+],
+[
+"Si le colis arrive, dite-le-moi.",
+"dite",
+"dites"
+],
+[
+"Si le moteur chauffe, arrêté-le.",
+"arrêté",
+"arrêtez"
+],
+[
+"Donné-moi la clé.",
+"Donné",
+"Donnez"
+],
+[
+"Le cours est fini. apporté aussi vos classeurs demain.",
+"apporté",
+"Apportez"
+],
+[
+"Relisez bien. écrivé vos noms en haut.",
+"écrivé",
+"Écrivez"
+],
+[
+"Je pars. versé le lait chaud.",
+"versé",
+"Versez"
+],
+[
+"Les bureaux doive être fermé le soir.",
+"doive",
+"doivent"
+],
+[
+"Les colis peuvent être livré demain.",
+"livré",
+"livrés"
+],
+[
+"Les tables doivent être nettoyé le soir.",
+"nettoyé",
+"nettoyées"
+],
+[
+"La salle peut être fermé le soir.",
+"fermé",
+"fermée"
+],
+[
+"Au début, la dame et seul dans sa grande maison.",
+"seul",
+"seule"
 ]
 ],
 "palier": [
@@ -3264,6 +3439,16 @@
 [
 "Laisser-le refroidir une heure.",
 "Laisser",
+"vigilance"
+],
+[
+"Les nappes sèchent dehors : je les ai plié.",
+"plié",
+"vigilance"
+],
+[
+"Le soir, nous mangeons des crêpes salé sur le port.",
+"salé",
 "vigilance"
 ]
 ],
