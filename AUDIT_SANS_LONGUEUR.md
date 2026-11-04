@@ -60,14 +60,16 @@ Mesure (`node evo/sans_longueur_bench.js`, protocole ci_smoke, graines 12345+777
 | J5b re-perception M1_d (4 graines) | **87,1 % — FALSIFIÉ** [90,0·88,3·86,7·83,3] | 95,0 % | ré-init des producteurs au décalage d'ancre : 4/4 graines en recul — la mémoire EMA désalignée porte plus de signal que le coût du désalignement. REVERTÉ (retour 91,7/95,0 revérifié à l'identique). Ne pas re-tenter sans idée neuve |
 | J6 M4_phon pré-première-lettre (4 graines) | **88,3 % — FALSIFIÉ** [91,7·93,3·86,7·81,7] | 95,0 % (parties identiques) | ouvrir M4_phon sur la cohorte PLEINE avant la première lettre juste : neutre machine complète (les declares préemptent), cognition seule −3,4 pts (3/4 graines) — le choix J2 (muet) est CONFIRMÉ par la mesure. REVERTÉ (identité revérifiée), note dans le code |
 | J7 JOINTE phon-cohorte en mode (4 graines) | 91,7 % (inchangé ✓) | **96,7 %** [96,7·98,3·96,7·95,0] | **GARDÉ (+1,7)** : la voie sublexicale de l'arbitrage essaie d'abord la JOINTE (§3, distribution molle FLOTTANTE de J2), repli n-gram relatif si cohorte muette. La graine 777 remonte 90,0→98,3. **Le mode DÉPASSE la référence cheat-free avec longueur (96,7 > 96,3)** — pas une fuite : moins d'info mais de meilleures voies (OS-arb J4 + jointe J7, que la cascade de référence n'utilise pas) ; board réel A=B graine par graine |
+| J8 brouillard pondéré par P(débord) (4 graines) | 91,7 % (inchangé) | 96,7 % — **parties IDENTIQUES** | **REVERTÉ (inopérant)** : depuis J7, le n-gram (et son brouillard) n'est que le repli quand la cohorte phon est muette — quasi jamais in-lexique. Mesuré B=A à l'identique absolu. À ne re-tenter que si ce repli redevient primaire (OOV du mode), note au site du code |
 | — ancienne référence board réel (4 graines, CFG ci_smoke pure) | 93,8 % | 99,6 % | ⚠ chiffre au « MOT ENTENDU » (assemblé NEO lit wp.get du mot caché, le 🟠 du census CODE_MAP §3) — ne plus le citer comme référence du chantier |
 | — **référence board réel CHEAT-FREE** (4 graines, directive Rem 04/11) | 93,8 % | **96,3 %** [98,3·96,7·96,7·93,3] | le bench pose désormais `M_NEO_PHON_COHORT_ENABLED=true` sur les conditions +NEO : personne n'entend le mot. No-op en mode (voies déjà forcées → chiffres J1→J6 comparables). **Écart réel du mode : −2,1 pts cognition · −1,3 pt +NEO** (et par graine : 1 perdue, 1 gagnée, 2 égales) |
 
-**Bilan J1→J7** : sans connaître la longueur, le moteur complet joue à **96,7 %** — AU-DESSUS de la
+**Bilan FINAL J1→J8** : sans connaître la longueur, le moteur complet joue à **96,7 %** — AU-DESSUS de la
 référence cheat-free avec longueur (**96,3 %** ; directive Rem 04/11 : personne n'entend le mot, l'ancien
 99,6 % était au « mot entendu ») et loin des 37,5 % de la machinerie non adaptée. Moins d'information,
-meilleures voies (cohorte flottante + arbitrage OS + jointe). Falsifiés en route : J5b, J6 (voir table).
-Reste engagé : J8 (brouillard pondéré par la distribution des longueurs de la cohorte).
+meilleures voies (cohorte flottante J2 + arbitrage OS J4 + jointe J7). Falsifiés/inopérants en route,
+tous documentés : J5b (re-perception M1_d), J6 (M4_phon pré-première-lettre), J8 (brouillard pondéré).
+Le chantier des jonctions est CLOS ; restent des décisions produit (OOV du mode, UI avancée).
 
 **UI du mode — LIVRÉE (04/11/2026)** : interrupteur dans le panneau de config (toggle-item
 `M_SANS_LONGUEUR_ENABLED`, `ui_toggle`) + case à cocher dans le panneau de jeu + panneau « CE QUE LA
