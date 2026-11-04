@@ -3059,7 +3059,7 @@ function ponctInterdit(mots, tg, i) {
 
 /* `deja` = les indices qui portent DÉJÀ une marque (posées par le modèle statistique et, dans la
    saisie vocale, par l'ancre audio). Les règles en ont besoin — voir le filtre final. */
-function ponctReglesVirgule(mots,_tg,deja){
+function ponctReglesVirgule(mots,_tg,deja,fin){   // fin (liste n° 361) : les mots suivis d'une FIN DE PHRASE (. ! ?) ; absent dans la saisie vocale
   var tg=_tg||posTags(mots)||[], out=new Set();
   // R2 — coordonnant EN TÊTE : virgule APRÈS.
   var nT = longueurTete(mots, 0);
@@ -3105,11 +3105,12 @@ function ponctReglesVirgule(mots,_tg,deja){
     // par la règle. « pas de faire du profit, mais d'habiter » coordonne deux infinitifs, pas
     // deux phrases — la source ne demande pas de virgule là.
     var suj = -1;
-    for (var k = i + n; k < Math.min(mots.length, i + n + 4); k++)
-      if (tg[k] === 'PRON' || tg[k] === 'NOUN' || tg[k] === 'PROPN' || tg[k] === 'DET') { suj = k; break; }
+    for (var k = i + n; k < Math.min(mots.length, i + n + 4); k++) {
+      if (k > i + n && fin && fin[k - 1]) break;   // liste n° 361 : la fin de phrase de l'auteur arrête la recherche (une virgule, non) (« … mais très jolie. Il fait beau » : « Il » est dans la phrase suivante)
+      if (tg[k] === 'PRON' || tg[k] === 'NOUN' || tg[k] === 'PROPN' || tg[k] === 'DET') { suj = k; break; } }
     if (suj < 0) continue;
     var vAp = false;
-    for (var k = suj + 1; k < Math.min(mots.length, suj + 5); k++) if (VERBAL[tg[k]] === 1) { vAp = true; break; }
+    for (var k = suj + 1; k < Math.min(mots.length, suj + 5); k++) { if (fin && fin[k - 1]) break; if (VERBAL[tg[k]] === 1) { vAp = true; break; } }
     var vAv = false;
     for (var k = 0; k < i; k++) if (VERBAL[tg[k]] === 1) { vAv = true; break; }
     if (vAv && vAp) out.add(i - 1);
@@ -4012,7 +4013,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
   var _ADJN_PREP={sans:1,de:1,'à':1,en:1,par:1,pour:1,avec:1,contre:1,entre:1,sur:1,sous:1,dans:1,chez:1,vers:1};
   function rAdjNumber(T,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw);   // accord de NOMBRE de l'épithète ÉPICÈNE après déterminant PLURIEL (« les contrats fragile »→fragiles). Épicène + liste close → jamais de flip de genre ni de nom/verbe. -s muet = audible-safe.
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
-    if(!_EPICENE_ADJ[d])return null;
+    if(!_EPICENE_ADJ[d]||/é$/.test(lw))return null;   // liste n° 361 : « des crêpes salé » — « salé » sans accent est « sale » (épicène) ; un adjectif en -é a son féminin en -ée, il n'est jamais épicène
     if(i<2)return null;
     var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ'||tg[i-1]!=='NOUN')return null;
     if(!PLURAL_DET[deacc(T[i-2].toLowerCase())]){   // ⭐ 21/10/2026 (ligne 133 b) : nom pluriel SANS déterminant derrière une préposition (« avec crayons rouge ») ; abstention si un nom singulier précède (« un port de marchandises international », UD) — miroir Python
@@ -5309,7 +5310,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
     if(i+1<T.length&&h[i+1]&&!_HY_PRON[lw(i+1)]&&!_HY_INCL[lw(i+1)])return true;   // élément suivi d'un trait d'union : jamais d'accord dessus
     var f=lw(_hyFirst(T,i));return !!(_HY_VN[f]||_HY_NUM[f]);}                      // dernier élément (nom tête) : ses accords restent, sauf verbe-nom ou nombre
   function _hyInv(T,i){return !!(_SEG&&_SEG.hyt&&i+1<T.length&&_SEG.hyt[i+1]&&_HY_SUJ[String(T[i+1]).toLowerCase()]);}   // « écoulent-ils »
-  function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){if(_SEG&&_SEG.url&&_SEG.url[i])continue;var _hc43=_hyGram(T,i),_hi43=_hyInv(T,i);for(var r=0;r<CRULES.length;r++){   /* ⭐ liste n° 22 : mot d'une adresse → aucune règle */if(_hc43&&CRULES[r][0]!=='majuscule'&&CRULES[r][0]!=='vingt/cent'&&!CRULES[r][1]._hy)continue;if(_hi43&&/^accord (sujet-verbe|verbe|du verbe)/.test(CRULES[r][0]))continue;   /* ⭐ liste n° 43 : élément de composé à trait d'union */var dec=CRULES[r][1](T,i);if(dec==null)continue;if(CRULES[r][0]==='accord sujet-verbe'&&i>0&&deacc(T[i-1].toLowerCase())==='en'&&gerondifVig(T,i))continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null,_sp=(typeof dec==='object'&&dec.span>=2)?dec.span:null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){var _f={i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||_tierOf(T,i,CRULES[r][0],_sg)};if(_vg){_f.vigRule=1;if(dec.chaine)_f.chaineOk=1;}if(_sp)_f.span=_sp;out.push(_f);break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST PORTÉ PAR LE FLAG (audit 2026-08-11, miroir app). Avant tier=null : content.js n'applique que `tier==='auto'`, donc l'extension ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut — le même texte était corrigé sur le site et seulement signalé ici. {sugg,vig:1} → 'vigilance' (orange) ; sinon rouge, et il le DIT. */
+  function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){if(_SEG&&_SEG.url&&_SEG.url[i])continue;var _hc43=_hyGram(T,i),_hi43=_hyInv(T,i);for(var r=0;r<CRULES.length;r++){   /* ⭐ liste n° 22 : mot d'une adresse → aucune règle */if(_hc43&&CRULES[r][0]!=='majuscule'&&CRULES[r][0]!=='vingt/cent'&&!CRULES[r][1]._hy)continue;if(_hi43&&/^accord (sujet-verbe|verbe|du verbe)/.test(CRULES[r][0]))continue;   /* ⭐ liste n° 43 : élément de composé à trait d'union */var dec=CRULES[r][1](T,i);if(dec==null)continue;if(CRULES[r][0]==='accord sujet-verbe'&&i>0&&deacc(T[i-1].toLowerCase())==='en'&&gerondifVig(T,i))continue;var _sg=(typeof dec==='object')?dec.sugg:dec;if(CRULES[r][0]!=='majuscule'&&typeof _sg==='string'&&T[i]===T[i].toLowerCase()&&_SEG&&_SEG.cap&&i<_SEG.cap.length&&_SEG.cap[i]&&_sg.charAt(0)!==_sg.charAt(0).toUpperCase())_sg=_sg.charAt(0).toUpperCase()+_sg.slice(1);   /* liste n° 361 : « neuf. a la cantine » → « À » : en tête de phrase, la majuscule entre dans la même proposition */var _vg=(typeof dec==='object'&&dec.vig)?'vigilance':null,_sp=(typeof dec==='object'&&dec.span>=2)?dec.span:null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){var _f={i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||_tierOf(T,i,CRULES[r][0],_sg)};if(_vg){_f.vigRule=1;if(dec.chaine)_f.chaineOk=1;}if(_sp)_f.span=_sp;out.push(_f);break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST PORTÉ PAR LE FLAG (audit 2026-08-11, miroir app). Avant tier=null : content.js n'applique que `tier==='auto'`, donc l'extension ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut — le même texte était corrigé sur le site et seulement signalé ici. {sugg,vig:1} → 'vigilance' (orange) ; sinon rouge, et il le DIT. */
   function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var _Tpb=toks(text);_SEG.pb=_predBounds(_Tpb,_SEG);return correctTokens(_Tpb);}   // enveloppe : grammaire sur le texte brut (miroir app) + bornes prédites (canal pb)
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
@@ -7447,7 +7448,7 @@ function spellUnknown(tok,atStart,T,idx){
     var mots=P.map(function(p){return p[2].replace(/[’ʼ]/g,"'");}),seg=_segInfo(text),k;
     var deja={};for(k=0;k<P.length;k++)if(seg.bb[k])deja[k-1]=1;   // une marque est DÉJÀ posée après le mot k-1
     var tg=null;try{tg=posTags(mots);}catch(e){}
-    var idx=null;try{idx=ponctReglesVirgule(mots,tg,deja);}catch(e){return out;}
+    var idx=null;try{var fin={};for(k=1;k<P.length;k++)if(seg.ss[k])fin[k-1]=1;idx=ponctReglesVirgule(mots,tg,deja,fin);}catch(e){return out;}
     /* ⭐ 04/11/2026 (liste n° 355) : la virgule après « Cependant », « Toutefois », « En effet »… en tête de phrase ne se posait qu'au PREMIER mot du texte ;
        chaque début de phrase compte (« Il pleut. Cependant le car part »), avec les mêmes gardes : pas devant « que », trois mots au moins derrière. */
     if(idx&&idx.add&&typeof longueurTete==='function'&&typeof estQue==='function')for(k=1;k<P.length;k++){if(!seg.ss[k]||/\.\.|…/.test(text.slice(P[k-1][1],P[k][0])))continue;var nT=longueurTete(mots,k);if(!nT||k+nT>=P.length||estQue(mots[k+nT]))continue;var f=k+nT;while(f<P.length&&!seg.ss[f])f++;if(f-(k+nT)>=3)idx.add(k+nT-1);}

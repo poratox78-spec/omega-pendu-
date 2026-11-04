@@ -50,6 +50,7 @@ for (const [t, nom, sg] of [['Le chat dort sur le canapé\n', 'point final', '.'
 }
 for (const t of ['Ah! comme il est grand.', 'Tu viens ? je pars.']) { if (marques(t).some((x) => x.name === 'majuscule')) err.push('liste n° 355 : « ' + t + ' » : majuscule de trop après « ! » ou « ? » sans retour à la ligne'); }
 if (marques('Le café est bon.. enfin un endroit où on respire.').some((x) => x.name === 'virgule' && !x.juge)) err.push('liste n° 355 : virgule après « enfin » derrière des points de suspension');
+if (marques('La maison est petite mais très jolie. Il fait beau tous les jours.').some((x) => x.name === 'virgule' && !x.juge)) err.push('liste n° 361 : virgule devant « mais » lue sur la phrase suivante');
 for (const t of ['Il regarde par la fenêtre pendant que sa fille dessine un bateau.', 'Nous mangerons des crêpes samedi soir chez ma tante']) { const f = marques(t).filter((x) => x.juge && x.typo); if (f.length) err.push('« ' + t + ' » : fausse ponctuation ' + JSON.stringify(f.map((x) => x.name))); }
 for (const [w, ms] of [['parle', ['parlé', 'parlent']], ['parlé', ['parler', 'parlez']]]) { const c = D._juge.cands(w).map((x) => x.m); for (const m of ms) if (!c.includes(m)) err.push('candidats de « ' + w + ' » : ' + m + ' manque'); }
 
