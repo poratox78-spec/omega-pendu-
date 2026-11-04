@@ -69,3 +69,7 @@ Les parents qui le {souhaite|souhaitent|C} {pourrons|pourront|C} rester pour boi
 Les enfants {on|ont|G} déjà choisi {leur|leurs|N} costumes : le thème sera les pirates. Venez {déguisé|déguisés|N} si vous le {voulé|voulez|C}, {sa|ça|G} sera plus drôle{|!|P|.}
 {a|À|G} très bientôt,
 Sophie et Marc
+=== T12 règle du jeu
+Le jeu se joue {a|à|G} deux {où|ou|G} {a|à|G} quatre{|.|P} {chaque|Chaque|P} joueur {reçois|reçoit|C} sept {carte|cartes|N}. Le plus jeune {commance|commence|O} : il pose une carte au {millieu|milieu|O} de la table. {ensuite|Ensuite|P}{|,|P} chacun joue {a|à|G} son tour{ ,|, |P}dans le sens des {aiguille|aiguilles|N} d'une montre.
+Si tu {doit|dois|C} passer ton tour, tu {pioche|pioches|C} une carte. {attention|Attention|P} ! Les cartes {spécials|spéciales|N} {change|changent|C} le sens du jeu. Le premier qui n'a plus de cartes {à|a|G} {gagner|gagné|C} la partie.
+Bonne partie !
