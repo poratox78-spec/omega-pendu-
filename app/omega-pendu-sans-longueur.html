@@ -6419,6 +6419,10 @@ function _slNgramDist() {   // distribution lettre (26) : cases '?' du schéma (
     addPos(pos);
   }
   if (L) { addPos(_nz(NG.br[s.charAt(0)])); addPos(_nz(NG.bl[s.charAt(L - 1)])); }   // brouillard d=1 : avant le schéma (voisine droite = 1re lettre) et après (voisine gauche = dernière)
+  // J8 REVERTÉ (04/11/2026) : pondérer ces 2 cases par P(le mot déborde du schéma), comptée sur les
+  // alignements de la cohorte, est INOPÉRANT depuis J7 — parties IDENTIQUES 4 graines (96,7 %) : ce
+  // n-gram n'est plus que le repli quand la cohorte phon est muette, quasi jamais in-lexique. À ne
+  // re-tenter que si ce repli redevient une voie primaire (OOV du mode, cohorte vide).
   return any ? score : null;
 }
 let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée+muette) vient du consensus phonémique de la cohorte board-compatible, PAS de wp.get(mot). Supprime la lecture du son du mot caché. OFF par défaut.
