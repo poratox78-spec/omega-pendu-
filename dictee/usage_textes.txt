@@ -131,3 +131,7 @@ Une partie de l'eau {et|est|G} {absorbé|absorbée|G} par les plantes ; le reste
 Petit rappel pour la semaine : c'est moi qui {fait|fais|C} les courses mardi, puis Léa passe l'aspirateur jeudi. Les {assiette|assiettes|N} sales ne {reste|restent|C} pas dans l'évier, ni sur la table. On {à|a|G} voté ces règles ensemble, mais, comme la dernière fois, personne ne les {suis|suit|C} vraiment.
 {quand|Quant|G} au salon, éteignez la {lumiére|lumière|O} en partant et ne laissez rien traîner dans le {frigot|frigo|O}. Si vous rentrez tard{|,|P} parlez doucement : nos {voisin|voisins|N} se lèvent tôt.
 {merçi|Merci|O} à tous !
+=== T26 discours d'anniversaire
+Chers amis,
+Merci d'être venus si {nombreu|nombreux|O} ce soir. Quand j'étais petit, ma grand-mère me {racontai|racontait|C} des histoires le soir {ou|où|G} je ne dormais pas. Elle n'est jamais en {retart|retard|O}, elle {prefere|préfère|O} le thé au café et elle connaît le prénom de tous ses {petit-enfant|petits-enfants|N}.
+Pour ses soixante-dix ans, nous {voulion|voulions|C} lui offrir un voyage {a|à|G} Rome. {levont|Levons|C} nos verres : Mamie{|,|P} nous t'aimons. {joyeu|Joyeux|O} anniversaire !

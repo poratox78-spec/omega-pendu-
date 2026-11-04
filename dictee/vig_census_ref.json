@@ -1,7 +1,7 @@
 {
- "justes": 401,
- "pointeuses": 213,
- "fatigue": 125,
+ "justes": 403,
+ "pointeuses": 211,
+ "fatigue": 126,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -263,6 +263,7 @@
   "poru→pour [orthographe] inversion",
   "poru→pour [orthographe] inversion",
   "poru→pour [orthographe] inversion",
+  "possèed→possède [orthographe] inversion",
   "pottentialisation→potentialisation [mot inconnu] lettre_trop",
   "pourr→pour [orthographe] lettre_trop",
   "pourr→pour [orthographe] lettre_trop",
@@ -336,6 +337,7 @@
   "sièges→siège [accord singulier nom] accord",
   "snt→sont [orthographe] lettre_manque",
   "sommelire→sommelier [mot inconnu] inversion",
+  "sond→sont [orthographe] lettre_change",
   "sonmes→sommes [orthographe] lettre_change",
   "sonnt→sont [orthographe] lettre_trop",
   "sonnt→sont [orthographe] lettre_trop",
