@@ -791,7 +791,9 @@
 "Les colis peuvent être livrés demain.",
 "La salle peut être fermée le soir.",
 "La dame et le chat sont seuls.",
-"Votre carte nous a beaucoup touchés. La fête est finie."
+"Votre carte nous a beaucoup touchés. La fête est finie.",
+"La salle à manger est grande.",
+"Une salle à manger."
 ],
 "elide": [
 [
@@ -3203,6 +3205,16 @@
 "Au début, la dame et seul dans sa grande maison.",
 "seul",
 "seule"
+],
+[
+"Hier, mon cousin à gagner le tournoi.",
+"à",
+"a"
+],
+[
+"Hier, mon cousin à gagner le tournoi.",
+"gagner",
+"gagné"
 ]
 ],
 "palier": [
