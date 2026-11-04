@@ -30307,7 +30307,7 @@ function ponctReglesVirgule(mots,_tg,deja,fin){   // fin (liste n° 361) : les m
       if (tg[k] === 'PRON' || tg[k] === 'NOUN' || tg[k] === 'PROPN' || tg[k] === 'DET') { suj = k; break; } }
     if (suj < 0) continue;
     var vAp = false;
-    for (var k = suj + 1; k < Math.min(mots.length, suj + 5); k++) { if (fin && fin[k - 1]) break; if (VERBAL[tg[k]] === 1) { vAp = true; break; } }
+    for (var k = suj + 1; k < Math.min(mots.length, suj + 5); k++) { if (fin && fin[k - 1]) break; if (deja && deja[k - 1] && tg[suj] !== 'PRON') break; if (VERBAL[tg[k]] === 1) { vAp = true; break; } }   // liste n° 367 : un sujet NOM trouve son verbe avant la virgule suivante de l'auteur (« … puis le port voisin, connu pour… » n'ouvre pas une proposition)
     var vAv = false;
     for (var k = 0; k < i; k++) if (VERBAL[tg[k]] === 1) { vAv = true; break; }
     if (vAv && vAp) out.add(i - 1);
