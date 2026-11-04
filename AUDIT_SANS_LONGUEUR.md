@@ -56,7 +56,15 @@ Mesure (`node evo/sans_longueur_bench.js`, protocole ci_smoke, graines 12345+777
 | J2 cohorte flottante (2 graines) | **92,5 %** | 92,5 % | M4_phon nourri ; assemblé encore muet |
 | J3 assemblé board-dérivé (4 graines) | 91,7 % [93,3·91,7·90,0·91,7] | **93,3 %** [86,7·96,7·96,7·93,3] | +NEO > cognition sur 3/4 graines (à 2 graines c'était ambigu : 91,7 vs 92,5 — règle pré-enregistrée, tranché à 4) |
 | J4 OS-arb : n-gram relatif ⟷ cohorte flottante (4 graines) | 91,7 % (inchangé ✓) | **95,0 %** [98,3·90,0·98,3·93,3] | seuil pré-enregistré ≥93,3 tenu ; l'arbitrage récupère la graine 12345 (86,7→98,3) |
-| — référence board réel (4 graines) | 93,8 % | 99,6 % | l'écart restant (~4,6 pts) = J5 recall re-ancré + perception (ancre M1_d, M4_phon muet pré-première-lettre) |
+| J5a recall re-ancré (4 graines) | 91,7 % | 95,0 % (parties identiques à J4) | **gardé pour CORRECTION, pas pour gain** : l'ancien gate (`longueur candidat == empan`) compare des grandeurs incomparables ; le re-ancrage (projection du schéma par décalage, banc dans son repère) TIRE (12 tirs/180 parties, diag `_neoDbg`) mais à effet net nul — l'OS-arb aurait proposé pareil |
+| J5b re-perception M1_d (4 graines) | **87,1 % — FALSIFIÉ** [90,0·88,3·86,7·83,3] | 95,0 % | ré-init des producteurs au décalage d'ancre : 4/4 graines en recul — la mémoire EMA désalignée porte plus de signal que le coût du désalignement. REVERTÉ (retour 91,7/95,0 revérifié à l'identique). Ne pas re-tenter sans idée neuve |
+| — référence board réel (4 graines) | 93,8 % | 99,6 % | écart final du chantier : −2,1 pts cognition · −4,6 pts +NEO |
+
+**Bilan J1→J5** : sans connaître la longueur, le moteur complet config réf. joue à **95,0 %** (contre 99,6 %
+avec longueur, et 37,5 % machinerie non adaptée). Pistes restantes, non engagées : M4_phon muet
+pré-première-lettre (choix documenté J2), la JOINTE phon-cohorte en mode (`M_NEO_PHON_COHORT_JOINTE`),
+le prior de longueur du brouillard pondéré par la distribution des longueurs de la cohorte (J4 score d=1
+non pondéré), l'UI du mode (bouton + affichage schéma/longueurs possibles — demande produit de Rem).
 
 ## 3. Census PROFOND — qui lit la longueur/les positions absolues, corps des fonctions lus
 
