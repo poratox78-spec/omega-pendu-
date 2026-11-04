@@ -770,7 +770,13 @@
 "Le train est prévu à midi.",
 "Je t'ai envoyé une lettre.",
 "Les dizaines de lettres que j'ai reçues sont là.",
-"Les exercices de maths qu'il a faits sont justes."
+"Les exercices de maths qu'il a faits sont justes.",
+"Les médicaments à portée des enfants sont dangereux.",
+"Le car a quatre heures de retard.",
+"Elle a cinq heures pour finir.",
+"Mon rêve c'est voyager.",
+"Le club invite ses membres à décorer leur salle.",
+"Il connaît le Grand Village ou la ville voisine, puis il part."
 ],
 "elide": [
 [
@@ -2987,6 +2993,41 @@
 "Elles s'étaient plain du bruit.",
 "plain",
 "plaintes"
+],
+[
+"Ils ont un grand jardin ou les enfants on joué.",
+"ou",
+"où"
+],
+[
+"Je trouvais sa génial !",
+"sa",
+"ça"
+],
+[
+"Il faut fermer la grille a vingt heures.",
+"a",
+"à"
+],
+[
+"La mairie à choisie un projet.",
+"à",
+"a"
+],
+[
+"La mairie à choisie un projet.",
+"choisie",
+"choisi"
+],
+[
+"Ma cousine c'est cacher derrière la porte.",
+"c'est",
+"s'est"
+],
+[
+"Il faut réparer la machine où de nous la changer.",
+"où",
+"ou"
 ]
 ],
 "palier": [
