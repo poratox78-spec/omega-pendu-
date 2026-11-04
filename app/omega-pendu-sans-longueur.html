@@ -3675,7 +3675,7 @@ function M4_phon_step(currentWord, revealedMask, alreadyTried) {
   M4_phon.candidateCount = 0;
   if (!OMEGA_LEX4 || !OMEGA_LEX4.words || !currentWord) return scores;   // mode sans longueur : schéma vide (rien de révélé) → silencieux, comme J1 — choix documenté (le prior pré-première-lettre reste à la cognition)
   const wlen = currentWord.length;
-  const _sl = M_SANS_LONGUEUR_ENABLED;   // J2 : cohorte FLOTTANTE — le schéma se pose à ≥1 décalage, la longueur n'est plus une clé
+  const _sl = M_SANS_LONGUEUR_ENABLED && _slWin;   // J2 : cohorte FLOTTANTE — le schéma se pose à ≥1 décalage, la longueur n'est plus une clé. BUGFIX 04/11 : hors fenêtre (selfTest d'initOmegaGlobals) → voie réelle
   const len_idx = OMEGA_LEX4.len_index;
   if (!_sl && (!len_idx || !len_idx[wlen])) return scores;
   const ids = _sl ? _slCohort() : len_idx[wlen];
@@ -6301,6 +6301,12 @@ let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres f
 // attendu) ; les jonctions J2+ adaptent les voies. OFF (défaut) = comportement intact (preuve : bench A/B).
 // Le jeu (penduEvaluate, 6 erreurs, win) et le DESCENDANT (après la frontière) restent sur le board réel.
 let M_SANS_LONGUEUR_ENABLED = false;
+// BUGFIX 04/11/2026 (« 🔄 Reset moteur » cassé mode ON) : les aides _sl* ne s'activent que FENÊTRE
+// OUVERTE (_slWin), pas au toggle seul. Hors fenêtre les globals sont le board RÉEL : M4_phon_selfTest
+// (initOmegaGlobals, donc le Reset) appelait M4_phon_step toggle ON → _slCohort lisait le currentWord
+// global au lieu du mot synthétique du test → FATAL, init avortée. En fenêtre, _slWin est vrai : le
+// comportement de jeu est inchangé (bench 4 conditions identique, vérifié).
+let _slWin = false;
 // J5b FALSIFIÉ (04/11/2026, ne pas re-tenter sans idée neuve) : ré-initialiser les producteurs M1_d quand
 // l'ancre se déplace (schéma étendu à gauche) DÉGRADE la cognition seule 91,7 → 87,1 % (4/4 graines en
 // recul, +NEO inchangé). La mémoire EMA inter-ticks, même partiellement désalignée, porte plus de signal
@@ -6546,7 +6552,7 @@ function _neoEnsureWBL(){
   else { for (const w of WD) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
 }
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
-  if (M_SANS_LONGUEUR_ENABLED) {   // J2 : masques par CASE DU SCHÉMA — union des lettres sur TOUS les alignements valides des candidats flottants
+  if (M_SANS_LONGUEUR_ENABLED && _slWin) {   // J2 : masques par CASE DU SCHÉMA — union des lettres sur TOUS les alignements valides des candidats flottants (fenêtre seulement, BUGFIX 04/11)
     const Lsl = currentWord.length; if (!Lsl) return null;
     const idsl = _slCohort(); if (!idsl.length) return null;
     const wsl = OMEGA_LEX4.words, schema = currentWord;
@@ -6570,7 +6576,7 @@ function _neoCohortMasks(){                  // masques de lettres possibles par
 }
 function _neoPhonCohort(){               // _al consensus : phonème dominant par position, dérivé des mots board-compatibles (jamais du mot caché)
   const G = _emrg_initOnline();
-  if (M_SANS_LONGUEUR_ENABLED) {   // J2 : consensus phonémique par case du schéma, candidats FLOTTANTS (chaque alignement valide = une vue ; J3 l'active via M_NEO_PHON_COHORT)
+  if (M_SANS_LONGUEUR_ENABLED && _slWin) {   // J2 : consensus phonémique par case du schéma, candidats FLOTTANTS (chaque alignement valide = une vue ; J3 l'active via M_NEO_PHON_COHORT) (fenêtre seulement, BUGFIX 04/11)
     const Lsl = currentWord.length; if (!Lsl) return null;
     const idsl = _slCohort(); if (!idsl.length) return null;
     const wsl = OMEGA_LEX4.words, schema = currentWord;
@@ -6612,7 +6618,7 @@ function _neoPhonCohort(){               // _al consensus : phonème dominant pa
 }
 function _neoPhonCohortDist(){            // par position : distribution MOLLE {phonème: poids} sur la cohorte board (pour la JOINTE, pas l'argmax)
   const G = _emrg_initOnline();
-  if (M_SANS_LONGUEUR_ENABLED) {   // J2 : distribution molle par case du schéma, candidats FLOTTANTS (même règle que _neoPhonCohort)
+  if (M_SANS_LONGUEUR_ENABLED && _slWin) {   // J2 : distribution molle par case du schéma, candidats FLOTTANTS (même règle que _neoPhonCohort) (fenêtre seulement, BUGFIX 04/11)
     const Lsl = currentWord.length; if (!Lsl) return null;
     const idsl = _slCohort(); if (!idsl.length) return null;
     const wsl = OMEGA_LEX4.words, schema = currentWord;
@@ -6649,7 +6655,7 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
   return { dist: acc, used: used };
 }
 function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niveau declare : (1−μ)·sublexicale + μ·lexicale, μ=r^α/(β+r^α). Réutilise M_OS_v07_step. Cheat-free, sans currentWord. Rend une lettre ou null.
-  const _slOn = M_SANS_LONGUEUR_ENABLED;   // J4 : en mode sans longueur, la voie sublexicale = n-gram RELATIF (_slNgramDist), la lexicale = cohorte flottante
+  const _slOn = M_SANS_LONGUEUR_ENABLED && _slWin;   // J4 : en mode sans longueur, la voie sublexicale = n-gram RELATIF (_slNgramDist), la lexicale = cohorte flottante. Fenêtre seulement (BUGFIX 04/11)
   const _useNG = M_NEO_OS_ARB_NGRAM || _slOn;   // voie sublexicale = n-gram agrégé (généralise à l'OOV) au lieu de la jointe phon-cohorte
   const _pcd = _useNG ? null : _neoPhonCohortDist();
   if (!_useNG && !_pcd) return null;       // (mode jointe) cohorte phon vide → rien à arbitrer ; (mode n-gram) on continue : le n-gram décide MÊME hors cohorte (cas OOV)
@@ -7766,6 +7772,7 @@ function omegaStep() {
     _slReal = { w: currentWord, m: revealedMask, r: _revealedLetters };
     const _vb = _slVirtualBoard(_slReal.w, _slReal.m);
     currentWord = _vb.w; revealedMask = _vb.m; _revealedLetters = _vb.r;
+    _slWin = true;   // BUGFIX 04/11 : les aides _sl* ne s'activent que fenêtre ouverte
   }
   // 1. Pipeline blueprint §6.6 : M1_d → M2_d → M3_d → M4_d → M5_d (livré J5')
   //    cStep orchestre les 5 modules + publish D1/D2/D3/D4/D5 + currentPhonState
@@ -7977,7 +7984,7 @@ function omegaStep() {
       }
     }
     // === MODE SANS LONGUEUR (J1) : FERMETURE de la fenêtre — board réel restauré AVANT de jouer. ===
-    if (_slReal) { currentWord = _slReal.w; revealedMask = _slReal.m; _revealedLetters = _slReal.r; _slReal = null; }
+    if (_slReal) { currentWord = _slReal.w; revealedMask = _slReal.m; _revealedLetters = _slReal.r; _slReal = null; _slWin = false; }
     if (proposed === null) {
       endCurrentGame(false);
     } else {
