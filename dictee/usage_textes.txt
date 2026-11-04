@@ -57,3 +57,8 @@ Bonjour Madame Roux,
 Mon fils Lucas sera absent demain matin car il a {rendez vous|rendez-vous|P} chez le {dentise|dentiste|O}{|.|P} {il|Il|P} reviendra en classe vers onze heures. {pouvez|Pouvez|P}-vous lui donner les {exercice|exercices|N} de mathématiques qu'il aura {manqué|manqués|G}{.| ?|P} Je les lui ferai faire le soir.
 Par {ailleur|ailleurs|O}{ ,|, |P}la sortie au {théatre|théâtre|O} est-elle toujours {prévu|prévue|G} le 20{.| ?|P} Lucas en parle tous les jours{|,|P} il a hâte d'y aller.
 Je vous remercie et vous souhaite une bonne {soiré|soirée|O}{|.|P}
+=== T10 petite annonce
+Vends {canapée|canapé|O} trois places en {trés|très|O} bon {étas|état|O}. Il est gris clair, avec deux {coussin|coussins|N} {assortie|assortis|N}. Nous l'avons {acheter|acheté|C} il y {à|a|G} quatre {an|ans|N}, {mes|mais|G} nous {déménagons|déménageons|C} dans un appartement plus petit.
+Les housses se {lave|lavent|C} en machine {a|à|G} trente degrés : je les ai {lavé|lavées|G} hier. Le canapé {et|est|G} démontable, les pieds se {dévisse|dévissent|C} facilement.
+Prix : 150 euros, {a|à|G} débattre. À venir chercher sur place, au {troisiéme|troisième|O} étage sans {assenseur|ascenseur|O}. Les visites sont {possible|possibles|N} le soir après dix-huit heures {où|ou|G} en fin de semaine{|.|P} {pas|Pas|P} sérieux s'abstenir.
+{contactez|Contactez|P}-moi par message, je {répond|réponds|C} {vitte|vite|O}.
