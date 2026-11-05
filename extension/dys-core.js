@@ -3361,6 +3361,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
 
 
   var _tgCache=(typeof WeakMap!=='undefined')?new WeakMap():null;   // mémoïsation du POS-tagger par RÉFÉRENCE de tableau : une passe correctTokens = ~40 règles × n tokens réutilisaient 1 Viterbi RECALCULÉ → O(n²) ; le cache le calcule 1× par tableau → O(n), sortie STRICTEMENT identique (Viterbi déterministe, T jamais muté en place)
+  var _NN384=new Map();function _nomP384(lw){if(!NOUN_POST)return 0;var v=_NN384.get(lw);if(v!==undefined)return v;var d=deacc(lw).replace(/œ/g,'oe'),p=typeof NOUN_POST.get==='function'?NOUN_POST.get(d):NOUN_POST[d];v=p?p[0]:0;if(_NN384.size>50000)_NN384.clear();_NN384.set(lw,v);return v;}function _em384(r,t,w,lw){if(t!=='PROPN'&&t!=='NOUN')return r;if(w.charAt(0)!==w.charAt(0).toLowerCase())return r;var p=_nomP384(lw);if(p<PL_TAU_M)return r;return t==='PROPN'?r-4.6:Math.max(r,Math.log(p/1000)-0.7);}   /* ⭐ 05/11/2026 (liste n° 384) — l'étiqueteur, appris sur UD, devine un mot qu'il ne connaît pas par sa fin : « écharpe » sortait nom propre, et la règle de l'adjectif épithète se taisait (« une écharpe blanc »). Compté dans les textes dys corrigés : dans les textes dys corrigés, 1 230 mots en minuscules, inconnus de l'étiqueteur et noms pour le dictionnaire (au moins une chance sur deux), étaient lus nom propre ; 271 après. Un mot en minuscules ne l'est presque jamais : son étiquette nom propre est pénalisée, et l'étiquette nom reçoit au moins ce que dit le dictionnaire (le suffixe « -arpe » ne connaissait que le nom propre) ; l'adjectif garde la valeur du suffixe. */
   function posTags(T){
     if(_tgCache&&T){var _cc=_tgCache.get(T);if(_cc!==undefined)return _cc;}
     var M=_HMM;if(!M||!M.tags||!T||!T.length)return null;
@@ -3373,8 +3374,8 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
       var e=em[lw];
       if(e===undefined){var _me=_ELID_DET.exec(lw);if(_me)e=em[_me[1]];}   // DÉTERMINANT ÉLIDÉ : « l'article » est UN token pour nous, DEUX pour le modèle (appris sur UD, qui les sépare). Hors-vocabulaire il retombait sur le backoff SUFFIXE puis sur le prior « majuscule → PROPN » — et comme Viterbi est GLOBAL, une seule forme collée DÉGRADE l'étiquetage de TOUTE la phrase. L'émission d'un « l'X » est celle de X.
       if(e!==undefined)return (t in e)?e[t]:FL;
-      for(var k=4;k>=2;k--){if(lw.length>=k){var sf=lw.slice(-k);if(suf[sf]!==undefined){var d=suf[sf];return ((t in d)?d[t]:FL)+((cap(w)&&t==='PROPN')?0.0953:0);}}}
-      return ((t in pri)?pri[t]:FL)+((cap(w)&&t==='PROPN')?1.0986:0);
+      for(var k=4;k>=2;k--){if(lw.length>=k){var sf=lw.slice(-k);if(suf[sf]!==undefined){var d=suf[sf];return _em384(((t in d)?d[t]:FL)+((cap(w)&&t==='PROPN')?0.0953:0),t,w,lw);}}}
+      return _em384(((t in pri)?pri[t]:FL)+((cap(w)&&t==='PROPN')?1.0986:0),t,w,lw);
     }
     var n=T.length,V=[{}],bk=[{}],i,j,t,pt;
     for(i=0;i<tags.length;i++){t=tags[i];V[0][t]=lt('<s>',t)+le(t,T[0]);bk[0][t]='<s>';}
