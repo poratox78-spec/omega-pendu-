@@ -224,7 +224,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 205 | temps du verbe à vérifier | `rTempsProtase` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 206 | impératif à vérifier | `rImperatifSeul` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), étiqueteur HMM |
 | 207 | subjonctif à vérifier | `rSubjonctif` | `—` | orange | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
-| 208 | mot-outil à vérifier | `rHomophoneMo` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
+| 208 | mot-outil à vérifier | `rHomophoneMo` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), étiqueteur HMM |
 | 209 | petit mot après le sujet à vérifier | `rApresSujet` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 210 | expression figée à vérifier | `rFige` | `—` | orange | homophone_gram | vdc-lex (conjugaison, genre, pluriels) |
 | 211 | mot soudé à vérifier | `rSoude` | `—` | orange | segmentation | vdc-lex (conjugaison, genre, pluriels) |
@@ -300,7 +300,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 142 / 217 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` `rAnte315` … (34) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 105 / 217 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (74) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 56 / 217 | `_etreAttrEr` `_eerVerbeRare188` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` … (36) |
-| étiqueteur HMM | `setPosHmm` | `_HMM` | 83 / 217 | `posTags` |
+| étiqueteur HMM | `setPosHmm` | `_HMM` | 84 / 217 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 217 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
 | prénoms | `_applyPrenoms` | `PRENOMS` | 31 / 217 | `_rAbase` `_sujLa272` `rAaccent287` `rCestAnime354` `_gnTete301` `rSV318` `rFige320` `rAccordSVcoord` … (14) |
 | genre accentué | `_applyGaccLex` | `_GACC` | 38 / 217 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` `apposVig262` `_g1_344` |

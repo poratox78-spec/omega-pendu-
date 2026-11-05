@@ -135,3 +135,6 @@ Petit rappel pour la semaine : c'est moi qui {fait|fais|C} les courses mardi, pu
 Chers amis,
 Merci d'être venus si {nombreu|nombreux|O} ce soir. Quand j'étais petit, ma grand-mère me {racontai|racontait|C} des histoires le soir {ou|où|G} je ne dormais pas. Elle n'est jamais en {retart|retard|O}, elle {prefere|préfère|O} le thé au café et elle connaît le prénom de tous ses {petit-enfant|petits-enfants|N}.
 Pour ses soixante-dix ans, nous {voulion|voulions|C} lui offrir un voyage {a|à|G} Rome. {levont|Levons|C} nos verres : Mamie{|,|P} nous t'aimons. {joyeu|Joyeux|O} anniversaire !
+=== T27 critique de film
+{hier|Hier|P} soir, nous sommes allés voir le nouveau film de science-fiction. L'histoire {commance|commence|O} sur une planète glacée où deux {soldat|soldats|N} perdus cherchent un abri. Les images sont {magnifique|magnifiques|N} et la musique {accompagnent|accompagne|C} bien les scènes.
+{quand|Quant|G} aux acteurs, ils jouent juste, même si le {héro|héros|O} parle trop. La fin m'a un peu {déçut|déçu|C}{|,|P} mais je {conseil|conseille|C} ce film {a|à|G} tous les curieux.

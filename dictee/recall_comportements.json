@@ -797,7 +797,9 @@
 "bonjour à tous",
 "Lisez les pages neuf et dix.",
 "Il est arrivé à dix heures neuf.",
-"Le bus passe à la gare puis le port voisin, connu pour ses bateaux."
+"Le bus passe à la gare puis le port voisin, connu pour ses bateaux.",
+"Quand au bout d'une heure, il est revenu.",
+"Quand au printemps, les fleurs poussent."
 ],
 "elide": [
 [
@@ -3269,6 +3271,16 @@
 "Je viend demain matin.",
 "viend",
 "viens"
+],
+[
+"Il pleut. quand au salon, éteignez la lumière.",
+"quand",
+"Quant"
+],
+[
+"Quand aux enfants, ils jouent dehors.",
+"Quand",
+"Quant"
 ]
 ],
 "palier": [
