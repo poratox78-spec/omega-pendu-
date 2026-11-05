@@ -144,3 +144,6 @@ Je m'appelle Inès et j'ai onze ans. Je {vie|vis|C} dans un petit village près 
 J'adore les {giraffes|girafes|O} et je {voudrai|voudrais|C} avoir un chien. Toi, tu {préfère|préfères|C} les chats ou les chiens ? {Répond|Réponds|C}-moi vite !
 À {bientot|bientôt|O},
 Inès
+=== T29 conte pour enfants
+Il était une fois un petit renard qui {vivai|vivait|C} au bord d'une grande forêt. Le renard que tout le monde connaît a une queue rousse et des yeux très {vif|vifs|N}. Un soir, il {rencontrat|rencontra|C} une vieille chouette qui {connaisait|connaissait|O} tous les secrets du bois.
+{la|La|P} chouette lui montra le chemin du lac, et le renard offrit une baie {a|à|G} son amie. Les deux {ami|amis|N} marchèrent ensemble sous les grands {arbre|arbres|N} jusqu'au {matain|matin|O}. Aujourd'hui encore, {ont|on|G} raconte leur histoire aux enfants.
