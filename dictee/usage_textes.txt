@@ -174,3 +174,8 @@ Les clés de la voiture {son|sont|G} sur la table. Je t'{embrasses|embrasse|C}, 
 === T36 récit de sortie scolaire
 {mardi|Mardi|P}, notre classe est allée au {musé|musée|O} des sciences. Les {élève|élèves|N} {on|ont|G} {visiter|visité|C} une salle sur les volcans, et le guide nous {à|a|G} montré des pierres très {ancienne|anciennes|N}.
 Ensuite, chaque groupe {devais|devait|C} répondre à un {questionaire|questionnaire|O}. Nous sommes {rentré|rentrés|N} en car vers seize heures.
+=== T37 mail pour déplacer un rendez-vous
+{bonjour|Bonjour|P} Madame, je {voudrait|voudrais|C} déplacer mon rendez-vous de jeudi, car mon fils {à|a|G} de la fièvre depuis hier. Je {sait|sais|C} que {ces|c'est|G} tard pour prévenir.
+Est-ce que vous {aurié|auriez|C} une place lundi ou mardi ? Le matin m'arrange mieux, car mes {enfant|enfants|N} rentrent tôt.
+Pardon pour ce changement de {derniere|dernière|O} minute : je compte sur votre {comprehension|compréhension|O}.
+{cordialement|Cordialement|P}
