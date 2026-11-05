@@ -259,5 +259,19 @@ par graine ; placebo (réglage sans effet) identique ; `dev.sh check` 141/141 �
 Leçon fine : la partition COÛTE 2 mots sur une graine (PASSANTE, PAPISTE g777) et en gagne 13 ailleurs —
 elle déplace peu, elle répare surtout les cohortes denses (§7). Le mode sans longueur est STRICTEMENT
 intact partout (porte `!_slOn` ; support/escompte mesurés neutres en mode — ses propres voies restent
-un chantier séparé). Décision à Rem : activer partition+support (préréglage 26 ON + CFG des bancs) ?
-Avant toute activation : re-mesurer l'hors-lexique (Trexquant) sous ces toggles.
+un chantier séparé). **Tranché par Rem le 04/11 soir (« oui prend la meilleure et vérifie ») : ACTIVÉS —
+voir ci-dessous.**
+
+**Vérification hors-lexique + ACTIVATION (04/11 soir, PR #1176).** Trexquant (800 mots retirés du lexique,
+apparié) : partition seule **+1,0 pt** (perd 31 / gagne 39 — saine) ; support seul **−2,8 pt** — son postulat
+« le vrai mot est dans la cohorte » est FAUX par construction hors lexique. Porte au moteur : le support ne
+s'applique jamais en Trexquant (`!M_TREXQUANT_MODE_ENABLED`, + `!_slOn` dans la copie) ; re-mesure après
+porte : combo ≡ partition seule (+1,0), support gaté = no-op strict (0 partie changée sur 800). Au passage,
+l'alerte de Rem (« le 🔠 n-gram peut faire partie du mode trexquant ») a mené à un VRAI piège, corrigé :
+`_IG_CACHE` n'était jamais invalidé quand le lexique bouge (le splice en place de `_trexq_*` garde la même
+référence `len_index`) — bug latent préexistant pour `M_IG_SELECT`, exposé par la partition ; correction =
+invalidation par référence AVANT le `has()` + `clear()` dans `_trexq_removeWord`/`_trexq_restore`.
+ACTIVATION : préréglage des 2 pages 24→26 ON + CFG `ci_smoke`/`sans_longueur_bench` (R66 : les défauts
+moteur ne bougent pas). Post-activation : préréglage réel 4 graines **99,2 % board réel** · mode sans
+longueur **96,7 intact** · ci_smoke 93,3/98,3 (planchers 84/93) · bench copie ≡ original (98,3) ·
+`dev.sh check` 141/141. Clone EN régénéré.
