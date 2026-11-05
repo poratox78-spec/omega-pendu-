@@ -167,3 +167,7 @@ Je {passerait|passerai|C} la chercher samedi. Une petite {récompanse|récompens
 {bonjour|Bonjour|P}, je pars à Lyon vendredi soir et il me reste deux {place|places|N} dans ma voiture. Je vais voir mes {beau-parent|beaux-parents|N} pour deux jours.
 Le départ {et|est|G} prévu à dix-huit heures devant la mairie. Nous {partageront|partagerons|C} les frais d'{essance|essence|O}, et chacun peut {apporté|apporter|C} un sac.
 Si {sa|ça|G} vous intéresse, envoyez-moi un {méssage|message|O} avant jeudi. Vous {pouvé|pouvez|C} aussi m'appeler le soir.
+=== T35 mot sur le frigo
+{papa|Papa|P}{|,|P} je rentre tard ce soir : j'ai entraînement de {basquet|basket|O} jusqu'à vingt heures.
+Le repas est dans le {frigot|frigo|O}, il {suffi|suffit|C} de le réchauffer cinq minutes. N'oublie pas de {nourire|nourrir|O} le chat et de fermer la {fenêtres|fenêtre|N} du salon.
+Les clés de la voiture {son|sont|G} sur la table. Je t'{embrasses|embrasse|C}, {a|à|G} ce soir !
