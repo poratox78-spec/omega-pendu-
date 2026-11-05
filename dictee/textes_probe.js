@@ -42,6 +42,10 @@ const CAS = [
   { t: 'Il commence à mange sa soupe.',   // ⭐ 04/10/2026 : le présent en -e après « à » → infinitif : la leçon dit l'infinitif, pas « qui commande »
     mots: { mange: { sugg: 'manger', oui: ['mordre', 'infinitif « manger »'] } },
     remed: { oui: ['l’INFINITIF en -er', '« mordre »'], non: ['QUI COMMANDE'] } },
+  { t: 'Elle garde ses petit-enfant le mercredi.',   // ⭐ 05/11/2026 (liste n° 377) : le pluriel du nom composé a sa leçon, plus celle du mot collé
+    mots: { petit: { sugg: 'petits' } }, remed: { oui: ['dans un nom composé'], non: ['mot collé'] } },
+  { t: 'Que pense-tu de ce film ?',   // ⭐ 05/11/2026 (liste n° 377) : « pense-tu » → penses-tu est une faute de personne, pas un mot collé
+    mots: { pense: { sugg: 'penses' } }, remed: { oui: ['avec « je » ou « tu »'], non: ['mot collé'] } },
   // ⭐ 08/10/2026 — relecture des explications sur les 259 fautes de la batterie Python rejouées sur le produit : 9 textes faux
   { t: 'La robe de mon frère est vert.',   // l'attribut : « de mon » est un complément, ce n'est pas lui qui commande
     mots: { vert: { sugg: 'verte', oui: ['« La » (féminin)'], non: ['« mon »'] } } },
@@ -320,7 +324,7 @@ const LECONS = [
   "élision inversée", "accord tout", "genre déterminant", "nombre du déterminant à vérifier", "pluriel par le son à vérifier",
   "auxiliaire manquant à vérifier", "forme en -ant à vérifier", "participe présent après « en » à vérifier",
   "infinitif après semi-auxiliaire à vérifier", "infinitif après pronom sujet à vérifier", "ces/ses à vérifier", "leur/leurs",
-  "sais/sait", "petit mot après le sujet à vérifier", "mot-outil à vérifier", "subjonctif à vérifier", "conditionnel à vérifier", "temps du verbe à vérifier", "impératif à vérifier"];
+  "sais/sait", "petit mot après le sujet à vérifier", "mot-outil à vérifier", "subjonctif à vérifier", "conditionnel à vérifier", "temps du verbe à vérifier", "impératif à vérifier", "pluriel du nom composé"];
 { const i0 = coucheExt.indexOf('var _RTIP={'), blk = coucheExt.slice(i0, coucheExt.indexOf('\n  };', i0));
   const cles = new Set([...blk.matchAll(/^\s{4}(?:'([^']+)'|"([^"]+)"|([A-Za-zÀ-ÿ_]+)):function/mg)].map((m) => m[1] || m[2] || m[3]));
   const perdues = LECONS.filter((n) => !cles.has(n));
