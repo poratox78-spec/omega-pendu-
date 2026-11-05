@@ -2,16 +2,16 @@
 
 > ✅ **PUBLIÉE le 28/08/2026** — revue Google passée, état « Publié · public ».
 > Fiche : https://chromewebstore.google.com/detail/dbochkbaechbemahapplibbhmfkcldln
-> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.55** (fiche publique relue le 01/11/2026, 8 utilisateurs). Ce que chaque version a changé : `git log -- extension/manifest.json`.
+> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.56** (fiche publique relue le 05/11/2026, 9 utilisateurs). Ce que chaque version a changé : `git log -- extension/manifest.json`.
 >
-> ✅ **Ce qui est en ligne est le §3 de la 0.6.55** : description relue le **01/11/2026**.
-> La 0.6.56 change le §3 : voir la ligne 16. Ne rouvrir ce point qu'après
+> ✅ **Ce qui est en ligne est le §3 de la 0.6.56** : description relue le **05/11/2026** par comparaison mot à mot (zéro écart).
+> La 0.6.57 ne change pas le §3 : voir la ligne 16. Ne rouvrir ce point qu'après
 > avoir RELU la fiche.
 >
 > Ce fichier reste le **dossier de soumission** : tout ce qui se colle dans la console développeur est
 > écrit ici, prêt à copier, et sert tel quel pour **chaque mise à jour** — le §3 (fiche), le §4
 > (justifications) et le §5 (données) sont redemandés à chaque envoi qui touche aux permissions.
-> ⚠️ Tout envoi au Store exige une `version` **strictement supérieure à 0.6.56 (numéro REMIS le 01/11/2026, donc brûlé)**, et repasse en revue.
+> ⚠️ Tout envoi au Store exige une `version` **strictement supérieure à 0.6.57 (numéro REMIS le 05/11/2026, donc brûlé)**, et repasse en revue.
 
 ## 0. Où on en est
 
@@ -31,8 +31,8 @@
 | 12 | Après publication : mettre à jour `correcteur.html` | ✅ fait le 28/08/2026 — bouton « Ajouter à Chrome », repli manuel gardé dans un `<details>` |
 | 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ **0.6.40 EN LIGNE** (fiche publique relue le 19/09/2026) — 0.6.7 à 0.6.38 remises à Rem : un numéro remis est brûlé ; la **0.6.40 a été REMISE à Rem le 18/09/2026** (les deux correctifs d'accord de genre) : elle est **en ligne depuis le 18/09 à 22 h 26 UTC**. La **0.6.41 a été REMISE à Rem le 19/09/2026** (le panneau dit enfin pourquoi il ne voit rien quand la page était déjà ouverte) : brûlée à son tour, la suivante devra être **> 0.6.41**. La **0.6.42 est REMISE à Rem le 26/09/2026** — les lettres muettes du moteur de son (r final, « -ent » verbal, c et g finaux, le « e » de *les*) : brûlée à son tour, la suivante devra être **> 0.6.42**. La **0.6.43 est REMISE à Rem le 28/09/2026 et TÉLÉVERSÉE par Rem le même jour** (en revue Google) — le pluriel par le son (orange), « dès réception » plus corrigé en rouge, la clé phonétique de « oeu » (« ker » retrouve cœur) : brûlée à son tour, la suivante devra être **> 0.6.43**. La **0.6.44 est REMISE à Rem le 01/10/2026** — le catalogue des fautes encore muettes (#820 → #850) et l'en-tête du panneau : brûlée à son tour, la suivante devra être **> 0.6.44**. La **0.6.45 est REMISE à Rem le 03/10/2026** (PR #859 ; cette ligne disait le 02/10, écrite la veille) — le réglage « J'écris au féminin / au masculin » et le 📗 « ce mot est correct » réparé et étendu (bulle, panneau, « Mes mots ») : brûlée à son tour, la suivante devra être **> 0.6.45**. La **0.6.46 est REMISE à Rem et TÉLÉVERSÉE par Rem le 05/10/2026** — 20 PR de correcteur depuis la 0.6.45 (#860 → #880) : brûlée à son tour, la suivante devra être **> 0.6.46**. La **0.6.47 est REMISE à Rem le 09/10/2026** — deux réglages d'affichage des sites consultés (« Police OMEGA Dys », « 🎨 Couleurs sur les sites ») et 7 PR de correcteur et de police de son : brûlée à son tour, la suivante devra être **> 0.6.47**. La **0.6.48 est REMISE à Rem le 11/10/2026** — fermer le panneau retire des sites la police et les couleurs, « 🎨 » sur Twitch et les applis web, 3 lots du correcteur : brûlée à son tour, la suivante devra être **> 0.6.48** |
 | 14 | Le bloc **« 🔢 Aide au nombre »** est décrit dans la fiche | ✅ collé à l'envoi du 28/08/2026 (en fin de description) ; il fait maintenant partie de la description du §3 |
-| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.56) | ⬜ **0.6.56 remise à Rem le 01/11/2026** : 39 fichiers, 1 de plus que la 0.6.55, le modèle du juge léger (`assets/juge-mini.bin`, 3,41 Mo), 9,8 Mo ; permissions inchangées (`storage`, `contextMenus`, `sidePanel`). Comparée à la 0.6.55 sur les 28 772 textes : deux reculs de la ligne 339 réparés avant de bâtir (#1134) |
-| 16 | La **description en ligne** est celle du §3 | ⬜ **0.6.56 : à recoller, le §3 change à quatre endroits** : la ponctuation dans « Ce qu'il corrige », le petit modèle dans « Ce qui le rend différent », le paragraphe « Hors-ligne » (plus de 740 000 formes, le modèle), la dernière ligne des crédits. Le §4 et le §5 ne changent pas. Texte prêt : `data_local/store/description-0.6.56.txt` |
+| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.57) | ⬜ **0.6.57 remise à Rem le 05/11/2026** : 39 fichiers, les mêmes que la 0.6.56 ; changent `dys-core.js`, le modèle du juge léger (`assets/juge-mini.bin`, même taille, appris d'un grand modèle, ligne 343) et le manifeste ; 9,8 Mo ; permissions inchangées (`storage`, `contextMenus`, `sidePanel`). Comparée à la 0.6.56 sur les 28 772 textes : 102 corrections devenues justes ou gagnées, 20 perdues ou devenues fausses |
+| 16 | La **description en ligne** est celle du §3 | ✅ **0.6.57 : rien à recoller** — le §3, le §4 et le §5 ne changent pas (description en ligne relue le 05/11/2026 : zéro écart avec le §3) |
 
 ## 1. Ce qui était bloquant et qui est corrigé
 
