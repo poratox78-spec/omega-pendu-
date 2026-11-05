@@ -304,6 +304,8 @@ The decision must derive from what is <strong>perceived</strong> and what is <st
 
 <div class="callout"><span class="lbl">⚠️ UPDATE 06/2026 — OOV figures corrected (cohort leak)</span> The out-of-lexicon values in this section (<strong>70.7 %</strong> "with sound", <strong>54.7 %</strong>, <strong>22 %</strong>) <strong>predate</strong> the discovery of a <strong>cohort leak</strong> (the <code>_neoWBL</code> cache was not invalidated&nbsp;: the "removed" word stayed in the cohort; <code>AUDIT_OMEGA</code> §1.6.1). <strong>True measured figures</strong>&nbsp;: cognition alone ≈ <strong>11 %</strong> (does <em>not</em> generalise sub-lexically), pure sub-lexical spelling ≈ <strong>33 %</strong>, the <strong>aggregating n-gram</strong> route (statistical but cheat-free) ~57-66 %, + <strong>gap-aware</strong> reasoning → ≈ <strong>64 %</strong> (re-verified, 3 seeds, SOTA band)&nbsp;; <strong>+17 pts</strong> vs a naive n-gram (46.7 %). The "54.7 % / 70.7 %" cells that remain above and below are kept as a historical trace but <strong>obsolete</strong>. Detail&nbsp;: memoir <code>docs/MEMOIRE.html</code> §10, and <code>evo/EVO_ROADMAP.md</code>.</div>
 
+<div class="callout mes"><span class="lbl">UPDATE 11/2026 — preset applied at load (26 ON) &amp; the no-length mode</span> Since 04/11/2026 the application opens <strong>with its preset applied</strong> ("⚙️ Config optimale", 26 toggles ON: the <a class="x" href="#s8">§8.3</a> recipe <em>plus</em> OS arbitration, the n-gram as sub-lexical route, <strong>information partitioning</strong> and <strong>cohort support</strong> — <a class="x" href="#m22">§22</a>). Measured on its dedicated protocol (in-lexicon, words 7–12, warmup 120 / test 60 per seed): <strong>98.8 %</strong> over 12 seeds (losses 21→9 against the previous 97.1 % reference) and <strong>99.2 %</strong> on the 4 canonical seeds. Under the <em>same</em> protocol, the <strong>🕶️ no-length mode</strong> — the machine does not know the word's length — plays at <strong>96.7 %</strong>, above the cheat-free <em>with-length</em> reference of the same bench (96.3 %). ⚠️ Different protocol from the table above (4 seeds × 120): always cite the regime, never mix columns.</div>
+
 <h3>2.2 — Founding principles (L01–L04)</h3>
 <ul>
 <li><strong>L01 — double Möbius</strong> <span class="chip c-des">design</span>: two antagonistic circles (direct = perception→decision; mirror = result→correction) linked by the OS.</li>
@@ -331,6 +333,7 @@ The decision must derive from what is <strong>perceived</strong> and what is <st
 <li><strong>Legitimate information</strong>: revealed letters, length, tried letters, knowledge gained through experience.</li>
 <li><strong>Illegitimate information</strong>: the hidden word — directly, or by enumerating the dictionary down to the single compatible word.</li>
 </ul>
+<p class="note"><strong>Measured variant — removing the length.</strong> The length is part of the legitimate information above. The <span class="ui">🕶️ no-length mode</span> (<a class="x" href="#m22">§22</a>) removes it: the machine only sees a <em>relative schema</em> of the revealed letters (<code>A??A??E</code>, unknown edges). Same game, same engine — one piece of information less.</p>
 <p>Hangman is chosen for its <strong>context poverty</strong>: the player must actively generate hypotheses (like "sounding out" an unknown word). A demanding and revealing testbed.</p>
 </section>
 
@@ -417,8 +420,8 @@ The decision must derive from what is <strong>perceived</strong> and what is <st
 </section>
 <!-- ================ 6 ================ -->
 <section id="s6">
-<h2><span class="hn">6</span>Toggle reference (47)</h2>
-<p>47 flags in total <strong>(phase45)</strong>: <strong>31 exposed as toggle buttons</strong>, plus controls in dedicated panels (dictation, bind bridge) and <strong>base JS flags</strong>. <strong>Phase46</strong> adds 6 <code>NEO</code> toggles + 4 parameters → 37 toggles; <strong>phase47</strong> adds the <code>M_TREXQUANT_MODE</code> mode → <strong>38 toggles</strong> (<a class="x" href="#s17">§17</a>). <strong>UPDATE 06/26</strong>: +3 cheat-free <span class="chip c-des">blue</span> toggles (<code>M_NEO_PHON_COHORT</code> board-derived sound · <code>M_NEO_PHON_COHORT_JOINTE</code> · <code>M_NEO_OS_ARB</code> OS arbitration) → <strong>41 toggles</strong>; <code>M_DECLARE_DUAL</code> <strong>adopted</strong> (preset). <strong>UI colour code, 4 categories</strong>: <span class="chip c-mes">green</span> optimal config · <span class="chip c-des">blue</span> optional cheat-free · <span class="chip c-hyp">orange</span> reads the SOUND of <code>currentWord</code> (word heard) · <span class="chip c-exc">red</span> gray cheating (A1/A2/A3). Detail of the 3 new ones: <a class="x" href="#s17">§17.1</a>. <em>Default</em> = state at load. <em>"preset ✔"</em> = switched on by the reference config (<a class="x" href="#s8">§8</a>).</p>
+<h2><span class="hn">6</span>Toggle reference (49 in the grid)</h2>
+<p>47 flags in total <strong>(phase45)</strong>: <strong>31 exposed as toggle buttons</strong>, plus controls in dedicated panels (dictation, bind bridge) and <strong>base JS flags</strong>. <strong>Phase46</strong> adds 6 <code>NEO</code> toggles + 4 parameters → 37 toggles; <strong>phase47</strong> adds the <code>M_TREXQUANT_MODE</code> mode → <strong>38 toggles</strong> (<a class="x" href="#s17">§17</a>). <strong>UPDATE 06/26</strong>: +3 cheat-free <span class="chip c-des">blue</span> toggles (<code>M_NEO_PHON_COHORT</code> board-derived sound · <code>M_NEO_PHON_COHORT_JOINTE</code> · <code>M_NEO_OS_ARB</code> OS arbitration) → <strong>41 toggles</strong>; <code>M_DECLARE_DUAL</code> <strong>adopted</strong> (preset). <strong>UI colour code, 4 categories</strong>: <span class="chip c-mes">green</span> optimal config · <span class="chip c-des">blue</span> optional cheat-free · <span class="chip c-hyp">orange</span> reads the SOUND of <code>currentWord</code> (word heard) · <span class="chip c-exc">red</span> gray cheating (A1/A2/A3). Detail of the 3 new ones: <a class="x" href="#s17">§17.1</a>. <em>Default</em> = state at load. <em>"preset ✔"</em> = switched on by the reference config (<a class="x" href="#s8">§8</a>). <strong>UPDATE 11/26</strong>: the application's grid now exposes <strong>49 toggles</strong> (the exact count is held by the panel's CI probe); latest additions — <code>M_NEO_PARTITION</code> · <code>M_NEO_SUPPORT</code> (both in the preset) and the <code>M_SANS_LONGUEUR</code> mode (<a class="x" href="#m22">§22</a>), listed at the end of the table.</p>
 <div class="note"><strong>UI names verified on the <code>phase45</code> build.</strong> The "UI name" column gives the <em>exact button label</em> and its panel. <strong>31 toggles</strong> are buttons (panels <span class="ui">Toggles · Phase A + B2</span> and <span class="ui">Débranchable · triche grise</span> [Disconnectable · gray cheating]); the dictation/bind controls live in dedicated panels; the rest are base JS flags. <strong>At startup, all toggles are OFF except <code>M4_PHON_USE_P</code> ("φ · Croisement p" [crossing p]) = ON.</strong> The "preset ✔" mark flags those the <a class="x" href="#s8">reference config (§8)</a> switches on. <strong>Build phase46/47</strong>: 6 <code>NEO</code> toggles + the <span class="ui">🎯 Trexquant</span> mode added (38 toggles in total) — see <a class="x" href="#s17">§17</a>.</div>
 
 <div class="tech tt-ctl">
@@ -487,6 +490,9 @@ The decision must derive from what is <strong>perceived</strong> and what is <st
 <tr data-cls="js"><td><code>M_BPC_CROSSMODAL_ENABLED</code></td><td>JS-only</td><td>OFF</td><td><span class="chip c-hyp">to measure</span></td><td>Cross-modal bPC.</td></tr>
 <tr data-cls="js"><td><code>COUCHE_A_ADAPTIVE_ENABLED</code></td><td>JS-only</td><td>OFF</td><td><span class="chip c-hyp">to measure</span></td><td>Adaptive A layer.</td></tr>
 <tr data-cls="js"><td><code>COUCHE_BC_SEPARATION_ENABLED</code></td><td>JS-only</td><td>OFF</td><td><span class="chip c-hyp">to measure</span></td><td>B/C layer separation. Strong coupling.</td></tr>
+<tr data-cls="actif"><td><code>M_NEO_PARTITION</code></td><td>« 🧩 NEO · partition (cohorte dense) » [partition, dense cohort] · grid</td><td>OFF · preset ✔</td><td><span class="chip c-mes">active 11/26</span></td><td>In a dense cohort (2–16 candidates), plays the letter that best <strong>partitions</strong> the cohort (max P(presence)) instead of declaring too early. 12 seeds: 97.1→<strong>98.6 %</strong> alone, <strong>98.8 %</strong> with support (losses 21→9). Out-of-lexicon verified <em>before</em> activation (800 paired words): <strong>+1.0 pt</strong>, sound. <a class="x" href="#m22">§22</a>.</td></tr>
+<tr data-cls="actif"><td><code>M_NEO_SUPPORT</code></td><td>« 🧯 NEO · support (lettres de la cohorte) » [cohort letters] · grid</td><td>OFF · preset ✔</td><td><span class="chip c-mes">active 11/26</span></td><td>Switches off letters absent from <em>all</em> cohort survivors. Its premise ("the true word is in the cohort") is <strong>false out-of-lexicon</strong> (−2.8 measured) → <strong>gated off in Trexquant</strong> (<code>!M_TREXQUANT_MODE</code>), strict no-op proven (0 games changed out of 800). <a class="x" href="#m22">§22</a>.</td></tr>
+<tr data-cls="mesure"><td><code>M_SANS_LONGUEUR</code></td><td>« 🕶️ Mode sans longueur (schéma relatif) » [no-length mode, relative schema] · grid + game-panel checkbox</td><td>OFF</td><td><span class="chip c-mes">measured mode</span></td><td>The machine plays <strong>without knowing the word's length</strong> (relative schema, unknown edges). Floating cohort + relative n-gram + OS arbitration + joint. <strong>96.7 %</strong> against 96.3 % for the <em>with-length</em> reference under the same protocol. <a class="x" href="#m22">§22</a>.</td></tr>
 </tbody></table></div>
 <p class="note tech"><strong>Note.</strong> At startup, <strong>only <code>M4_PHON_USE_P</code> ("φ · Croisement p") is ON</strong>; the <a class="x" href="#s8">reference config (§8)</a> then switches on the "preset ✔" toggles. The heavily-coupled toggles (<code>M_VOIE_PHON</code>, <code>M_OS_V07</code>, <code>M_BPC_M3D</code>) touch many points in the code — their effect is not local.</p>
 </section>
@@ -537,6 +543,7 @@ The decision must derive from what is <strong>perceived</strong> and what is <st
 <tr><td><span class="ui">Débranchable · triche grise</span> [Disconnectable · gray cheating]</td><td><strong>A1 · Orthography</strong> · <strong>A2 · Lexique 4</strong> · <strong>A3 · Word Lex4</strong></td><td>The lexical crutches, isolated. OFF in the reference config.</td></tr>
 <tr><td><span class="ui">Performance Live</span> + <span class="ui">bPC santé</span> [bPC health]</td><td><strong>📊 Mesure</strong> [Measure] (Mesurer A/B [Measure A/B]) · <strong>🔬 Drivers</strong> · <strong>🧬 Train θ</strong> · <strong>📈 Sweep β</strong> · <strong>🌊 θ online JSON</strong> · <strong>🧹 Reset</strong> · <strong>Exporter JSON</strong> [Export JSON]</td><td>Seeded A/B protocol + export; OS parameters; health of the 12 concept cells.</td></tr>
 <tr><td><span class="ui">Bench</span> (perf panel)</td><td><strong>▶ Bench R1</strong> · <strong>Bench tick réel</strong> [real tick] · <strong>🎯 Trexquant (hors-lexique)</strong> [out-of-lexicon]</td><td><strong>Trexquant mode — two forms.</strong> <em>(a) Playable</em>: the <span class="ui">🎯 Mode Trexquant</span> toggle (NEO group) removes the drawn word from <code>len_index</code> on each New game (cohort/recall blinded) → you watch OMEGA solve true out-of-lexicon; the lexicon is restored on the next turn. <em>(b) Bench</em>: the <strong>🎯 Trexquant</strong> button plays 80 out-of-lexicon words (warmup 300) and logs 2 win rates — phon→ortho cascade (with sound) vs ortho only. Both are self-contained (they restore the lexicon).</td></tr>
+<tr><td><span class="ui">🕶️ Mode sans longueur</span> [no-length mode] (game panel)</td><td><strong>🕶️ Mode sans longueur</strong> checkbox · <strong>« CE QUE LA MACHINE VOIT »</strong> [what the machine sees] view</td><td>Play without the length: relative schema with fog edges, number of compatible words, histogram of the possible lengths (the true one is marked for the spectator only). Also available as a grid toggle (<a class="x" href="#s6">§6</a>); detail <a class="x" href="#m22">§22</a>.</td></tr>
 <tr><td><span class="ui">Route sublexicale · cognition apprise</span> [Sub-lexical route · learned cognition]</td><td><strong>Dictée d'un mot aléatoire</strong> [Dictation of a random word] · <strong>Dictée sublexicale d'un mot</strong> [Sub-lexical dictation of a word]</td><td>A separate dictation mode (the lexical version is gray cheating).</td></tr>
 <tr><td><span class="ui">Pont bind · mesure (1024-D)</span> [Bind bridge · measure]</td><td><strong>Mesurer (bind vs mélange)</strong> [Measure (bind vs blend)]</td><td>Compares bound vs blended concept (z), separate buffer — does not affect the baseline.</td></tr>
 <tr><td><span class="ui">Développeur / monitoring</span> [Developer / monitoring]</td><td><strong>Smoke load</strong> · <strong>Smoke runtime (100 ticks)</strong> · <strong>Bench</strong> · <strong>Dump 14 canaux</strong> [Dump 14 channels] · <strong>Dump inventaire global</strong> [Dump global inventory] · <strong>initOmegaGlobals()</strong></td><td>Non-regression, throughput, channel/state inspection.</td></tr>
@@ -567,6 +574,8 @@ cognition alone (base) 91.46 % (K=1) / 93.75 % (K=3) → <strong>+NEO (R+A+Cohor
 </ul>
 <p><strong>Measured result</strong> (in-lexicon K=1, 4 seeds, deterministic harness): <strong>≈ 97.3 % full cheat-free</strong> (never reads <code>currentWord</code>). Benchmarks: ≈ 97.5 % if the assembled route reads the word's <em>sound</em> ("word heard" premise, legitimate in dictation), up to <strong>99.8 %</strong> with DUAL; oracle ceiling (lexical lookup, <em>excluded by doctrine</em>) 98.7 %. The 🔇 muette (mute) · 🎚️ trigger · 🧭 arbitrage OS (OS arbitration) options are measured <em>neutral</em> (they do not change the result) — leave to preference.</p>
 </div>
+
+<div class="note"><strong>UPDATE 11/26 — the preset is now applied AT LOAD.</strong> The application opens with the optimal config active (status line: "preset §8.3, <strong>26 ON</strong>"; the <span class="ui">⚙️ Config optimale</span> button re-applies it) — the "no 1-click preset" note above describes the earlier state. The current preset adds to the recipe: 🔊 board-derived sound · 🔗 joint · 🧭 OS arbitration · 🔁 OS-arbitrated n-gram (<code>M_NEO_OS_ARB_NGRAM</code>) · 🧩 partition · 🧯 support (<a class="x" href="#m22">§22</a>). Measured (dedicated protocol: in-lexicon 7–12, warmup 120 / test 60): <strong>99.2 %</strong> (4 seeds) · <strong>98.8 %</strong> (12 seeds). R66 holds: the <em>engine defaults</em> stay OFF — only the preset changed, and the panel's CI probe verifies "optimal config active at load".</div>
 
 <h3>8.4 — Measurement procedure (replicable)</h3>
 <ol>
@@ -642,6 +651,10 @@ To obtain a piece of information, do you have to consult the hidden answer? <str
 
 <h3>11.3 — Honest assessment</h3>
 <p>Cheat-free cognition reaches ~90 % and approaches the oracle on seen words, but: (a) it plateaus below the oracle on new words (expected); (b) the residual losses are dominated by the unresolved voiced/voiceless phon confusion; (c) the M3_d <strong>concept cells</strong> (shape) are weakly connected to the hub (<code>M3_d.output=0</code> under bPC) — <strong>but</strong> its <strong>reward-readout</strong> <code>cLetterScore</code> is a cheat-free contributor <strong>measured at +3.4</strong> (<a class="x" href="#s12">§12</a>; <code>AUDIT_OMEGA §3.1</code>): "M3_d weakly connected" holds only for the cells/hub, not the readout.</p>
+<h3>11.4 — Punctuation of voice input <span class="chip c-mes">measured</span></h3>
+<p><strong>Successes.</strong> The browser's speech service emits no punctuation at all in French (0 characters over three takes), so it is rebuilt from two channels whose division of labour is asymmetric: <em>the audio proposes</em> (it measures silences, lands within one word), <em>the text disposes</em> (it re-anchors, picks the mark's type, and <strong>refuses</strong>). The refusal is the load-bearing link — without it correctness drops from 69 % to 22 %; with it, F1 goes <strong>0.33 → 0.48</strong> on a real dictation. <strong>Decisive ablation: duration alone beats the learned acoustic model</strong> once the text channel filters — no audio model is shipped. Five comma rules (public pedagogical source) carry conformity from 3/50 to <strong>14/50</strong> and improve correctness (50.5 → 52.0 %) and recall (11.0 → 12.8 %) <em>simultaneously</em> on 11,304 human-written sentences. Finally, four <strong>typographic</strong> rules run as automatic red at measured FP=0: 2 firings on 14,450 correct sentences, <em>both of them real corpus mistakes</em>.</p>
+<p><strong>Measured failures.</strong> The model-free syllable aligner: 44 % on read speech but <strong>1/12 on a dyslexic voice</strong> (speech blocks in a 5.9× ratio — dys speech is irregular by nature). A small distilled acoustic model (2.9 KB) fixes read speech (+15 pts) and <strong>does not transfer</strong> (0/12): the problem was not detection but drift. The inter-route arbiter drops the CI guard from <strong>82 to 62 cases</strong>. The <strong>agreement-based</strong> dual route is counter-productive: 37.9 % correctness against 58.1 and 63.2 separately — both routes read the same substance, so their agreement marks ambiguity, not certainty. Hardening the threshold buys nothing (correctness flat at ~55 %). The double space as a "written pause" carries no signal (lift ×1.02).</p>
+<p><strong>Delivery guarantees.</strong> <strong>Byte</strong> parity of the voice engine between the site and the extension (15/15 functions identical up to comments); structural audit on <strong>4,000</strong> deterministic synthetic dictations — no doubled mark, none after a forbidden function word, none inside a hyphenated group, <strong>words intact</strong>, and identical outputs on both surfaces.</p>
 </section>
 
 <!-- ================ 12 ================ -->
@@ -698,25 +711,151 @@ To obtain a piece of information, do you have to consult the hidden answer? <str
 <!-- ================ 15 ================ -->
 <section id="s15">
 <h2><span class="hn">15</span>Glossary</h2>
+<p>The words and acronyms used in this report, in the memoir, on <a href="../recherche">the research page</a> and in <a href="../toile">the corrector's web</a>. Each definition fits in one sentence.</p>
+<h3>15.1 — Sound and letter</h3>
+<p class="small">The dual-route vocabulary: what is heard, what is written.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Term</th><th>Definition</th></tr></thead>
 <tbody>
-<tr><td><strong>Ortho / phon</strong></td><td>Written / spoken form of a word.</td></tr>
-<tr><td><strong>SAMPA</strong></td><td>Phoneme notation (distinguishes é/è/an/on…).</td></tr>
-<tr><td><strong>Concept / M_S hub</strong></td><td>Amodal representation linking the routes (enter through one, reconstruct the others).</td></tr>
+<tr><td><strong>Grapheme</strong></td><td>The <em>letter or letter group</em> that writes a sound. In "bateau", <code>eau</code> is ONE grapheme.</td></tr>
+<tr><td><strong>Phoneme</strong></td><td>The <em>sound</em> itself, independent of its spelling. "seau", "sot" and "saut" share the same phonemes.</td></tr>
+<tr><td><strong>Ortho / phon</strong></td><td>Written / spoken form of a word. The two "routes" the project makes work together.</td></tr>
+<tr><td><strong>SAMPA</strong></td><td>A phoneme notation written with ordinary keyboard characters. Distinguishes é/è/an/on…</td></tr>
+<tr><td><strong>IPA</strong></td><td>The International Phonetic Alphabet — the scholarly notation of sounds, with its own symbols (ʃ, ɛ̃…).</td></tr>
+<tr><td><strong>g2p / p2g</strong></td><td><em>Grapheme to phoneme</em> and the reverse: guessing how a word is pronounced from its spelling, or how it could be written from its sound.</td></tr>
+<tr><td><strong>phon_key</strong></td><td>A <strong>deliberately approximate</strong> phonetic key of the word: it flattens differences so that "fenetre" and "fenêtre" meet. Its imprecision is the feature, not a flaw — true IPA was measured and rejected here.</td></tr>
+<tr><td><strong>Voiced / voiceless</strong></td><td>Voiced = the throat vibrates (b, d, g, v, z, j); voiceless = it does not (p, t, k, f, s, ch). A classic dys confusion.</td></tr>
+<tr><td><strong>Silent letter</strong></td><td>A letter written but not pronounced: the <code>d</code> of "grand". Revealed by a word of the same family ("grande").</td></tr>
+<tr><td><strong>Elision</strong></td><td>The vowel replaced by an apostrophe: "le arbre" → "l'arbre".</td></tr>
+</tbody></table></div>
+<h3>15.2 — Grammar</h3>
+<p class="small">The words that describe a sentence's structure — and the tools that guess it.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td><strong>POS</strong></td><td><em>Part Of Speech</em>: a word's <strong>grammatical class</strong> — noun, verb, adjective, determiner…</td></tr>
+<tr><td><strong>Tagger</strong></td><td>The program that assigns each word of a sentence its grammatical class.</td></tr>
+<tr><td><strong>HMM</strong></td><td><em>Hidden Markov Model.</em> It guesses each word's class from two cues only: the word itself, and the class of the <strong>previous</strong> word. Simple, fast, and sufficient most of the time.</td></tr>
+<tr><td><strong>Viterbi</strong></td><td>The algorithm that, instead of choosing word by word, keeps the <strong>most probable sequence of classes for the whole sentence</strong>.</td></tr>
+<tr><td><strong>n-gram</strong></td><td>A run of <em>n</em> consecutive elements — letters or words. "le chat dort" contains the bigrams "le chat" and "chat dort".</td></tr>
+<tr><td><strong>Bigram / trigram</strong></td><td>An n-gram of 2, respectively 3.</td></tr>
+<tr><td><strong>Lemma</strong></td><td>The dictionary form of a word: the lemma of "mangeaient" is "manger".</td></tr>
+<tr><td><strong>Inflection</strong></td><td>The forms a word takes as it changes (plural, feminine, conjugation).</td></tr>
+<tr><td><strong>Determiner</strong></td><td>The small word before the noun: le, la, les, un, des, mon, ce…</td></tr>
+<tr><td><strong>Clitic</strong></td><td>A small word that leans on the verb and cannot stand alone: the <em>me</em>, <em>te</em>, <em>se</em>, <em>lui</em>, <em>y</em>, <em>en</em> of "il <strong>lui</strong> parle".</td></tr>
+<tr><td><strong>Agreement</strong></td><td>Matching gender and number marks between linked words: "les enfants <strong>jouent</strong>".</td></tr>
+<tr><td><strong>Homophone</strong></td><td>Two words that <strong>sound the same</strong> and are written differently: a/à, son/sont, ver/vert/verre.</td></tr>
+<tr><td><strong>Homograph</strong></td><td>Two words <strong>written the same</strong> with different meanings: "le <em>couvent</em>" (the convent) and "elles <em>couvent</em>" (they brood).</td></tr>
+<tr><td><strong>Tokenizer</strong></td><td>The splitter: it cuts text into words (the "tokens"). Here it strips punctuation — hence the existence of <code>_SEG</code>.</td></tr>
+<tr><td><strong>Span</strong></td><td>A correction that covers <strong>several words at once</strong> rather than one: a word split in two, a repetition, a hyphen.</td></tr>
+</tbody></table></div>
+<h3>15.3 — The corrector: red and orange</h3>
+<p class="small">The project's doctrine fits in two colours.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td><strong>False positive (FP)</strong></td><td>The corrector flags a mistake where the text was <strong>correct</strong>. The gravest fault it can commit.</td></tr>
+<tr><td><strong>FP = 0</strong></td><td>The project's rule: a correction <strong>applied automatically</strong> must produce no false positive on the control corpora. At the slightest doubt, do not assert.</td></tr>
+<tr><td><strong>Red</strong></td><td>A <strong>sure</strong> correction, applied directly in the corrected text (but always undoable in one click).</td></tr>
+<tr><td><strong>Orange (vigilance)</strong></td><td>A doubt <strong>flagged</strong>, never imposed. The corrector says "look here" without deciding.</td></tr>
+<tr><td><strong>Speller</strong></td><td>The module that hunts words that <strong>do not exist</strong> — by edit distance and by sound. As opposed to grammar, which deals with existing words used wrongly.</td></tr>
+<tr><td><strong>Candidate</strong></td><td>A word the corrector offers as replacement. Several candidates are ranked, the best is kept — or none.</td></tr>
+<tr><td><strong>Edit distance</strong></td><td>The number of touch-ups (add, remove, replace one letter) to go from one word to another. "fote" → "faute" = 2.</td></tr>
+<tr><td><strong>Levenshtein</strong></td><td>The name of that edit-distance measure.</td></tr>
+<tr><td><strong>Unknown word / OOV</strong></td><td><em>Out Of Vocabulary</em>: a word absent from the lexicon. Often a mistake — but sometimes a first name, a place, a trade word.</td></tr>
+<tr><td><strong>Stage</strong></td><td>The writing-acquisition stage a mistake points to: phonological (what is written does not read as the dictated word), alphabetic (accents and spellings), lexical (the word's orthography: silent letters, homophones), morphosyntactic (grammar). In dictation, an extra or missing letter counts for the sound if it is heard, for the word if it is silent.</td></tr>
+<tr><td><strong>Remediation</strong></td><td>The advice attached to the mistake — what can be <em>worked on</em>, not just corrected.</td></tr>
+<tr><td><strong>Dys</strong></td><td>Shorthand for written-language disorders: dyslexia (reading), dysorthographia (writing), dyscalculia (numbers).</td></tr>
+</tbody></table></div>
+<h3>15.4 — The bricks of the web</h3>
+<p class="small">The 43 nodes of <a href="../toile">the corrector's web</a> carry code names. Here is their translation.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td><strong>Lexique 4</strong></td><td>The academic lexical database of French from which most tables derive (frequencies, gender, grammatical class).</td></tr>
+<tr><td><strong>SP.WORDS</strong></td><td>The list of <strong>214,685 known words</strong>. Acts as a guard: a word on it is never declared "unknown".</td></tr>
+<tr><td><strong>CONJ_C</strong></td><td>The conjugation table: for each verb, each tense and each person, the correct form. It is the authority.</td></tr>
+<tr><td><strong>GENDER · gn</strong></td><td>The gender tables: is this word masculine or feminine? Indispensable for "le voiture" → "la".</td></tr>
+<tr><td><strong>NOUN_POST</strong></td><td>For each form, the probability that it is a <strong>noun</strong> rather than a <strong>verb</strong>. The guard of gender and plural agreement.</td></tr>
+<tr><td><strong>POS-HMM</strong></td><td>The model that gives each word its grammatical class (see <em>HMM</em> above).</td></tr>
+<tr><td><strong>_verb_or_homograph</strong></td><td>A safety net: it recovers the verbs the model misses, while discarding known nouns, adjectives and colours.</td></tr>
+<tr><td><strong>OS-sujet</strong></td><td>The module that looks for the <strong>verb's subject</strong> when it sits far away. It measures its own reliability and stays orange — syntax is too uncertain for red.</td></tr>
+<tr><td><strong>_SEG</strong></td><td>The map of what <strong>separated</strong> two words before the tokenizer erased it: clause or sentence boundary, hyphen, number. Without it, a comma would be invisible.</td></tr>
+<tr><td><strong>_INVAR_COLOR</strong></td><td>The list of colours that do not agree: des chaussures <em>marron</em>, des rubans <em>orange</em>.</td></tr>
+<tr><td><strong>UD Treebank</strong></td><td>A corpus of sentences whose grammar was annotated by hand by linguists (<em>Universal Dependencies</em>). Used as measuring ground.</td></tr>
+<tr><td><strong>UD-GSD</strong></td><td>The French corpus of that collection, used here as a false-positive bench.</td></tr>
+</tbody></table></div>
+<h3>15.5 — Measuring</h3>
+<p class="small">The vocabulary of the "measure or reject" doctrine.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td><strong>Recall</strong></td><td>The share of real mistakes the corrector catches. A recall of 60 % = it sees 6 out of 10.</td></tr>
+<tr><td><strong>Precision</strong></td><td>The share of its flags that are real mistakes. Not to be confused with recall: you can have one without the other.</td></tr>
+<tr><td><strong>Bench</strong></td><td>A fixed set of trials replayed before and after a change, to see what moves.</td></tr>
+<tr><td><strong>Corpus</strong></td><td>A body of texts used as measuring material.</td></tr>
+<tr><td><strong>Parity</strong></td><td>The check that the three engines (the site, the extension, the Python reference) answer <strong>exactly alike</strong> on the same inputs.</td></tr>
+<tr><td><strong>Probe</strong></td><td>A small program that verifies one precise property and fails loudly if it breaks.</td></tr>
+<tr><td><strong>Regression</strong></td><td>Something that worked and no longer does. What the whole test battery exists to catch.</td></tr>
+<tr><td><strong>Ablation</strong></td><td>Unplugging a piece to measure what it really contributed. If nothing changes, it served nothing.</td></tr>
+<tr><td><strong>Threshold</strong></td><td>The value at which one decides. Moving it moves the balance between recall and false positives.</td></tr>
+<tr><td><strong>SOTA</strong></td><td><em>State Of The Art</em>: the best known level, the one you compare against.</td></tr>
+<tr><td><strong>MDL</strong></td><td><em>Minimum Description Length</em>: prefer the simplest explanation (Occam's razor), to avoid learning noise.</td></tr>
+<tr><td><strong>AUC</strong></td><td>The area under the curve — an overall grade of the ability to separate two cases. 0.5 = chance, 1 = perfect.</td></tr>
+<tr><td><strong>EM</strong></td><td><em>Expectation-Maximization</em>: a method that learns a table by alternating "I guess" and "I readjust".</td></tr>
+<tr><td><strong>SPSA</strong></td><td>An automatic weight-tuning method that gropes in every direction at once.</td></tr>
+<tr><td><strong>IG (InfoGain)</strong></td><td><em>Information gain</em>: how much a question reduces uncertainty. At Hangman, which letter to ask.</td></tr>
+</tbody></table></div>
+<h3>15.6 — The voice</h3>
+<p class="small">For voice dictation and automatic punctuation.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td><strong>ASR</strong></td><td><em>Automatic Speech Recognition</em>: turning sound into text.</td></tr>
+<tr><td><strong>Transcript</strong></td><td>The text that recognition produces.</td></tr>
+<tr><td><strong>Prosody</strong></td><td>The music of the sentence: pauses, rises and falls of the voice. It carries information about punctuation.</td></tr>
+</tbody></table></div>
+<h3>15.7 — Hangman and cognition</h3>
+<p class="small">The original testbed, and the model that runs it. (Historical entries, kept.)</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td><strong>Concept / M_S hub</strong></td><td>An <em>amodal</em> representation linking the routes: enter through one, reconstruct the others.</td></tr>
+<tr><td><strong>Amodal</strong></td><td>Neither sound nor writing — a shared intermediate representation common to both.</td></tr>
 <tr><td><strong>bPC</strong></td><td>Predictive auto-encoder of the concept (<code>M_BPC_M3D</code>).</td></tr>
-<tr><td><strong>Bottom-up / top-down (mirror) loop</strong></td><td>Perception-decision / correction-learning.</td></tr>
-<tr><td><strong>P1 / P2</strong></td><td>Direct / mirror circle (double Möbius). P2 currently disconnected.</td></tr>
-<tr><td><strong>OS</strong></td><td>Arbitration module (doses ortho/phon, dilutes, measures dissonance).</td></tr>
-<tr><td><strong>Cohort</strong></td><td>Dictionary words compatible with the board.</td></tr>
-<tr><td><strong>Coverage</strong></td><td>Fraction of positions correctly revealed.</td></tr>
-<tr><td><strong>Declare</strong></td><td>Override: announce a word/a letter.</td></tr>
-<tr><td><strong>Recall</strong></td><td>Recognition of an already-played word.</td></tr>
-<tr><td><strong>Cheat-free</strong></td><td>Never consults the hidden answer.</td></tr>
-<tr><td><strong>Gray cheating</strong></td><td>Injection of the dictionary's frequency/spelling into the letter score (A1/A2).</td></tr>
-<tr><td><strong>Oracle / key→answer lookup</strong></td><td>Reading the hidden answer (<code>wp.get(currentWord)</code>).</td></tr>
-<tr><td><strong>HDC / HRR</strong></td><td>Hyperdimensional computing / <em>Holographic Reduced Representations</em>.</td></tr>
-<tr><td><strong>Cap §43 / R66</strong></td><td>Read only the revealed / no default activation without empirical validation.</td></tr>
+<tr><td><strong>Auto-encoder</strong></td><td>A network that learns to copy its input through a smaller summary — which forces it to keep only the essential.</td></tr>
+<tr><td><strong>Bottom-up / top-down loop</strong></td><td>Perception-decision on one side, correction-learning on the other.</td></tr>
+<tr><td><strong>P1 / P2</strong></td><td>Direct / mirror circle (double Möbius). P2 is currently disconnected.</td></tr>
+<tr><td><strong>OS</strong></td><td>The arbitration module: it doses ortho and phon, dilutes, and measures the dissonance between the routes.</td></tr>
+<tr><td><strong>Cohort</strong></td><td>The dictionary words still compatible with the board state.</td></tr>
+<tr><td><strong>Coverage</strong></td><td>The fraction of positions correctly revealed.</td></tr>
+<tr><td><strong>Declare</strong></td><td>Announcing a word or a letter instead of continuing to guess.</td></tr>
+<tr><td><strong>Recall (Hangman)</strong></td><td>Recognizing an already-played word. Not to be confused with the corrector's <em>recall</em> (§15.5).</td></tr>
+<tr><td><strong>Cheat-free</strong></td><td>Never consults the hidden answer. The testbed's founding constraint.</td></tr>
+<tr><td><strong>Gray cheating</strong></td><td>Sneaking the dictionary's frequency or spelling into the letter scores.</td></tr>
+<tr><td><strong>Oracle</strong></td><td>Reading the hidden answer directly. A theoretical ceiling, never a game mode.</td></tr>
+<tr><td><strong>HDC / HRR</strong></td><td><em>Hyperdimensional computing</em> and <em>Holographic Reduced Representations</em>: representing an object by a very large vector in which elements can be bound and retrieved.</td></tr>
+<tr><td><strong>VSA</strong></td><td><em>Vector Symbolic Architectures</em>: the family of methods HDC and HRR belong to.</td></tr>
+<tr><td><strong>SDIM / LDIM</strong></td><td>The vector sizes used: SDIM on the sound side (sound↔letter map), LDIM = 512 on the letter side.</td></tr>
+<tr><td><strong>DRC</strong></td><td><em>Dual Route Cascaded</em> — Coltheart's two-route reading model, which structured the whole architecture.</td></tr>
+<tr><td><strong>NEO</strong></td><td>The late declaration system, which decides to announce a word without consulting the answer.</td></tr>
+<tr><td><strong>Cap §43 / R66</strong></td><td>Two doctrine guards: read only what is revealed; activate nothing by default without measured proof.</td></tr>
+</tbody></table></div>
+<h3>15.8 — Tech and browser</h3>
+<p class="small">What makes all of this run in a tab.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td><strong>Extension (MV3)</strong></td><td>The program added to the browser. MV3 = <em>Manifest V3</em>, the current generation imposed by Chrome.</td></tr>
+<tr><td><strong>Side panel</strong></td><td>Chrome's side panel — the surface where the corrector lives.</td></tr>
+<tr><td><strong>Service worker</strong></td><td>A small program running beside the page that caches the files: it is what makes offline work.</td></tr>
+<tr><td><strong>Cache</strong></td><td>The local copy of the files, to avoid re-downloading. If it does not refresh, you see an old version of the site.</td></tr>
+<tr><td><strong>WebGPU</strong></td><td>Access to the graphics card from the browser — what makes a local language model possible.</td></tr>
+<tr><td><strong>WGSL</strong></td><td>The language in which the computations sent to that graphics card are written.</td></tr>
+<tr><td><strong>LLM</strong></td><td><em>Large Language Model</em>: a language model trained on a lot of text. Here, a <strong>very</strong> reduced, local version, backing up the rule engine.</td></tr>
+<tr><td><strong>Embedding</strong></td><td>Representing a word by a list of numbers, so that two words close in meaning have close lists.</td></tr>
+<tr><td><strong>Quantization</strong></td><td>Reducing the precision of a model's numbers so it fits in memory — at the cost of a little quality.</td></tr>
+<tr><td><strong>Distillation</strong></td><td>Having a small model learn what a big one can do, to keep the essential at a usable size.</td></tr>
 </tbody></table></div>
 </section>
 
@@ -892,6 +1031,15 @@ All on a <strong>segments layer</strong> (punctuation/capitals = boundaries), wh
 <div class="note"><strong>Substrate generality — what the mechanism is, at bottom (O2, 06/2026).</strong> Pointed outside French (at <strong>code</strong>, without Lex4), the aggregation substrate reconstructs and <strong>compresses</strong> sequences <em>as well as French</em> (~1.1 bit/character below chance) and <strong>nothing</strong> on a scrambled sequence — "to predict = to compress". OMEGA's transferable core is therefore a <strong>compressor of structured sequences</strong>, domain-agnostic; the French cognition (phonological dual-route) does not transfer (no "sound" in code). Powerful and general, but <em>structure capture</em>, not <em>understanding</em>. <em>(Group work O1 = negative, subsumed by internal arbitration.)</em> Detail: <code>recherche.html</code>, <code>evo/EVO_ROADMAP.md</code>, scripts <code>evo/evo_o2_*.js</code>.</div>
 
 <p class="tech"><strong>Limits (honest).</strong> Validation still <strong>synthetic + held-out</strong> — no real student copies (field validation with speech therapists / online FR corpus <code>fetch_gec_corpus.py</code> = to do; they validate <em>and</em> feed the top-down loop). The corrector's verb coverage via whitelist + cgram (homographs: cross against context). Gender agreement — <strong>measured on real UD</strong> (<code>dictee/gender_probe_ud.py</code>, 355k gold words): the determiner is <strong>validated and improved</strong> (recall <strong>67→73&nbsp;%</strong>, FP 0.10/1000 — verb-homograph guard lifted, wired in parity across the 3 engines, battery FP=0 intact); the adjective is <strong>rightly disabled</strong> (3.37 FP/1000) — a POS-tagger would remove only ~48&nbsp;% (→ 1.76/1000, still ~20× the determiner), because adjectival agreement requires <strong>scope</strong> (noun-head, extent) = parsing, not just a tagger. Approximate "surface" normaliser.</p>
+
+<h3>18.7 Calculation aid — dyscalculia <span class="hn" style="font-size:.7em">update 25/08/2026</span></h3>
+<p><strong>The corrector's stance, transposed to numbers: understand rather than delegate.</strong> Dyscalculia is not primarily a difficulty in <em>computing</em> — it is a difficulty in <strong>reading and writing numbers</strong>: writing "30005" for <em>three hundred and five</em>, reading 96 instead of 69, not seeing that the 3 of 305 is worth three <em>hundreds</em>. A calculator touches none of those points: it <strong>bypasses</strong> them. This is exactly why the corrector explains the mistake instead of silently replacing it.</p>
+<p><strong>Two surfaces, two intended uses.</strong> In the <strong>extension</strong> (a quick tool, you write elsewhere) an expression is parsed — <strong>never with <code>eval</code></strong>, a home-made recursive-descent parser: user input fed to <code>eval</code> in an <code>&lt;all_urls&gt;</code> extension would be an open door, and the Store would rightly refuse it — and the result is rendered in <strong>three forms</strong> (grouped, in words, place value). On the <strong>site</strong> (<code>/calcul</code>, you come to work), the <strong>four operations are laid out in columns</strong>, each carry explained in French, long division ending with its <strong>verification</strong> (<code>quotient × divisor + remainder = dividend</code>) — the only place in the tool where the result <em>proves itself</em>.</p>
+<p><strong>Transcoding, both ways.</strong> The engine knew how to say a number in words; it did not know the reverse. Yet the reverse is what carries the target error: <code>enLettres</code> starts from digits, so it <em>assumes the problem already solved</em>. <code>versNombre</code> fills that hole. The only <strong>multiplicative</strong> compound of French to treat apart: <em>quatre-vingt</em> (4 × 20) — without regrouping, "quatre-vingt-dix-sept" adds up as 4+20+10+7 = 41. Guard: <strong>20,011 round-trips</strong> digits↔words with no discrepancy.</p>
+<div class="note"><strong>Negative result, fixed <span class="chip c-mes">measured</span>.</strong> Column subtraction by the <em>subtractive</em> method (taking the borrow off the <strong>top</strong> digit) displays "remaining <strong>−1</strong>" on <code>502 − 347</code>. A negative number in the middle of a primary-school subtraction is precisely the confusion the tool exists to avoid: switch to the French <strong>additive</strong> method (the carry is added to the <strong>bottom</strong> digit), where no step can go negative.
+<br><strong>And the probe that was supposed to guard it stayed GREEN at first</strong> after the bug was deliberately re-introduced: the negative was born not in the engine but in the <strong>display</strong>. Measuring stored values could not see it. The real discriminant is <em>structural</em> — <code>aEffectif ∈ {a, a+10}</code> and <code>bAvecEmprunt === b + empruntEntrant</code> — and that is what is verified. Method reminder: <strong>a probe is only earned once it has been falsified</strong>.</div>
+<p><strong>Parity &amp; guard.</strong> The <code>calc_dys.js</code> engine lives in <strong>two copies</strong> (extension / site root). An unguarded copied file is what cost 134 dictation diagnostics on 25/08/2026 (a symbol collision during a block port). <code>dictee/calc_dys_probe.js</code> compares the <strong>bytes</strong> <em>and</em> queries the engine: ~46,000 layouts checked against bare arithmetic, the <strong>refusals</strong> held (<code>5 − 9</code>, <code>÷ 0</code>, non-numeric input — no invented answer), and the fact that the page only calls <em>existing</em> functions. Full battery green (<code>bash dev.sh check</code>).</p>
+<p class="tech"><strong>Limits (honest).</strong> No validation with dyscalculic pupils: the pedagogical choices (colour by place value cycling over three — the French thousands block —, the carry written where the hand writes it, the brought-down digit marked) follow French school practice and the repo's doctrine, they are not <em>measured</em>. Integers only, no decimals or fractions. <strong>No research claim</strong> here: an applied outlet, not a result.</p>
 </section>
 
 <section id="m19">
@@ -915,6 +1063,115 @@ All on a <strong>segments layer</strong> (punctuation/capitals = boundaries), wh
 <p>Since the mean μ is similar, this is <em>not</em> "one route overwhelms the other": in English the arbiter <strong>commits more sharply</strong> (μ departs more from ½, lower coherence), consistent with a more decisive orthography once letters are revealed — in <em>that</em> specific regime. The raw ratio <code>r=signal<sub>phon</sub>/signal<sub>ortho</sub></code> is more dispersed in English, but its mean is inflated by rare spikes: we read coherence, not <code>r̄</code>.</p>
 <div class="note"><strong>(1,1) is not a win-rate optimum; θ re-tune <span class="chip c-mes">measured</span> = no robust effect.</strong> (1,1) is a point of <strong>symmetry</strong> (Möbius axis β=1, α=1 homographic, coherence ridge at their crossing; set by structure + MDL). The θ win-rate sweep is a <strong>confounded instrument</strong> (crippled ortho arm) — kept for the form, discarded as fitness. Indeed a grid α×β seemed to give +2.5 pts on a training set, but <strong>cross-validation</strong> brings all candidates — including (1,1) — back to the same win rate (single-game noise, N=40). (1,1) holds by <em>structure</em>, for both languages. Honest corollary: the in-lexicon EN↔FR gap is not a tuning failure, but neither does it reduce to "English is spelling" — the dual route balances differently across language <em>and</em> task. Detail: <a class="x" href="../arbitrage">Arbitration</a> page + <a class="x" href="MEMOIRE#m7">memoir §7.2</a>.</div>
 </section>
+
+<section id="m20">
+<h2><span class="hn">20</span>The soft body — home-made character LM, training loop &amp; graft onto the corrector <span class="hn" style="font-size:.7em">upd. 21/08/2026</span></h2>
+<p>Chapter from the August 2026 campaign (PR#514→519). <strong>Measured motivation</strong>: after the dys recall audit (41→62 % correctly fixed, ~10 rules), the skeleton's residue is <em>semantic</em> — emblem: « elle <em>sais marier</em> a l'age de vingt ans » (real dys corpus) = « s'est mariée », which the pipeline <strong>reinforced</strong> (sais→sait). Answer: a tiny <strong>soft body</strong>, built by the skeleton's loop, never a generator — a <strong>judge</strong>.</p>
+
+<h3>20.1 — The training loop (reproducible on a home GPU)</h3>
+<ul>
+<li><code>dictee/b2_data.py</code> — corpus: <strong>630,500 sentences / 99.7 Mchars</strong>, the same source as the punct-lm (UD-GSD + Wiktionary kaikki usage examples, free licences → <strong>distributable weights</strong>); strict held-out: <code>fp_scale</code> excluded (FATIGUE bench), the dys dictations never in the training set.</li>
+<li><code>dictee/b2_train.py</code> — char-transformer parameterised by env (<code>B2_CTX/DM/NL/NH/FF/BATCH</code>, config embedded in the checkpoint). Kept: <strong>14.45 M</strong> (384d×8L, ctx 384), 30,000 steps ≈ <strong>2 h 05 on an RTX 3060 6 GB</strong>, dev loss 1.157. The 4.8 M (256d×6L, 1 h) remains an honest comparison point: it already scores 100/100/83/83.</li>
+<li><code>dictee/b2_contrast.py</code> then <code>dictee/b2_curriculum.py</code> — the generative rotation. <span class="chip c-mes">measured</span> Naive contrastive training on the generator's pairs <strong>saturates in one rotation</strong> ("reversed pairs 0 %" from the start: the LM already masters dys_gen's <em>local</em> mistakes); the <strong>mined curriculum</strong> (a level-2 generator: ces↔ses, on↔ont, sait↔s'est, distant -é agreement; only pairs with insufficient margin reach the gradient) recovers signal: 31-42 % hard pairs, hard ces&gt;ses at 94 %, FATIGUE 83→86 on the 4.8 M, zero forgetting.</li>
+<li><code>dictee/llm_juge_probe.py</code> — the evaluation, EXTERNAL benches only (the loop never judges itself on itself): REEL (ASEI dys pairs), GEN, PIÈGES (traps), FATIGUE. Bar: gpt-fr-cased-small 124 M. <strong>Verdict: 100/100/92/86 vs 100/100/92/94</strong> — trap parity at 1/9 of the size; the FATIGUE residue is <em>referential</em> ces/ses, undecidable within the sentence (discourse) — the same family as the 124 M's misses.</li>
+</ul>
+
+<h3>20.2 — The downstream-judge graft sait/s'est+INF (in production)</h3>
+<p><strong>Doctrine</strong> (cesses/strictness pattern): the skeleton detects the frame [il/elle/on]+sais/sait+INF-er (infinitive checked against the accented lexicon), builds the candidate « s'est + <em>agreed</em> participle »; the judge <strong>compares the two sentences</strong> (sentence window, margin τ=0.01) → <strong>orange span 2</strong> (« sais marier »→« s'est mariée »), never imposed. Probe <code>dictee/greffe_sais_probe.py</code> <span class="chip c-mes">measured</span>: the real ASEI case decided ✓ (Δ=+0.065 despite neighbouring mistakes), held-out recall 7/7 (τ=0), abstention on the legitimately ambiguous (« Luke sait confectionner un sabre »); <strong>structural guard</strong>: the frame barely exists in correct text (1/18,556 UD+held-out sentences; 152 vs 2,235 s'est+pp over 630k). Two subtleties paid for:</p>
+<ul>
+<li><strong>Anti-reinforcement guard</strong> <code>b2Cadre</code> in <code>rAccordSV</code>+<code>_svFinish</code>: when the judge has ruled « s'est », subject-verb agreement <strong>stays silent</strong> — otherwise it resurrected sais→sait on top of the orange (a conflict caught by the browser end-to-end, not by re-reading).</li>
+<li><strong>Engine slice</strong>: the <code>_b2</code> state and the guards live BEFORE the end of <code>spellText</code> (the Node harnesses cut at <code>indexOf('mode PHRASES')→end of spellText</code>) — the first pass broke 6 benches with an out-of-slice ReferenceError.</li>
+</ul>
+<p><strong>Async wiring with no dedicated rendering</strong>: the verdict fills a cache keyed by normalised text then re-triggers <code>runCorr</code>; the <code>b2SaisInf</code> producer (vigilance chain) reads the cache — standard pipeline, the extension and the Python stay intact (vigilance is not part of the <code>correctText</code> parity).</p>
+
+<h3>20.3 — Browser port: int8 + home-made WebGPU, exact parity</h3>
+<ul>
+<li><code>dictee/b2_export_web.py</code> — weights <strong>int8 per output row</strong> (f32 scale) + JSON header (config, vocab, offsets) → <code>app/b2_web.bin</code> <strong>15.1 MB</strong> (under Cloudflare Pages' 25 MB/file, committed — a re-training = replace this file). <code>--check</code> replays the 4 benches dequantised: <strong>verdicts unchanged</strong>.</li>
+<li><code>app/b2_moteur.js</code> — 4 hand-written WGSL kernels (int8-dequant matmul + exact erf GELU, LayerNorm eps 1e-5, causal attention with online softmax, residual), embeddings on the CPU, log-softmax in JS. <strong>Zero dependencies</strong>, API <code>B2JUGE.{charger,score,dispo}</code>, config read from the .bin (engine ≠ weights).</li>
+<li><code>dictee/b2_web_probe.js</code> — CDP driver (a clone of the real browser bench, <em>without</em> <code>--disable-gpu</code>): Python↔Chrome parity <strong>|Δ|=0.00000 over 31 strings</strong>, preferences preserved, 1.4 s load, <strong>43-75 ms/score</strong>; + an <strong>end-to-end</strong> phase in the real app (opt-in clicked, ASEI sentence typed → the "(juge)" orange proposes without applying). Explicitly SKIPPED if <code>data_local</code> is absent — never a lying red in CI.</li>
+<li><span class="chip c-exc">lesson</span> The port's bug: <code>queue.writeBuffer</code> on a buffer without <code>COPY_DST</code> = a <strong>silent asynchronous</strong> validation rejection → the model computed on zeros (uniform logits ≈ log 1/278). Found by a file/engine differential (<code>b2_bin_check.py</code>: the .bin re-read like the JS → perfect → bug on the WGSL side). Same family as the microphone's empty <code>.catch()</code>.</li>
+</ul>
+<p><strong>User side</strong>: an opt-in « 🧠 Juge s'est/sait » in the corrector (next to the opt-in AI), remembered, <em>lazy</em> loading (nothing until the corrector runs), WebGPU absent → a clear message and the site unchanged. <strong>Fully local: nothing leaves the machine.</strong></p>
+
+<h3>20.4 — The same weights judge punctuation; symbiosis outlook</h3>
+<p><code>dictee/b2_ponct_probe.py</code> <span class="chip c-mes">measured</span> (pure held-out, weights UNCHANGED): <strong>commas F1 0.575</strong> (τ=0.005; the punct-lm table tops out at 0.21 → ×2.7), <strong>junction periods F1 0.713</strong> with a high-precision mode (97.3 % at τ=0.04) — cut out for the voice chain's "brake" ("the audio proposes, the text disposes", §18.6). One weights file thus already serves two grafts; a future fine-tune = swap the .bin, engine intact.</p>
+<p class="note"><strong>Assumed outlook — symbiosis, not a single graft.</strong> The sait/s'est graft is a <em>first step</em>. The worksites that embody the full loop: the judge as a <strong>general arbiter of vigilances</strong> (settling ces/ses, ou/où, long-distance agreements — one mechanism, every frame); <strong>perplexity-vigilance</strong> (flagging "something is off" where no rule looks — omissions, order); <strong>reverse distillation</strong> soft→skeleton (re-crystallising as rules/maps what the soft body does systematically — the skeleton grows, the soft body stays small); and the <strong>continuous curriculum</strong> both ways (each one's failures feed the other's training). Doctrine detail: <code>REGLES_FR.md</code> § "La GREFFE juge-aval"; memoir §10 (UPDATE 08/2026).</p>
+</section>
+
+<section id="m21">
+<h2><span class="hn">21</span>OMEGA Dys font &amp; "sound font" — a typeface that encodes the phoneme <span class="hn" style="font-size:.7em">upd. 21/08/2026</span></h2>
+<p>Chapter from the 21 August 2026 campaign (PR#525→541). <strong>Measured starting point</strong>: 58 % of the engine's confusions (and of dys readers', report §11.2) are <em>voiced/voiceless</em> pairs. Question: can the shape of the letters carry that feature? Doctrine §1 protocol: design <strong>blind</strong> (from internal measurements only, literature unopened), frozen and committed (<code>police/DESIGN_AVEUGLE.md</code>), <em>then</em> confronted (<code>police/LITTERATURE.md</code>).</p>
+<h3>21.1 — The font (static)</h3>
+<p>Parametric generator <code>police/build_font.py</code> (fontTools, 100 % polygonal geometry): <strong>voiced</strong> consonants (b d g v z j) at weight 105, <strong>voiceless</strong> (p t c k q f s) at 66, the rest at 85; mirror letters b/d/p/q each marked its own way (foot, flag, hat, tail), u with a terminal stem (≠ n), l with a foot (≠ I, 1); accents enlarged at 45°; wide spacing. Three files: <code>OmegaDys-Regular</code> (per-letter weight) and two uniform weights <code>Light</code>/<code>Heavy</code> for the sound layer. 135 glyphs (digits, full punctuation, « », œ/Œ/æ/Æ, accented capitals). Licence <strong>SIL OFL 1.1</strong> (original glyphs, not a Lexique derivative). Downloadable pack <code>omega-police-dys.zip</code> (freshness guard <code>build_pack.py --check</code> in CI), Data page.</p>
+<h3>21.2 — Verdicts from the literature (after the freeze)</h3>
+<table><thead><tr><th>Blind decision</th><th>Verdict</th><th>Source</th></tr></thead><tbody>
+<tr><td>Wide spacing</td><td><span class="chip c-mes">confirmed</span> — the only robust effect (accuracy ×2, +20 % speed)</td><td>Zorzi et al. 2012, PNAS</td></tr>
+<tr><td>Anti-mirror b/d/p/q</td><td><span class="chip c-exc">falsified by proxy</span> — OpenDyslexic/Dyslexie's bet, no reliable effect</td><td>2026 meta-analysis (15 studies, 688 part.); Kuster 2017</td></tr>
+<tr><td>Voicing = weight</td><td><span class="chip c-hyp">novel, unmeasured</span> — precedent: Visible Speech (Bell 1867)</td><td>—</td></tr>
+<tr><td>Sound font (contextual rendering)</td><td><span class="chip c-des">converges</span> with speech-therapy practice (syllable colouring, silent letters)</td><td>LireCouleur (Éduscol)</td></tr>
+<tr><td>Colour</td><td><span class="chip c-des">cream background, no weak grey, Okabe-Ito palette, never the only channel</span></td><td>BDA Style Guide 2023</td></tr>
+</tbody></table>
+<h3>21.3 — The sound font: a rendering layer, the text never changes</h3>
+<p>The decided consequence: what works is <em>adaptive</em>. An installed font does not know that the <em>s</em> of « poison » is /z/; the engine's g2p (<code>_DECL2.g2p</code>) does. DOM-free core <code>police/son_core.js</code>: word → graphemes <code>{g, ph, cls}</code> (voiced/voiceless/silent/neutral) + syllables (a port of <code>decompose.syllabify_*</code>, maximal onset, ortho overlay); function words and elided prefixes (l', j', c', qu'…) via closed tables (the same table as the Python reference <code>build_son_layer.py</code>); <strong>fail-safe</strong>: an uncovered word becomes a single neutral segment. Cardinal rule held by a test: the concatenation of the segments is <em>exactly</em> the input text — no private alphabet (v0.1 PUA, <span class="chip c-exc">rejected</span>: broken copy-paste), no substitution. Rendering = <code>&lt;span&gt;</code> on text nodes only: DOM structure (the corrector's clickable words, cards) intact; silent letters in vermilion <code>#a34700</code> (light) / <code>#f0a04b</code> (dark), odd syllables in blue <code>#0072b2</code>, colour decided by the <em>actual background's luminance</em>.</p>
+<h3>21.4 — Four surfaces, one core, parity in CI</h3>
+<ul>
+<li><strong>App</strong>: idempotent <code>OMEGADYS-SON</code> block (<code>inject_fonts.py</code>: 3 base64 TTFs + core + <code>son_ui.js</code>, fonts loaded lazily). Corrector: the <code>#vdc-in</code> input (re-dressed after each rewrite, caret preserved by text offset) + corrected text + preview. Dictation: the answer area turned <em>contenteditable</em> (a <code>value/select</code> shim, the corrector's model) + the correct sentence. « Police de son » / « Syllabes » checkboxes, OFF by default (R66).</li>
+<li><strong>Extension</strong>: <code>son_panel.js</code> (shim + sound font in the side panel); assets <code>g2p.js</code> (the <code>_DECL2</code> slice verbatim), <code>son_core.js</code>, 3 TTFs — produced by <code>build_assets.py</code>, loaded on first activation. Panel surface only: never a third-party site's field.</li>
+<li><strong>Word</strong> (beta): Office JS add-in <code>word/</code> — pure planner <code>son_word.js</code> (word → styled runs, rebuild == text guaranteed), glue <code>getTextRanges → insertText Replace/After</code>, manifest. Tested under Node with the real g2p (335 pieces) and outside Word; <strong>not tested in real Word</strong>.</li>
+<li><strong>Guards</strong>: <code>police/parity_son.js</code> (app block + extension assets freshness, clitics and elisions ≡ Python, syllables ≡ Python where graphemes and phonemes coincide, text never altered, poison/poisson/chats anchors), <code>word/test_son_word.js</code>, pack and zip fresh.</li>
+</ul>
+<h3>21.5 — What the wiring revealed about the engine</h3>
+<p>Plugging the sound font into the g2p surfaced an old bug: the double-consonant branch rendered <em>ss/ll/tt…</em> silent (« assis »→/ai/), and the top-down loop had <em>learned</em> the error. Fixed at the source (decomposer: held-out 52.4→55.2 % exact, 89.5→90.5 % phonemic), workaround removed on both sides. Since then, the g2p tables have been re-read against ground truth (16/10/2026): <strong>81.15 % exact, 96.40 % phonemic</strong> on the same 4,000 held-out words. Still flagged: « derrière » (i→/i/ before è engine-side, /j/ in the enriched Python), « parapluie » (i→/j/ before final e).</p>
+<h3>21.6 — What remains to measure</h3>
+<p>Nothing is proven on real readers yet. The bench exists: dictation, sound font on or off, will compare per-family rates (voiced/voiceless expected to drop if the hypothesis holds). Target: <em>written discrimination</em>, not reading speed (the meta-analysis' lesson). Same channel as <code>validation_terrain.html</code>.</p>
+</section>
+
+<!-- ================ 22 ================ -->
+<section id="m22">
+<h2><span class="hn">22</span>The no-length mode (🕶️) — playing without the word's span <span class="hn" style="font-size:.7em">upd. 05/11/2026</span></h2>
+<p>Chapter from the 3–5 November 2026 campaign (PR#1155→1182; full dossier: <code>AUDIT_SANS_LONGUEUR.md</code>). Question set by the project lead: <strong>what is left of the engine if you take the word's length away?</strong> Length is <em>legitimate</em> Hangman information (<a class="x" href="#s3">§3</a>, <a class="x" href="#s9">§9</a>) — removing it is not an anti-cheat hardening, it is an <strong>information ablation</strong>: the same engine, one sense fewer.</p>
+
+<h3>22.1 — Specification</h3>
+<ul>
+<li><strong>What the machine sees</strong>: the <em>relative schema</em> of the revealed letters — for INFLAMMABLE with E and A found, <code>A??A??E</code>, unknown edges (prefix and suffix hidden). Neither the length nor the absolute position.</li>
+<li><strong>What does not change</strong>: the game (the dealer reveals on the real board), the error budget, the cheating boundary. The <em>top-down</em> loop (end-of-game learning) still sees the word — as before (wake-sleep, <a class="x" href="#s9">§9</a>).</li>
+<li><strong>Implementation</strong>: a strict per-tick <em>window</em> — the trio (word, mask, revealed letters) becomes the relative schema during bottom-up perception, restored before the move is evaluated. The mode's aids only activate <strong>inside the window</strong> (a rule born from a bug: the toggle alone broke "Reset moteur").</li>
+</ul>
+
+<h3>22.2 — Machinery (J1→J7)</h3>
+<ul>
+<li><strong>Floating cohort</strong>: the schema is laid at <em>every offset</em> over each lexicon word; the compatible set only tightens within a game (monotone cache).</li>
+<li><strong>Relative n-gram</strong>: bi/trigrams at the schema's edges, with no absolute position.</li>
+<li><strong>Re-anchored recall</strong>: the bank of lived words is projected into the schema's frame (fixing a gate that compared incommensurable quantities).</li>
+<li><strong>OS arbitration + joint</strong>: the arbitration's sub-lexical route first tries the <strong>phon-cohort joint</strong> (doctrine §3 — a soft distribution, no argmax), falling back to the relative n-gram when the cohort is silent. It is the main lever (+1.7; seed 777 climbs from 90.0 to 98.3).</li>
+</ul>
+
+<h3>22.3 — Manual</h3>
+<p>Two equivalent switches: the <span class="ui">🕶️ Mode sans longueur (schéma relatif)</span> toggle in the grid (<a class="x" href="#s6">§6</a>), and the <span class="ui">🕶️ Mode sans longueur</span> checkbox in the game panel. OFF by default (R66); after toggling mid-session, <span class="ui">🔄 Reset moteur</span> (otherwise the learned state stays "contaminated", <a class="x" href="#s8">§8</a>). The <strong>« CE QUE LA MACHINE VOIT »</strong> [what the machine sees] view (game panel) shows live: the relative schema with fog edges, the <strong>number of compatible words</strong>, and the <strong>histogram of possible lengths</strong> — the true length is marked <em>for the spectator only</em> (read-only, no engine writes).</p>
+
+<h3>22.4 — Results <span class="chip c-mes">measured</span></h3>
+<p>Protocol: in-lexicon, words 7–12, warmup 120 / test 60 per seed, 4 canonical seeds, deterministic harness (<code>evo/sans_longueur_bench.js</code>); reference and mode measured <em>on the same bench</em>, cheat-free on both sides (nobody "hears" the word).</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Configuration (same protocol)</th><th class="num">with length</th><th class="num">without length</th></tr></thead>
+<tbody>
+<tr><td>Cognition alone</td><td class="num">93.8 %</td><td class="num">91.7 %</td></tr>
+<tr style="background:rgba(30,90,85,.10)"><td><strong>Full machine (+NEO, cheat-free reference)</strong></td><td class="num">96.3 %</td><td class="num pos"><strong>96.7 %</strong></td></tr>
+</tbody></table></div>
+<p><strong>The mode beats its own with-length reference</strong> (96.7 &gt; 96.3) — verified leak-free: real board identical seed by seed, no-op toggles off, placebo tight. The reading is not "less info = better" but: <em>the constraint forced better routes</em> (OS arbitration + joint) that the reference cascade was not using. <strong>Wired back onto the real board</strong>, those routes give 98.8 % (4 seeds, <code>M_NEO_OS_ARB</code>+<code>NGRAM</code>) — and the mode logically drops back below (−2.1).</p>
+<p><strong>Word-by-word versus</strong> (12 seeds, 720 words): the two regimes' failures are nearly <strong>disjoint</strong> — 39 words lost by the mode alone, 13 by the reference alone, 8 shared. That versus produced two levers, measured then <strong>activated in the preset</strong> (04/11): <strong>information partitioning</strong> in a dense cohort (12 seeds: 97.1→98.6 % alone) and <strong>cohort support</strong> (98.8 % combined, losses 21→9). <strong>Out-of-lexicon verified before activation</strong> (800 words removed one by one, paired): partition <strong>+1.0</strong> (sound); support <strong>−2.8</strong> — its premise ("the true word is in the cohort") is false out-of-lexicon — hence its <strong>gate</strong> <code>!M_TREXQUANT_MODE</code>, strict no-op proven (0 games changed out of 800). Full current preset: <strong>99.2 %</strong> (4 seeds) · <strong>98.8 %</strong> (12 seeds) — <a class="x" href="#s2">§2</a>.</p>
+
+<h3>22.5 — Falsified during the campaign <span class="chip c-exc">falsified</span></h3>
+<ul>
+<li><strong>Re-perception at anchor shift</strong> (J5b): re-initialising the producers when the anchor shifts — 4/4 seeds regress (87.1 %). Misaligned memory carries more signal than the misalignment costs.</li>
+<li><strong>M4_phon before the first correct letter</strong> (J6): opening the phon route on the full cohort from the start — neutral for the full machine, −3.4 for cognition alone. The "silent before anchoring" choice is <em>confirmed</em> by measurement.</li>
+<li><strong>Weighted fog</strong> (J8): inert since the joint took the sub-lexical route (byte-identical games) — the n-gram is now only the silent-cohort fallback.</li>
+<li><strong>Post-miss discounting</strong>: noise (mode +0.5 · reference −0.3) — left OFF.</li>
+<li><strong>The old "word heard" reference</strong> (99.6 %) read the hidden word's sound in the assembled route: abandoned <em>before</em> concluding, replaced by the cheat-free reference (96.3 %). The reference itself gets verified.</li>
+</ul>
+
+<h3>22.6 — The merge: a single file</h3>
+<p>The campaign lived on a <strong>copy</strong> of the application (the original untouched). At close (05/11), the mode was transplanted into the original (23 hunks, mechanical filtered diff, counter-proof by residual diff) and <strong>the copy deleted</strong>. Engineering lesson paid for: at merge time the copy was already <strong>43 hunks behind</strong> on the corrector — <em>an unguarded workbench copy drifts silently</em>; merge as soon as the campaign closes. Post-merge measurements identical seed by seed; the grid moves to 49 toggles, counted by the panel's CI probe.</p>
+</section>
 </main>
 </div><!-- /wrap -->
 
@@ -922,7 +1179,7 @@ All on a <strong>segments layer</strong> (punctuation/capitals = boundaries), wh
 
 <script>
 /* ---------- TOC build ---------- */
-const titles={s0:"Methods & conventions",s1:"Object & framing",s2:"Overview & performance",s3:"The task: Hangman",s4:"Architecture",s5:"Modules M1–M5, loops, constants",s6:"Toggle reference (47)",s7:"Lexique 4 dossier (A2)",s8:"Manual",s9:"Anti-cheat framework",s10:"Operating regimes",s11:"Results: success & failure",s12:"State & limits",s13:"Open questions",s14:"References",s15:"Glossary",s16:"Appendices",s17:"Declare NEO (phase 46)",s18:"Diagnostic dictation (dys)"};
+const titles={s0:"Methods & conventions",s1:"Object & framing",s2:"Overview & performance",s3:"The task: Hangman",s4:"Architecture",s5:"Modules M1–M5, loops, constants",s6:"Toggle reference (49)",s7:"Lexique 4 dossier (A2)",s8:"Manual",s9:"Anti-cheat framework",s10:"Operating regimes",s11:"Results: success & failure",s12:"State & limits",s13:"Open questions",s14:"References",s15:"Glossary",s16:"Appendices",s17:"Declare NEO (phase 46)",s18:"Diagnostic dictation (dys)",m19:"English port",m20:"Soft body (home LM & graft)",m21:"OMEGA Dys font & sound font",m22:"No-length mode (🕶️)"};
 const toc=document.getElementById('toc');
 Object.keys(titles).forEach((id,i)=>{
   const a=document.createElement('a');a.href='#'+id;a.dataset.id=id;
