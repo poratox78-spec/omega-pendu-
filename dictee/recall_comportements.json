@@ -803,7 +803,8 @@
 "La héro est une drogue dangereuse.",
 "La voisine que je croise le matin a une voiture rouge.",
 "Le film que je regarde ce soir a tous les atouts.",
-"Le reste arrive demain."
+"Le reste arrive demain.",
+"Le pull et le bonnet blancs sont à moi."
 ],
 "elide": [
 [
@@ -3300,6 +3301,11 @@
 "Le reste dors encore.",
 "dors",
 "dort"
+],
+[
+"Il porte un manteau noirs.",
+"noirs",
+"noir"
 ]
 ],
 "palier": [

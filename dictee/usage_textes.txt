@@ -159,3 +159,7 @@ Si vous sortez ce soir, {prenait|prenez|C} un parapluie : {sa|ça|G} peut change
 {samedi|Samedi|P} prochain, la fête du village commence à dix heures sur la place. Les {stand|stands|N} des artisans ouvrent en même temps, et la fanfare {jouerat|jouera|C} près de la fontaine.
 À midi, un grand repas est servi sous les {arbre|arbres|N}. La soirée {finis|finit|C} par un bal, puis par un feu d'{artifisse|artifice|O}.
 Les {bénévolles|bénévoles|O} {son|sont|G} attendus dès huit heures pour monter les tables. La buvette {acceptes|accepte|C} les cartes, et {ont|on|G} pourra aussi payer en espèces.
+=== T33 avis d'objet perdu
+{bonjour|Bonjour|P} à tous, j'ai perdu ma veste {noirs|noire|N} hier soir près de la gare. Elle {étais|était|C} dans un sac en toile avec deux {livre|livres|N} de poche.
+Je la cherche partout, car {ces|c'est|G} un cadeau de ma sœur. Si vous la {trouver|trouvez|C}, vous pouvez la laisser {a|à|G} la {boulangeri|boulangerie|O} du quartier.
+Je {passerait|passerai|C} la chercher samedi. Une petite {récompanse|récompense|O} est prévue !
