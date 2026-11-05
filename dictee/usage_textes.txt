@@ -171,3 +171,6 @@ Si {sa|ça|G} vous intéresse, envoyez-moi un {méssage|message|O} avant jeudi. 
 {papa|Papa|P}{|,|P} je rentre tard ce soir : j'ai entraînement de {basquet|basket|O} jusqu'à vingt heures.
 Le repas est dans le {frigot|frigo|O}, il {suffi|suffit|C} de le réchauffer cinq minutes. N'oublie pas de {nourire|nourrir|O} le chat et de fermer la {fenêtres|fenêtre|N} du salon.
 Les clés de la voiture {son|sont|G} sur la table. Je t'{embrasses|embrasse|C}, {a|à|G} ce soir !
+=== T36 récit de sortie scolaire
+{mardi|Mardi|P}, notre classe est allée au {musé|musée|O} des sciences. Les {élève|élèves|N} {on|ont|G} {visiter|visité|C} une salle sur les volcans, et le guide nous {à|a|G} montré des pierres très {ancienne|anciennes|N}.
+Ensuite, chaque groupe {devais|devait|C} répondre à un {questionaire|questionnaire|O}. Nous sommes {rentré|rentrés|N} en car vers seize heures.

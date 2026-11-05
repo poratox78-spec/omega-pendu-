@@ -3434,6 +3434,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
      la préposition avant le pronom. nous/vous exclus (objets possibles). Miroir Python rule_pron_inf. */
   function rPronInf(T,i){var w=T[i],lw=deacc(w.toLowerCase());if(!/er$/.test(lw)||lw.length<4||w!==w.toLowerCase()||!CONJ_C[lw])return null;
     if(i>0&&deacc(T[i-1].toLowerCase())==='on'&&rOn(T,i-1)==='ont')return null;   // liste n° 351 : « les voisins on planter » — « on » devient « ont », la cascade rend « ont planté » (pas « plantait »)
+    if(i>=3&&deacc(T[i-1].toLowerCase())==='on'&&PLURAL_DET[deacc(T[i-3].toLowerCase())]){var _tg388=posTags(T);if(_tg388&&_tg388[i-2]==='NOUN')return null;}   // liste n° 388 : « les enfant on jouer » — le nom mal écrit cache le « ont » à la garde du dessus au 1er passage ; après un déterminant pluriel + nom, « on » est « ont » : on laisse la cascade (enfants, ont, joué)
     var z=i-1;while(z>=0&&_PRON_INF_CLIT[deacc(T[z].toLowerCase()).replace(/'/g,'')])z--;if(z<0)return null;
     var _el=_ELIDED_PRON.exec(T[z].toLowerCase()),p=_el?deacc(_el[1]):deacc(T[z].toLowerCase()).replace(/'/g,''),slot=_PRON_INF_SLOT[p];if(!slot)return null;   // « qu'il aimer » : pronom dans le token élidé
     if(_SEG&&_SEG.bb){for(var m=z+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}
