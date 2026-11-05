@@ -33,6 +33,7 @@ const CFG = [
   'M_OS_LEARNING_ENABLED=true','M_OS_LEARNING_GUARD_1_BOUNDED=true','M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true','M_OS_LEARNING_GUARD_3_MDL_REGUL=true','M_OS_LEARNING_GUARD_4_COHERENCE=true',
   'M_DECLARE_NEO_ENABLED=true','M_NEO_RECALL_ENABLED=true','M_NEO_ASSEMBLED_ENABLED=true','M_NEO_COHORT_ENABLED=true','M_NEO_G2P_EXP_ENABLED=true',
   'M_NEO_PHON_COHORT_ENABLED=true','M_NEO_OS_ARB=true','M_NEO_OS_ARB_NGRAM=true',   // décision Rem 04/11/2026 — resynchronisé sur ci_smoke
+  'M_NEO_PARTITION_ENABLED=true','M_NEO_SUPPORT_ENABLED=true',   // décision Rem 04/11/2026 soir (versus §7) — resynchronisé sur ci_smoke ; en mode, partition et support sont gatés !_slOn (inertie)
   'M_DECLARE_NEO_CONF=0.75','M_DECLARE_NEO_RECALL_MARGIN=0.20','M_NEO_G2P_EXP_PEN=0.5',
 ].join(';');
 
