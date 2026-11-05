@@ -153,6 +153,7 @@
     "personne du verbe à vérifier": "Accord du verbe ?",
     "petit mot après le sujet à vérifier": "Petit mot ?",
     "peu/peux/peut": "peu, peux ou peut",
+    "pluriel du nom composé": "Pluriel du nom composé",
     "pluriel par le son à vérifier": "Pluriel ?",
     "plutôt / plus tôt à vérifier": "plutôt ou plus tôt ?",
     "pléonasme": "Mot en trop",
