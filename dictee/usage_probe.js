@@ -54,7 +54,14 @@ for (const b of textes) {
     ov.forEach((z) => prises.add(z));
     const bon = ov.filter((z) => { const lo = Math.min(e.s, z.fs), hi = Math.max(e.e, z.fe), avant = F.slice(lo, e.s), apres = F.slice(e.e, hi);
       return e.justes.some((j) => norm(F.slice(lo, z.fs) + z.r + F.slice(z.fe, hi)) === norm(avant + j + apres)); });
-    const v = bon.some(rouge) ? 'rouge juste' : bon.length ? 'orange juste' : ov.length ? 'mauvais mot' : 'muette';
+    // ⭐ 05/11/2026 (liste n° 377) : une faute que DEUX marques réparent ensemble (« mes beau-parent » → beaux + parents) était comptée
+    // « mauvais mot » : chaque marque seule ne donne pas le mot juste. Si aucune ne suffit seule, on les applique toutes (sans chevauchement).
+    let ens = false;
+    if (!bon.length && ov.length > 1) { const zs = ov.slice().sort((a, b) => a.fs - b.fs);
+      if (zs.every((z, q) => !q || zs[q - 1].fe <= z.fs)) { const lo = Math.min(e.s, zs[0].fs), hi = Math.max(e.e, zs[zs.length - 1].fe); let s = '', p = lo;
+        for (const z of zs) { s += F.slice(p, z.fs) + z.r; p = z.fe; } s += F.slice(p, hi);
+        ens = e.justes.some((j) => norm(s) === norm(F.slice(lo, e.s) + j + F.slice(e.e, hi))); } }
+    const v = bon.some(rouge) ? 'rouge juste' : bon.length ? 'orange juste' : ens ? (ov.every(rouge) ? 'rouge juste' : 'orange juste') : ov.length ? 'mauvais mot' : 'muette';
     fautes.push({ id: code + '#' + k, d: NOMS[e.d], faux: e.faux, juste: e.justes[0], v, marques: ov.map((z) => z.name + ' → ' + z.r + ' (' + z.tier + ')'), ctx: ctx(F, e.s, e.e) });
   });
   for (const z of zf) if (!prises.has(z)) casses.push({ t: code, mot: F.slice(z.fs, z.fe), r: z.r, name: z.name, tier: z.tier, ctx: ctx(F, z.fs, z.fe) });

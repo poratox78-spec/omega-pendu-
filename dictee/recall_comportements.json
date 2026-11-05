@@ -804,7 +804,8 @@
 "La voisine que je croise le matin a une voiture rouge.",
 "Le film que je regarde ce soir a tous les atouts.",
 "Le reste arrive demain.",
-"Le pull et le bonnet blancs sont à moi."
+"Le pull et le bonnet blancs sont à moi.",
+"Mon beau-fils arrive."
 ],
 "elide": [
 [
@@ -3306,6 +3307,11 @@
 "Il porte un manteau noirs.",
 "noirs",
 "noir"
+],
+[
+"Je vais voir mes beau-parent demain.",
+"beau",
+"beaux"
 ]
 ],
 "palier": [

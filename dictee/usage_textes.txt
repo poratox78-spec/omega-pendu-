@@ -163,3 +163,7 @@ Les {bénévolles|bénévoles|O} {son|sont|G} attendus dès huit heures pour mon
 {bonjour|Bonjour|P} à tous, j'ai perdu ma veste {noirs|noire|N} hier soir près de la gare. Elle {étais|était|C} dans un sac en toile avec deux {livre|livres|N} de poche.
 Je la cherche partout, car {ces|c'est|G} un cadeau de ma sœur. Si vous la {trouver|trouvez|C}, vous pouvez la laisser {a|à|G} la {boulangeri|boulangerie|O} du quartier.
 Je {passerait|passerai|C} la chercher samedi. Une petite {récompanse|récompense|O} est prévue !
+=== T34 annonce de covoiturage
+{bonjour|Bonjour|P}, je pars à Lyon vendredi soir et il me reste deux {place|places|N} dans ma voiture. Je vais voir mes {beau-parent|beaux-parents|N} pour deux jours.
+Le départ {et|est|G} prévu à dix-huit heures devant la mairie. Nous {partageront|partagerons|C} les frais d'{essance|essence|O}, et chacun peut {apporté|apporter|C} un sac.
+Si {sa|ça|G} vous intéresse, envoyez-moi un {méssage|message|O} avant jeudi. Vous {pouvé|pouvez|C} aussi m'appeler le soir.
