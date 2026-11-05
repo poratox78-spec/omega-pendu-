@@ -33219,6 +33219,10 @@ function spellUnknown(tok,atStart,T,idx){
      (« sous-espèce » → sous, espèce) et `ponctReglesVirgule(mots,tg,deja)` est la SEULE primitive du
      moteur à ne jamais recevoir `seg` : les 16 autres usages de `_SEG.hy` la protègent, pas elle.
      On la garde au point d'appel — la voix, qui appelle la même primitive, reste inchangée. */
+  var _ADR376={};('maman papa mamie mamy papi papy mami chéri chérie madame monsieur mademoiselle docteur tonton tata tatie mémé pépé').split(' ').forEach(function(w){_ADR376[w]=1;});
+  function _voc376(mots,j){var p=mots[j].toLowerCase();if(p==='je'||p==='tu'||/^j'/.test(p))return true;if(p!=='nous'&&p!=='vous')return false;var pe=p==='nous'?'1':'2',q=j+1;
+    while(q<mots.length&&/^(ne|n'|me|te|se|le|la|les|lui|leur|y|en)$/.test(mots[q].toLowerCase()))q++;if(q>=mots.length)return false;var v=mots[q].replace(/^[mtsln]'/i,''),r=svReads(v);
+    return r.length>0&&r.some(function(x){return x[2]===pe&&x[3]==='p';})&&!r.some(function(x){return x[2]==='3'&&x[3]==='s';});}
   function _virguleScan(text){
     var out=[];
     if(!text||typeof ponctReglesVirgule!=='function')return out;
@@ -33231,6 +33235,11 @@ function spellUnknown(tok,atStart,T,idx){
     /* ⭐ 04/11/2026 (liste n° 355) : la virgule après « Cependant », « Toutefois », « En effet »… en tête de phrase ne se posait qu'au PREMIER mot du texte ;
        chaque début de phrase compte (« Il pleut. Cependant le car part »), avec les mêmes gardes : pas devant « que », trois mots au moins derrière. */
     if(idx&&idx.add&&typeof longueurTete==='function'&&typeof estQue==='function')for(k=1;k<P.length;k++){if(!seg.ss[k]||/\.\.|…/.test(text.slice(P[k-1][1],P[k][0])))continue;var nT=longueurTete(mots,k);if(!nT||k+nT>=P.length||estQue(mots[k+nT]))continue;var f=k+nT;while(f<P.length&&!seg.ss[f])f++;if(f-(k+nT)>=3)idx.add(k+nT-1);}
+    /* ⭐ 05/11/2026 (liste n° 376) : la virgule du VOCATIF. En tête de phrase, un mot d'adresse (maman, papa, mamie…) ou un prénom suivi d'un
+       pronom sujet : « Mamie nous t'aimons » → « Mamie, nous t'aimons » (aussi après « : » ou « ; »). Avec « je » / « tu », le pronom est toujours sujet ; avec « nous » / « vous »,
+       le verbe qui suit doit être à leur personne (« Paul nous a vus » : « nous » est complément, pas de virgule). Recensé : la tournure sans
+       virgule n'existe ni dans les 3 corpus dys ni dans UD (2 fois, avec la virgule). */
+    if(idx&&idx.add)for(k=0;k+2<P.length;k++){if(k>0&&!seg.ss[k]&&!/[:;]/.test(text.slice(P[k-1][1],P[k][0])))continue;if(seg.bb[k+1])continue;var _w376=mots[k];if(!(_ADR376[_w376.toLowerCase()]||PRENOMS[_w376]))continue;if(_voc376(mots,k+1))idx.add(k);}
     if(!idx||!idx.forEach)return out;
     idx.forEach(function(i){
       if(i<0||i+1>=P.length)return;
