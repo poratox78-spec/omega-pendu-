@@ -138,3 +138,9 @@ Pour ses soixante-dix ans, nous {voulion|voulions|C} lui offrir un voyage {a|à|
 === T27 critique de film
 {hier|Hier|P} soir, nous sommes allés voir le nouveau film de science-fiction. L'histoire {commance|commence|O} sur une planète glacée où deux {soldat|soldats|N} perdus cherchent un abri. Les images sont {magnifique|magnifiques|N} et la musique {accompagnent|accompagne|C} bien les scènes.
 {quand|Quant|G} aux acteurs, ils jouent juste, même si le {héro|héros|O} parle trop. La fin m'a un peu {déçut|déçu|C}{|,|P} mais je {conseil|conseille|C} ce film {a|à|G} tous les curieux.
+=== T28 lettre à un correspondant
+{cher|Cher|P} Lucas,
+Je m'appelle Inès et j'ai onze ans. Je {vie|vis|C} dans un petit village près de Lyon avec mes parents et mes deux {frère|frères|N}. Mon {héro|héros|O} préféré est un explorateur qui a traversé un désert {a|à|G} pied.
+J'adore les {giraffes|girafes|O} et je {voudrai|voudrais|C} avoir un chien. Toi, tu {préfère|préfères|C} les chats ou les chiens ? {Répond|Réponds|C}-moi vite !
+À {bientot|bientôt|O},
+Inès
