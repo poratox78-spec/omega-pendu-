@@ -111,16 +111,28 @@ async function onglet(port, url) {
    fichiers : 12 effacements immédiats sur 12 en EPERM, cachés par un catch muet. Le même effacement passe 200 à
    360 ms plus tard (10 sur 10, rien ne réapparaît). `taskkill /T` n'avance à rien, et `maxRetries`/`retryDelay`
    de rmSync n'attendent pas sous Node 24 (≤ 10 ms), d'où la boucle. SYNCHRONE : les sondes l'appellent dans un
-   finally, juste avant process.exit. Un échec se DIT, sans changer le verdict de la sonde. */
+   finally, juste avant process.exit. Un échec se DIT, sans changer le verdict de la sonde.
+   ⚠ Linux (CI, 05/11/2026, run 41939964022) : rien n'y verrouille les fichiers — rmSync RÉUSSIT pendant que
+   Chrome vit encore, puis son extinction gracieuse (ou crashpad) RECRÉE le profil après coup (attrapé par
+   profil_chrome_probe ②). Le « 10 sur 10 » du 01/11 tenait au verrou Windows : l'EPERM faisait attendre la
+   vraie fin de Chrome. D'où le balayage : on ne rend la main que si le profil RESTE effacé 8 contrôles
+   d'affilée (~1,2 s de calme). On ne guette PAS le processus (zombie non moissonné tant que la boucle
+   d'événements est bloquée — kill(pid,0) dirait toujours « vivant » ici) : on guette le DOSSIER. */
 function eteindreChrome(proc, profil, delaiMs = 15000) {
   proc.kill();
   const t0 = Date.now();
+  let calme = 0;   // contrôles consécutifs où le profil est resté effacé
   for (;;) {
-    try { fs.rmSync(profil, { recursive: true, force: true }); return true; }
+    try { fs.rmSync(profil, { recursive: true, force: true }); }
     catch (e) {
       if (Date.now() - t0 > delaiMs) { console.error('⚠ profil Chrome non effacé (' + e.code + ') : ' + profil); return false; }
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+      continue;
     }
+    if (!fs.existsSync(profil)) { calme++; if (calme >= 8) return true; }
+    else calme = 0;   // recréé après coup : on ré-efface au tour suivant et on recompte
+    if (Date.now() - t0 > delaiMs) { console.error('⚠ profil Chrome recréé sans fin : ' + profil); return false; }
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 150);
   }
 }
 
