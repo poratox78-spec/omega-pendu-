@@ -172,7 +172,7 @@ référence des bancs (ci_smoke — la référence CI passerait à ce chiffre) ?
 préréglage de la page (`applyReferenceConfig` a déjà OS_ARB+JOINTE, pas NGRAM) ? ③ retirer la JOINTE du
 préréglage ou la laisser (elle n'y coûte rien tant qu'OS_ARB tire d'abord — repli seulement) ?
 
-### §6 SOLDÉ — décision Rem 04/11/2026 : ① et ② ACTIVÉS (« si pas de triche » — triche re-vérifiée absente)
+### §6 SOLDÉ — décision Rem 04/11/2026 : ① et ② ACTIVÉS (« si pas de triche » — triche re-vérifiée absente) · ③ JOINTE GARDÉE
 
 Avant d'activer, la chaîne complète a été relue sur pièces (pas sur commentaires) : porte du declare →
 `_neoDeclareOSmix` → `_neoEnsureNG`/`_neoLetterNgramDist` → `_neoEnsureWBL` → `M_OS_v07_step` (save/restore).
@@ -189,7 +189,8 @@ Activé (défauts moteur INCHANGÉS, R66 : les `let` restent false — seuls la 
   l'état d'avant (il rejoue la mesure fondatrice).
 - Préréglage des 2 pages (`applyReferenceConfig`, original + copie) : + `M_NEO_OS_ARB_NGRAM` (24 ON) —
   mesuré 96,7 → **98,8 %** board réel (sonde préréglage, 4 graines), mode 96,7 inchangé. La JOINTE y reste
-  (décision ③ ouverte : neutre derrière l'arbitrage). `M_NEO_LETTER_NGRAM` (argmax solo) et `NGRAM_GAP`
+  (③ tranché par Rem le 04/11/2026 : GARDÉE — « on ne sait jamais, OOV ou autre, c'est pour ça que tout
+  est en toggle » ; neutre derrière l'arbitrage, elle est le repli si cette voie se tait). `M_NEO_LETTER_NGRAM` (argmax solo) et `NGRAM_GAP`
   restent OFF. Le clone EN SUIT mécaniquement (il est GÉNÉRÉ du FR par `dictee/build_pendu_en.py`, garde
   de fraîcheur en CI) — son winrate sous ce préréglage n'est pas mesuré (lexique différent) : à mesurer
   si on veut un chiffre EN. La garde `evo/trexquant_ngram_probe.js` suit la décision (le juge suit le
@@ -197,3 +198,80 @@ Activé (défauts moteur INCHANGÉS, R66 : les `let` restent false — seuls la 
 - ⚠ Conséquence honnête : la référence avec longueur remontant à 98,8, le mode sans longueur (96,7,
   inchangé) repasse DESSOUS : écart −2,1 — le « mode > référence » du bilan J7 était vrai contre la
   référence du 04/11 au matin (96,3), qui n'avait pas encore ces voies au board réel.
+
+## 7. VERSUS mot à mot (question Rem 04/11/2026) : les deux configs échouent sur des mots DIFFÉRENTS
+
+Sonde appariée tracée (scratch, protocole du bench, 12 graines = les 4 canoniques + 8 de récolte,
+720 mots, le sort de CHAQUE mot de test enregistré lettre à lettre PENDANT la course — un rejeu isolé ne
+reproduirait pas la partie, l'état du moteur évolue de partie en partie). Contrôle : les 4 graines
+canoniques rendent les chiffres du bench à l'identique. Piège d'instrumentation payé : `endCurrentGame`
+efface `alreadyTried` au tick final → la DERNIÈRE lettre de chaque partie (la 6e faute, ou la gagnante)
+est invisible dans une trace par diff — toute perte affiche « 5 fautes », c'est un artefact.
+
+**Mesuré (12 graines : réf 97,1 % · mode 93,5 %)** : 52 mots discordants — le mode seul en perd 39, la
+réf seule 13, perdus par les deux : 8. Le recouvrement des échecs est quasi nul : à information
+différente, les parties divergent au 2e-3e coup et les erreurs sont largement INDÉPENDANTES.
+
+- **Où la réf perd et le mode gagne (13)** : cohortes DENSES à longueur connue — familles de flexions et
+  voisins (?A??EURS → TABLEURS/CHALEURS/HABLEURS ; ?A?ERAIENT → LAVERAIENT/GAVERAIENT/PAMERAIENT…) où
+  l'argmax fréquence teste les voisins un à un et brûle les 6 vies. Le classement du mode, agrégé sur
+  toutes les longueurs, est DÉCORRÉLÉ : il tombe parfois plus tôt sur la lettre discriminante (V de
+  GAVERAIENT, B/L de HABLEURS).
+- **Où le mode seul perd (39)** : signature d'ouverture quasi FIXE « E S U N D T » (≈ ¼ des pertes la
+  montrent telle quelle) : 5 vies brûlées sans presque rien révéler. Mécanisme lu sur pièces :
+  ① les tables du n-gram relatif (`_slNgramDist`) sont des agrégats du lexique entier — un raté RETIRE la
+  lettre (`addPos` saute `alreadyTried`) mais ne REPONDÈRE jamais le classement ; ② la cohorte flottante,
+  elle, intègre bien les ratés (`_slCompatible(m, schéma, tried)`) mais l'arbitrage pèse par le « piqué »
+  (r = sigLex/sigSub, `_neoDeclareOSmix`) : cohorte énorme = distribution plate = jugée peu fiable → le
+  n-gram piqué-mais-aveugle-aux-ratés garde la main plusieurs coups de trop. Le plat du début de partie
+  est de l'incertitude honnête ; le piqué du n-gram est de la sur-confiance d'agrégat.
+- **Perdus par les deux (8)** : mots à motifs rares (HOBEREAUX, OXIDANT, VIVOTEZ…) — noyau dur ~1 %.
+
+**Pistes d'amélioration GLOBALES (à mesurer au protocole, placebo, rien d'activé — décisions à Rem) :**
+1. **Mode — l'évidence négative doit atteindre la voie sublexicale** : restreindre/renormaliser la
+   distribution n-gram au SUPPORT de la cohorte flottante (lettres encore présentes dans les candidats
+   survivants), et/ou décroître sigSub après des ratés produits par cette voie. ≠ J8 (repondérer le
+   CONTENU des tables : inopérant) — ici c'est le poids d'arbitrage et le support. Cible : les 39.
+2. **Board réel — cohorte dense en fin de partie** : quand la cohorte (longueur connue) est petite et
+   quasi équiprobable, choisir la lettre qui PARTITIONNE le mieux les candidats (gain d'information)
+   plutôt que l'argmax fréquence. Gater à « cohorte ≤ N ». Vérifier l'histoire de `M_IG_SELECT` (OFF
+   baseline) avant de re-mesurer un mort. Cible : les 13 + une part des 8.
+3. **Général — le prior alternatif comme second avis** : 13 mots gagnés avec MOINS d'information
+   prouvent la décorrélation des erreurs ; après k ratés d'affilée d'une voie, donner la main au prior
+   alternatif (agrégé toutes longueurs ⟷ conditionné longueur) plutôt que persister — extension du
+   principe OS-arb à « même voie, autre prior ».
+
+### §7 SOLDÉ — les 3 pistes EXPLORÉES (ordre Rem 04/11/2026 : « toujours sans tricher ») — PR des toggles à part
+
+Posées en toggles OFF-inertes dans les 2 pages (R66, défauts inchangés, rien d'activé), cheat-free
+vérifié sur pièces ; instrument CORRIGÉ (la lettre du tick final reprise de `_omLastLetter`, posé par
+`endCurrentGame` AVANT l'effacement — les pertes montrent leurs 6 fautes). Contrôle tout-OFF identique
+par graine ; placebo (réglage sans effet) identique ; `dev.sh check` 141/141 ✓. Mesures board réel,
+12 graines / 720 mots (base 97,1 % · 21 pertes) + protocole canonique 4 graines (base 98,8) :
+
+| Piste | Toggle | 12 graines | Verdict pré-enregistré |
+|---|---|---|---|
+| 2 partition (cohorte 2..16 → lettre max P(présence), égalité max IG) | `M_NEO_PARTITION_ENABLED` | **98,6 % · 10 pertes** · 11/12 ≥ base · mode intact | **candidat net** |
+| 1 support (sub[x]=0 si la cohorte survivante n'a plus x) | `M_NEO_SUPPORT_ENABLED` | seul : 97,8 (+0,7, 12/12 ≥ base) | sous le seuil seul |
+| 1+2 **COMBO** | les deux | **98,8 % · 9 pertes** · 11/12 ≥ base · 4 graines : **99,2** | **le meilleur mesuré** |
+| 3 escompte (sigSub ×= 0,85^ratés) | `M_NEO_SUBMISS_DECAY_ENABLED` | mode +0,5 · réf −0,3 | **falsifié (bruit)** — ne pas re-tenter sans idée neuve |
+
+Leçon fine : la partition COÛTE 2 mots sur une graine (PASSANTE, PAPISTE g777) et en gagne 13 ailleurs —
+elle déplace peu, elle répare surtout les cohortes denses (§7). Le mode sans longueur est STRICTEMENT
+intact partout (porte `!_slOn` ; support/escompte mesurés neutres en mode — ses propres voies restent
+un chantier séparé). **Tranché par Rem le 04/11 soir (« oui prend la meilleure et vérifie ») : ACTIVÉS —
+voir ci-dessous.**
+
+**Vérification hors-lexique + ACTIVATION (04/11 soir, PR #1176).** Trexquant (800 mots retirés du lexique,
+apparié) : partition seule **+1,0 pt** (perd 31 / gagne 39 — saine) ; support seul **−2,8 pt** — son postulat
+« le vrai mot est dans la cohorte » est FAUX par construction hors lexique. Porte au moteur : le support ne
+s'applique jamais en Trexquant (`!M_TREXQUANT_MODE_ENABLED`, + `!_slOn` dans la copie) ; re-mesure après
+porte : combo ≡ partition seule (+1,0), support gaté = no-op strict (0 partie changée sur 800). Au passage,
+l'alerte de Rem (« le 🔠 n-gram peut faire partie du mode trexquant ») a mené à un VRAI piège, corrigé :
+`_IG_CACHE` n'était jamais invalidé quand le lexique bouge (le splice en place de `_trexq_*` garde la même
+référence `len_index`) — bug latent préexistant pour `M_IG_SELECT`, exposé par la partition ; correction =
+invalidation par référence AVANT le `has()` + `clear()` dans `_trexq_removeWord`/`_trexq_restore`.
+ACTIVATION : préréglage des 2 pages 24→26 ON + CFG `ci_smoke`/`sans_longueur_bench` (R66 : les défauts
+moteur ne bougent pas). Post-activation : préréglage réel 4 graines **99,2 % board réel** · mode sans
+longueur **96,7 intact** · ci_smoke 93,3/98,3 (planchers 84/93) · bench copie ≡ original (98,3) ·
+`dev.sh check` 141/141. Clone EN régénéré.
