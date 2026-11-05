@@ -147,3 +147,7 @@ Inès
 === T29 conte pour enfants
 Il était une fois un petit renard qui {vivai|vivait|C} au bord d'une grande forêt. Le renard que tout le monde connaît a une queue rousse et des yeux très {vif|vifs|N}. Un soir, il {rencontrat|rencontra|C} une vieille chouette qui {connaisait|connaissait|O} tous les secrets du bois.
 {la|La|P} chouette lui montra le chemin du lac, et le renard offrit une baie {a|à|G} son amie. Les deux {ami|amis|N} marchèrent ensemble sous les grands {arbre|arbres|N} jusqu'au {matain|matin|O}. Aujourd'hui encore, {ont|on|G} raconte leur histoire aux enfants.
+=== T30 blog de voyage
+{lundi|Lundi|P} dernier, nous sommes {arrivé|arrivés|N} à Lisbonne sous un grand soleil. L'hôtel que nous avions choisi a une vue superbe sur le fleuve. Les rues {monte|montent|C} beaucoup, mais les tramways jaunes {aide|aident|C} les touristes fatigués.
+Le soir, nous avons {mangés|mangé|C} des sardines grillées dans un petit {restaurent|restaurant|O}. Ce quartier a tous les charmes : la musique, les {lumière|lumières|N}, les terrasses. Je recommande cet hôtel {a|à|G} tous les voyageurs qui aiment {marché|marcher|C}.
+À {bientot|bientôt|O} pour la suite du voyage !
