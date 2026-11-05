@@ -799,7 +799,8 @@
 "Il est arrivé à dix heures neuf.",
 "Le bus passe à la gare puis le port voisin, connu pour ses bateaux.",
 "Quand au bout d'une heure, il est revenu.",
-"Quand au printemps, les fleurs poussent."
+"Quand au printemps, les fleurs poussent.",
+"La héro est une drogue dangereuse."
 ],
 "elide": [
 [
@@ -3281,6 +3282,11 @@
 "Quand aux enfants, ils jouent dehors.",
 "Quand",
 "Quant"
+],
+[
+"Le héro du film est courageux.",
+"héro",
+"héros"
 ]
 ],
 "palier": [
