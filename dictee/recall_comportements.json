@@ -802,7 +802,8 @@
 "Quand au printemps, les fleurs poussent.",
 "La héro est une drogue dangereuse.",
 "La voisine que je croise le matin a une voiture rouge.",
-"Le film que je regarde ce soir a tous les atouts."
+"Le film que je regarde ce soir a tous les atouts.",
+"Le reste arrive demain."
 ],
 "elide": [
 [
@@ -3294,6 +3295,11 @@
 "Le chat que je vois a la fenêtre dort.",
 "a",
 "à"
+],
+[
+"Le reste dors encore.",
+"dors",
+"dort"
 ]
 ],
 "palier": [
@@ -3550,6 +3556,11 @@
 [
 "Je montre ce dessin a toutes les filles.",
 "a",
+"vigilance"
+],
+[
+"La moitié rejoins le groupe.",
+"rejoins",
 "vigilance"
 ]
 ],
