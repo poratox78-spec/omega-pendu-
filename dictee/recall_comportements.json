@@ -801,7 +801,8 @@
 "Quand au bout d'une heure, il est revenu.",
 "Quand au printemps, les fleurs poussent.",
 "La héro est une drogue dangereuse.",
-"La voisine que je croise le matin a une voiture rouge."
+"La voisine que je croise le matin a une voiture rouge.",
+"Le film que je regarde ce soir a tous les atouts."
 ],
 "elide": [
 [
@@ -3543,6 +3544,11 @@
 ],
 [
 "Le garçon qui mange une pomme a sa balle.",
+"a",
+"vigilance"
+],
+[
+"Je montre ce dessin a toutes les filles.",
 "a",
 "vigilance"
 ]
