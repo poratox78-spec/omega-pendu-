@@ -155,3 +155,7 @@ Le soir, nous avons {mangés|mangé|C} des sardines grillées dans un petit {res
 {demain|Demain|P} matin, des nuages {couvrirons|couvriront|C} le nord du pays, et le reste {profites|profite|C} d'un temps sec. Les {température|températures|N} resteront douces pour la saison.
 En fin de journée, des {averse|averses|N} sont possibles près des côtes, {ou|où|G} le vent soufflera fort. Le {soleille|soleil|O} reviendra dimanche, mais la {pluit|pluie|O} pourrait tomber lundi.
 Si vous sortez ce soir, {prenait|prenez|C} un parapluie : {sa|ça|G} peut changer vite !
+=== T32 programme de fête de village
+{samedi|Samedi|P} prochain, la fête du village commence à dix heures sur la place. Les {stand|stands|N} des artisans ouvrent en même temps, et la fanfare {jouerat|jouera|C} près de la fontaine.
+À midi, un grand repas est servi sous les {arbre|arbres|N}. La soirée {finis|finit|C} par un bal, puis par un feu d'{artifisse|artifice|O}.
+Les {bénévolles|bénévoles|O} {son|sont|G} attendus dès huit heures pour monter les tables. La buvette {acceptes|accepte|C} les cartes, et {ont|on|G} pourra aussi payer en espèces.
