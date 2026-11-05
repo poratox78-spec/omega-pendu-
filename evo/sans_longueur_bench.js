@@ -4,11 +4,11 @@
 // GARDER SYNCHRONE. S'ajoutent : __defauts() entre conditions (bancs honnêtes ①, le bench enchaîne
 // plusieurs modes dans un même moteur) et la condition M_SANS_LONGUEUR_ENABLED=true (board virtuel).
 //
-//   node evo/sans_longueur_bench.js                                   # la COPIE : OFF (inertie) puis ON (le mode)
-//   APP=app/omega-pendu.html node evo/sans_longueur_bench.js          # l'ORIGINAL : référence
+//   node evo/sans_longueur_bench.js        # l'app (FUSION 05/11/2026 : le mode vit dans l'ORIGINAL, la copie est supprimée)
 //
-// PREUVE D'INERTIE (R66) : la copie mode OFF doit rendre EXACTEMENT les winrates de l'original
-// (mêmes graines, moteur déterministe). Tout écart = la couture fuit — ne pas merger.
+// PREUVE D'INERTIE (R66) : mode OFF, l'app doit rendre EXACTEMENT les winrates d'avant la couture
+// (mêmes graines, moteur déterministe — vérifié à la fusion : 4 conditions identiques à la copie).
+// Tout écart = la couture fuit — ne pas merger.
 //
 // Divergence SOLDÉE (décision Rem 04/11/2026) : ci_smoke lui-même est devenu cheat-free
 // (M_NEO_PHON_COHORT_ENABLED dans sa CFG) et a gagné l'arbitrage OS n-gram (M_NEO_OS_ARB +
@@ -42,7 +42,7 @@ const TEST   = +(process.env.SL_TEST   || 60);
 const SEEDS  = (process.env.SL_SEEDS || '12345,777').split(',').map(s => +s);
 const APP    = process.env.APP
   ? path.resolve(process.cwd(), process.env.APP)
-  : path.join(__dirname, '..', 'app', 'omega-pendu-sans-longueur.html');
+  : path.join(__dirname, '..', 'app', 'omega-pendu.html');   // fusion 05/11/2026 : le mode est dans l'original
 
 (async () => {
   const O = loadEngine(APP); await O.loadLex(); const ev = O.evalIn;

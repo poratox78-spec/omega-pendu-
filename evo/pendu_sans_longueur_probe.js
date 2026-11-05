@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* PENDU SANS LONGUEUR — sonde de faisabilité (03/11/2026, demande de Rem).
  *
- * POURQUOI : nouveau mode visé (copie `app/omega-pendu-sans-longueur.html`) : la machine joue
+ * POURQUOI : nouveau mode visé (bâti sur une copie, FUSIONNÉ dans l'app le 05/11/2026) : la machine joue
  * SANS connaître la longueur du mot. Mode NORMAL (mot in-lexique), pas OOV. Avant de câbler quoi
  * que ce soit dans le moteur, on mesure ce que coûte la perte de la longueur, avec un résolveur
  * de référence IDENTIQUE dans les deux mondes — seule la connaissance de la longueur change.

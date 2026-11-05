@@ -9,7 +9,7 @@
 const fs = require('fs'), path = require('path');
 const APP = path.join(__dirname, '..', 'app', 'omega-pendu.html');
 
-function loadEngine(appPath) {   // appPath optionnel (défaut : l'app) — permet de bencher une COPIE (ex. omega-pendu-sans-longueur.html) avec le MÊME harnais
+function loadEngine(appPath) {   // appPath optionnel (défaut : l'app) — permet de bencher une COPIE de chantier avec le MÊME harnais
   const html = fs.readFileSync(appPath || APP, 'utf8');
   const parts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
   let js = '', lex = '';
