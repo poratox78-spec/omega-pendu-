@@ -861,6 +861,9 @@ footer {
       <!-- letters populated by JS -->
     </div>
 
+    <!-- 🕶️ MODE SANS LONGUEUR — vue machine (additif ; rempli par le script sl-ui en fin de page, vide sinon) -->
+    <div id="sl-vue"></div>
+
     <!-- ⭐ 24/09/2026 — RANGÉ PAR USAGE (demande de Rem). Avant : quinze contrôles sur UNE ligne, où
          « ▶ Start » voisinait avec « β min / max / pas / batch ». Trois groupes : ce qu on fait pour JOUER,
          ce qui touche au MOTEUR, et les bancs de MESURE — ces derniers REPLIÉS, jamais retirés. Chaque
@@ -1433,6 +1436,27 @@ footer {
       <div>
         <div class="toggle-label">🎯 Mode Trexquant (hors-lexique)</div>
         <div class="toggle-desc">the played word is removed from the dictionary — OMEGA generalizes (phon→ortho)</div>
+      </div>
+    </div>
+    <div class="toggle-item" data-toggle="M_NEO_PARTITION_ENABLED" title="🧩 NEO · partition (cohorte dense) : quand la cohorte des mots board-compatibles est PETITE (2 à 16 candidats), joue la lettre de P(présence) MAXIMALE dans la cohorte (égalité départagée au gain d'information) au lieu de l'argmax fréquence — c'est elle qui coupe les cohortes denses de flexions (chante/chantes/chantent). Mesuré 04/11/2026 (12 graines, 720 mots, avec le support) : référence 97,1 → 98,8 %, pertes 21 → 9 ; hors-lexique SAINE (+1,0 pt sur 800 mots retirés). ON au préréglage. OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🧩 NEO · partition (cohorte dense)</div>
+        <div class="toggle-desc">cohorte 2–16 candidats → la lettre qui la coupe le mieux</div>
+      </div>
+    </div>
+    <div class="toggle-item" data-toggle="M_NEO_SUPPORT_ENABLED" title="🧯 NEO · support de cohorte : quand la cohorte des survivants parle, les lettres qu'AUCUN survivant ne contient sont éteintes dans la voie sublexicale (sub=0). JAMAIS en mode Trexquant : hors lexique le vrai mot n'est pas dans la cohorte, le support éteindrait SES lettres (mesuré −2,8 pt sur 800 mots retirés, 04/11/2026) — gaté au moteur, no-op strict en Trexquant (0 partie changée sur 800). ON au préréglage. OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🧯 NEO · support (lettres de la cohorte)</div>
+        <div class="toggle-desc">éteint les lettres absentes des survivants — jamais en Trexquant</div>
+      </div>
+    </div>
+    <div class="toggle-item" data-toggle="M_SANS_LONGUEUR_ENABLED" title="🕶️ Mode sans longueur : la machine joue SANS connaître la longueur du mot — elle ne voit que le SCHÉMA RELATIF des lettres révélées (ex. A??A??E pour INFLAMMABLE), préfixe et suffixe cachés. Machinerie : cohorte flottante (le schéma se pose à tout décalage) + bi/trigrammes RELATIFS + arbitrage OS + recall re-ancré + jointe phon-cohorte (J1→J7). Mesuré (bench evo/sans_longueur_bench.js, 4 graines, in-lexique 7-12) : 96,7 % de victoires en config réf. contre ~99 % avec longueur (référence cheat-free). Détail : AUDIT_SANS_LONGUEUR.md. OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🕶️ Mode sans longueur (schéma relatif)</div>
+        <div class="toggle-desc">la machine ignore la longueur du mot — cohorte flottante + n-gram relatif</div>
       </div>
     </div>
   </details>
@@ -3626,11 +3650,18 @@ function M4_phon_step(currentWord, revealedMask, alreadyTried) {
   const phonScores = new Float32Array(26);   // Phase 3.4b : prior issu de la phono réelle (p)
   M4_phon.output = scores;
   M4_phon.candidateCount = 0;
-  if (!OMEGA_LEX4 || !OMEGA_LEX4.words || !currentWord) return scores;
+  // J6 FALSIFIÉ (04/11/2026, ne pas re-tenter sans idée neuve) : ouvrir M4_phon pré-première-lettre sur la
+  // cohorte PLEINE (schéma vide → tous les mots sans lettres ratées) est NEUTRE pour la machine complète
+  // (+NEO 95,0 inchangé, parties identiques graine par graine — les declares préemptent) et DÉGRADE la
+  // cognition seule 91,7 → 88,3 % (3/4 graines en recul) : le prior fréquentiel du lexique ouvre moins
+  // bien que le prior propre de la cognition. Le choix J2 (muet avant la première lettre juste) est donc
+  // CONFIRMÉ par la mesure — la garde !currentWord ci-dessous le réalise.
+  if (!OMEGA_LEX4 || !OMEGA_LEX4.words || !currentWord) return scores;   // mode sans longueur : schéma vide (rien de révélé) → silencieux, comme J1 — choix documenté (le prior pré-première-lettre reste à la cognition)
   const wlen = currentWord.length;
+  const _sl = M_SANS_LONGUEUR_ENABLED && _slWin;   // J2 : cohorte FLOTTANTE — le schéma se pose à ≥1 décalage, la longueur n'est plus une clé. BUGFIX 04/11 : hors fenêtre (selfTest d'initOmegaGlobals) → voie réelle
   const len_idx = OMEGA_LEX4.len_index;
-  if (!len_idx || !len_idx[wlen]) return scores;
-  const ids = len_idx[wlen];
+  if (!_sl && (!len_idx || !len_idx[wlen])) return scores;
+  const ids = _sl ? _slCohort() : len_idx[wlen];
   const words = OMEGA_LEX4.words;
 
   let count = 0;
@@ -3638,10 +3669,10 @@ function M4_phon_step(currentWord, revealedMask, alreadyTried) {
   let _cohWSum = 0, _cohWLog = 0;
   for (let i = 0; i < ids.length; i++) {
     const w = words[ids[i]];
-    if (!w || !w.m || w.m.length !== wlen) continue;
+    if (!w || !w.m || (!_sl && w.m.length !== wlen)) continue;
     const wMot = w.m;
     let compatible = true;
-    for (let p = 0; p < wlen; p++) {
+    if (!_sl) for (let p = 0; p < wlen; p++) {   // mode : _slCohort() a déjà filtré (schéma flottant)
       if (revealedMask[p]) {
         if (wMot.charAt(p) !== currentWord.charAt(p)) { compatible = false; break; }
       } else {
@@ -3659,7 +3690,9 @@ function M4_phon_step(currentWord, revealedMask, alreadyTried) {
     if (_abH && weight > 0) { _cohWSum += weight; _cohWLog += weight * Math.log(weight); }   // pour H_cohort = -Sum p log p sur le cohort pondere
 
     const seen = new Set();
-    for (let p = 0; p < wlen; p++) {
+    if (_sl) {   // candidat flottant : ses cases non appariées ne portent que des lettres NON proposées (exact, indépendant du décalage — cf. bloc J2)
+      for (let p = 0; p < wMot.length; p++) { const li = wMot.charCodeAt(p) - 65; if (li >= 0 && li < 26 && !alreadyTried[li]) seen.add(li); }
+    } else for (let p = 0; p < wlen; p++) {
       if (!revealedMask[p]) {
         const li = wMot.charCodeAt(p) - 65;
         if (li >= 0 && li < 26) seen.add(li);
@@ -6244,6 +6277,132 @@ let M_NEO_TRIGGER_GAP = 0.005;               // seuil mesuré : NEO muette n'eng
 let M_NEO_COHORT_ENABLED = false;           // brique cohorte : filtre board-derived (lexique autorisé pour DECLARE) — isolable
 let M_NEO_G2P_EXP_ENABLED = false;          // EXP : g2p apprend SEULEMENT des positions révélées (expérience), pas du mot complet — sonde de triche
 let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres fausses (0 = OFF)
+// ================== MODE SANS LONGUEUR (chantier 03/11/2026 — AUDIT_SANS_LONGUEUR.md) ==================
+// La machine joue SANS connaître la longueur du mot : le MONTANT (cStep + declares, avant penduEvaluate)
+// voit un BOARD VIRTUEL = le schéma relatif entre la première et la dernière lettre révélée (« A??A??E »),
+// '?' aux cases intérieures — jamais la longueur réelle ni le préfixe/suffixe cachés. J1 = la COUTURE seule :
+// la machinerie config réf. joue telle quelle sur ce board (ses voies par longueur se dégradent — mesuré,
+// attendu) ; les jonctions J2+ adaptent les voies. OFF (défaut) = comportement intact (preuve : bench A/B).
+// Le jeu (penduEvaluate, 6 erreurs, win) et le DESCENDANT (après la frontière) restent sur le board réel.
+let M_SANS_LONGUEUR_ENABLED = false;
+// BUGFIX 04/11/2026 (« 🔄 Reset moteur » cassé mode ON) : les aides _sl* ne s'activent que FENÊTRE
+// OUVERTE (_slWin), pas au toggle seul. Hors fenêtre les globals sont le board RÉEL : M4_phon_selfTest
+// (initOmegaGlobals, donc le Reset) appelait M4_phon_step toggle ON → _slCohort lisait le currentWord
+// global au lieu du mot synthétique du test → FATAL, init avortée. En fenêtre, _slWin est vrai : le
+// comportement de jeu est inchangé (bench 4 conditions identique, vérifié).
+let _slWin = false;
+// J5b FALSIFIÉ (04/11/2026, ne pas re-tenter sans idée neuve) : ré-initialiser les producteurs M1_d quand
+// l'ancre se déplace (schéma étendu à gauche) DÉGRADE la cognition seule 91,7 → 87,1 % (4/4 graines en
+// recul, +NEO inchangé). La mémoire EMA inter-ticks, même partiellement désalignée, porte plus de signal
+// que ce que coûte le désalignement. On laisse donc M1_d re-percevoir par décroissance naturelle.
+function _slVirtualBoard(w, m) {   // board virtuel depuis le board réel (connu du JEU seul). '?' ∉ A-Z : une lecture de case cachée rend un non-code — rien ne fuit.
+  let first = -1, last = -1;
+  for (let p = 0; p < w.length; p++) if (m[p]) { if (first < 0) first = p; last = p; }
+  const out = { w: '', m: new Array(MAX_WORD_LEN).fill(false), r: new Array(MAX_WORD_LEN).fill('') };
+  if (first < 0) return out;   // rien de révélé : board vide (≡ premier tick d'une partie réelle, aucun bind)
+  let s = '';
+  for (let p = first; p <= last; p++) { const rv = !!m[p]; s += rv ? w.charAt(p) : '?'; out.m[p - first] = rv; if (rv) out.r[p - first] = w.charAt(p); }
+  out.w = s;
+  return out;
+}
+// --- J2 : COHORTE FLOTTANTE (le schéma se pose à ≥1 décalage — la longueur n'est plus une clé) ---
+// Un mot est candidat ssi le schéma colle à un décalage ET aucune lettre déjà proposée ne vit hors des
+// cases lettrées (toute occurrence d'une lettre proposée serait révélée, donc DANS le schéma). Conséquence
+// exacte utilisée par M4_phon : les cases non appariées d'un candidat ne portent que des lettres non
+// proposées — ses « lettres cachées » = ses lettres non proposées, indépendamment du décalage.
+// Cache : les contraintes ne font que se resserrer dans une partie (prouvé, sonde pendu_sans_longueur_probe)
+// → on filtre la liste précédente ; re-scan complet seulement en début de partie. Bâti depuis len_index
+// (respecte les retraits Trexquant, même règle que _neoEnsureWBL). Cheat-free : lexique + révélé + ratés.
+let _slCoh = null, _slGameSeq = 0;
+function _slOffsets(m, schema, tried) {   // tous les décalages valides du schéma dans m (tableau, possiblement vide)
+  const out = [], L = schema.length;
+  if (!L) return out;
+  outer:
+  for (let o = 0; o + L <= m.length; o++) {
+    for (let i = 0; i < L; i++) { const s = schema.charCodeAt(i), c = m.charCodeAt(o + i);
+      if (s === 63) { const x = c - 65; if (x >= 0 && x < 26 && tried[x]) continue outer; }   // '?' : pas une lettre déjà proposée
+      else if (c !== s) continue outer; }
+    for (let j = 0; j < o; j++) { const x = m.charCodeAt(j) - 65; if (x >= 0 && x < 26 && tried[x]) continue outer; }
+    for (let j = o + L; j < m.length; j++) { const x = m.charCodeAt(j) - 65; if (x >= 0 && x < 26 && tried[x]) continue outer; }
+    out.push(o);
+  }
+  return out;
+}
+function _slCompatible(m, schema, tried) {
+  if (!schema) { for (let j = 0; j < m.length; j++) { const x = m.charCodeAt(j) - 65; if (x >= 0 && x < 26 && tried[x]) return false; } return true; }
+  const L = schema.length;
+  outer:
+  for (let o = 0; o + L <= m.length; o++) {
+    for (let i = 0; i < L; i++) { const s = schema.charCodeAt(i), c = m.charCodeAt(o + i);
+      if (s === 63) { const x = c - 65; if (x >= 0 && x < 26 && tried[x]) continue outer; }
+      else if (c !== s) continue outer; }
+    for (let j = 0; j < o; j++) { const x = m.charCodeAt(j) - 65; if (x >= 0 && x < 26 && tried[x]) continue outer; }
+    for (let j = o + L; j < m.length; j++) { const x = m.charCodeAt(j) - 65; if (x >= 0 && x < 26 && tried[x]) continue outer; }
+    return true;
+  }
+  return false;
+}
+function _slCohort() {   // indices OMEGA_LEX4.words compatibles avec le board virtuel COURANT (currentWord = schéma dans la fenêtre du mode)
+  if (!OMEGA_LEX4 || !OMEGA_LEX4.words) return [];
+  let tkey = ''; for (let x = 0; x < 26; x++) tkey += alreadyTried[x] ? '1' : '0';
+  const key = _slGameSeq + '|' + currentWord + '|' + tkey;
+  if (_slCoh && _slCoh.key === key) return _slCoh.ids;
+  const words = OMEGA_LEX4.words, LI = OMEGA_LEX4.len_index, schema = currentWord, tried = alreadyTried;
+  const base = (_slCoh && _slCoh.game === _slGameSeq) ? _slCoh.ids : null;   // resserrement monotone
+  const out = [];
+  if (base) { for (let i = 0; i < base.length; i++) { const w = words[base[i]]; if (w && w.m && _slCompatible(w.m, schema, tried)) out.push(base[i]); } }
+  else if (LI) { for (const k in LI) { const arr = LI[k]; for (let i = 0; i < arr.length; i++) { const w = words[arr[i]]; if (w && w.m && _slCompatible(w.m, schema, tried)) out.push(arr[i]); } } }
+  else { for (let id = 0; id < words.length; id++) { const w = words[id]; if (w && w.m && _slCompatible(w.m, schema, tried)) out.push(id); } }
+  _slCoh = { key: key, ids: out, game: _slGameSeq };
+  return out;
+}
+// --- J4 : N-GRAM RELATIF (les bi/trigrammes de Rem) — tables par CONTEXTE SEUL, sans clé longueur|position ---
+// Les tables _neoNG sont indexées « L|p|contexte » : inutilisables sans longueur. Ici : bl[c]/br[c] (voisin
+// adjacent gauche/droit), tri[g|d] (joint entre deux adjacents), Ld/Rd[d|c] (plus proche voisin révélé à
+// distance d ≤ _NEO_NGRAM_MAXD), agrégées sur TOUT le lexique (len_index = respect Trexquant). Au bord du
+// schéma : PAS de marqueur '#' — bord de brouillard ≠ frontière de mot ; on score une case de brouillard
+// de chaque côté (d=1), voisine de la lettre de bord. Cheat-free (stats agrégées + révélé).
+let _slNG = null, _slNGsrc = null;
+function _slEnsureNG() {
+  if (_slNG && _slNGsrc === OMEGA_LEX4.len_index) return;
+  _slNGsrc = OMEGA_LEX4.len_index;
+  const bl = {}, br = {}, tri = {}, Ld = {}, Rd = {};
+  const add = (T, k, t) => { (T[k] || (T[k] = new Float64Array(26)))[t]++; };
+  const LI = OMEGA_LEX4.len_index, WD = OMEGA_LEX4.words, MAXD = _NEO_NGRAM_MAXD;
+  for (const key in LI) { const arr = LI[key]; for (let i = 0; i < arr.length; i++) { const w = WD[arr[i]]; if (!w || !w.m) continue; const m = w.m;
+    for (let p = 0; p < m.length; p++) { const t = m.charCodeAt(p) - 65; if (t < 0 || t >= 26) continue;
+      for (let d = 1; d <= MAXD; d++) {
+        if (p - d >= 0) { const c = m.charAt(p - d); if (d === 1) add(bl, c, t); else add(Ld, d + '|' + c, t); }
+        if (p + d < m.length) { const c = m.charAt(p + d); if (d === 1) add(br, c, t); else add(Rd, d + '|' + c, t); }
+      }
+      if (p > 0 && p + 1 < m.length) add(tri, m.charAt(p - 1) + '|' + m.charAt(p + 1), t);
+    } } }
+  _slNG = { bl: bl, br: br, tri: tri, Ld: Ld, Rd: Rd };
+}
+function _slNgramDist() {   // distribution lettre (26) : cases '?' du schéma (voisins révélés de l'empan) + 1 case de brouillard par bord
+  if (!currentWord) return null;
+  _slEnsureNG();
+  const s = currentWord, L = s.length, NG = _slNG, MAXD = _NEO_NGRAM_MAXD;
+  const score = new Float64Array(26); let any = false;
+  const _nz = (d) => { if (!d) return null; let t = 0; for (let x = 0; x < 26; x++) t += d[x]; if (t <= 0) return null; const o = new Float64Array(26); for (let x = 0; x < 26; x++) o[x] = d[x] / t; return o; };
+  const addPos = (pos) => { if (!pos) return; for (let x = 0; x < 26; x++) if (!alreadyTried[x]) { score[x] += pos[x]; any = true; } };
+  for (let p = 0; p < L; p++) { if (revealedMask[p]) continue;
+    let ld = 0, lc = null; for (let d = 1; d <= MAXD && p - d >= 0; d++) { if (revealedMask[p - d]) { ld = d; lc = s.charAt(p - d); break; } }
+    let rd = 0, rc = null; for (let d = 1; d <= MAXD && p + d < L; d++) { if (revealedMask[p + d]) { rd = d; rc = s.charAt(p + d); break; } }
+    let pos = null;
+    if (ld === 1 && rd === 1) pos = _nz(NG.tri[lc + '|' + rc]);   // 2 adjacents → trigramme JOINT (meilleur que le produit)
+    if (!pos) { const nl = ld ? _nz(ld === 1 ? NG.bl[lc] : NG.Ld[ld + '|' + lc]) : null, nr = rd ? _nz(rd === 1 ? NG.br[rc] : NG.Rd[rd + '|' + rc]) : null;
+      if (nl && nr) { const pr = new Float64Array(26); let t = 0; for (let x = 0; x < 26; x++) { pr[x] = nl[x] * nr[x]; t += pr[x]; } if (t > 0) { for (let x = 0; x < 26; x++) pr[x] /= t; pos = pr; } else pos = nl; }
+      else pos = nl || nr; }
+    addPos(pos);
+  }
+  if (L) { addPos(_nz(NG.br[s.charAt(0)])); addPos(_nz(NG.bl[s.charAt(L - 1)])); }   // brouillard d=1 : avant le schéma (voisine droite = 1re lettre) et après (voisine gauche = dernière)
+  // J8 REVERTÉ (04/11/2026) : pondérer ces 2 cases par P(le mot déborde du schéma), comptée sur les
+  // alignements de la cohorte, est INOPÉRANT depuis J7 — parties IDENTIQUES 4 graines (96,7 %) : ce
+  // n-gram n'est plus que le repli quand la cohorte phon est muette, quasi jamais in-lexique. À ne
+  // re-tenter que si ce repli redevient une voie primaire (OOV du mode, cohorte vide).
+  return any ? score : null;
+}
 let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée+muette) vient du consensus phonémique de la cohorte board-compatible, PAS de wp.get(mot). Supprime la lecture du son du mot caché. OFF par défaut.
 let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohorte alignés par décision
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
@@ -6387,6 +6546,15 @@ function _neoEnsureWBL(){
   else { for (const w of WD) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
 }
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
+  if (M_SANS_LONGUEUR_ENABLED && _slWin) {   // J2 : masques par CASE DU SCHÉMA — union des lettres sur TOUS les alignements valides des candidats flottants (fenêtre seulement, BUGFIX 04/11)
+    const Lsl = currentWord.length; if (!Lsl) return null;
+    const idsl = _slCohort(); if (!idsl.length) return null;
+    const wsl = OMEGA_LEX4.words, schema = currentWord;
+    const msl = new Array(Lsl).fill(0);
+    for (let i = 0; i < idsl.length; i++) { const m = wsl[idsl[i]].m; const offs = _slOffsets(m, schema, alreadyTried);
+      for (let k = 0; k < offs.length; k++) { const o = offs[k]; for (let p = 0; p < Lsl; p++) { const c = m.charCodeAt(o + p) - 65; if (c >= 0 && c < 26) msl[p] |= (1 << c); } } }
+    return msl;
+  }
   _neoEnsureWBL();
   const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
   const absent = [];
@@ -6402,6 +6570,24 @@ function _neoCohortMasks(){                  // masques de lettres possibles par
 }
 function _neoPhonCohort(){               // _al consensus : phonème dominant par position, dérivé des mots board-compatibles (jamais du mot caché)
   const G = _emrg_initOnline();
+  if (M_SANS_LONGUEUR_ENABLED && _slWin) {   // J2 : consensus phonémique par case du schéma, candidats FLOTTANTS (chaque alignement valide = une vue ; J3 l'active via M_NEO_PHON_COHORT) (fenêtre seulement, BUGFIX 04/11)
+    const Lsl = currentWord.length; if (!Lsl) return null;
+    const idsl = _slCohort(); if (!idsl.length) return null;
+    const wsl = OMEGA_LEX4.words, schema = currentWord;
+    const accl = new Array(Lsl); for (let p = 0; p < Lsl; p++) accl[p] = Object.create(null);
+    let usedl = 0;
+    for (let i = 0; i < idsl.length && usedl < M_NEO_PHON_COHORT_CAP; i++) {
+      const m = wsl[idsl[i]].m; const ph = G.wp.get(m); if (!ph) continue;
+      const al = G.align(m, ph, null); if (!al) continue;
+      const offs = _slOffsets(m, schema, alreadyTried); if (!offs.length) continue;
+      for (let k = 0; k < offs.length; k++) { const o = offs[k]; for (let p = 0; p < Lsl; p++) { const kk = al[o + p]; accl[p][kk] = (accl[p][kk] || 0) + 1; } }
+      usedl += offs.length;
+    }
+    if (!usedl) return null;
+    const outl = new Array(Lsl);
+    for (let p = 0; p < Lsl; p++) { let bk = '_', bv = -1; const a = accl[p]; for (const k in a) { if (a[k] > bv) { bv = a[k]; bk = k; } } outl[p] = (bv / usedl >= M_NEO_PHON_COHORT_PURITY) ? bk : '_'; }
+    return outl;
+  }
   _neoEnsureWBL();
   const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
   const absent = [];
@@ -6426,6 +6612,22 @@ function _neoPhonCohort(){               // _al consensus : phonème dominant pa
 }
 function _neoPhonCohortDist(){            // par position : distribution MOLLE {phonème: poids} sur la cohorte board (pour la JOINTE, pas l'argmax)
   const G = _emrg_initOnline();
+  if (M_SANS_LONGUEUR_ENABLED && _slWin) {   // J2 : distribution molle par case du schéma, candidats FLOTTANTS (même règle que _neoPhonCohort) (fenêtre seulement, BUGFIX 04/11)
+    const Lsl = currentWord.length; if (!Lsl) return null;
+    const idsl = _slCohort(); if (!idsl.length) return null;
+    const wsl = OMEGA_LEX4.words, schema = currentWord;
+    const accl = new Array(Lsl); for (let p = 0; p < Lsl; p++) accl[p] = Object.create(null);
+    let usedl = 0;
+    for (let i = 0; i < idsl.length && usedl < M_NEO_PHON_COHORT_CAP; i++) {
+      const m = wsl[idsl[i]].m; const ph = G.wp.get(m); if (!ph) continue;
+      const al = G.align(m, ph, null); if (!al) continue;
+      const offs = _slOffsets(m, schema, alreadyTried); if (!offs.length) continue;
+      for (let k = 0; k < offs.length; k++) { const o = offs[k]; for (let p = 0; p < Lsl; p++) { const kk = al[o + p]; accl[p][kk] = (accl[p][kk] || 0) + 1; } }
+      usedl += offs.length;
+    }
+    if (!usedl) return null;
+    return { dist: accl, used: usedl };
+  }
   _neoEnsureWBL();
   const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
   const absent = [];
@@ -6447,7 +6649,8 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
   return { dist: acc, used: used };
 }
 function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niveau declare : (1−μ)·sublexicale + μ·lexicale, μ=r^α/(β+r^α). Réutilise M_OS_v07_step. Cheat-free, sans currentWord. Rend une lettre ou null.
-  if (M_NEO_PARTITION_ENABLED) {         // VERSUS piste 2 (§7) : cohorte dense petite → partition, pas argmax fréquence
+  const _slOn = M_SANS_LONGUEUR_ENABLED && _slWin;   // J4 : en mode sans longueur, la voie sublexicale = n-gram RELATIF (_slNgramDist), la lexicale = cohorte flottante. Fenêtre seulement (BUGFIX 04/11)
+  if (M_NEO_PARTITION_ENABLED && !_slOn) {         // VERSUS piste 2 (§7) : cohorte dense petite → partition, pas argmax fréquence
     const _igR = _omega_computeLetterIG(currentWord, revealedMask, alreadyTried);
     if (_igR && _igR.presence && _igR.nCompat >= 2 && _igR.nCompat <= M_NEO_PARTITION_CAP) {
       let _bp = -1, _bg = -1, _bl = -1;
@@ -6456,15 +6659,16 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
       if (_bl >= 0) return String.fromCharCode(65 + _bl);
     }
   }
-  const _useNG = M_NEO_OS_ARB_NGRAM;       // voie sublexicale = n-gram agrégé (généralise à l'OOV) au lieu de la jointe phon-cohorte
-  const _pcd = _useNG ? null : _neoPhonCohortDist();
+  const _pcdSL = _slOn ? _neoPhonCohortDist() : null;   // J7 : en mode, la voie sublexicale essaie d'abord la JOINTE (§3 : Σ_φ Pcoh·CR, croiser pas argmax) sur la distribution molle FLOTTANTE de J2 ; repli n-gram relatif si la cohorte est muette. Les cases non révélées du schéma sont toujours intérieures → le '#' de la jointe garde sa sémantique « voisin non révélé » (pas le piège bord-de-brouillard=frontière évité en J4)
+  const _useNG = (M_NEO_OS_ARB_NGRAM || _slOn) && !_pcdSL;
+  const _pcd = _pcdSL || (_useNG ? null : _neoPhonCohortDist());
   if (!_useNG && !_pcd) return null;       // (mode jointe) cohorte phon vide → rien à arbitrer ; (mode n-gram) on continue : le n-gram décide MÊME hors cohorte (cas OOV)
   if (!_neoWF) { _neoWF = new Map(); for (const w of OMEGA_LEX4.words) if (w && w.m) _neoWF.set(w.m, (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001); }
   const L = currentWord.length;
   // voie SUBLEXICALE : n-gram agrégé (si _useNG) — sinon jointe phon-cohorte (Σ_φ Pcoh·CR, max sur positions non révélées)
   const sub = new Float64Array(26);
   if (_useNG) {
-    const _ng = M_NEO_C_HEAVY ? _neoHeavyCDist() : _neoLetterNgramDist(); if (_ng) for (let x=0;x<26;x++) sub[x] = _ng[x];   // voie sublexicale agrégée : C lourd appris (§1.12) si M_NEO_C_HEAVY, sinon n-gram du lexique (généralise)
+    const _ng = _slOn ? _slNgramDist() : (M_NEO_C_HEAVY ? _neoHeavyCDist() : _neoLetterNgramDist()); if (_ng) for (let x=0;x<26;x++) sub[x] = _ng[x];   // voie sublexicale agrégée : n-gram RELATIF en mode sans longueur ; sinon C lourd appris (§1.12) si M_NEO_C_HEAVY, sinon n-gram positionnel du lexique
   } else {
     const G = _emrg_initOnline(); const _L2 = G.getL2();
     for (let p = 0; p < L; p++) { if (revealedMask[p]) continue; const _dist = _pcd.dist[p]; let _tot = 0; for (const k in _dist) _tot += _dist[k]; if (_tot <= 0) continue;
@@ -6479,8 +6683,15 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
     }
   }
   // voie LEXICALE : distribution lettre = cohorte board pondérée fréquence (cohort model, Marslen-Wilson 1978)
-  _neoEnsureWBL();   // (mode n-gram on ne passe pas par _neoPhonCohortDist qui l'aurait bâti) — idempotent/caché
   const lex = new Float64Array(26);
+  if (_slOn) {   // J4 : cohorte FLOTTANTE — lettres cachées d'un candidat flottant = ses lettres non proposées (exact, cf. bloc J2)
+    const idsl = _slCohort(); const wsl = OMEGA_LEX4.words; let usedl = 0;
+    for (let i = 0; i < idsl.length && usedl < M_NEO_PHON_COHORT_CAP; i++) { const w = wsl[idsl[i]]; const m = w.m; usedl++;
+      const f = (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001; const seen = new Uint8Array(26);
+      for (let p = 0; p < m.length; p++) { const c = m.charCodeAt(p) - 65; if (c >= 0 && c < 26 && !alreadyTried[c] && !seen[c]) { seen[c] = 1; lex[c] += f; } }
+    }
+  } else {
+  _neoEnsureWBL();   // (mode n-gram on ne passe pas par _neoPhonCohortDist qui l'aurait bâti) — idempotent/caché
   const absent = []; for (let x=0;x<26;x++){ if(!alreadyTried[x]) continue; let seen=false; for(let p=0;p<L;p++) if(revealedMask[p]&&currentWord.charCodeAt(p)-65===x){seen=true;break;} if(!seen) absent.push(String.fromCharCode(65+x)); }
   const cand = _neoWBL[L];
   if (cand) { let used = 0;
@@ -6491,7 +6702,8 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
       for (let p=0;p<L;p++){ if(revealedMask[p]) continue; const c=m.charCodeAt(p)-65; if(c>=0&&c<26&&!seen[c]){ seen[c]=1; lex[c]+=f; } }
     }
   }
-  if (M_NEO_SUPPORT_ENABLED && !M_TREXQUANT_MODE_ENABLED) { let _any = false; for (let x = 0; x < 26; x++) { if (lex[x] > 0) { _any = true; break; } }   // VERSUS piste 1 (§7) : support de la cohorte survivante — JAMAIS en Trexquant : hors lexique le vrai mot n'est pas dans la cohorte, le support éteint ses lettres (mesuré −2,8 pt / 800 mots OOV, 04/11/2026 ; la partition, elle, y est saine : +1,0)
+  }
+  if (M_NEO_SUPPORT_ENABLED && !_slOn && !M_TREXQUANT_MODE_ENABLED) { let _any = false; for (let x = 0; x < 26; x++) { if (lex[x] > 0) { _any = true; break; } }   // VERSUS piste 1 (§7) : support de la cohorte survivante — JAMAIS en Trexquant (hors lexique le vrai mot n'est pas dans la cohorte : −2,8 pt mesuré 04/11/2026) ni en fenêtre sans-longueur (chantier clos, mesuré neutre : inertie structurelle)
     if (_any) for (let x = 0; x < 26; x++) if (lex[x] <= 0) sub[x] = 0; }
   let ssub=0,slex=0; for(let x=0;x<26;x++){ssub+=sub[x];slex+=lex[x];}
   if (ssub<=0 && slex<=0) return null;
@@ -7405,6 +7617,7 @@ function startNewGame(word) {
   revealedMask  = new Array(MAX_WORD_LEN).fill(false);
   _revealedLetters = new Array(MAX_WORD_LEN).fill('');   // board-buffer (additif, hors baseline)
   if (M_OS_LEARNING_ONLINE_ENABLED && !_omega_thetaOverride) _omega_OSL_onGameStart();
+  _slGameSeq++; _slCoh = null;   // mode sans longueur (J2) : nouvelle partie = cache de cohorte flottante invalidé (inerte hors mode)
   gameActive    = true;
 
   // === L01-A1 — AUDIT FIX : reset cvPattern entre jeux ===
@@ -7556,6 +7769,18 @@ function omegaStep() {
     }
   }
 
+  // === MODE SANS LONGUEUR (J1) : OUVERTURE de la fenêtre de board virtuel. ===
+  //   Le trio (currentWord, revealedMask, _revealedLetters) devient le schéma relatif pour TOUT le
+  //   montant (cStep, voie phon, declares) ; restauré avant penduEvaluate — le jeu et le descendant
+  //   voient le board réel. Fenêtre vérifiée SANS `return` intermédiaire (audit J1) ; gameActive ne
+  //   change qu'à penduEvaluate/endCurrentGame, donc jamais dans la fenêtre.
+  let _slReal = null;
+  if (M_SANS_LONGUEUR_ENABLED && gameActive) {
+    _slReal = { w: currentWord, m: revealedMask, r: _revealedLetters };
+    const _vb = _slVirtualBoard(_slReal.w, _slReal.m);
+    currentWord = _vb.w; revealedMask = _vb.m; _revealedLetters = _vb.r;
+    _slWin = true;   // BUGFIX 04/11 : les aides _sl* ne s'activent que fenêtre ouverte
+  }
   // 1. Pipeline blueprint §6.6 : M1_d → M2_d → M3_d → M4_d → M5_d (livré J5')
   //    cStep orchestre les 5 modules + publish D1/D2/D3/D4/D5 + currentPhonState
   cStep(currentWord, revealedMask);
@@ -7680,6 +7905,23 @@ function omegaStep() {
       let _neoDone = false, _nrev = 0;
       for (let p = 0; p < currentWord.length; p++) if (revealedMask[p]) _nrev++;
       if (M_NEO_RECALL_ENABLED && _emrgBank.size > 0 && _nrev > 0 && _nrev / currentWord.length >= 0.25) {   // (1) adressee : recall depuis board REVELE + banc
+        if (M_SANS_LONGUEUR_ENABLED) {   // J5a : recall RE-ANCRÉ — le banc est appris en positions ABSOLUES (mot entier), le board est RELATIF.
+          // On projette donc le schéma dans chaque repère absolu possible (décalage o) et on interroge le banc
+          // dans SON repère ; compat = le candidat rappelé pose le schéma à CE décalage (_slOffsets remplace
+          // l'ancien gate d'égalité de longueur, impossible sans longueur). Marge VSA inchangée.
+          let _bw = null, _bm = -2; const Ls = currentWord.length;
+          for (let o = 0; o + Ls <= MAX_WORD_LEN; o++) {
+            const c = new Float64Array(SDIM); let nb = 0;
+            for (let p = 0; p < Ls; p++) { if (!revealedMask[p]) continue; const idx = currentWord.charCodeAt(p) - 65; if (idx < 0 || idx >= 26) continue; const sv = _emrg_shift(idx, o + p + 1); for (let i = 0; i < SDIM; i++) c[i] += sv[i]; nb++; }
+            if (!nb) break;
+            let nn = 0; for (let i = 0; i < SDIM; i++) nn += c[i] * c[i]; nn = Math.sqrt(nn) || 1; for (let i = 0; i < SDIM; i++) c[i] /= nn;
+            const r = _emrg_recall(c);
+            if (r.w && r.margin > _bm && r.w.length >= o + Ls) { const offs = _slOffsets(r.w, currentWord, alreadyTried); if (offs.indexOf(o) >= 0) { _bm = r.margin; _bw = r.w; } }
+          }
+          if (_bw && _bm > M_DECLARE_NEO_RECALL_MARGIN) {
+            for (let p = 0; p < _bw.length; p++) { const li = _bw.charCodeAt(p) - 65; if (li >= 0 && li < 26 && !alreadyTried[li]) { proposed = _bw.charAt(p); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.rF++; } break; } }   // une lettre non proposée d'un candidat flottant est forcément sur une case non appariée
+          }
+        } else {
         const _ncp = _emrg_bind(currentWord, revealedMask);
         const _nrc = _emrg_recall(_ncp);
         let _ncompat = (_nrc.w && _nrc.w.length === currentWord.length);
@@ -7687,19 +7929,20 @@ function omegaStep() {
         if (_ncompat && _nrc.margin > M_DECLARE_NEO_RECALL_MARGIN) {
           for (let p = 0; p < _nrc.w.length; p++) { const li = _nrc.w.charCodeAt(p) - 65; if (li >= 0 && li < 26 && !alreadyTried[li] && !revealedMask[p]) { proposed = _nrc.w.charAt(p); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.rF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.rH++; } break; } }
         }
+        }
       }
       if (M_NEO_LETTER_NGRAM && !_neoDone) {   // VOIE N-GRAM DE LETTRES (sublexicale pré-calculée du lexique) — cheat-free, OFF-inerte
         const _lg = _neoLetterNgram();
         if (_lg) { proposed = _lg; _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
       }
-      if (M_NEO_OS_ARB && (M_NEO_PHON_COHORT_ENABLED || M_NEO_OS_ARB_NGRAM) && !_neoDone) {   // ARBITRAGE OS des 2 voies DRC (remplace la cascade jointe par un mélange convexe sublexical⟷lexical). Mode n-gram : la voie sub = n-gram agrégé, pas besoin de la cohorte phon.
+      if ((M_SANS_LONGUEUR_ENABLED || (M_NEO_OS_ARB && (M_NEO_PHON_COHORT_ENABLED || M_NEO_OS_ARB_NGRAM))) && !_neoDone) {   // ARBITRAGE OS des 2 voies DRC (remplace la cascade jointe par un mélange convexe sublexical⟷lexical). Mode n-gram : la voie sub = n-gram agrégé, pas besoin de la cohorte phon. J4 : actif en mode sans longueur (sub = n-gram relatif, lex = cohorte flottante).
         const _ar = _neoDeclareOSmix();
         if (_ar) { proposed = _ar; _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
       }
       if ((M_NEO_ASSEMBLED_ENABLED || M_NEO_MUTE_ENABLED) && !_neoDone) {   // (2)(3) assemblee sonore + muette ortho — alignement MASQUE partage
         const _G = _emrg_initOnline(); const _L2 = _G.getL2();
         let _al;
-        if (M_NEO_PHON_COHORT_ENABLED) { _al = _neoPhonCohort(); }                                                  // son board-dérivé (cohorte) : ne lit jamais le son du mot caché
+        if (M_NEO_PHON_COHORT_ENABLED || M_SANS_LONGUEUR_ENABLED) { _al = _neoPhonCohort(); }                       // son board-dérivé (cohorte) : ne lit jamais le son du mot caché. J3 : en mode sans longueur, TOUJOURS cette route — « entendre » un schéma n'a pas de sens, et le son du mot entier fuirait la longueur
         else { const _ph = _G.wp.get(currentWord); _al = _ph ? _G.align(currentWord, _ph, revealedMask) : null; }   // défaut : son du mot (wp.get) — entrée « mot entendu »
         if (_al) {
           if (M_NEO_ASSEMBLED_ENABLED) {   // (2) positions SONORES
@@ -7747,6 +7990,8 @@ function omegaStep() {
         }
       }
     }
+    // === MODE SANS LONGUEUR (J1) : FERMETURE de la fenêtre — board réel restauré AVANT de jouer. ===
+    if (_slReal) { currentWord = _slReal.w; revealedMask = _slReal.m; _revealedLetters = _slReal.r; _slReal = null; _slWin = false; }
     if (proposed === null) {
       endCurrentGame(false);
     } else {
@@ -9327,7 +9572,8 @@ const ALLOWED_TOGGLES = [
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_C_HEAVY','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED','M_NEO_PARTITION_ENABLED','M_NEO_SUPPORT_ENABLED','M_NEO_SUBMISS_DECAY_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_C_HEAVY','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED','M_NEO_PARTITION_ENABLED','M_NEO_SUPPORT_ENABLED','M_NEO_SUBMISS_DECAY_ENABLED',
+    'M_SANS_LONGUEUR_ENABLED'
 ];
 function ui_initToggles() {
   document.querySelectorAll('.toggle-item').forEach(item => {
@@ -34191,6 +34437,118 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
   }
   appliquer();
   window.addEventListener('storage', function (e) { if (e.key === 'omega_dysfont') appliquer(); });
+})();
+</script>
+
+<script>
+// ═══ 🕶️ UI DU MODE SANS LONGUEUR — panneau additif (04/11/2026) ═══════════════════════════════════
+// POURQUOI : le mode (J1→J5, AUDIT_SANS_LONGUEUR.md) est jouable mais invisible ; ce panneau donne
+//   l'interrupteur ET montre ce que la MACHINE voit : le schéma relatif (bords de brouillard), le
+//   nombre de mots compatibles et la distribution des longueurs possibles (les leviers du mode).
+// COMMENT : lecture seule du moteur (_slVirtualBoard + _slCompatible + len_index), cache local à
+//   resserrement monotone — JAMAIS _slCohort() du moteur : son cache mono-entrée est à lui, l'appeler
+//   d'ici avec le mot réel comme « schéma » l'invaliderait à chaque tick. Sondage 300 ms, rendu
+//   seulement au changement d'état. La VRAIE longueur est marquée dans l'histogramme : info
+//   SPECTATEUR (le joueur voit déjà le mot entier au-dessus) — la machine, elle, ne lit que le
+//   schéma (frontière de triche inchangée, aucun écrit moteur ici).
+// OFF-INERTE : interrupteur OFF = seule la ligne d'interrupteur est visible, zéro calcul ; en
+//   headless (harnais) le DOM est un stub et setInterval neutralisé → le bloc ne fait rien.
+(function () {
+  'use strict';
+  try {
+    var zone = document.getElementById('sl-vue');
+    if (!zone || !zone.appendChild) return;
+    var css = document.createElement('style');
+    css.textContent = [
+      '#sl-vue{margin:10px 0 4px}',
+      '#sl-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}',
+      '#sl-head label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}',
+      '#sl-note{color:var(--fg-mute,#888);font-size:11px}',
+      '#sl-corps{display:none;margin-top:8px;padding:8px 10px;border:1px dashed var(--border,#3a3a3a);border-radius:8px}',
+      '#sl-vue.on #sl-corps{display:block}',
+      '#sl-schema{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:2px 0 8px}',
+      '.sl-case{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:28px;padding:0 4px;border-bottom:2px solid var(--accent,#7aa2f7);font-weight:700}',
+      '.sl-case.sl-inc{color:var(--fg-mute,#888);border-bottom-style:dotted;font-weight:400}',
+      '.sl-fog{color:var(--fg-mute,#888);letter-spacing:2px;padding:0 2px}',
+      '#sl-stats{font-size:11px;color:var(--fg-mute,#888);margin-bottom:6px}',
+      '#sl-longs{display:flex;gap:3px;align-items:flex-end;flex-wrap:wrap}',
+      '.sl-bar{flex:0 0 26px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-size:10px;color:var(--fg-mute,#888)}',
+      '.sl-bar i{display:block;width:100%;background:var(--fg-mute,#666);opacity:.55;border-radius:2px 2px 0 0;font-style:normal}',
+      '.sl-bar.sl-vraie i{background:var(--accent,#7aa2f7);opacity:1}',
+      '.sl-bar.sl-vraie span{color:var(--accent,#7aa2f7);font-weight:700}'
+    ].join('\n');
+    document.head.appendChild(css);
+    zone.innerHTML = '<div id="sl-head"><label><input type="checkbox" id="sl-switch"> 🕶️ Mode sans longueur</label>' +
+      '<span id="sl-note">la machine joue sans connaître la longueur du mot</span></div>' +
+      '<div id="sl-corps"><div class="panel-label">CE QUE LA MACHINE VOIT</div>' +
+      '<div id="sl-schema"></div><div id="sl-stats"></div><div id="sl-longs"></div></div>';
+    var sw = document.getElementById('sl-switch');
+    sw.addEventListener('change', function () {
+      var want = !!sw.checked;
+      try {
+        var item = document.querySelector('[data-toggle="M_SANS_LONGUEUR_ENABLED"]');
+        if (item && item.classList && typeof ui_toggle === 'function') {
+          if (item.classList.contains('on') !== want) ui_toggle(item);   // passe par ui_toggle → log CONFIG + panneau de config synchronisé
+        } else { M_SANS_LONGUEUR_ENABLED = want; }
+      } catch (e) { try { M_SANS_LONGUEUR_ENABLED = want; } catch (e2) {} }
+    });
+    // cohorte CÔTÉ UI : même règle que le moteur (_slCompatible sur len_index), cache à soi
+    var cache = { game: -1, key: '', ids: null };
+    function cohorte(schema, tkey) {
+      var g = (typeof _slGameSeq !== 'undefined') ? _slGameSeq : 0;
+      var key = g + '|' + schema + '|' + tkey;
+      if (cache.ids && cache.key === key) return cache.ids;
+      var base = (cache.ids && cache.game === g) ? cache.ids : null;   // les contraintes ne font que se resserrer dans une partie
+      var out = [], words = OMEGA_LEX4.words, LI = OMEGA_LEX4.len_index;
+      if (base) { for (var i = 0; i < base.length; i++) { var w = words[base[i]]; if (w && w.m && _slCompatible(w.m, schema, alreadyTried)) out.push(base[i]); } }
+      else { for (var k in LI) { var arr = LI[k]; for (var j = 0; j < arr.length; j++) { var w2 = words[arr[j]]; if (w2 && w2.m && _slCompatible(w2.m, schema, alreadyTried)) out.push(arr[j]); } } }
+      cache = { game: g, key: key, ids: out };
+      return out;
+    }
+    var lastKey = null;
+    function rendre() {
+      var on = (typeof M_SANS_LONGUEUR_ENABLED !== 'undefined') && M_SANS_LONGUEUR_ENABLED;
+      if (sw.checked !== on) sw.checked = on;   // resync si basculé depuis le panneau de config
+      zone.classList.toggle('on', on);
+      if (!on) { lastKey = null; return; }
+      if (typeof currentWord !== 'string' || !currentWord || typeof OMEGA_LEX4 === 'undefined' || !OMEGA_LEX4 || !OMEGA_LEX4.words) {
+        if (lastKey !== 'vide') { lastKey = 'vide';
+          document.getElementById('sl-schema').innerHTML = '<span class="sl-fog">— pas de partie en cours —</span>';
+          document.getElementById('sl-stats').textContent = '';
+          document.getElementById('sl-longs').innerHTML = ''; }
+        return;
+      }
+      var tkey = ''; for (var x = 0; x < 26; x++) tkey += alreadyTried[x] ? '1' : '0';
+      var vb = _slVirtualBoard(currentWord, revealedMask);
+      var g = (typeof _slGameSeq !== 'undefined') ? _slGameSeq : 0;
+      var key = g + '|' + vb.w + '|' + tkey + '|' + currentWord.length;
+      if (key === lastKey) return;
+      lastKey = key;
+      // schéma relatif, bords de brouillard
+      var h = '<span class="sl-fog" title="préfixe inconnu (longueur cachée)">⋯</span>';
+      if (vb.w) { for (var p = 0; p < vb.w.length; p++) { var c = vb.w.charAt(p);
+          h += (c === '?') ? '<span class="sl-case sl-inc">?</span>' : '<span class="sl-case">' + c + '</span>'; } }
+      else h += '<span class="sl-fog" style="letter-spacing:0"> rien de révélé — la machine joue à l\'aveugle </span>';
+      h += '<span class="sl-fog" title="suffixe inconnu (longueur cachée)">⋯</span>';
+      document.getElementById('sl-schema').innerHTML = h;
+      // cohorte + distribution des longueurs possibles
+      var ids = cohorte(vb.w, tkey), words = OMEGA_LEX4.words;
+      var dist = {}, lmin = 99, lmax = 0;
+      for (var i = 0; i < ids.length; i++) { var L = words[ids[i]].m.length; dist[L] = (dist[L] || 0) + 1; if (L < lmin) lmin = L; if (L > lmax) lmax = L; }
+      var vraie = currentWord.length;
+      document.getElementById('sl-stats').innerHTML = '<b>' + ids.length.toLocaleString('fr-FR') + '</b> mots compatibles · longueurs possibles : ' +
+        (ids.length ? ('<b>' + lmin + '</b> à <b>' + lmax + '</b>') : '—') +
+        ' · la vraie (<b>' + vraie + '</b>) n\'est connue que de vous';
+      var bars = '';
+      if (ids.length) { var mx = 0; for (var d in dist) if (dist[d] > mx) mx = dist[d];
+        for (var Lb = lmin; Lb <= lmax; Lb++) { var n = dist[Lb] || 0, ht = n ? Math.max(2, Math.round(32 * n / mx)) : 0;
+          bars += '<div class="sl-bar' + (Lb === vraie ? ' sl-vraie' : '') + '" title="' + n.toLocaleString('fr-FR') + ' mot(s) de ' + Lb + ' lettres' + (Lb === vraie ? ' — la vraie longueur' : '') + '">' +
+            '<i style="height:' + ht + 'px"></i><span>' + Lb + '</span></div>'; } }
+      document.getElementById('sl-longs').innerHTML = bars;
+    }
+    rendre();
+    setInterval(function () { try { rendre(); } catch (e) {} }, 300);
+  } catch (e) { try { console.warn('[sl-ui]', e); } catch (e2) {} }
 })();
 </script>
 </body>

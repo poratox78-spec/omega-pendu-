@@ -1161,8 +1161,8 @@ async function main() {
       if (vu.actifs < 20) echecs.push('pendu : la configuration optimale n est PAS active au chargement ('
         + vu.actifs + ' réglages sur ' + vu.total
         + ' ; avant le 24/09 la page démarrait à 3, soit ≈ 2,6 % de parties gagnées)');
-      if (vu.total !== 46) echecs.push('pendu : ' + vu.total
-        + ' réglages dans la grille au lieu de 46 — replier n est pas retirer');
+      if (vu.total !== 49) echecs.push('pendu : ' + vu.total   // 46 → 49 le 05/11/2026 (fusion sans-longueur) : cases 🧩 partition + 🧯 support (oubli PR #1176) + 🕶️ mode sans longueur
+        + ' réglages dans la grille au lieu de 49 — replier n est pas retirer');
       for (const a of ACTIONS) if (vu.actions.indexOf(a) < 0)
         echecs.push('pendu : le contrôle « ' + a + ' » a DISPARU des commandes — le rangement a perdu quelque chose');
       for (const c of CHAMPS) if (vu.champs.indexOf(c) < 0)

@@ -1,8 +1,9 @@
 # AUDIT — pendu SANS LONGUEUR (03/11/2026, approfondi le jour même sur rappel de Rem)
 
 > **Objectif fixé par Rem** : un nouveau mode où la machine joue **sans connaître la longueur du mot**.
-> Mode **normal** (mot in-lexique), **pas OOV**. Le chantier vit dans la **copie** `app/omega-pendu-sans-longueur.html`
-> (octets identiques à l'original au départ, SHA256 vérifié) — l'original ne bouge pas.
+> Mode **normal** (mot in-lexique), **pas OOV**. Le chantier a vécu dans une **copie** `app/omega-pendu-sans-longueur.html`
+> (octets identiques à l'original au départ, SHA256 vérifié) — l'original n'a pas bougé pendant l'exploration.
+> **FUSIONNÉ le 05/11/2026 (§8) : le mode vit désormais dans l'ORIGINAL, la copie est supprimée.**
 >
 > **Cadre posé par Rem (à ne pas perdre)** : le pendu **ne connaît pas le mot** (doctrine « cognition > oracle »,
 > garde cheat-free `evo/ci_smoke.js` en CI) ; **aucun résultat n'est pérenne sans toute la machinerie** à la
@@ -275,3 +276,38 @@ ACTIVATION : préréglage des 2 pages 24→26 ON + CFG `ci_smoke`/`sans_longueur
 moteur ne bougent pas). Post-activation : préréglage réel 4 graines **99,2 % board réel** · mode sans
 longueur **96,7 intact** · ci_smoke 93,3/98,3 (planchers 84/93) · bench copie ≡ original (98,3) ·
 `dev.sh check` 141/141. Clone EN régénéré.
+
+## 8. FUSION — un seul fichier (05/11/2026, décision Rem : « la 2, fait tout avec la fusion »)
+
+**Pourquoi.** Deux coûts mesurés de la copie : chaque patch moteur devait être appliqué DEUX fois
+(source d'oubli réelle : les cases UI de partition/support manquaient au panneau de l'original —
+actifs au préréglage mais invisibles, vu par Rem) ; et le correcteur embarqué de la copie divergeait
+EN SILENCE — au diff du 05/11, la copie avait DÉJÀ **43 hunks de retard** (toutes les listes
+n° 349→375 des textes neufs des 03-04/11, jamais portées : aucune garde ne surveillait la copie).
+
+**Méthode (mécanique, pas de recopie à la main).** `diff -U2 original copie` = 66 hunks ; classement
+automatique par marqueurs (`_sl` / `M_SANS_LONGUEUR` / `sl-vue`) : **23 hunks du mode**, **43 de
+retard correcteur**, 0 ambigu. Patch filtré des 23 appliqué à l'original (`git apply`, CRLF
+préservés) ; **contre-preuve** : le diff résiduel original↔copie = exactement les 43 hunks
+correcteur, tous ≥ l.25918 — zéro dans le moteur. Puis : cases UI 🧩 partition / 🧯 support ajoutées
+au panneau (l'oubli de la PR #1176), tooltip du mode rafraîchi (95,0 % et 99,6 % périmés — la
+référence « mot entendu » ne se cite plus → « 96,7 contre ~99, référence cheat-free »),
+`evo/sans_longueur_bench.js` re-ciblé sur l'app, la copie `app/omega-pendu-sans-longueur.html`
+**SUPPRIMÉE** (son correcteur en retard meurt avec elle), clone EN régénéré.
+
+**Preuves — tout re-mesuré sur le fichier fusionné le 05/11/2026, identique graine par graine :**
+
+| Mesure (protocole ci_smoke, in-lexique 7-12) | Fusionné | Attendu (mesures d'avant) |
+|---|---|---|
+| bench graines 12345+777 (4 conditions) | 93,3 · 98,3 · 92,5 · 97,5 | identiques ✓ |
+| bench graines 424242+31337 : mode +NEO | 95,8 [96,7 · 95,0] | identiques ✓ |
+| protocole 4 graines : **mode** | **96,7 %** | 96,7 ✓ |
+| protocole 4 graines : board réel CFG réf | **99,2 %** | 99,2 ✓ |
+| ci_smoke (planchers 84/93) | 93,3 / 98,3 | identiques ✓ |
+| préréglage APP (26 ON), 4 graines : board réel | **99,2 % [100 · 96,7 · 100 · 100]** | identiques ✓ |
+| préréglage APP : mode sous préréglage | **96,7 % [96,7 · 98,3 · 96,7 · 95,0]** | identiques ✓ |
+| `dev.sh check` | 140/141 puis 141/141 | le seul échec = la garde du panneau (46 cases attendues : elle a ATTRAPÉ les 3 ajouts → 49, mise à jour, re-passée verte) |
+
+R66 respectée : aucun défaut moteur ne bouge — le mode reste OFF par défaut, désormais avec sa case
+visible au panneau comme partition et support. Un seul monolithe à patcher ; le banc du mode vit sur
+l'app ; `evo/pendu_sans_longueur_probe.js` et `evo/fitness_harness.js` dépoussiérés (commentaires).
