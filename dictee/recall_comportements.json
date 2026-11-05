@@ -800,7 +800,8 @@
 "Le bus passe à la gare puis le port voisin, connu pour ses bateaux.",
 "Quand au bout d'une heure, il est revenu.",
 "Quand au printemps, les fleurs poussent.",
-"La héro est une drogue dangereuse."
+"La héro est une drogue dangereuse.",
+"La voisine que je croise le matin a une voiture rouge."
 ],
 "elide": [
 [
@@ -3287,6 +3288,11 @@
 "Le héro du film est courageux.",
 "héro",
 "héros"
+],
+[
+"Le chat que je vois a la fenêtre dort.",
+"a",
+"à"
 ]
 ],
 "palier": [
@@ -3533,6 +3539,11 @@
 [
 "Le soir, nous mangeons des crêpes salé sur le port.",
 "salé",
+"vigilance"
+],
+[
+"Le garçon qui mange une pomme a sa balle.",
+"a",
 "vigilance"
 ]
 ],
