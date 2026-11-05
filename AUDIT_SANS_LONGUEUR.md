@@ -3,7 +3,7 @@
 > **Objectif fixé par Rem** : un nouveau mode où la machine joue **sans connaître la longueur du mot**.
 > Mode **normal** (mot in-lexique), **pas OOV**. Le chantier a vécu dans une **copie** `app/omega-pendu-sans-longueur.html`
 > (octets identiques à l'original au départ, SHA256 vérifié) — l'original n'a pas bougé pendant l'exploration.
-> **FUSIONNÉ le 05/11/2026 (§8) : le mode vit désormais dans l'ORIGINAL, la copie est supprimée.**
+> **FUSIONNÉ le 05/11/2026 (§8) : le mode vit désormais dans l'ORIGINAL.** La copie est REMISE après la fusion, à l'identique, comme copie de SÉCURITÉ figée, voulue par Rem — elle n'est plus entretenue (son correcteur s'arrête au 03/11/2026) : le produit, les bancs et les patchs vont à l'original.
 >
 > **Cadre posé par Rem (à ne pas perdre)** : le pendu **ne connaît pas le mot** (doctrine « cognition > oracle »,
 > garde cheat-free `evo/ci_smoke.js` en CI) ; **aucun résultat n'est pérenne sans toute la machinerie** à la
@@ -311,3 +311,5 @@ référence « mot entendu » ne se cite plus → « 96,7 contre ~99, référenc
 R66 respectée : aucun défaut moteur ne bouge — le mode reste OFF par défaut, désormais avec sa case
 visible au panneau comme partition et support. Un seul monolithe à patcher ; le banc du mode vit sur
 l'app ; `evo/pendu_sans_longueur_probe.js` et `evo/fitness_harness.js` dépoussiérés (commentaires).
+
+**Copie de sécurité (05/11/2026, voulue par Rem).** Après la fusion (#1182), `app/omega-pendu-sans-longueur.html` est remise À L'IDENTIQUE (même empreinte git que sa dernière version, `bef5d5e4`). Elle est FIGÉE : aucun patch n'y va plus, aucun banc ne la vise par défaut (`APP=app/omega-pendu-sans-longueur.html node evo/sans_longueur_bench.js` la mesure si besoin). Son correcteur est celui du 03/11/2026, en retard : ne jamais s'en servir comme correcteur.
