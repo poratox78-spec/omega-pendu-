@@ -805,7 +805,8 @@
 "Le film que je regarde ce soir a tous les atouts.",
 "Le reste arrive demain.",
 "Le pull et le bonnet blancs sont à moi.",
-"Mon beau-fils arrive."
+"Mon beau-fils arrive.",
+"Ses parents habitent loin."
 ],
 "elide": [
 [
@@ -3317,6 +3318,11 @@
 "Mes ami on manger une pizza.",
 "manger",
 "mangé"
+],
+[
+"Je trouve que ces mieux comme ça.",
+"ces",
+"c'est"
 ]
 ],
 "palier": [
