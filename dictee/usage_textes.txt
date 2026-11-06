@@ -183,3 +183,8 @@ Pardon pour ce changement de {derniere|dernière|O} minute : je compte sur votre
 {bonsoir|Bonsoir|P} à tous, la fête de l'école {aurat|aura|C} lieu samedi dans la cour. Il manque encore des {gâteau|gâteaux|N} pour le stand, et {ces|c'est|G} trop tard pour commander chez le boulanger.
 Si vous pouvez {aidé|aider|C}, écrivez-moi avant vendredi. Les enfants {doive|doivent|C} arriver à neuf heures, avec une {casquete|casquette|O}.
 Je remercie déjà les {voluntaires|volontaires|O}. {merci|Merci|P} {a|à|G} tous !
+=== T39 description d'un article vendu sur internet
+Écharpe en laine, taille unique. Cette écharpe {épais|épaisse|G} {protége|protège|O} du froid et se porte avec un manteau ou une veste.
+Elle mesure deux mètres et {ce|se|G} lave à la main. Les couleurs {proposé|proposées|G} sont le gris, le bleu marine et le vert.
+{livraison|Livraison|P} en trois jours. Si l'article ne vous {convien|convient|C} pas, vous pouvez le renvoyer dans un délai d'un mois.
+Les {client|clients|N} qui ont {acheter|acheté|C} cette écharpe ont aussi choisi un bonnet assorti et des {gans|gants|O}.

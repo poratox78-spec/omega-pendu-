@@ -33,7 +33,7 @@ const fix = s.match(/var _CONJ_FIX=(\{[^}]*\})/), elid = s.match(/var _ELID_DET=
 const ctx = { Object, Array, String, Promise, setTimeout, JSON, Math, Set };
 vm.createContext(ctx);
 vm.runInContext([fn('deacc'), 'var _CONJ_FIX=' + (fix ? fix[1] : '{}') + ';', fn('_cjPas'), fn('_cjFin'), fn('_cjRebuild'), fn('_fillReg3pl'), fn('svReads'),
-  fn('_tokPos'), fn('posTags'), 'var _tgCache=null;var _ELID_DET=' + elid[1] + ';var _HMM=' + JSON.stringify(HMM) + ';'].join('\n'), ctx);
+  fn('_tokPos'), fn('_em384'), fn('posTags'), 'var _tgCache=null;var _on384=false;var _ELID_DET=' + elid[1] + ';var _HMM=' + JSON.stringify(HMM) + ';'].join('\n'), ctx);
 vm.runInContext(`var _cj=_cjRebuild(${JSON.stringify(VDC.cj)});var CONJ_F=_cj.f,CONJ_C=_cj.c;_fillReg3pl(CONJ_C,CONJ_F);
   var GENDER_MAP=${JSON.stringify(VDC.g || {})},GENDER_PURE=${JSON.stringify(VDC.gn || {})},ADJP=${JSON.stringify(VDC.a || {})},NOUN_PLURAL={};
   (${JSON.stringify(VDC.gp || [])}).forEach(function(w){NOUN_PLURAL[w]=1;});`, ctx);
