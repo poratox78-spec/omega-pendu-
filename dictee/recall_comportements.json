@@ -3748,6 +3748,11 @@
 "Ma sœur regardé la télé tous les soirs.",
 "regardé",
 "vigilance"
+],
+[
+"La petite chienne dormé sous le banc.",
+"dormé",
+"vigilance"
 ]
 ],
 "vig": [
@@ -3925,6 +3930,31 @@
 "Le chef prépare lui même la sauce.",
 "lui",
 "lui-même"
+],
+[
+"Le guide nous attendé devant la grille du parc.",
+"attendé",
+"attendait"
+],
+[
+"Les enfants attendé le car sous la pluie.",
+"attendé",
+"attendaient"
+],
+[
+"Je vendé des crêpes au marché.",
+"vendé",
+"vendais"
+],
+[
+"Hugo répondé toujours poliment.",
+"répondé",
+"répondait"
+],
+[
+"Il faut que le guide nous attendé devant la grille.",
+"attendé",
+"attende"
 ]
 ],
 "a_participe": [
