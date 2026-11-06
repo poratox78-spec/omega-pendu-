@@ -204,3 +204,10 @@ Il mange deux fois par jour, le matin et le soir. Mets toujours un bol d'eau fra
 S'il miaule la nuit, pas d'inquiétude : {sa|ça|G} lui arrive souvent.
 Les {jouet|jouets|N} sont rangés dans le panier bleu. {il|Il|P} adore la petite balle rouge, mais il ne faut pas la {laissé|laisser|C} dans l'escalier.
 Nous {rentront|rentrerons|C|rentrons} dimanche soir. {a|À|G} bientôt et encore merci !
+# texte neuf (ligne 396)
+=== T43 indications pour venir à la maison
+Pour venir samedi, le plus simple est le train. Descends à la gare des Tilleuls, puis {prend|prends|C} la rue qui monte vers l'église.
+Juste après la {boulangeri|boulangerie|O}, tourne à gauche {est|et|G} longe le parc jusqu'aux deux feux {rouge|rouges|N}.
+Au rond-point, {continu|continue|C} tout droit jusqu'à la place {ou|où|G} se trouve la fontaine.
+Notre maison est la troisième sur la droite, avec {ces|ses|G} volets bleus. Elle est {a|à|G} dix minutes de la gare.
+Pas besoin de {sonné|sonner|C}, le portail sera ouvert. {si|Si|P} tu te perds, tu m'{appel|appelles|C} et je viens te chercher.
