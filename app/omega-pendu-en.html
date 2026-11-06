@@ -32927,14 +32927,14 @@ function spellUnknown(tok,atStart,T,idx){
           for(i=0;i<DM;i++){var s5=B2[i],r5=i*FF;for(j=0;j<FF;j++)s5+=F2[r5+j]*g[og+j];x[o4+i]+=s5;}}}
       ln(x,T,P['lnf.weight'],P['lnf.bias'],h);return h;}
     function lin(W,Bi,nIn,nOut,x,xo,out,oo){for(var i=0;i<nOut;i++){var s=Bi[i],r=i*nIn;for(var j=0;j<nIn;j++)s+=W[r+j]*x[xo+j];out[oo+i]=s;}}
-    var hp=new Float32Array(DP),cp=new Float32Array(DP),wp=new Float32Array(DP),NI=4*DP+12,inp=new Float32Array(NI),mh=new Float32Array(128);
-    function noter(h,t,w,cands){   // cands : [{m, tr:[même son large, même son strict, distance, accent seul, fréquence, écrit]}]
+    var hp=new Float32Array(DP),cp=new Float32Array(DP),wp=new Float32Array(DP),AN=cfg.AN?1:0,NI=4*DP+12+AN,inp=new Float32Array(NI),mh=new Float32Array(128);
+    function noter(h,t,w,cands){   // cands : [{m, tr:[même son large, même son strict, distance, accent seul, fréquence, écrit, mêmes lettres (lu si cfg.AN, liste n° 383)]}]
       lin(P['ph.weight'],P['ph.bias'],DM,DP,h,t*DM,hp,0);lin(P['pc.weight'],P['pc.bias'],DE,DP,vec(w),0,wp,0);
       var M0=P['mlp.0.weight'],B0=P['mlp.0.bias'],M2=P['mlp.2.weight'],B2=P['mlp.2.bias'],TR=P['tr.weight'],notes=[];
       for(var c=0;c<cands.length;c++){var cd=cands[c],tr=cd.tr,j,dot=0;lin(P['pc.weight'],P['pc.bias'],DE,DP,vec(cd.m),0,cp,0);
         for(j=0;j<DP;j++){inp[j]=hp[j];inp[DP+j]=cp[j];inp[2*DP+j]=wp[j];var z=hp[j]*cp[j];inp[3*DP+j]=z;dot+=z;}
         for(j=0;j<6;j++)inp[4*DP+j]=TR[tr[2]*6+j];
-        var q=4*DP+6;inp[q]=tr[0];inp[q+1]=tr[1];inp[q+2]=tr[3];inp[q+3]=tr[4]/16;inp[q+4]=tr[5];inp[q+5]=dot/8;
+        var q=4*DP+6;inp[q]=tr[0];inp[q+1]=tr[1];inp[q+2]=tr[3];inp[q+3]=tr[4]/16;inp[q+4]=tr[5];inp[q+5]=dot/8;if(AN)inp[q+6]=tr[6]||0;
         lin(M0,B0,NI,128,inp,0,mh,0);var s=B2[0];for(j=0;j<128;j++)s+=M2[j]*gelu(mh[j]);notes.push(s);}
       return notes;}
     var px=new Float32Array(2*DM),pm=new Float32Array(96),pv=new Float32Array(4);
@@ -32943,7 +32943,7 @@ function spellUnknown(tok,atStart,T,idx){
       lin(P['pt.0.weight'],P['pt.0.bias'],2*DM,96,px,0,pm,0);for(j=0;j<96;j++)pm[j]=gelu(pm[j]);lin(P['pt.2.weight'],P['pt.2.bias'],96,4,pm,0,pv,0);
       var mx=Math.max(pv[0],pv[1],pv[2],pv[3]),so=0,e=[0,0,0,0];for(j=0;j<4;j++){e[j]=Math.exp(pv[j]-mx);so+=e[j];}for(j=0;j<4;j++)e[j]/=so;return e;}
     return {cfg:cfg,lire:lire,noter:noter,ponct:ponct,octets:u8.byteLength};}
-  function setJuge(buf){_JG.m=_jgMoteur(buf);_JG.cache=new Map();return true;}
+  function setJuge(buf){_JG.m=_jgMoteur(buf);_JG.cache=new Map();_JGM.clear();return true;}   // les candidats dépendent du modèle (anagramme si cfg.AN)
   function loadJuge(url){return fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(setJuge).catch(function(){return false;});}
   var _JGG={};[["a","à"],["ou","où"],["son","sont"],["ces","ses","c'est","s'est"],["ce","se"],["la","là","l'a"],["ma","m'a"],["ta","t'a"],["sa","ça"],["on","ont"],["mes","mais","met"],["du","dû"],["leur","leurs"],["ni","n'y"],["si","s'y"],["soi","soit"],["dont","donc"],["tout","tous"],["peu","peut","peux"],["par","part"],["sur","sûr"],["quand","quant"],["qu'elle","quelle","quel"],["sans","sens","cent"],["et","est","es"],["en","an"]].forEach(function(g){g.forEach(function(x){_JGG[x]=(_JGG[x]||[]).concat(g);});});
   var _JGM=new Map();
@@ -32955,16 +32955,32 @@ function spellUnknown(tok,atStart,T,idx){
   var _JGFINS=[['er','é','ée','és','ées','ez','ai','ais','ait','aient'],['','s','e','es','x'],['e','es','ent'],['i','is','it','ie','ies','ir'],['u','us','ut','ue','ues'],['t','ent']];
   function _jgFins(nu){var out=[];_JGFINS.forEach(function(C){var s=null;C.forEach(function(x){if(x&&nu.length>x.length+1&&nu.slice(-x.length)===x&&(s===null||x.length>s.length))s=x;});if(s===null){if(C.indexOf('')<0)return;s='';}var r=nu.slice(0,nu.length-s.length);C.forEach(function(t){var m=r+t;if(t!==s&&spF(m)>=0.001&&out.indexOf(m)<0)out.push(m);});});return out;}
   function _jgK0(s){return phonKey(s).replace(/É$/,'');}   // la clé sans la classe É : celle de l'entraînement
-  function _jgTr(nu,m){var b=m.split("'").pop(),de=deacc(nu);return [_jgK0(b)===_jgK0(nu)?1:0,_sonKey(b)===_sonKey(nu)||(nu.length>=2&&_jgFins(nu).indexOf(b)>=0)?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0];}
+  /* ⭐ 05/11/2026 (liste n° 383, « lettres dansantes ») — un dys garde souvent la 1re et la dernière lettre et mélange celles du milieu. Clé = 1re lettre
+     + lettres du milieu triées + dernière, sans accents ; l'anagramme d'un mot INCONNU = le mot le plus fréquent du lexique qui a la même clé (pas le même
+     mot sans ses accents). Seul, c'est négatif (mesuré : beaucoup d'anagrammes fausses) : il entre parmi les candidats du juge, avec un 7e trait
+     « mêmes lettres », et seulement pour un modèle entraîné avec (cfg.AN, dictee/juge_lex.js). L'index se bâtit par tranches (jugeAnalyse). */
+  function _jgCleD(d){return d.length>=4&&/^[a-zœæ]+$/.test(d)?d[0]+d.slice(1,-1).split('').sort().join('')+d[d.length-1]:null;}
+  function _jgDanse(x,y){var k=_jgCleD(x);return k&&x!==y&&k===_jgCleD(y)?1:0;}
+  var _JGA={I:null,it:null,src:null,fini:false};
+  function _jgMieux(f,x,g,y){return f>g||(f===g&&x<y);}
+  function _jgAnaStep(n){if(_JGA.src!==SP.D2M){_JGA.src=SP.D2M;_JGA.I=new Map();_JGA.it=SP.D2M?SP.D2M.values():null;_JGA.fini=!SP.D2M;}if(_JGA.fini)return true;var I=_JGA.I;
+    for(var k=0;k<n;k++){var e=_JGA.it.next();if(e.done){_JGA.fini=true;return true;}var L=typeof e.value==='string'?[e.value]:e.value;
+      for(var q=0;q<L.length;q++){var x=L[q],f=spF(x)||0;if(!(f>=0.001))continue;var d=deacc(x),c=_jgCleD(d);if(!c)continue;var b=I.get(c);if(b===undefined){I.set(c,x);continue;}
+        var w1=typeof b==='string'?b:b[0],w2=typeof b==='string'?null:b[1],d1=deacc(w1);   // w1 = le plus fréquent, w2 = le plus fréquent d'une autre forme sans accents
+        if(_jgMieux(f,x,spF(w1)||0,w1)){if(d1!==d)w2=w1;w1=x;}else if(d1!==d&&(w2===null||_jgMieux(f,x,spF(w2)||0,w2)))w2=x;else continue;I.set(c,w2===null?w1:[w1,w2]);}}
+    return false;}
+  function _jgAnag(nu){var d=deacc(nu),c=_jgCleD(d),b=c&&_JGA.I?_JGA.I.get(c):undefined;if(b===undefined)return null;var w1=typeof b==='string'?b:b[0];return deacc(w1)!==d?w1:(typeof b==='string'?null:b[1]);}
+  function _jgTr(nu,m){var b=m.split("'").pop(),de=deacc(nu);return [_jgK0(b)===_jgK0(nu)?1:0,_sonKey(b)===_sonKey(nu)||(nu.length>=2&&_jgFins(nu).indexOf(b)>=0)?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0,_jgDanse(de,deacc(b))];}
   function _jgCands(w){var c=_JGM.get(w);if(c)return c;var mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),pre=mm?mm[1]:'',nu=mm?mm[2]:w,S=new Map();
     var aj=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,f);}},fi=nu.length>=2?_jgFins(nu):[],de=deacc(nu),gd=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,1e6+f);}};   // gd : le top 16 ne les coupe pas
     (_JGG[w]||[]).forEach(function(x){if(x!==w)S.set(x,1e9);});
     if(nu.length>=2){fi.forEach(gd);(spD(de)||[]).forEach(gd);(SP.PHON[_jgK0(nu)]||[]).forEach(aj);}
     c=Array.from(S.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,16).map(function(e){var m=e[1]===1e9?e[0]:pre+e[0];return {m:m,tr:_jgTr(nu,m)};}).filter(function(x){return x.tr[0]||x.tr[1]||x.tr[3];});
+    if(_JG.m&&_JG.m.cfg.AN&&nu.length>=4&&!_jgConnu(w)){if(!_JGA.fini)_jgAnaStep(1e9);var an=_jgAnag(nu);if(an&&an!==nu&&!c.some(function(y){return y.m.split("'").pop()===an;}))c.push({m:pre+an,tr:_jgTr(nu,pre+an)});}   // liste n° 383 : l'anagramme du milieu, mot inconnu seulement
     if(_JGM.size>30000)_JGM.clear();_JGM.set(w,c);return c;}
   // Le texte tel que le produit le voit (marques des règles appliquées), en tranches : une phrase, ou des fenêtres si elle n'en finit pas.
   function _jgTranches(text,flags){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+|\d+|[^\sA-Za-zÀ-ÿœŒ'’ʼ\d]/g,x,rang=-1,sg={},or={},ao={},couv={},cur=[],out=[];if(_JG.tus&&_JG.tus.t===text)flags=flags.concat(_JG.tus.f);
-    flags.forEach(function(f){if(typeof f.i!=='number'||f.juge)return;for(var c=0;c<(f.span||1);c++)couv[f.i+c]=1;var _s349=f.sugg0||f.sugg;if((f.span||1)<2&&typeof _s349==='string'&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_s349)){sg[f.i]=_s349;if(f.tier==='vigilance'){or[f.i]=f.name;if(f.name==='orthographe'&&spF(_jgLow(String(f.word)))==null)ao[f.i]=_s349;}}});   // liste n° 349 : sugg0 = la proposition d'origine, si le juge l'a remplacée (les clés du cache ne bougent pas)
+    flags.forEach(function(f){if(typeof f.i!=='number'||f.juge)return;for(var c=0;c<(f.span||1);c++)couv[f.i+c]=1;var _s349=f.sugg0||f.sugg;if((f.span||1)<2&&typeof _s349==='string'&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_s349)){sg[f.i]=_s349;if(f.tier==='vigilance'){or[f.i]=f.name;if((f.name==='orthographe'||f.name==='mot inconnu')&&spF(_jgLow(String(f.word)))==null)ao[f.i]=_s349;/* liste n° 383 : l'orange « mot inconnu » aussi */}}});   // liste n° 349 : sugg0 = la proposition d'origine, si le juge l'a remplacée (les clés du cache ne bougent pas)
     var fin=function(){if(!cur.length)return;for(var a=0;a<cur.length;a+=40){var b=Math.min(cur.length,a+64),t=cur.slice(a,b);out.push({t:t,de:a===0?0:12,a:b===cur.length?t.length:52,cle:t.map(function(y){return y.m;}).join('\u0001'),cleA:t.some(function(y){return y.ar;})?'\u0002'+t.map(function(y){return y.vr;}).join('\u0001'):null,cleO:t.some(function(y){return y.ao;})?'\u0003'+t.map(function(y){return y.vr;}).join('\u0001'):null});if(b===cur.length)break;}cur=[];};
     while((x=re.exec(text))){var w=x[0],mot=/^[A-Za-zÀ-ÿœŒ'’ʼ]+$/.test(w);if(mot)rang++;var vu=mot&&sg[rang]!=null?sg[rang]:w,tk={m:vu,k:mot?rang:-1,brut:w,cs:x.index,ce:x.index+w.length,tu:mot&&!!couv[rang],vr:mot&&or[rang]?w:vu,ar:mot&&_JG.TAIT[or[rang]]?vu:null,ao:mot&&ao[rang]!=null?ao[rang]:null};cur.push(tk);if(/^[.!?…]$/.test(w))fin();}
     fin();return out;}
@@ -32990,7 +33006,7 @@ function spellUnknown(tok,atStart,T,idx){
     var w=T[p],sp=_jgLow(tk.ao),mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),nu=mm?mm[2]:w,c=_jgCands(w).slice();if(!c.some(function(y){return _jgLow(y.m)===sp;}))c.push({m:sp,tr:_jgTr(nu,sp)});
     var sc=_JG.m.noter(L.h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]}].concat(c)),bi=-1,bv=-1e9,ss=null;for(var q=1;q<sc.length;q++){if(_jgLow(c[q-1].m)===sp)ss=sc[q];if(sc[q]>bv){bv=sc[q];bi=q;}}
     if(bi>0&&ss!=null&&_jgLow(c[bi-1].m)!==sp)rep[p]={m:c[bi-1].m,d:bv-ss};}return rep;}
-  function _jugeOrtho(text,flags){if(!_JG.m||!_JG.cache.size)return;var par={};flags.forEach(function(f){if(typeof f.i==='number'&&!f.juge&&f.name==='orthographe'&&f.tier==='vigilance'&&(f.span||1)<2)par[f.i]=f;});
+  function _jugeOrtho(text,flags){if(!_JG.m||!_JG.cache.size)return;var par={};flags.forEach(function(f){if(typeof f.i==='number'&&!f.juge&&(f.name==='orthographe'||f.name==='mot inconnu')&&f.tier==='vigilance'&&(f.span||1)<2)par[f.i]=f;/* liste n° 383 : le juge relit aussi « mot inconnu » (juge d'avant seul : 85 suggestions devenues justes, 0 perdue, 0 marque de plus sur 28 772 textes) */});
     _jgTranches(text,flags).forEach(function(tr){var r=tr.cleO&&_JG.cache.get(tr.cleO);if(!r)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var x=r[p],f=par[tr.t[p].k];if(!x||!f||x.d<=_JG.TO)continue;
       var s0=f.sugg0||f.sugg;if((spF(_jgLow(String(s0)))||0)>=_JG.FO)continue;var a0=deacc(_jgLow(String(s0))),b0=deacc(_jgLow(String(x.m)));if(/(ants?|ents?)$/.test(a0)&&/(ants?|ents?)$/.test(b0)&&a0.replace(/(ants?|ents?)$/,'')===b0.replace(/(ants?|ents?)$/,''))continue;   // -ant(s) / -ent : adjectif ou verbe, c'est la grammaire qui tranche
       var mm=String(x.m),lm=_jgLow(mm),fm=spF(lm)||0;if(deacc(lm)===lm&&fm<=10){var o=spD(lm)||[],bm=null,bf=-1;o.forEach(function(c){var fc=spF(c)||0;if(c!==lm&&fc>bf){bf=fc;bm=c;}});if(bm&&bf>=50*Math.max(fm,0.01))mm=bm;}   // liste n° 369 : candidat du juge = forme NUE (sans accent, ≤ 10/M) dont la sœur accentuée est ≥ 50 fois plus fréquente (« repondez » → répondez) ; « remporte » / « remporté » sont deux mots, on n'y touche pas
@@ -33001,7 +33017,7 @@ function spellUnknown(tok,atStart,T,idx){
   // Le calcul : tranche par tranche, en rendant la main entre deux ; cb() relance l'affichage si du nouveau est arrivé. Une nouvelle analyse annule la précédente.
   var _jgTour=0;
   function jugeAnalyse(text,flags,cb){if(!_JG.m||!SP.ready)return false;var ts=_jgTranches(text,flags||[]).filter(_jgManque);if(!ts.length)return false;var id=++_jgTour,k=0;
-    var pas=function(){if(id!==_jgTour)return;var t=ts[k++];try{_jgCalcule(t);}catch(e){_JG.m=null;return;}if(k<ts.length)setTimeout(pas,0);else if(cb)cb();};setTimeout(pas,0);return true;}
+    var pas=function(){if(id!==_jgTour)return;if(_JG.m&&_JG.m.cfg.AN&&!_JGA.fini){_jgAnaStep(6000);setTimeout(pas,0);return;}var t=ts[k++];try{_jgCalcule(t);}catch(e){_JG.m=null;return;}if(k<ts.length)setTimeout(pas,0);else if(cb)cb();};setTimeout(pas,0);return true;}
   function jugeAnalyseSync(text){if(!_JG.m||!SP.ready)return 0;var f=diagnoseAll(text).flags,n=0;_jgTranches(text,f).forEach(function(t){if(_jgManque(t)){_jgCalcule(t);n++;}});return n;}
   // Lecture du cache : l'orange va seulement où aucune règle n'a parlé. Silence sur les noms propres, les sigles, les adresses, les mots à trait d'union.
   function _jugeMarques(text,flags){if(!_JG.m||!_JG.cache.size)return [];var out=[];

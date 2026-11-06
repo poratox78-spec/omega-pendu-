@@ -4,7 +4,9 @@ Deux tâches sur le même encodeur : choisir le mot + lire l'espace après chaqu
   python dictee/juge_train.py <train.jsonl> <memo.json> <sortie.pt> '{}' 4
 Variables : BS (96), LR (1e-3). MAITRE=<grand.pt> : le petit apprend aussi les notes d'un grand modèle déjà entraîné (distillation,
 ALPHA 0,7 = part des notes du maître, TAU_KD 2). Ligne 343 : grand '{"DM":512,"NL":8,"NH":8,"FF":2048,"DE":128,"DP":128}' 3 époques
-avec LR=6e-4 (3,5 h), puis l'élève '{"DM":192,"FF":384}' 4 époques avec MAITRE (3 h) : au produit, il bat l'élève sans maître, et le maître lui-même."""
+avec LR=6e-4 (3,5 h), puis l'élève '{"DM":192,"FF":384}' 4 époques avec MAITRE (3 h) : au produit, il bat l'élève sans maître, et le maître lui-même.
+Ligne 383 : '{"AN":1}' ajoute le 7e trait « mêmes lettres » (anagramme du milieu, dictee/juge_lex.js) ; INIT=<modèle.pt> part d'un modèle déjà appris
+(mêmes tables, la colonne du trait neuf vaut 0 au départ) ; SEUL_AN=1 n'apprend que cette colonne (tout le reste figé, aucun autre candidat ne bouge)."""
 import io, json, math, os, random, sys, time
 import numpy as np, torch, torch.nn.functional as FN
 from juge_modele import Mini, morceaux, NG, taille, lexique, connu, freq
@@ -31,18 +33,25 @@ for l in io.open(TR, encoding='utf-8'):
 print('phrases', len(X), 'vocab', len(V), '%.0f s' % (time.time() - t0), flush=True)
 nV = len(V); inv = [None] * nV
 for w, k in V.items(): inv[k] = w
-NGm = np.zeros((nV, NG), dtype=np.int32); KO = np.zeros(nV, dtype=np.float32); CA = np.zeros((nV, CMAX), dtype=np.int32); CN = np.zeros(nV, dtype=np.int8); TRa = np.zeros((nV, CMAX, 6), dtype=np.float32)
+AN = 1 if cfg.get('AN') else 0; NT = 6 + AN
+NGm = np.zeros((nV, NG), dtype=np.int32); KO = np.zeros(nV, dtype=np.float32); CA = np.zeros((nV, CMAX), dtype=np.int32); CN = np.zeros(nV, dtype=np.int8); TRa = np.zeros((nV, CMAX, NT), dtype=np.float32)
 for k in range(1, nV):
     m = morceaux(inv[k], cfg['B']); NGm[k, :len(m)] = m; KO[k] = connu(FQ, inv[k])
 for w, c in memo.items():
-    k = V[w]; CA[k, 0] = k; TRa[k, 0] = [1, 1, 0, 1, freq(FQ, w), 1]; n = 1
+    k = V[w]; CA[k, 0] = k; TRa[k, 0] = [1, 1, 0, 1, freq(FQ, w), 1] + [0] * AN; n = 1
     for x in c[1:CMAX]:
-        CA[k, n] = V[x[0]]; TRa[k, n] = [x[1], x[2], x[3], x[4], x[5], 0]; n += 1
+        CA[k, n] = V[x[0]]; TRa[k, n] = [x[1], x[2], x[3], x[4], x[5], 0] + ([x[6] if len(x) > 6 else 0] if AN else []); n += 1
     CN[k] = n
 NGt = torch.from_numpy(NGm).long().to(dev); KOt = torch.from_numpy(KO).to(dev); CAt = torch.from_numpy(CA).long().to(dev); CNt = torch.from_numpy(CN).long().to(dev); TRt = torch.from_numpy(TRa).to(dev)
 print('tables %.0f s' % (time.time() - t0), flush=True)
 random.seed(1); idx = list(range(len(X))); random.shuffle(idx); DEV = idx[:6000]; TRN = idx[6000:]
 m = Mini(cfg).to(dev); print('paramètres', taille(m), flush=True)
+if os.environ.get('INIT'):   # départ d'un modèle déjà appris ; une table plus large (trait neuf) garde ses colonnes, les neuves partent de zéro
+    sd0 = torch.load(os.environ['INIT'], map_location='cpu', weights_only=False)['model']; sd = m.state_dict()
+    for k_, v_ in sd0.items():
+        if sd[k_].shape == v_.shape: sd[k_] = v_
+        else: z = torch.zeros_like(sd[k_]); z[tuple(slice(0, n_) for n_ in v_.shape)] = v_; sd[k_] = z; print('élargi', k_, tuple(v_.shape), '→', tuple(z.shape), flush=True)
+    m.load_state_dict(sd); print('départ', os.environ['INIT'], flush=True)
 MA = None
 if os.environ.get('MAITRE'):
     ckM = torch.load(os.environ['MAITRE'], map_location='cpu', weights_only=False); MA = Mini(ckM['cfg']).to(dev); MA.load_state_dict(ckM['model']); MA.eval()
@@ -51,7 +60,11 @@ ALPHA = float(os.environ.get('ALPHA', 0.7)) if MA else 0.0; TAU = float(os.envir
 if MA: print('maître', taille(MA), 'alpha', ALPHA, 'tau', TAU, flush=True)
 def kd(s, st):   # écart aux notes du maître, adoucies par TAU
     return FN.kl_div(FN.log_softmax(s / TAU, -1), FN.softmax(st / TAU, -1), reduction='batchmean') * TAU * TAU
-LR0 = float(os.environ.get('LR', 1e-3)); opt = torch.optim.AdamW(m.parameters(), lr=LR0, weight_decay=0.01); BS = int(os.environ.get('BS', 96)); steps = EP * (len(TRN) // BS); pas = 0
+SEUL = os.environ.get('SEUL_AN') == '1'   # ligne 383 : n'apprendre QUE la colonne du trait « mêmes lettres » ; un candidat sans ce trait garde exactement sa note
+if SEUL:
+    for p_ in m.parameters(): p_.requires_grad_(False)
+    W0 = m.mlp[0].weight; W0.requires_grad_(True); _mq = torch.zeros_like(W0); _mq[:, -1] = 1; W0.register_hook(lambda g: g * _mq)
+LR0 = float(os.environ.get('LR', 1e-3)); opt = torch.optim.AdamW([p_ for p_ in m.parameters() if p_.requires_grad], lr=LR0, weight_decay=0.0 if SEUL else 0.01); BS = int(os.environ.get('BS', 96)); steps = EP * (len(TRN) // BS); pas = 0
 def lr(p): return min(1, p / 500) * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * p / steps)))
 def suite(i, colle):
     # Plusieurs phrases à la suite, jusqu'à la taille d'un long texte : les textes réels finissent souvent sans ponctuation.

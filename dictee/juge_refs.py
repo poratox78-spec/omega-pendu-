@@ -17,6 +17,7 @@ with torch.no_grad():
         h = m.lire(x, fl, torch.zeros((1, T), dtype=torch.bool)); pc = m.ponct(h).softmax(-1)[0].tolist()
         for i in range(T):
             cs = [low(t[i]), 'mange', 'les', 'manger', 'bateau']; n = len(cs); tr = [[1, 1, 0, 1, freq(FQ, low(t[i])), 1.0]] + [[1, 0, 2, 0, freq(FQ, c), 0.0] for c in cs[1:]]
+            if cfg.get('AN'): tr = [r + [1.0 if k == 4 else 0.0] for k, r in enumerate(tr)]   # ligne 383 : 7e trait « mêmes lettres », mis sur un candidat pour éprouver sa colonne
             ec = torch.tensor([[morceaux(c, cfg['B']) + [0] * (NG - len(morceaux(c, cfg['B']))) for c in cs]])
             ew = torch.tensor([ids[i]])
             sc = m.noter(h[:, i], m.vec(ew), m.vec(ec), torch.tensor([tr]))[0].tolist()
