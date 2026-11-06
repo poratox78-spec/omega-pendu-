@@ -813,7 +813,9 @@
 "Le gâteau pour la fête préparé hier.",
 "Il est près de la porte, épuisé.",
 "Il descend à la gare, puis prend la rue.",
-"Descends, puis vient la partie difficile."
+"Descends, puis vient la partie difficile.",
+"Tarif tout compris pour la journée.",
+"Continu, le bruit gêne les voisins."
 ],
 "elide": [
 [
@@ -3360,6 +3362,16 @@
 "Bois ton lait et finit ton pain.",
 "finit",
 "finis"
+],
+[
+"Travail bien ta leçon ce soir.",
+"Travail",
+"Travaille"
+],
+[
+"Appel vite le docteur, il a de la fièvre.",
+"Appel",
+"Appelle"
 ]
 ],
 "palier": [
@@ -3651,6 +3663,11 @@
 [
 "Finis ton assiette, puis sort de table.",
 "sort",
+"vigilance"
+],
+[
+"Appel vite le docteur, il a de la fièvre.",
+"Appel",
 "vigilance"
 ]
 ],
