@@ -4667,6 +4667,12 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
     return ckeepcase(w,cible);}
   function _verbeFini(lw){var rd=svReads(lw);for(var k=0;k<rd.length;k++){var mt=rd[k][1]||'';if(mt.indexOf('ind')===0||mt.indexOf('cnd')===0||mt.indexOf('sub')===0)return true;}return false;}
   function _ppU198(lw){return lw.length>=4&&/u$/.test(lw)&&typeof SP!=='undefined'&&SP&&SP.ready&&(spP(lw)||'').indexOf('V')>=0&&(spP(lw+'e')||'').indexOf('V')>=0;}   // liste n° 198 : participe en -u (prévu, vendu, perdu, venu…) — le mot ET sa forme en -ue sont des formes de verbe au dictionnaire
+  /* ⭐ 06/11/2026 (liste n° 392) — « restez près de la personne blessé » → blessée était muet : la règle se tait dès qu'une préposition
+     précède le déterminant, car le participe peut aller avec un nom placé avant elle (« le gâteau pour la fête préparé » : préparé va avec
+     gâteau). Après « près de », « loin de », « auprès de », « autour de », « lors de », le mot d'avant n'est pas un nom : aucune autre tête.
+     Liste fermée, comparée sans accents (« prés de » compte). Mesuré : aucune marque ne change sur les 915 textes des 3 corpus dys et
+     de UD où ces tournures apparaissent. */
+  var _TETE392={pres:1,loin:1,aupres:1,autour:1,lors:1};
   function rPpEpithetFem(T,i){var w=T[i],lw=w.toLowerCase();if(/é$/.test(lw)&&_perc264(T,i)&&/^(la|une)$/.test(deacc(T[i-2].toLowerCase()))&&/^(regard|ecout|entend)/.test(deacc(T[i-3].toLowerCase()))&&COMMON_VERBS[deacc(lw.slice(0,-1)+'er')])return {sugg:ckeepcase(w,lw.slice(0,-1)+'er'),vig:1};   // liste n° 264
     // sœur SINGULIER-FÉMININ de rPpEpithetNum (audit rappel dys PR#505 : « une femme cultivé » ×3) — mêmes
     // gardes + « fois » (« une fois emprisonné, Michael… » : l'accord suit le sujet), coordination dans le GN
@@ -4693,7 +4699,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
         for(var sq=0;sq<sufs.length;sq++){if(sd.length>=sufs[sq].length&&sd.slice(-sufs[sq].length)===sufs[sq]){okS=true;break;}}}
       if(!okS)return null;}
     for(var k=Math.max(0,i-5);k<i-1;k++){var dk=deacc(T[k].toLowerCase());if(dk==='ou'||dk==='et'||dk==='ni')return null;}
-    if(i>=3&&tg[i-3]==='ADP')return null;
+    if(i>=3&&tg[i-3]==='ADP'&&!(i>=4&&deacc(T[i-3].toLowerCase())==='de'&&_TETE392[deacc(T[i-4].toLowerCase())]))return null;   // liste n° 392 : sauf après près / loin / auprès / autour / lors de
     var g=_nounGender(T[i-1],'s',true);if(g!=='f')return null;
     var tgt=_ppAccord(lw,'s','f');return tgt!==lw?ckeepcase(w,tgt):null;}
   function _ppFemPl198(lw){if(lw.length<4||lw.charAt(lw.length-1)!=='s')return null;var b=lw.slice(0,-1),c=b.charAt(b.length-1);return ((c==='é'||c==='i')&&_isPpl(b))||(c==='u'&&_ppU198(b))?b:null;}   // liste n° 198 : participe masculin pluriel (-és / -is / -us) → sa base au singulier, sinon null

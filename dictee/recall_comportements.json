@@ -809,7 +809,9 @@
 "Ses parents habitent loin.",
 "Elle a une écharpe bleu marine.",
 "Elle pense vous le donner demain.",
-"Il est fier de son jardin."
+"Il est fier de son jardin.",
+"Le gâteau pour la fête préparé hier.",
+"Il est près de la porte, épuisé."
 ],
 "elide": [
 [
@@ -3341,6 +3343,11 @@
 "Il marche sur le sentié du village.",
 "sentié",
 "sentier"
+],
+[
+"Elle reste auprès de sa fille endormi.",
+"endormi",
+"endormie"
 ]
 ],
 "palier": [
