@@ -823,7 +823,8 @@
 "Les enfants les plus sages gagnent.",
 "Les élèves les mieux placés partent.",
 "Le hérisson parcourt plusieurs kilomètres.",
-"Le chemin du parcours est long."
+"Le chemin du parcours est long.",
+"Ma sœur regardait la télé tous les soirs."
 ],
 "elide": [
 [
@@ -3415,6 +3416,11 @@
 "Le garçon pren son vélo.",
 "pren",
 "prend"
+],
+[
+"Elle ouvre la porte fermé à clé.",
+"fermé",
+"fermée"
 ]
 ],
 "palier": [
@@ -3731,6 +3737,16 @@
 [
 "La maîtresse répon aux questions.",
 "répon",
+"vigilance"
+],
+[
+"Elle ouvre la porte fermé à clé.",
+"fermé",
+"auto"
+],
+[
+"Ma sœur regardé la télé tous les soirs.",
+"regardé",
 "vigilance"
 ]
 ],

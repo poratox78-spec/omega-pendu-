@@ -241,3 +241,8 @@ Mardi, notre classe a visité le musée des sciences. Le guide nous {attendé|at
 D'abord, la classe a {regarder|regardé|C} un film sur les volcans. Le volcan {fai|fait|O} de la vraie fumée ! Ensuite, un robot {répon|répond|O} aux questions des élèves.
 Les {enfant|enfants|N} ont adoré la salle des {planète|planètes|N}. À midi, nous avons {mangés|mangé|G} dans le parc.
 {la|La|P} visite s'est {terminer|terminée|C} à quinze heures. Notre maîtresse {di|dit|O} que nous reviendrons au printemps.
+=== T49 annonce de location pour les vacances
+À louer pour l'été : une petite maison {rénové|rénovée|G} à deux pas de la plage. Elle {comprent|comprend|C} deux chambres, une cuisine {équipé|équipée|G} et une terrasse {ombragé|ombragée|G}.
+Le jardin est {clôturer|clôturé|C}, idéal pour les enfants. Les draps et les serviettes sont {fourni|fournis|G}.
+Le marché du village {ce|se|G} tient tous les jeudis matin, et les {commerce|commerces|N} sont à cinq minutes à pied.
+La maison {peu|peut|O} accueillir quatre personnes. {pour|Pour|P} réserver, envoyez-nous un message.
