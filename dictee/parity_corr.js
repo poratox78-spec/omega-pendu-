@@ -92,6 +92,13 @@ try {                                            // amorce SP (cf. le commentair
 { const _ga = (html.match(/<script type="text\/plain" id="gacc-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
   if (_ga) { try { globalThis.__setGacc(JSON.parse(zlib.gunzipSync(Buffer.from(_ga.replace(/\s/g, ''), 'base64')).toString('utf8'))); }
     catch (e) { console.error('amorce genre accentué échouée :', e.message); process.exit(2); } } }
+/* ⭐ 06/11/2026 (liste n° 397) — LE g2p (_DECL2) MANQUAIT À CE HARNAIS. Dans la vraie page, `var _DECL2` est défini plus haut que
+   le moteur (bloc PHON, hors de la tranche extraite) ; la règle « continu tout droit » → continue (_homoVerbe397) compare des sons
+   (_sonKey) et se taisait ici, alors que la page et l'extension la corrigent. On charge extension/assets/g2p.js, la copie verbatim
+   du bloc de l'app (vérifiée par g2p_parity_node.js), comme le fait l'extension. */
+try { (0, eval)(fs.readFileSync(path.join(__dirname, '..', 'extension', 'assets', 'g2p.js'), 'utf8')); }
+catch (e) { console.error('amorce g2p échouée :', e.message); process.exit(2); }
+if (typeof _DECL2 === 'undefined' || typeof _DECL2.g2p !== 'function') { console.error('amorce g2p : pas de _DECL2.g2p'); process.exit(2); }
 const corr = globalThis.__corr;
 if (typeof corr !== 'function') { console.error('correctText non exposé'); process.exit(2); }
 

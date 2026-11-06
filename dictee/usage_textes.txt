@@ -210,3 +210,9 @@ Juste après la {boulangeri|boulangerie|O}, tourne à gauche {est|et|G} longe le
 Au rond-point, {continu|continue|C} tout droit jusqu'à la place {ou|où|G} se trouve la fontaine.
 Notre maison est la troisième sur la droite, avec {ces|ses|G} volets bleus. Elle est {a|à|G} dix minutes de la gare.
 Pas besoin de {sonné|sonner|C}, le portail sera ouvert. {si|Si|P} tu te perds, tu m'{appel|appelles|C} et je viens te chercher.
+=== T44 carnet du potager
+Lundi : nous avons {planter|planté|C} six pieds de tomates le long du mur. Il {faudras|faudra|C} les arroser tous les soirs.
+Mardi : les {radi|radis|O} sont déjà sortis de terre, et le basilic {et|est|G} enfin levé. Mon voisin {ma|m'a|G} offert un sachet de graines de courgettes {quil|qu'il|O} garde depuis l'an dernier.
+Jeudi : une limace a mangé deux {salade|salades|N}. Nous avons posé des coquilles d'œufs autour des {plant|plants|N} pour les protéger.
+Samedi : il a plu toute la nuit et la terre est {trempé|trempée|G}. {demain|Demain|P}, je {pourrait|pourrai|C|pourrais} enfin cueillir les premières fraises.
+Dimanche : les tomates que nous avons {planté|plantées|G} lundi ont déjà des fleurs, et les abeilles {vient|viennent|C} les visiter.

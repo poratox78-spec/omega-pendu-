@@ -298,7 +298,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 |---|---|---|---|---|
 | vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 194 / 217 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `rEer` `_inf1` `_ppOuAdj195` … (162) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 142 / 217 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` `rAnte315` … (34) |
-| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 105 / 217 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (75) |
+| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 105 / 217 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (76) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 108 / 217 | `_etreAttrEr` `_eerVerbeRare188` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` … (37) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 84 / 217 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 217 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
