@@ -30124,11 +30124,14 @@ function rHomophoneMo(T,i){var n=T.length,w=T[i],lw=w.toLowerCase(),d=deacc(lw),
   var _INVAR_S={};('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars dos os heros marais palais relais jus autobus bus virus refus').split(' ').forEach(function(w){_INVAR_S[w]=1;});
   var _COLL_BARE=null;   // clé nue → nb d'entrées _GCOLL partageant la clé (jumeau accentué) — construit à la 1re demande (après _GCOLL)
   function _wordKnown(d){return !!(SP&&SP.WORDS&&(SP.WORDS.has(d)||(SP.D2A&&spD(d)&&spD(d).length)))||GENDER_PURE[d]==='m'||GENDER_PURE[d]==='f';}
+  var _OBJ406={le:1,la:1,les:1,un:1,une:1,mon:1,ton:1,son:1,ma:1,ta:1,sa:1,mes:1,tes:1,ses:1,notre:1,votre:1,nos:1,vos:1,leur:1,leurs:1,ce:1,cet:1,cette:1,ces:1};   // liste n° 406
   function _tierOf(T,i,name,sugg){   // MIROIR de correcteur_probe.tier_of — sous-cas SÛRS (rouge) des familles à vérifier ; sinon orange
     if(name==='accord sujet-verbe'&&typeof sugg==='string'&&/rais$/.test(deacc(sugg.toLowerCase()))&&/rait$/.test(deacc(T[i].toLowerCase())))return 'vigilance';   // liste n° 385 : « je passerait » → passerais (conditionnel) ou passerai (futur) : les deux sont du français juste, c'est le sens qui tranche → orange
-    if(name==='accord participe épithète')return 'vigilance';   /* ⭐ 06/11/2026 (liste n° 406) : « Ma sœur regardé la télé » → « regardée » en ROUGE, alors que
-       l'auteur voulait « regardait ». Mesuré au produit entier (43 094 passages, juge chargé) : 6 rouges justes, 10 non justes dans les textes
-       dys, 20 rouges sur du français correct (UD et textes dys corrigés) ; aucun sous-cas sûr assez grand → orange, féminin comme pluriel. */
+    if(name==='accord participe épithète'&&i+1<T.length&&(_OBJ406[deacc(T[i+1].toLowerCase())]||/^l['’]/i.test(T[i+1])))return 'vigilance';   /* ⭐ 06/11/2026 (liste n° 406) :
+       « Ma sœur regardé la télé » → « regardée » en ROUGE, alors que l'auteur voulait « regardait » : un participe épithète n'a pas de
+       complément direct ; suivi d'un article ou d'un possessif, le mot est plutôt un verbe conjugué → orange. Pas « au / aux / du / des »
+       (« une cabane situé au bord de l'eau » → située reste rouge). Mesuré au produit entier : aucun cas dans les corpus ; la règle rouge, elle,
+       corrige 7 vraies coquilles sur 7 dans UD et a 5 justes pour 1 inutile sur le gold aligné : elle garde son rouge ailleurs. */
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
     if(name==="c'est/s'est"){var _pc=_prevPron(T,i);return (_pc==='il'||_pc==='elle'||_pc==='on')?'auto':'vigilance';}   // ⭐ liste n° 59 : sujet nominal → orange (« la maison c'est fermée » = est ?)
     if(name==='a/à')return ((T[i]==='a'&&_rel380(T,i))||(_rAbase(T,i)===null&&_aaPar347(T,i))||(_rAbase(T,i)===null&&_rAnouveau(T,i,1)===null&&i>=1&&!(vlike(T,i-1)||(CONJ_F&&CONJ_F[deacc(T[i-1].toLowerCase())]))))?'vigilance':'auto';   // ⭐ 14/10/2026 (liste n° 26, suite) : seul le cas ④ décide ET le mot d'avant n'est pas une forme verbale connue (« elle continu a avancer ») → orange   // ⭐ 14/10/2026 (liste n° 26) : la voie NOUVELLE (29/09, devant un infinitif) était orange EN ATTENDANT LA MESURE. Mesurée : 27 tirs sur les 3 corpus dys et UD 14 450, 27 justes (dont une vraie faute d'UD, « rien a redire »), 0 inutile, 0 fausse → rouge comme la voie de base. Miroir Python
