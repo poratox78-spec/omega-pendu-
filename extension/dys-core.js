@@ -3913,7 +3913,12 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
   function _etVirgule400(T,tg,j,detIdx,sp){if(!_SEG||!_SEG.bb||j<2)return false;var lo2=0,k;
     for(k=j-1;k>0;k--){if(k<_SEG.bb.length&&_SEG.bb[k]){lo2=k;break;}}
     return _etPropo64(T,tg,lo2,j,detIdx,sp);}
-  function _etPropo64(T,tg,lo,j,detIdx,sp){if(detIdx<0||sp||j-1<lo||!tg)return false;var tp=tg[j-1],wp=T[j-1];if(!(tp==='ADV'||tp==='VERB'||tp==='AUX'||tp==='ADJ'||_tempsAvantEt157(T,j,lo))||wp!==wp.toLowerCase()||/[\d'’]/.test(wp))return false;var v=false;
+  /* ⭐ 06/11/2026 (liste n° 402) — « Nous sommes restés très sages et nos parents dit » → disent était muet : « sages » est aussi
+     un nom (un sage), l'étiqueteur le lit NOM ou NOM PROPRE, et le test ne voyait pas de fin de proposition avant « et ». Juste
+     après un adverbe de degré (très, trop, assez, tellement, vraiment, plutôt, aussi), le mot est un adjectif ou un adverbe : il
+     clôt la proposition comme eux. « si » n'en est pas (« si » + nom ouvre une condition). */
+  var _DEG402={tres:1,trop:1,assez:1,tellement:1,vraiment:1,plutot:1,aussi:1};
+  function _etPropo64(T,tg,lo,j,detIdx,sp){if(detIdx<0||sp||j-1<lo||!tg)return false;var tp=tg[j-1],wp=T[j-1];if(!(tp==='ADV'||tp==='VERB'||tp==='AUX'||tp==='ADJ'||_tempsAvantEt157(T,j,lo)||((tp==='NOUN'||tp==='PROPN')&&j-2>=lo&&_DEG402[deacc(T[j-2].toLowerCase())]))||wp!==wp.toLowerCase()||/[\d'’]/.test(wp))return false;var v=false;
     for(var k=lo;k<j;k++){var dk=deacc(T[k].toLowerCase());if(dk==='qui'||dk==='que'||dk==='dont'||dk==='ou'||dk==='lequel'||dk==='laquelle'||/^qu['’]/.test(dk))return false;if((tg[k]==='VERB'||tg[k]==='AUX')&&T[k]===T[k].toLowerCase()&&!/[\d'’]/.test(T[k]))v=true;}return v;}
   function _npSubject(T,tg,a){if(deacc(String(T[a]||'').toLowerCase()).indexOf("qu'")===0)return null;   /* MARQUEUR FUSIONNE DANS LE VERBE : « les possibilites qu'offrent les domaines » — le token EST « qu'offrent », le balayage part de a-1 et ne le voit jamais. Un verbe en « qu' » est celui d'une RELATIVE/SUBORDONNEE : sujet a DROITE (inversion) ou le relatif lui-meme. Remonter a gauche rend un sujet FAUX → abstention (FP=0). Mesure par dictee/ponct_morpho_probe.py. */var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     /* SUJET = PRÉNOM NU (« Marie est venu » → venue) — miroir app + correcteur_probe. Un prénom n'a pas
