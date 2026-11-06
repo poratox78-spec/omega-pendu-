@@ -817,7 +817,9 @@
 "Tarif tout compris pour la journée.",
 "Continu, le bruit gêne les voisins.",
 "Il mange une pomme, et les poires restent dans le panier.",
-"Elle est partie tôt, et les invités sont arrivés tard."
+"Elle est partie tôt, et les invités sont arrivés tard.",
+"Il a très faim et les enfants aussi.",
+"Les élèves sont vraiment calmes et le maître est content."
 ],
 "elide": [
 [
@@ -3384,6 +3386,11 @@
 "Il fait froid ce soir, et mes enfants dorme mal.",
 "dorme",
 "dorment"
+],
+[
+"Les enfants sont restés très sages et les parents parle doucement.",
+"parle",
+"parlent"
 ]
 ],
 "palier": [
@@ -3685,6 +3692,11 @@
 [
 "Il pleut, et les enfants vient jouer.",
 "vient",
+"vigilance"
+],
+[
+"Les enfants sont restés très sages et les parents parle doucement.",
+"parle",
 "vigilance"
 ]
 ],

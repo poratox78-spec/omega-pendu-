@@ -223,3 +223,9 @@ Pour Noël, je {voudrai|voudrais|C} un vélo rouge et un livre sur les {dinosaur
 Nous laisserons des biscuits {sou|sous|O} le sapin. Les rennes {doive|doivent|C} avoir froid, alors je leur {laisserait|laisserai|C|laisserais} aussi des carottes.
 Je {tembrasse|t'embrasse|O} très fort.
 Léo
+=== T46 conseils pour bien dormir
+Pour bien dormir, {évité|évitez|C} les écrans une heure avant de vous coucher. La lumière bleue des téléphones {trompent|trompe|C} le cerveau, qui croit qu'il fait encore jour.
+Les adultes ont besoin de sept à neuf {heure|heures|N} de sommeil. Si vous vous {réveiller|réveillez|C} la nuit, ne regardez pas l'heure.
+Le café et le thé sont {déconseiller|déconseillés|G} après seize heures. Un bain tiède, une {tisanne|tisane|O} ou un livre aident à se détendre.
+Les enfants sont souvent très {fatigué|fatigués|G} le soir, et les parents {oublie|oublient|C} parfois l'heure du coucher.
+{enfin|Enfin|P}, couchez-vous chaque soir à la même heure : votre corps {prendras|prendra|C} vite l'habitude.
