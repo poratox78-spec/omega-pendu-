@@ -27635,7 +27635,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     for(var m=k+1;m<Math.min(hi,k+5);m++){if(m<tg.length&&(tg[m]==='NOUN'||tg[m]==='PROPN'))return true;
       if(PREP[deacc(T[m].toLowerCase())])return false;}
     return false;}
-  function _verbOrHomograph(tg,T,i){if(i>=tg.length)return false;if(tg[i]==='VERB'||tg[i]==='AUX')return true;
+  function _verbOrHomograph(tg,T,i){if(i>=tg.length)return false;if(tg[i]==='VERB'||tg[i]==='AUX')return true;if(_lesClitique401(T,i))return svReads(T[i]).length>0;   // liste n° 401 : « les » pronom devant un mot au singulier
     var d=deacc(T[i].toLowerCase());if(_INVAR_COLOR[d])return false;   // couleur/matière invariable (« des gants crème », « bleu marine ») → jamais un verbe
     if(GENDER_MAP[d]||ADJP[d]||_EPICENE_ADJ[d]||PREP[d])return false;   // adj épicène homographe (« conforme »/« calme ») = « qui est-ce qui ? » → l'adjectif, pas le verbe
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||PREP[deacc(T[i-1].toLowerCase())]))return false;return svReads(T[i]).length>0;}
@@ -27701,13 +27701,24 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     return false;}
   function _locAnt232(T,i){return i>=1&&/^(tenant|rendant|prenant|faisant|ayant)$/.test(deacc(T[i-1].toLowerCase()))&&/^(compte|part|face|tete|lieu|place|garde|fin|soin|note)$/.test(deacc(T[i].toLowerCase()));}   /* ⭐ 31/10/2026 (liste n° 232) : « en tenant compte de » : locution, « compte » est le nom */
   function _enumSujet218(T,tg,lo){if(lo<=0||(_SEG&&_SEG.ss&&lo<_SEG.ss.length&&_SEG.ss[lo]))return false;var a=0,j;if(_SEG){for(j=lo-1;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){a=j;break;}}}if(lo-a<1||lo-a>4)return false;var el=_elidKind(T[a])==='det';if(!el&&(lo-a<2||(!NUM_DET[deacc(T[a].toLowerCase())]&&tg[a]!=='DET')||_detDeTemps(T,a)))return false;for(j=a+1;j<lo;j++){if(tg[j]==='VERB'||tg[j]==='AUX'||PREP[deacc(T[j].toLowerCase())])return false;}return true;}   /* ⭐ 31/10/2026 (liste n° 218) : « Le vent, la neige, la glace bloquaient la route » — le groupe d'avant la virgule est un autre sujet, le pluriel est juste ; « Le soir, la fille mangent » (temps) garde la règle */
+  /* ⭐ 06/11/2026 (liste n° 401) — « Les abeilles les visite » → visitent était muet : la garde « déterminant juste avant → le
+     mot est un nom » lisait « les » comme un article. Mais « les » devant un mot au SINGULIER (sans -s, -x ni -z) n'est jamais
+     un article : c'est le pronom complément devant le verbe. On l'exige derrière un groupe sujet (déterminant + nom juste avant,
+     en tête de proposition : pas de préposition devant, « Dans les rues les voiture… » se tait). « leur » reste un déterminant
+     possible (« leur maison ») : pas touché. Même exemption, en premier, dans le filet homographe (_verbOrHomograph : « visite » a un genre de nom, mais la structure prouve le verbe) et dans la garde
+     « 2e groupe nominal » de rAccordSVnoun, qui lisaient aussi « les » comme article. En ORANGE (_SV_ET, comme la liste n° 153) :
+     aucun cas mesuré dans les corpus pour décider d'un rouge. */
+  function _lesClitique401(T,i){if(i<3||T[i-1].toLowerCase()!=='les'||/[sxz]$/i.test(T[i])||T[i]!==T[i].toLowerCase())return false;
+    if(!NUM_DET[deacc(T[i-3].toLowerCase())]||NUM_DET[deacc(T[i-2].toLowerCase())]||CLITIC[deacc(T[i-2].toLowerCase())])return false;
+    if(i-3>0&&!(_SEG&&_SEG.bb&&i-3<_SEG.bb.length&&_SEG.bb[i-3])&&!(_SEG&&_SEG.ss&&i-3<_SEG.ss.length&&_SEG.ss[i-3]))return false;   // groupe en tête de proposition
+    return true;}
   function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à'||_auxElide227(T,i))return null;if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     if(i>0&&T[i].length>=2&&T[i].charAt(0)!==T[i].charAt(0).toLowerCase()&&T[i].slice(1)===T[i].slice(1).toLowerCase()&&T[i-1]===T[i-1].toLowerCase()&&!(_SEG&&_SEG.ss&&_SEG.ss[i]))return null;   /* ⭐ liste n° 108 : majuscule en milieu de phrase = nom propre (« des monts Bissa ») — la table connaît « bissa » (bisser), ce n'est pas un verbe. Miroir Python */
     if(i>0&&deacc(T[i-1].toLowerCase())==='en'&&gerondifVig(T,i))return null;
     if(deacc(lw)==='a'&&i+1<T.length){var _dn=deacc(T[i+1].toLowerCase());if(_dn==='la'||_dn==='le'||_dn==='les'||_dn.slice(0,2)==="l'")return null;}   // « a » + ARTICLE DÉFINI (la/le/les/l') → préposition « à » trop plausible (à la/à l', locatif : « les enfants a l'école ») → a→ont s'abstient ; l'indéfini (une/des) reste possession. Miroir Python.
     // vig=true : jumeau ORANGE (retire la seule garde clause-init) pour la vigilance sujet-verbe mid-phrase
     if(/(é|és|ée|ées)$/.test(lw))return null;                                  // participe → accord adjectival, pas verbal
-    if(i>0&&NUM_DET[T[i-1].toLowerCase()])return null;                         // dét juste avant → T[i] = nom
+    if(i>0&&NUM_DET[T[i-1].toLowerCase()]&&!_lesClitique401(T,i))return null;   // dét juste avant → T[i] = nom (sauf liste n° 401)
     if(i>=2&&(_ADJ_ANTE[deacc(T[i-1].toLowerCase())]||/^(autres?|memes?|seule?s?)$/.test(deacc(T[i-1].toLowerCase())))&&NUM_DET[T[i-2].toLowerCase()])return null;   /* ⭐ 31/10/2026 (liste n° 231) : « un autre référent » : déterminant + adjectif + nom */
     if(_locAnt232(T,i))return null;
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;                     // verbe fini jamais gouverné par de/des/par/à… → nom homographe (« de contrôle », « par faute »)
@@ -27738,7 +27749,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var hc=T[hk].charAt(0);if(!subj.elid&&subj.dtxt!==''&&(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;   // nom-tête propre/titre → nombre non fiable — EXEMPTÉ : le raccourci PRÉNOM, fiable par construction (« Marie es gentille »→est, 31/08, miroir Python)
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     if(nb==='s'&&_enumSujet218(T,tg,lo))return null;for(var m=lo;m<i;m++){var _lm=T[m].toLowerCase();if(_lm.indexOf("qu'")===0||_lm.indexOf("qu’")===0)return null;}   // RELATIVE ÉLIDÉE « qu' » → abstention (élision bénigne « de l'X »/clitique « m'/s' » tolérée ; que/qui/dont pleins gardés par CONJ_WORDS)
-    if(!vig){var _lo2=lo;for(var _e=dk-1;_e>=lo;_e--){var _de=deacc(T[_e].toLowerCase());if((_de==='et'||_de==='ou')&&(_etPropo64(T,tg,lo,_e,dk,false)||(_de==='et'&&_e===lo&&_etVirgule400(T,tg,_e,dk,false)))){_lo2=_e+1;break;}}for(m=_lo2;m<dk;m++){if(tg[m]!=='ADV')return null;}_SV_ET=_lo2!==lo;}   /* ⭐ liste n° 153 : un « et » / « ou » qui relie deux PROPOSITIONS (_etPropo64) ouvre une tête de proposition, comme la virgule — « Il fait froid et mes enfants dorme mal » → dorment ; en ORANGE (_SV_ET, rAccordSVnounEt : décision de la liste n° 64) */                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) — sinon GN = objet amont ; RETIRÉ en mode vig (orange couvre le mid-phrase)
+    if(!vig){var _lo2=lo;for(var _e=dk-1;_e>=lo;_e--){var _de=deacc(T[_e].toLowerCase());if((_de==='et'||_de==='ou')&&(_etPropo64(T,tg,lo,_e,dk,false)||(_de==='et'&&_e===lo&&_etVirgule400(T,tg,_e,dk,false)))){_lo2=_e+1;break;}}for(m=_lo2;m<dk;m++){if(tg[m]!=='ADV')return null;}_SV_ET=_lo2!==lo||_lesClitique401(T,i);}   /* ⭐ liste n° 153 : un « et » / « ou » qui relie deux PROPOSITIONS (_etPropo64) ouvre une tête de proposition, comme la virgule — « Il fait froid et mes enfants dorme mal » → dorment ; en ORANGE (_SV_ET, rAccordSVnounEt : décision de la liste n° 64) */                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) — sinon GN = objet amont ; RETIRÉ en mode vig (orange couvre le mid-phrase)
     // ⭐ RELATIVE EN « qui » — ouverte CONTRE PREUVE (parité dictee/correcteur_probe.py).
     // « qui » est un pronom relatif SUJET : son verbe s'accorde OBLIGATOIREMENT avec l'antécédent.
     // Si ce verbe porte le MÊME NOMBRE que le nom-tête trouvé, la relative CORROBORE ce nom-tête —
@@ -27779,7 +27790,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       if(/[,;:()\[\]«»"]/.test(tk))return null;                               // ponctuation = apposition/incise
       if(/\d/.test(tk))return null;                                           // désignation alphanumérique
       if((tg[m]==='VERB'||tg[m]==='AUX')&&!(/(é|és|ée|ées)$/.test(T[m].toLowerCase())&&!(m>0&&tg[m-1]==='AUX')))return null;   // verbe FINI intercalé = sous-phrase → abstention ; participe-épithète (non précédé d'aux) toléré (miroir _npSubject)
-      if(NUM_DET[tk.toLowerCase()]&&!PREP[dw]&&!(m>0&&PREP[deacc(T[m-1].toLowerCase())]))return null;}   // 2e GN non prépositionnel
+      if(NUM_DET[tk.toLowerCase()]&&!PREP[dw]&&!(m>0&&PREP[deacc(T[m-1].toLowerCase())])&&!(m===i-1&&_lesClitique401(T,i)))return null;}   // 2e GN non prépositionnel (sauf « les » pronom, liste n° 401)
     for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;      // déjà d'accord (p3 vide en _p12 : une forme 1re/2e n'est jamais d'accord avec un sujet nominal)
     var _src=p3.length?p3:reads;                                               // _p12 : lemme/temps lus sur les lectures 1re/2e (cible 3·nb, validée ci-dessous). Miroir Python.
     var lem=null,uni=true,mts={};for(k=0;k<_src.length;k++){if(lem===null)lem=_src[k][0];else if(lem!==_src[k][0])uni=false;mts[_src[k][1]]=1;}

@@ -819,7 +819,9 @@
 "Il mange une pomme, et les poires restent dans le panier.",
 "Elle est partie tôt, et les invités sont arrivés tard.",
 "Il a très faim et les enfants aussi.",
-"Les élèves sont vraiment calmes et le maître est content."
+"Les élèves sont vraiment calmes et le maître est content.",
+"Les enfants les plus sages gagnent.",
+"Les élèves les mieux placés partent."
 ],
 "elide": [
 [
@@ -3391,6 +3393,16 @@
 "Les enfants sont restés très sages et les parents parle doucement.",
 "parle",
 "parlent"
+],
+[
+"Au printemps, les abeilles les visite chaque matin.",
+"visite",
+"visitent"
+],
+[
+"Les enfants les regarde passer.",
+"regarde",
+"regardent"
 ]
 ],
 "palier": [
@@ -3697,6 +3709,11 @@
 [
 "Les enfants sont restés très sages et les parents parle doucement.",
 "parle",
+"vigilance"
+],
+[
+"Les enfants les regarde passer.",
+"regarde",
 "vigilance"
 ]
 ],
