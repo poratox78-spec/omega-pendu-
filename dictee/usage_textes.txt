@@ -229,3 +229,10 @@ Les adultes ont besoin de sept à neuf {heure|heures|N} de sommeil. Si vous vous
 Le café et le thé sont {déconseiller|déconseillés|G} après seize heures. Un bain tiède, une {tisanne|tisane|O} ou un livre aident à se détendre.
 Les enfants sont souvent très {fatigué|fatigués|G} le soir, et les parents {oublie|oublient|C} parfois l'heure du coucher.
 {enfin|Enfin|P}, couchez-vous chaque soir à la même heure : votre corps {prendras|prendra|C} vite l'habitude.
+=== T47 exposé sur le hérisson
+Le hérisson est un petit animal {sauvages|sauvage|N} qui vit dans les haies et les jardins. Il mange des insectes, des vers et des {limace|limaces|N}.
+Les jardiniers {l'aime|l'aiment|C} bien, car il les débarrasse des nuisibles. Il dort tout l'hiver {a|à|G} l'abri des feuilles mortes.
+Les petits {naisse|naissent|C} au début de l'été. Les renards les {attaque|attaquent|C} parfois.
+La nuit, le hérisson {parcour|parcourt|O} plusieurs kilomètres pour trouver {ça|sa|G} nourriture.
+Si vous en voyez un, ne lui donnez jamais de lait : il ne le {digére|digère|O} pas. {il|Il|P} vaut mieux lui laisser un peu d'eau.
+Les hérissons sont {protéger|protégés|G} en France.
