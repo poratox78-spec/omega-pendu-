@@ -815,7 +815,9 @@
 "Il descend à la gare, puis prend la rue.",
 "Descends, puis vient la partie difficile.",
 "Tarif tout compris pour la journée.",
-"Continu, le bruit gêne les voisins."
+"Continu, le bruit gêne les voisins.",
+"Il mange une pomme, et les poires restent dans le panier.",
+"Elle est partie tôt, et les invités sont arrivés tard."
 ],
 "elide": [
 [
@@ -3372,6 +3374,16 @@
 "Appel vite le docteur, il a de la fièvre.",
 "Appel",
 "Appelle"
+],
+[
+"Il pleut, et les enfants vient jouer.",
+"vient",
+"viennent"
+],
+[
+"Il fait froid ce soir, et mes enfants dorme mal.",
+"dorme",
+"dorment"
 ]
 ],
 "palier": [
@@ -3668,6 +3680,11 @@
 [
 "Appel vite le docteur, il a de la fièvre.",
 "Appel",
+"vigilance"
+],
+[
+"Il pleut, et les enfants vient jouer.",
+"vient",
 "vigilance"
 ]
 ],

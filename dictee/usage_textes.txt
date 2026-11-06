@@ -216,3 +216,10 @@ Mardi : les {radi|radis|O} sont déjà sortis de terre, et le basilic {et|est|G}
 Jeudi : une limace a mangé deux {salade|salades|N}. Nous avons posé des coquilles d'œufs autour des {plant|plants|N} pour les protéger.
 Samedi : il a plu toute la nuit et la terre est {trempé|trempée|G}. {demain|Demain|P}, je {pourrait|pourrai|C|pourrais} enfin cueillir les premières fraises.
 Dimanche : les tomates que nous avons {planté|plantées|G} lundi ont déjà des fleurs, et les abeilles {vient|viennent|C} les visiter.
+=== T45 lettre au père Noël
+Cher père Noël,
+Cette année, nous sommes restés très sages, et nos parents {dit|disent|C} que nous avons {travailler|travaillé|C} dur à l'école.
+Pour Noël, je {voudrai|voudrais|C} un vélo rouge et un livre sur les {dinosaure|dinosaures|N}. Ma petite sœur aimerait une poupée, {sa|ça|G} lui ferait très plaisir.
+Nous laisserons des biscuits {sou|sous|O} le sapin. Les rennes {doive|doivent|C} avoir froid, alors je leur {laisserait|laisserai|C|laisserais} aussi des carottes.
+Je {tembrasse|t'embrasse|O} très fort.
+Léo
