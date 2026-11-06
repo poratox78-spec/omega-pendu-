@@ -807,7 +807,11 @@
 "Le pull et le bonnet blancs sont à moi.",
 "Mon beau-fils arrive.",
 "Ses parents habitent loin.",
-"Elle a une écharpe bleu marine."
+"Elle a une écharpe bleu marine.",
+"Elle pense vous le donner demain.",
+"Il est fier de son jardin.",
+"Le gâteau pour la fête préparé hier.",
+"Il est près de la porte, épuisé."
 ],
 "elide": [
 [
@@ -3329,6 +3333,21 @@
 "Il range la sacoche noir.",
 "noir",
 "noire"
+],
+[
+"Quand vous les ranger, fermez la porte.",
+"ranger",
+"rangez"
+],
+[
+"Il marche sur le sentié du village.",
+"sentié",
+"sentier"
+],
+[
+"Elle reste auprès de sa fille endormi.",
+"endormi",
+"endormie"
 ]
 ],
 "palier": [
@@ -3606,6 +3625,16 @@
 "Je passera la chercher demain.",
 "passera",
 "auto"
+],
+[
+"Quand vous les ranger, fermez la porte.",
+"ranger",
+"vigilance"
+],
+[
+"Il marche sur le sentié du village.",
+"sentié",
+"vigilance"
 ]
 ],
 "vig": [

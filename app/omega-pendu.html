@@ -26024,7 +26024,10 @@ var w=T[i],lw=w.toLowerCase(),f;
   function _ppOuAdj195(w){var d=deacc(w.toLowerCase());return _isPpl(w)||_isPplWideEr(w)||!!ADJP[d];}
   function _deXaY195(T,i){if(i>=1&&deacc(T[i-1].toLowerCase())==='de'&&i+2<T.length&&/^(a|à)$/.test(T[i+1].toLowerCase())&&_ppOuAdj195(T[i+2]))return true;   // côté X : [de] X [à] Y
     return i>=3&&/^(a|à)$/.test(T[i-1].toLowerCase())&&deacc(T[i-3].toLowerCase())==='de'&&_ppOuAdj195(T[i-2]);}   // côté Y — liste n° 195 : de X à Y, deux adjectifs ou participes
-  function rFlexionEr(T,i){if(i>=2&&deacc(T[i-1].toLowerCase())==='a'&&_aInf358(T,i-1))return null;   // liste n° 358 : « à louer » d'annonce
+  var _SUB385={si:1,quand:1,lorsque:1,puisque:1,comme:1},_CL385={le:1,la:1,les:1,me:1,te:1,lui:1,leur:1,y:1,en:1,nous:1};
+  function _vousCl385(T,i){var k=i-1;while(k>=1&&_CL385[deacc(T[k].toLowerCase())])k--;if(k===i-1||deacc(T[k].toLowerCase())!=='vous')return false;if(_SEG&&_SEG.bb){for(var m=k+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return false;}return k===0||!!(_SEG&&k<_SEG.bb.length&&_SEG.bb[k])||!!_SUB385[deacc(T[k-1].toLowerCase())];}
+  /* ⭐ 06/11/2026 (liste n° 385) — « Si vous la trouver, appelez-moi » se taisait : la règle ne lisait « vous » sujet que collé au verbe, en début de phrase ou après « que ». Après si, quand, lorsque, puisque, comme, « vous » suivi d'un infinitif est presque toujours le présent en -ez, qui se prononce pareil ; en ORANGE, car une question indirecte peut garder « vous » complément d'un infinitif après si ou quand. Le pronom complément entre les deux (la, le, les, me, lui, y, en, nous…) est sauté, sauf après « que », où « vous » peut être complément d'un infinitif. « et », « mais », « ou » restent exclus : ils peuvent relier deux infinitifs dont « vous » est le complément. Recensé avant d'écrire : 1 vraie faute dans les corpus dys, aucun emploi dans UD (français correct) une fois « et » et « que + pronom » exclus. */
+  function rFlexionEr(T,i){var _v385=0;if(i>=2&&deacc(T[i-1].toLowerCase())==='a'&&_aInf358(T,i-1))return null;   // liste n° 358 : « à louer » d'annonce
     if(i>=2){var _psf=deacc(T[i-1].toLowerCase());
       if((_psf==='sais'||_psf==='sait')){var _p2f=deacc(T[i-2].toLowerCase());
         if((_p2f==='il'||_p2f==='elle'||_p2f==='on')&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}}   // « il sais trompé » = frame s'est (l'orange saisVig parle) — corriger vers « tromper » ressuscitait sais→sait en cascade ; « je sais nagé »→nager reste corrigé (prev-prev = je)
@@ -26050,7 +26053,8 @@ var w=T[i],lw=w.toLowerCase();
       // PIPELINE complet (dictee/dys_pipeline_probe.py) : mots CASSÉS 30 -> 26 sur texte dys réel.
       if(i>0&&deacc(T[i-1].toLowerCase())==='a'&&rA(T,i-1)==='à')tgt='inf';else{if(i>1&&deacc(T[i-1].toLowerCase())==='a'&&_A_INF_ADJ[deacc(T[i-2].toLowerCase())]&&cur==='inf')return null;tgt='part';}}   // ⭐ 11/10/2026 : « facile a réparer » — même garde que rEer
     else if(_faitNom215(T,i-1))return null;else if(_INF_GOV[p]||MODAL[p]||_CAUS[p]||_EER_COND[p]){/* ⭐ …SAUF UN NOM QUE SEULE LA TABLE ACCENTUÉE CONNAÎT (08/09/2026, miroir Python) : les trois listes de noms homographes de cette règle (NOUN_E, _FLEX_STOP, NOUN_EE) sont DÉSACCENTUÉES — « trace » (f) et « tracé » (m) s'y annulent, donc « et de tracé (y compris…) » devenait « tracer ». La graphie ACCENTUÉE est sous la main : _GACC sait que c'est un nom. Même geste que dans la règle sœur rEer. Mesuré : 0 correction perdue, 12 FP éteints (« le droit de cité »→citer, « la charge de juré »→jurer, « pour mission de protégé »→protéger…), 0 tir sur 14 450 phrases d'UD. */if(_INF_GOV[p]&&/(é|és|ée|ées)$/.test(lw)){var _g5=_GACC[lw];if(_g5==='m'||_g5==='f'){/* ⚠️ RESSERRÉ le 08/09 par la BATTERIE (cf. règle sœur rEer) : intersection avec le tagger, sinon « de rentré » perdait sa correction. */var _t5=posTags(T);if(_t5&&i<_t5.length&&(_t5[i]==='NOUN'||_t5[i]==='PROPN'))return null;}}tgt='inf';}
-    else if(praw==='vous'){var subj=(i===1)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])||(i>=2&&deacc(T[i-2].toLowerCase())==='que');if(!subj)return null;tgt='p2pl';}
+    else if(praw!=='vous'&&_vousCl385(T,i)){tgt='p2pl';_v385=1;}   // liste n° 385 : « si vous la trouver » — un pronom complément entre « vous » et le verbe
+    else if(praw==='vous'){var subj=(i===1)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])||(i>=2&&deacc(T[i-2].toLowerCase())==='que');if(!subj&&i>=2&&_SUB385[deacc(T[i-2].toLowerCase())]){subj=true;_v385=1;}if(!subj)return null;tgt='p2pl';}
     else if(praw==='je'){var _fm={demain:1,bientot:1,prochain:1,prochaine:1,prochains:1,prochaines:1,ulterieurement:1,dorenavant:1,desormais:1,tantot:1};var _a347=i,_b347=i;if(_SEG&&_SEG.ss){while(_a347>0&&!(_SEG.ss[_a347]||(_SEG.nl&&_SEG.nl[_a347])))_a347--;while(_b347+1<T.length&&!(_SEG.ss[_b347+1]||(_SEG.nl&&_SEG.nl[_b347+1])))_b347++;}else{_a347=0;_b347=T.length-1;}var _f347=false;for(var _q347=_a347;_q347<=_b347;_q347++)if(_fm[deacc(T[_q347].toLowerCase())]){_f347=true;break;}if(!_f347)return null;tgt='fut1';}   /* ⭐ 03/11/2026 (liste n° 347) : le mot de futur se cherchait dans TOUT le texte — « l'année prochaine », trois phrases plus loin, faisait écrire « trouverai » d'office ; il se cherche dans la phrase (3 corpus dys : 0 cas) */
     else if(p==='plait'&&i>=2&&deacc(T[i-2].toLowerCase())==='vous')tgt='p2pl';   // « s'il vous plaît, cherché »→cherchez
     else{var g=i-1;while(g>0&&(_FLEX_ADV[deacc(T[g].toLowerCase())]||_FLEX_CLITIC[deacc(T[g].toLowerCase())]))g--;if(g<0)return null;var dg=deacc(T[g].toLowerCase()),graw=T[g].toLowerCase();if(graw!=='à'&&(_AUX_AV[dg]||graw==="j'ai"))tgt=(dg==='a'&&rA(T,g)==='à')?'inf':'part';   /* ⭐ 12/09/2026 : MÊME garde a/à qu'en position immédiate (« a réussi a se lever » → lever, plus levé) — miroir Python */else if(_faitNom215(T,g))return null;else if(_INF_GOV[dg]||MODAL[dg]||_CAUS[dg]||_EER_COND[dg])tgt='inf';else return null;}
@@ -26060,7 +26064,7 @@ var w=T[i],lw=w.toLowerCase();
     if(/ée$/.test(lw)&&tgt!=='part')return null;
     var sugg=forms[tgt];if(tgt==='p2pl'&&cur==='fut1')sugg=inf+'ez';if(tgt==='part'){var _ag=_ppRelit(T,i,sugg);if(_ag&&typeof _ag==='string')sugg=_ag;}   /* ⭐ 12/09/2026 (lot 2) : participe ACCORDÉ si le contexte le permet */   /* ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé (« vous souhaiterai » → souhaiterez, pas souhaitez) — miroir Python */
     if(deacc(sugg)===d)return null;
-    return ckeepcase(w,sugg);}
+    return _v385?{sugg:ckeepcase(w,sugg),vig:1}:ckeepcase(w,sugg);}
   // IMPÉRATIF (motifs LOCAUX, FP≈0) — MIROIR correcteur_probe.rule_imperatif : -s euphonique en/y, pas de -s (trait d'union + pronom), irréguliers jamais valides
   var _IMP_PRON={moi:1,toi:1,lui:1,le:1,la:1,les:1,leur:1};
   var _IMP_IRR={soyions:'soyons',ayions:'ayons',soyiez:'soyez',ayiez:'ayez'};
@@ -29405,6 +29409,12 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     return ckeepcase(w,cible);}
   function _verbeFini(lw){var rd=svReads(lw);for(var k=0;k<rd.length;k++){var mt=rd[k][1]||'';if(mt.indexOf('ind')===0||mt.indexOf('cnd')===0||mt.indexOf('sub')===0)return true;}return false;}
   function _ppU198(lw){return lw.length>=4&&/u$/.test(lw)&&typeof SP!=='undefined'&&SP&&SP.ready&&(spP(lw)||'').indexOf('V')>=0&&(spP(lw+'e')||'').indexOf('V')>=0;}   // liste n° 198 : participe en -u (prévu, vendu, perdu, venu…) — le mot ET sa forme en -ue sont des formes de verbe au dictionnaire
+  /* ⭐ 06/11/2026 (liste n° 392) — « restez près de la personne blessé » → blessée était muet : la règle se tait dès qu'une préposition
+     précède le déterminant, car le participe peut aller avec un nom placé avant elle (« le gâteau pour la fête préparé » : préparé va avec
+     gâteau). Après « près de », « loin de », « auprès de », « autour de », « lors de », le mot d'avant n'est pas un nom : aucune autre tête.
+     Liste fermée, comparée sans accents (« prés de » compte). Mesuré : aucune marque ne change sur les 915 textes des 3 corpus dys et
+     de UD où ces tournures apparaissent. */
+  var _TETE392={pres:1,loin:1,aupres:1,autour:1,lors:1};
   function rPpEpithetFem(T,i){var w=T[i],lw=w.toLowerCase();if(/é$/.test(lw)&&_perc264(T,i)&&/^(la|une)$/.test(deacc(T[i-2].toLowerCase()))&&/^(regard|ecout|entend)/.test(deacc(T[i-3].toLowerCase()))&&COMMON_VERBS[deacc(lw.slice(0,-1)+'er')])return {sugg:ckeepcase(w,lw.slice(0,-1)+'er'),vig:1};   // liste n° 264
     // sœur SINGULIER-FÉMININ de rPpEpithetNum (audit rappel dys PR#505 : « une femme cultivé » ×3) — mêmes
     // gardes + « fois » (« une fois emprisonné, Michael… » : l'accord suit le sujet), coordination dans le GN
@@ -29431,7 +29441,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
         for(var sq=0;sq<sufs.length;sq++){if(sd.length>=sufs[sq].length&&sd.slice(-sufs[sq].length)===sufs[sq]){okS=true;break;}}}
       if(!okS)return null;}
     for(var k=Math.max(0,i-5);k<i-1;k++){var dk=deacc(T[k].toLowerCase());if(dk==='ou'||dk==='et'||dk==='ni')return null;}
-    if(i>=3&&tg[i-3]==='ADP')return null;
+    if(i>=3&&tg[i-3]==='ADP'&&!(i>=4&&deacc(T[i-3].toLowerCase())==='de'&&_TETE392[deacc(T[i-4].toLowerCase())]))return null;   // liste n° 392 : sauf après près / loin / auprès / autour / lors de
     var g=_nounGender(T[i-1],'s',true);if(g!=='f')return null;
     var tgt=_ppAccord(lw,'s','f');return tgt!==lw?ckeepcase(w,tgt):null;}
   function _ppFemPl198(lw){if(lw.length<4||lw.charAt(lw.length-1)!=='s')return null;var b=lw.slice(0,-1),c=b.charAt(b.length-1);return ((c==='é'||c==='i')&&_isPpl(b))||(c==='u'&&_ppU198(b))?b:null;}   // liste n° 198 : participe masculin pluriel (-és / -is / -us) → sa base au singulier, sinon null
@@ -31433,6 +31443,12 @@ function spellTokenCore(tok,atStart,T,idx){
        Recensé sur tout le dictionnaire (présent écrit sans accents après il / je / tu, 3 462 saisies) : rouge faux 143 → 16. */
     if(_sbj&&(/e$/.test(d)||_sbjTu)){var _pr=null,_prV=null,_ppl=false,_dy90=d.replace(/([ou])y(es?)$/,'$1i$2');for(i=0;i<keys.length;i++){var _ck=keys[i];if(deaccS(_ck)!==d&&deaccS(_ck)!==_dy90&&!(deaccS(_ck)===deaccS(w1)&&sEd1(d,deaccS(w1))))continue;if(/és?$/.test(_ck))_ppl=true;else{if((spP(_ck)||'').indexOf('V')>=0&&(!_prV||cand[_ck][1]>cand[_prV][1]))_prV=_ck;if(cand[_ck][1]>=0.5&&(!_pr||cand[_ck][1]>cand[_pr][1]))_pr=_ck;}}_pr=_prV||_pr;
       if(_pr&&_ppl&&(deaccS(_pr)!==d?_pr!==w1:(_pr!==w1||_prV))){var _rd=svReads(_pr),_ip=false;for(var _ri=0;_ri<_rd.length;_ri++)if(_rd[_ri][1]==='ind:pre'){_ip=true;break;}return[(deaccS(_pr)===d||(_dy90!==d&&deaccS(_pr)===_dy90))?(_ip?'auto':'flag'):'vigilance',_pr];}}   /* ⭐ liste n° 90 : « il nettoye » → nettoie (-oye / -uye écrit = présent -oie / -uie), pas « nettoyé » */   // ⭐ liste n° 68 : par le squelette de la suggestion (coquille) → ORANGE (mesuré : le rouge changeait 30 paliers)   // les DEUX accentuations existent (présent -e / participe -é) et le tri a pris le participe → le présent (plancher 0,5 : « trébuche » 0,85/M)
+    /* ⭐ 06/11/2026 (liste n° 391) — MOT INCONNU EN « -ié » DONT LE « -ier » EXISTE. « le sentié » recevait « senti » en rouge : la variante
+       d'accent « sentie » gagnait le tri (le é final, qui s'entend, y devient muet), puis la bascule de genre après « le » donnait
+       « senti ». Un « -ié » final se prononce comme « -ier » quand le r est muet, ce que dit le g2p du moteur (sentier, papier ; pas
+       fier ni hier) : ce mot-là, en orange, s'il atteint 1 par million. Recensé : aucun mot inconnu de cette forme dans les 3 corpus
+       dys ni dans UD ; produit entier : aucune marque ne change sur les 824 textes qui ont un mot en « -ié ». Sans g2p chargé, la règle se tait. */
+    if(/ié$/.test(low)&&low.length>=5&&!SP.WORDS.has(low)){var _ier391=low.slice(0,-2)+'ier';if(w1!==_ier391&&(spF(_ier391)||0)>=1&&typeof _DECL2!=='undefined'&&_DECL2&&_DECL2.g2p&&/je$/.test(_sonKey(_ier391)||''))return['vigilance',_ier391];}
     /* ⭐ liste n° 36 : pas de bascule de genre sur un choix du SON — l'ordre du tri parmi les candidats au même son a déjà pesé le genre du contexte ;
        sans ce garde, « recueili » après « a » devenait recueillie (le participe avec avoir ne s'accorde pas avec le sujet) */
     if(cg&&!_son&&!_avA&&(spP(w1)||'').indexOf('A')>=0&&!(T&&idx>0&&PREP[deaccS(T[idx-1].toLowerCase())]&&deaccS(T[idx-1].toLowerCase())!=='a')){var ad=ADJP[deaccS(w1)];   /* ⭐ 14/10/2026 (liste n° 12) : la bascule de genre ne traverse pas une préposition (nom + préposition + adjectif : l'adjectif ne s'accorde pas avec ce nom) */if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}  // bascule paire ADJECTIF (premiere→premier ; pas nom « élève »)
