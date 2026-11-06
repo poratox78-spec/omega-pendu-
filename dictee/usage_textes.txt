@@ -275,3 +275,11 @@ Les {chien|chiens|N} doivent être tenus en laisse. Merci de ne pas {marché|mar
 Une petite aire de jeux {réservé|réservée|G} aux enfants se trouve près de l'entrée.
 Le jardin ouvre à huit heures et ferme au coucher du soleil. Les toilettes sont {toujour|toujours|O} ouvertes.
 {les|Les|P} jours de grand vent, les portes {reste|restent|C} fermées par prudence.
+=== T54 avis de travaux dans l'immeuble
+Madame, Monsieur,
+Des travaux de peinture {commencerons|commenceront|C} dans les parties communes {a|à|O} la fin du mois.
+Pendant deux semaines, l'entrée principale sera {fermé|fermée|G}. Les {voiture|voitures|N} ne pourront pas stationner devant l'immeuble.
+Le matin, les peintres travaillent dans l'escalier, et les {porte|portes|N} sont repeintes en fin de journée.
+Merci de ne pas {touché|toucher|C} les murs fraîchement peints. Le local à vélos ferme, et les {cave|caves|N} sont accessibles par la cour.
+Pour toute question, vous pouvez {appelé|appeler|C} le gardien au rez-de-chaussée.
+{nous|Nous|P} vous {remerçions|remercions|O} de votre patience.
