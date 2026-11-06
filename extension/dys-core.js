@@ -3905,8 +3905,8 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
   function _tempsAvantEt157(T,j,lo){var w=deacc(String(T[j-1]).toLowerCase());if(_JOURS157[w])return true;return !!(_TEMPS157[w]&&j-2>=lo&&_DET157[deacc(T[j-2].toLowerCase())]);}   /* ⭐ 25/10/2026 (liste n° 157) — « Il fait froid le soir et mes enfants dorme mal » : le mot avant « et » est un nom, mais un nom de TEMPS (le soir, la nuit, lundi) clôt un complément, il ne se coordonne pas au sujet d'après. Les autres gardes de la proposition restent (verbe avant, pas de relatif). */
   /* ⭐ 06/11/2026 (liste n° 400) — « Les fleurs sont belles, et les abeilles vient les visiter » → viennent était muet, alors que
      sans la virgule la faute est marquée. Le parseur de sujet demande à _etPropo64 si « et » ouvre une nouvelle proposition, en
-     lisant les mots d'avant « et » dans le même segment ; avec une virgule juste avant « et », ce segment est vide, la réponse
-     est « non » et le parseur croit à des sujets coordonnés. Ici, le même test lit le segment d'avant la virgule : un verbe, et
+     lisant les mots d'avant « et » dans le même segment ; avec une virgule juste avant « et », ce segment est vide, le test
+     échoue et le parseur croit à des sujets coordonnés. Ici, le même test lit le segment d'avant la virgule : un verbe, et
      un mot de fin qui clôt la proposition (adjectif, adverbe, verbe, nom de temps). Une énumération sans verbe (« Le chat, le
      chien, et les vaches ») garde le silence, un nom avant la virgule aussi. Seulement « et » (pas « ou »). Même test dans la garde
      « sujet en tête de proposition » de rAccordSVnoun (liste n° 153) : orange, comme sans la virgule. */
