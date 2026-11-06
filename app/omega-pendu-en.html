@@ -29841,9 +29841,33 @@ function rHomophoneMo(T,i){var n=T.length,w=T[i],lw=w.toLowerCase(),d=deacc(lw),
   var _IMPS2={ton:1,ta:1,tes:1,toi:1,te:1},_IMPS2P={votre:1,vos:1,vous:1},_IMPS_SPEC={etre:['sois','soyez'],avoir:['aie','ayez'],savoir:['sache','sachez'],vouloir:['veuille','veuillez'],aller:['va','allez']};
   var _DET95={};'ce cet cette ces le la les un une des du mon ma mes son sa ses notre nos leur leurs'.split(' ').forEach(function(w){_DET95[w]=1;});   // ⭐ liste n° 95
   function _ordreEnTete191(T,i){var j=i-1;while(j>0&&!(_SEG&&_SEG.ss&&j<_SEG.ss.length&&_SEG.ss[j]))j--;var w=T[j],d=deacc(String(w||'').toLowerCase());if(!/ez$/.test(d)||d.length<4)return false;if(j>0&&deacc(T[j-1].toLowerCase())==='vous')return false;return svReads(w).some(function(x){return x[1]==='ind:pre'&&x[2]==='2'&&x[3]==='p';});}   // liste n° 191 : la phrase (ou la proposition après un point) commence par un présent de « vous » sans « vous » : un ordre
+  /* ⭐ 06/11/2026 (liste n° 396) — UNE SUITE D'ORDRES. « Descends à la gare, puis prend la rue » → prends était muet : la règle
+     ci-dessous attend un indice de la 2e personne (ton, ta, toi…) après le verbe. Ici l'indice est AVANT : la phrase s'ouvre sur un
+     impératif en -s (descends, prends, viens, mets : une forme qui n'est jamais la 3e personne), puis « puis », « et », « ensuite » ou
+     une virgule, et la 3e personne du singulier d'un verbe qui n'est pas en -er (prend, met, fait, finit), sans sujet entre les deux :
+     le même ordre continue. Un sujet (il, on, ça, qui…) ou une subordonnée coupe la suite ; « puis vient ton tour » (sujet inversé)
+     se tait. Recensé : le cadre n'apparaît dans aucun texte des 3 corpus dys ni dans UD (0 juste, 0 fausse alerte) ; avec une
+     tête en -er (« Tourne… et prend »), 33 fausses alertes et aucun cas juste : écartée. ORANGE. */
+  var _SO396_STOP={ce:1,cela:1,ca:1,qui:1,que:1};
+  function _suiteOrdre396(T,i,w,lw,d){
+    if(i<2||w!==lw||!_SEG||!_SEG.ss)return null;
+    var p=deacc(T[i-1].toLowerCase()),k;if(!(p==='puis'||p==='et'||p==='ensuite'||(_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])))return null;
+    if(i+1<T.length&&((_SEG.hy&&i+1<_SEG.hy.length&&_SEG.hy[i+1])||SUBJ_PRON[deacc(T[i+1].toLowerCase())]))return null;   // inversion
+    var rd=svReads(d);if(!rd.length)return null;var lem=rd[0][0];
+    for(k=0;k<rd.length;k++)if(rd[k][0]!==lem||rd[k][1]!=='ind:pre'||rd[k][2]!=='3'||rd[k][3]!=='s')return null;
+    if(/er$/.test(lem)||_IMPS_SPEC[lem])return null;
+    if(_IMPS_INV_V[lem]&&i+1<T.length&&(_DET95[deacc(T[i+1].toLowerCase())]||NUM_DET[deacc(T[i+1].toLowerCase())]))return null;   // « puis vient ton tour »
+    var f2=((CONJ_C[lem]||{})['ind:pre']||{})['2s'];if(!f2||deacc(f2.toLowerCase())===d)return null;
+    var j=i-1;while(j>0&&!(j<_SEG.ss.length&&_SEG.ss[j]))j--;if(j>=i-1)return null;
+    var rh=svReads(deacc(T[j].toLowerCase())),deux=false;if(!rh.length)return null;
+    for(k=0;k<rh.length;k++){if(rh[k][1]!=='ind:pre'||rh[k][3]!=='s'||rh[k][2]==='3')return null;if(rh[k][2]==='2')deux=true;}
+    if(!deux||(_SEG.hy&&j+1<_SEG.hy.length&&_SEG.hy[j+1])||SUBJ_PRON[deacc(T[j+1].toLowerCase())])return null;
+    for(k=j+1;k<i;k++){var dk=deacc(T[k].toLowerCase());if(SUBJ_PRON[dk]||_SO396_STOP[dk]||_IMPS_SUB[dk]||/^(qu|lorsqu|puisqu|c|j)['’]/.test(T[k].toLowerCase()))return null;}
+    return {sugg:ckeepcase(w,f2),vig:1};}
   function rImperatifSeul(T,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw),k;
     if(lw.indexOf("'")>=0||i+1>=T.length||d==='a')return null;   // « a » / « à » : jamais (UD : « …, à Târgovişte » → aie)
     if(d==='faite'&&i>=2&&w===lw&&_isInfinitive(T[i+1])&&(/^(et|puis|ensuite)$/.test(deacc(T[i-1].toLowerCase()))||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i]))&&_ordreEnTete191(T,i))return {sugg:'faites',vig:1};   /* ⭐ 27/10/2026 (liste n° 191) : « Versez la pâte et faite cuire » — la phrase commence par un ordre en -ez : une suite d'ordres */
+    var _so396=_suiteOrdre396(T,i,w,lw,d);if(_so396)return _so396;   // liste n° 396 : « Descends…, puis prend la rue » → prends
     if(!(i===0||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])))return null;
     var hy=!!(_SEG&&_SEG.hy&&i+1<_SEG.hy.length&&_SEG.hy[i+1]),n1=deacc(T[i+1].toLowerCase());
     if(hy&&!_IMP_PRON[n1]&&n1!=='nous'&&n1!=='vous')return null;                       // « dit-il », « vas-y » : inversion ou forme juste

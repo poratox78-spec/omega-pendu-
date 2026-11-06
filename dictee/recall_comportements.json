@@ -811,7 +811,9 @@
 "Elle pense vous le donner demain.",
 "Il est fier de son jardin.",
 "Le gâteau pour la fête préparé hier.",
-"Il est près de la porte, épuisé."
+"Il est près de la porte, épuisé.",
+"Il descend à la gare, puis prend la rue.",
+"Descends, puis vient la partie difficile."
 ],
 "elide": [
 [
@@ -3348,6 +3350,16 @@
 "Elle reste auprès de sa fille endormi.",
 "endormi",
 "endormie"
+],
+[
+"Finis ton assiette, puis sort de table.",
+"sort",
+"sors"
+],
+[
+"Bois ton lait et finit ton pain.",
+"finit",
+"finis"
 ]
 ],
 "palier": [
@@ -3634,6 +3646,11 @@
 [
 "Il marche sur le sentié du village.",
 "sentié",
+"vigilance"
+],
+[
+"Finis ton assiette, puis sort de table.",
+"sort",
 "vigilance"
 ]
 ],
