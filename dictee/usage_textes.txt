@@ -188,3 +188,8 @@ Je remercie déjà les {voluntaires|volontaires|O}. {merci|Merci|P} {a|à|G} tou
 Elle mesure deux mètres et {ce|se|G} lave à la main. Les couleurs {proposé|proposées|G} sont le gris, le bleu marine et le vert.
 {livraison|Livraison|P} en trois jours. Si l'article ne vous {convien|convient|C} pas, vous pouvez le renvoyer dans un délai d'un mois.
 Les {client|clients|N} qui ont {acheter|acheté|C} cette écharpe ont aussi choisi un bonnet assorti et des {gans|gants|O}.
+=== T40 consignes pour une randonnée en montagne
+Avant le départ, regardez la météo et prévenez un proche de votre {itinérère|itinéraire|O}. Prenez assez d'eau, un pull chaud et quelques {barre|barres|N} de céréales.
+Si vous {croiser|croisez|C} un troupeau, {contourné|contournez|C}-le sans faire de bruit. Si le brouillard tombe, ne {quitter|quittez|C} pas le {sentié|sentier|O}.
+{en|En|P} cas d'accident, appelez le 112 et restez près de la personne {blessé|blessée|G}.
+Si vous le {trouver|trouvez|C} trop dur, faites demi-tour : la montagne {seras|sera|C} encore là demain.
