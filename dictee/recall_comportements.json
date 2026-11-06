@@ -821,7 +821,9 @@
 "Il a très faim et les enfants aussi.",
 "Les élèves sont vraiment calmes et le maître est content.",
 "Les enfants les plus sages gagnent.",
-"Les élèves les mieux placés partent."
+"Les élèves les mieux placés partent.",
+"Le hérisson parcourt plusieurs kilomètres.",
+"Le chemin du parcours est long."
 ],
 "elide": [
 [
@@ -3403,6 +3405,16 @@
 "Les enfants les regarde passer.",
 "regarde",
 "regardent"
+],
+[
+"La maîtresse répon aux questions.",
+"répon",
+"répond"
+],
+[
+"Le garçon pren son vélo.",
+"pren",
+"prend"
 ]
 ],
 "palier": [
@@ -3714,6 +3726,11 @@
 [
 "Les enfants les regarde passer.",
 "regarde",
+"vigilance"
+],
+[
+"La maîtresse répon aux questions.",
+"répon",
 "vigilance"
 ]
 ],
