@@ -826,7 +826,9 @@
 "Le chemin du parcours est long.",
 "Ma sœur regardait la télé tous les soirs.",
 "Il y a une terrasse ombragée près du lac.",
-"Nous admirons l'arbre planté par mon grand-père."
+"Nous admirons l'arbre planté par mon grand-père.",
+"Nous louons une petite maison rénovée près du lac.",
+"Il habite une grande maison, rénovée l'an dernier."
 ],
 "elide": [
 [
@@ -3774,6 +3776,16 @@
 [
 "L'école rénové ouvre lundi.",
 "rénové",
+"auto"
+],
+[
+"Nous louons une petite maison rénové près du lac.",
+"rénové",
+"auto"
+],
+[
+"Elle porte une jolie robe brodé à la main.",
+"brodé",
 "auto"
 ]
 ],

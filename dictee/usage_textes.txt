@@ -267,3 +267,11 @@ Plats : une escalope {pané|panée|G} avec ses frites, ou une truite {fumé|fum�
 Desserts : tarte aux {pomme|pommes|N}, une crème {brûlé|brûlée|G} ou une glace à la {vanile|vanille|O}.
 Tous nos plats {son|sont|O} faits maison. Les boissons ne sont pas {compris|comprises|G} dans le menu.
 {nous|Nous|P} {acceptont|acceptons|C} les cartes bancaires.
+=== T53 panneau d'accueil d'un jardin public
+Bienvenue au jardin des Tilleuls ! Une grande allée {bordé|bordée|G} de rosiers vous mène au bassin.
+À gauche, une vieille chapelle {restauré|restaurée|G} accueille des expositions tout l'été.
+Une jolie fontaine {sculpté|sculptée|G} se dresse {a|à|O} côté du kiosque.
+Les {chien|chiens|N} doivent être tenus en laisse. Merci de ne pas {marché|marcher|C} sur les pelouses.
+Une petite aire de jeux {réservé|réservée|G} aux enfants se trouve près de l'entrée.
+Le jardin ouvre à huit heures et ferme au coucher du soleil. Les toilettes sont {toujour|toujours|O} ouvertes.
+{les|Les|P} jours de grand vent, les portes {reste|restent|C} fermées par prudence.
