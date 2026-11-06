@@ -193,3 +193,8 @@ Avant le départ, regardez la météo et prévenez un proche de votre {itinérè
 Si vous {croiser|croisez|C} un troupeau, {contourné|contournez|C}-le sans faire de bruit. Si le brouillard tombe, ne {quitter|quittez|C} pas le {sentié|sentier|O}.
 {en|En|P} cas d'accident, appelez le 112 et restez près de la personne {blessé|blessée|G}.
 Si vous le {trouver|trouvez|C} trop dur, faites demi-tour : la montagne {seras|sera|C} encore là demain.
+=== T41 article du journal du collège
+Jeudi, les élèves de cinquième sont {aller|allés|G} visiter une ferme près du lac. Le fermier leur a montré ses {chèvre|chèvres|N} et son verger de pommiers.
+Pour rejoindre la bergerie, il fallait suivre un petit {sentié|sentier|O} qui longe la rivière. {la|La|P} pluie a commencé vers midi, mais personne ne s'est {plein|plaint|O}.
+Chaque élève a {goûter|goûté|C} le fromage frais, et les plus courageux {on|ont|G} même {essayer|essayé|C} de traire une chèvre.
+Au retour, la classe a écrit un petit texte sur cette journée {passé|passée|G} à la campagne. Merci au fermier pour son {acceuil|accueil|O}.
