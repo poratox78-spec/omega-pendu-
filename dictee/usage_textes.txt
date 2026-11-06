@@ -179,3 +179,7 @@ Ensuite, chaque groupe {devais|devait|C} répondre à un {questionaire|questionn
 Est-ce que vous {aurié|auriez|C} une place lundi ou mardi ? Le matin m'arrange mieux, car mes {enfant|enfants|N} rentrent tôt.
 Pardon pour ce changement de {derniere|dernière|O} minute : je compte sur votre {comprehension|compréhension|O}.
 {cordialement|Cordialement|P}
+=== T38 message aux parents d'élèves
+{bonsoir|Bonsoir|P} à tous, la fête de l'école {aurat|aura|C} lieu samedi dans la cour. Il manque encore des {gâteau|gâteaux|N} pour le stand, et {ces|c'est|G} trop tard pour commander chez le boulanger.
+Si vous pouvez {aidé|aider|C}, écrivez-moi avant vendredi. Les enfants {doive|doivent|C} arriver à neuf heures, avec une {casquete|casquette|O}.
+Je remercie déjà les {voluntaires|volontaires|O}. {merci|Merci|P} {a|à|G} tous !
