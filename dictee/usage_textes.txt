@@ -261,3 +261,9 @@ Avec mon frère, on {couré|courait|C} dans les {champ|champs|N} jusqu'au soir.
 {a|À|P} l'école, j'aimais {beaucou|beaucoup|O} la récréation.
 Notre voisine {avais|avait|C} un chien très gentil.
 Je me {souvien|souviens|C} encore de l'odeur du pain chaud. {Se|Ce|O} sont de beaux souvenirs.
+=== T52 menu d'un restaurant
+Entrées : une salade {composé|composée|G} ou une soupe à l'oignon {gratiné|gratinée|G}.
+Plats : une escalope {pané|panée|G} avec ses frites, ou une truite {fumé|fumée|G} au citron.
+Desserts : tarte aux {pomme|pommes|N}, une crème {brûlé|brûlée|G} ou une glace à la {vanile|vanille|O}.
+Tous nos plats {son|sont|O} faits maison. Les boissons ne sont pas {compris|comprises|G} dans le menu.
+{nous|Nous|P} {acceptont|acceptons|C} les cartes bancaires.
