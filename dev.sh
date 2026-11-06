@@ -244,6 +244,12 @@ run "lot des noms et adjectifs justes du speller : TSV commité bien formé et c
 run "genre des formes rares nom + verbe : JSON commité == ligne _G114 des 2 moteurs JS, formes toujours rares (flue f)" python3 dictee/build_nv_genre.py --check
 run "extrait Wiktionnaire du speller : TSV commité bien formé, sans doublon" python3 dictee/build_wikt_lex.py --check
 run "lot MÉTIER du speller (liste curée) : TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole)" python3 dictee/build_metier_lex.py --check
+run "table des NOMS PROPRES du début de phrase == son script (noms_tete.txt + littéral NP46 des 2 moteurs ; SAUTÉ sans data_local) — ligne 411" node dictee/build_noms_tete.js --check
+run "table des PRÉNOMS == son script (dump Wiktionnaire de data_local) — ligne 411" python3 dictee/build_prenoms.py --check
+run "table des DÉFINITIONS du jeu Double-Sens == son script (sens.json.gz ; SAUTÉ sans data_local) — ligne 411" python3 dictee/build_sens.py --check
+run "genre accentué du speller : TSV commité bien formé (gacc_lex_fr.tsv) — ligne 411" python3 dictee/build_gacc_lex.py --check
+run "phrases de dictée annotées : familles et pièges rejoués, 0 fausse marque sur la phrase juste — ligne 411" python3 dictee/build_dictee.py --check
+run "CÂBLAGE : chaque script à --check est lancé par dev.sh ou la CI, ou exempté pour une raison écrite — ligne 411" python3 dictee/cablage_probe.py
 run "dictionnaire livré == Lexique + 12 lots, mot pour mot (la recette, ligne 142)" python3 dictee/lots_dictionnaire.py --check
 run "constructeurs de tables indépendants de l'ordre des lignes de Lexique et du hasard (ligne 143)" python3 dictee/ordre_probe.py
 run "tables de grammaire : l'héritage de la conjugaison est appliqué (la recette, ligne 144)" python3 dictee/tables_grammaire.py --check

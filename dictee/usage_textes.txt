@@ -246,3 +246,11 @@ Les {enfant|enfants|N} ont adoré la salle des {planète|planètes|N}. À midi, 
 Le jardin est {clôturer|clôturé|C}, idéal pour les enfants. Les draps et les serviettes sont {fourni|fournis|G}.
 Le marché du village {ce|se|G} tient tous les jeudis matin, et les {commerce|commerces|N} sont à cinq minutes à pied.
 La maison {peu|peut|O} accueillir quatre personnes. {pour|Pour|P} réserver, envoyez-nous un message.
+=== T50 faire-part de naissance
+Montet, le 5 mars
+Nous avons la joie de vous {anoncer|annoncer|O} la naissance de Léonie, {né|née|G} le 2 mars à 6 h 12.
+Elle pesait 3,2 kilos et {mesuré|mesurait|C} 49 centimètres. À la maison, elle {dor|dort|C} beaucoup et {pleur|pleure|C} peu.
+Son grand frère Hugo {c'est|s'est|O} tout de suite occupé d'elle : il lui chante des comptines le soir.
+Nous {seront|serons|C} heureux de vous la présenter dès le mois prochain.
+Vos {message|messages|N} et vos {cadeau|cadeaux|N} nous ont beaucoup touchés. {à|À|P} bientôt,
+Claire et Tom
