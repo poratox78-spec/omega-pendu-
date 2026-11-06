@@ -17,6 +17,14 @@ module.exports = function (R) {
   const FINS = [['er', 'é', 'ée', 'és', 'ées', 'ez', 'ai', 'ais', 'ait', 'aient'], ['', 's', 'e', 'es', 'x'], ['e', 'es', 'ent'], ['i', 'is', 'it', 'ie', 'ies', 'ir'], ['u', 'us', 'ut', 'ue', 'ues'], ['t', 'ent']];
   function fins(nu) { const out = []; for (const C of FINS) { let s = null; for (const x of C) if (x && nu.length > x.length + 1 && nu.endsWith(x) && (s === null || x.length > s.length)) s = x; if (s === null) { if (!C.includes('')) continue; s = ''; } const r = nu.slice(0, nu.length - s.length); for (const t of C) if (t !== s && F.has(r + t) && !out.includes(r + t)) out.push(r + t); } return out; }
   const memoF = new Map(), finsM = (a) => { let v = memoF.get(a); if (!v) { v = new Set(fins(a)); memoF.set(a, v); } return v; };
+  // Ligne 383 (« lettres dansantes ») : clé = 1re lettre + lettres du milieu triées + dernière, sans accents. L'anagramme d'un mot inconnu = le mot le plus
+  // fréquent du lexique qui a la même clé (et pas le même mot sans ses accents). Un candidat de plus, et un trait : « mêmes lettres ».
+  const cleDanse = (d) => (d.length >= 4 && /^[a-zœæ]+$/.test(d) ? d[0] + d.slice(1, -1).split('').sort().join('') + d[d.length - 1] : null);
+  const IDXA = new Map(), mieux = (f, x, g, y) => f > g || (f === g && x < y);   // à fréquence égale, l'ordre alphabétique (comme _jgAnaStep du produit)
+  for (const [w, f] of F) { const d = dec(w), k = cleDanse(d); if (!k) continue; const e = IDXA.get(k); if (!e) { IDXA.set(k, [[w, f, d], null]); continue; }
+    if (mieux(f, w, e[0][1], e[0][0])) { if (e[0][2] !== d) e[1] = e[0]; e[0] = [w, f, d]; } else if (e[0][2] !== d && (!e[1] || mieux(f, w, e[1][1], e[1][0]))) e[1] = [w, f, d]; }
+  function anag(nu) { const d = dec(low(nu)), k = cleDanse(d), e = k && IDXA.get(k); if (!e) return null; if (e[0][2] !== d) return e[0][0]; return e[1] ? e[1][0] : null; }
+  const danse = (a, b) => { const x = dec(a), y = dec(b), k = cleDanse(x); return k && x !== y && k === cleDanse(y) ? 1 : 0; };
   function cands(w0, max = 16) {
     const w = low(w0), m = /^([a-zà-ÿ]{1,3}')(.+)$/.exec(w), pre = m ? m[1] : '', nu = m ? m[2] : w, d = dec(nu), S = new Map();
     const ajoute = (c) => { if (c !== nu && !S.has(c)) S.set(c, F.get(c) || 0); };
@@ -29,12 +37,13 @@ module.exports = function (R) {
       for (let n = d.length - 1; n <= d.length + 1; n++) for (const c of (parLen.get(n + ':' + d[0]) || [])) { if (lev(dec(c), d, 1) <= 1) ajoute(c); }
       if (!connu(nu) && d.length >= 3) for (let n = d.length - 2; n <= d.length + 2; n++) for (const c of (parLen.get(n + ':' + d[0]) || [])) { if (lev(dec(c), d, 2) <= 2) ajoute(c); }
     }
+    if (!connu(w)) { const an = anag(nu); if (an && an !== nu) S.set(an, 2e9); }   // ligne 383 : l'anagramme passe devant, le top 16 ne la coupe pas
     return Array.from(S.entries()).sort((a, b) => b[1] - a[1]).slice(0, max).map((x) => (x[1] === 1e9 ? x[0] : pre + x[0]));
   }
-  // Traits d'une paire (écrit w, candidat c) : même son large, même son strict ou même famille de fin, distance, accent seul, fréquence du candidat (log).
+  // Traits d'une paire (écrit w, candidat c) : même son large, même son strict ou même famille de fin, distance, accent seul, fréquence du candidat (log), mêmes lettres (ligne 383).
   function traits(w0, c0) {
     const w = low(w0), c = low(c0), a = w.split("'").pop(), b = c.split("'").pop();
-    return [ph(a) === ph(b) ? 1 : 0, son(a) === son(b) || finsM(a).has(b) ? 1 : 0, Math.min(3, lev(dec(a), dec(b), 3)), dec(a) === dec(b) ? 1 : 0, Math.round(Math.log2(1 + (F.get(b) || 0)))];
+    return [ph(a) === ph(b) ? 1 : 0, son(a) === son(b) || finsM(a).has(b) ? 1 : 0, Math.min(3, lev(dec(a), dec(b), 3)), dec(a) === dec(b) ? 1 : 0, Math.round(Math.log2(1 + (F.get(b) || 0))), danse(a, b)];
   }
-  return { D, F, low, dec, ph, son, lev, GR, GRP, connu, cands, fins, traits };
+  return { D, F, low, dec, ph, son, lev, GR, GRP, connu, cands, fins, traits, anag, danse, cleDanse };
 };

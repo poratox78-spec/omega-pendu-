@@ -4,7 +4,8 @@
 // ③ le moteur du navigateur note comme le modèle entraîné ; ④ phrases inventées : il parle où les règles se taisent, se tait sur du français correct,
 // ne touche jamais un mot déjà marqué ; ⑤ plafond de fausses alertes sur 2 500 phrases de français public (une partie de ces marques sont de vraies fautes du corpus) ;
 // ⑥ ponctuation (liste n° 333) : virgule, point et « ? » sur des phrases inventées, silence sur des phrases justes, plafond à part ; ⑦ les fins de mots (liste n° 337) sont parmi les candidats ;
-// ⑧ arbitre (liste n° 334) : une orange d'accord fausse se tait, les oranges justes restent, et le silence ne relance aucun calcul.
+// ⑧ arbitre (liste n° 334) : une orange d'accord fausse se tait, les oranges justes restent, et le silence ne relance aucun calcul ;
+// ⑨ lettres du milieu mélangées (liste n° 383) : l'anagramme du milieu est parmi les candidats, le juge la choisit quand l'orthographe hésite, et son index se bâtit par tranches.
 'use strict';
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..'), EXT = path.join(ROOT, 'extension'), err = [];
@@ -41,6 +42,15 @@ for (const t of ['Quand il arrive ce soir, nous mangerons ensemble.', 'Tu pourra
 // liste n° 349 : l'orthographe hésite sur un non-mot (orange) — le juge relit le mot écrit et choisit parmi ses candidats et celui de l'orthographe
 { const f = marques('Il nous rapellerait demain matin.').filter((x) => x.word === 'rapellerait'); if (f.length !== 1 || f[0].sugg !== 'rappellerait' || !f[0].jugeOrtho || f[0].tier !== 'vigilance') err.push('liste n° 349 : « rapellerait » → rappellerait (orange, choisi par le juge), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier))); }
 
+// liste n° 383 : un mot INCONNU reçoit aussi son anagramme du milieu (1re lettre + milieu trié + dernière, sans accents) avec le 7e trait « mêmes lettres » ;
+// le juge la choisit sur une orange de l'orthographe ou un « mot inconnu ». Un mot connu n'en reçoit pas.
+if (!D._juge.m.cfg.AN) err.push('liste n° 383 : le modèle livré n\'a pas le trait « mêmes lettres » (cfg.AN)');
+if (!D._juge.cands('chaier').some((x) => x.m === 'cahier' && x.tr[6] === 1)) err.push('liste n° 383 : « cahier » (anagramme du milieu, trait 1) manque aux candidats de « chaier »');
+if (D._juge.cands('loin').some((x) => x.m === 'lion')) err.push('liste n° 383 : un mot connu ne reçoit pas d\'anagramme (« loin » → lion)');
+for (const [t, w, s] of [['Le petit garçon range son chaier dans le tiroir du bureau.', 'chaier', 'cahier'], ['Pour aller au marché, tourne à gauhce après la fontaine.', 'gauhce', 'gauche'], ['Les joueurs ont posé leurs raquetets contre le mur du gymnase.', 'raquetets', 'raquettes'], ['Le chien cahcait ses os sous le vieux banc.', 'cahcait', 'cachait']]) {
+  const f = marques(t).filter((x) => x.word === w); if (f.length !== 1 || f[0].sugg !== s || !f[0].jugeOrtho || f[0].tier !== 'vigilance') err.push('liste n° 383 : « ' + t + ' » : attendu ' + w + ' → ' + s + ' (orange, choisi par le juge), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier)));
+}
+
 for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants rentrent à la maison.', 'virgule'], ['Mon frère range son vélo dans le garage Il prépare ensuite le repas du soir.', 'point final'], ['On part à quelle heure demain matin', "point d'interrogation"], ['Pourquoi les oiseaux partent vers le sud en hiver', "point d'interrogation"]]) {
   const f = marques(t).filter((x) => x.juge && x.typo); if (!f.some((x) => x.name === nom && x.tier === 'vigilance')) err.push('« ' + t + ' » : attendu ' + nom + ', rendu ' + JSON.stringify(f.map((x) => x.name)));
 }
@@ -72,5 +82,11 @@ console.log('français public : ' + n + ' marques sur ' + L.length + ' phrases (
 if (n > PLAFOND) err.push('fausses alertes sur français public : ' + n + ' > ' + PLAFOND);
 if (np > PLAFOND_P) err.push('ponctuation ajoutée au français public : ' + np + ' > ' + PLAFOND_P);
 
-if (err.length) { console.error('JUGE LÉGER :\n  ' + err.join('\n  ')); process.exit(1); }
-console.log('juge léger OK');
+// liste n° 383 : en page, jugeAnalyse bâtit l'index des anagrammes par tranches (une par tour) avant la première phrase, puis marque comme le calcul direct
+function fin() { if (err.length) { console.error('JUGE LÉGER :\n  ' + err.join('\n  ')); process.exit(1); } console.log('juge léger OK'); }
+{ const D3 = C({ ext: EXT, juge: true }), T3 = 'Le petit garçon range son chaier dans le tiroir du bureau.', st = global.setTimeout; let nT = 0;
+  global.setTimeout = (f, d) => { nT++; return st(f, d); };
+  const lance = D3.jugeAnalyse(T3, D3.diagnoseAll(T3).flags, () => { global.setTimeout = st; const f = D3.diagnoseAll(T3).flags.find((x) => x.word === 'chaier');
+    if (!f || f.sugg !== 'cahier') err.push('liste n° 383 : en page (jugeAnalyse), « chaier » → cahier attendu, rendu ' + (f && f.sugg));
+    if (nT < 20) err.push('liste n° 383 : l\'index des anagrammes doit se bâtir par tranches (' + nT + ' tours)'); fin(); });
+  if (!lance) { global.setTimeout = st; err.push('liste n° 383 : jugeAnalyse ne lance aucun calcul'); fin(); } }
