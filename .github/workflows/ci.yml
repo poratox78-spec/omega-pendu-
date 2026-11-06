@@ -104,6 +104,16 @@ jobs:
         run: python3 dictee/build_wikt_lex.py --check
       - name: Lot MÉTIER du speller (liste curée) — TSV commité suit la liste, chaque mot câblé (agentique, upcycler, rissole)
         run: python3 dictee/build_metier_lex.py --check
+      - name: Table des NOMS PROPRES du début de phrase == son script (SAUTÉ sans data_local, ligne 411)
+        run: node dictee/build_noms_tete.js --check
+      - name: Table des DÉFINITIONS du jeu Double-Sens == son script (SAUTÉ sans data_local, ligne 411)
+        run: python3 dictee/build_sens.py --check
+      - name: Genre accentué du speller — TSV commité bien formé (ligne 411)
+        run: python3 dictee/build_gacc_lex.py --check
+      - name: Phrases de dictée annotées — familles et pièges rejoués, 0 fausse marque (ligne 411)
+        run: python3 dictee/build_dictee.py --check
+      - name: CÂBLAGE — chaque script à --check est lancé par dev.sh ou la CI, ou exempté pour une raison écrite (ligne 411)
+        run: python3 dictee/cablage_probe.py
       - name: Dictionnaire livré == Lexique + 12 lots, mot pour mot (la recette, ligne 142)
         run: python3 dictee/lots_dictionnaire.py --check
       - name: Constructeurs de tables indépendants de l'ordre des lignes de Lexique et du hasard (ligne 143)

@@ -26,6 +26,7 @@ DEV = os.path.join(ROOT, 'dev.sh')
 ALLOW_CI_ONLY = {}
 ALLOW_DEV_ONLY = {
     'dictee/build_correcteur.js': "appelé DANS le runsh « correcteur AUTONOME (bake) » ; la CI a le même bake écrit autrement",
+    'dictee/build_prenoms.py': "son --check ÉCHOUE sans le dump Wiktionnaire de data_local/ (gitignoré, absent du runner) ; la CI garde les 3 copies par prenoms_probe.py (ligne 411)",
 }
 
 
