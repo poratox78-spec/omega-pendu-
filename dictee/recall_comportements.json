@@ -808,7 +808,8 @@
 "Mon beau-fils arrive.",
 "Ses parents habitent loin.",
 "Elle a une écharpe bleu marine.",
-"Elle pense vous le donner demain."
+"Elle pense vous le donner demain.",
+"Il est fier de son jardin."
 ],
 "elide": [
 [
@@ -3335,6 +3336,11 @@
 "Quand vous les ranger, fermez la porte.",
 "ranger",
 "rangez"
+],
+[
+"Il marche sur le sentié du village.",
+"sentié",
+"sentier"
 ]
 ],
 "palier": [
@@ -3616,6 +3622,11 @@
 [
 "Quand vous les ranger, fermez la porte.",
 "ranger",
+"vigilance"
+],
+[
+"Il marche sur le sentié du village.",
+"sentié",
 "vigilance"
 ]
 ],
