@@ -254,3 +254,10 @@ Son grand frère Hugo {c'est|s'est|O} tout de suite occupé d'elle : il lui chan
 Nous {seront|serons|C} heureux de vous la présenter dès le mois prochain.
 Vos {message|messages|N} et vos {cadeau|cadeaux|N} nous ont beaucoup touchés. {à|À|P} bientôt,
 Claire et Tom
+=== T51 souvenirs d'enfance
+Quand j'étais petit, notre maison {été|était|C} au bord de la rivière.
+Mon père {conduisé|conduisait|C} un vieux camion bleu. Le dimanche, ma mère {faisé|faisait|C} des tartes aux pommes.
+Avec mon frère, on {couré|courait|C} dans les {champ|champs|N} jusqu'au soir.
+{a|À|P} l'école, j'aimais {beaucou|beaucoup|O} la récréation.
+Notre voisine {avais|avait|C} un chien très gentil.
+Je me {souvien|souviens|C} encore de l'odeur du pain chaud. {Se|Ce|O} sont de beaux souvenirs.
