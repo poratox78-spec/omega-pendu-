@@ -566,7 +566,7 @@
   // lexique du speller (214 683 formes, ACCENTUÉ, avec POS). Mesuré : « les sucs destiné » restait sans flag
   // parce que « destiner » manque à COMMON_VERBS ; idem « tronquer ». Le trou d'accord du participe épithète
   // est donc LEXICAL, pas logique — rPpEpithetNum fonctionne déjà (« les contrats signé »→signés).
-  // ⚠️ RÉSERVÉ À rPpEpithetNum. Mesuré sur scan UD : étendre le lexique verbal GLOBALEMENT fait passer
+  // ⚠️ RÉSERVÉ aux deux règles du participe épithète (rPpEpithetNum, et rPpEpithetFem depuis la liste n° 408). Mesuré sur scan UD : étendre le lexique verbal GLOBALEMENT fait passer
   // rule_flexion_er de 1 à 4 FP (gravité→graviter, surgelé→surgeler) et rule_pp_etre de 7 à 9 — ces règles
   // s'appuient sur l'étroitesse de COMMON_VERBS pour écarter les NOMS en -é. rPpEpithetNum, elle, reste à
   // 0 FP : ses gardes (déterminant PLURIEL + nom à gauche + genre connu + ruptures de segment) suffisent.
@@ -4707,8 +4707,11 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
     // Flood 16 950 phrases correctes : 3 tirs, TOUS de vraies fautes du corpus (patinoire situé, postérité
     // laissé, émission diffusé). Marques MUETTES seulement (é→ée, i→ie : homophones), doctrine d'audibilité.
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
-    var _lc=lw.charAt(lw.length-1);if(!((_lc==='é'||_lc==='i')&&_isPpl(w))&&!_ppU198(lw))return null;   /* ⭐ 28/10/2026 (liste n° 198) : + la finale -u, muette elle aussi (« la fête prévu » → prévue) ; pas pu, eu, vu, su, lu */
-    if(i<2||!_FEM_SG_DET[deacc(T[i-2].toLowerCase())])return null;
+    var _lc=lw.charAt(lw.length-1);if(!((_lc==='é'||_lc==='i')&&(_isPpl(w)||_isPplWideEr(w)))&&!_ppU198(lw))return null;   /* ⭐ 06/11/2026 (liste n° 408) : + le participe dont le verbe en -er manque à COMMON_VERBS mais est au dictionnaire (« une terrasse ombragé » → ombragée), comme la sœur au pluriel */   /* ⭐ 28/10/2026 (liste n° 198) : + la finale -u, muette elle aussi (« la fête prévu » → prévue) ; pas pu, eu, vu, su, lu */
+    var _el=i>=1&&/^l['’][a-zà-ÿœ]{2,}$/i.test(T[i-1]),_o=_el?1:0;   /* ⭐ 06/11/2026 (liste n° 408) : l'article ÉLIDÉ est collé au nom (« l'étiquette détaillé ») : il compte
+       comme « la » si le nom est féminin ; les gardes d'avant le groupe se décalent d'un mot (« sur l'enveloppe fermé » reste muet). Vu par
+       elision_probe : la règle tranchait « cette étiquette » et pas « l'étiquette ». */
+    if(!_el&&(i<2||!_FEM_SG_DET[deacc(T[i-2].toLowerCase())]))return null;
     if(deacc(T[i-1].toLowerCase())==='fois')return null;
     var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='ADJ')||tg[i-1]!=='NOUN')return null;
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
@@ -4724,9 +4727,9 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
       if(jj<T.length){var sd=T[jj].toLowerCase(),sufs=['ée','ante','ente','euse','ive','elle','ère','ienne'];
         for(var sq=0;sq<sufs.length;sq++){if(sd.length>=sufs[sq].length&&sd.slice(-sufs[sq].length)===sufs[sq]){okS=true;break;}}}
       if(!okS)return null;}
-    for(var k=Math.max(0,i-5);k<i-1;k++){var dk=deacc(T[k].toLowerCase());if(dk==='ou'||dk==='et'||dk==='ni')return null;}
-    if(i>=3&&tg[i-3]==='ADP'&&!(i>=4&&deacc(T[i-3].toLowerCase())==='de'&&_TETE392[deacc(T[i-4].toLowerCase())]))return null;   // liste n° 392 : sauf après près / loin / auprès / autour / lors de
-    var g=_nounGender(T[i-1],'s',true);if(g!=='f')return null;
+    for(var k=Math.max(0,i-5+_o);k<i-1;k++){var dk=deacc(T[k].toLowerCase());if(dk==='ou'||dk==='et'||dk==='ni')return null;}
+    if(i>=3-_o&&tg[i-3+_o]==='ADP'&&!(i>=4-_o&&deacc(T[i-3+_o].toLowerCase())==='de'&&_TETE392[deacc(T[i-4+_o].toLowerCase())]))return null;   // liste n° 392 : sauf après près / loin / auprès / autour / lors de
+    var g=_nounGender(_el?T[i-1].replace(/^l['’]/i,''):T[i-1],'s',true);if(g!=='f')return null;
     var tgt=_ppAccord(lw,'s','f');return tgt!==lw?ckeepcase(w,tgt):null;}
   function _ppFemPl198(lw){if(lw.length<4||lw.charAt(lw.length-1)!=='s')return null;var b=lw.slice(0,-1),c=b.charAt(b.length-1);return ((c==='é'||c==='i')&&_isPpl(b))||(c==='u'&&_ppU198(b))?b:null;}   // liste n° 198 : participe masculin pluriel (-és / -is / -us) → sa base au singulier, sinon null
   function rPpEpithetNum(T,i){var w=T[i],lw=w.toLowerCase();if(/é$/.test(lw)&&_perc264(T,i)&&/^(les|des|un|une)$/.test(deacc(T[i-2].toLowerCase()))&&/^(regard|ecout|entend)/.test(deacc(T[i-3].toLowerCase()))&&COMMON_VERBS[deacc(lw.slice(0,-1)+'er')])return {sugg:ckeepcase(w,lw.slice(0,-1)+'er'),vig:1};   // liste n° 264 : « elle regarde les enfants joué » : l'infinitif, en orange

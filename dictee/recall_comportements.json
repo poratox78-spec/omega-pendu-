@@ -824,7 +824,9 @@
 "Les élèves les mieux placés partent.",
 "Le hérisson parcourt plusieurs kilomètres.",
 "Le chemin du parcours est long.",
-"Ma sœur regardait la télé tous les soirs."
+"Ma sœur regardait la télé tous les soirs.",
+"Il y a une terrasse ombragée près du lac.",
+"Nous admirons l'arbre planté par mon grand-père."
 ],
 "elide": [
 [
@@ -3753,6 +3755,26 @@
 "La petite chienne dormé sous le banc.",
 "dormé",
 "vigilance"
+],
+[
+"Il y a une terrasse ombragé près du lac.",
+"ombragé",
+"auto"
+],
+[
+"Une allée ombragé mène au jardin.",
+"ombragé",
+"auto"
+],
+[
+"Nous visitons l'église restauré du village.",
+"restauré",
+"auto"
+],
+[
+"L'école rénové ouvre lundi.",
+"rénové",
+"auto"
 ]
 ],
 "vig": [
