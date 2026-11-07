@@ -34,10 +34,10 @@
   },
   "orthographe": {
    "total": 143,
-   "bon": 131,
+   "bon": 132,
    "rouge juste": 70,
-   "orange juste": 61,
-   "mauvais mot": 4,
+   "orange juste": 62,
+   "mauvais mot": 3,
    "muette": 8
   }
  },
@@ -194,7 +194,7 @@
   "T6#5": "rouge juste",
   "T6#6": "muette",
   "T6#7": "orange juste",
-  "T6#8": "mauvais mot",
+  "T6#8": "orange juste",
   "T6#9": "orange juste",
   "T6#10": "orange juste",
   "T6#11": "orange juste",
