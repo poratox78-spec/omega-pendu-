@@ -854,7 +854,9 @@
 "Sont arrivés des amis de Lyon.",
 "Il est parti sans qu'il ait jamais menti.",
 "C'est le plus beau film que j'ai jamais vu.",
-"Je doute qu'il soit jamais venu."
+"Je doute qu'il soit jamais venu.",
+"Les pages d'un livre reprennent le titre.",
+"Les coins d'une douille sont usés."
 ],
 "elide": [
 [
@@ -3511,6 +3513,11 @@
 "Il a jamais menti.",
 "a",
 "n'a"
+],
+[
+"Les enfants livre les colis.",
+"livre",
+"livrent"
 ]
 ],
 "palier": [
