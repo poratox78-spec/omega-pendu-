@@ -344,3 +344,11 @@ Le voyage est à la fois drôle et {effrayent|effrayant|O}.
 Les deux enfants {devrons|devront|C} affronter leurs peurs.
 Les {chapitre|chapitres|N} sont courts, et le roman est {pleins|plein|N} d'humour.
 {a|À|O} lire dès dix ans.
+=== T62 consignes d'évacuation en cas d'incendie
+En cas d'alarme, les occupants {quitte|quittent|C} le bâtiment par l'escalier le plus proche.
+Les personnes restant calmes aident les autres à sortir.
+Ne {prener|prenez|C} jamais l'ascenseur.
+Les portes coupe-feu doivent rester {fermé|fermées|G}.
+Le point de rassemblement {ce|se|O} trouve devant la grille.
+Les responsables d'étage {vérifierons|vérifieront|C} que personne n'est resté dans les {bureau|bureaux|N}.
+{attendez|Attendez|P} le signal avant de rentrer.
