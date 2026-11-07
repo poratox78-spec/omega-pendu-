@@ -3883,8 +3883,13 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
       /* sujet POSTPOSÉ (« est annoncée la reprise ») → abstention. EXEMPTION MESURÉE le 26/08/2026 :
          un COMPLÉMENT DE TEMPS n'est jamais un sujet postposé. En bloc, la garde rendait MUET
          l'accord par PRÉNOM (« Marie est venu CE MATIN. »). Miroir app rPpEtre. */
-      if(i+1<tgp.length&&tgp[i+1]==='DET'&&!_detDeTemps(T,i+1))return null;
+      var _au442=false;if(i+1<tgp.length&&tgp[i+1]==='DET'&&!_detDeTemps(T,i+1)){if(!/^(au|aux)$/.test(deacc(T[i+1].toLowerCase())))return null;_au442=true;}   /* ⭐ 07/11/2026 (liste n° 442) :
+         « une fête est organiser au collège » recevait « organisé » en ROUGE (sans accord) : le tagger lit « au » comme un déterminant,
+         et la garde du sujet postposé coupait l'accord. Un sujet ne commence jamais par « au / aux » (à + le / les) : ils n'ouvrent pas
+         de sujet postposé. « du / des » le peuvent (« sont arrivés des amis ») : gardés. Sujet PRÉNOM seul : la garde reste (mesuré : un
+         prénom des deux genres, rangé d'un seul dans la table, aurait reçu un rouge faux — liste n° 443). */
       var sj=_npSubject(T,tgp,a);
+      if(_au442&&sj&&!sj.dtxt&&PRENOMS[sj.htxt])return null;   // liste n° 442 : prénom seul devant « au / aux » = garde d'avant
       if(sj===null){if(auxNum==='p'&&_ppCoordSubject(T,tgp,a)==='p'){var _lw213=lw.replace(/s$/,''),gcp=_coordGenre345(T,a)||((/e$/.test(_lw213)&&!/é$/.test(_lw213))?'f':'m'),sgp=base+(gcp==='f'?'es':'s');   /* ⭐ 31/10/2026 (liste n° 213) : le genre écrit se lit sans le -s du pluriel — « Nora et Inès sont rentrées » devenait « rentrés » en ROUGE */return sgp.toLowerCase()!==lw?ckeepcase(T[i],sgp):null;}
         if(!_a1refl&&_a1ok&&/é$/.test(lw)&&deacc(lw)===deacc(base))return ckeepcase(T[i],base+'s');   // #A1 : sujet non résolu, aux pluriel audible → nombre seul (masc gardé)
         return null;}   // sujet COORDONNÉ « X et Y sont » → pluriel, genre écrit gardé (miroir Python)

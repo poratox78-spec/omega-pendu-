@@ -850,7 +850,8 @@
 "Le résultat fut à la fois simple et rapide.",
 "Les clients restant calmes attendent leur tour.",
 "Les places restant libres sont au fond.",
-"Il parle anglais mais français aussi."
+"Il parle anglais mais français aussi.",
+"Sont arrivés des amis de Lyon."
 ],
 "elide": [
 [
@@ -3492,6 +3493,16 @@
 "J'ai invité mais amis à la fête.",
 "mais",
 "mes"
+],
+[
+"Une fête est organiser au collège.",
+"organiser",
+"organisée"
+],
+[
+"La salle est réservé au club.",
+"réservé",
+"réservée"
 ]
 ],
 "palier": [
