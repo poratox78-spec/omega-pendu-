@@ -2314,11 +2314,17 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(GENDER_MAP[d]||ADJP[d]||_EPICENE_ADJ[d]||PREP[d])return false;   // adj épicène homographe (« conforme »/« calme ») = « qui est-ce qui ? » → l'adjectif, pas le verbe
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||PREP[deacc(T[i-1].toLowerCase())]))return false;return svReads(T[i]).length>0;}
   function _auxElide227(T,i){if(i<1)return false;var m=/^[jlmtnsd]['’](.+)$/.exec(T[i-1].toLowerCase());return !!m&&!!FULL_AUX[deacc(m[1])];}   /* ⭐ 31/10/2026 (liste n° 227) : « Quand tu l'as fait hier, » → font en ROUGE, « comme l'ont fait ses parents » → font en orange : l'auxiliaire est collé au pronom */
+  /* ⭐ 07/11/2026 (liste n° 425) — « Mieux vaut les ranger », « Peu importe les détails » recevaient « valent », « importent » en ROUGE
+     (sujet postposé), puis en orange par la route OS-sujet : tournures figées, le verbe y reste invariable (l'accord est toléré, pas
+     exigé). Recensé : 4 tournures dans les corpus dys, 3 dans UD, 1 rouge faux. */
+  function _fige425(T,i){if(i<1)return false;var p=deacc(T[i-1].toLowerCase()),v=deacc(T[i].toLowerCase());
+    return (p==='mieux'&&/^(vaut|valait|vaudra|vaudrait|valut)$/.test(v))||(p==='peu'&&/^(importe|importait|importera|importerait|importa)$/.test(v));}
   function rPostpose(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;if(_auxElide227(T,i))return null;   // accord SUJET-VERBE à sujet POSTPOSÉ (inversion) : ordre changé → scan AVANT. FP=0 mesuré. Miroir Python rule_accord_postpose.
     if(/(é|és|ée|ées)$/.test(lw))return null;
     if(i>0&&NUM_DET[T[i-1].toLowerCase()]!==undefined)return null;
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
     if(i>0&&deacc(T[i-1].toLowerCase())==='ci')return null;   // « ci-joint/ci-inclus/ci-annexé » = adverbial INVARIABLE, pas un verbe postposé
+    if(_fige425(T,i))return null;   // liste n° 425 : « Mieux vaut… », « Peu importe… » (tournures figées)
     if(deacc(T[i].toLowerCase())==='compte'&&i>0&&/^(tient|tiens|tenons|tenez|tiennent|tenu|tenais|tenait|tenaient|tenir|rend|rends|rendons|rendez|rendent|rendu|rendait|rendaient|rendre|prend|prends|prennent|prenons|prenez|pris|prendre)$/.test(deacc(T[i-1].toLowerCase())))return null;   // locution « tenir/rendre/prendre compte » : compte = NOM
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
     if(svSubject(T,i)!=null)return null;
@@ -7207,7 +7213,8 @@ function spellUnknown(tok,atStart,T,idx){
      57 (dys) et 43 (UD) — elle reproduit l'ATTRACTION, mécanisme même de la faute → elle se tait. C) seul le PLURIEL est proposé :
      sur les textes dys, les 69 marques vers le singulier étaient toutes fausses ; les vraies sont le pluriel oublié (-nt muet).
      Prix accepté : 2 vraies fautes d'UD (encyclopédie) qui demandaient le singulier. Miroir Python os_subject_probe.detect. */
-  function osVerbVig(T,i,tg,plein){if(!_OSLM||_npMaj108(T,i)||_auxElide227(T,i))return null;   // plein : relecture de bout de chaîne (forme d'un mot déjà mal écrit) — sans B ni C
+  function osVerbVig(T,i,tg,plein){if(_fige425(T,i))return null;   // liste n° 425
+  if(!_OSLM||_npMaj108(T,i)||_auxElide227(T,i))return null;   // plein : relecture de bout de chaîne (forme d'un mot déjà mal écrit) — sans B ni C
     var F=[],m;for(m=0;m<T.length;m++)F.push(/^d[éè]s$/.test(T[m].toLowerCase())?'·dès':T[m].toLowerCase());   // ⭐ 13/10/2026 (conjugaison 14) : « dés » / « dès » accentué n'est pas l'article « des » — les voisins de l'OS le désaccentuaient (« progression dés juillet suscita » → suscitèrent)
     if(!_osGuardOk(F,i))return null;
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;

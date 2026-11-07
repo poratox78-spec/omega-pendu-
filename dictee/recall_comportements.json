@@ -839,7 +839,9 @@
 "L'une d'entre elles se lève tôt.",
 "Le château domine la vicomté voisine.",
 "Il coupe la planche avec une égoïne.",
-"Le soudeur règle un chalumeau à acétylène."
+"Le soudeur règle un chalumeau à acétylène.",
+"Mieux vaut des amis que des ennemis.",
+"Peu importe les détails, le résultat compte."
 ],
 "elide": [
 [
@@ -3456,6 +3458,11 @@
 "Il coupe la planche avec un égoïne.",
 "un",
 "une"
+],
+[
+"Les outils vaut cher.",
+"vaut",
+"valent"
 ]
 ],
 "palier": [
