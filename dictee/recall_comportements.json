@@ -828,7 +828,10 @@
 "Il y a une terrasse ombragée près du lac.",
 "Nous admirons l'arbre planté par mon grand-père.",
 "Nous louons une petite maison rénovée près du lac.",
-"Il habite une grande maison, rénovée l'an dernier."
+"Il habite une grande maison, rénovée l'an dernier.",
+"Il prend les fruits et les mange.",
+"Elle range les dossiers et les classe dans le tiroir.",
+"Le bourg est calme, et les commerces sont tout près."
 ],
 "elide": [
 [
@@ -3787,6 +3790,11 @@
 "Elle porte une jolie robe brodé à la main.",
 "brodé",
 "auto"
+],
+[
+"Le bourg est calme, et les commerce sont tout près.",
+"commerce",
+"vigilance"
 ]
 ],
 "vig": [
