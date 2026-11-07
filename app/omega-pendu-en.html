@@ -33046,14 +33046,14 @@ function spellUnknown(tok,atStart,T,idx){
           for(i=0;i<DM;i++){var s5=B2[i],r5=i*FF;for(j=0;j<FF;j++)s5+=F2[r5+j]*g[og+j];x[o4+i]+=s5;}}}
       ln(x,T,P['lnf.weight'],P['lnf.bias'],h);return h;}
     function lin(W,Bi,nIn,nOut,x,xo,out,oo){for(var i=0;i<nOut;i++){var s=Bi[i],r=i*nIn;for(var j=0;j<nIn;j++)s+=W[r+j]*x[xo+j];out[oo+i]=s;}}
-    var hp=new Float32Array(DP),cp=new Float32Array(DP),wp=new Float32Array(DP),AN=cfg.AN?1:0,NI=4*DP+12+AN,inp=new Float32Array(NI),mh=new Float32Array(128);
-    function noter(h,t,w,cands){   // cands : [{m, tr:[même son large, même son strict, distance, accent seul, fréquence, écrit, mêmes lettres (lu si cfg.AN, liste n° 383)]}]
+    var hp=new Float32Array(DP),cp=new Float32Array(DP),wp=new Float32Array(DP),AN=cfg.AN?1:0,LT=cfg.LT?1:0,NI=4*DP+12+AN+LT,inp=new Float32Array(NI),mh=new Float32Array(128);
+    function noter(h,t,w,cands){   // cands : [{m, tr:[même son large, même son strict, distance, accent seul, fréquence, écrit, mêmes lettres (lu si cfg.AN, liste n° 383), lettres probables (lu si cfg.LT, liste n° 399)]}]
       lin(P['ph.weight'],P['ph.bias'],DM,DP,h,t*DM,hp,0);lin(P['pc.weight'],P['pc.bias'],DE,DP,vec(w),0,wp,0);
       var M0=P['mlp.0.weight'],B0=P['mlp.0.bias'],M2=P['mlp.2.weight'],B2=P['mlp.2.bias'],TR=P['tr.weight'],notes=[];
       for(var c=0;c<cands.length;c++){var cd=cands[c],tr=cd.tr,j,dot=0;lin(P['pc.weight'],P['pc.bias'],DE,DP,vec(cd.m),0,cp,0);
         for(j=0;j<DP;j++){inp[j]=hp[j];inp[DP+j]=cp[j];inp[2*DP+j]=wp[j];var z=hp[j]*cp[j];inp[3*DP+j]=z;dot+=z;}
         for(j=0;j<6;j++)inp[4*DP+j]=TR[tr[2]*6+j];
-        var q=4*DP+6;inp[q]=tr[0];inp[q+1]=tr[1];inp[q+2]=tr[3];inp[q+3]=tr[4]/16;inp[q+4]=tr[5];inp[q+5]=dot/8;if(AN)inp[q+6]=tr[6]||0;
+        var q=4*DP+6;inp[q]=tr[0];inp[q+1]=tr[1];inp[q+2]=tr[3];inp[q+3]=tr[4]/16;inp[q+4]=tr[5];inp[q+5]=dot/8;if(AN)inp[q+6]=tr[6]||0;if(LT)inp[q+6+AN]=tr[7]||0;
         lin(M0,B0,NI,128,inp,0,mh,0);var s=B2[0];for(j=0;j<128;j++)s+=M2[j]*gelu(mh[j]);notes.push(s);}
       return notes;}
     var px=new Float32Array(2*DM),pm=new Float32Array(96),pv=new Float32Array(4);
@@ -33062,7 +33062,7 @@ function spellUnknown(tok,atStart,T,idx){
       lin(P['pt.0.weight'],P['pt.0.bias'],2*DM,96,px,0,pm,0);for(j=0;j<96;j++)pm[j]=gelu(pm[j]);lin(P['pt.2.weight'],P['pt.2.bias'],96,4,pm,0,pv,0);
       var mx=Math.max(pv[0],pv[1],pv[2],pv[3]),so=0,e=[0,0,0,0];for(j=0;j<4;j++){e[j]=Math.exp(pv[j]-mx);so+=e[j];}for(j=0;j<4;j++)e[j]/=so;return e;}
     return {cfg:cfg,lire:lire,noter:noter,ponct:ponct,octets:u8.byteLength};}
-  function setJuge(buf){_JG.m=_jgMoteur(buf);_JG.cache=new Map();_JGM.clear();return true;}   // les candidats dépendent du modèle (anagramme si cfg.AN)
+  function setJuge(buf){_JG.m=_jgMoteur(buf);_JG.lt=_JG.m.cfg.LT?_jgLetT(_JG.m.cfg.LT.v):null;_JG.cache=new Map();_JGM.clear();return true;}   // les candidats dépendent du modèle (anagramme si cfg.AN, lettres probables si cfg.LT)
   function loadJuge(url){return fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(setJuge).catch(function(){return false;});}
   var _JGG={};[["a","à"],["ou","où"],["son","sont"],["ces","ses","c'est","s'est"],["ce","se"],["la","là","l'a"],["ma","m'a"],["ta","t'a"],["sa","ça"],["on","ont"],["mes","mais","met"],["du","dû"],["leur","leurs"],["ni","n'y"],["si","s'y"],["soi","soit"],["dont","donc"],["tout","tous"],["peu","peut","peux"],["par","part"],["sur","sûr"],["quand","quant"],["qu'elle","quelle","quel"],["sans","sens","cent"],["et","est","es"],["en","an"]].forEach(function(g){g.forEach(function(x){_JGG[x]=(_JGG[x]||[]).concat(g);});});
   var _JGM=new Map();
@@ -33080,6 +33080,24 @@ function spellUnknown(tok,atStart,T,idx){
      « mêmes lettres », et seulement pour un modèle entraîné avec (cfg.AN, dictee/juge_lex.js). L'index se bâtit par tranches (jugeAnalyse). */
   function _jgCleD(d){return d.length>=4&&/^[a-zœæ]+$/.test(d)?d[0]+d.slice(1,-1).split('').sort().join('')+d[d.length-1]:null;}
   function _jgDanse(x,y){var k=_jgCleD(x);return k&&x!==y&&k===_jgCleD(y)?1:0;}
+  /* ⭐ 06/11/2026 (liste n° 399) — LES CHANCES DE FAUTE PAR LETTRE : quelles lettres on oublie, on ajoute, on met pour une autre ou on inverse, comptées sur le corpus
+     PUBLIC WiCoPaCo (corrections de Wikipédia, dictee/juge_lettres.py). Le modèle emporte sa table (cfg.LT) ; le 8e trait d'un candidat = la moyenne des valeurs
+     des éditions du chemin le moins coûteux de l'écrit au candidat, sans accents (0 = faute aussi courante que la moyenne, > 0 plus courante, < 0 plus rare).
+     Pour un mot écrit INCONNU seulement (0 sinon) : WiCoPaCo ne compte que des non-mots, et sur tous les mots le trait déplaçait les marques du juge.
+     Même code que dictee/juge_lex.js (entraînement) : mêmes calculs dans le même ordre. Seule la colonne de ce trait est apprise (dictee/juge_train.py, SEUL_LT). */
+  function _jgLetT(V){var A='abcdefghijklmnopqrstuvwxyz',T={s:new Float64Array(676),t:new Float64Array(676)},x,v;
+    for(x=0;x<676;x++){v=V['s:'+A[(x/26)|0]+'>'+A[x%26]];T.s[x]=v===undefined?-4:v;v=V['t:'+A[(x/26)|0]+A[x%26]];T.t[x]=v===undefined?-4:v;}
+    ['d:','dd:','i:','ii:'].forEach(function(p){['','$'].forEach(function(f){var a=new Float64Array(26);for(var k=0;k<26;k++){var w=V[p+A[k]+f];a[k]=w===undefined?-4:w;}T[p+f]=a;});});
+    return T;}
+  function _jgLet(a,b,T){if(a===b)return 0;var n=a.length,m=b.length,W=m+1,C=new Float64Array((n+1)*W),S=new Float64Array((n+1)*W),N=new Float64Array((n+1)*W),ca=[],cb=[],i,j,k;
+    for(i=0;i<n;i++){k=a.charCodeAt(i)-97;ca.push(k>=0&&k<26?k:-1);}for(j=0;j<m;j++){k=b.charCodeAt(j)-97;cb.push(k>=0&&k<26?k:-1);}
+    for(i=0;i<=n;i++)for(j=0;j<=m;j++){if(!i&&!j)continue;var o=i*W+j,bc=Infinity,bs=0,bn=0,q,v,c,x,y;
+      if(i&&j){q=o-W-1;if(a[i-1]===b[j-1]){bc=C[q];bs=S[q];bn=N[q];}else{x=ca[i-1];y=cb[j-1];v=x<0||y<0?-4:T.s[x*26+y];c=C[q]+4.5-v;if(c<bc){bc=c;bs=S[q]+v;bn=N[q]+1;}}}
+      if(j){q=o-1;y=cb[j-1];v=y<0?-4:T[((j>1&&b[j-2]===b[j-1])||(j<m&&b[j]===b[j-1])?'dd:':'d:')+(j===m?'$':'')][y];c=C[q]+4.5-v;if(c<bc){bc=c;bs=S[q]+v;bn=N[q]+1;}}
+      if(i){q=o-W;x=ca[i-1];v=x<0?-4:T[((i>1&&a[i-2]===a[i-1])||(i<n&&a[i]===a[i-1])?'ii:':'i:')+(i===n?'$':'')][x];c=C[q]+4.5-v;if(c<bc){bc=c;bs=S[q]+v;bn=N[q]+1;}}
+      if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]&&a[i-1]!==a[i-2]){q=o-2*W-2;x=cb[j-2];y=cb[j-1];v=x<0||y<0?-4:T.t[x*26+y];c=C[q]+4.5-v;if(c<bc){bc=c;bs=S[q]+v;bn=N[q]+1;}}
+      C[o]=bc;S[o]=bs;N[o]=bn;}
+    k=n*W+m;return N[k]?Math.round(S[k]/N[k]*100)/100:0;}
   var _JGA={I:null,it:null,src:null,fini:false};
   function _jgMieux(f,x,g,y){return f>g||(f===g&&x<y);}
   function _jgAnaStep(n){if(_JGA.src!==SP.D2M){_JGA.src=SP.D2M;_JGA.I=new Map();_JGA.it=SP.D2M?SP.D2M.values():null;_JGA.fini=!SP.D2M;}if(_JGA.fini)return true;var I=_JGA.I;
@@ -33089,7 +33107,7 @@ function spellUnknown(tok,atStart,T,idx){
         if(_jgMieux(f,x,spF(w1)||0,w1)){if(d1!==d)w2=w1;w1=x;}else if(d1!==d&&(w2===null||_jgMieux(f,x,spF(w2)||0,w2)))w2=x;else continue;I.set(c,w2===null?w1:[w1,w2]);}}
     return false;}
   function _jgAnag(nu){var d=deacc(nu),c=_jgCleD(d),b=c&&_JGA.I?_JGA.I.get(c):undefined;if(b===undefined)return null;var w1=typeof b==='string'?b:b[0];return deacc(w1)!==d?w1:(typeof b==='string'?null:b[1]);}
-  function _jgTr(nu,m){var b=m.split("'").pop(),de=deacc(nu);return [_jgK0(b)===_jgK0(nu)?1:0,_sonKey(b)===_sonKey(nu)||(nu.length>=2&&_jgFins(nu).indexOf(b)>=0)?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0,_jgDanse(de,deacc(b))];}
+  function _jgTr(nu,m){var b=m.split("'").pop(),de=deacc(nu);return [_jgK0(b)===_jgK0(nu)?1:0,_sonKey(b)===_sonKey(nu)||(nu.length>=2&&_jgFins(nu).indexOf(b)>=0)?1:0,_jgLev(de,deacc(b)),deacc(b)===de?1:0,_jgFq(m),0,_jgDanse(de,deacc(b)),_JG.lt&&!_jgConnu(nu)?_jgLet(de,deacc(b),_JG.lt):0];}   // liste n° 399 : 8e trait si le modèle a sa table (cfg.LT), pour un mot écrit inconnu seulement
   function _jgCands(w){var c=_JGM.get(w);if(c)return c;var mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),pre=mm?mm[1]:'',nu=mm?mm[2]:w,S=new Map();
     var aj=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,f);}},fi=nu.length>=2?_jgFins(nu):[],de=deacc(nu),gd=function(x){if(x!==nu&&!S.has(x)){var f=spF(x);if(f>=0.001)S.set(x,1e6+f);}};   // gd : le top 16 ne les coupe pas
     (_JGG[w]||[]).forEach(function(x){if(x!==w)S.set(x,1e9);});
@@ -33113,14 +33131,14 @@ function spellUnknown(tok,atStart,T,idx){
     rep.pc=[];for(p=0;p<T.length;p++){if(tr.t[p].k<0)continue;var nx=tr.t[p+1];if(!nx||nx.k>=0)rep.pc[p]=_JG.m.ponct(h,p,T.length);}
     return rep;}
   // L'arbitre : la note du mot écrit moins celle de la suggestion de la règle.
-  function _jgArb(tr){var L=_jgLit(tr.t.map(function(y){return y.vr;})),T=L.T,rep=[];for(var p=0;p<T.length;p++){if(!tr.t[p].ar)continue;var w=T[p],s=_jgLow(tr.t[p].ar);if(s===w)continue;var mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),sc=_JG.m.noter(L.h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]},{m:s,tr:_jgTr(mm?mm[2]:w,s)}]);rep[p]=sc[0]-sc[1];}return rep;}
+  function _jgArb(tr){var L=_jgLit(tr.t.map(function(y){return y.vr;})),T=L.T,rep=[];for(var p=0;p<T.length;p++){if(!tr.t[p].ar)continue;var w=T[p],s=_jgLow(tr.t[p].ar);if(s===w)continue;var mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),sc=_JG.m.noter(L.h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]},{m:s,tr:_jgTr(mm?mm[2]:w,s).slice(0,7)}]);rep[p]=sc[0]-sc[1];}return rep;}   // liste n° 399 : sans le 8e trait — l'arbitre juge un accord, pas une faute de lettre
   /* ⭐ 03/11/2026 (liste n° 349, idée de Rem : croiser le son et l'écrit) — la couche orthographe range ses candidats par paquets (accent, une
      lettre, même son) puis par fréquence : « saladié » donnait « maladie » (cent fois plus fréquent) plutôt que « saladier » (même son). Le juge
      croise les deux (même son large ou strict, distance, fréquence, contexte) mais ne parlait que sur les mots laissés sans marque. Quand
      l'orthographe hésite (orange sur un mot qui n'existe pas), il relit le mot ÉCRIT dans sa phrase et note ses candidats et celui de
      l'orthographe. Mesuré sur les 3 corpus dys : marge > 8 et proposition d'origine sous 500 par million : 69 réparés, 1 perdu ; sans la garde
      de fréquence, de petits mots très courants partaient pour des mots rares. Essais écartés : le son devant l'écrit (EcriScol 0 / 3) ; les
-     chances de faute par lettre tirées de WiCoPaCo (EcriScol 2 / 7, fautes de frappe d'adultes, pas de dys). */
+     chances de faute par lettre tirées de WiCoPaCo (EcriScol 2 / 7, fautes de frappe d'adultes, pas de dys) — reprises en 8e trait du juge, mot inconnu seulement (liste n° 399, _jgLet). */
   function _jgOrtho(tr){var L=_jgLit(tr.t.map(function(y){return y.vr;})),T=L.T,rep=[];for(var p=0;p<T.length;p++){var tk=tr.t[p];if(!tk.ao||tk.k<0)continue;
     var w=T[p],sp=_jgLow(tk.ao),mm=/^([a-zà-ÿ]{1,3}')(.+)$/.exec(w),nu=mm?mm[2]:w,c=_jgCands(w).slice();if(!c.some(function(y){return _jgLow(y.m)===sp;}))c.push({m:sp,tr:_jgTr(nu,sp)});
     var sc=_JG.m.noter(L.h,p,w,[{m:w,tr:[1,1,0,1,_jgFq(w),1]}].concat(c)),bi=-1,bv=-1e9,ss=null;for(var q=1;q<sc.length;q++){if(_jgLow(c[q-1].m)===sp)ss=sc[q];if(sc[q]>bv){bv=sc[q];bi=q;}}

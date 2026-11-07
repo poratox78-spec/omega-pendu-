@@ -25,6 +25,26 @@ module.exports = function (R) {
     if (mieux(f, w, e[0][1], e[0][0])) { if (e[0][2] !== d) e[1] = e[0]; e[0] = [w, f, d]; } else if (e[0][2] !== d && (!e[1] || mieux(f, w, e[1][1], e[1][0]))) e[1] = [w, f, d]; }
   function anag(nu) { const d = dec(low(nu)), k = cleDanse(d), e = k && IDXA.get(k); if (!e) return null; if (e[0][2] !== d) return e[0][0]; return e[1] ? e[1][0] : null; }
   const danse = (a, b) => { const x = dec(a), y = dec(b), k = cleDanse(x); return k && x !== y && k === cleDanse(y) ? 1 : 0; };
+  // Ligne 399 : 8e trait « lettres probables » = les chances de faute par lettre (WiCoPaCo, dictee/juge_lettres.json). Chemin d'édition le moins coûteux
+  // de l'écrit au candidat, sans accents (coût d'une édition = 4,5 − sa valeur) ; trait = MOYENNE des valeurs de ses éditions (0 sans édition).
+  // Pour un mot écrit INCONNU seulement (0 sinon) : WiCoPaCo ne compte que des non-mots, et sur tous les mots le trait déplaçait les marques du juge.
+  // _jgLetT et _jgLet sont copiés tels quels de dys-core.js : mêmes calculs dans le même ordre, donc le même nombre à l'entraînement et au produit.
+  function _jgLetT(V){var A='abcdefghijklmnopqrstuvwxyz',T={s:new Float64Array(676),t:new Float64Array(676)},x,v;
+    for(x=0;x<676;x++){v=V['s:'+A[(x/26)|0]+'>'+A[x%26]];T.s[x]=v===undefined?-4:v;v=V['t:'+A[(x/26)|0]+A[x%26]];T.t[x]=v===undefined?-4:v;}
+    ['d:','dd:','i:','ii:'].forEach(function(p){['','$'].forEach(function(f){var a=new Float64Array(26);for(var k=0;k<26;k++){var w=V[p+A[k]+f];a[k]=w===undefined?-4:w;}T[p+f]=a;});});
+    return T;}
+  function _jgLet(a,b,T){if(a===b)return 0;var n=a.length,m=b.length,W=m+1,C=new Float64Array((n+1)*W),S=new Float64Array((n+1)*W),N=new Float64Array((n+1)*W),ca=[],cb=[],i,j,k;
+    for(i=0;i<n;i++){k=a.charCodeAt(i)-97;ca.push(k>=0&&k<26?k:-1);}for(j=0;j<m;j++){k=b.charCodeAt(j)-97;cb.push(k>=0&&k<26?k:-1);}
+    for(i=0;i<=n;i++)for(j=0;j<=m;j++){if(!i&&!j)continue;var o=i*W+j,bc=Infinity,bs=0,bn=0,q,v,c,x,y;
+      if(i&&j){q=o-W-1;if(a[i-1]===b[j-1]){bc=C[q];bs=S[q];bn=N[q];}else{x=ca[i-1];y=cb[j-1];v=x<0||y<0?-4:T.s[x*26+y];c=C[q]+4.5-v;if(c<bc){bc=c;bs=S[q]+v;bn=N[q]+1;}}}
+      if(j){q=o-1;y=cb[j-1];v=y<0?-4:T[((j>1&&b[j-2]===b[j-1])||(j<m&&b[j]===b[j-1])?'dd:':'d:')+(j===m?'$':'')][y];c=C[q]+4.5-v;if(c<bc){bc=c;bs=S[q]+v;bn=N[q]+1;}}
+      if(i){q=o-W;x=ca[i-1];v=x<0?-4:T[((i>1&&a[i-2]===a[i-1])||(i<n&&a[i]===a[i-1])?'ii:':'i:')+(i===n?'$':'')][x];c=C[q]+4.5-v;if(c<bc){bc=c;bs=S[q]+v;bn=N[q]+1;}}
+      if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]&&a[i-1]!==a[i-2]){q=o-2*W-2;x=cb[j-2];y=cb[j-1];v=x<0||y<0?-4:T.t[x*26+y];c=C[q]+4.5-v;if(c<bc){bc=c;bs=S[q]+v;bn=N[q]+1;}}
+      C[o]=bc;S[o]=bs;N[o]=bn;}
+    k=n*W+m;return N[k]?Math.round(S[k]/N[k]*100)/100:0;}
+  const LTV = (() => { try { return JSON.parse(fs.readFileSync(path.join(R, 'dictee', 'juge_lettres.json'), 'utf8')).v; } catch (e) { return null; } })(), LTT = LTV && _jgLetT(LTV);
+  const lettres = (a, b) => (LTT ? _jgLet(a, b, LTT) : 0);
+  const nuW = (w) => { const m = /^([a-zà-ÿ]{1,3}')(.+)$/.exec(w); return m ? m[2] : w; };   // le mot sans son élision, comme _jgTr : le trait ne vaut que pour un mot écrit inconnu
   function cands(w0, max = 16) {
     const w = low(w0), m = /^([a-zà-ÿ]{1,3}')(.+)$/.exec(w), pre = m ? m[1] : '', nu = m ? m[2] : w, d = dec(nu), S = new Map();
     const ajoute = (c) => { if (c !== nu && !S.has(c)) S.set(c, F.get(c) || 0); };
@@ -40,10 +60,11 @@ module.exports = function (R) {
     if (!connu(w)) { const an = anag(nu); if (an && an !== nu) S.set(an, 2e9); }   // ligne 383 : l'anagramme passe devant, le top 16 ne la coupe pas
     return Array.from(S.entries()).sort((a, b) => b[1] - a[1]).slice(0, max).map((x) => (x[1] === 1e9 ? x[0] : pre + x[0]));
   }
-  // Traits d'une paire (écrit w, candidat c) : même son large, même son strict ou même famille de fin, distance, accent seul, fréquence du candidat (log), mêmes lettres (ligne 383).
+  // Traits d'une paire (écrit w, candidat c) : même son large, même son strict ou même famille de fin, distance, accent seul, fréquence du candidat (log), mêmes lettres (ligne 383),
+  // lettres probables (ligne 399).
   function traits(w0, c0) {
     const w = low(w0), c = low(c0), a = w.split("'").pop(), b = c.split("'").pop();
-    return [ph(a) === ph(b) ? 1 : 0, son(a) === son(b) || finsM(a).has(b) ? 1 : 0, Math.min(3, lev(dec(a), dec(b), 3)), dec(a) === dec(b) ? 1 : 0, Math.round(Math.log2(1 + (F.get(b) || 0))), danse(a, b)];
+    return [ph(a) === ph(b) ? 1 : 0, son(a) === son(b) || finsM(a).has(b) ? 1 : 0, Math.min(3, lev(dec(a), dec(b), 3)), dec(a) === dec(b) ? 1 : 0, Math.round(Math.log2(1 + (F.get(b) || 0))), danse(a, b), connu(nuW(w)) ? 0 : lettres(dec(a), dec(b))];
   }
-  return { D, F, low, dec, ph, son, lev, GR, GRP, connu, cands, fins, traits, anag, danse, cleDanse };
+  return { D, F, low, dec, ph, son, lev, GR, GRP, connu, cands, fins, traits, anag, danse, cleDanse, lettres, LTV };
 };

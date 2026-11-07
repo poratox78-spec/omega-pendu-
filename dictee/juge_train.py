@@ -6,7 +6,9 @@ Variables : BS (96), LR (1e-3). MAITRE=<grand.pt> : le petit apprend aussi les n
 ALPHA 0,7 = part des notes du maître, TAU_KD 2). Ligne 343 : grand '{"DM":512,"NL":8,"NH":8,"FF":2048,"DE":128,"DP":128}' 3 époques
 avec LR=6e-4 (3,5 h), puis l'élève '{"DM":192,"FF":384}' 4 époques avec MAITRE (3 h) : au produit, il bat l'élève sans maître, et le maître lui-même.
 Ligne 383 : '{"AN":1}' ajoute le 7e trait « mêmes lettres » (anagramme du milieu, dictee/juge_lex.js) ; INIT=<modèle.pt> part d'un modèle déjà appris
-(mêmes tables, la colonne du trait neuf vaut 0 au départ) ; SEUL_AN=1 n'apprend que cette colonne (tout le reste figé, aucun autre candidat ne bouge)."""
+(mêmes tables, la colonne du trait neuf vaut 0 au départ) ; SEUL_AN=1 n'apprend que cette colonne (tout le reste figé, aucun autre candidat ne bouge).
+Ligne 399 : '{"AN":1,"LT":1}' ajoute le 8e trait « lettres probables » (chances de faute par lettre, dictee/juge_lettres.json, que le modèle emporte dans cfg['LT']) ;
+SEUL_LT=1 n'apprend que sa colonne (la dernière), bornée sous l'échelle int8 de sa table : les 66 autres tables restent identiques à l'octet."""
 import io, json, math, os, random, sys, time
 import numpy as np, torch, torch.nn.functional as FN
 from juge_modele import Mini, morceaux, NG, taille, lexique, connu, freq
@@ -33,14 +35,15 @@ for l in io.open(TR, encoding='utf-8'):
 print('phrases', len(X), 'vocab', len(V), '%.0f s' % (time.time() - t0), flush=True)
 nV = len(V); inv = [None] * nV
 for w, k in V.items(): inv[k] = w
-AN = 1 if cfg.get('AN') else 0; NT = 6 + AN
+AN = 1 if cfg.get('AN') else 0; LT = 1 if cfg.get('LT') else 0; NT = 8 if LT else 6 + AN   # colonnes : … écrit (5), mêmes lettres (6), lettres probables (7)
+if cfg.get('LT') == 1: cfg['LT'] = {'v': json.load(io.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'juge_lettres.json'), encoding='utf-8'))['v']}
 NGm = np.zeros((nV, NG), dtype=np.int32); KO = np.zeros(nV, dtype=np.float32); CA = np.zeros((nV, CMAX), dtype=np.int32); CN = np.zeros(nV, dtype=np.int8); TRa = np.zeros((nV, CMAX, NT), dtype=np.float32)
 for k in range(1, nV):
     m = morceaux(inv[k], cfg['B']); NGm[k, :len(m)] = m; KO[k] = connu(FQ, inv[k])
 for w, c in memo.items():
-    k = V[w]; CA[k, 0] = k; TRa[k, 0] = [1, 1, 0, 1, freq(FQ, w), 1] + [0] * AN; n = 1
+    k = V[w]; CA[k, 0] = k; TRa[k, 0] = [1, 1, 0, 1, freq(FQ, w), 1] + [0] * (NT - 6); n = 1
     for x in c[1:CMAX]:
-        CA[k, n] = V[x[0]]; TRa[k, n] = [x[1], x[2], x[3], x[4], x[5], 0] + ([x[6] if len(x) > 6 else 0] if AN else []); n += 1
+        CA[k, n] = V[x[0]]; TRa[k, n] = [x[1], x[2], x[3], x[4], x[5], 0] + [x[q] if len(x) > q else 0 for q in range(6, NT)]; n += 1
     CN[k] = n
 NGt = torch.from_numpy(NGm).long().to(dev); KOt = torch.from_numpy(KO).to(dev); CAt = torch.from_numpy(CA).long().to(dev); CNt = torch.from_numpy(CN).long().to(dev); TRt = torch.from_numpy(TRa).to(dev)
 print('tables %.0f s' % (time.time() - t0), flush=True)
@@ -60,10 +63,12 @@ ALPHA = float(os.environ.get('ALPHA', 0.7)) if MA else 0.0; TAU = float(os.envir
 if MA: print('maître', taille(MA), 'alpha', ALPHA, 'tau', TAU, flush=True)
 def kd(s, st):   # écart aux notes du maître, adoucies par TAU
     return FN.kl_div(FN.log_softmax(s / TAU, -1), FN.softmax(st / TAU, -1), reduction='batchmean') * TAU * TAU
-SEUL = os.environ.get('SEUL_AN') == '1'   # ligne 383 : n'apprendre QUE la colonne du trait « mêmes lettres » ; un candidat sans ce trait garde exactement sa note
+SEUL = os.environ.get('SEUL_AN') == '1' or os.environ.get('SEUL_LT') == '1'   # lignes 383, 399 : n'apprendre QUE la colonne du trait le plus neuf (la dernière) ; un candidat sans ce trait garde exactement sa note
+BORNE = None
 if SEUL:
     for p_ in m.parameters(): p_.requires_grad_(False)
     W0 = m.mlp[0].weight; W0.requires_grad_(True); _mq = torch.zeros_like(W0); _mq[:, -1] = 1; W0.register_hook(lambda g: g * _mq)
+    BORNE = W0.detach()[:, :-1].abs().max().item(); print('colonne seule, bornée à', BORNE, flush=True)   # sous l'échelle int8 de la table : ses autres colonnes ne bougent pas à l'export
 LR0 = float(os.environ.get('LR', 1e-3)); opt = torch.optim.AdamW([p_ for p_ in m.parameters() if p_.requires_grad], lr=LR0, weight_decay=0.0 if SEUL else 0.01); BS = int(os.environ.get('BS', 96)); steps = EP * (len(TRN) // BS); pas = 0
 def lr(p): return min(1, p / 500) * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * p / steps)))
 def suite(i, colle):
@@ -128,6 +133,8 @@ for ep in range(EP):
         ids = sorted(TRN[b:b + BS], key=lambda i: len(X[i])); x, y, mj, e = lot(ids); r = perte(x, y, mj, e)
         for g in opt.param_groups: g['lr'] = LR0 * lr(pas)
         opt.zero_grad(set_to_none=True); scaler.scale(r[0]).backward(); scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0); scaler.step(opt); scaler.update(); pas += 1
+        if BORNE is not None:
+            with torch.no_grad(): m.mlp[0].weight[:, -1].clamp_(-BORNE, BORNE)
         if pas % 1000 == 0: print('pas', pas, '/', steps, 'choix %.4f ponct %.4f' % (r[3].item(), r[4].item()), '%.0f s' % (time.time() - t0), flush=True)
     m.eval(); ok = {'garde': [0, 0], 'faute': [0, 0]}
     with torch.no_grad():

@@ -43,7 +43,8 @@ class Mini(nn.Module):
         s.ph = nn.Linear(dm, dp); s.pc = nn.Linear(de, dp)
         s.tr = nn.Embedding(4, 6)   # distance
         s.an = 1 if cfg.get('AN') else 0   # ligne 383 : 7e trait « mêmes lettres » (anagramme du milieu)
-        s.mlp = nn.Sequential(nn.Linear(4 * dp + 6 + 6 + s.an, 128), nn.GELU(), nn.Linear(128, 1))
+        s.lt = 1 if cfg.get('LT') else 0   # ligne 399 : 8e trait « lettres probables » (chances de faute par lettre, WiCoPaCo) ; cfg['LT'] porte la table
+        s.mlp = nn.Sequential(nn.Linear(4 * dp + 6 + 6 + s.an + s.lt, 128), nn.GELU(), nn.Linear(128, 1))
         if cfg.get('PT'): s.pt = nn.Sequential(nn.Linear(dm * 2, 96), nn.GELU(), nn.Linear(96, 4))
     def ponct(s, h):   # chaque espace voit le mot d'avant et le mot d'après
         ap = torch.cat([h[:, 1:], torch.zeros_like(h[:, :1])], 1)
@@ -57,10 +58,10 @@ class Mini(nn.Module):
         for b in s.blocs: x = b(x, pad)
         return s.lnf(x)
     def noter(s, h, ew, ec, tr):
-        # h : N x dm · ew : N x de · ec : N x C x de · tr : N x C x 6 (ph, son, dist, acc, freq, écrit) [+ mêmes lettres si AN]
+        # h : N x dm · ew : N x de · ec : N x C x de · tr : N x C x 6 (ph, son, dist, acc, freq, écrit) [+ mêmes lettres (colonne 6) si AN] [+ lettres probables (colonne 7) si LT]
         C = ec.shape[1]; hp = s.ph(h)[:, None].expand(-1, C, -1); wp = s.pc(ew)[:, None].expand(-1, C, -1); cp = s.pc(ec)
         d = s.tr(tr[..., 2].long())
-        f = [tr[..., 0], tr[..., 1], tr[..., 3], tr[..., 4] / 16, tr[..., 5], (hp * cp).sum(-1) / 8] + ([tr[..., 6]] if s.an else [])
+        f = [tr[..., 0], tr[..., 1], tr[..., 3], tr[..., 4] / 16, tr[..., 5], (hp * cp).sum(-1) / 8] + ([tr[..., 6]] if s.an else []) + ([tr[..., 7]] if s.lt else [])
         f = torch.stack(f, -1)
         return s.mlp(torch.cat([hp, cp, wp, hp * cp, d, f], -1)).squeeze(-1)
 def lexique():

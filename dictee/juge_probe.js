@@ -6,6 +6,8 @@
 // ⑥ ponctuation (liste n° 333) : virgule, point et « ? » sur des phrases inventées, silence sur des phrases justes, plafond à part ; ⑦ les fins de mots (liste n° 337) sont parmi les candidats ;
 // ⑧ arbitre (liste n° 334) : une orange d'accord fausse se tait, les oranges justes restent, et le silence ne relance aucun calcul ;
 // ⑨ lettres du milieu mélangées (liste n° 383) : l'anagramme du milieu est parmi les candidats, le juge la choisit quand l'orthographe hésite, et son index se bâtit par tranches.
+// ⑩ lettres probables (liste n° 399) : le modèle emporte la table des chances de faute par lettre (WiCoPaCo), le 8e trait a la valeur de l'entraînement, il ne vaut que pour un mot inconnu,
+//    l'arbitre ne le lit pas, et le juge choisit le bon mot quand l'orthographe hésite.
 'use strict';
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..'), EXT = path.join(ROOT, 'extension'), err = [];
@@ -49,6 +51,15 @@ if (!D._juge.cands('chaier').some((x) => x.m === 'cahier' && x.tr[6] === 1)) err
 if (D._juge.cands('loin').some((x) => x.m === 'lion')) err.push('liste n° 383 : un mot connu ne reçoit pas d\'anagramme (« loin » → lion)');
 for (const [t, w, s] of [['Le petit garçon range son chaier dans le tiroir du bureau.', 'chaier', 'cahier'], ['Pour aller au marché, tourne à gauhce après la fontaine.', 'gauhce', 'gauche'], ['Les joueurs ont posé leurs raquetets contre le mur du gymnase.', 'raquetets', 'raquettes'], ['Le chien cahcait ses os sous le vieux banc.', 'cahcait', 'cachait']]) {
   const f = marques(t).filter((x) => x.word === w); if (f.length !== 1 || f[0].sugg !== s || !f[0].jugeOrtho || f[0].tier !== 'vigilance') err.push('liste n° 383 : « ' + t + ' » : attendu ' + w + ' → ' + s + ' (orange, choisi par le juge), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier)));
+}
+
+// liste n° 399 : 8e trait « lettres probables » = la moyenne des chances de faute par lettre (oubliée, ajoutée, mise pour une autre, inversée ; corpus public WiCoPaCo) sur le
+// chemin de l'écrit au candidat. Pour un mot écrit INCONNU seulement ; l'arbitre (un accord) ne le lit pas. Valeurs attendues = celles de dictee/juge_lex.js (entraînement).
+if (!D._juge.m.cfg.LT || !D._juge.lt) err.push('liste n° 399 : le modèle livré n\'a pas la table des lettres probables (cfg.LT)');
+for (const [w, c, v] of [['chevaus', 'chevaux', 1.42], ['abeile', 'abeille', 1.19]]) { const x = D._juge.cands(w).find((y) => y.m === c); if (!x || x.tr[7] !== v) err.push('liste n° 399 : « ' + w + ' » → ' + c + ' : 8e trait ' + v + ' attendu (celui de l\'entraînement), rendu ' + (x && x.tr[7])); }
+if (D._juge.cands('parle').some((x) => x.tr[7] !== 0)) err.push('liste n° 399 : un mot connu (« parle ») ne reçoit pas le 8e trait');
+for (const [t, w, s] of [['Il a rangé sa chambre rapidemt avant le dîner.', 'rapidemt', 'rapidement'], ['Parle doucemt pour ne pas réveiller le bébé.', 'doucemt', 'doucement']]) {
+  const f = marques(t).filter((x) => x.word === w); if (f.length !== 1 || f[0].sugg !== s || !f[0].jugeOrtho || f[0].tier !== 'vigilance') err.push('liste n° 399 : « ' + t + ' » : attendu ' + w + ' → ' + s + ' (orange, choisi par le juge), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier)));
 }
 
 for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants rentrent à la maison.', 'virgule'], ['Mon frère range son vélo dans le garage Il prépare ensuite le repas du soir.', 'point final'], ['On part à quelle heure demain matin', "point d'interrogation"], ['Pourquoi les oiseaux partent vers le sud en hiver', "point d'interrogation"]]) {
