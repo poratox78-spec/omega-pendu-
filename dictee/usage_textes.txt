@@ -336,3 +336,11 @@ Une buvette {tenu|tenue|G} par les parents proposera des crêpes et des boissons
 Les objets {invendu|invendus|N} peuvent être donnés à l'association.
 Merci de {laissé|laisser|C} la cour propre en partant.
 {venez|Venez|P} nombreux !
+=== T61 résumé au dos d'une histoire pour la jeunesse
+Lina, douze ans, {trouves|trouve|C} une vieille carte au fond du grenier familial.
+Le trésor qu'elle cherche est par la suite oublié de tous.
+Avec son ami Malo, elle {partent|part|C} à l'aventure dans les marais.
+Le voyage est à la fois drôle et {effrayent|effrayant|O}.
+Les deux enfants {devrons|devront|C} affronter leurs peurs.
+Les {chapitre|chapitres|N} sont courts, et le roman est {pleins|plein|N} d'humour.
+{a|À|O} lire dès dix ans.

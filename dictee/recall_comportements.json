@@ -845,7 +845,9 @@
 "La soirée fut tout sauf calme.",
 "Les nouvelles sont tous les jours meilleures.",
 "Le marché a lieu les samedi 4 et dimanche 5 mai.",
-"Les cours reprennent les 1-2 septembre."
+"Les cours reprennent les 1-2 septembre.",
+"Son avenir est par la suite inconnu.",
+"Le résultat fut à la fois simple et rapide."
 ],
 "elide": [
 [
@@ -3472,6 +3474,11 @@
 "Je viens tous les samedi.",
 "samedi",
 "samedis"
+],
+[
+"La suite inconnu du film.",
+"inconnu",
+"inconnue"
 ]
 ],
 "palier": [
