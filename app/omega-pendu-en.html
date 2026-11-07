@@ -29524,7 +29524,11 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   function _neuf366(T,i,tg){if(i<2||deacc(T[i].toLowerCase())!=='neuf'||T[i]!==T[i].toLowerCase()||tg[i]!=='NUM'||tg[i-1]!=='NOUN')return false;var n=T[i-1],dn=deacc(n.toLowerCase());if(n!==n.toLowerCase()||!/[sx]$/.test(dn)||_NEUF366_NUM[dn]||!_NEUF366_DET[deacc(T[i-2].toLowerCase())])return false;
     if(_SEG&&((i<_SEG.bb.length&&_SEG.bb[i])||(i-1<_SEG.bb.length&&_SEG.bb[i-1])||(_SEG.dig&&i<_SEG.dig.length&&_SEG.dig[i])))return false;if(i+1<T.length){var nx=deacc(T[i+1].toLowerCase());if(nx==='a'||nx==='au'||nx==='aux'||(_SEG&&_SEG.hy&&i+1<_SEG.hy.length&&_SEG.hy[i+1]))return false;}return true;}
   function _coord382(T,k){var dk=deacc(T[k].toLowerCase());if(dk==='du'||dk==='au')return true;for(var q=k-1;q>=0&&q>=k-4;q--){var x=deacc(T[q].toLowerCase());if(x==='et'||x==='ou'||x==='ni')return true;}return false;}   /* ⭐ 05/11/2026 (liste n° 382) — le retour au singulier de l'adjectif se tait quand le groupe suit « et / ou / ni » (deux noms coordonnés : « le pain et le vin locaux », le pluriel est juste) ou sur un nom complément (du / au). Sans cette garde : 3 marques fausses sur les 28 772 textes. */
-  function rAdjEpithet(T,i){var _o=_adv198(T,i);   /* ⭐ 28/10/2026 (liste n° 198) : nom et déterminant décalés d'un cran quand un adverbe les sépare de l'adjectif */var _el=(i>=1&&_elidKind(T[i-_o])==='det');
+  /* ⭐ 07/11/2026 (liste n° 432) — « Son avenir est par la suite inconnu » recevait « inconnue » en ROUGE : l'adjectif était accordé
+     avec « suite ». Une locution adverbiale (par la suite, à la fois, à la longue…) ne donne ni genre ni nombre. Liste fermée. */
+  var _LOC432={'de la sorte':1,'par la suite':1,'a la fois':1,'a la longue':1,'a la rigueur':1,'a la limite':1,'a la hate':1};
+  function _loc432(T,i){return i>=3&&!!_LOC432[deacc(T[i-3].toLowerCase())+' '+deacc(T[i-2].toLowerCase())+' '+deacc(T[i-1].toLowerCase())];}
+  function rAdjEpithet(T,i){if(_loc432(T,i))return null;var _o=_adv198(T,i);   /* ⭐ 28/10/2026 (liste n° 198) : nom et déterminant décalés d'un cran quand un adverbe les sépare de l'adjectif */var _el=(i>=1&&_elidKind(T[i-_o])==='det');
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     /* ⭐ FRONTIÈRE APRÈS L'ADJECTIF = ÉNUMÉRATION DISTRIBUTIVE (08/09/2026, miroir Python) : « des mondes grec, albanais et slave » — chaque adjectif porte sur UN monde, le singulier est juste. La règle SŒUR rAdjNumber a exactement cette ligne depuis toujours ; celle-ci ne l'avait pas. Exemption : une CAPITALE après la frontière n'est pas une énumération mais une phrase neuve (« une fête convivial ⏎ Question : … »), seule correction que la garde nue perdait. Mesuré : 0 perdue, 2 FP éteints (grec, local), 0 tir sur UD. */
     if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1]&&T[i+1].charAt(0)===T[i+1].charAt(0).toLowerCase())return null;
@@ -32382,6 +32386,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(_EPICENE_ADJ[d])return null;                                                   // épicène → pas de genre à trancher (rAdjNumber gère le nombre en rouge)
     if(!_accOkG(lw,d))return null;                                                    // collision d'accent déacc (teinté≠teinte)
     if(d==='tout'||d==='tous'||d==='toute'||d==='toutes')return null;
+    if(_loc432(T,i))return null;   // liste n° 432
     if(i>=3&&/^(tous|toutes)$/.test(deacc(T[i-3].toLowerCase()))&&deacc(T[i-2].toLowerCase())==='les'&&/^(jours|soirs|matins|ans|annees|mois|semaines|nuits|fois|heures)$/.test(deacc(T[i-1].toLowerCase())))return null;   // liste n° 426 : « sont tous les jours meilleures » — complément de temps, l'adjectif est l'attribut du sujet
     if(!tg||i>=tg.length||tg[i]!=='ADJ')return null;
     if(tg[i-1]!=='NOUN'&&!_el)return null;
