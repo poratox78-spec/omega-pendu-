@@ -27006,6 +27006,10 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     if(_tete&&!(i+2<T.length&&svReads(T[i+2]).length))return null;
     var nx=T[i+1].toLowerCase(),dn=deacc(nx);
     if(MAIS_STOP[dn])return null;   // adverbe/mot-outil homographe d'un nom (« mais pas »/« mais comment ») → conjonction, pas « mes »
+    if(_INVAR_S[dn]||(_SEG&&_SEG.dig&&i+1<_SEG.dig.length&&_SEG.dig[i+1]))return null;   /* ⭐ 07/11/2026 (liste n° 427) : « il parle anglais mais français
+       aussi », « …, mais 5 / 7 / 5 mores » recevaient « mes » en ROUGE — un mot en -s invariable (français, anglais, temps…) n'est pas un
+       pluriel, et un nombre entre « mais » et le nom en fait un compte, pas un possessif. Au produit entier, la règle n'avait que ces 2
+       rouges, tous deux faux. */
     if(PREP[dn]||NUM_DET[nx]||NUM_PRON[dn]||vlike(T,i+1))return null;   // pas prép/déterminant/pronom/verbe
     return (_nounGate(dn)&&(/s$/.test(dn)||/x$/.test(dn)))?ckeepcase(T[i],'mes'):null;}   // NOM (posterior §3 `_nounGate`, pas GENDER_PURE brut) ET PLURIEL : « mes » possessif PLURIEL → « mes attention »/« mes budget » (sg) agrammatical ; vrais catches pluriels (mes lunettes/parents/yeux)
   // « du » (=de+le) + ARTICLE (la/l') = structurellement impossible → « de » (« du la ferme »→de la, « du l'usine »→de l'). FP=0 (scan UD). Faute dys du/de.

@@ -352,3 +352,11 @@ Les portes coupe-feu doivent rester {fermé|fermées|G}.
 Le point de rassemblement {ce|se|O} trouve devant la grille.
 Les responsables d'étage {vérifierons|vérifieront|C} que personne n'est resté dans les {bureau|bureaux|N}.
 {attendez|Attendez|P} le signal avant de rentrer.
+=== T63 présentation d'un séjour linguistique
+Pendant le séjour, les élèves {parle|parlent|C} anglais mais français aussi avec leur famille d'accueil.
+Chaque matin, ils {suive|suivent|C} trois heures de cours.
+Le reste de la journée est consacré aux {visite|visites|N} de la ville.
+Les familles {accueil|accueillent|C} un ou deux élèves.
+Le dernier soir, une fête est {organiser|organisée|C} au collège.
+{les|Les|P} élèves rentrent le samedi suivant.
+Une réunion d'information {auras|aura|C} lieu en mars.
