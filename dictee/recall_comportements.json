@@ -836,7 +836,10 @@
 "Emma Thomas est arrivée hier soir.",
 "Pierre Martin est venue en avance.",
 "Chacune d'entre elles est rangée dans un tiroir.",
-"L'une d'entre elles se lève tôt."
+"L'une d'entre elles se lève tôt.",
+"Le château domine la vicomté voisine.",
+"Il coupe la planche avec une égoïne.",
+"Le soudeur règle un chalumeau à acétylène."
 ],
 "elide": [
 [
@@ -3448,6 +3451,11 @@
 "Chacune d'entre elles sont rangées dans un tiroir.",
 "sont",
 "est"
+],
+[
+"Il coupe la planche avec un égoïne.",
+"un",
+"une"
 ]
 ],
 "palier": [

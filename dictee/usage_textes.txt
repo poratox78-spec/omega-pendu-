@@ -301,3 +301,11 @@ Les gagnants {recevrons|recevront|C} un bon d'achat, et leurs photos seront {exp
 L'une d'entre elles fera la couverture du bulletin municipal.
 Les résultats seront {annoncer|annoncés|C} à la fête de la musique.
 {pour|Pour|P} toute question, écrivez au secrétariat de la mairie.
+=== T57 liste du matériel pour un atelier de bricolage
+Pour l'atelier de samedi, chaque participant apporte ses gants et une paire de lunettes.
+Nous {fourniron|fournirons|C} les planches, les vis et une égoïne pour deux personnes.
+Les {clou|clous|N} et les chevilles sont rangés dans la boîte bleue.
+Le chalumeau à acétylène reste {fermer|fermé|C} : seul l'animateur s'en sert.
+Pensez à {apporté|apporter|C} une boîte pour {ramené|ramener|C} vos chutes de bois.
+Les enfants de moins de dix ans {doive|doivent|C} venir avec un adulte.
+{a|À|O} la fin, nous rangeons ensemble et nous balayons l'atelier.
