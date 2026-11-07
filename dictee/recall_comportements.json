@@ -851,7 +851,10 @@
 "Les clients restant calmes attendent leur tour.",
 "Les places restant libres sont au fond.",
 "Il parle anglais mais français aussi.",
-"Sont arrivés des amis de Lyon."
+"Sont arrivés des amis de Lyon.",
+"Il est parti sans qu'il ait jamais menti.",
+"C'est le plus beau film que j'ai jamais vu.",
+"Je doute qu'il soit jamais venu."
 ],
 "elide": [
 [
@@ -3503,6 +3506,11 @@
 "La salle est réservé au club.",
 "réservé",
 "réservée"
+],
+[
+"Il a jamais menti.",
+"a",
+"n'a"
 ]
 ],
 "palier": [

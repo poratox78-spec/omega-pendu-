@@ -368,3 +368,12 @@ Les licences {peuve|peuvent|C} être payées en trois fois.
 Une réunion d'accueil est {prévu|prévue|G} au foyer, avec les {entraîneur|entraîneurs|N}.
 Les maillots neufs {arriverons|arriveront|C} en octobre.
 {nous|Nous|P} comptons sur vous !
+=== T65 chronique d'un concert
+C'est le plus beau concert que j'ai jamais vu.
+Le chanteur a joué deux heures sans qu'on ait jamais envie de partir.
+Les musiciens {était|étaient|C} placés en cercle autour de lui.
+La salle {étais|était|C} pleine dès vingt heures.
+Le public {chantaient|chantait|C} chaque refrain.
+Les {lumière|lumières|N} changeaient de couleur à chaque morceau.
+J'ai {acheter|acheté|C} un disque à la sortie.
+{vivement|Vivement|P} le prochain !
