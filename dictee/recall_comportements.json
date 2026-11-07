@@ -843,7 +843,9 @@
 "Mieux vaut des amis que des ennemis.",
 "Peu importe les détails, le résultat compte.",
 "La soirée fut tout sauf calme.",
-"Les nouvelles sont tous les jours meilleures."
+"Les nouvelles sont tous les jours meilleures.",
+"Le marché a lieu les samedi 4 et dimanche 5 mai.",
+"Les cours reprennent les 1-2 septembre."
 ],
 "elide": [
 [
@@ -3465,6 +3467,11 @@
 "Les outils vaut cher.",
 "vaut",
 "valent"
+],
+[
+"Je viens tous les samedi.",
+"samedi",
+"samedis"
 ]
 ],
 "palier": [

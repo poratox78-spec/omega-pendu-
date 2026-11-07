@@ -327,3 +327,12 @@ Mercredi, deux {voile|voiles|N} se sont déchirées pendant la régate.
 Chaque soir, les stagiaires {rangeait|rangeaient|C} le matériel avant le repas.
 Toute l'équipe remercie les parents pour {leur|leurs|N} gâteaux du vendredi.
 {a|À|O} l'année prochaine !
+=== T60 affiche d'un vide-grenier
+Le vide-grenier de l'école aura lieu les samedi 12 et dimanche 13 octobre, dans la cour.
+Les exposants {pourrons|pourront|C} s'installer dès sept heures.
+Chaque emplacement {coûtent|coûte|C} cinq euros et mesure deux mètres.
+Les {inscription|inscriptions|N} se font à l'accueil jusqu'au 5 octobre.
+Une buvette {tenu|tenue|G} par les parents proposera des crêpes et des boissons.
+Les objets {invendu|invendus|N} peuvent être donnés à l'association.
+Merci de {laissé|laisser|C} la cour propre en partant.
+{venez|Venez|P} nombreux !
