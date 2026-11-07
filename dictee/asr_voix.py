@@ -53,8 +53,12 @@ QRISE = 4.0                      # demi-tons : fin de phrase qui MONTE d'au moin
 #   AVANT le g2p deviné. W2P ne connaît que les mots qui ONT un homophone (decompose.py l. 95-101) : le, de, se, ne, que,
 #   je, jamais… tombaient sur le g2p, qui rend muet leur « e » (le → /l/, que → /k/). decompose() fait déjà
 #   W2P > PHON_MORPHALOU (305 k formes, 82,4 % exact) > g2p ; l'index de l'oreille le rejoint ici.
-#   Défaut OFF (doctrine §1.6, R66) : OMEGA_ASR_MORPHALOU=1 l'allume. Mesure au banc de la voie B : voir la PR.
-PRON_MORPHALOU = os.environ.get('OMEGA_ASR_MORPHALOU', '') == '1'
+#   Mesuré coupé par défaut (#1227) : Parlement B 76,4 → 77,5 %, voix de Rem inchangée, « de » n'est plus « deux ».
+#   ALLUMÉ par défaut ensuite (Rem, 07/11), avec la table de l'oreille refaite sur cet index ; OMEGA_ASR_MORPHALOU=0 le
+#   coupe (R66) : l'ancien index (son propre cache) ET l'ancienne table de l'oreille (asr_oreille_sans_morphalou.json).
+PRON_MORPHALOU = os.environ.get('OMEGA_ASR_MORPHALOU', '1') != '0'
+if not PRON_MORPHALOU:   # coupé : l'index d'avant ET SA table (mesuré : index d'avant + table nouvelle = 67,5 % au Parlement B, pire que les deux)
+    OREILLE_PATH = os.path.join(HERE, 'asr_oreille_sans_morphalou.json')
 
 # ── IPA (vocab du modèle) -> SAMPA OMEGA ──
 IPA2O = {'a': 'a', 'ɑ': 'a', 'ɐ': 'a', 'ɒ': 'O', 'e': 'e', 'ɛ': 'E', 'ɜ': 'E', 'ə': '°', 'i': 'i', 'ɪ': 'i',

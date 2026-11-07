@@ -17,6 +17,9 @@ le schwa se perd 45 % du temps ; ø → ə 32 %, œ → ø 24 %, ɛ̃ → œ̃ 2
 Refaite le 18/10/2026 sur le code du jour (le son de référence des mots inconnus de l'index vient du g2p, relu le 16/10) ;
 mesurée sur les mêmes sons entendus : Parlement B 76,0 % (inchangé), parlé B 81,3 → 81,6 %, voix de Rem 48/53 et 30/53
 bruitée (inchangées). Le gain de l'été au code du jour (75,1 → 76,0 % ; 80,6 → 81,3 %) vient du code, pas de la table.
+Refaite le 07/11/2026 sur l'index + Morphalou (de, le, que gardent leur « e ») : schwa perdu 44 → 19 %, AJOUTÉ par le modèle
+2,8 → 0,2 % (l'ancienne table apprenait l'erreur du g2p) ; Parlement B 77,4 %, parlé B 82,5 %, Rem 48/53 et 30/53.
+L'ancienne table reste (asr_oreille_sans_morphalou.json) pour OMEGA_ASR_MORPHALOU=0 ; --check vérifie la table du réglage courant.
 
     python dictee/build_asr_oreille.py            # écrit dictee/asr_oreille.json
     python dictee/build_asr_oreille.py --check    # refait la table et la compare à celle du dépôt
