@@ -127,7 +127,7 @@ def main(argv):
     if argv[0] == '--demo': demo(); return 0
     if argv[0] == '--mot':
         if len(argv) < 2: print("précise un mot"); return 1
-        w = argv[1].lower(); phono = D.W2P.get(w) or D.sublexical_phon(w)[0]
+        w = argv[1].lower(); phono = D.decompose(w)['phono']   # Lexique > Morphalou > g2p (07/11 : avant, sans Morphalou → « de » /d/)
         print(f"mot « {w} » → phono /{phono}/"); show(phono); return 0
     for a in argv: show(a)
     return 0

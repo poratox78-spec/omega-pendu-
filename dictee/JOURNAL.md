@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-11-07 — Outils : `p2g.py --mot` et la sonde de syllabes lisent la chaîne de `decompose()` (Morphalou compris)
+
+- Deux outils prenaient W2P > g2p, sans Morphalou (même trou que la voie B, #1227) : `p2g.py --mot` (« de » → /d/ →
+  « des » 72 %, « dent » 19 %) et `voix_aligneur_syll_probe.nb_syllabes`, dont la docstring disait pourtant suivre
+  `decompose.py`. Les deux appellent maintenant `D.decompose(w)['phono']` : Lexique > Morphalou > g2p.
+- Mesuré : `--mot de` → /d°/ → « de » 95 %. La sonde de syllabes : sortie identique octet pour octet sur ses 93 clips
+  (0 mot sur 2 697 change de nombre de syllabes) ; positif connu vérifié : 666 mots rares de Morphalou sur 20 000 changent
+  (« abadent » 3 → 2). `p2g --measure` inchangé (il lit W2P comme vérité-terrain, et doit le rester : decompose.py l. 95).
+- Défaut du g2p vu en passant, pour le correcteur : il compte une syllabe de trop sur des formes verbales en -ent rares
+  (« abadent », « abatent ») ; Morphalou le masque pour les mots qu'il connaît, pas pour les inédits.
+
 ## 2026-11-07 (suite) — Voie B : Morphalou ALLUMÉ par défaut, table de l'oreille refaite (Rem)
 
 - Rem : « la PR qui allume la correction par défaut ». `OMEGA_ASR_MORPHALOU=0` la coupe (R66).
