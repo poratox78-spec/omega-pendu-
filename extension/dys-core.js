@@ -4958,11 +4958,22 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
     var _gn2=(suj==='elle')?'f':((i>=2&&suj!=='il'&&suj!=='on')?_nounGender(T[i-2],'s',true):null);   // sujet NOMINAL : « la voisine s'est marier » → mariée (genre du nom ; 0 occurrence s'est+inf sur 16 950 correct)
     return w.slice(0,-2)+(_gn2==='f'?'ée':'é');}
   var _H_ASP160=/^(hauss|hach|hant|harcel|harass|hasard|heurt|hiss|hurl|hat|henn|herss|heriss|houspill|hu[ae]|hai[st]|hais|hai$|hoch|hott|huch|hupp|hong)/,_H_MUET160=/^(habit|habill|hesit|herit|heberg|honor|humili|hydrat|halluc|harmonis|hiber|homolog|horrif|hospitalis|humect|hypnotis|histor|humanis|hum[aeio])/;   // liste n° 160 : radicaux de verbes à h aspiré / muet (listes fermées)
+  /* ⭐ 07/11/2026 (liste n° 428) — « sans qu'il ait jamais menti », « le plus beau film que j'ai jamais vu » recevaient « n'ait », « je
+     n'ai » en ROUGE : « jamais » y veut dire « un jour », sans négation. Trois cadres : la subordonnée de « sans que » / « avant que » ; le
+     subjonctif d'avoir ou d'être après « que » (doute, déni) ; la relative en « que » après un superlatif (plus, moins, meilleur, pire,
+     premier, seul, dernier, unique), six mots au plus avant. « Je pense qu'il mange jamais » garde son rouge. */
+  var _SUP428={plus:1,moins:1,meilleur:1,meilleure:1,meilleurs:1,meilleures:1,pire:1,pires:1,premier:1,premiere:1,premiers:1,premieres:1,seul:1,seule:1,seuls:1,seules:1,dernier:1,derniere:1,unique:1};
+  function _jamaisPos428(T,i){var lo=i,k,q=-1;while(lo>0&&!(_SEG&&_SEG.ss&&_SEG.ss[lo]))lo--;
+    for(k=i;k>=lo;k--){var dk=deacc(T[k].toLowerCase()).replace(/’/g,"'");if(dk==='que'||/^qu'/.test(dk)){q=k;break;}}
+    if(q<0)return false;var p=q>0?deacc(T[q-1].toLowerCase()):'';if(p==='sans'||p==='avant')return true;
+    if(/^(ait|aie|aies|aient|ayons|ayez|soit|sois|soient|soyons|soyez)$/.test(deacc(T[i].toLowerCase().split(/['’]/).pop())))return true;   // subjonctif d'avoir / être après « que » : doute, déni (« je doute qu'il soit jamais venu »)
+    for(k=q-1;k>=lo&&k>=q-6;k--)if(_SUP428[deacc(T[k].toLowerCase())])return true;return false;}
   function rNegNe(T,i){if(i+1>=T.length)return null;var lw=T[i].toLowerCase(),d=deacc(lw);
     var nx=deacc(T[i+1].toLowerCase()),n2=i+2<T.length?deacc(T[i+2].toLowerCase()):'';
     if(d==='y'){if(!(_NEG_AUXV[nx]&&i>=1&&deacc(T[i-1].toLowerCase())==='il'&&_NEG_NEXT[n2]))return null;   // « il y a pas » → « il n'y a pas »
       if(n2==='pas'&&i+3<T.length&&deacc(T[i+3].toLowerCase())==='mal')return null;return "n'y";}
     if(!_NEG_NEXT[nx])return null;
+    if(nx==='jamais'&&_jamaisPos428(T,i))return null;   // liste n° 428
     if(T[i+1].charAt(0)!==T[i+1].charAt(0).toLowerCase())return null;   // « …allaite.. Rien n'est » : négation capitalisée = phrase SUIVANTE (flood)
     if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;              // frontière de proposition entre verbe et négation
     if(nx==='pas'&&n2==='mal')return null;                                             // « pas mal (de) » : locution sans ne
