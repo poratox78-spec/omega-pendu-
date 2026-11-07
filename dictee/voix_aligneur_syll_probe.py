@@ -56,16 +56,14 @@ PAUSE_MIN_MS = 190   # la bande VIRGULE commence là (calibration voie A d'origi
 # ── phonologie : le nombre de syllabes d'un mot, par les outils qu'on possède déjà ────────────
 _CACHE = {}
 def nb_syllabes(mot):
-    """Priorité à la phono LEXICALE (`D.W2P`, table Lexique déjà chargée par decompose) ; repli
-    sur le g2p sublexical pour l'OOV. C'est exactement la hiérarchie de `decompose.py` — on ne
-    réinvente pas la route, on l'appelle."""
+    """La phono de `decompose()` : Lexique (`D.W2P`) > Morphalou > g2p sublexical pour l'OOV. On ne
+    réinvente pas la route, on l'appelle. (07/11/2026 : avant, W2P > g2p, sans Morphalou — 0 mot changé
+    sur les 93 clips, 666 sur 20 000 mots rares de Morphalou : « abadent » 3 → 2 syllabes.)"""
     m = (mot or '').lower().strip("'’-")
     if not m: return 0
     if m in _CACHE: return _CACHE[m]
-    sampa = D.W2P.get(m)
-    if not sampa:
-        try: sampa = D.sublexical_phon(m)[0]
-        except Exception: sampa = None
+    try: sampa = D.decompose(m)['phono']
+    except Exception: sampa = None
     if sampa:
         _, n = D.syllabify_sampa(sampa)
     else:                                     # dernier recours : les voyelles écrites
