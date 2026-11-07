@@ -25428,14 +25428,14 @@ window.addEventListener('DOMContentLoaded', () => {
    +'.vdd-diff button{font:inherit;font-size:14px;padding:6px 13px;border:1px solid #e6dcc3;background:#fff;border-radius:20px;cursor:pointer;margin-right:6px}.vdd-diff button.on{background:#2a6f97;color:#fff;border-color:#2a6f97}'
    +'#vdd-ans{font:inherit;font-size:19px;line-height:1.5;padding:11px;width:100%;min-height:70px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px;color:#111;caret-color:#111;box-sizing:border-box;display:block;white-space:pre-wrap;overflow-wrap:break-word;outline:none;cursor:text}'+'#vdd-ans:empty:before{content:attr(data-ph);color:#9a8f73;pointer-events:none}#vdd-ans:focus{border-color:#2a6f97}'+'body.dys-dark #vdd-ans{background:#10161d;color:#e8edf2;caret-color:#9b6dd6;border-color:#33414f}body.dys-dark #vdd-ans:empty:before{color:#6b7683}'
    +'.vdd-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.vdd-row button{font:inherit;font-size:16px;padding:10px 15px;border:none;border-radius:10px;background:#2a6f97;color:#fff;cursor:pointer}.vdd-row button.g{background:#fff;color:#222;border:1px solid #e6dcc3}'
-   +'.vdd-fact{padding:9px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff}.vdd-sc{color:#444;font-size:14px}.vdd-truth{font-size:18px;font-weight:bold}'+'#vdd-card.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}'+'#vdd-card.lisible #vdd-ans{font-size:22px;letter-spacing:.06em;line-height:1.8}'+'#vdd-card.lisible .vdd-fact{font-size:17px}'+'.vdd-row button{min-height:44px}#vdd-card input[type=range]{width:120px}';
+   +'.vdd-fact{padding:9px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff}.vdd-sc{color:#444;font-size:14px}.vdd-truth{font-size:18px;font-weight:bold}'+'#vdd-card.lisible{font-family:"OMEGA Dys Site",Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}'+'#vdd-card.lisible #vdd-ans{font-size:22px;letter-spacing:.06em;line-height:1.8}'+'#vdd-card.lisible .vdd-fact{font-size:17px}'+'.vdd-row button{min-height:44px}#vdd-card input[type=range]{width:120px}';
   document.head.appendChild(st);
   var btn=document.createElement('button');btn.id='vdd-btn';btn.textContent='✍️ Dictée diag';document.body.appendChild(btn);
   var ov=document.createElement('div');ov.id='vdd-ov';
   ov.innerHTML='<div id="vdd-card"><button id="vdd-x">×</button><h2>✍️ Dictée diagnostique — phrases</h2>'
    +'<div class="vdd-sc">Écoute la phrase, écris-la. Le diagnostic explique <b>le type</b> de chaque faute, <b>accords compris</b> (contexte). Données : Lexique 4 (New et al. 2026, lexique.org, CC BY-SA 4.0).</div>'
    +'<div class="vdd-diff" id="vdd-diff" style="margin-top:10px"><button data-d="facile" class="on">Facile</button><button data-d="moyen">Moyen</button><button data-d="difficile">Difficile</button></div>'
-   +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc"><input type="checkbox" id="vdd-syl"> Syllabes en couleur</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
+   +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc" title="Police plus lisible : OMEGA Dys + lettres et mots espacés"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc"><input type="checkbox" id="vdd-syl"> Syllabes en couleur</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
    +'<div id="vdd-ans" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Ta phrase" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-ph="écris la phrase ici"></div>'
    +'<div class="vdd-row"><button id="vdd-check">Corriger</button><button class="g" id="vdd-next">Phrase suivante →</button></div>'
    +'<div id="vdd-fb" aria-live="polite" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div id="vdd-srs" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
@@ -25796,7 +25796,7 @@ window.addEventListener('DOMContentLoaded', () => {
       _cRendu();
     }
     bcj.onclick=lancerC;
-  })();$('vdd-reset').onclick=function(e){e.preventDefault();PROF={};try{localStorage.removeItem('vdd_profile');localStorage.removeItem('vdd_srs');}catch(_){}if(DysProfile)DysProfile.reset();renderProf();renderUProf();renderSrs();};renderProf();var _li=$('vdd-lisible');if(_li){_li.checked=localStorage.getItem('vdd_lisible')==='1';if(_li.checked)$('vdd-card').classList.add('lisible');_li.onchange=function(){$('vdd-card').classList.toggle('lisible',_li.checked);try{localStorage.setItem('vdd_lisible',_li.checked?'1':'0');}catch(e){}};}var _sy=$('vdd-syl');if(_sy){_sy.checked=SYLCOL;_sy.onchange=function(){SYLCOL=_sy.checked;try{localStorage.setItem('vdd_syl',SYLCOL?'1':'0');}catch(e){}var tr=$('vdd-fb')&&$('vdd-fb').querySelector('.vdd-truth');if(tr&&cur)tr.innerHTML=_dsModel(cur.text);};}var _rt=$('vdd-rate');if(_rt){_rt.value=VR;_rt.oninput=function(){VR=parseFloat(_rt.value)||0.85;try{localStorage.setItem('vdd_rate',String(VR));}catch(e){}};}renderHist();renderUProf();renderSrs();
+  })();$('vdd-reset').onclick=function(e){e.preventDefault();PROF={};try{localStorage.removeItem('vdd_profile');localStorage.removeItem('vdd_srs');}catch(_){}if(DysProfile)DysProfile.reset();renderProf();renderUProf();renderSrs();};renderProf();var _li=$('vdd-lisible');if(_li){_li.checked=localStorage.getItem('vdd_lisible')==='1';if(_li.checked)$('vdd-card').classList.add('lisible');_li.onchange=function(){if(_li.checked&&window.OmegaDysSite)window.OmegaDysSite();$('vdd-card').classList.toggle('lisible',_li.checked);try{localStorage.setItem('vdd_lisible',_li.checked?'1':'0');}catch(e){}};}var _sy=$('vdd-syl');if(_sy){_sy.checked=SYLCOL;_sy.onchange=function(){SYLCOL=_sy.checked;try{localStorage.setItem('vdd_syl',SYLCOL?'1':'0');}catch(e){}var tr=$('vdd-fb')&&$('vdd-fb').querySelector('.vdd-truth');if(tr&&cur)tr.innerHTML=_dsModel(cur.text);};}var _rt=$('vdd-rate');if(_rt){_rt.value=VR;_rt.oninput=function(){VR=parseFloat(_rt.value)||0.85;try{localStorage.setItem('vdd_rate',String(VR));}catch(e){}};}renderHist();renderUProf();renderSrs();
   $('vdd-ans').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();answered?pick():check();}});
 
   // ===== CORRECTEUR DYS (semi-direct) — port de dictee/correcteur_probe.py, réutilise le levier ci-dessus =====
@@ -32873,7 +32873,7 @@ function spellUnknown(tok,atStart,T,idx){
    +'#vdc-card .vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #4a2f85;border-radius:8px;background:#5b3a9e;color:#fff;cursor:pointer}'   /* scopé #vdc-card : bat le global button:not(.btn) (0,1,1) qui fuyait une couleur claire */
    +'#vdc-card .vdc-comp:hover{background:#492f80;color:#fff}#vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #c9b8ea;font-weight:bold}'   /* 1re = défaut Tab, marquée par un liseré */
    +'body.dys-dark #vdc-card .vdc-comp{background:#7c5bc0;color:#fff;border-color:#6a4caf}body.dys-dark #vdc-card .vdc-comp:hover{background:#6a4caf;color:#fff}body.dys-dark #vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #b9a3e6}'
-   +'#vdc-card.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}'
+   +'#vdc-card.lisible{font-family:"OMEGA Dys Site",Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}'
    +'#vdc-card.lisible #vdc-in,#vdc-card.lisible #vdc-render{letter-spacing:.04em;word-spacing:.14em}'   /* Police dys : la textarea NE reçoit PAS le letter/word-spacing hérité (form control) alors que l'overlay OUI → curseur décalé. On force le MÊME espacement explicite sur LES DEUX (même font-size 18px → mêmes px) */
    +'#vdc-set{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}'
    +'#vdc-set button{font:inherit;font-size:13px;padding:5px 11px;border:1px solid #cfc4ab;border-radius:8px;background:#fff;color:#333;cursor:pointer;min-height:34px}'
@@ -32934,7 +32934,7 @@ function spellUnknown(tok,atStart,T,idx){
    +'<div id="vdc-set" role="group" aria-label="Réglages d\'affichage">'
    +'<button id="vdc-theme" type="button" aria-pressed="false" title="Thème : auto (système), clair ou sombre">🌗 Thème : auto</button>'
    +'<button id="vdc-cb" type="button" aria-pressed="false" title="Palette adaptée au daltonisme (orange/bleu)">🎨 Daltonien</button>'
-   +'<button id="vdc-lis" type="button" aria-pressed="false" title="Police plus lisible : Verdana + lettres et mots espacés (dyslexie)">🔤 Police lisible</button>'
+   +'<button id="vdc-lis" type="button" aria-pressed="false" title="Police plus lisible : OMEGA Dys + lettres et mots espacés (dyslexie)">🔤 Police lisible</button>'
    +'<button id="vdc-lire" type="button" aria-pressed="false" title="Listen to your text read aloud — the word being read is highlighted (nothing leaves your device)">🔊 Read aloud</button>'
    +'</div>'
    +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> (soulignées si la police de son est allumée) ; clique un mot dans « ✅ Texte corrigé » pour appliquer</span></div>'
@@ -33944,7 +33944,7 @@ function spellUnknown(tok,atStart,T,idx){
     function save(){try{localStorage.setItem('dysDisplay',JSON.stringify(st));}catch(e){}}
     var bt=$('vdc-theme');if(bt)bt.addEventListener('click',function(){st.theme=THEMES[(THEMES.indexOf(st.theme)+1)%3];apply();save();});
     var bc=$('vdc-cb');if(bc)bc.addEventListener('click',function(){st.cb=!st.cb;apply();save();});
-    var bl=$('vdc-lis');if(bl)bl.addEventListener('click',function(){st.lis=!st.lis;apply();save();});
+    var bl=$('vdc-lis');if(bl)bl.addEventListener('click',function(){st.lis=!st.lis;if(st.lis&&window.OmegaDysSite)window.OmegaDysSite();apply();save();});
     /* ===== LECTURE READ-ALONG (2026-08-13) — se corriger par l'OREILLE : le dys entend
        l'incohérence que l'œil survole (doctrine de l'audibilité). Le mot LU est surligné en
        karaoké dans « ✅ Texte corrigé » via onboundary (voix locales Chrome) ; si la voix ne
@@ -34601,10 +34601,19 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
 <script>/* ⭐ 09/10/2026 — « Aa OMEGA Dys » du site (nav.js, clé omega_dysfont) : l'app (correcteur, dictée, pendu — aussi dans le cadre des
    pages du site) suit le choix : même origine, même stockage, et l'événement « storage » quand on clique dans l'en-tête. La police vient
    du bloc base64 déjà embarqué (marche hors-ligne) ; famille à part (« OMEGA Dys Site ») pour ne pas toucher aux trois graisses de la
-   police de son. OFF par défaut ; texte jamais modifié (habillage CSS seul). */
+   police de son. OFF par défaut ; texte jamais modifié (habillage CSS seul).
+   ⭐ 07/11/2026 (ligne 419 ; Rem a tranché à la lecture de l'audit du site : un « Aa » dans l'app, « Police lisible » en OMEGA Dys) :
+   ① l'app ouverte SEULE n'a pas l'en-tête du site, donc pas de « Aa » : elle a le sien, à côté de « ↩ OMEGA·Ω », même clé
+     (omega_dysfont), même effet ; intégrée à une autre page d'omegapendu.com, c'est l'en-tête de cette page qui le porte (pas de doublon) ;
+   ② « Police lisible » du correcteur (🔤) et de la dictée passent de Verdana à cette police : chargée à leur premier clic
+     (OmegaDysSite), ou dès l'ouverture si l'une des deux est déjà allumée (choix retenu : vdd_lisible, dysDisplay.lis). */
 (function () {
-  function on() { try { return localStorage.getItem('omega_dysfont') === '1'; } catch (e) { return false; } }
-  var css = null, charge = false;
+  var memo = false;   // si le stockage est bloqué, le bouton marche quand même pour la page ouverte
+  function on() { try { return localStorage.getItem('omega_dysfont') === '1'; } catch (e) { return memo; } }
+  function lisible() {
+    try { return localStorage.getItem('vdd_lisible') === '1' || !!JSON.parse(localStorage.getItem('dysDisplay') || '{}').lis; } catch (e) { return false; }
+  }
+  var css = null, charge = false, bA = null;
   function charger() {
     if (charge) return; charge = true;
     try {
@@ -34625,7 +34634,34 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
       document.head.appendChild(css);
     }
     if (v) document.documentElement.setAttribute('data-dysfont', '1'); else document.documentElement.removeAttribute('data-dysfont');
+    if (bA) {
+      bA.setAttribute('aria-pressed', v ? 'true' : 'false');
+      bA.title = v ? 'Police OMEGA Dys : activée — cliquer pour revenir à la police habituelle'
+                   : 'Police OMEGA Dys : toute la page dans notre police, avec un espacement large';
+      bA.setAttribute('aria-label', bA.title);
+      bA.style.boxShadow = v ? 'inset 0 0 0 2px #D9892B,0 2px 10px rgba(0,0,0,.4)' : '0 2px 10px rgba(0,0,0,.4)';
+    }
   }
+  window.OmegaDysSite = charger;
+  if (lisible()) charger();
+  // Sous try, position lue seulement si ce sont de vrais nombres : les bancs du pendu (evo/fitness_harness.js) évaluent tout
+  // le script avec une page factice, où chaque propriété est un objet — une addition y lève une exception et tue le moteur.
+  try {
+    if (window.self === window.top && document.body) {
+      bA = document.createElement('button');
+      bA.type = 'button'; bA.id = 'omega-aa'; bA.textContent = 'Aa';
+      var ret = document.querySelector('a[aria-label="Retour au site OMEGA-Ω"]');
+      var gauche = (ret && typeof ret.offsetLeft === 'number' && typeof ret.offsetWidth === 'number') ? ret.offsetLeft + ret.offsetWidth + 8 : 12;
+      bA.style.cssText = 'position:fixed;left:' + gauche + 'px;bottom:12px;z-index:2147483647;' +
+        'font:600 13px system-ui,sans-serif;color:#fff;background:rgba(13,17,23,.78);padding:7px 12px;border:0;border-radius:20px;cursor:pointer';
+      bA.addEventListener('click', function () {
+        var v = document.documentElement.getAttribute('data-dysfont') !== '1';
+        memo = v; try { localStorage.setItem('omega_dysfont', v ? '1' : '0'); } catch (e) {}
+        appliquer();
+      });
+      document.body.appendChild(bA);
+    }
+  } catch (e) { bA = null; }
   appliquer();
   window.addEventListener('storage', function (e) { if (e.key === 'omega_dysfont') appliquer(); });
 })();
