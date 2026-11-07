@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-11-07 (suite) — Voie B : Morphalou ALLUMÉ par défaut, table de l'oreille refaite (Rem)
+
+- Rem : « la PR qui allume la correction par défaut ». `OMEGA_ASR_MORPHALOU=0` la coupe (R66).
+- La table de l'oreille doit suivre (`build_asr_oreille.py --check` la lie à l'index) : refaite sur l'index + Morphalou.
+  Elle apprenait l'erreur du g2p : schwa perdu 44 → 19 %, schwa AJOUTÉ par le modèle 2,8 → 0,2 % (« de » dit /d°/ mais
+  noté /d/ : le « e » entendu passait pour un ajout).
+- Banc (mêmes sons) : **Parlement B 77,4 %** (+58/−15 mots, p 4e-7) · Parlement A 79,2 % · **parlé B 82,5 %** (+21/−10) ·
+  Rem 48/53 et 30/53 inchangés. Sans l'oreille : 74,3 % · 73,8 % · 48 · 28.
+- **Piège trouvé par le banc** : couper l'index en gardant la table neuve = 67,5 % au Parlement B (pire que les deux) ;
+  la nouvelle table rend cher un « e » que l'ancien index n'a pas. Le réglage coupé reprend donc AUSSI l'ancienne table
+  (`asr_oreille_sans_morphalou.json`) → coupé = 76,4 · 81,4 · 48 · 30 au mot près ; les deux tables = leur recette (écart 0).
+- Garde `asr_oreille_probe.py` : « schwa perdu < 1,5 » devient « la voyelle la plus perdue, < 2 » ; + « schwa ajouté > 5 »
+  (rouge sur l'ancienne table : 3,57) ; + « index : Morphalou allumé par défaut » (rouge avec `OMEGA_ASR_MORPHALOU=0`).
+
 ## 2026-11-07 — Voie B : les prononciations Morphalou avant le g2p deviné (« de » n'est plus entendu « deux »)
 
 - Trouvé par la conversation « chant » (calage forcé de paroles sur une voix) : l'index de l'oreille (`asr_voix.build_index`)

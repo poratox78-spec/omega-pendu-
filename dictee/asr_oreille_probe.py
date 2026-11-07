@@ -8,7 +8,7 @@ voix de Rem 46 → 48/53 ; placebos à plat (dictee/JOURNAL.md du 27/09). Cette 
 l'audio et le modèle acoustique) : elle vérifie que ce qui a été mesuré est bien ce qui tourne.
 
   ① l'asset : forme, symboles, et ce que l'oreille a appris sur de vraies voix — « 8 » (/ɥ/, absent du modèle) entendu
-     « y » presque gratuit ; le schwa se perd pour peu ; se garder soi-même coûte peu ;
+     « y » presque gratuit ; le schwa est la voyelle la plus perdue ; se garder soi-même coûte peu ;
   ② le dernier centimètre : les candidats d'asr_voix.cands() sur un mini-lexique où la FRÉQUENCE pousse le mauvais
      mot — l'oreille doit gagner au son (/lyi/ → lui et non lit ; /mzyR/ → mesure et non masure) ;
   ③ auto-falsification : avec une table UNIFORME à la place de l'oreille, ② doit échouer (sinon ② ne teste rien) ;
@@ -42,7 +42,14 @@ sub = np.array(T['sub']); dg = np.diag(sub)
 ok(sub[S['8'], S['y']] < 1.0 < sub[S['8'], S['8']],
    u'appris : /ɥ/ (« 8 ») entendu « y » %.2f, entendu « 8 » %.2f (le modèle n\'a pas ce symbole)' % (
        sub[S['8'], S['y']], sub[S['8'], S['8']]))
-ok(T['del'][S['°']] < 1.5 < T['del'][S['a']], u'appris : schwa perdu %.2f, « a » perdu %.2f' % (T['del'][S['°']], T['del'][S['a']]))
+# 07/11/2026 : table refaite sur l'index + Morphalou. Avant, de/le/que valaient /d/, /l/, /k/ dans les phrases de référence :
+# l'oreille croyait le schwa perdu 44 % du temps (coût 0,83) et AJOUTÉ par le modèle 2,8 % (3,57) — un artefact du g2p.
+# Avec les vrais « e » : perdu 19 % (1,69), ajouté 0,2 % (6,20). Le fait appris reste : c'est la voyelle la plus perdue.
+VOY = [v for v in u'aeEioOuy29°@§51' if v in S]
+ok(T['del'][S['°']] < 2.0 and T['del'][S['°']] < min(T['del'][S[v]] for v in VOY if v != u'°'),
+   u'appris : schwa perdu %.2f (la voyelle la plus perdue), « a » perdu %.2f' % (T['del'][S['°']], T['del'][S['a']]))
+ok(T['ins'][S['°']] > 5.0, u'table faite sur les VRAIS « e » de de/le/que : schwa ajouté %.2f (> 5 ; 3,57 sans Morphalou)'
+   % T['ins'][S['°']])
 ok(float(np.median(dg)) < 0.5, u'appris : se garder soi-même coûte peu (médiane de la diagonale %.2f)' % float(np.median(dg)))
 
 
@@ -95,6 +102,10 @@ src_run = inspect.getsource(A.run); src_init = inspect.getsource(A.init)
 ok(sig['oreille'].default is True and 'viterbi([cands(w) for w in phs])' in src_run,
    u'run() décode par cands() (l\'oreille) par défaut')
 ok('load_oreille()' in src_init and 'load_lm(FREQ, LAM_ORAL)' in src_init, u'init() charge l\'oreille et le LM oral')
+import decompose as D
+src_idx = inspect.getsource(A.build_index)
+ok(A.PRON_MORPHALOU and 'morph_ph(w) or g2p_sampa(w)' in src_idx and D.PHON_MORPHALOU.get('de') == u'd°',
+   u'index : Morphalou avant le g2p, allumé par défaut (« de » = /d°/ et non /d/ ; OMEGA_ASR_MORPHALOU=0 le coupe)')
 
 # ⑥ le dernier étage : les rouges du produit, la ponctuation reste
 ok('regles_produit(' in src_run and A.regles_produit(u'Il a manger une pomme, puis elle part.') == u'Il a mangé une pomme, puis elle part.',
