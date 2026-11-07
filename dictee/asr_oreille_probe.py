@@ -102,10 +102,14 @@ src_run = inspect.getsource(A.run); src_init = inspect.getsource(A.init)
 ok(sig['oreille'].default is True and 'viterbi([cands(w) for w in phs])' in src_run,
    u'run() décode par cands() (l\'oreille) par défaut')
 ok('load_oreille()' in src_init and 'load_lm(FREQ, LAM_ORAL)' in src_init, u'init() charge l\'oreille et le LM oral')
-import decompose as D
 src_idx = inspect.getsource(A.build_index)
-ok(A.PRON_MORPHALOU and 'morph_ph(w) or g2p_sampa(w)' in src_idx and D.PHON_MORPHALOU.get('de') == u'd°',
+ok(A.PRON_MORPHALOU and A.prononcer('de') == u'd°' and 'ph = prononcer(w)' in src_idx,
    u'index : Morphalou avant le g2p, allumé par défaut (« de » = /d°/ et non /d/ ; OMEGA_ASR_MORPHALOU=0 le coupe)')
+# 07/11 : UNE chaîne de prononciation (asr_voix.prononcer) pour l'index ET la recette de l'oreille — la recette avait sa
+# copie du g2p, sans Wiktionnaire ni Morphalou ; une copie diverge sans bruit.
+src_rec = open(os.path.join(HERE, 'build_asr_oreille.py'), encoding='utf-8').read()
+ok('return A.prononcer(w)' in src_rec and 'def g2p_sampa' not in src_rec,
+   u'recette de l\'oreille : même chaîne de prononciation que l\'index (asr_voix.prononcer), pas de copie du g2p')
 
 # ⑥ le dernier étage : les rouges du produit, la ponctuation reste
 ok('regles_produit(' in src_run and A.regles_produit(u'Il a manger une pomme, puis elle part.') == u'Il a mangé une pomme, puis elle part.',
