@@ -309,3 +309,12 @@ Le chalumeau à acétylène reste {fermer|fermé|C} : seul l'animateur s'en sert
 Pensez à {apporté|apporter|C} une boîte pour {ramené|ramener|C} vos chutes de bois.
 Les enfants de moins de dix ans {doive|doivent|C} venir avec un adulte.
 {a|À|O} la fin, nous rangeons ensemble et nous balayons l'atelier.
+=== T58 conseils pour entretenir son vélo
+Mieux vaut vérifier les freins avant chaque sortie.
+Les pneus {doive|doivent|C} être regonflés tous les quinze jours.
+Peu importe la marque de l'huile : une goutte sur chaque maillon {suffis|suffit|C}.
+Après la pluie, essuyez la chaîne et {laisser|laissez|C} sécher le vélo à l'abri.
+Les {câble|câbles|N} usés se changent chez un réparateur.
+Mieux vaut des patins neufs que des patins {usé|usés|G}.
+Si le guidon bouge, {serré|serrez|C} la vis {a|à|O} la main.
+{n'oubliez|N'oubliez|P} pas le casque.
