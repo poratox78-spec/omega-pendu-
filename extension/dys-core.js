@@ -4012,6 +4012,9 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
     if(num==='p'){var db=deacc(base.toLowerCase());if(/[sx]$/.test(db)){}else if(/al$/.test(db))base=base.slice(0,-2)+'aux';else if(/eau$/.test(db))base=base+'x';else base=base+'s';}
     return base;}
   function rAdjAttr(T,i){var w=T[i],lw=w.toLowerCase();if(lw.indexOf("'")>=0)return null;var d=deacc(lw);
+    if(/^tou(t|te|s|tes)$/.test(d)&&i+1<T.length&&(/^(sauf|le|la|les|un|une|des|ce|cet|cette|ces|mon|ma|mes|ton|ta|tes|son|sa|ses|notre|nos|votre|vos|leur|leurs)$/.test(deacc(T[i+1].toLowerCase()))||/^l['’]/i.test(T[i+1])))return null;   /* ⭐ 07/11/2026 (liste n° 426) :
+       « La soirée fut tout sauf calme », « Les nouvelles sont tous les jours meilleures » recevaient « toute », « toutes » en ROUGE. Devant
+       « sauf » (locution figée) ou un déterminant (« tous les jours » : « tous » va avec « les jours »), « tout » n'est pas l'attribut du sujet. */
     if(!ADJP[d]||ADJ_STOP[d]||_INVAR_COLOR[d]||_couleurComposee(T,i))return null;if(/ee$/.test(deacc(ADJP[d][1]))&&!/e$/.test(d))return null;if(i+2<T.length&&T[i+1].toLowerCase()==='à'&&T[i+2].toLowerCase()===lw)return null;   // ⭐ 28/09/2026 : couleur invariable (« les rideaux sont orange » → oranges, appliqué d'office)
     var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ')return null;
     if(i+1<T.length&&(tg[i+1]==='NOUN'||tg[i+1]==='PROPN'))return null;   // adjectif ÉPITHÈTE d'un nom suivant → abstention
@@ -7062,6 +7065,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(_EPICENE_ADJ[d])return null;
     if(!_accOkG(lw,d))return null;
     if(d==='tout'||d==='tous'||d==='toute'||d==='toutes')return null;
+    if(i>=3&&/^(tous|toutes)$/.test(deacc(T[i-3].toLowerCase()))&&deacc(T[i-2].toLowerCase())==='les'&&/^(jours|soirs|matins|ans|annees|mois|semaines|nuits|fois|heures)$/.test(deacc(T[i-1].toLowerCase())))return null;   // liste n° 426 : « sont tous les jours meilleures » — complément de temps, l'adjectif est l'attribut du sujet
     if(!tg||i>=tg.length||tg[i]!=='ADJ')return null;
     if(tg[i-1]!=='NOUN'&&!_el)return null;
     if(_ADVQ_G[deacc(T[i-1].toLowerCase())])return null;
