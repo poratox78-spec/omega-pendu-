@@ -28678,6 +28678,14 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
        ⚠️ TÊTE de proposition : toute majuscule y est ambiguë → les prénoms marqués (Pierre m./la pierre f.)
        y sont neutralisés. Ailleurs, une majuscule EST un nom propre. FP=0 vérifié par ENSEMBLES (38/41 avant
        comme après) sur 54 occasions réelles « prénom + auxiliaire ». Miroir de correcteur_probe. */
+    /* ⭐ 07/11/2026 (liste n° 422) — PRÉNOM + NOM DE FAMILLE : « Julie Bernard est née » recevait « né » en ROUGE. Le nom de famille
+       (Bernard, Thomas) est aussi un prénom masculin, et la garde « autre nom propre devant » ne joue pas en tête de proposition
+       (une majuscule y est normale). Si le mot d'avant figure lui aussi dans la table des prénoms, c'est LUI qui donne le genre ; prénom qui est
+       aussi un mot courant (Pierre / la pierre) : on se tait. SEULEMENT en tête de proposition (le trou de la garde) et devant un
+       verbe en minuscules : plus loin, le prénom et son nom sont souvent une apposition (le vrai sujet est le groupe d'avant), et un
+       mot à majuscule n'est pas un verbe (nom propre de trois mots). Mesuré au produit entier : sinon 2 marques fausses de plus. */
+    if(a-2===lo&&!/^[A-ZÀ-Þ]/.test(String(T[a]||''))&&/^[A-ZÀ-Þ]/.test(T[a-1])&&/^[A-ZÀ-Þ]/.test(T[a-2])&&PRENOMS[T[a-2]]){if(PRENOMS[T[a-2]][1])return null;
+      return{idx:a-2,det:a-2,dtxt:'',htxt:T[a-2],elid:false,g:PRENOMS[T[a-2]][0],n:'s'};}
     var _pg=PRENOMS[T[a-1]];
     if(_pg&&a-1>=lo&&/^[A-ZÀ-Þ]/.test(T[a-1])){var _co=false;
       for(j=lo;j<a-1;j++){var _dj=deacc(T[j].toLowerCase());if(_dj==='et'||_dj==='ou'||_dj==='ni'||_dj==='and'){_co=true;break;}}

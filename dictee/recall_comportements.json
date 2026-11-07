@@ -831,7 +831,10 @@
 "Il habite une grande maison, rénovée l'an dernier.",
 "Il prend les fruits et les mange.",
 "Elle range les dossiers et les classe dans le tiroir.",
-"Le bourg est calme, et les commerces sont tout près."
+"Le bourg est calme, et les commerces sont tout près.",
+"Julie Bernard est née à Lyon.",
+"Emma Thomas est arrivée hier soir.",
+"Pierre Martin est venue en avance."
 ],
 "elide": [
 [
@@ -3428,6 +3431,11 @@
 "Elle ouvre la porte fermé à clé.",
 "fermé",
 "fermée"
+],
+[
+"Julie Bernard est content de sa journée.",
+"content",
+"contente"
 ]
 ],
 "palier": [

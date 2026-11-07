@@ -283,3 +283,12 @@ Le matin, les peintres travaillent dans l'escalier, et les {porte|portes|N} sont
 Merci de ne pas {touché|toucher|C} les murs fraîchement peints. Le local à vélos ferme, et les {cave|caves|N} sont accessibles par la cour.
 Pour toute question, vous pouvez {appelé|appeler|C} le gardien au rez-de-chaussée.
 {nous|Nous|P} vous {remerçions|remercions|O} de votre patience.
+=== T55 présentation des bénévoles d'une association
+Voici les bénévoles qui {tienne|tiennent|C} la bibliothèque du quartier.
+Claire Martin est arrivée en septembre. Elle s'occupe des {livre|livres|N} pour les petits et lit des contes le mercredi.
+Sophie Bernard est {resté|restée|G} trois ans au comptoir des prêts, et elle connaît chaque lecteur par son prénom.
+Emma Thomas est partie vivre en Bretagne, mais elle nous écrit souvent.
+Lucas répare les {étagère|étagères|N} et s'occupe des ordinateurs.
+Nous {cherchon|cherchons|C} encore deux personnes pour ouvrir le dimanche.
+Si vous {aimé|aimez|C} les livres, venez nous voir {a|à|O} l'accueil.
+{merci|Merci|P} à toutes et à tous.
