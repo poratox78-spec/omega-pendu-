@@ -49,6 +49,12 @@ FR_MS = 20                       # ~20 ms / frame (wav2vec2 base)
 COMMA_MS, PERIOD_MS = 190, 750   # seuils de silence (virgule ~320 ; POINT ~1000+ : au-dessus de 750 pour ne PAS couper sur une respiration intra-phrase ~500 ms qui ferait un faux « ? »)
 STRIDE = 320                     # échantillons par frame wav2vec2 (20 ms @ 16 kHz) : frame -> position audio
 QRISE = 4.0                      # demi-tons : fin de phrase qui MONTE d'au moins ça -> « ? » (mesuré : questions +9/+17, affirmations <+4,5)
+# ⭐ 07/11/2026 (conversation « chant », Rem : « fais les corrections toi-même ») — PRONONCIATIONS MORPHALOU en repli,
+#   AVANT le g2p deviné. W2P ne connaît que les mots qui ONT un homophone (decompose.py l. 95-101) : le, de, se, ne, que,
+#   je, jamais… tombaient sur le g2p, qui rend muet leur « e » (le → /l/, que → /k/). decompose() fait déjà
+#   W2P > PHON_MORPHALOU (305 k formes, 82,4 % exact) > g2p ; l'index de l'oreille le rejoint ici.
+#   Défaut OFF (doctrine §1.6, R66) : OMEGA_ASR_MORPHALOU=1 l'allume. Mesure au banc de la voie B : voir la PR.
+PRON_MORPHALOU = os.environ.get('OMEGA_ASR_MORPHALOU', '') == '1'
 
 # ── IPA (vocab du modèle) -> SAMPA OMEGA ──
 IPA2O = {'a': 'a', 'ɑ': 'a', 'ɐ': 'a', 'ɒ': 'O', 'e': 'e', 'ɛ': 'E', 'ɜ': 'E', 'ə': '°', 'i': 'i', 'ɪ': 'i',
@@ -77,7 +83,7 @@ def load_am():
 
 # ── index de prononciation (homophones + voisins) sur les 214 k du speller ──
 def build_index():
-    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v5.pkl')   # v3 apostrophes ; v4 : + prononciations Wiktionnaire IPA
+    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v5%s.pkl' % ('m' if PRON_MORPHALOU else ''))   # m : + Morphalou (07/11)   # v3 apostrophes ; v4 : + prononciations Wiktionnaire IPA
     if os.path.exists(cache):
         return pickle.load(open(cache, 'rb'))
     print('… construction de l’index de prononciation (une fois)', file=sys.stderr)
@@ -114,6 +120,8 @@ def build_index():
                 o = IPA2O.get(ch)
                 if o: out.append(o)
         return ''.join(out) or None
+    def morph_ph(w):                     # repli Morphalou (07/11) — None quand le toggle est coupé
+        return D.PHON_MORPHALOU.get(w) if PRON_MORPHALOU else None
     FREQ = {}; POS = {}
     with gzip.open(SPELLER, 'rt', encoding='utf-8') as f:
         for line in f:
@@ -125,7 +133,7 @@ def build_index():
     PH2W = defaultdict(list)
     for w in FREQ:
         if FREQ[w] < 1: continue   # 31/10/2026 (liste n° 329) : une forme sans aucune fréquence (525 838 sur 740 579) n'est pas un candidat de l'oreille : elle ne fait que confondre. Parlement 75,2 → 76,4 %, parlé 81,4 %, Rem 46 → 48 sur 53, bruité 29 → 30, trois fois plus rapide
-        ph = D.W2P.get(w) or wikt_ph(w) or g2p_sampa(w)   # W2P > Wiktionnaire IPA > g2p deviné
+        ph = D.W2P.get(w) or wikt_ph(w) or morph_ph(w) or g2p_sampa(w)   # W2P > Wiktionnaire IPA > (Morphalou) > g2p deviné
         if ph: PH2W[ph].append(w)
     for w, ph in D.W2P.items():
         if w not in FREQ and ph: PH2W[ph].append(w)
@@ -136,7 +144,7 @@ def build_index():
         for line in open(elis, encoding='utf-8'):
             w = line.strip()
             if not w: continue
-            ph = D.W2P.get(w) or g2p_sampa(w)
+            ph = D.W2P.get(w) or morph_ph(w) or g2p_sampa(w)
             if ph:
                 PH2W[ph].append(w); FREQ.setdefault(w, 5000)
     PH2W = dict(PH2W)

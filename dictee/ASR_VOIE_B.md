@@ -39,6 +39,7 @@ Outils : `asr_voix.py` (chaîne + CLI), `asr_voix_gui.py` / `asr_voix_test.py` (
 | LM plus gros (UD+WiCoPaCo, ×240 trigrammes) | ❌ **empire** (81→79) : registre Wikipédia = piège de fréquence |
 | posteriors soft (top-2 CTC) | ❌ **empire** : le 2ᵉ phonème est du bruit |
 | prononciation Wiktionnaire IPA | ~0 : seuls 13 k mots ont l'IPA en local |
+| prononciations Morphalou avant le g2p deviné (07/11/2026, `OMEGA_ASR_MORPHALOU=1`, défaut OFF) | ✅ Parlement B 76,4 → 77,5 % (+55/−9 mots), parlé B neutre, voix de Rem inchangée ; « de » n'est plus entendu « deux » (JOURNAL 07/11) |
 | homonymes en mode-confiance | ~3 % mais en zone d'abstention FP (risqué) |
 | récup non-mots double-route (idée Rem) | no-op : le fix couverture a supprimé les non-mots |
 | correcteur nourri de la ponctuation | +1 mot (angle mort d'archi corrigé) |

@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-11-07 — Voie B : les prononciations Morphalou avant le g2p deviné (« de » n'est plus entendu « deux »)
+
+- Trouvé par la conversation « chant » (calage forcé de paroles sur une voix) : l'index de l'oreille (`asr_voix.build_index`)
+  prenait W2P > Wiktionnaire > g2p, SANS Morphalou. Or W2P ne connaît que les mots qui ont un homophone : de, le, que, je, ne,
+  se, me… tombaient sur le g2p, qui rend leur « e » muet (de → /d/). `decompose()` fait déjà W2P > Morphalou > g2p.
+- Correction : Morphalou en repli juste avant le g2p, derrière `OMEGA_ASR_MORPHALOU=1` (défaut OFF, R66) ; cache à part
+  (`omega_asr_pron_v5m.pkl`). Rien d'autre ne lit ce cache.
+- Mesuré au banc de la voie B (mêmes sons entendus ; `data_local/pendu_labo/voieb/verif_port.py` rejoué sur le code de la
+  branche, un dossier temporaire NEUF par état du code) :
+  - OFF = les chiffres du 31/10 au mot près (Parlement B 76,4 % · parlé B 81,4 % · Rem 48/53 · bruité 30/53) ; la recette
+    de l'oreille (`build_asr_oreille.py --check`, audio local) redonne la table du dépôt : écart 0.
+  - ON : Parlement B **77,5 %** (+55/−9 mots, McNemar p 3e-9) · Parlement A 77,8 → 79,3 % (+80/−18) · parlé B 81,7 %
+    (+21/−18 : neutre ; 3 voix sur les mêmes phrases) · Rem 48/53 et 30/53 inchangés. **111 des 171 mots gagnés sont
+    « de »** (avant : « envie deux sortir », « une par deux gâteaux »).
+  - Pertes vues : « j'ai fini » → « je finis » (je /Z°/ face à j'ai /Ze/), « ils se sont » → « il se est ».
+  - Sans l'oreille (ancien chemin) : 71,5 → 74,3 % · 69,7 → 73,8 % · 46 → 48 · 25 → 28.
+- Table de l'oreille refaite AVEC Morphalou : 423 sons dits de plus (les « e »), sons « ajoutés » 1 113 → 708 ; mesurée :
+  Parlement B 77,4 %, parlé B 82,5 %, Rem inchangé — pas mieux au total (+125 mots nets contre +123) → la table du dépôt reste.
+- Allumer par défaut = un incrément à part : `build_asr_oreille.py --check` lie la table à l'index (ON ⇒ table à refaire).
+- Rejouer : dans `data_local/pendu_labo/voieb`, `TEMP=<dossier neuf> OMEGA_ASR_MORPHALOU=1 python verif_port.py`.
+
 ## 2026-11-01 — Un passage de sonde ne laisse plus son profil Chrome dans le dossier temporaire
 
 - Rem : « va falloir faire de la place sur C ». Mesuré : 1 338 dossiers `omega-*` dans %TEMP%, 31,7 Go en 13 jours (2 à 5 Go/jour),
