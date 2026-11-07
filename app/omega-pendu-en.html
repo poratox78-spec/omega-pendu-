@@ -27109,7 +27109,14 @@ function svReads(w){if(w.toLowerCase()==='debout')return[];   /* ⭐ 20/10/2026 
   var _ELIDED_PRON=/^(?:qu|s|n|c|j|l|d|m|t|puisqu|lorsqu|quoiqu)['’](il|ils|elle|elles|on|je|tu|nous|vous)$/;   // « qu'il », « s'ils » : le pronom sujet vit DANS le token élidé (miroir Python _ELIDED_PRON)
   function _prevPron(T,i){if(i<=0)return null;var m=_ELIDED_PRON.exec(T[i-1].toLowerCase());return m?deacc(m[1]):cprev(T,i);}   // pronom sujet EFFECTIF avant i : lit aussi le pronom PORTÉ par un token élidé (« Lorsqu'il à faim », « Puisqu'elle c'est levée » — 5 règles à liste propre le rataient, mesuré 30/08/2026). Miroir Python _prev_pron.
   // ⭐ liste n° 34 (d) : les marches sur les clitiques (svSubject, sujFlexVig, semiInfVig…) lisent la forme ÉCRITE — « lé » (l'ai) n'est pas le clitique « le » ; un clitique ne porte jamais d'accent
-  function svSubject(T,i){var j=i-1,st=0;while(j>=0&&st<3&&CLITIC[T[j].toLowerCase().replace(/’/g,"'")]){j--;st++;}if(j<0)return null;if(_SEG&&_SEG.hy&&j<_SEG.hy.length&&_SEG.hy[j]&&SUBJ_PRON[deacc(T[j].toLowerCase())])return null;   /* ⭐ 31/10/2026 (liste n° 221) : pronom INVERSÉ (« Te l'ai-je écrit ? ») : il est sujet de l'auxiliaire d'avant */if(_SEG){for(var m=j+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}var _me=_ELIDED_PRON.exec(T[j].toLowerCase());if(_me)return SUBJ_PRON[deacc(_me[1])]||null;return SUBJ_PRON[deacc(T[j].toLowerCase())]||null;}
+  /* ⭐ 07/11/2026 (liste n° 421) — « chacune d'entre elles est rangée » : après « d'entre », le pronom n'est PAS le sujet, c'est
+     « chacune ». Le moteur lisait « elles » collé au verbe : « sont » et « rangées » en ROUGE. Vrai si le mot d'avant « d'entre » est
+     un quantifieur SINGULIER (chacun, aucun, l'un, une seule…) ; les autres (plusieurs, beaucoup, la plupart…) gardent le pluriel,
+     qui est juste. Recensé : 8 tournures dans les corpus dys, toutes au pluriel ; 18 dans UD, 2 rouges faux. */
+  var _Q421={chacun:1,chacune:1,aucun:1,aucune:1,"l'un":1,"l'une":1,un:1,une:1,nul:1,nulle:1,lequel:1,laquelle:1,seul:1,seule:1};
+  function _entre421(T,k){if(k<2||!/^(eux|elles|nous|vous)$/.test(deacc(T[k].toLowerCase())))return false;var e=deacc(T[k-1].toLowerCase()).replace(/’/g,"'");
+    return (e==="d'entre"||e==='entre')&&!!_Q421[deacc(T[k-2].toLowerCase()).replace(/’/g,"'")];}
+  function svSubject(T,i){var j=i-1,st=0;while(j>=0&&st<3&&CLITIC[T[j].toLowerCase().replace(/’/g,"'")]){j--;st++;}if(j<0)return null;if(_SEG&&_SEG.hy&&j<_SEG.hy.length&&_SEG.hy[j]&&SUBJ_PRON[deacc(T[j].toLowerCase())])return null;   /* ⭐ 31/10/2026 (liste n° 221) : pronom INVERSÉ (« Te l'ai-je écrit ? ») : il est sujet de l'auxiliaire d'avant */if(_SEG){for(var m=j+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}if(_entre421(T,j))return ['3','s'];var _me=_ELIDED_PRON.exec(T[j].toLowerCase());if(_me)return SUBJ_PRON[deacc(_me[1])]||null;return SUBJ_PRON[deacc(T[j].toLowerCase())]||null;}
   function svAgrees(reads,per,nb){var k;if(per==='3'){for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return true;return false;}for(k=0;k<reads.length;k++)if(reads[k][2]===per)return true;return false;}  // 1re/2e pers : personne seule (tag nombre Lexique parfois faux : « peux »)
   var _V3PL_SURE={sont:1,ont:1,vont:1,font:1};   // 3e pluriel irréguliers non ambigus (jamais nom/adj/3sg)
   var _SAIS_PPU={perdu:1,vu:1,eu:1,venu:1,revenu:1,devenu:1,tenu:1,retenu:1,connu:1,recu:1,battu:1,mordu:1,rendu:1,vendu:1,entendu:1,repondu:1,defendu:1,descendu:1,couru:1,apercu:1,cru:1,bu:1,lu:1,su:1,pu:1,vecu:1,fondu:1,confondu:1,suspendu:1,attendu:1,obtenu:1,contenu:1,soutenu:1,parvenu:1,survenu:1,intervenu:1};
@@ -28534,6 +28541,8 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     var _a1refl=false;for(var _kr=Math.max(0,a-2);_kr<a;_kr++){var _dr=deacc(T[_kr].toLowerCase());if(_dr==='se'||_dr==='s'){_a1refl=true;break;}}   // #A1 : verbe pronominal (« se sont … ») → PP potentiellement invariable → A1 s'abstient
     var info=null,sk=-1;if(_comp&&AVOIR_JE[T[a].toLowerCase()]){info=PPE_SUBJ['je'];sk=a;}   // « j'ai été surpris » : le sujet est dans le token de l'auxiliaire
     if(!info)for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
+    if(info&&sk>=0&&_entre421(T,sk))info=/e$/.test(deacc(T[sk-2].toLowerCase()))?['s','f']:['s','m'];   // liste n° 421 : « chacune d'entre elles est rangée » — le sujet est
+    // « chacune » (singulier ; féminin si le quantifieur finit par -e : chacune, aucune, l'une, une seule), pas « elles »
     if(!info&&a>=1){var _mel=_ELIDED_PRON.exec(T[a-1].toLowerCase());if(_mel){info=PPE_SUBJ[deacc(_mel[1])];sk=a-1;}}   // pronom élidé avant l'aux : le LIRE — il porte personne+genre+nombre (« Je crois qu'elle est parti »→partie ; mesuré muet 30/08/2026). qu'on/qu'vous → absent de PPE_SUBJ → prudence ci-dessous. Miroir Python.
     if(!info){                                                                   // pas de sujet PRONOM → sujet NOM via le VRAI PARSEUR (miroir rule_pp_etre : mots-écrans sautés, coordination/inf/PP → abstention)
       if(a>=1&&_elidKind(T[a-1])==='pron')return null;   // PRONOM élidé non lisible (« qu'on », « n'… ») → le vrai sujet est le clitique, prudence. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.
@@ -29138,7 +29147,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
       if(_SEG&&j+1<_SEG.bb.length&&_SEG.bb[j+1]&&j+1!==i)return null;
       var w=T[j],d=deacc(w.toLowerCase()),m=_ELIDED_PRON.exec(w.toLowerCase());
       if(m)d=deacc(m[1]);
-      if(SUBJ_PRON[d]){if(_SEG&&_SEG.hy&&j<_SEG.hy.length&&_SEG.hy[j])return null;return [SUBJ_PRON[d][0],SUBJ_PRON[d][1],'pron'];}   /* ⭐ 31/10/2026 (liste n° 221) : sujet INVERSÉ (« Ne te l'ai-je pas écrit ? ») : le mot suivant est le participe de cet auxiliaire, « écris » était un ROUGE faux */
+      if(SUBJ_PRON[d]){if(_SEG&&_SEG.hy&&j<_SEG.hy.length&&_SEG.hy[j])return null;if(_entre421(T,j))return null;return [SUBJ_PRON[d][0],SUBJ_PRON[d][1],'pron'];}   /* ⭐ 31/10/2026 (liste n° 221) : sujet INVERSÉ (« Ne te l'ai-je pas écrit ? ») : le mot suivant est le participe de cet auxiliaire, « écris » était un ROUGE faux */
       if(_SUBJ_PRON_PL[d]){
         var k=j-1;
         while(k>=0){

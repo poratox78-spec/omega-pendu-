@@ -834,7 +834,9 @@
 "Le bourg est calme, et les commerces sont tout près.",
 "Julie Bernard est née à Lyon.",
 "Emma Thomas est arrivée hier soir.",
-"Pierre Martin est venue en avance."
+"Pierre Martin est venue en avance.",
+"Chacune d'entre elles est rangée dans un tiroir.",
+"L'une d'entre elles se lève tôt."
 ],
 "elide": [
 [
@@ -3436,6 +3438,16 @@
 "Julie Bernard est content de sa journée.",
 "content",
 "contente"
+],
+[
+"Chacune d'entre elles est regardé par le jury.",
+"regardé",
+"regardée"
+],
+[
+"Chacune d'entre elles sont rangées dans un tiroir.",
+"sont",
+"est"
 ]
 ],
 "palier": [

@@ -292,3 +292,12 @@ Lucas répare les {étagère|étagères|N} et s'occupe des ordinateurs.
 Nous {cherchon|cherchons|C} encore deux personnes pour ouvrir le dimanche.
 Si vous {aimé|aimez|C} les livres, venez nous voir {a|à|O} l'accueil.
 {merci|Merci|P} à toutes et à tous.
+=== T56 règlement d'un concours de photo
+Le concours est {ouver|ouvert|O} à tous les habitants de la commune.
+Chaque participant peut envoyer trois photos. Chacune d'entre elles est {regardé|regardée|G} par le jury.
+Les photos doivent être {prise|prises|G} dans la commune entre mai et septembre.
+Aucune d'entre elles ne doit montrer une personne sans son accord.
+Les gagnants {recevrons|recevront|C} un bon d'achat, et leurs photos seront {exposé|exposées|G} à la mairie.
+L'une d'entre elles fera la couverture du bulletin municipal.
+Les résultats seront {annoncer|annoncés|C} à la fête de la musique.
+{pour|Pour|P} toute question, écrivez au secrétariat de la mairie.
