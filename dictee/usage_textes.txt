@@ -360,3 +360,11 @@ Les familles {accueil|accueillent|C} un ou deux élèves.
 Le dernier soir, une fête est {organiser|organisée|C} au collège.
 {les|Les|P} élèves rentrent le samedi suivant.
 Une réunion d'information {auras|aura|C} lieu en mars.
+=== T64 communiqué d'un club de basket
+La saison {reprendras|reprendra|C} le 6 septembre.
+Les entraînements des jeunes sont {organiser|organisés|C} au gymnase du collège.
+La salle est réservée au club le mercredi et le vendredi.
+Les licences {peuve|peuvent|C} être payées en trois fois.
+Une réunion d'accueil est {prévu|prévue|G} au foyer, avec les {entraîneur|entraîneurs|N}.
+Les maillots neufs {arriverons|arriveront|C} en octobre.
+{nous|Nous|P} comptons sur vous !
