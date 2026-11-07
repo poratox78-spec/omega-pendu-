@@ -318,3 +318,12 @@ Les {câble|câbles|N} usés se changent chez un réparateur.
 Mieux vaut des patins neufs que des patins {usé|usés|G}.
 Si le guidon bouge, {serré|serrez|C} la vis {a|à|O} la main.
 {n'oubliez|N'oubliez|P} pas le casque.
+=== T59 bilan d'un stage de voile
+La semaine fut tout sauf reposante, mais les enfants sont {rentré|rentrés|G} ravis.
+Les sorties en mer étaient tous les jours plus longues.
+Le lundi, le vent {soufflaient|soufflait|C} fort et les bateaux sont restés au port.
+Les moniteurs ont {apprit|appris|C} aux plus jeunes à faire un nœud de chaise.
+Mercredi, deux {voile|voiles|N} se sont déchirées pendant la régate.
+Chaque soir, les stagiaires {rangeait|rangeaient|C} le matériel avant le repas.
+Toute l'équipe remercie les parents pour {leur|leurs|N} gâteaux du vendredi.
+{a|À|O} l'année prochaine !
