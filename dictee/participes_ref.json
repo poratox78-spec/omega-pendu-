@@ -1,19 +1,19 @@
 {
  "A avoir + pronom D | infinitif": {
-  "n": 496,
-  "orange juste": 496
+  "n": 564,
+  "orange juste": 564
  },
  "A avoir + pronom D | juste": {
-  "n": 652,
-  "ok": 652
+  "n": 736,
+  "ok": 736
  },
  "A avoir + pronom D | pluriel en trop": {
-  "n": 326,
-  "orange juste": 326
+  "n": 368,
+  "orange juste": 368
  },
  "A avoir + pronom D | pluriel manquant": {
-  "n": 326,
-  "orange juste": 326
+  "n": 368,
+  "orange juste": 368
  },
  "A avoir + pronom DI | juste": {
   "n": 68,
@@ -39,20 +39,20 @@
   "muet": 2
  },
  "B avoir + pronom + complément D | féminin en trop": {
-  "n": 512,
-  "orange juste": 512
+  "n": 580,
+  "orange juste": 580
  },
  "B avoir + pronom + complément D | féminin en trop + pluriel en trop": {
-  "n": 496,
-  "orange juste": 496
+  "n": 564,
+  "orange juste": 564
  },
  "B avoir + pronom + complément D | juste": {
-  "n": 140,
-  "ok": 140
+  "n": 156,
+  "ok": 156
  },
  "B avoir + pronom + complément D | pluriel en trop": {
-  "n": 140,
-  "orange juste": 140
+  "n": 156,
+  "orange juste": 156
  },
  "B avoir + pronom + complément DI | féminin en trop": {
   "n": 30,
@@ -101,28 +101,28 @@
   "orange juste": 4
  },
  "C être pronominal D | féminin en trop + pluriel manquant": {
-  "n": 159,
-  "orange juste": 159
+  "n": 180,
+  "orange juste": 180
  },
  "C être pronominal D | féminin manquant + pluriel en trop": {
-  "n": 159,
-  "orange juste": 159
+  "n": 180,
+  "orange juste": 180
  },
  "C être pronominal D | infinitif": {
-  "n": 496,
-  "orange juste": 496
+  "n": 564,
+  "orange juste": 564
  },
  "C être pronominal D | juste": {
-  "n": 652,
-  "ok": 652
+  "n": 736,
+  "ok": 736
  },
  "C être pronominal D | pluriel en trop": {
-  "n": 163,
-  "orange juste": 163
+  "n": 184,
+  "orange juste": 184
  },
  "C être pronominal D | pluriel manquant": {
-  "n": 163,
-  "orange juste": 163
+  "n": 184,
+  "orange juste": 184
  },
  "C être pronominal I | infinitif": {
   "n": 16,
@@ -138,22 +138,54 @@
   "orange juste": 20,
   "muet": 4
  },
+ "C être pronominal P | féminin en trop + pluriel manquant": {
+  "n": 24,
+  "orange juste": 24
+ },
+ "C être pronominal P | féminin manquant": {
+  "n": 34,
+  "orange juste": 34
+ },
+ "C être pronominal P | féminin manquant + pluriel en trop": {
+  "n": 7,
+  "orange juste": 7
+ },
+ "C être pronominal P | féminin manquant + pluriel manquant": {
+  "n": 17,
+  "orange juste": 17
+ },
+ "C être pronominal P | infinitif": {
+  "n": 34,
+  "orange juste": 34
+ },
+ "C être pronominal P | juste": {
+  "n": 62,
+  "ok": 62
+ },
+ "C être pronominal P | pluriel en trop": {
+  "n": 41,
+  "orange juste": 41
+ },
+ "C être pronominal P | pluriel manquant": {
+  "n": 7,
+  "orange juste": 7
+ },
  "D être pronominal + complément D | féminin en trop": {
-  "n": 512,
-  "orange juste": 512
+  "n": 580,
+  "orange juste": 580
  },
  "D être pronominal + complément D | féminin en trop + pluriel en trop": {
-  "n": 496,
-  "orange juste": 495,
-  "muet": 1
+  "n": 564,
+  "orange juste": 562,
+  "muet": 2
  },
  "D être pronominal + complément D | juste": {
-  "n": 140,
-  "ok": 140
+  "n": 156,
+  "ok": 156
  },
  "D être pronominal + complément D | pluriel en trop": {
-  "n": 140,
-  "orange juste": 140
+  "n": 156,
+  "orange juste": 156
  },
  "D être pronominal + complément DI | féminin en trop": {
   "n": 30,
@@ -403,32 +435,32 @@
   "orange juste": 1
  },
  "E4 après s'être | féminin en trop + pluriel manquant": {
-  "n": 7,
-  "orange juste": 7
+  "n": 8,
+  "orange juste": 8
  },
  "E4 après s'être | féminin manquant": {
-  "n": 13,
-  "orange juste": 13
+  "n": 15,
+  "orange juste": 15
  },
  "E4 après s'être | féminin manquant + pluriel en trop": {
   "n": 1,
   "orange juste": 1
  },
  "E4 après s'être | féminin manquant + pluriel manquant": {
-  "n": 7,
-  "orange juste": 7
+  "n": 8,
+  "orange juste": 8
  },
  "E4 après s'être | infinitif": {
-  "n": 12,
-  "orange juste": 12
+  "n": 14,
+  "orange juste": 14
  },
  "E4 après s'être | juste": {
-  "n": 18,
-  "ok": 18
+  "n": 20,
+  "ok": 20
  },
  "E4 après s'être | pluriel en trop": {
-  "n": 13,
-  "orange juste": 13
+  "n": 15,
+  "orange juste": 15
  },
  "E4 après s'être | pluriel manquant": {
   "n": 1,
@@ -448,8 +480,7 @@
  },
  "E5 après avoir | juste": {
   "n": 26,
-  "ok": 25,
-  "MARQUE FAUSSE": 1
+  "ok": 26
  },
  "E5 après avoir | pluriel en trop": {
   "n": 24,
@@ -611,8 +642,7 @@
  },
  "avoir sans accord | juste": {
   "n": 52,
-  "ok": 51,
-  "MARQUE FAUSSE": 1
+  "ok": 52
  },
  "avoir sans accord | pluriel en trop": {
   "n": 48,
@@ -645,8 +675,8 @@
  },
  "pronominal | infinitif": {
   "n": 16,
-  "rouge juste": 2,
-  "orange juste": 14
+  "rouge juste": 1,
+  "orange juste": 15
  },
  "pronominal | juste": {
   "n": 22,

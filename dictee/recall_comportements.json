@@ -905,7 +905,11 @@
 "Je remercie mes voisines d'être venues.",
 "Après les avoir vus, elle est partie.",
 "Après être arrivées, elles ont rangé la salle.",
-"Ils semblent être partis tôt."
+"Ils semblent être partis tôt.",
+"Elle s'est souvenue de tout.",
+"Les enfants se sont amusés dehors.",
+"Le guide m'a interrompue hier.",
+"Elle a dû la somme hier."
 ],
 "elide": [
 [
@@ -3747,6 +3751,21 @@
 "Merci à toutes d'être passé ce soir.",
 "passé",
 "passées"
+],
+[
+"Elle s'est inscrit au club de judo.",
+"inscrit",
+"inscrite"
+],
+[
+"Elles se sont bien amusé.",
+"amusé",
+"amusées"
+],
+[
+"Ils se sont moqué de lui.",
+"moqué",
+"moqués"
 ]
 ],
 "palier": [

@@ -6,6 +6,9 @@
   I  = la personne est complément INDIRECT (parler à qqn, donner qqch à qqn) : « il nous a parlé », « il nous a écrit »,
        « ils se sont écrit » (invariable).
   DI = les deux selon le sens (envoyer quelqu'un / envoyer qqch à qqn) : sans complément après, le doute reste.
+  P  = verbe essentiellement pronominal (se souvenir, s'enfuir) : « se » sans fonction, accord avec le sujet ; pas d'avoir.
+  Ligne 461 (08/11/2026) : + 21 pronominaux courants en D (s'inscrire, s'amuser, se reposer…) et 24 en P, vérifiés dans UD
+  (« se » toujours annoté pronominal, jamais complément indirect ; « se vanter » écarté).
 
 Clé = participe masculin singulier (la forme que lisent les règles). Liste FERMÉE de verbes courants, vérifiée contre les
 comptes de UD French GSD (pronom obj / iobj par verbe) : chaque désaccord relu un par un (les réfléchis « s'installer, se
@@ -25,15 +28,21 @@ piégé poursuivi préféré puni ramassé recruté regretté remarqué remplac�
 séparé signalé sollicité surveillé touché traité trahi troublé vaincu visité vouvoyé tutoyé arrangé dépassé devancé
 couché levé caché assis installé chargé concentré débarrassé entraîné éloigné rapproché réconcilié senti établi
 nourri associé affronté vengé sacrifié placé plongé lié uni élevé renseigné impliqué orienté effacé appuyé décidé
-habitué trouvé mis pris tenu mené dirigé conduit""".split()
+habitué trouvé mis pris tenu mené dirigé conduit
+inscrit amusé reposé promené baigné changé disputé marié plaint coiffé maquillé douché occupé intéressé approché
+allongé penché retourné endormi rendormi régalé""".split()
 I = """parlé téléphoné plu déplu souri menti obéi désobéi répondu ressemblé nui succédé survécu résisté semblé paru valu
 dit écrit demandé permis promis proposé appris enseigné interdit reproché souhaité expliqué raconté annoncé
 indiqué confié transmis donné offert prêté fourni accordé adressé attribué dédié procuré recommandé ordonné suggéré
 garanti pardonné prédit prescrit décerné volé enlevé acheté vendu apporté réservé tendu cédé""".split()
 DI = """envoyé présenté montré laissé servi rendu rappelé jeté lancé préparé refusé envié passé posé conseillé imposé
 livré""".split()
+# P = verbes ESSENTIELLEMENT pronominaux (ligne 461) : « se » n'a pas de fonction, le participe s'accorde avec le sujet
+# (« elle s'est souvenue ») ; avec avoir, ils n'existent pas : aucune attente. UD les annote « expl:pv » (jamais iobj).
+P = """souvenu moqué méfié enfui évanoui absenté dépêché écrié efforcé envolé évadé exclamé abstenu repenti réfugié écroulé
+effondré agenouillé accroupi blotti obstiné soucié fié comporté""".split()
 T = {}
-for cls, L in (('D', D), ('I', I), ('DI', DI)):
+for cls, L in (('D', D), ('I', I), ('DI', DI), ('P', P)):
     for w in L:
         T[w] = 'DI' if (w in T and T[w] != cls) else cls
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valence_table.json')
