@@ -887,7 +887,19 @@
 "Il nous a présentés hier.",
 "Ils se sont parlé hier.",
 "Elle s'est lavé les mains.",
-"Ma tante nous a écrit une longue lettre."
+"Ma tante nous a écrit une longue lettre.",
+"Elle a quitté la salle fatiguée.",
+"La région produit du blé et du maïs.",
+"Ce matin, je l'ai croisée au marché.",
+"Je regarde la neige tomber.",
+"Le gâteau et la tarte que j'ai faits sont prêts.",
+"La plupart des invités sont venus.",
+"Le chat de ma voisine est parti.",
+"Le pain, je l'ai acheté ce matin.",
+"Cette chanson, je l'ai entendue à la radio.",
+"La porte que j'ai peinte est jaune.",
+"Les élèves se sont beaucoup aidés.",
+"Les joueuses se sont longtemps entraînées."
 ],
 "elide": [
 [
@@ -3664,6 +3676,41 @@
 "Elle s'est lavée les mains.",
 "lavée",
 "lavé"
+],
+[
+"Cette valise, je l'ai rangé hier soir.",
+"rangé",
+"rangée"
+],
+[
+"Ces assiettes, je les ai lavés après le dîner.",
+"lavés",
+"lavées"
+],
+[
+"La salle est nettoyé depuis midi.",
+"nettoyé",
+"nettoyée"
+],
+[
+"Les volets peint sont tout neufs.",
+"peint",
+"peints"
+],
+[
+"La pièce a été repeint en vert.",
+"repeint",
+"repeinte"
+],
+[
+"Les élèves se sont beaucoup aidé.",
+"aidé",
+"aidés"
+],
+[
+"Les joueuses se sont longtemps entraîné.",
+"entraîné",
+"entraînées"
 ]
 ],
 "palier": [
@@ -4030,6 +4077,16 @@
 [
 "Le bourg est calme, et les commerce sont tout près.",
 "commerce",
+"vigilance"
+],
+[
+"Ces assiettes, je les ai lavés après le dîner.",
+"lavés",
+"auto"
+],
+[
+"Les volets peint sont tout neufs.",
+"peint",
 "vigilance"
 ]
 ],
