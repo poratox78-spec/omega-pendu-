@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-11-07 (fin) — Voie B : UNE chaîne de prononciation pour l'index et la recette de l'oreille
+
+- La recette de l'oreille (`build_asr_oreille.pron`) avait sa COPIE du g2p, et pour un mot hors index prenait W2P > g2p,
+  sans Wiktionnaire ni Morphalou. Elle lit maintenant `asr_voix.prononcer` (W2P > Wiktionnaire > Morphalou > g2p), la
+  chaîne de l'index, sortie de `build_index` (ses fonctions y étaient enfermées).
+- Mesuré : moitié A = 4 083 mots dits, 77 hors index (noms propres en minuscules : france, europe, strasbourg… ;
+  œuvre, cœur) ; la nouvelle chaîne n'en change AUCUN → les deux tables = leur recette (écart 0, réglage allumé et
+  coupé) ; l'index est identique objet pour objet (ordre compris) dans les deux réglages. Pas de gain : une copie de
+  moins, qui aurait divergé sans bruit.
+- Trou vu en passant, NON traité : ces noms propres et mots en « œ » ne sont pas dans l'index de la voie B.
+- Garde `asr_oreille_probe` : + « recette de l'oreille : même chaîne que l'index » (rouge avec l'ancienne recette).
+
 ## 2026-11-07 — Outils : `p2g.py --mot` et la sonde de syllabes lisent la chaîne de `decompose()` (Morphalou compris)
 
 - Deux outils prenaient W2P > g2p, sans Morphalou (même trou que la voie B, #1227) : `p2g.py --mot` (« de » → /d/ →

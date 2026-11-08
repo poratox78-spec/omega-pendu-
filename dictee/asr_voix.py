@@ -85,47 +85,59 @@ def load_am():
     am = Wav2Vec2ForCTC.from_pretrained(MODEL); am.eval()
     return torch, proc, am
 
+# ── LA prononciation d'un mot pour la voie B : W2P > Wiktionnaire IPA > Morphalou > g2p deviné ──
+# 07/11/2026 : UNE seule chaîne, lue par l'index (build_index) ET par la recette de l'oreille (build_asr_oreille.pron).
+# Avant, la recette avait sa copie du g2p et sautait Wiktionnaire et Morphalou (0 mot changé sur la moitié A : mesuré).
+def g2p_sampa(w):
+    out = []
+    for s in D.g2p(w):
+        ph = s.get('ph')
+        if not ph or ph == '∅': continue
+        for ch in ph:
+            if ch == '̃':
+                if out: out[-1] = NAS.get(out[-1], out[-1])
+            elif ch == 'ʲ': out.append('j')
+            elif ch == 'ː': pass
+            else:
+                o = IPA2O.get(ch)
+                if o: out.append(o)
+    return ''.join(out)
+
+# prononciations Wiktionnaire IPA (dictee/wikt_lex_fr.tsv, col 3) — plus précises que g2p pour les mots couverts
+_WIKT = None
+def wikt_ph(w):
+    global _WIKT
+    if _WIKT is None:
+        _WIKT = {}
+        wp = os.path.join(HERE, 'wikt_lex_fr.tsv')
+        if os.path.exists(wp):
+            for line in open(wp, encoding='utf-8'):
+                c = line.rstrip('\n').split('\t')
+                if len(c) >= 3 and c[0] and c[2]: _WIKT.setdefault(c[0], c[2])
+    ipa = _WIKT.get(w)
+    if not ipa: return None
+    out = []
+    for ch in ipa:
+        if ch == '̃':
+            if out: out[-1] = NAS.get(out[-1], out[-1])
+        elif ch in '.ˈˌ ‿ːˑ()-': continue
+        else:
+            o = IPA2O.get(ch)
+            if o: out.append(o)
+    return ''.join(out) or None
+
+def morph_ph(w):                         # repli Morphalou (07/11) — None quand le réglage est coupé
+    return D.PHON_MORPHALOU.get(w) if PRON_MORPHALOU else None
+
+def prononcer(w):
+    return D.W2P.get(w) or wikt_ph(w) or morph_ph(w) or g2p_sampa(w)
+
 # ── index de prononciation (homophones + voisins) sur les 214 k du speller ──
 def build_index():
     cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v5%s.pkl' % ('m' if PRON_MORPHALOU else ''))   # m : + Morphalou (07/11)   # v3 apostrophes ; v4 : + prononciations Wiktionnaire IPA
     if os.path.exists(cache):
         return pickle.load(open(cache, 'rb'))
     print('… construction de l’index de prononciation (une fois)', file=sys.stderr)
-    def g2p_sampa(w):
-        out = []
-        for s in D.g2p(w):
-            ph = s.get('ph')
-            if not ph or ph == '∅': continue
-            for ch in ph:
-                if ch == '̃':
-                    if out: out[-1] = NAS.get(out[-1], out[-1])
-                elif ch == 'ʲ': out.append('j')
-                elif ch == 'ː': pass
-                else:
-                    o = IPA2O.get(ch)
-                    if o: out.append(o)
-        return ''.join(out)
-    # prononciations Wiktionnaire IPA (dictee/wikt_lex_fr.tsv, col 3) — plus précises que g2p pour les mots couverts
-    WIKT = {}
-    wp = os.path.join(HERE, 'wikt_lex_fr.tsv')
-    if os.path.exists(wp):
-        for line in open(wp, encoding='utf-8'):
-            c = line.rstrip('\n').split('\t')
-            if len(c) >= 3 and c[0] and c[2]: WIKT.setdefault(c[0], c[2])
-    def wikt_ph(w):
-        ipa = WIKT.get(w)
-        if not ipa: return None
-        out = []
-        for ch in ipa:
-            if ch == '̃':
-                if out: out[-1] = NAS.get(out[-1], out[-1])
-            elif ch in '.ˈˌ ‿ːˑ()-': continue
-            else:
-                o = IPA2O.get(ch)
-                if o: out.append(o)
-        return ''.join(out) or None
-    def morph_ph(w):                     # repli Morphalou (07/11) — None quand le toggle est coupé
-        return D.PHON_MORPHALOU.get(w) if PRON_MORPHALOU else None
     FREQ = {}; POS = {}
     with gzip.open(SPELLER, 'rt', encoding='utf-8') as f:
         for line in f:
@@ -137,7 +149,7 @@ def build_index():
     PH2W = defaultdict(list)
     for w in FREQ:
         if FREQ[w] < 1: continue   # 31/10/2026 (liste n° 329) : une forme sans aucune fréquence (525 838 sur 740 579) n'est pas un candidat de l'oreille : elle ne fait que confondre. Parlement 75,2 → 76,4 %, parlé 81,4 %, Rem 46 → 48 sur 53, bruité 29 → 30, trois fois plus rapide
-        ph = D.W2P.get(w) or wikt_ph(w) or morph_ph(w) or g2p_sampa(w)   # W2P > Wiktionnaire IPA > (Morphalou) > g2p deviné
+        ph = prononcer(w)   # W2P > Wiktionnaire IPA > (Morphalou) > g2p deviné
         if ph: PH2W[ph].append(w)
     for w, ph in D.W2P.items():
         if w not in FREQ and ph: PH2W[ph].append(w)

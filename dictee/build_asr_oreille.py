@@ -31,7 +31,6 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import asr_voix as A
-import decompose as D
 
 VOX = os.path.join(HERE, '..', 'data_local', 'voix', 'voxpopuli_fr')
 OUT = A.OREILLE_PATH
@@ -80,25 +79,12 @@ def entendre(wav, torch, proc, am, dev):
 def mots(t): return re.findall(u"[a-zà-ÿœ']+", t.lower())
 
 
-def g2p_sampa(w):                                 # = asr_voix.build_index.g2p_sampa
-    out = []
-    for s in D.g2p(w):
-        ph = s.get('ph')
-        if not ph or ph == '∅': continue
-        for ch in ph:
-            if ch == '̃':
-                if out: out[-1] = A.NAS.get(out[-1], out[-1])
-            elif ch == 'ʲ': out.append('j')
-            elif ch == 'ː': pass
-            else:
-                o = A.IPA2O.get(ch)
-                if o: out.append(o)
-    return ''.join(out)
+g2p_sampa = A.g2p_sampa                           # la chaîne de la voie B (asr_voix.prononcer), pas une copie (07/11)
 
 
 WPRON = {}
 def pron(w):
-    u"""Le son que le décodeur prête au mot (son index), élision découpée, g2p en dernier recours."""
+    u"""Le son que le décodeur prête au mot (son index), élision découpée, sinon la chaîne de l'index (asr_voix.prononcer)."""
     if not WPRON:
         for ph, ws in A.PH2W.items():
             for x in ws: WPRON.setdefault(x, ph)
@@ -106,7 +92,7 @@ def pron(w):
     if "'" in w:
         i = w.index("'") + 1
         return ELID.get(w[:i], g2p_sampa(w[:i - 1])) + (pron(w[i:]) if w[i:] else '')
-    return D.W2P.get(w) or g2p_sampa(w)
+    return A.prononcer(w)                         # W2P > Wiktionnaire > Morphalou > g2p, comme l'index (07/11)
 
 
 def moitie_a(items):
