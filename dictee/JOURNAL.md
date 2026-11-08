@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-11-08 — Police de son : « il devient » ne s'affiche plus « devi » (les -tient/-vient gardent /jɛ̃/)
+
+- Signalé par la conversation du correcteur (la police de son n'avait pas été vérifiée). Mesuré sur main face au Lexique 4
+  (`wordSegments` + g2p de l'APP, comme `police/parity_son.js`) : 300 verbes en -ent les plus fréquents → 12 faux, tous des
+  3e pers. du SINGULIER de tenir/venir (devient, revient, contient, appartient, obtient, souvient…) rendus « devi », « k§ti ».
+- Cause : `ENTSIL` (liste faite main des -ent muets, 582 mots) contient 16 de ces formes (advient… survient), et
+  « devient » est aussi dans la table de conjugaison comme 3e pluriel de « devier ». Ces deux lectures passaient DEVANT
+  `IENT_V` (la liste fermée des 41 -ient en /jɛ̃/) : le « ien » devenait /i/ ; pire, la règle du -ent muet cherche le
+  dernier « en » du mot et mutait celui d'ENTRE dans « entretient ».
+- Correctif (app `_DECL2` → extension `assets/g2p.js` + clone EN reconstruits ; miroir `decompose.py`) : les deux règles
+  ignorent un mot d'`IENT_V`. Avant/après sur 1 121 mots mesurés : **13 changent, rien d'autre** ; égaux au Lexique 1 → 12
+  (« convient » reste /kɔ̃vjɛ̃/ : convenir, plus courant que « ils convient »). Ancres : `parity_son.js` (6 tombent sur
+  l'ancienne app — vérifié) et la batterie de `g2p_parity_probe.py` (6 mots).
+- Vu au passage, PAS traité ici (à mesurer avant) : le « e » prononcé que le g2p de l'app rate sur ~18 des 400 mots
+  fréquents à schwa — fais- + voyelle (faisait, faisons : « ai » = /ə/), monsieur, dessus/dessous, re + ss (ressembler,
+  ressentir). Le « e » final (blanche, lorsque) reste muet : convention de lecture, pas une faute.
+
+---
+
 ## 2026-11-07 (fin) — Voie B : UNE chaîne de prononciation pour l'index et la recette de l'oreille
 
 - La recette de l'oreille (`build_asr_oreille.pron`) avait sa COPIE du g2p, et pour un mot hors index prenait W2P > g2p,
