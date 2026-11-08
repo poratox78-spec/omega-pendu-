@@ -28941,6 +28941,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     if(/^tou(t|te|s|tes)$/.test(d)&&i+1<T.length&&(/^(sauf|le|la|les|un|une|des|ce|cet|cette|ces|mon|ma|mes|ton|ta|tes|son|sa|ses|notre|nos|votre|vos|leur|leurs)$/.test(deacc(T[i+1].toLowerCase()))||/^l['’]/i.test(T[i+1])))return null;   /* ⭐ 07/11/2026 (liste n° 426) :
        « La soirée fut tout sauf calme », « Les nouvelles sont tous les jours meilleures » recevaient « toute », « toutes » en ROUGE. Devant
        « sauf » (locution figée) ou un déterminant (« tous les jours » : « tous » va avec « les jours »), « tout » n'est pas l'attribut du sujet. */
+    if(/^tou(t|te|s|tes)$/.test(d)&&i+1<T.length){var _n467=deacc(T[i+1].toLowerCase());if(ADJP[_n467]||_EPICENE_ADJ[_n467])return _tout467(T,i);}   // liste n° 467 : « tout » devant un adjectif (voir _tout467)
     if(!ADJP[d]||ADJ_STOP[d]||_INVAR_COLOR[d]||_couleurComposee(T,i))return null;if(/ee$/.test(deacc(ADJP[d][1]))&&!/e$/.test(d))return null;if(i+2<T.length&&T[i+1].toLowerCase()==='à'&&T[i+2].toLowerCase()===lw)return null;   // ⭐ 28/09/2026 : couleur invariable (« les rideaux sont orange » → oranges, appliqué d'office)
     var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ')return null;
     if(i+1<T.length&&(tg[i+1]==='NOUN'||tg[i+1]==='PROPN'))return null;   // adjectif ÉPITHÈTE d'un nom suivant (« en plein DÉVELOPPEMENT ») ≠ attribut → abstention
@@ -28954,7 +28955,27 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     else{var subj=_npSubject(T,tg,a);if(!subj)return null;num=subj.n;gender=subj.g;var _sg199=gender;if(gender==='?'){if(!epi)return null;gender='m';}}
     if(ADJP[d][0]==='f'&&(sp==='il'||sp==='ils'||_sg199==='m'))return null;   // ⭐ 28/10/2026 (liste n° 199) : « ils sont fière » → pas « fières » en rouge ; l'orange genreAttrVig propose « fiers ? »
     if(num!==auxNum)return null;
-    var sugg=_adjAgree(w,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
+    var _w467=w;if(num==='s'){var _d467=deacc(lw),_s467=null;if(/aux$/.test(_d467)&&ADJP[_d467.slice(0,-3)+'al'])_s467=w.slice(0,-3)+'al';else if(/eaux$/.test(_d467)&&ADJP[_d467.slice(0,-1)])_s467=w.slice(0,-1);else if(/[sx]$/.test(_d467)&&ADJP[_d467.slice(0,-1)])_s467=w.slice(0,-1);if(_s467&&_adjEstem(_s467.toLowerCase())===null)_w467=_s467;}   // liste n° 467 : sujet au singulier, adjectif écrit au pluriel → on part du singulier (comme la n° 382)
+    var sugg=_adjAgree(_w467,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
+  /* ⭐ 08/11/2026 (liste n° 467) — « La maison est tous blanche » recevait « toutes » en ROUGE, « La rue est noirs » recevait « noires » :
+     rAdjAttr prenait « tous » pour l'attribut, et gardait le pluriel écrit quand le sujet est au singulier. Devant un adjectif, « tout »
+     est l'adverbe (ou le pronom au pluriel) : singulier → « tout », « toute » devant un adjectif féminin qui commence par une consonne ;
+     pluriel → « tous » ou « tout » (masculin), « toutes » (féminin ; « tout » aussi devant une voyelle). L'adjectif lui-même doit déjà
+     s'accorder avec le sujet, sinon c'est l'affaire d'une autre règle. Les h (muet ou aspiré) et les adjectifs en -s / -x au singulier
+     ne sont pas tranchés. */
+  function _tout467(T,i){var w=T[i],d=deacc(w.toLowerCase()),a1=deacc(T[i+1].toLowerCase()),p=ADJP[a1];if(_SEG&&_SEG.bb&&_SEG.bb[i+1])return null;
+    var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(ADJ_MID[dk])continue;return null;}
+    if(a<1)return null;if(_SEG&&(a-1)<_SEG.hy.length&&_SEG.hy[a-1])return null;
+    var auxNum=PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s',sp=deacc(T[a-1].toLowerCase()),g,num;
+    if(sp==='il'||sp==='elle'||sp==='ils'||sp==='elles'){g=(sp==='elle'||sp==='elles')?'f':'m';num=(sp==='ils'||sp==='elles')?'p':'s';}
+    else{var tg=posTags(T);if(!tg)return null;var subj=_npSubject(T,tg,a);if(!subj||subj.g==='?')return null;g=subj.g;num=subj.n;}
+    if(num!==auxNum)return null;if(p&&p[0]!==g)return null;
+    if(num==='p'?!/[sx]$/.test(a1):/[sx]$/.test(a1))return null;
+    var cons=!/^[aeiouyh]/.test(a1),want,ok={};
+    if(num==='s'){want=(g==='f'&&cons)?'toute':'tout';ok[want]=1;if(g==='f'&&!cons)ok.toute=1;}
+    else if(g==='f'){want='toutes';ok.toutes=1;if(!cons)ok.tout=1;}
+    else{want='tous';ok.tous=1;ok.tout=1;}
+    return ok[d]?null:ckeepcase(w,want);}
   /* ⭐ 01/10/2026 — GENRE DE LA PERSONNE QUI ÉCRIT (réglage facultatif, décidé par Rem ; revue : dictee/LITTERATURE_GENRE_ET_SENS.md).
      « je suis allé / allée », « je me suis trompé / trompée », « je suis content / contente » : le genre de « je » n'est pas dans le
      texte. Sans réglage (« je ne précise pas », le défaut), le moteur garde le genre écrit et se tait. Réglé (« j'écris au féminin /
@@ -32875,6 +32896,8 @@ function spellUnknown(tok,atStart,T,idx){
      fruits et les mange » : « les » est un pronom). Mais deux verbes conjugués ne se suivent pas : devant une forme de cette liste
      fermée (3e personne du pluriel de être, avoir, aller, faire, pouvoir, devoir), le mot est un nom. */
   var _V409={};('sont etaient seront seraient furent ont avaient auront auraient eurent vont allaient iront font faisaient feront peuvent pouvaient pourront doivent devaient devront').split(' ').forEach(function(w){_V409[w]=1;});
+  /* ⭐ 08/11/2026 (liste n° 466) — « Les chiens qui les suivent sont gentils » recevait « suivants » : après « qui », un pronom sujet, « ne » ou « me / te / se », « les » est un pronom, et le verbe d'une relative précède le verbe principal. L'exception n° 409 ne vaut pas là ; « à qui les … » garde le déterminant. */
+  var _CL466={qui:1,je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,ne:1,me:1,te:1,se:1};
   function plurielSonVig(T,i){if(i>0&&(cesCestVig(T,i-1)||rCesSest(T,i-1)))return null;if(i>1&&/^(mes|tes)$/.test(deacc(T[i-1].toLowerCase()))&&_APS_SUJ[deacc(T[i-2].toLowerCase()).replace(/^(qu|s|lorsqu|puisqu|quoiqu)['’]/,'')])return null;   /* ⭐ 12/10/2026 (lot 14) : « elle mes dit » = m'a dit, pas « dits » */if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
     if(!_PSON_DPUR[pd]&&!_PSON_DAMB[pd])return null;
     var n=T[i];if(!/^[a-zà-ÿœæ]+$/i.test(n)||n.charAt(0)!==n.charAt(0).toLowerCase())return null;
@@ -32888,7 +32911,7 @@ function spellUnknown(tok,atStart,T,idx){
       var p2r=i>=2?T[i-2]:'',ap=p2r.indexOf("'"),p2v=ap>0?p2r.slice(ap+1):p2r,p2=deaccS(p2v.toLowerCase());
       var np=(p2&&NOUN_POST)?(typeof NOUN_POST.get==='function'?NOUN_POST.get(p2):NOUN_POST[p2]):null;
       var verbe=/^[a-zà-ÿœæ]+$/i.test(p2v)&&(ap>0||p2v.charAt(0)===p2v.charAt(0).toLowerCase())&&!_PSON_GRAM[p2]&&(spP(p2v.toLowerCase())||'').indexOf('V')>=0&&(!np||np[0]<500);
-      if(!PREP[p2]&&!_PSON_AVL[p2]&&!verbe&&!(nx&&_V409[deaccS(nx.toLowerCase())]))return null;}   // liste n° 409 : verbe conjugué juste après (voir _V409)
+      if(!PREP[p2]&&!_PSON_AVL[p2]&&!verbe&&!(nx&&_V409[deaccS(nx.toLowerCase())]&&!(_CL466[p2]&&!(p2==='qui'&&i>=3&&PREP[deaccS(T[i-3].toLowerCase())]))))return null;}   // liste n° 409 : verbe conjugué juste après (voir _V409)
     var cs=_psonCands(n);return cs.length?cs[0]:null;}
   var _ADV189={pas:1,jamais:1,rien:1,plus:1,toujours:1,deja:1,encore:1,souvent:1,bien:1,vraiment:1,point:1,guere:1};   // liste n° 189 : négation / adverbe entre « ma » et le participe
   var _ELI_PLEIN={je:"j'",que:"qu'",le:"l'",la:"l'",de:"d'",ce:"c'",ne:"n'",me:"m'",te:"t'",se:"s'",si:"s'"},_ELI_EXC={oui:1,ouais:1,ouistiti:1,ouistitis:1,onze:1,onzieme:1,onziemes:1,ouate:1,uhlan:1},_ELI_CONJ={et:1,ou:1},_ELI_SUJ={il:1,elle:1,ils:1,elles:1,on:1},_ELI_AVANT_CL={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,ne:1,qui:1};   // élision manquante (30/09/2026, voir l'élision-espace de spellText)

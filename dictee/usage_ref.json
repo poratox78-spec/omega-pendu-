@@ -1,18 +1,18 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 170,
-   "bon": 161,
-   "rouge juste": 115,
-   "orange juste": 46,
+   "total": 173,
+   "bon": 164,
+   "rouge juste": 116,
+   "orange juste": 48,
    "mauvais mot": 0,
    "muette": 9
   },
   "grammaire": {
-   "total": 241,
-   "bon": 217,
-   "rouge juste": 92,
-   "orange juste": 125,
+   "total": 245,
+   "bon": 221,
+   "rouge juste": 95,
+   "orange juste": 126,
    "mauvais mot": 1,
    "muette": 23
   },
@@ -25,17 +25,17 @@
    "muette": 15
   },
   "conjugaison": {
-   "total": 300,
-   "bon": 280,
-   "rouge juste": 137,
-   "orange juste": 143,
+   "total": 303,
+   "bon": 283,
+   "rouge juste": 139,
+   "orange juste": 144,
    "mauvais mot": 5,
    "muette": 15
   },
   "orthographe": {
-   "total": 166,
-   "bon": 156,
-   "rouge juste": 84,
+   "total": 168,
+   "bon": 158,
+   "rouge juste": 86,
    "orange juste": 72,
    "mauvais mot": 3,
    "muette": 7
@@ -1027,6 +1027,18 @@
   "T81#1": "orange juste",
   "T81#2": "orange juste",
   "T81#3": "orange juste",
-  "T81#4": "muette"
+  "T81#4": "muette",
+  "T90#0": "orange juste",
+  "T90#1": "rouge juste",
+  "T90#2": "rouge juste",
+  "T90#3": "rouge juste",
+  "T90#4": "rouge juste",
+  "T90#5": "orange juste",
+  "T90#6": "rouge juste",
+  "T91#0": "rouge juste",
+  "T91#1": "rouge juste",
+  "T91#2": "orange juste",
+  "T91#3": "rouge juste",
+  "T91#4": "orange juste"
  }
 }

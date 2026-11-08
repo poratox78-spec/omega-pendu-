@@ -511,3 +511,21 @@ Elle s'est {plaint|plainte|G} d'un mal de tête en rentrant.
 Elle s'est {souvenu|souvenue|G} trop tard de son cahier de poésie.
 Les enfants se sont {disputé|disputés|G} à la sortie, mais tout s'est arrangé.
 La maîtresse nous a toujours bien {conseillé|conseillés|G}, nous l'en remercions.
+=== T90 message d'une association qui promène les chiens d'un refuge
+Bonjour à tous,
+Les bénévoles qui les promènent sont {présent|présents|N} chaque samedi matin.
+Les familles qui les accueillent ont {reçut|reçu|C} un petit guide.
+Ceux qui les gardent le dimanche doivent nous {prévenire|prévenir|O} la veille.
+Les promenades {dure|durent|C} une heure environ.
+Nous {cherchon|cherchons|O} encore deux personnes pour le mois de mars.
+Les chiens qui les attendent sont très {calme|calmes|N}.
+Merci {a|à|G} tous pour votre aide !
+=== T91 description d'une chambre d'hôtes sur un site de location
+La chambre est {tous|toute|G} blanche, avec une grande fenêtre sur le jardin.
+Le lit est {neufs|neuf|N} et le matelas est ferme.
+La salle de bain est petite mais toute neuve.
+Les draps sont {changé|changés|G} chaque matin.
+Les volets sont tout neufs depuis le printemps.
+Le soir, la terrasse est {tout|toute|G} calme.
+Le petit déjeuner est {servit|servi|C} à huit heures.
+La maison est tout près de la gare.

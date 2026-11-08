@@ -832,6 +832,12 @@
 "Il prend les fruits et les mange.",
 "Elle range les dossiers et les classe dans le tiroir.",
 "Le bourg est calme, et les commerces sont tout près.",
+"Les chiens qui les suivent sont gentils.",
+"Les gardes qui les surveillent sont fatigués.",
+"Ceux qui les écoutent vont comprendre vite.",
+"Ils sont tous contents de venir.",
+"Elle est toute heureuse.",
+"Les volets sont tout neufs depuis le printemps.",
 "Julie Bernard est née à Lyon.",
 "Emma Thomas est arrivée hier soir.",
 "Pierre Martin est venue en avance.",
@@ -912,6 +918,31 @@
 "Elle a dû la somme hier."
 ],
 "elide": [
+[
+"La maison est tous blanche.",
+"tous",
+"toute"
+],
+[
+"Elles sont tous contentes de venir.",
+"tous",
+"toutes"
+],
+[
+"Le mur est toute blanc.",
+"toute",
+"tout"
+],
+[
+"La table est petits.",
+"petits",
+"petite"
+],
+[
+"Le chat est noirs.",
+"noirs",
+"noir"
+],
 [
 "J'sais que c'est vrai",
 "J'sais",
@@ -4132,6 +4163,11 @@
 [
 "Le bourg est calme, et les commerce sont tout près.",
 "commerce",
+"vigilance"
+],
+[
+"Les amis à qui les parent ont écrit sont partis.",
+"parent",
 "vigilance"
 ],
 [
