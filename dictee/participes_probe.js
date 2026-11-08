@@ -7,6 +7,8 @@
        épithète, a été ; 41 verbes transitifs (6 du 3e groupe ajoutés à la ligne 460), 14 verbes à être, 10 pronominaux ;
        la ligne 460 (participe accordé avec le NOM qui le commande) se lit dans les contextes être, a été, avoir + que,
        avoir + le/la/les et épithète ;
+     famille « participe après un infinitif » (ligne 463) — E1 verbe conjugué + être (« Ils vont être partis »), E2 après être
+       (sujet avant ou après), E3 « à tous / à toutes d'être », E4 après s'être (« se » direct de la table), E5 après avoir (invariable) ;
      famille « pronom personne » (ligne 457) — pour chaque participe de la table de valence (dictee/valence_table.json, D / I / DI) :
        A. avoir + me / nous devant (« Le guide nous a aidés. »)       D → accord (nous : pluriel, genre libre) ; I → invariable
        B. avoir + me / nous + complément après (« … nous a montré la route. ») → invariable
@@ -121,6 +123,28 @@ for (const [ms, cl] of Object.entries(TAB)) {
     else if (PRON_I.has(ms)) ajoute('C être pronominal I', ms, ['ms'], (x) => `${s} ${aux} ${x} hier.`);
     ajoute('D être pronominal + complément ' + cl, ms, ['ms'], (x) => `${s} ${aux} ${x} la route.`);
   }
+}
+// 2c. famille « participe après un infinitif » (ligne 463) : être / s'être / avoir à l'infinitif
+{
+  const MOD = { ms: 'doit', fs: 'doit', mp: 'doivent', fp: 'doivent' }, VA = { ms: 'va', fs: 'va', mp: 'vont', fp: 'vont' };
+  const REPOS = { ms: 'se repose', fs: 'se repose', mp: 'se reposent', fp: 'se reposent' }, PART = { ms: 'part', fs: 'part', mp: 'partent', fp: 'partent' };
+  for (const [, ms] of ETRE) for (const c of ['ms', 'fs', 'mp', 'fp']) {
+    ajoute('E1 verbe + être (pronom)', ms, [c], (x) => `${SUJ[c][0]} ${VA[c]} être ${x} demain.`);
+    ajoute('E1 verbe + être (nom)', ms, [c], (x) => `${SUJ[c][1]} ${MOD[c]} être ${x} avant midi.`);
+    ajoute('E2 après être, sujet après', ms, [c], (x) => `Après être ${x}, ${SUJ[c][0].toLowerCase()} ${REPOS[c]}.`);
+    ajoute('E2 après être, sujet avant', ms, [c], (x) => `${SUJ[c][0]} ${REPOS[c]} après être ${x}.`);
+  }
+  for (const [, ms] of ETRE) {
+    ajoute('E3 à tous d\'être', ms, ['mp'], (x) => `Merci à tous d'être ${x} si nombreux.`);
+    ajoute('E3 à tous d\'être', ms, ['fp'], (x) => `Merci à toutes d'être ${x} si nombreuses.`);
+  }
+  for (const [, ms, Nms, Nfs, Nmp, Nfp] of TR) {
+    const N = { ms: Nms, fs: Nfs, mp: Nmp, fp: Nfp };
+    for (const c of ['ms', 'fs', 'mp', 'fp']) ajoute('E1 verbe + être passif', ms, [c], (x) => `${det[c]} ${N[c]} ${MOD[c]} être ${x} avant midi.`);
+    ajoute('E5 après avoir', ms, ['ms'], (x) => `Après avoir ${x} la ${Nfs}, ils partent.`);
+  }
+  for (const [, ms] of PRON) if (TAB[ms] === 'D') for (const c of ['ms', 'fs', 'mp', 'fp'])
+    ajoute('E4 après s\'être', ms, [c], (x) => `Après s'être ${x}, ${SUJ[c][0].toLowerCase()} ${PART[c]}.`);
 }
 // 3. le produit
 const L = MODE === 'voir' ? P : P.filter((p, k) => k % 2 === 0);

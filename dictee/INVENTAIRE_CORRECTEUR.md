@@ -7,7 +7,7 @@
 
 - Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **218** entrées, **91** noms affichés ; rouge : 78 · rouge avec un cas orange posé par la règle : 43 · rouge ou orange selon le sous-cas : 42 · orange : 55.
 - Moteur Python : débranché de dev.sh et de la CI le 22/10/2026 (ligne 25b) — la chaîne n'est plus comparée ; la parité directe app ≡ extension la garde (`dictee/parity_app_ext.js`).
-- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **50**.
+- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **49**.
 - Tables chargées : 11 (le chargeur unique `extension/charger_node.js` les charge toutes pour les bancs).
 
 ## Règles de grammaire, dans l'ordre de la chaîne
@@ -247,7 +247,6 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | accord du participe après avoir à vérifier | 1 | orange | participe | — | correcteur_probe.py |
 | accord du verbe au sujet nominal à vérifier | 1 | orange | accord | — | correcteur_probe.py |
 | accord genre à vérifier | 2 | orange | accord | — | — |
-| accord participe (nom) | 1 | selon la couche | participe | — | — |
 | accord participe (pronom complément) | 1 | selon la couche | participe | — | — |
 | accord participe à vérifier | 6 | orange | participe | — | — |
 | accord pluriel à vérifier | 3 | orange | accord | — | — |
@@ -299,7 +298,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 
 | table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |
 |---|---|---|---|---|
-| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 195 / 218 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `_ppMs460` `_ppNom460` `rEer` … (167) |
+| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 195 / 218 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `_ppMs460` `_ppNom460` `_ppInf463` … (168) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 143 / 218 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` `rAnte315` … (34) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 105 / 218 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (78) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 111 / 218 | `_etreAttrEr` `_eerVerbeRare188` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` … (37) |
