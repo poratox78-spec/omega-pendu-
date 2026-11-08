@@ -863,7 +863,11 @@
 "Ils mangent leurs gâteaux.",
 "Les appareils de surveillance continue aident les soignants.",
 "Les séances de lecture continue plaisent aux élèves.",
-"Il faut brancher les capteurs de mesure continue avant midi."
+"Il faut brancher les capteurs de mesure continue avant midi.",
+"La séance d'information sera annulée jeudi.",
+"La file d'attente est bloquée depuis midi.",
+"Les billets d'avion sont réservés pour lundi.",
+"Des centaines d'oiseaux sont arrivés hier."
 ],
 "elide": [
 [
@@ -3560,6 +3564,16 @@
 "Les gardiens du parc ferme les grilles le soir.",
 "ferme",
 "ferment"
+],
+[
+"La séance d'information sera annulé jeudi.",
+"annulé",
+"annulée"
+],
+[
+"La file d'attente est bloqué depuis midi.",
+"bloqué",
+"bloquée"
 ]
 ],
 "palier": [
