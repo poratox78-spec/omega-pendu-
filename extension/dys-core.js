@@ -6684,7 +6684,7 @@ function spellUnknown(tok,atStart,T,idx){
      réveil » passait sans marque — la règle ne cherchait le verbe qu'après un pronom sujet (« elle accueil » → accueille). Après un sujet
      NOMINAL : le nom-tête juste avant le mot (clitiques sautés), le groupe sujet en tête de proposition (début, ponctuation, et, mais,
      que, quand…), sans verbe conjugué entre les deux : même paire nom → verbe, à la 3e personne et au nombre du sujet (« accueillent »,
-     « réveille »). « une période de travail », « cet appareil », « sans appel » ne sont pas des sujets ; un verbe conjugué qui suit, un
+     « réveille »). « une salle d'attente », « ce vieux réveil », « avec rappel » ne sont pas des sujets ; un verbe conjugué qui suit, un
      chiffre juste avant ou une forme verbale rare (moins de 0,1 par million) : la règle se tait. */
   function _nvNom441(T,i,j,lw){if(j<0||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])||(_SEG&&_SEG.dig&&i<_SEG.dig.length&&_SEG.dig[i]))return null;var tg=posTags(T);if(!tg)return null;var sj=_npSubject(T,tg,j+1);
     if(!sj||sj.idx!==j||tg[j]!=='NOUN'||(sj.n!=='s'&&sj.n!=='p'))return null;var d0=sj.det>=0?sj.det:sj.idx;
