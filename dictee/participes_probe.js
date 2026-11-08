@@ -4,7 +4,9 @@
    vérifié en même temps. Phrases inventées par gabarit : chaque forme JUSTE (aucune marque attendue) et chaque forme FAUTIVE (la bonne
    attendue), dans chaque contexte :
      ancien contrôle (ligne 345) — être passif / pronom / nom, sujets coordonnés, pronominal, avoir + le / la / les, avoir + que,
-       épithète, a été ; 35 verbes transitifs, 14 verbes à être, 10 pronominaux ;
+       épithète, a été ; 41 verbes transitifs (6 du 3e groupe ajoutés à la ligne 460), 14 verbes à être, 10 pronominaux ;
+       la ligne 460 (participe accordé avec le NOM qui le commande) se lit dans les contextes être, a été, avoir + que,
+       avoir + le/la/les et épithète ;
      famille « pronom personne » (ligne 457) — pour chaque participe de la table de valence (dictee/valence_table.json, D / I / DI) :
        A. avoir + me / nous devant (« Le guide nous a aidés. »)       D → accord (nous : pluriel, genre libre) ; I → invariable
        B. avoir + me / nous + complément après (« … nous a montré la route. ») → invariable
@@ -71,6 +73,10 @@ const TR = [
   ['traduire', 'traduit', 'texte', 'lettre', 'textes', 'lettres'], ['battre', 'battu', 'record', 'équipe', 'records', 'équipes'],
   ['tenir', 'tenu', 'livre', 'promesse', 'livres', 'promesses'], ['devoir', 'dû', 'loyer', 'somme', 'loyers', 'sommes'],
   ['conduire', 'conduit', 'camion', 'voiture', 'camions', 'voitures'],
+  // ligne 460 : participes du 3e groupe hors des tables du moteur (lus par l'infinitif refait)
+  ['inscrire', 'inscrit', 'nom', 'date', 'noms', 'dates'], ['décrire', 'décrit', 'paysage', 'scène', 'paysages', 'scènes'],
+  ['joindre', 'joint', 'fichier', 'pièce', 'fichiers', 'pièces'], ['découvrir', 'découvert', 'trésor', 'grotte', 'trésors', 'grottes'],
+  ['produire', 'produit', 'film', 'série', 'films', 'séries'], ['repeindre', 'repeint', 'banc', 'grille', 'bancs', 'grilles'],
 ];
 const ETRE = [['partir', 'parti'], ['venir', 'venu'], ['arriver', 'arrivé'], ['tomber', 'tombé'], ['rester', 'resté'], ['sortir', 'sorti'],
   ['rentrer', 'rentré'], ['naître', 'né'], ['mourir', 'mort'], ['monter', 'monté'], ['descendre', 'descendu'], ['entrer', 'entré'], ['retourner', 'retourné'], ['passer', 'passé']];

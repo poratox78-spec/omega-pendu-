@@ -46,7 +46,8 @@ const C = globalThis.__C;
     else if (expect && (r[0].sugg || '').toLowerCase() !== sugg) fail.push(`[${s}] → sugg ${r[0].sugg} ≠ ${sugg}`);
   }
   // ACCORD PARTICIPE après être 3pl (« les élèves sont arrivé »→arrivés) — orange, FP=0 (seul flag UD = vraie faute « sont remplacé »)
-  const pe = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord participe à vérifier'); };
+  const PP460 = 'accord participe (nom)';   // liste n° 460 : l'orange du participe accordé avec le nom qui le commande (même famille)
+  const pe = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord participe à vérifier' || f.name === PP460); };
   const PE = [
     ['les élèves sont arrivé', true, 'arrivés'],
     ['les travaux sont terminé', true, 'terminés'],
@@ -62,7 +63,7 @@ const C = globalThis.__C;
   // ⭐ 28/09/2026 — « SONT + ADJECTIF » (attributPlVig) : après sont/étaient/furent/seront, un ADJECTIF ou un participe IRRÉGULIER
   // sans marque du pluriel → la marque du nombre (orange), genre écrit gardé. [phrase, nom de règle attendu | null, suggestion]
   const AD_NOMS = { adj: 'accord adjectif à vérifier', pp: 'accord participe à vérifier' };
-  const ad = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === AD_NOMS.adj || f.name === AD_NOMS.pp); };
+  const ad = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === AD_NOMS.adj || f.name === AD_NOMS.pp || f.name === PP460); };
   const AD = [
     ['les résultats sont exploitable', 'adj', 'exploitables'],   // épicène (hors paire de genre)
     ['les voisins étaient insolent', 'adj', 'insolents'],       // lu VERBE par le tagger
@@ -82,7 +83,7 @@ const C = globalThis.__C;
   for (const [s, kind, sugg] of AD) {
     const r = ad(s), got = r.length > 0;
     if (got !== !!kind) fail.push(`[attribut ${s}] → ${got ? JSON.stringify(r[0].sugg) + ' ' + r[0].name : 'aucun'} (attendu ${kind ? sugg : 'aucun'})`);
-    else if (kind && ((r[0].sugg || '') !== sugg || r[0].name !== AD_NOMS[kind])) fail.push(`[attribut ${s}] → ${r[0].sugg} [${r[0].name}] ≠ ${sugg} [${AD_NOMS[kind]}]`);
+    else if (kind && ((r[0].sugg || '') !== sugg || !(r[0].name === AD_NOMS[kind] || (kind === 'pp' && r[0].name === PP460)))) fail.push(`[attribut ${s}] → ${r[0].sugg} [${r[0].name}] ≠ ${sugg} [${AD_NOMS[kind]}]`);
   }
   // ⭐ 29/09/2026 — orange de pluriel : jamais sur un INFINITIF (ni l'adverbe qui suit) derrière les/ces/ses — « les » pronom, « ces » pour « se ».
   const pv = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord pluriel à vérifier'); };
@@ -125,7 +126,7 @@ const C = globalThis.__C;
   // ⭐ 10/10/2026 — catalogue des muets, terminaisons : ① quantité + de + nom → pluriel ; ② petits mots sans leur lettre muette ;
   // ③ « ont été » + participe → pluriel. Toujours en orange ; chaque prise a ses silences voulus.
   const ho = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'homophone à vérifier'); };
-  const pa = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord participe à vérifier' || f.name === 'accord adjectif à vérifier'); };
+  const pa = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord participe à vérifier' || f.name === 'accord adjectif à vérifier' || f.name === PP460); };
   for (const [s, w, sg] of [['Le nombre de touriste augmente chaque été.', 'touriste', 'touristes'], ["La ville compte un million d'habitant.", "d'habitant", "d'habitants"],
                             ["Des centaines d'oiseau passent ici.", "d'oiseau", "d'oiseaux"]]) {
     const r = pv(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[quantité ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
