@@ -110,7 +110,8 @@
  },
  "C être pronominal D | infinitif": {
   "n": 564,
-  "orange juste": 564
+  "rouge juste": 562,
+  "orange juste": 2
  },
  "C être pronominal D | juste": {
   "n": 736,
@@ -156,7 +157,8 @@
  },
  "C être pronominal P | infinitif": {
   "n": 34,
-  "orange juste": 34
+  "rouge juste": 31,
+  "orange juste": 3
  },
  "C être pronominal P | juste": {
   "n": 62,
@@ -675,8 +677,8 @@
  },
  "pronominal | infinitif": {
   "n": 16,
-  "rouge juste": 1,
-  "orange juste": 15
+  "rouge juste": 15,
+  "orange juste": 1
  },
  "pronominal | juste": {
   "n": 22,
