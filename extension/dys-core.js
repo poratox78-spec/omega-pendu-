@@ -3914,7 +3914,10 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
       /* sujet POSTPOSÉ (« est annoncée la reprise ») → abstention. EXEMPTION MESURÉE le 26/08/2026 :
          un COMPLÉMENT DE TEMPS n'est jamais un sujet postposé. En bloc, la garde rendait MUET
          l'accord par PRÉNOM (« Marie est venu CE MATIN. »). Miroir app rPpEtre. */
-      var _au442=false;if(i+1<tgp.length&&tgp[i+1]==='DET'&&!_detDeTemps(T,i+1)){if(!/^(au|aux)$/.test(deacc(T[i+1].toLowerCase())))return null;_au442=true;}   /* ⭐ 07/11/2026 (liste n° 442) :
+      /* ⭐ 08/11/2026 (liste n° 418) : « L'entrée principale sera fermé. Les voitures… » passait sans marque — le point n'est pas un mot,
+         et la garde du sujet postposé voyait « Les » (début de la phrase suivante) juste derrière le participe. Un déterminant séparé du
+         participe par une ponctuation n'ouvre pas de sujet postposé. */
+      var _au442=false;if(i+1<tgp.length&&tgp[i+1]==='DET'&&!_detDeTemps(T,i+1)&&!(_SEG&&_SEG.bb&&i+1<_SEG.bb.length&&_SEG.bb[i+1])){if(!/^(au|aux)$/.test(deacc(T[i+1].toLowerCase())))return null;_au442=true;}   /* ⭐ 07/11/2026 (liste n° 442) :
          « une fête est organiser au collège » recevait « organisé » en ROUGE (sans accord) : le tagger lit « au » comme un déterminant,
          et la garde du sujet postposé coupait l'accord. Un sujet ne commence jamais par « au / aux » (à + le / les) : ils n'ouvrent pas
          de sujet postposé. « du / des » le peuvent (« sont arrivés des amis ») : gardés. Sujet PRÉNOM seul : la garde reste (mesuré : un
@@ -3924,6 +3927,9 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
       if(sj===null){if(auxNum==='p'&&_ppCoordSubject(T,tgp,a)==='p'){var _lw213=lw.replace(/s$/,''),gcp=_coordGenre345(T,a)||((/e$/.test(_lw213)&&!/é$/.test(_lw213))?'f':'m'),sgp=base+(gcp==='f'?'es':'s');   /* ⭐ 31/10/2026 (liste n° 213) : le genre écrit se lit sans le -s du pluriel — « Nora et Inès sont rentrées » devenait « rentrés » en ROUGE */return sgp.toLowerCase()!==lw?ckeepcase(T[i],sgp):null;}
         if(!_a1refl&&_a1ok&&/é$/.test(lw)&&deacc(lw)===deacc(base))return ckeepcase(T[i],base+'s');   // #A1 : sujet non résolu, aux pluriel audible → nombre seul (masc gardé)
         return null;}   // sujet COORDONNÉ « X et Y sont » → pluriel, genre écrit gardé (miroir Python)
+      if(_COLL_HEAD[deacc(String(sj.htxt||'').toLowerCase()).replace(/^[a-z]['’]/,'').replace(/[sx]$/,'')]&&sj.idx+1<a&&/^(de|des|du|d['’].+)$/i.test(T[sj.idx+1]))return null;   /* ⭐ 08/11/2026 (liste n° 418) : sujet « nom de quantité + de … »
+         (« l'ensemble de la troupe », « la moitié des invités ») : l'accord peut suivre le complément — abstention, comme la règle sujet-verbe
+         (_COLL_HEAD). Sans complément (« la foule est sorti »), la règle garde le nom. */
       if(/^(plus|moins|mieux|autres?)$/.test(deacc(String(sj.htxt||'').toLowerCase())))return null;   /* ⭐ 31/10/2026 (liste n° 237) : « les autres sont parties » : « autres » ne dit pas le genre */   /* ⭐ 12/09/2026 : tête SUPERLATIVE (« la plus froide a été enregistrée ») — pas un nom (miroir Python, UD 2134) */
       if(sj.n==='s'&&auxNum==='p'&&_a1ok&&PLURAL_DET[deacc(String(sj.dtxt||'').toLowerCase())])sj.n='p';   // ⭐ 12/09/2026 (lot 2) : « ces outil agricole sont vendu » — le nom a perdu son -s, déterminant et aux audible disent pluriel
       if(sj.n!==auxNum)return null;                                            // nombre du sujet ≠ aux → sujet mal identifié → abstention
