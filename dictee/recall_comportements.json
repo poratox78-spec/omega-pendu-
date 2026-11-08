@@ -860,7 +860,10 @@
 "Les deux amis se saluent et Paul se rend au marché.",
 "Les enfants jouent et Marie se repose.",
 "Ils se sont de nouveau réunis.",
-"Ils mangent leurs gâteaux."
+"Ils mangent leurs gâteaux.",
+"Les appareils de surveillance continue aident les soignants.",
+"Les séances de lecture continue plaisent aux élèves.",
+"Il faut brancher les capteurs de mesure continue avant midi."
 ],
 "elide": [
 [
@@ -3547,6 +3550,16 @@
 "Elles ouvrent leur cadeaux.",
 "leur",
 "leurs"
+],
+[
+"Les enfants de la voisine joue dans la cour.",
+"joue",
+"jouent"
+],
+[
+"Les gardiens du parc ferme les grilles le soir.",
+"ferme",
+"ferment"
 ]
 ],
 "palier": [

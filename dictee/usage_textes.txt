@@ -410,3 +410,11 @@ Les parents {étais|étaient|C} invités au goûter.
 Les {moule|moules|N} ont été lavés par les plus grands.
 Nous {recommenceront|recommencerons|C} en décembre.
 {merci|Merci|P} aux bénévoles !
+=== T70 programme des ateliers du centre social
+Les ateliers de cuisine pratique {reprenne|reprennent|C} début mars, dans les salles du premier étage.
+Chaque module {dur|dure|C} trois heures, avec une pause au milieu.
+Les {stagiaire|stagiaires|N} reçoivent un livret au premier atelier.
+L'atelier de couture {comence|commence|O} à dix heures, et les inscriptions restent {ouverte|ouvertes|N} jusqu'à la fin du mois.
+Les fenêtres de la salle calme donnent sur le parc.
+Une attestation est remise {a|à|O} la fin du cycle.
+Pour tout renseignement, {contacté|contactez|C} le secrétariat.
