@@ -899,7 +899,13 @@
 "Cette chanson, je l'ai entendue à la radio.",
 "La porte que j'ai peinte est jaune.",
 "Les élèves se sont beaucoup aidés.",
-"Les joueuses se sont longtemps entraînées."
+"Les joueuses se sont longtemps entraînées.",
+"Il faut être arrivé avant midi.",
+"Elles se sont parlé après s'être croisées.",
+"Je remercie mes voisines d'être venues.",
+"Après les avoir vus, elle est partie.",
+"Après être arrivées, elles ont rangé la salle.",
+"Ils semblent être partis tôt."
 ],
 "elide": [
 [
@@ -3711,6 +3717,36 @@
 "Les joueuses se sont longtemps entraîné.",
 "entraîné",
 "entraînées"
+],
+[
+"Elle va être prévenu demain.",
+"prévenu",
+"prévenue"
+],
+[
+"Après être arrivé, elles ont rangé la salle.",
+"arrivé",
+"arrivées"
+],
+[
+"Elles sont reparties après être arrivé.",
+"arrivé",
+"arrivées"
+],
+[
+"Après s'être levé, elle a pris son café.",
+"levé",
+"levée"
+],
+[
+"Après avoir mangés, ils sont sortis.",
+"mangés",
+"mangé"
+],
+[
+"Merci à toutes d'être passé ce soir.",
+"passé",
+"passées"
 ]
 ],
 "palier": [

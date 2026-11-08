@@ -496,3 +496,11 @@ Les voisins se sont {aidé|aidés|G} pour porter les sacs.
 Ces graines, je les ai {semés|semées|G} au fond du jardin.
 La récolte, nous l'avons {partagé|partagée|G} entre tous.
 Merci à ceux qui {arrose|arrosent|C} le soir quand il fait chaud.
+=== T80 message du club de randonnée après la sortie du dimanche
+Bonjour à toutes et à tous,
+Merci à tous d'être {venu|venus|G} malgré la pluie.
+Après être {arrivé|arrivés|G} au refuge, les marcheurs ont pris un bon repas.
+Après avoir {mangés|mangé|G}, nous sommes repartis vers le col.
+Ils se sont réchauffés après s'être {installé|installés|G} près du feu.
+Les sentiers doivent être {nettoyé|nettoyés|G} avant la prochaine sortie.
+{a|À|O} bientôt sur les chemins !
