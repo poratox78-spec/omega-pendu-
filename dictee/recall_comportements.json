@@ -867,7 +867,10 @@
 "La séance d'information sera annulée jeudi.",
 "La file d'attente est bloquée depuis midi.",
 "Les billets d'avion sont réservés pour lundi.",
-"Des centaines d'oiseaux sont arrivés hier."
+"Des centaines d'oiseaux sont arrivés hier.",
+"La porte sera fermée. Les voitures roulent.",
+"La salle est rangée. Des chaises restent dehors.",
+"La moitié des invités est partie. Les autres dansent."
 ],
 "elide": [
 [
@@ -3574,6 +3577,16 @@
 "La file d'attente est bloqué depuis midi.",
 "bloqué",
 "bloquée"
+],
+[
+"La porte sera fermé. Les voitures roulent.",
+"fermé",
+"fermée"
+],
+[
+"La salle est rangé. Des chaises restent dehors.",
+"rangé",
+"rangée"
 ]
 ],
 "palier": [

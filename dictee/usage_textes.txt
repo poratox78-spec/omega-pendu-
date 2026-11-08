@@ -427,3 +427,10 @@ La visite des laboratoires se fait par petits groupes ; les {groupe|groupes|N} p
 Les parents pourront {rencontré|rencontrer|C} les professeurs à la cafétéria.
 La séance d'orientation est {prévu|prévue|G} à onze heures dans l'amphithéâtre.
 {venez|Venez|P} nombreux !
+=== T72 avis de la médiathèque sur ses nouveaux horaires
+Chers lecteurs,
+Dès le mois prochain, la médiathèque sera {ouvert|ouverte|G} le dimanche. Les {horaire|horaires|N} de la semaine ne changent pas.
+La salle des contes est {rénové|rénovée|G}. Des coussins neufs {attende|attendent|C} les plus petits.
+Les albums {emprunté|empruntés|N} se rendent sous trois semaines.
+Pensez à {réservé|réserver|C} vos romans sur le site.
+L'équipe vous {souhaitent|souhaite|C} de belles lectures !
