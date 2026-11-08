@@ -385,3 +385,12 @@ Il faut {serré|serrer|C} chaque vis sans forcer.
 Une fois {monté|montée|G}, l'étagère supporte vingt kilos par tablette.
 Ne {grimper|grimpez|C} jamais sur l'étagère.
 {gardez|Gardez|P} cette notice.
+=== T67 lettre d'un enfant en colonie de vacances
+Chers parents, tout se passe bien ici.
+Le matin, les moniteurs nous {réveil|réveillent|C} à huit heures.
+Les garçons se lavent et Hugo se coiffe pendant une heure !
+Hier, nous {somme|sommes|C} allés à la plage.
+Les vagues {était|étaient|C} énormes.
+J'ai {manger|mangé|C} une glace à la fraise.
+Mes {copain|copains|N} vous disent bonjour.
+{a|À|O} bientôt !

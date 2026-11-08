@@ -856,7 +856,9 @@
 "C'est le plus beau film que j'ai jamais vu.",
 "Je doute qu'il soit jamais venu.",
 "Les pages d'un livre reprennent le titre.",
-"Les coins d'une douille sont usés."
+"Les coins d'une douille sont usés.",
+"Les deux amis se saluent et Paul se rend au marché.",
+"Les enfants jouent et Marie se repose."
 ],
 "elide": [
 [
@@ -3518,6 +3520,11 @@
 "Les enfants livre les colis.",
 "livre",
 "livrent"
+],
+[
+"Les enfants se lèvent et se lave.",
+"lave",
+"lavent"
 ]
 ],
 "palier": [

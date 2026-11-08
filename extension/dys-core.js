@@ -2619,7 +2619,9 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     var ci=null;for(k=i-1;k>=lo;k--){var dk=deacc(T[k].toLowerCase());if(T[k].toLowerCase()==='où')return null;if(dk==='et'||dk==='ou'||dk==='ni'){ci=k;break;}}
     if(ci===null)return null;
     if(_SEG&&ci+1<_SEG.dig.length&&(_SEG.dig[ci]||_SEG.dig[ci+1]))return null;   /* ⭐ 11/09/2026 (restes frgec, lot 2) : « entre 2006 et 2016 sont parues » — un NOMBRE touche la conjonction : « et » coordonne des nombres, pas des verbes. Miroir Python. */
-    for(var m=ci+1;m<i;m++){if(NUM_DET[T[m].toLowerCase()]!==undefined||_coordSubjW[deacc(T[m].toLowerCase())])return null;if(_elidKind(T[m])==='det')return null;if(_ELIDED_PRON.test(T[m].toLowerCase()))return null;}   // PRONOM ÉLIDÉ = un NOUVEAU sujet lui aussi : « … et lorsqu'elle dort » ouvre sa propre proposition (FP mesuré 30/08/2026 sur français CORRECT : dort → dorment) — même motif que la garde 'det', jamais propagée à cette règle sœur
+    for(var m=ci+1;m<i;m++){if(/^[A-ZÀ-Þ]/.test(T[m]))return null;   /* ⭐ 08/11/2026 (liste n° 424) : « Les deux amis se saluent et Paul se rend au
+       marché » recevait « rendent » en ROUGE — un nom propre entre « et » et le verbe est un NOUVEAU sujet, comme un déterminant ou un pronom. */
+      if(NUM_DET[T[m].toLowerCase()]!==undefined||_coordSubjW[deacc(T[m].toLowerCase())])return null;if(_elidKind(T[m])==='det')return null;if(_ELIDED_PRON.test(T[m].toLowerCase()))return null;}   // PRONOM ÉLIDÉ = un NOUVEAU sujet lui aussi : « … et lorsqu'elle dort » ouvre sa propre proposition (FP mesuré 30/08/2026 sur français CORRECT : dort → dorment) — même motif que la garde 'det', jamais propagée à cette règle sœur
     var v1=null;for(k=ci-1;k>=lo;k--){
       if(_nomAppose(T,k))break;   // ⭐ 14/10/2026 (liste n° 20) : « les photos produit et service se renouvellent » — « produit » est un nom, pas le verbe frère (réunit en ROUGE)
       if(!/(é|és|ée|ées)$/.test(T[k].toLowerCase())&&_verbOrHomograph(tg,T,k)&&_vnum3(T[k])!==null){v1=k;break;}
