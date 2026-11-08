@@ -1,7 +1,7 @@
 {
- "justes": 403,
- "pointeuses": 211,
- "fatigue": 126,
+ "justes": 404,
+ "pointeuses": 212,
+ "fatigue": 128,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -252,6 +252,7 @@
   "plos→plus [orthographe] autre",
   "plsu→plus [orthographe] inversion",
   "plusiéurs→plusieurs [orthographe] accent",
+  "plu→plus [accord participe (nom)] lettre_manque",
   "plu→plus [accord participe] lettre_manque",
   "plu→plus [accord pluriel à vérifier] lettre_manque",
   "point→points [pluriel par le son à vérifier] accord",
