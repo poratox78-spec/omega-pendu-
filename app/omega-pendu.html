@@ -27711,6 +27711,17 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
      complément (« en chrome »), pas le verbe : le verbe est plus loin (« brillent », lu par la table — le tagger le prend pour un
      adjectif). « les enfants en mange » et « les élèves en rêve la nuit » (« nuit » n'est pas au pluriel) restent corrigés. Lu par la règle
      rouge (rAccordSVnoun) et par les deux oranges qui prenaient le relais (sujFlexNom, osVerbVig). Miroir Python _en_complement. */
+  /* ⭐ 08/11/2026 (liste n° 449) : « Les appareils de surveillance continue aident les soignants » recevait « continuent » en ROUGE. Le mot qui suit le
+     complément du nom (« de surveillance », « d'écoute », « de la cave ») peut être un ADJECTIF accordé à ce complément : quand le lexique le
+     connaît comme adjectif et que son genre et son nombre vont avec le nom du complément, la lecture « adjectif » est complète et la règle
+     sujet-verbe se tait. Un verbe qui n'est pas aussi adjectif (« les enfants de la voisine joue ») reste corrigé. */
+  function _adjCompl449(T,i,hk){if(i<2)return false;var c=T[i-1],cn=null,di=-1,m=/^([dl])['’]([a-zà-ÿœ]{2,})$/i.exec(c),p2=deacc(T[i-2].toLowerCase());
+    if(m){cn=m[2];if(m[1].toLowerCase()==='d')di=i-1;else if(p2==='de')di=i-2;else return false;}
+    else if(/^(de|du|des)$/.test(p2)){cn=c;di=i-2;}else if(i>=3&&/^(la|le|les)$/.test(p2)&&deacc(T[i-3].toLowerCase())==='de'){cn=c;di=i-3;}else return false;
+    if(hk>=di)return false;var lw=T[i].toLowerCase();if((_spos(lw)||'').indexOf('A')<0)return false;
+    if(i+1<T.length&&!(_SEG&&_SEG.bb&&i+1<_SEG.bb.length&&_SEG.bb[i+1])&&NUM_DET[T[i+1].toLowerCase()])return false;   // suivi d'un déterminant : « ferme le coffre » = verbe et son complément
+    var nA=/[sx]$/.test(lw)?'p':'s',nC=/[sx]$/.test(cn.toLowerCase())?'p':'s';if(nA!==nC)return false;var gC=_nounGender(cn,nC);if(gC!=='m'&&gC!=='f')return false;
+    var b=nA==='p'?lw.slice(0,-1):lw,gA=/e$/.test(b)?((_spos(b.slice(0,-1))||'').indexOf('A')>=0?'f':null):'m';return !gA||gA===gC;}
   function _enComplement(T,i,nb){if(i<1||deacc(T[i-1].toLowerCase())!=='en')return false;var d=deacc(T[i].toLowerCase());
     var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(d):NOUN_POST[d]):null;if(!np||np[0]<500)return false;
     for(var j=i+1;j<T.length&&j<=i+4;j++){if(_SEG&&_SEG.bb&&j<_SEG.bb.length&&_SEG.bb[j])break;var r=svReads(T[j]);
@@ -27770,6 +27781,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;   // T[i]=verbe en contexte ; filet homographe PARTAGÉ (verbe raté par l'émission HMM), borné par les gardes structure ci-dessous
     var _vs=i;while(_vs-1>=0&&CLITIC[deacc(T[_vs-1].toLowerCase())])_vs--;var subj=_npSubject(T,tg,_vs);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;   // sauter les clitiques objets avant le verbe (« nous parviendra ») pour atteindre le sujet
     if(_enComplement(T,i,nb))return null;   // ⭐ 14/10/2026 (liste n° 1c) : « les jantes en chrome brillent »
+    if(_adjCompl449(T,i,hk))return null;   // ⭐ 08/11/2026 (liste n° 449) : « les appareils de surveillance continue aident » — adjectif du complément
     var ddet=deacc(subj.dtxt.toLowerCase());
     if(nb==='s'){var _hn=deacc(T[hk].toLowerCase());if(/[sx]$/.test(_hn)&&!_INVAR_S[_hn]&&_wordKnown(/aux$/.test(_hn)?_hn.slice(0,-3)+'al':_hn.slice(0,-1)))return null;}   // « LE pilotes sont » : déterminant singulier + nom à forme plurielle → déterminant suspect → abstention (miroir Python)
     else if(nb==='p'){var _hp=deacc(T[hk].toLowerCase());if(!/[sx]$/.test(_hp)&&!rNounPlural(T,hk))return null;}   // SYMÉTRIQUE (trouvé par le générateur de fautes) : déterminant PLURIEL contredit par un nom SINGULIER (« Les signe … EST », « les couple A »). Discriminant = la règle du nom sait-elle réparer ? Si oui (« les enfant JOUE » → enfants) le pluriel est confirmé et on continue ; sinon la contradiction reste ouverte → abstention. Miroir Python rule_accord_sv_noun
@@ -29274,7 +29286,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     if(!_PP_MEME[m[1]])return true;                  // mises, prises… : le verbe homographe (miser, priser) est rare — participe
     if(i<1)return false;var pv=T[i-1],pl=/[sx]$/i.test(pv);   // faites, dites : participe à condition de s'accorder au nom qui précède (« les promesses faites », pas « le chat faites »)
     return (m[2]==='es')===pl&&_nounGender(pv,pl?'p':'s',true)==='f';}
-  function sujFlexNom(T,i){if(_ppFemIrr(T,i)||_enComplement(T,i,null))return null;if(i>=1&&/^d['’](un|une)$/i.test(T[i-1]))return null;   // liste n° 423 : après « d'un / d'une », un nom
+  function sujFlexNom(T,i){if(_ppFemIrr(T,i)||_enComplement(T,i,null)||_adjCompl449(T,i,-1))return null;if(i>=1&&/^d['’](un|une)$/i.test(T[i-1]))return null;   // liste n° 423 : après « d'un / d'une », un nom
   _ROUGE=false;try{return sujFlexVig(T,i);}finally{_ROUGE=true;}}
   function _lemFreq(lem){if(!lem||typeof SP==='undefined'||!SP||!SP.ready||!SP.D2A||!SP.FREQ)return null;var _va=spD(lem);if(!_va||!_va.length)return null;var _lf=0;for(var _z=0;_z<_va.length;_z++)if((spF(_va[_z])||0)>_lf)_lf=spF(_va[_z])||0;return _lf;}   // fréquence du LEMME (max des variantes accentuées), null = inconnu ≠ rare — miroir _lemfreq
   var _SUJ_SAUT={ne:1,n:1,se:1,s:1,me:1,m:1,te:1,t:1,y:1,en:1,le:1,la:1,les:1,lui:1,leur:1};   // clitiques et négation entre le pronom sujet et le verbe (garde d'adjacence, 12/09/2026)
