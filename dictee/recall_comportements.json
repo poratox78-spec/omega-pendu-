@@ -875,7 +875,10 @@
 "Après le dîner, Paul a rangé la cuisine.",
 "Il a lavé la vaisselle, rangé la cuisine et sorti le chien.",
 "Dès votre arrivée, montrez votre billet.",
-"Dès notre retour, nous partirons."
+"Dès notre retour, nous partirons.",
+"Le conseil municipal se réunit lundi.",
+"Le travail de nuit fatigue les infirmiers.",
+"Le point accueil ferme à midi."
 ],
 "elide": [
 [
@@ -3607,6 +3610,21 @@
 "Mon vélo est rouge, le votre est bleu.",
 "votre",
 "vôtre"
+],
+[
+"Le gardien nous réveil à huit heures.",
+"réveil",
+"réveille"
+],
+[
+"Ma sœur conseil les clients.",
+"conseil",
+"conseille"
+],
+[
+"Quand les élèves appel leurs parents, ils attendent.",
+"appel",
+"appellent"
 ]
 ],
 "palier": [

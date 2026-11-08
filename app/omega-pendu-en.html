@@ -31899,6 +31899,19 @@ function spellUnknown(tok,atStart,T,idx){
   var _NV_DET={le:1,un:1,mon:1,ton:1,son:1,du:1,au:1,ce:1,notre:1,votre:1,leur:1},_NV_SUJ={je:1,il:1,elle:1,on:1,tu:1},_NV_CL={me:1,te:1,se:1,le:1,la:1,les:1,lui:1,nous:1,vous:1,ne:1,y:1,en:1};
   var _NV_PAIRES=[['aille','ail'],['eille','eil'],['euille','euil'],['elle','el'],['oie','oi'],['uie','ui'],['aie','ai'],['ient','ien']];   // ⭐ 17/10/2026 (liste n° 48) : entretien, soutien, maintien, lien (« un entretient »)
   function _nvNp(x){var np=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deaccS(x)):NOUN_POST[deaccS(x)]):null;return np?np[0]:-1;}
+  /* ⭐ 08/11/2026 (liste n° 441 et 447) : « Les familles accueil deux élèves » recevait « accueils » (pluriel du nom) et « Le gardien nous
+     réveil » passait sans marque — la règle ne cherchait le verbe qu'après un pronom sujet (« elle accueil » → accueille). Après un sujet
+     NOMINAL : le nom-tête juste avant le mot (clitiques sautés), le groupe sujet en tête de proposition (début, ponctuation, et, mais,
+     que, quand…), sans verbe conjugué entre les deux : même paire nom → verbe, à la 3e personne et au nombre du sujet (« accueillent »,
+     « réveille »). « une période de travail », « cet appareil », « sans appel » ne sont pas des sujets ; un verbe conjugué qui suit, un
+     chiffre juste avant ou une forme verbale rare (moins de 0,1 par million) : la règle se tait. */
+  function _nvNom441(T,i,j,lw){if(j<0||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])||(_SEG&&_SEG.dig&&i<_SEG.dig.length&&_SEG.dig[i]))return null;var tg=posTags(T);if(!tg)return null;var sj=_npSubject(T,tg,j+1);
+    if(!sj||sj.idx!==j||tg[j]!=='NOUN'||(sj.n!=='s'&&sj.n!=='p'))return null;var d0=sj.det>=0?sj.det:sj.idx;
+    if(d0>0&&!(_SEG&&_SEG.bb&&_SEG.bb[d0])&&!/^(et|mais|que|qu|quand|lorsque|si|car|puis|donc|ou|alors)$/.test(deacc(T[d0-1].toLowerCase()).replace(/['’]$/,'')))return null;
+    for(var q=sj.idx+1;q<i;q++){if((tg[q]==='VERB'||tg[q]==='AUX')&&!_NV_CL[deacc(T[q].toLowerCase())])return null;if(_SEG&&_SEG.bb&&_SEG.bb[q])return null;}
+    for(q=i+1;q<T.length&&!(_SEG&&_SEG.bb&&_SEG.bb[q]);q++){if(!NUM_DET[T[q-1].toLowerCase()]&&T[q].toLowerCase()!=='à'&&svReads(T[q]).some(function(r){return /^(ind|cnd|sub)/.test(r[1])&&r[2]==='3'&&r[3]===sj.n;}))return null;}   // un verbe conjugué suit : le mot est un nom (« le facteur travail est »)
+    for(var k=0;k<_NV_PAIRES.length;k++){var v=_NV_PAIRES[k];if(lw.length>v[1].length+1&&lw.slice(-v[1].length)===v[1]){if(v[0]==='ient')return null;var x=lw.slice(0,-v[1].length)+v[0]+(sj.n==='p'?'nt':'');
+        if(!svReads(lw).length&&_nvNp(lw)>=PL_TAU_M&&typeof SP!=='undefined'&&SP&&SP.IDX&&(spF(x)||0)>=0.1&&svReads(x).some(function(r){return r[1]==='ind:pre'&&r[2]==='3'&&r[3]===sj.n;}))return x;return null;}}return null;}
   function nomVerbeVig(T,i){if(i>0){var _w81=T[i],_m81=/^([mts])['’]([a-zà-ÿ]+)$/.exec(_w81.toLowerCase());if(_m81&&_w81===_w81.toLowerCase()){var _s81=deacc(T[i-1].toLowerCase());if(_s81==='ne'&&i>1)_s81=deacc(T[i-2].toLowerCase());   /* ⭐ 17/10/2026 (liste n° 81) : « je t'appel ce soir » → t'appelle — pronom élidé collé à un NOM sans lecture verbale, après un sujet */
       if(_NV_SUJ[_s81]){var _r81=_m81[2];for(var _k81=0;_k81<_NV_PAIRES.length;_k81++){var _v81=_NV_PAIRES[_k81];if(_r81.length>_v81[1].length+1&&_r81.slice(-_v81[1].length)===_v81[1]){var _x81=_r81.slice(0,-_v81[1].length)+_v81[0];if(_s81==='tu')_x81+='s';if(!svReads(_r81).length&&_nvNp(_r81)>=PL_TAU_M&&svReads(_x81).some(function(r){return r[1]==='ind:pre'&&r[3]==='s';}))return _w81.slice(0,2)+_x81;return null;}}}}}
     var _w75=T[i],_l75=_w75.toLowerCase().replace(/’/g,"'");if(/^l'./.test(_l75)&&_w75.slice(1)===_w75.slice(1).toLowerCase()&&(i===0||(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])||PREP[deacc(T[i-1].toLowerCase())]||deacc(T[i-1].toLowerCase())==='et')){   /* ⭐ 17/10/2026 (liste n° 75) : « L'accueille était chaleureux » → L'accueil — « l' » en début de phrase, après une préposition ou « et » : déterminant (« qui l'accueille », « le roi l'accueille » : pronom) */
@@ -31908,7 +31921,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(_NV_DET[p]&&(p==='le'||p==='leur')&&i>=2){var _pp=deacc(T[i-2].toLowerCase());if(_NV_SUJ[_pp]||_NV_CL[_pp]||_pp==='ils'||_pp==='elles'||_pp==='qui'||_pp==='nous'||_pp==='vous'||/^[jnmtsl]'/.test(T[i-2].toLowerCase())||_nvNp(T[i-2])>=PL_TAU_M||(i-2>0&&T[i-2].charAt(0)!==T[i-2].charAt(0).toLowerCase())||PRENOMS[T[i-2]])return null;}
     if(_NV_DET[p]){for(k=0;k<_NV_PAIRES.length;k++){v=_NV_PAIRES[k];if(lw.length>v[0].length+1&&lw.slice(-v[0].length)===v[0]){n=lw.slice(0,-v[0].length)+v[1];
         if(svReads(lw).length&&_nvNp(lw)<100&&_nvNp(n)>=PL_TAU_M&&sGender(n)==='m')return n;return null;}}return null;}
-    var j=i-1;while(j>=0&&_NV_CL[deacc(T[j].toLowerCase())])j--;if(j<0)return null;var s=deacc(T[j].toLowerCase());if(!_NV_SUJ[s])return null;
+    var j=i-1;while(j>=0&&_NV_CL[deacc(T[j].toLowerCase())])j--;if(j<0)return null;var s=deacc(T[j].toLowerCase());if(!_NV_SUJ[s])return _nvNom441(T,i,j,lw);   // liste n° 441 et 447 : sujet nominal
     for(k=0;k<_NV_PAIRES.length;k++){v=_NV_PAIRES[k];if(lw.length>v[1].length+1&&lw.slice(-v[1].length)===v[1]){var x=lw.slice(0,-v[1].length)+v[0];if(v[0]==='ient'&&(s==='je'||s==='tu'))x=x.slice(0,-1)+'s';else if(s==='tu')x+='s';
         if(!svReads(lw).length&&_nvNp(lw)>=PL_TAU_M&&svReads(x).some(function(r){return r[1]==='ind:pre'&&r[3]==='s';}))return x;return null;}}
     return null;}
