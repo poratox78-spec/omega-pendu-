@@ -9,12 +9,12 @@
    "muette": 9
   },
   "grammaire": {
-   "total": 236,
-   "bon": 213,
+   "total": 241,
+   "bon": 217,
    "rouge juste": 92,
-   "orange juste": 121,
+   "orange juste": 125,
    "mauvais mot": 1,
-   "muette": 22
+   "muette": 23
   },
   "ponctuation": {
    "total": 105,
@@ -1022,6 +1022,11 @@
   "T80#2": "orange juste",
   "T80#3": "orange juste",
   "T80#4": "orange juste",
-  "T80#5": "rouge juste"
+  "T80#5": "rouge juste",
+  "T81#0": "orange juste",
+  "T81#1": "orange juste",
+  "T81#2": "orange juste",
+  "T81#3": "orange juste",
+  "T81#4": "muette"
  }
 }

@@ -12,7 +12,8 @@
      famille « pronom personne » (ligne 457) — pour chaque participe de la table de valence (dictee/valence_table.json, D / I / DI) :
        A. avoir + me / nous devant (« Le guide nous a aidés. »)       D → accord (nous : pluriel, genre libre) ; I → invariable
        B. avoir + me / nous + complément après (« … nous a montré la route. ») → invariable
-       C. être pronominal (« Elles se sont aidées. » D ; « Elles se sont parlé. » « se » indirect sûr) — DI : pas d'attente
+       C. être pronominal (« Elles se sont aidées. » D ; « Elles se sont parlé. » « se » indirect sûr) — DI : pas d'attente ;
+          P (ligne 461, « se souvenir ») : accord avec le sujet, et ce contexte seulement
        D. être pronominal + complément après (« Elle s'est lavé les mains. ») → invariable
    Résultat par contexte × classe × faute : ok / MARQUE FAUSSE (forme juste) ; rouge juste / orange juste / muet / mauvais mot /
    ROUGE mauvais mot (forme fautive).
@@ -31,7 +32,7 @@ let bad = 0;
 // 1. la table recopiée dans le moteur == le fichier de la table
 {
   const core = fs.readFileSync(path.join(RACINE, 'extension', 'dys-core.js'), 'utf8'), m = {};
-  const re = /'([a-z ]+)'\.split\(' '\)\.forEach\(function\(w\)\{_VAL457\[w\]='(D|I|DI)';\}\)/g; let x;
+  const re = /'([a-z ]+)'\.split\(' '\)\.forEach\(function\(w\)\{_VAL457\[w\]='(D|I|DI|P)';\}\)/g; let x;
   while ((x = re.exec(core))) for (const w of x[1].split(' ')) m[w] = x[2];
   const t = {}; for (const [w, c] of Object.entries(TAB)) t[deacc(w)] = c;
   const diff = [...new Set([...Object.keys(m), ...Object.keys(t)])].filter((w) => m[w] !== t[w]);
@@ -111,6 +112,7 @@ const PRON_I = new Set('parlé téléphoné plu déplu souri menti nui succédé
 const SUJ_AV = [['Le guide', 'a'], ['Ma voisine', 'a']], SUJ_PR = [['Il', "s'est", 'ms'], ['Elle', "s'est", 'fs'], ['Ils', 'se sont', 'mp'], ['Elles', 'se sont', 'fp']];
 const elid = (pr, next) => (/^[aeiouyhéèêâîôû]/i.test(next) && pr === 'me' ? "m'" : pr + ' ');
 for (const [ms, cl] of Object.entries(TAB)) {
+  if (cl === 'P') { for (const [s, aux, c] of SUJ_PR) ajoute('C être pronominal P', ms, [c], (x) => `${s} ${aux} ${x} hier.`); continue; }   // ligne 461 : essentiellement pronominal — pas d'avoir, pas de complément
   for (const pr of ['me', 'nous']) for (const [s, aux] of SUJ_AV) {
     const pre = (x) => `${s} ${elid(pr, aux)}${aux} ${x}`, ctxA = 'A avoir + pronom ' + cl, ctxB = 'B avoir + pronom + complément ' + cl;
     if (cl === 'D') ajoute(ctxA, ms, pr === 'nous' ? ['mp', 'fp'] : ['ms', 'fs'], (x) => pre(x) + ' hier.');

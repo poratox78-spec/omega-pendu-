@@ -504,3 +504,10 @@ Après avoir {mangés|mangé|G}, nous sommes repartis vers le col.
 Ils se sont réchauffés après s'être {installé|installés|G} près du feu.
 Les sentiers doivent être {nettoyé|nettoyés|G} avant la prochaine sortie.
 {a|À|O} bientôt sur les chemins !
+=== T81 mot dans le carnet de liaison d'un élève
+Madame,
+Ma fille s'est {endormi|endormie|G} très tard hier soir, elle était fatiguée ce matin.
+Elle s'est {plaint|plainte|G} d'un mal de tête en rentrant.
+Elle s'est {souvenu|souvenue|G} trop tard de son cahier de poésie.
+Les enfants se sont {disputé|disputés|G} à la sortie, mais tout s'est arrangé.
+La maîtresse nous a toujours bien {conseillé|conseillés|G}, nous l'en remercions.
