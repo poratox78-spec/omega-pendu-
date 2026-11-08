@@ -377,3 +377,11 @@ Le public {chantaient|chantait|C} chaque refrain.
 Les {lumière|lumières|N} changeaient de couleur à chaque morceau.
 J'ai {acheter|acheté|C} un disque à la sortie.
 {vivement|Vivement|P} le prochain !
+=== T66 notice de montage d'une étagère
+Les bords d'une plaque {doive|doivent|C} être poncés avant le montage.
+Vissez d'abord les deux {montant|montants|N} sur la base.
+Les tablettes se {pose|posent|C} ensuite sur les taquets.
+Il faut {serré|serrer|C} chaque vis sans forcer.
+Une fois {monté|montée|G}, l'étagère supporte vingt kilos par tablette.
+Ne {grimper|grimpez|C} jamais sur l'étagère.
+{gardez|Gardez|P} cette notice.
