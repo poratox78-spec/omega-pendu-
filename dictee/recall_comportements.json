@@ -870,7 +870,10 @@
 "Des centaines d'oiseaux sont arrivés hier.",
 "La porte sera fermée. Les voitures roulent.",
 "La salle est rangée. Des chaises restent dehors.",
-"La moitié des invités est partie. Les autres dansent."
+"La moitié des invités est partie. Les autres dansent.",
+"Avant de partir, fermez les fenêtres.",
+"Après le dîner, Paul a rangé la cuisine.",
+"Il a lavé la vaisselle, rangé la cuisine et sorti le chien."
 ],
 "elide": [
 [
@@ -3587,6 +3590,16 @@
 "La salle est rangé. Des chaises restent dehors.",
 "rangé",
 "rangée"
+],
+[
+"En cas de doute, appelé le gardien.",
+"appelé",
+"appelez"
+],
+[
+"Avant de partir, fermé les fenêtres.",
+"fermé",
+"fermez"
 ]
 ],
 "palier": [
