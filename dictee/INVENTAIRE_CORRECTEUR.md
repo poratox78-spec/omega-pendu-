@@ -5,9 +5,9 @@
 
 ## En chiffres
 
-- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **217** entrées, **91** noms affichés ; rouge : 78 · rouge avec un cas orange posé par la règle : 42 · rouge ou orange selon le sous-cas : 42 · orange : 55.
+- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **217** entrées, **91** noms affichés ; rouge : 77 · rouge avec un cas orange posé par la règle : 43 · rouge ou orange selon le sous-cas : 42 · orange : 55.
 - Moteur Python : débranché de dev.sh et de la CI le 22/10/2026 (ligne 25b) — la chaîne n'est plus comparée ; la parité directe app ≡ extension la garde (`dictee/parity_app_ext.js`).
-- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **48**.
+- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **49**.
 - Tables chargées : 11 (le chargeur unique `extension/charger_node.js` les charge toutes pour les bancs).
 
 ## Règles de grammaire, dans l'ordre de la chaîne
@@ -208,7 +208,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 189 | accent (âge) | `rAgeAcc` | `—` | rouge | accent | — |
 | 190 | étais après c'/s' | `rCetaitEtait` | `—` | rouge | personne | — |
 | 191 | participe après avoir | `rAvoirFini` | `—` | rouge ou orange (sous-cas mesuré, _tierOf) | participe | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller) |
-| 192 | participe après s'est | `rEtreInfEr` | `—` | rouge | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, genre accentué |
+| 192 | participe après s'est | `rEtreInfEr` | `—` | rouge, orange dans un cas posé par la règle | participe | vdc-lex (conjugaison, genre, pluriels), genre relâché, genre accentué |
 | 193 | négation | `rNegNe` | `—` | rouge | segmentation | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 194 | si + conditionnel | `rSiCond` | `—` | rouge, orange dans un cas posé par la règle | personne | vdc-lex (conjugaison, genre, pluriels), genre relâché |
 | 195 | quel que soit | `rQuelQue` | `—` | rouge | segmentation | vdc-lex (conjugaison, genre, pluriels), genre relâché |
@@ -246,6 +246,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | accord du participe après avoir à vérifier | 1 | orange | participe | — | correcteur_probe.py |
 | accord du verbe au sujet nominal à vérifier | 1 | orange | accord | — | correcteur_probe.py |
 | accord genre à vérifier | 2 | orange | accord | — | — |
+| accord participe (pronom complément) | 1 | selon la couche | participe | — | — |
 | accord participe à vérifier | 6 | orange | participe | — | — |
 | accord pluriel à vérifier | 3 | orange | accord | — | — |
 | accord sujet-verbe à vérifier | 1 | orange | accord | — | — |
