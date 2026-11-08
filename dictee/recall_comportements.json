@@ -878,7 +878,10 @@
 "Dès notre retour, nous partirons.",
 "Le conseil municipal se réunit lundi.",
 "Le travail de nuit fatigue les infirmiers.",
-"Le point accueil ferme à midi."
+"Le point accueil ferme à midi.",
+"La pluie nous a obligés à rester.",
+"Le guide nous a aidés à monter.",
+"Le directeur vous a invités à entrer."
 ],
 "elide": [
 [
@@ -3625,6 +3628,11 @@
 "Quand les élèves appel leurs parents, ils attendent.",
 "appel",
 "appellent"
+],
+[
+"Elle a décidée de partir.",
+"décidée",
+"décidé"
 ]
 ],
 "palier": [
