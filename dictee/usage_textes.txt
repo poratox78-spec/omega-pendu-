@@ -469,3 +469,11 @@ Les enfants {construise|construisent|C} des châteaux de sable du matin au soir.
 Papa a pêché deux poissons, mais il les a {relâcher|relâchés|C}.
 On pense fort à toi.
 Gros bisous !
+=== T77 mot de remerciement aux voisins
+Chers voisins,
+Un grand bravo à toute la famille pour le coup de main du déménagement !
+Vos enfants nous ont {aider|aidés|C} à porter les cartons jusqu'au troisième étage.
+Les meubles {était|étaient|C} lourds, mais tout est arrivé sans casse.
+Votre gentillesse nous a beaucoup touchés.
+Nous {organiseront|organiserons|C} un petit apéritif samedi pour vous {remercié|remercier|C}.
+Vous serez les {bienvenu|bienvenus|N} !

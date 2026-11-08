@@ -1,9 +1,9 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 168,
-   "bon": 159,
-   "rouge juste": 114,
+   "total": 169,
+   "bon": 160,
+   "rouge juste": 115,
    "orange juste": 45,
    "mauvais mot": 0,
    "muette": 9
@@ -25,11 +25,11 @@
    "muette": 15
   },
   "conjugaison": {
-   "total": 294,
-   "bon": 274,
-   "rouge juste": 134,
+   "total": 298,
+   "bon": 277,
+   "rouge juste": 137,
    "orange juste": 140,
-   "mauvais mot": 5,
+   "mauvais mot": 6,
    "muette": 15
   },
   "orthographe": {
@@ -42,9 +42,9 @@
   }
  },
  "cassesRouge": 0,
- "cassesOrange": 6,
+ "cassesOrange": 5,
  "faussesRouge": 0,
- "faussesOrange": 3,
+ "faussesOrange": 2,
  "verdicts": {
   "T1#0": "rouge juste",
   "T1#1": "rouge juste",
@@ -995,6 +995,11 @@
   "T76#1": "orange juste",
   "T76#2": "rouge juste",
   "T76#3": "rouge juste",
-  "T76#4": "orange juste"
+  "T76#4": "orange juste",
+  "T77#0": "mauvais mot",
+  "T77#1": "rouge juste",
+  "T77#2": "rouge juste",
+  "T77#3": "rouge juste",
+  "T77#4": "rouge juste"
  }
 }
