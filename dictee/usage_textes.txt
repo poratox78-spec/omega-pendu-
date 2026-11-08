@@ -394,3 +394,11 @@ Les vagues {était|étaient|C} énormes.
 J'ai {manger|mangé|C} une glace à la fraise.
 Mes {copain|copains|N} vous disent bonjour.
 {a|À|O} bientôt !
+=== T68 discours pour le départ d'une collègue à la retraite
+Chère Monique, {se|ce|O} sont trente ans de travail que nous fêtons ce soir.
+Tu as {former|formé|C} des dizaines d'apprentis.
+Tes {conseil|conseils|N} nous ont souvent sauvés.
+{Se|Ce|O} fut toujours un plaisir de travailler avec toi.
+Nous t'{offron|offrons|C} ce vélo pour tes balades.
+N'oublie pas de {passé|passer|C} nous voir.
+{a|À|O} ta santé !

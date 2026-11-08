@@ -1463,9 +1463,15 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
   var _CE_SE_STOP={};'est sont etait etaient fut furent sera seront serait seraient soit soient a peut pouvait pourrait pourra put doit devait devrait devra dut semble semblait sembla faire'.split(' ').forEach(function(w){_CE_SE_STOP[w]=1;});
   var _CE_PREPX={en:1,pendant:1,durant:1,parmi:1,selon:1,envers:1},_CE_INFGOV={pour:1,a:1,de:1,sans:1,par:1};   // « ce » verbe → se : prépositions (déterminant) / celles qui appellent un infinitif
   var _CE_ANT205={faisant:1,disant:1};   // liste n° 205 : « ce faisant », « ce disant » sont justes
+  function _det416(T,k){if(k<T.length&&/^(toujours|souvent|vraiment|bien|encore|deja|parfois|surtout|aussi)$/.test(deacc(T[k].toLowerCase())))k++;if(k>=T.length)return false;   // un adverbe peut s'intercaler (« Se fut toujours un plaisir »)
+    var d=deacc(T[k].toLowerCase());return !!NUM_DET[d]||!!CARD[d]||!!(_SEG&&_SEG.dig&&k<_SEG.dig.length&&_SEG.dig[k])||_de416(T,k);}   // un nombre aussi (« se sont trente ans », « se sont 30 ans »)
+  function _de416(T,k){if(k+1>=T.length||deacc(T[k].toLowerCase())!=='de')return false;var n=deacc(T[k+1].toLowerCase());if(/^(nouveau|suite|plus|moins|mieux|meme|loin|pres|bonne|bon)$/.test(n))return false;return !!ADJP[n]||!!_EPICENE_ADJ[n]||_nounGate(n);}
   function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());
     if(nd==='qui'||nd==='que'||nd==='dont'||nd==='qu'||nd==="qu'"||/^qu['’]/.test(nd))return ckeepcase(T[i],'ce');   // ce qui/que/dont (+ élidé qu') — ⭐ 30/09/2026 : et « se qu'elle », élidé en UN jeton (miroir Python)
-    if(lw==='se'&&(nd==='sont'||nd==='est'||nd==='etait'||nd==='etaient')&&i+2<T.length&&NUM_DET[deacc(T[i+2].toLowerCase())])return ckeepcase(T[i],'ce');   // ⭐ 30/09/2026 : « là-bas, se sont nos voisins » — un déterminant ne suit jamais le pronominal « se sont » (miroir Python)
+    if(lw==='se'&&/^(sont|est|etait|etaient|sera|seront|serait|seraient|fut|furent)$/.test(nd)&&i+2<T.length&&_det416(T,i+2))return ckeepcase(T[i],'ce');   /* ⭐ 08/11/2026 (liste n° 416) :
+       « Se sont de beaux souvenirs », « Se sera une belle fête », « Se fut un long voyage » passaient sans marque — la règle ne connaissait que
+       sont / est / était / étaient, et ne lisait pas « de » (+ adjectif ou nom) comme un déterminant. « de nouveau », « de suite » restent
+       dehors (« ils se sont de nouveau réunis » est pronominal). */   // ⭐ 30/09/2026 : « là-bas, se sont nos voisins » — un déterminant ne suit jamais le pronominal « se sont » (miroir Python)
     if(CAUX[nd]||nd==='sont'||nd==='est'){   /* ⭐ 12/09/2026 : ce qui suit l'AUXILIAIRE tranche « ce sont » / « se sont » — un PARTICIPE ne suit jamais « ce sont » (groupe nominal) ; sujet exigé devant, sinon ce serait « ils sont » (miroir Python rule_ce_se) */
       if(lw==='ce'){var _j=i+2;while(_j<T.length&&_j<=i+4&&PPMID[deacc(T[_j].toLowerCase())])_j++;
         if(_j<T.length&&_isPpl(T[_j])){var _tg0=posTags(T),_p0=_prevPron(T,i);

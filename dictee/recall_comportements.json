@@ -858,7 +858,8 @@
 "Les pages d'un livre reprennent le titre.",
 "Les coins d'une douille sont usés.",
 "Les deux amis se saluent et Paul se rend au marché.",
-"Les enfants jouent et Marie se repose."
+"Les enfants jouent et Marie se repose.",
+"Ils se sont de nouveau réunis."
 ],
 "elide": [
 [
@@ -3525,6 +3526,16 @@
 "Les enfants se lèvent et se lave.",
 "lave",
 "lavent"
+],
+[
+"Se sont de beaux souvenirs.",
+"Se",
+"Ce"
+],
+[
+"Se fut un long voyage.",
+"Se",
+"Ce"
 ]
 ],
 "palier": [
