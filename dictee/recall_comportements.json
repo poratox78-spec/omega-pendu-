@@ -873,7 +873,9 @@
 "La moitié des invités est partie. Les autres dansent.",
 "Avant de partir, fermez les fenêtres.",
 "Après le dîner, Paul a rangé la cuisine.",
-"Il a lavé la vaisselle, rangé la cuisine et sorti le chien."
+"Il a lavé la vaisselle, rangé la cuisine et sorti le chien.",
+"Dès votre arrivée, montrez votre billet.",
+"Dès notre retour, nous partirons."
 ],
 "elide": [
 [
@@ -3600,6 +3602,11 @@
 "Avant de partir, fermé les fenêtres.",
 "fermé",
 "fermez"
+],
+[
+"Mon vélo est rouge, le votre est bleu.",
+"votre",
+"vôtre"
 ]
 ],
 "palier": [

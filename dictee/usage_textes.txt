@@ -443,3 +443,12 @@ Pour votre sécurité, {respecté|respectez|C} les consignes des maîtres-nageur
 Il est interdit de {courire|courir|O} autour des bassins.
 Les {casier|casiers|N} se ferment avec une pièce.
 {merci|Merci|P} de votre compréhension.
+=== T74 mot d'accueil d'un camping
+Bienvenue au camping des Pins !
+Dès votre arrivée, {présenté|présentez|C} votre réservation au chalet d'accueil.
+Les {emplacement|emplacements|N} sont numérotés le long de l'allée principale.
+La piscine ouvre à dix heures et {ferment|ferme|C} à dix-neuf heures.
+Les sanitaires {son|sont|G} nettoyés chaque matin.
+Le soir, merci de {respecté|respecter|C} le calme des voisins.
+L'équipe du chalet {répont|répond|O} à vos questions tous les jours.
+Bon séjour parmi nous !
