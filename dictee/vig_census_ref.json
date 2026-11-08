@@ -1,5 +1,5 @@
 {
- "justes": 405,
+ "justes": 404,
  "pointeuses": 212,
  "fatigue": 127,
  "cles_justes": [
@@ -210,7 +210,6 @@
   "magsain→magasin [orthographe] inversion",
   "maiss→mais [orthographe] lettre_trop",
   "maladit→maladies [orthographe] terminaison",
-  "marier→mariée [participe après s'est] dys_reel/texte5_h23",
   "marié→mariée [accord participe à vérifier] dys_reel/texte3_h22",
   "marocein→marocain [mot inconnu] lettre_change",
   "mdéias→médias [orthographe] inversion",
