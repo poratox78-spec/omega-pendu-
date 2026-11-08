@@ -434,3 +434,12 @@ La salle des contes est {rénové|rénovée|G}. Des coussins neufs {attende|atte
 Les albums {emprunté|empruntés|N} se rendent sous trois semaines.
 Pensez à {réservé|réserver|C} vos romans sur le site.
 L'équipe vous {souhaitent|souhaite|C} de belles lectures !
+=== T73 règlement de la piscine municipale
+Avant la baignade, {passé|passez|C} sous la douche.
+Le bonnet de bain est obligatoire pour tous.
+Les enfants de moins de huit ans {doive|doivent|C} être accompagnés par un adulte.
+En cas d'orage, le bassin extérieur est {fermer|fermé|C}.
+Pour votre sécurité, {respecté|respectez|C} les consignes des maîtres-nageurs.
+Il est interdit de {courire|courir|O} autour des bassins.
+Les {casier|casiers|N} se ferment avec une pièce.
+{merci|Merci|P} de votre compréhension.
