@@ -460,3 +460,12 @@ Le fermier vous {conseil|conseille|C} des bottes, car la cour est boueuse.
 Les {chèvre|chèvres|N} adorent les épluchures de carottes.
 Le repas se prend sous le hangar, à l'abri de la {plui|pluie|O}.
 {a|À|P} la fin de la visite, chaque enfant repart avec un pot de miel.
+=== T76 carte postale de vacances à la mer
+Chère mamie,
+Nous sommes {arrivé|arrivés|G} samedi dans un petit port breton.
+Le premier jour, une grosse {plui|pluie|O} nous a obligés à rester au gîte.
+Depuis, le soleil {brile|brille|O} tous les jours.
+Les enfants {construise|construisent|C} des châteaux de sable du matin au soir.
+Papa a pêché deux poissons, mais il les a {relâcher|relâchés|C}.
+On pense fort à toi.
+Gros bisous !
