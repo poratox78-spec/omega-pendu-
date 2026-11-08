@@ -402,3 +402,11 @@ Tes {conseil|conseils|N} nous ont souvent sauvés.
 Nous t'{offron|offrons|C} ce vélo pour tes balades.
 N'oublie pas de {passé|passer|C} nous voir.
 {a|À|O} ta santé !
+=== T69 bilan d'un atelier pâtisserie avec des enfants
+Samedi, douze enfants {on|ont|O} participé à l'atelier.
+Chacun a {décorer|décoré|C} ses biscuits avec du sucre glace.
+Ils ont rapporté {leur|leurs|N} gâteaux à la maison.
+Les parents {étais|étaient|C} invités au goûter.
+Les {moule|moules|N} ont été lavés par les plus grands.
+Nous {recommenceront|recommencerons|C} en décembre.
+{merci|Merci|P} aux bénévoles !

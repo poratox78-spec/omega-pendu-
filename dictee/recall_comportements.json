@@ -859,7 +859,8 @@
 "Les coins d'une douille sont usés.",
 "Les deux amis se saluent et Paul se rend au marché.",
 "Les enfants jouent et Marie se repose.",
-"Ils se sont de nouveau réunis."
+"Ils se sont de nouveau réunis.",
+"Ils mangent leurs gâteaux."
 ],
 "elide": [
 [
@@ -3536,6 +3537,16 @@
 "Se fut un long voyage.",
 "Se",
 "Ce"
+],
+[
+"Ils rangent leur bateaux au port.",
+"leur",
+"leurs"
+],
+[
+"Elles ouvrent leur cadeaux.",
+"leur",
+"leurs"
 ]
 ],
 "palier": [
