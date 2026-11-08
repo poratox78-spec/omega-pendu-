@@ -592,7 +592,10 @@
       if(!(deacc(T[i-1].toLowerCase())==='ce'&&i>1&&SUBJ_PRON[deacc(T[i-2].toLowerCase())]))return false;
     }
     return true;}
-  function cpl(T,j){if(j<0||j>=T.length)return false;var dw=deacc(T[j].toLowerCase());if(!/[sx]$/.test(dw))return false;return j>0&&NUM_DET[T[j-1].toLowerCase()]==='pl';}
+  var _CPL472={};'plusieurs quelques certains certaines divers diverses maints maintes deux trois quatre cinq six sept huit neuf dix douze quinze vingt trente cent mille'.split(' ').forEach(function(w){_CPL472[w]=1;});
+  function cpl(T,j){if(j<0||j>=T.length)return false;var dw=deacc(T[j].toLowerCase());if(!/[sx]$/.test(dw))return false;if(j<1)return false;var dp=T[j-1].toLowerCase();return NUM_DET[dp]==='pl'||!!_CPL472[deacc(dp)]||/^([2-9]|[1-9][0-9]+)$/.test(dp);}   /* ⭐ 09/11/2026 (liste n° 472) : « Plusieurs voisins on déjà signaler » — un quantifieur pluriel ou un nombre (plusieurs, quelques, certains, deux…) fait aussi le nom pluriel, comme « les » */
+  function _fin472(T,k){if(k>=T.length)return false;var w=T[k],d=deacc(w.toLowerCase());if(_isPpl(w)||IRR_PP[d]!==undefined)return false;var r=svReads(w);for(var q=0;q<r.length;q++)if(r[q][2]==='3'&&r[q][3]==='s'&&/^(ind|sub|cnd)/.test(String(r[q][1])))return true;return false;}   // liste n° 472 : verbe conjugué à la 3e personne du singulier, pas un participe (« on a », « on travaille »)
+  var _TEMPS472={},_AUX472={};'fois jours ans annees semaines mois heures minutes soirs matins nuits siecles saisons dimanches samedis'.split(' ').forEach(function(w){_TEMPS472[w]=1;});'a est va peut doit veut sait avait etait allait pouvait devait voulait savait'.split(' ').forEach(function(w){_AUX472[w]=1;});   // liste n° 472 : « des fois on », « les jours on » — complément de temps, « on » est le sujet
   var NOUN_E={};'marche traite combine cote passe arrete carre depute employe invite expose resume communique delegue prive defile abonne'.split(' ').forEach(function(w){NOUN_E[w]=1;});
   // ---- PRIMITIVE PARTAGÉE : CANONICALISER CE QU'ON ÉMET ----------------------------------------
   // Une règle qui FABRIQUE une forme par concaténation part du mot tel qu'il a été SAISI — donc avec
@@ -1092,7 +1095,7 @@ var w=T[i],lw=w.toLowerCase();
     for(j=i-1;j>=0&&j>=i-3;j--){
       if(_SEG&&j+1<_SEG.bb.length&&_SEG.bb[j+1])return false;      // frontière → autre proposition
       var w=deacc(T[j].toLowerCase());
-      if(NUM_DET[w]==='pl'){d=j;break;}}
+      if(NUM_DET[w]==='pl'||_CPL472[w]){d=j;break;}}   // liste n° 472 : « dans plusieurs carnets on voit »
     if(d<1)return false;
     var _dp=deacc(T[d-1].toLowerCase());
     return !!PREP[_dp]||!!_PREP_SUJ_EXT[_dp];}
@@ -1123,7 +1126,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var ci=(i===0)||(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]);
     if(!ci){
       var p=cprev(T,i);var pr=i>0?deacc(T[i-1].toLowerCase()):'';var glued=(pr.indexOf("'")>=0)&&(/ils$/.test(pr)||/elles$/.test(pr));
-      if(p==='ils'||p==='elles'||glued||(cpl(T,i-1)&&!_plurSousPrep(T,i)))return 'ont';
+      if(p==='ils'||p==='elles'||glued||(cpl(T,i-1)&&!_plurSousPrep(T,i)&&!_fin472(T,i+1)&&!(_TEMPS472[deacc(T[i-1].toLowerCase())]&&!(i+1<T.length&&(_isPpl(T[i+1])||IRR_PP[deacc(T[i+1].toLowerCase())]!==undefined)))))return 'ont';   /* liste n° 472 : « Des fois on a ri » recevait « ont » (et « à ») en ROUGE : suivi d'un verbe conjugué au singulier, ou après un complément de temps, « on » est le sujet */
       if(i>=2&&/^(en|y|les|leur|lui|nous|vous|me|te)$/.test(p)&&/^(ils|elles)$/.test(deacc(T[i-2].toLowerCase())))return 'ont';   // ⭐ 12/10/2026 (conjugaison 7) : « ils en on assez » — le pronom « on » ne suit jamais « ils » + un clitique. Miroir Python
       if(i+1<T.length&&_isPpl(T[i+1])){var _rp=svReads(T[i+1]),_pre=false,_nx1=T[i+1].toLowerCase();for(var _q=0;_q<_rp.length;_q++)if(_rp[_q][1]==='ind:pre'&&((((CONJ_C[_rp[_q][0]]||{})['ind:pre']||{})[_rp[_q][2]+_rp[_q][3]])||'').toLowerCase()===_nx1)_pre=true;if(!_pre)return 'ont';}   /* ACCENT-EXACT : svReads lisait « occupés » comme « occupes » et taisait « Sumériens on occupés » → ont */   /* ⭐ 11/09/2026 : « comme on DIT », « duquel on FAIT » — participe MAIS AUSSI présent 3s, sans sujet pluriel à gauche → abstention ; les participes purs (été, occupés, grandi) gardent le rouge. Miroir Python. */
       // ⭐ IDIOME D'AVOIR après sujet pluriel À DISTANCE (31/08, transposition du pilote son/sont) :
@@ -1457,7 +1460,25 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
     var rd=svReads(T[k]),pl3=false,sg3=false;for(var q=0;q<rd.length;q++){if(rd[q][2]!=='3')continue;if(rd[q][3]==='p'||rd[q][3]==='x')pl3=true;else if(rd[q][3]==='s')sg3=true;}
     if(!pl3||sg3)return null;
     return 'et';}
-  function rEt(T,i){var r=_rEtBase(T,i);if(r!==null)return r;r=_rEtNouveau(T,i);return r!==null?r:_rEstEtCoord(T,i);}
+  /* ⭐ 09/11/2026 (liste n° 469) — « est » → « et » quand la proposition a DÉJÀ son sujet et son verbe : pronom sujet + verbe conjugué +
+     groupe partitif ou indéfini (du, de la, des, un, une) + « est » + déterminant (« nous avons pris du pain est une pomme »). Un second
+     verbe conjugué sans sujet n'existe pas : c'est « et ». Gardes : aucun mot qui ouvre une subordonnée ou une relative (que, qui, dont,
+     où, quand, si, comme…) entre le sujet et « est » ; le pronom ouvre la proposition. ORANGE (_tierOf). Recensé : 0 fois sur 14 450
+     phrases UD, 0 fois dans les textes dys (la forme n'y est pas) ; trouvé deux fois par les textes neufs générés. */
+  var _SUB469={que:1,qui:1,dont:1,ou:1,quand:1,si:1,comme:1,lorsque:1,puisque:1,quoique:1,parce:1,ce:1,quoi:1,combien:1,pourquoi:1,comment:1,sans:1,pour:1},
+      _SUJ469={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1},_LIE469={et:1,mais:1,puis:1,alors:1,ensuite:1,donc:1,enfin:1,apres:1};
+  function _rEstEt469(T,i){
+    if(T[i]!=='est'||i<4||i+1>=T.length)return null;var sg=_SEG||{},bb=sg.bb||[],hy=sg.hy||[],pb=sg.pb||[];if(bb[i]||bb[i+1]||hy[i]||hy[i+1])return null;
+    var dj=deacc(T[i+1].toLowerCase());if(!(NUM_DET[dj]||dj==='du'||dj==='de'))return null;
+    var tg=posTags(T);if(!tg||tg[i-1]!=='NOUN'||T[i-1].indexOf("'")>=0)return null;
+    var e=i-2,d2=deacc(T[e].toLowerCase());if(d2==='la'&&e>=1&&deacc(T[e-1].toLowerCase())==='de')e--;else if(!/^(du|des|un|une)$/.test(d2))return null;
+    var lo=0,k;for(k=e;k>0;k--){if(bb[k]||pb[k]){lo=k;break;}}
+    var s=lo;if(s<e&&_LIE469[deacc(T[s].toLowerCase())])s++;var ds=deacc(T[s].toLowerCase().replace(/’/g,"'"));
+    var fin=/^j'/.test(ds)&&ds.length>2;if(!fin&&!_SUJ469[ds])return null;
+    for(k=s+1;k<e;k++){var dk=deacc(T[k].toLowerCase().replace(/’/g,"'"));if(_SUB469[dk]||/^(qu|lorsqu|puisqu|quoiqu)'/.test(dk))return null;
+      if(!fin&&(tg[k]==='VERB'||tg[k]==='AUX')&&!_isInfinitive(T[k])&&!_etPpl(T[k]))fin=true;}
+    return fin?'et':null;}
+  function rEt(T,i){var r=_rEtBase(T,i);if(r!==null)return r;r=_rEtNouveau(T,i);if(r!==null)return r;r=_rEstEtCoord(T,i);return r!==null?r:_rEstEt469(T,i);}
   var _CLAUSE_PRON={il:1,elle:1,ils:1,elles:1,on:1,je:1,tu:1,nous:1,vous:1};
   function rEstEtClause(T,i){   // « est » + NOUVELLE PROPOSITION (pronom sujet + verbe : « la plage est c'était cool ») → « et ». Miroir rule_est_et_clause (Python). ORANGE (vig).
     if(deacc(T[i].toLowerCase())!=='est'||i+1>=T.length||i===0)return null;
@@ -2134,9 +2155,11 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(_FAM354[ds])ok=true;else if(s!==s.toLowerCase())ok=!!PRENOMS[s];else ok=!!(_ANIME354[ds]&&i>=2&&_CDET354[deacc(T[i-2].toLowerCase())]&&!_bb270(i-1));if(!ok)return null;
     var j=i+1;while(j<T.length&&j<=i+3&&PPMID[deacc(T[j].toLowerCase())])j++;if(j>=T.length||_bb270(j))return null;var w=T[j].toLowerCase(),dw=deacc(w),lem=null,m;
     if(/^[a-zà-ÿ]{4,}er$/.test(w)&&CONJ_C[dw])lem=dw;else if(_isPpl(T[j])){m=/^(.+?)(ées|ée|és|é)$/.exec(w);lem=m?deacc(m[1])+'er':dw;}
+    if(!lem&&!_NONPRON354[dw]){var _c470=[dw,dw.replace(/es$/,''),dw.replace(/e$/,''),dw.replace(/s$/,'')];for(var _q470=0;_q470<_c470.length;_q470++){var _k470=_VAL457[_c470[_q470]];if(_k470)return {sugg:"s'est",vig:1};}}   /* ⭐ 09/11/2026 (liste n° 470) : « Chloé c'est endormie » — le participe d'un verbe qui n'est pas en -er, lu dans la table de valence (tout verbe de la table : la construction pronominale ne change que l'accord) */
     return (lem&&!_NONPRON354[lem])?{sugg:"s'est",vig:1}:null;}   // « ma cousine c'est cacher derrière la porte » : une personne (nom de parenté, prénom) + « c'est » + verbe : le pronominal « s'est »
   /* ⭐ 04/11/2026 (liste n° 358) — texte neuf « petite annonce » du contrôle par l'usage. */
-  function _antePl358(T,c){var tg=posTags(T);if(!tg)return null;for(var k=c-1;k>=1&&k>=c-20;k--){if(_SEG&&_SEG.ss&&_SEG.ss[k+1]&&k<c-1)break;if((tg[k]==='NOUN'||_nounGateN(deacc(T[k].toLowerCase())))&&(NUM_DET[deacc(T[k-1].toLowerCase())]==='pl'||(k>=2&&tg[k-1]==='ADJ'&&NUM_DET[deacc(T[k-2].toLowerCase())]==='pl'))){var g=_nounGender(T[k],'p',true);return g==='m'||g==='f'?g:null;}}return null;}   // le dernier « les / des / ces… + nom » de la phrase, avant le pronom
+  var _TEMPS468={};'fois jours ans annees semaines mois heures minutes soirs matins nuits siecles saisons week-ends dimanches samedis'.split(' ').forEach(function(w){_TEMPS468[w]=1;});var _CL468={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,ne:1,me:1,te:1,se:1};   // liste n° 468 : « tous les soirs » n'est pas un antécédent, ni « je les arrose » (« les » pronom)
+  function _antePl358(T,c){var tg=posTags(T);if(!tg)return null;var _av=0,_gs={};for(var k=c-1;k>=0&&k>=c-30;k--){if(_SEG&&_SEG.ss&&_SEG.ss[k+1]&&k<c-1){if(_av)break;_av=1;}if(k<1)break;if(_TEMPS468[deacc(T[k].toLowerCase())]||(k>=2&&deacc(T[k-1].toLowerCase())==='les'&&_CL468[deacc(T[k-2].toLowerCase())]))continue;if((tg[k]==='NOUN'||_nounGateN(deacc(T[k].toLowerCase())))&&(NUM_DET[deacc(T[k-1].toLowerCase())]==='pl'||(k>=2&&tg[k-1]==='ADJ'&&NUM_DET[deacc(T[k-2].toLowerCase())]==='pl'))){var g=_nounGender(T[k],'p',true);if(!_av)return g==='m'||g==='f'?g:null;_gs[g==='m'||g==='f'?g:'?']=1;}}return _gs.m||_gs['?']?(_gs.m?'m':null):(_gs.f?'f':null);}   /* ⭐ 09/11/2026 (liste n° 468) : « Mes tomates sont belles. Je les ai planté en mai » — rien dans la phrase : on lit la phrase d'avant ; féminin seulement si tous ses noms pluriels le sont (sinon masculin, ou rien si un genre manque) */   // le dernier « les / des / ces… + nom » de la phrase, avant le pronom
   var _AINF358={louer:1,vendre:1,debattre:1,saisir:1,prevoir:1,emporter:1,consommer:1};   // verbes d'annonce seulement : « le chat a jouer dans le jardin » est bien « a joué »
   function _deb358(T,a){return T[a]==='a'&&a+1<T.length&&(a===0||!!(_SEG&&((_SEG.ss&&_SEG.ss[a])||(_SEG.sb&&_SEG.sb[a]))))&&!(_SEG&&_SEG.hy&&_SEG.hy[a+1])&&T[a+1]===T[a+1].toLowerCase()&&(_isInfinitive(T[a+1])||(/er$/.test(deacc(T[a+1].toLowerCase()))&&!!CONJ_C[deacc(T[a+1].toLowerCase())]));}   // « a compter du 9 », « a vendre » en tête de ligne : sans sujet, « a » n'est pas l'auxiliaire
   function _aInf358(T,a){if(_deb358(T,a))return true;if(T[a]!=='a'||a<1||a+1>=T.length||!_AINF358[deacc(T[a+1].toLowerCase())]||T[a+1]!==T[a+1].toLowerCase())return false;var p=deacc(T[a-1].toLowerCase());if(SUBJ_PRON[p]||/^(qui|ca|cela|on|y|en|ne|n)$/.test(p)||(T[a-1].charAt(0)!==T[a-1].charAt(0).toLowerCase()&&!(a-1===0||(_SEG&&_SEG.ss&&_SEG.ss[a-1]))))return false;
@@ -4556,7 +4579,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
     var nx=deacc(String(T[i+1]||'').toLowerCase());
     if(!nx||_ON_CLIT[nx])return null;                       // « Le chat on le voit » est correct
     if(!CONJ_F||(!CONJ_F[nx]&&!CONJ_F[nx+'s']))return null; // le mot d'après doit être un verbe
-    {var _pv184=deacc(String(T[i-1]||'').toLowerCase()),_r184=svReads(String(T[i+1]));if(_pv184==='et'||_pv184==='ou'||_pv184==='mais')return null;if(_r184.length&&_r184.every(function(x){return x[1]==='ind:fut'||x[1]==='cnd:pre';}))return null;}   /* ⭐ 27/10/2026 (liste n° 184) : « des crêpes et on regardera » — après et / ou / mais, « on » ouvre la proposition ; un futur ou un conditionnel ne suit jamais « ont » (le présent, si : « on mange » pour « ont mangé », reste marqué) */
+    {var _pv184=deacc(String(T[i-1]||'').toLowerCase()),_r184=svReads(String(T[i+1]));if(_pv184==='et'||_pv184==='ou'||_pv184==='mais')return null;if(_r184.length&&_r184.every(function(x){return x[1]==='ind:fut'||x[1]==='cnd:pre';}))return null;if(_TEMPS472[_pv184]||_AUX472[nx])return null;}   /* liste n° 472 : « des fois on a ri » ; « ont a / ont est / ont va » n'existent pas */   /* ⭐ 27/10/2026 (liste n° 184) : « des crêpes et on regardera » — après et / ou / mais, « on » ouvre la proposition ; un futur ou un conditionnel ne suit jamais « ont » (le présent, si : « on mange » pour « ont mangé », reste marqué) */
     /* ⭐ RELATIVE : « où » et « dont » ouvrent une proposition dont « on » est le SUJET —
        « les endroits où on va », « les auteurs dont on cite les livres » sont CORRECTS (2 FP trouvés
        par la batterie de PARITÉ). `qui` reste HORS liste : « qui on gagné » est une vraie faute. */
@@ -5666,7 +5689,7 @@ function rHomophoneMo(T,i){var n=T.length,w=T[i],lw=w.toLowerCase(),d=deacc(lw),
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
     if(name==="c'est/s'est"){var _pc=_prevPron(T,i);return (_pc==='il'||_pc==='elle'||_pc==='on')?'auto':'vigilance';}   // ⭐ liste n° 59 : sujet nominal → orange (« la maison c'est fermée » = est ?)
     if(name==='a/à')return ((T[i]==='a'&&_rel380(T,i))||(_rAbase(T,i)===null&&_aaPar347(T,i))||(_rAbase(T,i)===null&&_rAnouveau(T,i,1)===null&&i>=1&&!(vlike(T,i-1)||(CONJ_F&&CONJ_F[deacc(T[i-1].toLowerCase())]))))?'vigilance':'auto';   // ⭐ 14/10/2026 (liste n° 26, suite) : seul le cas ④ décide ET le mot d'avant n'est pas une forme verbale connue (« elle continu a avancer ») → orange   // ⭐ 14/10/2026 (liste n° 26) : la voie NOUVELLE (29/09, devant un infinitif) était orange EN ATTENDANT LA MESURE. Mesurée : 27 tirs sur les 3 corpus dys et UD 14 450, 27 justes (dont une vraie faute d'UD, « rien a redire »), 0 inutile, 0 fausse → rouge comme la voie de base. Miroir Python
-    if(name==='et/est')return (_rEtBase(T,i)===null&&(_rEtNouveau(T,i)!==null||_rEstEtCoord(T,i)!==null))?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir Python
+    if(name==='et/est')return (_rEtBase(T,i)===null&&(_rEtNouveau(T,i)!==null||_rEstEtCoord(T,i)!==null||_rEstEt469(T,i)!==null))?'vigilance':'auto';   // ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir Python
     if(name==='élision inversée'){var _dz=_deselide(T,i);return (_dz&&_dz[1])?'vigilance':'auto';}   // ⭐ 13/09/2026 : miroir tier_of Python
     if(name==='leur/leurs'){if(i+1>=n)return 'vigilance';var dn=deacc(T[i+1].toLowerCase());
       if(/s$/.test(sugg.toLowerCase())){if(_INVAR_S[dn]||!/[sx]$/.test(dn))return 'vigilance';var sg=_sgPl440(dn);if(_INVAR_S[sg])return 'vigilance';return _wordKnown(sg)?'auto':'vigilance';}
@@ -6194,6 +6217,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
         if(tete&&_PR_DSG[dj])pn=['3','s'];else if(tete&&_PR_DPL[dj])pn=['3','p'];}}
     if(!pn)return null;var f=m[1]+(pn[1]==='p'?'aient':(pn[0]==='3'?'ait':'ais')),r=svReads(f),k;
     for(k=0;k<r.length;k++)if(r[k][1]==='ind:imp'&&r[k][2]===pn[0]&&(r[k][3]===pn[1]||r[k][3]==='x')){var tb=CONJ_C[deacc(r[k][0])],g=tb&&tb['ind:imp']&&tb['ind:imp'][pn[0]+pn[1]];if(Array.isArray(g))g=g[0];return (g&&deacc(g)===deacc(f))?g:f;}return null;}
+  var _CL471={me:1,te:1,se:1,le:1,la:1,je:1,ne:1,de:1,que:1,ce:1};
   function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                       // dictionnaire utilisateur -> mot valide
@@ -6360,6 +6384,11 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
      population cible. Son seul gain est sur WiCoPaCo — registre Wikipédia, juge déjà connu
      comme trompeur ici. Un gain sur un juge trompeur ne paie pas 26 oranges sur du texte juste. */
     var keys=Object.keys(cand);if(!keys.length)return null;var pk=phonKey(low);
+    if(T&&idx>0&&keys.length>1&&_CL471[deaccS(String(T[idx-1]).toLowerCase())]&&!/^[aeiouyhldmtsnjcqàâäéèêëîïôöùûüœæ]/.test(low)){var _k471=keys.filter(function(k){return !/^[aeiouyàâäéèêëîïôöùûüœæ]/.test(k);});if(_k471.length)keys=_k471;}   /* ⭐ 09/11/2026 (liste n° 471) :
+       « il me rest trois places » proposait « est » : après « me, te, se, le, la, je, ne, de, que, ce » écrits en entier, un mot qui commence
+       par une voyelle aurait pris l'apostrophe (« m'est »). Le mot écrit commence par une consonne : on garde les candidats à consonne.
+       Recensé dans les textes dys (mot écrit à consonne après ces mots) : la forme corrigée débute par une consonne 2 015 fois, par une
+       voyelle 7 fois, presque toutes un article collé (l, d…) — ces initiales-là sont laissées de côté. */
     var inpAud=/é$/.test(low)||(low.length>=4&&/[èê]$/.test(low));   // ⭐ 21/10/2026 (ligne 130) : /ɛ/ (è, ê) aussi, mot de 4 lettres ou plus (« lè » = les) — miroir Python. AUDIBILITÉ : finale /e/ (é) écrite = entendue (fiable). Miroir app.
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
     var expPos=null,expPrep=null;   // ⭐ liste n° 33 (B) : préposition devant le mot (drapeau séparé : les règles d'après le tri ne le voient pas)                                                   // POS attendu (désambiguïse l'accent : élève/élevé)

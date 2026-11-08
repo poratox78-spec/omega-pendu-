@@ -75,6 +75,12 @@
 ],
 "abstain": [],
 "nofp": [
+"Des fois on a ri.",
+"Les jours on travaille.",
+"Dans plusieurs carnets on voit bien.",
+"Le président du club est un homme calme.",
+"Je pense que du pain est une bonne idée.",
+"Une amie de ma sœur est une artiste.",
 "Le chat mange une pomme.",
 "je suis content",
 "j'ai de la peine",
@@ -918,6 +924,46 @@
 "Elle a dû la somme hier."
 ],
 "elide": [
+[
+"Mes tomates sont belles. Je les ai planté en mai.",
+"planté",
+"plantées"
+],
+[
+"Mes tomates sont belles. Je les arrose le soir et je les ai planter en plein soleil.",
+"planter",
+"plantées"
+],
+[
+"Mes rosiers sont beaux. Je les ai planter en mai.",
+"planter",
+"plantés"
+],
+[
+"Plusieurs voisins on déjà signaler le problème.",
+"on",
+"ont"
+],
+[
+"Plusieurs voisins on déjà signaler le problème.",
+"signaler",
+"signalé"
+],
+[
+"Quelques élèves on oublier leur cahier.",
+"oublier",
+"oublié"
+],
+[
+"Chloé c'est assise près de la fenêtre.",
+"c'est",
+"s'est"
+],
+[
+"Ma cousine c'est enfuie en courant.",
+"c'est",
+"s'est"
+],
 [
 "La maison est tous blanche.",
 "tous",
@@ -3801,6 +3847,16 @@
 ],
 "palier": [
 [
+"Nous avons pris du pain est une pomme pour la route.",
+"est",
+"vigilance"
+],
+[
+"Il achète des fleurs est un gâteau pour sa mère.",
+"est",
+"vigilance"
+],
+[
 "Elle a complut.",
 "complut",
 "vigilance"
@@ -4182,6 +4238,16 @@
 ]
 ],
 "vig": [
+[
+"Il me rest trois places.",
+"rest",
+"reste"
+],
+[
+"Il te rest du pain.",
+"rest",
+"reste"
+],
 [
 "Elle a appris la langue des sines à l'école",
 "sines",

@@ -529,3 +529,10 @@ Les volets sont tout neufs depuis le printemps.
 Le soir, la terrasse est {tout|toute|G} calme.
 Le petit déjeuner est {servit|servi|C} à huit heures.
 La maison est tout près de la gare.
+=== T92 récit d'une journée de classe de neige écrit par un élève
+Le matin, nous avons pris du pain {est|et|G} du fromage pour le pique-nique.
+Au télésiège, Chloé {c'est|s'est|G} assise à côté du moniteur.
+Plusieurs élèves {on|ont|G} déjà {oublier|oublié|C} leurs gants au chalet.
+Des fois on a ri si fort que tout le monde nous regardait.
+Mes chaussures étaient trempées. Je les ai {laisser|laissées|C} près du feu.
+Il me {rest|reste|O} encore deux cartes postales à écrire.

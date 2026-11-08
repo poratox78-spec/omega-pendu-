@@ -9,10 +9,10 @@
    "muette": 9
   },
   "grammaire": {
-   "total": 245,
-   "bon": 221,
-   "rouge juste": 95,
-   "orange juste": 126,
+   "total": 248,
+   "bon": 224,
+   "rouge juste": 96,
+   "orange juste": 128,
    "mauvais mot": 1,
    "muette": 23
   },
@@ -25,18 +25,18 @@
    "muette": 15
   },
   "conjugaison": {
-   "total": 303,
-   "bon": 283,
-   "rouge juste": 139,
-   "orange juste": 144,
+   "total": 305,
+   "bon": 285,
+   "rouge juste": 140,
+   "orange juste": 145,
    "mauvais mot": 5,
    "muette": 15
   },
   "orthographe": {
-   "total": 168,
-   "bon": 158,
+   "total": 169,
+   "bon": 159,
    "rouge juste": 86,
-   "orange juste": 72,
+   "orange juste": 73,
    "mauvais mot": 3,
    "muette": 7
   }
@@ -1039,6 +1039,12 @@
   "T91#1": "rouge juste",
   "T91#2": "orange juste",
   "T91#3": "rouge juste",
-  "T91#4": "orange juste"
+  "T91#4": "orange juste",
+  "T92#0": "orange juste",
+  "T92#1": "orange juste",
+  "T92#2": "rouge juste",
+  "T92#3": "rouge juste",
+  "T92#4": "orange juste",
+  "T92#5": "orange juste"
  }
 }
