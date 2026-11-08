@@ -452,3 +452,11 @@ Les sanitaires {son|sont|G} nettoyés chaque matin.
 Le soir, merci de {respecté|respecter|C} le calme des voisins.
 L'équipe du chalet {répont|répond|O} à vos questions tous les jours.
 Bon séjour parmi nous !
+=== T75 présentation d'une ferme pédagogique
+La ferme des Saules ouvre ses portes aux écoles du canton.
+Les animateurs {accueil|accueillent|C} les classes dès neuf heures, près de la grange.
+Chaque groupe {nourris|nourrit|C} les poules et ramasse les œufs.
+Le fermier vous {conseil|conseille|C} des bottes, car la cour est boueuse.
+Les {chèvre|chèvres|N} adorent les épluchures de carottes.
+Le repas se prend sous le hangar, à l'abri de la {plui|pluie|O}.
+{a|À|P} la fin de la visite, chaque enfant repart avec un pot de miel.
