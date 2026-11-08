@@ -109,6 +109,14 @@ catch (e) { console.error('eval _DECL2 échoué :', e.message); process.exit(2);
     if (entMuet(w) !== true) fail.push('g2p de l APP : le « -ent » de « ' + w + ' » est donné PRONONCÉ (verbe)');
   for (const w of ['gouvernement','dent','lent','talent','ferment'])
     if (entMuet(w) !== false) fail.push('g2p de l APP : le « -ent » de « ' + w + ' » est donné MUET (nom/adjectif)');
+  // ⭐ 08/11/2026 — les -tient/-vient de tenir/venir : « ien » se dit /jɛ̃/ et aucun « en » n est muté (ENTSIL en contenait 16 :
+  // « il devient » s affichait « devi », « il entretient » perdait le « en » d ENTRE). Les -ient d autres verbes restent /i/.
+  const ienDit = (w) => { const st = DECL2.g2p(w);
+    return st.some(y => y.g === 'ien' && y.ph === 'jɛ̃') && !st.some(y => y.g === 'en' && (!y.ph || y.ph === '∅')); };
+  for (const w of ['devient','contient','entretient','appartient','souvient','obtient','vient'])
+    if (!ienDit(w)) fail.push('g2p de l APP : « ' + w + ' » ne se dit plus /…jɛ̃/ (il devient, il contient)');
+  for (const w of ['allient','crient','oublient'])
+    if (!DECL2.g2p(w).some(y => y.g === 'ien' && y.ph === 'i')) fail.push('g2p de l APP : le « -ient » de « ' + w + ' » n est plus /i/ (ils allient)');
   // ⭐ c et g finaux, sur le g2p de l APP : le défaut de la table était muet pour tous (87 % et 77 %
   // de faux) ; il est renversé, muets en liste fermée. On garde les DEUX sens.
   const finMuet = (w) => { const st = DECL2.g2p(w); const d = st[st.length-1];

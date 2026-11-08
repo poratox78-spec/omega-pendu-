@@ -6815,7 +6815,7 @@ var _DECL2 = (function () {
       else if (g === 'x' && (vowG(k + 1) || g2 === 'h')) s.ph = Z6.has(w) ? 'z' : (GZ_PRE.has(w.slice(0, pos)) ? 'ɡz' : 'ks');
       pos += g.length;
     }
-    if (w.length > 4 && w.slice(-4) === 'ient' && !ENTAMBIG.has(w) && (ENTSIL.has(w) || entVerbe(w)) && n >= 2 && S[n - 2].g === 'ien') S[n - 2].ph = 'i';   // ils allient, ils crient
+    if (w.length > 4 && w.slice(-4) === 'ient' && !ENTAMBIG.has(w) && !IENT_V.has(w) && (ENTSIL.has(w) || entVerbe(w)) && n >= 2 && S[n - 2].g === 'ien') S[n - 2].ph = 'i';   // ils allient, ils crient ; ⭐ 08/11 : JAMAIS un -tient/-vient d IENT_V (ENTSIL en contenait 16 : il devient → « devi »)
   }
   function g2p(word){
     const w=word.toLowerCase().replace(/[^a-zàâäéèêëîïôöùûüÿçœ]/g,'')
@@ -6909,7 +6909,7 @@ var _DECL2 = (function () {
     }
     // ⚠️ ENTAMBIG PRIME sur ENTSIL : la liste faite main contenait déjà « ferment », que le gold donne
     // prononcé (le ferment, un nom). Une liste écrite à la main ne bat pas une mesure.
-    if(w.endsWith('ent') && !ENTAMBIG.has(w) && (ENTSIL.has(w) || _entVerbe(w))){
+    if(w.endsWith('ent') && !ENTAMBIG.has(w) && !IENT_V.has(w) && (ENTSIL.has(w) || _entVerbe(w))){   // ⭐ 08/11 : pas les -tient/-vient (le « en » muté était celui d « entretient »)
       for(let k=steps.length-1;k>=0;k--){ if(steps[k].g==='en'){ steps[k].ph='∅'; steps[k].h=0.02; break } }
     }
     /* ⭐ 25/09/2026 — les -er dont le r SE PRONONCE. Liste FERMÉE de 160 mots relevés un par un dans la
