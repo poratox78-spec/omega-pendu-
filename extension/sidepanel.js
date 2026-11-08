@@ -73,6 +73,7 @@
     "accord grammatical (é/er)": "é ou er",
     "accord participe": "Accord du participe",
     "accord participe (COD avoir)": "Accord du participe",
+    "accord participe (pronom complément)": "Accord du participe ?",
     "accord participe (dont)": "Accord du participe",
     "accord participe à vérifier": "Accord du participe ?",
     "accord participe épithète": "Accord du participe",

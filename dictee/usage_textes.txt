@@ -477,3 +477,11 @@ Les meubles {était|étaient|C} lourds, mais tout est arrivé sans casse.
 Votre gentillesse nous a beaucoup touchés.
 Nous {organiseront|organiserons|C} un petit apéritif samedi pour vous {remercié|remercier|C}.
 Vous serez les {bienvenu|bienvenus|N} !
+=== T78 mot de fin de spectacle d'une école de musique
+Chers parents,
+Les professeurs nous ont {aider|aidés|C} à monter la scène et les décors.
+Les enfants se sont beaucoup {entraîné|entraînés|G} depuis la rentrée.
+Dans les coulisses, ils se sont {parlés|parlé|G} à voix basse pour se donner du courage.
+La chorale nous a {offerte|offert|G} une chanson que personne n'attendait.
+Merci à tous d'être {venu|venus|N} si nombreux !
+{a|À|O} l'année prochaine pour le concert de printemps.
