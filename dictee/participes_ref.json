@@ -1,0 +1,618 @@
+{
+ "A avoir + pronom D | infinitif": {
+  "n": 496,
+  "orange juste": 496
+ },
+ "A avoir + pronom D | juste": {
+  "n": 652,
+  "ok": 652
+ },
+ "A avoir + pronom D | pluriel en trop": {
+  "n": 326,
+  "orange juste": 326
+ },
+ "A avoir + pronom D | pluriel manquant": {
+  "n": 326,
+  "orange juste": 326
+ },
+ "A avoir + pronom DI | juste": {
+  "n": 68,
+  "ok": 68
+ },
+ "A avoir + pronom I | féminin en trop + pluriel en trop": {
+  "n": 16,
+  "orange juste": 16
+ },
+ "A avoir + pronom I | infinitif": {
+  "n": 136,
+  "rouge juste": 66,
+  "orange juste": 68,
+  "mauvais mot": 2
+ },
+ "A avoir + pronom I | juste": {
+  "n": 236,
+  "ok": 236
+ },
+ "A avoir + pronom I | pluriel en trop": {
+  "n": 220,
+  "orange juste": 218,
+  "muet": 2
+ },
+ "B avoir + pronom + complément D | féminin en trop": {
+  "n": 512,
+  "orange juste": 512
+ },
+ "B avoir + pronom + complément D | féminin en trop + pluriel en trop": {
+  "n": 496,
+  "orange juste": 496
+ },
+ "B avoir + pronom + complément D | juste": {
+  "n": 140,
+  "ok": 140
+ },
+ "B avoir + pronom + complément D | pluriel en trop": {
+  "n": 140,
+  "orange juste": 140
+ },
+ "B avoir + pronom + complément DI | féminin en trop": {
+  "n": 30,
+  "orange juste": 30
+ },
+ "B avoir + pronom + complément DI | féminin en trop + pluriel en trop": {
+  "n": 30,
+  "orange juste": 30
+ },
+ "B avoir + pronom + complément DI | infinitif": {
+  "n": 30,
+  "rouge juste": 15,
+  "orange juste": 15
+ },
+ "B avoir + pronom + complément DI | juste": {
+  "n": 38,
+  "ok": 38
+ },
+ "B avoir + pronom + complément DI | pluriel en trop": {
+  "n": 38,
+  "orange juste": 38
+ },
+ "B avoir + pronom + complément I | féminin en trop": {
+  "n": 152,
+  "orange juste": 152
+ },
+ "B avoir + pronom + complément I | féminin en trop + pluriel en trop": {
+  "n": 136,
+  "orange juste": 136
+ },
+ "B avoir + pronom + complément I | juste": {
+  "n": 84,
+  "ok": 84
+ },
+ "B avoir + pronom + complément I | pluriel en trop": {
+  "n": 84,
+  "orange juste": 82,
+  "muet": 2
+ },
+ "C être pronominal D | féminin en trop": {
+  "n": 4,
+  "orange juste": 4
+ },
+ "C être pronominal D | féminin en trop + pluriel en trop": {
+  "n": 4,
+  "orange juste": 4
+ },
+ "C être pronominal D | féminin en trop + pluriel manquant": {
+  "n": 159,
+  "orange juste": 159
+ },
+ "C être pronominal D | féminin manquant + pluriel en trop": {
+  "n": 159,
+  "orange juste": 159
+ },
+ "C être pronominal D | infinitif": {
+  "n": 496,
+  "rouge juste": 248,
+  "orange juste": 242,
+  "ROUGE mauvais mot": 6
+ },
+ "C être pronominal D | juste": {
+  "n": 652,
+  "ok": 652
+ },
+ "C être pronominal D | pluriel en trop": {
+  "n": 163,
+  "orange juste": 156,
+  "muet": 7
+ },
+ "C être pronominal D | pluriel manquant": {
+  "n": 163,
+  "orange juste": 162,
+  "mauvais mot": 1
+ },
+ "C être pronominal I | infinitif": {
+  "n": 16,
+  "rouge juste": 16
+ },
+ "C être pronominal I | juste": {
+  "n": 36,
+  "ok": 36
+ },
+ "C être pronominal I | pluriel en trop": {
+  "n": 36,
+  "rouge juste": 12,
+  "orange juste": 20,
+  "muet": 4
+ },
+ "D être pronominal + complément D | féminin en trop": {
+  "n": 512,
+  "orange juste": 512
+ },
+ "D être pronominal + complément D | féminin en trop + pluriel en trop": {
+  "n": 496,
+  "orange juste": 495,
+  "muet": 1
+ },
+ "D être pronominal + complément D | juste": {
+  "n": 140,
+  "ok": 140
+ },
+ "D être pronominal + complément D | pluriel en trop": {
+  "n": 140,
+  "orange juste": 140
+ },
+ "D être pronominal + complément DI | féminin en trop": {
+  "n": 30,
+  "orange juste": 30
+ },
+ "D être pronominal + complément DI | féminin en trop + pluriel en trop": {
+  "n": 30,
+  "orange juste": 30
+ },
+ "D être pronominal + complément DI | infinitif": {
+  "n": 30,
+  "rouge juste": 30
+ },
+ "D être pronominal + complément DI | juste": {
+  "n": 38,
+  "ok": 38
+ },
+ "D être pronominal + complément DI | pluriel en trop": {
+  "n": 38,
+  "orange juste": 38
+ },
+ "D être pronominal + complément I | féminin en trop": {
+  "n": 84,
+  "rouge juste": 8,
+  "orange juste": 76
+ },
+ "D être pronominal + complément I | féminin en trop + pluriel en trop": {
+  "n": 84,
+  "rouge juste": 8,
+  "orange juste": 76
+ },
+ "D être pronominal + complément I | infinitif": {
+  "n": 60,
+  "rouge juste": 59,
+  "orange juste": 1
+ },
+ "D être pronominal + complément I | juste": {
+  "n": 152,
+  "ok": 152
+ },
+ "D être pronominal + complément I | pluriel en trop": {
+  "n": 144,
+  "rouge juste": 4,
+  "orange juste": 136,
+  "muet": 4
+ },
+ "a été | féminin en trop": {
+  "n": 15,
+  "orange juste": 13,
+  "muet": 2
+ },
+ "a été | féminin en trop + pluriel manquant": {
+  "n": 20,
+  "orange juste": 17,
+  "mauvais mot": 3
+ },
+ "a été | féminin manquant": {
+  "n": 28,
+  "orange juste": 27,
+  "muet": 1
+ },
+ "a été | féminin manquant + pluriel en trop": {
+  "n": 18,
+  "orange juste": 18
+ },
+ "a été | féminin manquant + pluriel manquant": {
+  "n": 15,
+  "orange juste": 14,
+  "mauvais mot": 1
+ },
+ "a été | infinitif": {
+  "n": 12,
+  "rouge juste": 1,
+  "orange juste": 11
+ },
+ "a été | juste": {
+  "n": 60,
+  "ok": 60
+ },
+ "a été | pluriel en trop": {
+  "n": 15,
+  "orange juste": 15
+ },
+ "a été | pluriel manquant": {
+  "n": 33,
+  "orange juste": 32,
+  "muet": 1
+ },
+ "avoir + le/la/les avant | féminin en trop": {
+  "n": 30,
+  "muet": 30
+ },
+ "avoir + le/la/les avant | féminin en trop + pluriel en trop": {
+  "n": 15,
+  "orange juste": 13,
+  "mauvais mot": 2
+ },
+ "avoir + le/la/les avant | féminin en trop + pluriel manquant": {
+  "n": 20,
+  "orange juste": 1,
+  "mauvais mot": 1,
+  "ROUGE mauvais mot": 18
+ },
+ "avoir + le/la/les avant | féminin manquant": {
+  "n": 28,
+  "orange juste": 14,
+  "muet": 14
+ },
+ "avoir + le/la/les avant | féminin manquant + pluriel en trop": {
+  "n": 18,
+  "orange juste": 9,
+  "muet": 1,
+  "mauvais mot": 8
+ },
+ "avoir + le/la/les avant | féminin manquant + pluriel manquant": {
+  "n": 15,
+  "rouge juste": 12,
+  "muet": 2,
+  "mauvais mot": 1
+ },
+ "avoir + le/la/les avant | infinitif": {
+  "n": 16,
+  "rouge juste": 8,
+  "orange juste": 8
+ },
+ "avoir + le/la/les avant | juste": {
+  "n": 80,
+  "ok": 80
+ },
+ "avoir + le/la/les avant | pluriel en trop": {
+  "n": 33,
+  "orange juste": 28,
+  "muet": 1,
+  "mauvais mot": 4
+ },
+ "avoir + le/la/les avant | pluriel manquant": {
+  "n": 33,
+  "rouge juste": 28,
+  "orange juste": 5
+ },
+ "avoir + que avant | féminin en trop": {
+  "n": 30,
+  "rouge juste": 23,
+  "orange juste": 5,
+  "muet": 2
+ },
+ "avoir + que avant | féminin en trop + pluriel en trop": {
+  "n": 15,
+  "rouge juste": 10,
+  "orange juste": 5
+ },
+ "avoir + que avant | féminin en trop + pluriel manquant": {
+  "n": 20,
+  "rouge juste": 13,
+  "orange juste": 7
+ },
+ "avoir + que avant | féminin manquant": {
+  "n": 28,
+  "rouge juste": 24,
+  "orange juste": 1,
+  "muet": 3
+ },
+ "avoir + que avant | féminin manquant + pluriel en trop": {
+  "n": 18,
+  "rouge juste": 14,
+  "orange juste": 4
+ },
+ "avoir + que avant | féminin manquant + pluriel manquant": {
+  "n": 15,
+  "rouge juste": 12,
+  "muet": 3
+ },
+ "avoir + que avant | infinitif": {
+  "n": 16,
+  "rouge juste": 14,
+  "ROUGE mauvais mot": 2
+ },
+ "avoir + que avant | juste": {
+  "n": 80,
+  "ok": 80
+ },
+ "avoir + que avant | pluriel en trop": {
+  "n": 33,
+  "rouge juste": 29,
+  "orange juste": 3,
+  "muet": 1
+ },
+ "avoir + que avant | pluriel manquant": {
+  "n": 33,
+  "rouge juste": 26,
+  "orange juste": 5,
+  "muet": 2
+ },
+ "avoir sans accord | féminin en trop": {
+  "n": 30,
+  "orange juste": 30
+ },
+ "avoir sans accord | féminin en trop + pluriel en trop": {
+  "n": 30,
+  "orange juste": 30
+ },
+ "avoir sans accord | infinitif": {
+  "n": 8,
+  "rouge juste": 8
+ },
+ "avoir sans accord | juste": {
+  "n": 40,
+  "ok": 39,
+  "MARQUE FAUSSE": 1
+ },
+ "avoir sans accord | pluriel en trop": {
+  "n": 36,
+  "orange juste": 34,
+  "mauvais mot": 2
+ },
+ "pronominal | féminin en trop": {
+  "n": 1,
+  "orange juste": 1
+ },
+ "pronominal | féminin en trop + pluriel en trop": {
+  "n": 1,
+  "orange juste": 1
+ },
+ "pronominal | féminin en trop + pluriel manquant": {
+  "n": 9,
+  "orange juste": 9
+ },
+ "pronominal | féminin manquant": {
+  "n": 17,
+  "orange juste": 17
+ },
+ "pronominal | féminin manquant + pluriel en trop": {
+  "n": 1,
+  "orange juste": 1
+ },
+ "pronominal | féminin manquant + pluriel manquant": {
+  "n": 9,
+  "orange juste": 9
+ },
+ "pronominal | infinitif": {
+  "n": 16,
+  "rouge juste": 8,
+  "orange juste": 8
+ },
+ "pronominal | juste": {
+  "n": 22,
+  "ok": 22
+ },
+ "pronominal | pluriel en trop": {
+  "n": 17,
+  "orange juste": 17
+ },
+ "pronominal | pluriel manquant": {
+  "n": 1,
+  "orange juste": 1
+ },
+ "sujets coordonnés | féminin en trop + pluriel manquant": {
+  "n": 14,
+  "rouge juste": 13,
+  "orange juste": 1
+ },
+ "sujets coordonnés | féminin manquant": {
+  "n": 9,
+  "rouge juste": 9
+ },
+ "sujets coordonnés | féminin manquant + pluriel manquant": {
+  "n": 9,
+  "rouge juste": 9
+ },
+ "sujets coordonnés | infinitif": {
+  "n": 9,
+  "rouge juste": 9
+ },
+ "sujets coordonnés | juste": {
+  "n": 19,
+  "ok": 19
+ },
+ "sujets coordonnés | pluriel manquant": {
+  "n": 5,
+  "rouge juste": 4,
+  "mauvais mot": 1
+ },
+ "épithète | féminin en trop": {
+  "n": 30,
+  "orange juste": 22,
+  "muet": 8
+ },
+ "épithète | féminin en trop + pluriel en trop": {
+  "n": 15,
+  "orange juste": 13,
+  "mauvais mot": 2
+ },
+ "épithète | féminin en trop + pluriel manquant": {
+  "n": 20,
+  "orange juste": 12,
+  "mauvais mot": 5,
+  "ROUGE mauvais mot": 3
+ },
+ "épithète | féminin manquant": {
+  "n": 28,
+  "rouge juste": 19,
+  "orange juste": 3,
+  "muet": 6
+ },
+ "épithète | féminin manquant + pluriel en trop": {
+  "n": 18,
+  "rouge juste": 3,
+  "orange juste": 14,
+  "muet": 1
+ },
+ "épithète | féminin manquant + pluriel manquant": {
+  "n": 15,
+  "rouge juste": 9,
+  "orange juste": 1,
+  "muet": 2,
+  "ROUGE mauvais mot": 3
+ },
+ "épithète | infinitif": {
+  "n": 16,
+  "orange juste": 14,
+  "muet": 2
+ },
+ "épithète | juste": {
+  "n": 80,
+  "ok": 80
+ },
+ "épithète | pluriel en trop": {
+  "n": 33,
+  "rouge juste": 2,
+  "orange juste": 29,
+  "mauvais mot": 1,
+  "ROUGE mauvais mot": 1
+ },
+ "épithète | pluriel manquant": {
+  "n": 33,
+  "rouge juste": 6,
+  "orange juste": 20,
+  "muet": 3,
+  "ROUGE mauvais mot": 4
+ },
+ "être (nom) | féminin en trop": {
+  "n": 18,
+  "orange juste": 18
+ },
+ "être (nom) | féminin en trop + pluriel en trop": {
+  "n": 9,
+  "orange juste": 9
+ },
+ "être (nom) | féminin en trop + pluriel manquant": {
+  "n": 5,
+  "orange juste": 5
+ },
+ "être (nom) | féminin manquant": {
+  "n": 9,
+  "orange juste": 9
+ },
+ "être (nom) | féminin manquant + pluriel en trop": {
+  "n": 5,
+  "orange juste": 5
+ },
+ "être (nom) | infinitif": {
+  "n": 9,
+  "rouge juste": 7,
+  "orange juste": 2
+ },
+ "être (nom) | juste": {
+  "n": 29,
+  "ok": 29
+ },
+ "être (nom) | pluriel en trop": {
+  "n": 14,
+  "orange juste": 14
+ },
+ "être (nom) | pluriel manquant": {
+  "n": 23,
+  "orange juste": 23
+ },
+ "être (passif) | féminin en trop": {
+  "n": 30,
+  "orange juste": 28,
+  "muet": 2
+ },
+ "être (passif) | féminin en trop + pluriel en trop": {
+  "n": 15,
+  "orange juste": 15
+ },
+ "être (passif) | féminin en trop + pluriel manquant": {
+  "n": 20,
+  "orange juste": 17,
+  "mauvais mot": 3
+ },
+ "être (passif) | féminin manquant": {
+  "n": 28,
+  "orange juste": 27,
+  "muet": 1
+ },
+ "être (passif) | féminin manquant + pluriel en trop": {
+  "n": 18,
+  "orange juste": 18
+ },
+ "être (passif) | féminin manquant + pluriel manquant": {
+  "n": 15,
+  "orange juste": 14,
+  "mauvais mot": 1
+ },
+ "être (passif) | infinitif": {
+  "n": 16,
+  "rouge juste": 16
+ },
+ "être (passif) | juste": {
+  "n": 80,
+  "ok": 80
+ },
+ "être (passif) | pluriel en trop": {
+  "n": 33,
+  "rouge juste": 1,
+  "orange juste": 31,
+  "mauvais mot": 1
+ },
+ "être (passif) | pluriel manquant": {
+  "n": 33,
+  "rouge juste": 1,
+  "orange juste": 31,
+  "muet": 1
+ },
+ "être (pronom) | féminin en trop + pluriel manquant": {
+  "n": 14,
+  "rouge juste": 14
+ },
+ "être (pronom) | féminin manquant": {
+  "n": 9,
+  "rouge juste": 9
+ },
+ "être (pronom) | féminin manquant + pluriel en trop": {
+  "n": 14,
+  "rouge juste": 14
+ },
+ "être (pronom) | féminin manquant + pluriel manquant": {
+  "n": 9,
+  "rouge juste": 9
+ },
+ "être (pronom) | infinitif": {
+  "n": 27,
+  "rouge juste": 27
+ },
+ "être (pronom) | juste": {
+  "n": 47,
+  "ok": 47
+ },
+ "être (pronom) | pluriel en trop": {
+  "n": 14,
+  "rouge juste": 14
+ },
+ "être (pronom) | pluriel manquant": {
+  "n": 5,
+  "rouge juste": 5
+ }
+}

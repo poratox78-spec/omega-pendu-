@@ -237,6 +237,10 @@ jobs:
       # de bonne réponse, aucune fausse marque de plus (orthographe, grammaire, conjugaison, ponctuation, pluriels).
       - name: Contrôle par l'USAGE — 9 textes inventés, chaque faute par domaine
         run: node dictee/usage_probe.js --check
+      # 08/11/2026 (liste n° 457) — contrôle complet des participes par FAMILLE (voulu par Rem) :
+      # avoir, être, pronom personne devant le verbe (table de valence) ; aucun contexte ne recule.
+      - name: PARTICIPES — contrôle complet par famille (avoir, être, pronom personne ; table de valence), aucun recul (liste n° 457)
+        run: node dictee/participes_probe.js --check
       - name: Parité OCTET du moteur vocal — site == extension
         run: node dictee/voix_parite_probe.js
       - name: Audit structurel du pipeline vocal — 4000 dictées, chaînage et conflits

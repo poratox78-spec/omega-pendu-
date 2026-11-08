@@ -881,7 +881,13 @@
 "Le point accueil ferme à midi.",
 "La pluie nous a obligés à rester.",
 "Le guide nous a aidés à monter.",
-"Le directeur vous a invités à entrer."
+"Le directeur vous a invités à entrer.",
+"Le guide nous a aidés hier.",
+"Je vous ai aidé hier.",
+"Il nous a présentés hier.",
+"Ils se sont parlé hier.",
+"Elle s'est lavé les mains.",
+"Ma tante nous a écrit une longue lettre."
 ],
 "elide": [
 [
@@ -3633,6 +3639,31 @@
 "Elle a décidée de partir.",
 "décidée",
 "décidé"
+],
+[
+"Le guide nous a aidé hier.",
+"aidé",
+"aidés"
+],
+[
+"Les voisins nous ont inviter samedi.",
+"inviter",
+"invités"
+],
+[
+"Le guide nous a parlés hier.",
+"parlés",
+"parlé"
+],
+[
+"Ils se sont téléphonés hier.",
+"téléphonés",
+"téléphoné"
+],
+[
+"Elle s'est lavée les mains.",
+"lavée",
+"lavé"
 ]
 ],
 "palier": [
