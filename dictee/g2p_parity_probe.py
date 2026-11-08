@@ -30,6 +30,9 @@ BATTERIE = [
     ('muet', 'mɥɛ'), ('tuer', 'tɥe'), ('cruel', 'kʁyɛl'), ('escalier', 'ɛskalje'), ('science', 'sjɑ̃s'), ('patient', 'pasjɑ̃'), ('client', 'klijɑ̃'), ('vient', 'vjɛ̃'), ('bientôt', 'bjɛ̃to'), ('remerciement', 'ʁəmɛʁsimɑ̃'),
     ('manger', 'mɑ̃ʒe'), ('mangé', 'mɑ̃ʒe'), ('dessert', 'desɛʁ'), ('lettre', 'lɛtʁ'), ('belle', 'bɛl'), ('appeler', 'apəle'), ('demain', 'dəmɛ̃'),
     ('illégal', 'ileɡal'), ('bouillie', 'buji'), ('crient', 'kʁi'), ('oubliée', 'ublije'), ('compagnie', 'kɔ̃paɲi'), ('accompagniez', 'akɔ̃paɲe'),
+    # ⭐ 08/11/2026 — les -tient/-vient de tenir/venir gardent /jɛ̃/ : la liste ENTSIL en rendait 16 « muets » (il devient → « devi »,
+    # il entretient → « tʁəti », le en d ENTRE muté). Mesuré sur la police de son : 12 des 300 verbes en -ent les plus fréquents.
+    ('devient', 'dəvjɛ̃'), ('contient', 'kɔ̃tjɛ̃'), ('entretient', 'ɑ̃tʁətjɛ̃'), ('appartient', 'apaʁtjɛ̃'), ('souvient', 'suvjɛ̃'), ('obtient', 'optjɛ̃'),
 ]
 
 def norm(s):

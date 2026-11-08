@@ -260,7 +260,7 @@ def _r39(S, w):
         elif g == 'x' and (vowG(k + 1) or g2 == 'h'):
             s['ph'] = 'z' if w in Z6 else ('ɡz' if w[:pos] in GZ_PRE else 'ks')
         pos += len(g)
-    if len(w) > 4 and w.endswith('ient') and w not in ENTAMBIG and (w in ENTSIL or _ent_verbe(w)) and n >= 2 and S[n - 2]['g'] == 'ien':
+    if len(w) > 4 and w.endswith('ient') and w not in ENTAMBIG and w not in IENT_V and (w in ENTSIL or _ent_verbe(w)) and n >= 2 and S[n - 2]['g'] == 'ien':   # ⭐ 08/11 : jamais un -tient/-vient (miroir app)
         S[n - 2]['ph'] = 'i'
 
 def g2p(word, accents=True, seg=None):
@@ -323,7 +323,7 @@ def g2p(word, accents=True, seg=None):
     # Le commentaire d avant disait « la POS lève l ambiguïté » : c était faux, on lisait une liste de
     # 582 mots. 7,0 % des -ent muets couverts ; avec les formes conjuguées déjà chargées : 95,8 %.
     # ⚠️ ENTAMBIG prime sur ENTSIL : la liste faite main contenait déjà « ferment » (nom, prononcé).
-    if w not in ENTAMBIG and (w in ENTSIL or _ent_verbe(w)) and w.endswith('ent'):                # -ent muet (verbe) : POS lève /ɑ̃/ vs ∅
+    if w not in ENTAMBIG and w not in IENT_V and (w in ENTSIL or _ent_verbe(w)) and w.endswith('ent'):   # -ent muet (verbe) ; ⭐ 08/11 : pas les -tient/-vient (miroir app)
         for k in range(len(steps) - 1, -1, -1):
             if steps[k]['g'] == 'en':
                 steps[k]['ph'], steps[k]['h'] = '∅', 0.02; break
