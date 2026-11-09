@@ -8,6 +8,8 @@
 // ⑨ lettres du milieu mélangées (liste n° 383) : l'anagramme du milieu est parmi les candidats, le juge la choisit quand l'orthographe hésite, et son index se bâtit par tranches.
 // ⑩ lettres probables (liste n° 399) : le modèle emporte la table des chances de faute par lettre (WiCoPaCo), le 8e trait a la valeur de l'entraînement, il ne vaut que pour un mot inconnu,
 //    l'arbitre ne le lit pas, et le juge choisit le bon mot quand l'orthographe hésite.
+// ⑪ point du juge (liste n° 476) : pas de point du juge dans un titre ni après une abréviation. Le plafond de ponctuation compte
+//    tout ce que le juge ajoute ; or le texte d'UD a perdu beaucoup de virgules : une partie de ces marques sont justes (lu à la main le 09/11).
 'use strict';
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..'), EXT = path.join(ROOT, 'extension'), err = [];
@@ -69,6 +71,12 @@ for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants r
 for (const [t, nom, sg] of [['Le chat dort sur le canapé\n', 'point final', '.'], ['Le repas était bon !\ndemain, nous partons.', 'majuscule', 'Demain'], ['Il pleut ,la route est mouillée.', 'espace avant la ponctuation', 't, l'], ['Il fait beau. Cependant le vent souffle fort.', 'virgule', ', ']]) {
   const f = marques(t); if (!f.some((x) => x.name === nom && x.sugg === sg)) err.push('liste n° 355 : « ' + t + ' » : attendu ' + nom + ' → ' + sg + ', rendu ' + JSON.stringify(f.map((x) => x.name + ' ' + x.sugg)));
 }
+// liste n° 476 : pas de point du juge au milieu d'une phrase devant un mot qui a déjà sa majuscule (un titre), sauf un pronom sujet,
+// ni derrière une abréviation, un sigle ou un mot à point ; le point entre deux phrases sans majuscule reste
+for (const t of ['Il a lu pendant les vacances le livre Comment parler aux oiseaux.', 'Le chanteur a enregistré la chanson Où sont les nuages.', 'Le peintre a exposé le tableau Un soir au port.', 'Les horaires sont sur le portail villes.fr qui sera ouvert en juin.']) {
+  const f = marques(t).filter((x) => x.juge && x.typo && x.name !== 'virgule'); if (f.length) err.push('liste n° 476 : « ' + t + ' » : point du juge dans un titre ou après une abréviation ' + JSON.stringify(f.map((x) => x.name + ' ' + x.sugg)));
+}
+if (!marques('Il pleuvait très fort nous sommes restés à la maison.').some((x) => x.juge && x.name === 'point final' && x.sugg === '. N')) err.push('liste n° 476 : « Il pleuvait très fort nous sommes… » : point du juge attendu');
 for (const t of ['Ah! comme il est grand.', 'Tu viens ? je pars.']) { if (marques(t).some((x) => x.name === 'majuscule')) err.push('liste n° 355 : « ' + t + ' » : majuscule de trop après « ! » ou « ? » sans retour à la ligne'); }
 if (marques('Le café est bon.. enfin un endroit où on respire.').some((x) => x.name === 'virgule' && !x.juge)) err.push('liste n° 355 : virgule après « enfin » derrière des points de suspension');
 if (marques('La maison est petite mais très jolie. Il fait beau tous les jours.').some((x) => x.name === 'virgule' && !x.juge)) err.push('liste n° 361 : virgule devant « mais » lue sur la phrase suivante');
