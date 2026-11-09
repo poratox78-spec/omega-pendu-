@@ -33553,12 +33553,19 @@ function spellUnknown(tok,atStart,T,idx){
   function _jugeTri(text,flags){_JG.tus=null;var t=_jugeTait(text,flags);if(!t.length)return flags;_JG.tus={t:text,f:t};return flags.filter(function(f){return t.indexOf(f)<0;});}
   /* ⭐ 01/11/2026 (liste n° 333) : la ponctuation lue par le juge, en plus des règles, jamais à leur place : une virgule, un point ou un « ? » entre deux mots
      séparés d'un blanc simple, un « ? » en fin de texte sans signe. Seuils et plafond dans dictee/juge_probe.js. */
+  /* ⭐ 09/11/2026 (liste n° 476) : un point ou un « ? » du juge au milieu d'une phrase se tait (1) devant un mot qui a DÉJÀ sa majuscule, sauf un pronom
+     sujet (« dans le garage Il prépare ») : ailleurs c'est un titre ou un nom propre (« la série Les Gardiens du phare ») ; (2) derrière un mot qui n'est pas un mot
+     ordinaire d'au moins trois lettres : abréviation, sigle, lettre seule, mot à point, chiffre ou « & » (« le site exemple.fr lancé en mai »). Lu à la main sur
+     UD et les textes dys : les deux cas étaient presque tous des points faux. */
+  var _JGPRO476={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1};
+  function _jgPoint476(text,tk,nx,mi){if(!mi){var n=_jgLow(nx.brut);return !!(_JGPRO476[n]||/^j'/.test(n));}
+    var pw=/\S*$/.exec(text.slice(Math.max(0,tk.ce-40),tk.ce))[0];return /^[A-Za-zÀ-ÖØ-öø-ÿŒœÆæ'’-]*[a-zß-öø-ÿœæ]{3}$/.test(pw);}
   function _jugePonct(text,flags,deja){if(!_JG.m||!_JG.cache.size)return [];var out=[],pris={};deja.forEach(function(f){pris[f.cs]=1;});
     _jgTranches(text,flags).forEach(function(tr){var r=_JG.cache.get(tr.cle);if(!r||!r.pc)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var v=r.pc[p],tk=tr.t[p],nx=tr.t[p+1];if(!v)continue;
       if(!nx){if(v[3]>=_JG.TQ&&p>=2&&/^\s*$/.test(text.slice(tk.ce))){var pf=deja.filter(function(f){return f.cs===tk.ce&&f.name==='point final';})[0];if(pf){pf.sugg='?';pf.name="point d'interrogation";pf.juge=1;pf.marge=v[3];}else if(!pris[tk.ce])out.push({cs:tk.ce,ce:tk.ce,from:'',sugg:'?',name:"point d'interrogation",tier:'vigilance',typo:1,juge:1,marge:v[3]});}continue;}
       if(pris[tk.ce])continue;
       var gap=text.slice(tk.ce,nx.cs);if(!/^[ \t]+$/.test(gap))continue;
-      if((v[2]>=_JG.TP||v[3]>=_JG.TQ)&&(v[2]>=v[1]||v[3]>=v[1])){var l=nx.brut.charAt(0),mi=/^[a-zà-ÿœ]/.test(l),qu=v[3]>=_JG.TQ&&v[3]>=v[2],sg=qu?'?':'.',nm=qu?"point d'interrogation":'point final';out.push({cs:tk.ce,ce:mi?nx.cs+1:nx.cs,from:mi?gap+l:gap,sugg:mi?sg+' '+l.toUpperCase():sg+gap,name:nm,tier:'vigilance',typo:1,juge:1,marge:qu?v[3]:v[2]});}
+      if((v[2]>=_JG.TP||v[3]>=_JG.TQ)&&(v[2]>=v[1]||v[3]>=v[1])){var l=nx.brut.charAt(0),mi=/^[a-zà-ÿœ]/.test(l);if(!_jgPoint476(text,tk,nx,mi))continue;var qu=v[3]>=_JG.TQ&&v[3]>=v[2],sg=qu?'?':'.',nm=qu?"point d'interrogation":'point final';out.push({cs:tk.ce,ce:mi?nx.cs+1:nx.cs,from:mi?gap+l:gap,sugg:mi?sg+' '+l.toUpperCase():sg+gap,name:nm,tier:'vigilance',typo:1,juge:1,marge:qu?v[3]:v[2]});}
       else if(v[1]>=_JG.TV&&_jgLow(nx.brut)!=='car')out.push({cs:tk.ce,ce:nx.cs,from:gap,sugg:','+gap,name:'virgule',tier:'vigilance',typo:1,juge:1,marge:v[1]});}});
     return out;}
   var _VOISIN_OK={'a/à':1,'ou/où':1,'élision fusionnée':1,'accord grammatical (é/er)':1,'est/et (proposition)':1,'peu/peux/peut':1,'et/est':1,'homophone à vérifier':1,'accord pluriel à vérifier':1,'accord verbe à vérifier':1,'participe après avoir':1,'accord pluriel nom':1,'accord adjectif antéposé':1,'mot-outil à vérifier':1};   /* ⭐ 31/10/2026 (liste n° 326) : + les règles qui lisent le mot-outil ou le nombre ; pas le genre ni le sujet : un voisin mal deviné les trompe */   // lot B1 : règles qui décident sur la NATURE du voisin ; + est/et (29/09/2026 : un adverbe mal écrit entre « est » et un pronom sujet)

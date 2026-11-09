@@ -560,3 +560,10 @@ N'oubliez pas de {passé|passer|C} nous voir avant le premier atelier.
 Les tabliers sont {fourni|fournis|G} par le club.
 Les ateliers {commence|commencent|C} le mardi 4 mars.
 À bientôt !
+=== T96 lettre d'une médiathèque à ses lecteurs
+Bonjour à tous,
+Cette semaine, la médiathèque vous conseille le livre Comment jardiner sans arroser et le disque Où vont les nuages.
+Les {nouveau|nouveaux|N} romans sont {arrivé|arrivés|G} lundi.
+Le programme complet est sur le site lecture.fr qui sera ouvert en avril.
+Le club de lecture se {réuni|réunit|C} le jeudi à dix-huit heures.
+Bonne lecture !
