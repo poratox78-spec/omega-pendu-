@@ -4153,7 +4153,12 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
      « sujet en tête de proposition » de rAccordSVnoun (liste n° 153) : orange, comme sans la virgule. */
   function _etVirgule400(T,tg,j,detIdx,sp){if(!_SEG||!_SEG.bb||j<2)return false;var lo2=0,k;
     for(k=j-1;k>0;k--){if(k<_SEG.bb.length&&_SEG.bb[k]){lo2=k;break;}}
-    return _etPropo64(T,tg,lo2,j,detIdx,sp);}
+    if(_etPropo64(T,tg,lo2,j,detIdx,sp))return true;
+    /* ⭐ 09/11/2026 (liste n° 435) — « Les gagnants recevront un bon d'achat, et leurs photos seront exposé » : un NOM avant « , et » (même
+       élidé, « d'achat ») quand le segment d'avant a déjà son verbe conjugué (pas un infinitif ni un participe) : c'est une nouvelle proposition, pas une énumération de sujets
+       (« Le chat, le chien, et les vaches dorment » : pas de verbe avant la virgule, rien ne change). */
+    if(detIdx<0||sp||!tg||j-1<lo2)return false;var wp=T[j-1];if(!(tg[j-1]==='NOUN'||/^[dl]['’][a-zà-ÿ]/i.test(wp))||wp.charAt(0)!==wp.charAt(0).toLowerCase())return false;
+    var v=false;for(k=lo2;k<j;k++){var dk=deacc(T[k].toLowerCase());if(dk==='qui'||dk==='que'||dk==='dont'||dk==='ou'||dk==='lequel'||dk==='laquelle'||/^qu['’]/.test(dk))return false;if((tg[k]==='VERB'||tg[k]==='AUX')&&T[k]===T[k].toLowerCase()&&!/[\d'’]/.test(T[k])&&!_isInfinitive(T[k])&&!_isPpl(T[k]))v=true;}return v;}
   /* ⭐ 06/11/2026 (liste n° 402) — « Nous sommes restés très sages et nos parents dit » → disent était muet : « sages » est aussi
      un nom (un sage), l'étiqueteur le lit NOM ou NOM PROPRE, et le test ne voyait pas de fin de proposition avant « et ». Juste
      après un adverbe de degré (très, trop, assez, tellement, vraiment, plutôt, aussi), le mot est un adjectif ou un adverbe : il
@@ -7301,6 +7306,22 @@ function spellUnknown(tok,atStart,T,idx){
   /* ⭐ 09/11/2026 (liste n° 436) — « Après la pluie, essuyez la chaîne et laisser sécher le vélo » : une phrase qui commence par un impératif
      en -ez (sans « vous » devant) continue à l'impératif après « et ». Garde : aucun infinitif entre les deux (« Pensez à fermer et éteindre »
      est juste). ORANGE. Recensé : 0 fois dans UD, 0 fois dans les textes dys ; trouvé par les textes neufs (modes d'emploi). */
+  /* ⭐ 09/11/2026 (liste n° 450) — « Chaque module dur trois heures » : derrière un nom, « dur » suivi d'un nombre et d'une unité de durée
+     (heures, jours, ans…) est le verbe durer (dure, durent selon le déterminant). ORANGE. Recensé : 0 fois dans UD (le seul « dur » + nombre
+     n'a pas d'unité de durée), 0 fois dans les textes dys. */
+  var _DUREE450={seconde:1,secondes:1,minute:1,minutes:1,heure:1,heures:1,jour:1,jours:1,semaine:1,semaines:1,mois:1,an:1,ans:1,annee:1,annees:1,siecle:1,siecles:1};
+  function dur450(T,i){if(T[i].toLowerCase()!=='dur'||i<2||i+2>=T.length)return null;var bb=(_SEG&&_SEG.bb)||[];if(bb[i]||bb[i+1]||bb[i+2])return null;
+    var nx=deacc(T[i+1].toLowerCase());if(!(/^[0-9]/.test(nx)||CARD[nx]||/^(un|une|quelques|plusieurs)$/.test(nx))||!_DUREE450[deacc(T[i+2].toLowerCase())])return null;
+    var tg=posTags(T);if(!tg||tg[i-1]!=='NOUN')return null;var dd=deacc(T[i-2].toLowerCase());if(dd!=='chaque'&&!NUM_DET[dd])return null;
+    return NUM_DET[dd]==='pl'?'durent':'dure';}
+  /* ⭐ 09/11/2026 (liste n° 448) — « N'oublie pas de passé nous voir » : « de » + mot en -é + pronom complément + infinitif : le mot en -é est
+     un infinitif en -er (passer nous voir). ORANGE. Recensé : 0 fois dans UD, 0 fois dans les textes dys (sans l'infinitif après le pronom,
+     la forme existe juste : 6 fois dans UD). */
+  var _CL448={nous:1,vous:1,me:1,te:1,se:1,le:1,la:1,les:1,lui:1,leur:1,en:1,y:1};
+  function dePp448(T,i){var w=T[i],lw=w.toLowerCase().replace(/’/g,"'"),el=/^d'(.+)$/.exec(lw),mot=el?el[1]:lw;if(!/é$/.test(mot)||i+2>=T.length||w.charAt(0)!==lw.charAt(0))return null;
+    if(!el&&(i<1||T[i-1].toLowerCase()!=='de'))return null;var bb=(_SEG&&_SEG.bb)||[];if(bb[i+1]||bb[i+2]||(!el&&bb[i]))return null;
+    if(!_CL448[deacc(T[i+1].toLowerCase())]||!_isInfinitive(T[i+2]))return null;var inf=mot.slice(0,-1)+'er';if(!CONJ_C[deacc(inf)])return null;
+    return ckeepcase(w,(el?lw.slice(0,2):'')+inf);}
   function imperEt436(T,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw);if(i<3||w!==lw||!/er$/.test(d)||deacc(T[i-1].toLowerCase())!=='et'||!CONJ_C[d])return null;
     var bb=(_SEG&&_SEG.bb)||[],ss=(_SEG&&_SEG.ss)||[],k;if(bb[i]||bb[i-1])return null;
     for(k=i-2;k>=0;k--){var dk=deacc(T[k].toLowerCase());if(dk==='vous'||dk==='et')return null;if(k<i-2&&_isInfinitive(T[k]))return null;if(k===0||ss[k]||bb[k])break;}
@@ -7612,6 +7633,7 @@ function spellUnknown(tok,atStart,T,idx){
   var _ADV189={pas:1,jamais:1,rien:1,plus:1,toujours:1,deja:1,encore:1,souvent:1,bien:1,vraiment:1,point:1,guere:1};   // liste n° 189 : négation / adverbe entre « ma » et le participe
   var _ELI_PLEIN={je:"j'",que:"qu'",le:"l'",la:"l'",de:"d'",ce:"c'",ne:"n'",me:"m'",te:"t'",se:"s'",si:"s'"},_ELI_EXC={oui:1,ouais:1,ouistiti:1,ouistitis:1,onze:1,onzieme:1,onziemes:1,ouate:1,uhlan:1},_ELI_CONJ={et:1,ou:1},_ELI_SUJ={il:1,elle:1,ils:1,elles:1,on:1},_ELI_AVANT_CL={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,ne:1,qui:1};   // élision manquante (30/09/2026, voir l'élision-espace de spellText)
   function vigAt(T,i,st,text){var _tg=st.tg;   /* ⭐ 12/09/2026 — la CHAÎNE ORANGE de spellText, extraite TELLE QUELLE (ordre compris) : spellText la consulte token par token (sortie identique), diagnoseAll la consulte à UN index sur des tokens où l'orthographe est corrigée (bout de chaîne orthographe → orange). st.tg = tags du tagger, calculés une fois par liste de tokens ; text = null hors spellText (le juge B2 de l'app ancre le TEXTE, il ne se consulte pas sur des tokens corrigés). */
+    {var du=dur450(T,i);if(du){return {i:i,word:T[i],sugg:ckeepcase(T[i],du),name:'homophone à vérifier',tier:'vigilance',sansChaine:1};}}   // liste n° 450 : « Chaque module dur trois heures » → dure ?
     {var h=homoVig(T,i);if(h){return {i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'};}}
     {var lm=lettreMuetteVig(T,i);if(lm){return {i:i,word:T[i],sugg:ckeepcase(T[i],lm),name:'homophone à vérifier',tier:'vigilance'};}}   // ⭐ 10/10/2026 : « il ne parle plu » → plus ?
     {var nv=nomVerbeVig(T,i);if(nv){return {i:i,word:T[i],sugg:ckeepcase(T[i],nv),name:'homophone à vérifier',tier:'vigilance'};}}   // ⭐ 30/09/2026 : le travaille → travail, je travail → travaille
@@ -7636,7 +7658,8 @@ function spellUnknown(tok,atStart,T,idx){
     {var ppv=pronPpVig(T,i);if(ppv){return {i:i,word:T[i],sugg:ppv,name:'accord participe à vérifier',tier:'vigilance'};}}
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var _ev=etatVig261(T,_tg,i)||apposVig262(T,_tg,i)||ppLaVig260(T,i);if(_ev){return {i:i,word:T[i],sugg:_ev,name:'accord participe à vérifier',tier:'vigilance'};}}
     {var uf=uneFois446(T,i);if(uf){return {i:i,word:T[i],sugg:uf,name:'accord participe épithète',tier:'vigilance'};}}   // liste n° 446 : « Une fois monté, l'étagère… » → montée ?
-    {var ie=imperEt436(T,i);if(ie){return {i:i,word:T[i],sugg:ie,name:'terminaison -er/-é/-ez/-ai',tier:'vigilance'};}}   // liste n° 436 : « essuyez la chaîne et laisser sécher » → laissez ?   // listes n° 260-262
+    {var ie=imperEt436(T,i);if(ie){return {i:i,word:T[i],sugg:ie,name:'terminaison -er/-é/-ez/-ai',tier:'vigilance'};}}   // liste n° 436 : « essuyez la chaîne et laisser sécher » → laissez ?
+    {var dp=dePp448(T,i);if(dp){return {i:i,word:T[i],sugg:dp,name:'terminaison -er/-é/-ez/-ai',tier:'vigilance'};}}   // liste n° 448 : « N'oublie pas de passé nous voir » → passer ?   // listes n° 260-262
     {var _ea=rEpithAdv280(T,i);if(_ea){return {i:i,word:T[i],sugg:_ea,name:'accord adjectif à vérifier',tier:'vigilance'};}}   // liste n° 280
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var _nd=rNdeN344(T,_tg,i);if(_nd){return {i:i,word:T[i],sugg:_nd.sugg,name:_nd.pp?'accord participe à vérifier':'accord adjectif à vérifier',tier:'vigilance',nde:_nd.direct?0:1};}}   // liste n° 344 : après « nom de nom » ; nde : faux à coup sûr, l'arbitre du juge ne le tait pas
     {var _ab=rAbsolu295(T,i);if(_ab){return {i:i,word:T[i],sugg:_ab.sugg,name:'accord participe à vérifier',tier:'vigilance'};}var _ci=rCouleurInv295(T,i);if(_ci){return {i:i,word:T[i],sugg:_ci.sugg,name:'accord pluriel à vérifier',tier:'vigilance'};}}   // liste n° 295   // ⭐ 12/10/2026 (conjugaison 9) : « elles se sont levé » → levées ?
@@ -8346,7 +8369,7 @@ var byTok={},_capM=_segInfo(text).cap;gf.forEach(function(f){byTok[f.i]=f;});sf.
        les tokens que la grammaire voit, on relance les règles ROUGES, et si un rouge tombe dans l'empan de la suggestion, l'orange
        propose l'état final (« àfinit » → « a finit » → « a fini »). L'orange reste une proposition. Miroir Python bout_de_chaine. */
     var _segMain=_SEG,_nCh=0;
-    flags.forEach(function(f){if(f.tier!=='vigilance'||typeof f.sugg!=='string'||typeof f.i!=='number'||_nCh>=12||!/^[A-Za-zÀ-ÿœŒ' -]+$/.test(f.sugg)||f.sugg.toLowerCase()===String(f.word).toLowerCase())return;
+    flags.forEach(function(f){if(f.tier!=='vigilance'||f.sansChaine||typeof f.sugg!=='string'||typeof f.i!=='number'||_nCh>=12||!/^[A-Za-zÀ-ÿœŒ' -]+$/.test(f.sugg)||f.sugg.toLowerCase()===String(f.word).toLowerCase())return;
       var _sp=(f.span&&f.span>1)?f.span:1,_st=toks(f.sugg);if(!_st.length)return;
       var _Tv=_Tc.slice();_Tv.splice(f.i,_sp);for(var _q=_st.length-1;_q>=0;_q--)_Tv.splice(f.i,0,_st[_q]);
       _nCh++;var _g=null;_RELIT=true;try{_SEG=_segInfo(_Tv.join(' '));var _gf=correctTokens(_Tv);_RELIT=false;for(var _q2=0;_q2<_gf.length;_q2++){var _g2=_gf[_q2];if(_g2.i>=f.i&&_g2.i<f.i+_st.length&&(_g2.tier!=='vigilance'||_g2.chaineOk)&&typeof _g2.sugg==='string'&&(_g2.span==null||_g2.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_g2.sugg)){_g=_g2;break;}}}catch(e){_RELIT=false;_g=null;}
