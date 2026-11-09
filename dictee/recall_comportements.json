@@ -75,6 +75,10 @@
 ],
 "abstain": [],
 "nofp": [
+"Sacha, fatigué par la route, dort.",
+"Une fois monté, on serre les vis.",
+"Pensez à fermer la porte et éteindre la lumière.",
+"Une fois terminées, les finitions sèchent.",
 "Marie est arrivée, un peu fatiguée par le voyage.",
 "Sacha est venue hier.",
 "Sacha est venu hier.",
@@ -931,6 +935,26 @@
 "Elle a dû la somme hier."
 ],
 "elide": [
+[
+"Julie, fatigué par la route, s'est couchée tôt.",
+"fatigué",
+"fatiguée"
+],
+[
+"Sophie Bernard est resté trois ans au comptoir.",
+"resté",
+"restée"
+],
+[
+"Une fois monté, la table est solide.",
+"monté",
+"montée"
+],
+[
+"Essuyez la table et ranger les verres.",
+"ranger",
+"rangez"
+],
 [
 "Philippe est venue hier.",
 "venue",

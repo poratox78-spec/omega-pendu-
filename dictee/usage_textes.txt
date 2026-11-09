@@ -545,3 +545,11 @@ Du repos est prévu après le déjeuner.
 Les enfants {on|ont|G} beaucoup ri pendant la veillée.
 Les filles restent tout étonnées devant les étoiles.
 N'hésitez pas à nous {appelé|appeler|C} si besoin.
+=== T94 courriel d'une voisine après le montage d'une étagère
+Bonjour Paul,
+Julie, {fatigué|fatiguée|G} par son voyage, n'a pas pu passer samedi.
+Sophie Bernard est {resté|restée|G} toute la soirée pour m'aider.
+Une fois {monté|montée|G}, l'étagère tient très bien au mur.
+Essuyez les planches et {laisser|laissez|C} sécher la colle une nuit.
+Les vis en trop sont rangées dans la petite boîte.
+Merci encore {a|à|G} vous deux !

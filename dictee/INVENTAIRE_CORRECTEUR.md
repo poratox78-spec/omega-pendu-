@@ -7,7 +7,7 @@
 
 - Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **218** entrées, **91** noms affichés ; rouge : 78 · rouge avec un cas orange posé par la règle : 43 · rouge ou orange selon le sous-cas : 42 · orange : 55.
 - Moteur Python : débranché de dev.sh et de la CI le 22/10/2026 (ligne 25b) — la chaîne n'est plus comparée ; la parité directe app ≡ extension la garde (`dictee/parity_app_ext.js`).
-- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **49**.
+- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **51**.
 - Tables chargées : 11 (le chargeur unique `extension/charger_node.js` les charge toutes pour les bancs).
 
 ## Règles de grammaire, dans l'ordre de la chaîne
@@ -249,6 +249,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | accord genre à vérifier | 2 | orange | accord | — | — |
 | accord participe (pronom complément) | 1 | selon la couche | participe | — | — |
 | accord participe à vérifier | 6 | orange | participe | — | — |
+| accord participe épithète | 1 | selon la couche | participe | — | correcteur_probe.py |
 | accord pluriel à vérifier | 3 | orange | accord | — | — |
 | accord sujet-verbe à vérifier | 1 | orange | accord | — | — |
 | accord verbe à vérifier | 2 | orange | accord | — | — |
@@ -287,6 +288,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | point final | 1 | selon la couche | ponctuation (sans conseil) | — | — |
 | répétition | 1 | selon la couche | repetition (sans conseil) | — | — |
 | sait/s'est à vérifier | 1 | orange | homophone_gram | — | — |
+| terminaison -er/-é/-ez/-ai | 1 | selon la couche | accord | — | correcteur_probe.py |
 | trait d'union | 2 | selon la couche | ponctuation (sans conseil) | — | — |
 | typographie | 3 | selon la couche | style (sans conseil) | — | — |
 | virgule | 2 | selon la couche | ponctuation (sans conseil) | — | — |
@@ -298,13 +300,13 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 
 | table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |
 |---|---|---|---|---|
-| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 195 / 218 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `_ppMs460` `_ppNom460` `_ppInf463` … (170) |
+| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 195 / 218 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `_ppMs460` `_ppNom460` `_ppInf463` … (171) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 143 / 218 | `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` `rAnte315` … (34) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 105 / 218 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `rInfBut` `_spos` `_pplForm` `_infForm` … (78) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 111 / 218 | `_etreAttrEr` `_eerVerbeRare188` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` `rCaSa` … (37) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 84 / 218 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 218 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
-| prénoms | `_applyPrenoms` | `PRENOMS` | 31 / 218 | `_rAbase` `_sujLa272` `rAaccent287` `rCestAnime354` `_gnTete301` `rSV318` `rFige320` `rAccordSVcoord` … (17) |
+| prénoms | `_applyPrenoms` | `PRENOMS` | 31 / 218 | `_rAbase` `_sujLa272` `rAaccent287` `rCestAnime354` `_gnTete301` `rSV318` `rFige320` `rAccordSVcoord` … (18) |
 | genre accentué | `_applyGaccLex` | `_GACC` | 39 / 218 | `rEer` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` `apposVig262` `_g1_344` |
 | confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 218 | `_vigOne` `vigText` |
 | genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 218 | `getAuteur` `auteurSugg` `auteurPasse` |
