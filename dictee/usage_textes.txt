@@ -553,3 +553,10 @@ Une fois {monté|montée|G}, l'étagère tient très bien au mur.
 Essuyez les planches et {laisser|laissez|C} sécher la colle une nuit.
 Les vis en trop sont rangées dans la petite boîte.
 Merci encore {a|à|G} vous deux !
+=== T95 message d'un club de poterie aux nouveaux inscrits
+Bonjour à tous,
+Chaque atelier {dur|dure|G} deux heures, avec une pause au milieu.
+N'oubliez pas de {passé|passer|C} nous voir avant le premier atelier.
+Les tabliers sont {fourni|fournis|G} par le club.
+Les ateliers {commence|commencent|C} le mardi 4 mars.
+À bientôt !

@@ -75,6 +75,8 @@
 ],
 "abstain": [],
 "nofp": [
+"Le chat, le chien, et les vaches dorment.",
+"Il vient de rentrer nous voir.",
 "Sacha, fatigué par la route, dort.",
 "Une fois monté, on serre les vis.",
 "Pensez à fermer la porte et éteindre la lumière.",
@@ -935,6 +937,26 @@
 "Elle a dû la somme hier."
 ],
 "elide": [
+[
+"Les gagnants recevront un bon d'achat, et leurs photos seront exposé à la mairie.",
+"exposé",
+"exposées"
+],
+[
+"Chaque module dur trois heures, avec une pause.",
+"dur",
+"dure"
+],
+[
+"Les cours dur deux heures.",
+"dur",
+"durent"
+],
+[
+"N'oublie pas de passé nous voir.",
+"passé",
+"passer"
+],
 [
 "Julie, fatigué par la route, s'est couchée tôt.",
 "fatigué",
