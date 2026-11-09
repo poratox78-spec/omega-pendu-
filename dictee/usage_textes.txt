@@ -536,3 +536,12 @@ Plusieurs élèves {on|ont|G} déjà {oublier|oublié|C} leurs gants au chalet.
 Des fois on a ri si fort que tout le monde nous regardait.
 Mes chaussures étaient trempées. Je les ai {laisser|laissées|C} près du feu.
 Il me {rest|reste|O} encore deux cartes postales à écrire.
+=== T93 message d'une monitrice de colonie de vacances aux parents
+Bonjour à tous,
+Sacha est arrivée lundi soir, un peu fatiguée par le voyage.
+Le soir, la salle des jeux est pleine dès vingt heures.
+Les dortoirs sont tous les soirs {rangé|rangés|G}.
+Du repos est prévu après le déjeuner.
+Les enfants {on|ont|G} beaucoup ri pendant la veillée.
+Les filles restent tout étonnées devant les étoiles.
+N'hésitez pas à nous {appelé|appeler|C} si besoin.
