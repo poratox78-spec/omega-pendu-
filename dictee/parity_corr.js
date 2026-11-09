@@ -108,6 +108,7 @@ if (typeof corr !== 'function') { console.error('correctText non exposé'); proc
    aucune exception, et aucune lecture de Object.prototype.constructor (un accesseur de diagnostic la compte et rend « absent »).
    Phrases inventées. L'accesseur est retiré avant la batterie. */
 { const NATIF = Object.getOwnPropertyDescriptor(Object.prototype, 'constructor'), lu = new Map(), err = new Map(); let actif = false;
+  const dire = process.argv.includes('--dump') ? console.error : console.log;   // --dump : stdout = JSON seul (parity_app_ext.js le lit)
   Object.defineProperty(Object.prototype, 'constructor', { configurable: true,
     get() { if (!actif) return Array.isArray(this) ? Array : Object; const l = (new Error().stack.split('\n')[2] || '').trim().replace(/.*<anonymous>\)?,?\s*/, '');
       lu.set(l, (lu.get(l) || 0) + 1); return undefined; },
@@ -119,9 +120,9 @@ if (typeof corr !== 'function') { console.error('correctText non exposé'); proc
       const t = c.replace('X', m);
       for (const diag of [false, true]) { actif = diag; try { corr(t); } catch (e) { const k = e.message + ' | ' + (e.stack.split('\n')[1] || '').trim().slice(0, 100); if (!err.has(k)) err.set(k, t); } actif = false; } }
   Object.defineProperty(Object.prototype, 'constructor', NATIF);
-  if (err.size || lu.size) { for (const [k, t] of err) console.log('  ✗ ERREUR', k, '←', t); for (const [k, v] of lu) console.log('  ✗ LECTURE ×' + v, k);
-    console.log('PARITÉ KO — « constructor » casse le moteur de la page (liste n° 480) : table avec prototype ?'); process.exit(1); }
-  console.log('  ✓ « constructor » : aucune erreur, aucune table lue avec prototype (liste n° 480)'); }
+  if (err.size || lu.size) { for (const [k, t] of err) dire('  ✗ ERREUR', k, '←', t); for (const [k, v] of lu) dire('  ✗ LECTURE ×' + v, k);
+    dire('PARITÉ KO — « constructor » casse le moteur de la page (liste n° 480) : table avec prototype ?'); process.exit(1); }
+  dire('  ✓ « constructor » : aucune erreur, aucune table lue avec prototype (liste n° 480)'); }
 
 // 4) batterie : doit DÉTECTER / ne doit RIEN flaguer
 const PHRASES = [
