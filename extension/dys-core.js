@@ -8130,7 +8130,7 @@ function spellUnknown(tok,atStart,T,idx){
      3 Mo, JavaScript pur (aucun GPU, aucune bibliothèque), une passe par phrase ; le texte ne sort jamais de la machine. Entraîné sur du français
      public fauté au hasard (dictee/juge_train.py) ; le corpus dys privé ne sert qu'à le mesurer. Modèle ≠ poids : réentraîner = changer le .bin.
      Le calcul est ASYNCHRONE (jugeAnalyse, tranche par tranche, puis re-rendu) ; diagnoseAll ne lit que le cache, donc sans modèle chargé rien ne change. */
-  var _JG={m:null,cache:new Map(),TO:8,FO:500,TAU:4,TV:0.85,TP:0.7,TQ:0.6,TA:4,TAIT:{'accord pluriel à vérifier':1,'genre déterminant':1,'accord sujet-verbe à vérifier':1,'accord du verbe au sujet nominal à vérifier':1,'accord verbe à vérifier':1,'nombre du déterminant à vérifier':1,'accord participe':1,'accord participe à vérifier':1,'accord adjectif à vérifier':1,'accord genre à vérifier':1}};
+  var _JG={m:null,cache:new Map(),TO:8,FO:500,TAU:4,TF:null,TV:0.85,TP:0.7,TQ:0.6,TA:4,TAIT:{'accord pluriel à vérifier':1,'genre déterminant':1,'accord sujet-verbe à vérifier':1,'accord du verbe au sujet nominal à vérifier':1,'accord verbe à vérifier':1,'nombre du déterminant à vérifier':1,'accord participe':1,'accord participe à vérifier':1,'accord adjectif à vérifier':1,'accord genre à vérifier':1}};
   function _jgMoteur(buf){
     var u8=new Uint8Array(buf.buffer||buf,buf.byteOffset||0,buf.byteLength),dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
     var hl=dv.getUint32(4,true),H=JSON.parse(new TextDecoder().decode(u8.subarray(8,8+hl))),o=8+hl,P={},cfg=H.cfg;
@@ -8284,7 +8284,7 @@ function spellUnknown(tok,atStart,T,idx){
     'lundi mardi mercredi jeudi vendredi samedi dimanche janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre un une').split(' ').forEach(function(w){_DES445[w]=1;});
   function _des445(nx){var d=deacc(nx.toLowerCase().replace(/’/g,"'"));return /^[0-9]/.test(d)||!!_DES445[d]||!!CARD[d]||/^(l|qu|aujourd)'/.test(d);}   // liste n° 445
   function _jugeMarques(text,flags){if(!_JG.m||!_JG.cache.size)return [];var out=[];
-    _jgTranches(text,flags).forEach(function(tr){var r=_JG.cache.get(tr.cle);if(!r)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var x=r[p],tk=tr.t[p];if(!x||x.d<=_JG.TAU||tk.tu||tk.k<0)continue;
+    _jgTranches(text,flags).forEach(function(tr){var r=_JG.cache.get(tr.cle);if(!r)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var x=r[p],tk=tr.t[p];if(!x||x.d<=_jgSeuil478(tk.brut,x.m)||tk.tu||tk.k<0)continue;
       var av=tk.cs>0?text.charAt(tk.cs-1):'',ap=text.charAt(tk.ce),w=tk.brut;if(/[-@\/_#\\\d]/.test(av)||/[-@\/_#\\\d]/.test(ap)||(ap==='.'&&/[A-Za-z]/.test(text.charAt(tk.ce+1))))continue;
       if(w.length>1&&w===w.toUpperCase())continue;
       if(w.toLowerCase()==='dès'&&_des445(p+1<tr.t.length?String(tr.t[p+1].m||''):''))continue;   /* ⭐ 09/11/2026 (liste n° 445) : « La salle était pleine dès vingt heures »
@@ -8300,6 +8300,21 @@ function spellUnknown(tok,atStart,T,idx){
   function _jugeTri(text,flags){_JG.tus=null;var t=_jugeTait(text,flags);if(!t.length)return flags;_JG.tus={t:text,f:t};return flags.filter(function(f){return t.indexOf(f)<0;});}
   /* ⭐ 01/11/2026 (liste n° 333) : la ponctuation lue par le juge, en plus des règles, jamais à leur place : une virgule, un point ou un « ? » entre deux mots
      séparés d'un blanc simple, un « ? » en fin de texte sans signe. Seuils et plafond dans dictee/juge_probe.js. */
+  /* ⭐ 09/11/2026 (liste n° 478) : le seuil des mots du juge dépend de la famille de la faute (_JG.TF ; une famille absente garde TAU). Avec un seul seuil,
+     le monter retirait des fausses alertes mais faisait perdre des « a → à » justes. Familles du bilan par famille du grand banc : a / à, petits mots,
+     accent seul, accord (s, e, x), fin de verbe, lettres / autre mot. */
+  var _JGPT478=[['a','à'],['et','est'],['on','ont'],['son','sont'],['ce','se'],['ces','ses',"c'est","s'est"],['la','là',"l'a"],['ou','où'],['mais','mes','mets'],['sa','ça'],
+    ['peu','peut','peux'],['ma',"m'a"],['ta',"t'a"],['leur','leurs'],['quel','quelle',"qu'elle",'quelles','quels'],['ni',"n'y"],['si',"s'y"],['dans',"d'en"],
+    ['sans',"s'en",'cent','sang'],['du','dû'],['tous','tout','toute','toutes'],['quand','quant',"qu'en"]];
+  var _JGVF478={er:1,'é':1,'ée':1,'és':1,'ées':1,ez:1,ai:1,ais:1,ait:1,aient:1,e:1,es:1,ent:1,is:1,it:1,ir:1,ie:1,ies:1,u:1,ue:1,us:1,ues:1,ont:1,ons:1};
+  function _jgFam478(w,c){if((w==='a'||w==='à')&&(c==='a'||c==='à'))return 'a / à';
+    for(var g=0;g<_JGPT478.length;g++)if(_JGPT478[g].indexOf(w)>=0&&_JGPT478[g].indexOf(c)>=0)return 'petits mots';
+    var dw=w.normalize('NFD').replace(/[\u0300-\u036f]/g,''),dc=c.normalize('NFD').replace(/[\u0300-\u036f]/g,'');if(dw===dc)return 'accent seul';
+    var pr=[[w,c],[c,w]];for(var q=0;q<2;q++){var x=pr[q][0],y=pr[q][1];if(y===x+'s'||y===x+'x'||y===x+'e'||y===x+'es')return 'accord (s, e, x)';}
+    var k=0;while(k<w.length&&k<c.length&&w.charAt(k)===c.charAt(k))k++;
+    if(k>=3&&((_JGVF478[w.slice(k)]&&_JGVF478[c.slice(k)])||(_JGVF478[w.slice(k-1)]&&_JGVF478[c.slice(k-1)])))return 'fin de verbe';
+    return 'lettres / autre mot';}
+  function _jgSeuil478(w,c){var t=_JG.TF;if(!t)return _JG.TAU;var s=t[_jgFam478(_jgLow(w),_jgLow(c))];return s==null?_JG.TAU:s;}
   /* ⭐ 09/11/2026 (liste n° 476) : un point ou un « ? » du juge au milieu d'une phrase se tait (1) devant un mot qui a DÉJÀ sa majuscule, sauf un pronom
      sujet (« dans le garage Il prépare ») : ailleurs c'est un titre ou un nom propre (« la série Les Gardiens du phare ») ; (2) derrière un mot qui n'est pas un mot
      ordinaire d'au moins trois lettres : abréviation, sigle, lettre seule, mot à point, chiffre ou « & » (« le site exemple.fr lancé en mai »). Lu à la main sur
