@@ -75,6 +75,12 @@
 ],
 "abstain": [],
 "nofp": [
+"Des fois on a ri.",
+"Les jours on travaille.",
+"Dans plusieurs carnets on voit bien.",
+"Le président du club est un homme calme.",
+"Je pense que du pain est une bonne idée.",
+"Une amie de ma sœur est une artiste.",
 "Le chat mange une pomme.",
 "je suis content",
 "j'ai de la peine",
@@ -832,6 +838,12 @@
 "Il prend les fruits et les mange.",
 "Elle range les dossiers et les classe dans le tiroir.",
 "Le bourg est calme, et les commerces sont tout près.",
+"Les chiens qui les suivent sont gentils.",
+"Les gardes qui les surveillent sont fatigués.",
+"Ceux qui les écoutent vont comprendre vite.",
+"Ils sont tous contents de venir.",
+"Elle est toute heureuse.",
+"Les volets sont tout neufs depuis le printemps.",
 "Julie Bernard est née à Lyon.",
 "Emma Thomas est arrivée hier soir.",
 "Pierre Martin est venue en avance.",
@@ -912,6 +924,71 @@
 "Elle a dû la somme hier."
 ],
 "elide": [
+[
+"Mes tomates sont belles. Je les ai planté en mai.",
+"planté",
+"plantées"
+],
+[
+"Mes tomates sont belles. Je les arrose le soir et je les ai planter en plein soleil.",
+"planter",
+"plantées"
+],
+[
+"Mes rosiers sont beaux. Je les ai planter en mai.",
+"planter",
+"plantés"
+],
+[
+"Plusieurs voisins on déjà signaler le problème.",
+"on",
+"ont"
+],
+[
+"Plusieurs voisins on déjà signaler le problème.",
+"signaler",
+"signalé"
+],
+[
+"Quelques élèves on oublier leur cahier.",
+"oublier",
+"oublié"
+],
+[
+"Chloé c'est assise près de la fenêtre.",
+"c'est",
+"s'est"
+],
+[
+"Ma cousine c'est enfuie en courant.",
+"c'est",
+"s'est"
+],
+[
+"La maison est tous blanche.",
+"tous",
+"toute"
+],
+[
+"Elles sont tous contentes de venir.",
+"tous",
+"toutes"
+],
+[
+"Le mur est toute blanc.",
+"toute",
+"tout"
+],
+[
+"La table est petits.",
+"petits",
+"petite"
+],
+[
+"Le chat est noirs.",
+"noirs",
+"noir"
+],
 [
 "J'sais que c'est vrai",
 "J'sais",
@@ -3770,6 +3847,16 @@
 ],
 "palier": [
 [
+"Nous avons pris du pain est une pomme pour la route.",
+"est",
+"vigilance"
+],
+[
+"Il achète des fleurs est un gâteau pour sa mère.",
+"est",
+"vigilance"
+],
+[
 "Elle a complut.",
 "complut",
 "vigilance"
@@ -4135,6 +4222,11 @@
 "vigilance"
 ],
 [
+"Les amis à qui les parent ont écrit sont partis.",
+"parent",
+"vigilance"
+],
+[
 "Ces assiettes, je les ai lavés après le dîner.",
 "lavés",
 "auto"
@@ -4146,6 +4238,16 @@
 ]
 ],
 "vig": [
+[
+"Il me rest trois places.",
+"rest",
+"reste"
+],
+[
+"Il te rest du pain.",
+"rest",
+"reste"
+],
 [
 "Elle a appris la langue des sines à l'école",
 "sines",
