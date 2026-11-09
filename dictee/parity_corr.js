@@ -57,7 +57,7 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    ⭐ 09/10/2026 : + D2A (clé sans accent → formes, fréquence > 0, comme setLex) — _lemFreq en dépend : sans lui, « inconnu »
    partout, et la garde « verbe courant » du passé simple se taisait ici sur « nous mangeames » que le produit corrige. */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
-  ';globalThis.__corr=correctText;globalThis.__setGacc=function(o){_GACC=o;};globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){var L=t.split(String.fromCharCode(10)).filter(function(l){return l&&l.split(String.fromCharCode(9)).length>=2;});_spReset(L.length);L.forEach(function(l){' +
+  ';globalThis.__corr=correctText;globalThis.__setGacc=function(o){_GACC=_sansProto(o);};globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){var L=t.split(String.fromCharCode(10)).filter(function(l){return l&&l.split(String.fromCharCode(9)).length>=2;});_spReset(L.length);L.forEach(function(l){' +
   /* ⭐ 13/10/2026 — dictionnaire COMPACT : l'amorce passe par les fonctions MÊMES du produit (_spReset / _spAdd, puis le tri par
      fréquence de la construction) au lieu d'écrire SP.FREQ[…] à la main — l'ancien format, que le moteur ne lit plus. */
   'var q=l.split(String.fromCharCode(9));_spAdd(q[0],parseInt(q[1],10),q[2]);});var sf=function(a,b){return spF(b)-spF(a);};SP.D2M.forEach(function(v){if(typeof v!=="string")v.sort(sf);});SP.ready=true;};})();';
@@ -101,6 +101,28 @@ catch (e) { console.error('amorce g2p échouée :', e.message); process.exit(2);
 if (typeof _DECL2 === 'undefined' || typeof _DECL2.g2p !== 'function') { console.error('amorce g2p : pas de _DECL2.g2p'); process.exit(2); }
 const corr = globalThis.__corr;
 if (typeof corr !== 'function') { console.error('correctText non exposé'); process.exit(2); }
+
+/* ⭐ 09/11/2026 (liste n° 480) — UN MOT NOMMÉ COMME UNE PROPRIÉTÉ D'OBJET JAVASCRIPT. « constructor » (mot anglais) faisait lire
+   aux tables du moteur la fonction héritée Object au lieu de « absent » : plantages, ou entrée fantôme. Tables sans prototype
+   (« __proto__:null », _sansProto au chargement) ; ici la garde du moteur de la PAGE (celle de l'extension : extension/proto_probe.js) :
+   aucune exception, et aucune lecture de Object.prototype.constructor (un accesseur de diagnostic la compte et rend « absent »).
+   Phrases inventées. L'accesseur est retiré avant la batterie. */
+{ const NATIF = Object.getOwnPropertyDescriptor(Object.prototype, 'constructor'), lu = new Map(), err = new Map(); let actif = false;
+  const dire = process.argv.includes('--dump') ? console.error : console.log;   // --dump : stdout = JSON seul (parity_app_ext.js le lit)
+  Object.defineProperty(Object.prototype, 'constructor', { configurable: true,
+    get() { if (!actif) return Array.isArray(this) ? Array : Object; const l = (new Error().stack.split('\n')[2] || '').trim().replace(/.*<anonymous>\)?,?\s*/, '');
+      lu.set(l, (lu.get(l) || 0) + 1); return undefined; },
+    set(v) { Object.defineProperty(this, 'constructor', { value: v, writable: true, configurable: true, enumerable: false }); } });
+  for (const m of ['constructor', 'Constructor', 'CONSTRUCTOR'])
+    for (const c of ['Le X de la maison est venu hier.', 'X est un mot anglais.', 'Ils X les murs.', 'Je X.', 'Elle a X la table.', 'Les X sont là.',
+      'Un X rouge passe.', 'Il est X.', "C'est le X.", "Elle voit l'X.", 'Nous avons vu le mot X, et il est resté.', 'Tu X vite', 'On X demain ?',
+      'Il faut X le mur.', 'Les murs X et tombent.', 'la X', 'X', 'une X verte', 'Ils ont X', 'je les X']) {
+      const t = c.replace('X', m);
+      for (const diag of [false, true]) { actif = diag; try { corr(t); } catch (e) { const k = e.message + ' | ' + (e.stack.split('\n')[1] || '').trim().slice(0, 100); if (!err.has(k)) err.set(k, t); } actif = false; } }
+  Object.defineProperty(Object.prototype, 'constructor', NATIF);
+  if (err.size || lu.size) { for (const [k, t] of err) dire('  ✗ ERREUR', k, '←', t); for (const [k, v] of lu) dire('  ✗ LECTURE ×' + v, k);
+    dire('PARITÉ KO — « constructor » casse le moteur de la page (liste n° 480) : table avec prototype ?'); process.exit(1); }
+  dire('  ✓ « constructor » : aucune erreur, aucune table lue avec prototype (liste n° 480)'); }
 
 // 4) batterie : doit DÉTECTER / ne doit RIEN flaguer
 const PHRASES = [

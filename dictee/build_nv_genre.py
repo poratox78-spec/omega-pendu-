@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..
 OUT = os.path.join(HERE, 'nv_genre_fr.json')
 CIBLES = ('extension/dys-core.js', 'app/omega-pendu.html')
 ANCRE = '  var _DG113={'
-DEBUT = '  var _G114={};'
+DEBUT = '  var _G114={__proto__:null};'   # sans prototype : un mot comme « constructor » n'y lit rien (liste n° 480)
 TEMOINS = {'flue': 'f'}
 
 

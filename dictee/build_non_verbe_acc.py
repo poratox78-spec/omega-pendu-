@@ -41,7 +41,7 @@ def calc():
 
 JS_RE = re.compile(r'var _NON_VERBE_ACC=[{][^}]*[}];')
 def js_literal(mots):
-    return "var _NON_VERBE_ACC={" + ",".join("'%s':1" % w for w in mots) + "};"
+    return "var _NON_VERBE_ACC={__proto__:null," + ",".join("'%s':1" % w for w in mots) + "};"
 
 def main():
     check = '--check' in sys.argv
