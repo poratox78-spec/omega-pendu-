@@ -8,6 +8,7 @@
 //     avec la chance cible / mesurée, et le tirage est relevé d'autant : la densité moyenne ne change pas.
 //   TAUX=0.03,0.08,0.15,0.25 : densités de fautes d'une phrase, tirées au sort.
 //   WICO=<wicopaco_realword_sents.jsonl> : vraies fautes en contexte (corrections de Wikipédia, CC BY-SA) ; une ligne sur 10 reste à l'écart pour le contrôle.
+//   REPRISE=<sortie.jsonl> : phrases déjà écrites ; relit leurs formes et refait seulement les candidats (rien n'est réécrit).
 'use strict';
 const fs = require('fs'), readline = require('readline');
 const [R, OUT, MEMO, NB, VERS] = process.argv.slice(2);
@@ -62,7 +63,20 @@ let GARDE = null, RELEVE = 1;   // chance de garder une faute selon sa famille ;
 const ANCIEN = process.env.MEMO_ANCIEN ? JSON.parse(fs.readFileSync(process.env.MEMO_ANCIEN, 'utf8')) : {};
 const eclate = (w) => { const m = /^([a-zà-ÿ]{1,3}')(.+)$/.exec(w); return m ? [m[1], m[2]] : ['', w]; };
 for (const w in ANCIEN) { const [pre, n] = eclate(w), v = []; for (const c of fins(n).map((x) => pre + x).concat(ANCIEN[w].slice(1).map((x) => x[0]))) if (!v.includes(c)) v.push(c); memoC.set(w, v.slice(0, 16)); }
+// Les candidats de chaque forme écrite. ANCIEN se lit en propriété PROPRE : un mot écrit qui porte le nom d'une propriété de tout objet JavaScript
+// (« constructor », présent dans Wikipédia) rendait une fonction au lieu d'une liste et arrêtait tout (liste n° 479).
+function ecrireMemo(vu, t0) {
+  const memo = {}, ancien = (w) => (Object.prototype.hasOwnProperty.call(ANCIEN, w) ? ANCIEN[w] : [0]); let k = 0;
+  for (const w of vu) { const old = new Map(ancien(w).slice(1).map((x) => [x[0], x])), fi = new Set(fins(eclate(w)[1])); memo[w] = parentC(w).map((c) => { const o = old.get(c); if (!o) return [c].concat(traits(w, c)); const r = o.slice(); if (fi.has(c.split("'").pop())) r[2] = 1; return r; }); memo[w].unshift(L.connu(w) ? 1 : 0); if (++k % 100000 === 0) console.log('candidats', k, Math.round((Date.now() - t0) / 1000) + ' s'); }
+  fs.writeFileSync(MEMO, JSON.stringify(memo));
+  console.log('fini', Math.round((Date.now() - t0) / 1000) + ' s');
+}
 (async () => {
+  if (process.env.REPRISE) {   // liste n° 479 : phrases déjà écrites (REPRISE=<sortie.jsonl>, rien n'est réécrit) : relire leurs formes, refaire seulement les candidats
+    const vu = new Set(), t0 = Date.now();
+    for await (const l of readline.createInterface({ input: fs.createReadStream(process.env.REPRISE, { encoding: 'utf8' }), crlfDelay: Infinity })) { if (!l.trim()) continue; for (const w of JSON.parse(l)[0]) { const lo = low(w); if (/[a-zà-ÿœ]/.test(lo)) vu.add(lo); } }
+    console.log('reprise : formes écrites', vu.size, Math.round((Date.now() - t0) / 1000) + ' s'); return ecrireMemo(vu, t0);
+  }
   const flux = fs.createWriteStream(OUT, { encoding: 'utf8' }); const nb = +(NB || 1e9), vers = +(VERS || 1);
   const SRC = process.env.SOURCES ? process.env.SOURCES.split(',') : ['b2_train.txt', 'tatoeba/phrases.txt'], P = require('path');
   async function* lignes() { for (const f of SRC) for await (const l of readline.createInterface({ input: fs.createReadStream(P.isAbsolute(f) ? f : P.join(R, 'data_local', f), { encoding: 'utf8' }), crlfDelay: Infinity })) yield l; }
@@ -109,8 +123,5 @@ for (const w in ANCIEN) { const [pre, n] = eclate(w), v = []; for (const c of fi
   flux.end();
   console.log('phrases', n, 'mots', mots, 'formes écrites', vu.size, 'fautes de verbes', nV, 'autres', nA);
   if (GARDE) { const tt = Object.values(parFam).reduce((a, b) => a + b, 0); console.log('parts des fautes écrites', JSON.stringify(Object.fromEntries(FAMILLES.map((f) => [f, +(100 * (parFam[f] || 0) / tt).toFixed(1)])))); }
-  const memo = {}; let k = 0;
-  for (const w of vu) { const old = new Map((ANCIEN[w] || [0]).slice(1).map((x) => [x[0], x])), fi = new Set(fins(eclate(w)[1])); memo[w] = parentC(w).map((c) => { const o = old.get(c); if (!o) return [c].concat(traits(w, c)); const r = o.slice(); if (fi.has(c.split("'").pop())) r[2] = 1; return r; }); memo[w].unshift(L.connu(w) ? 1 : 0); if (++k % 100000 === 0) console.log('candidats', k, Math.round((Date.now() - t0) / 1000) + ' s'); }
-  fs.writeFileSync(MEMO, JSON.stringify(memo));
-  console.log('fini', Math.round((Date.now() - t0) / 1000) + ' s');
+  ecrireMemo(vu, t0);
 })();
