@@ -8,8 +8,10 @@
 // ⑨ lettres du milieu mélangées (liste n° 383) : l'anagramme du milieu est parmi les candidats, le juge la choisit quand l'orthographe hésite, et son index se bâtit par tranches.
 // ⑩ lettres probables (liste n° 399) : le modèle emporte la table des chances de faute par lettre (WiCoPaCo), le 8e trait a la valeur de l'entraînement, il ne vaut que pour un mot inconnu,
 //    l'arbitre ne le lit pas, et le juge choisit le bon mot quand l'orthographe hésite.
-// ⑪ point du juge (liste n° 476) : pas de point du juge dans un titre ni après une abréviation. Le plafond de ponctuation compte
-//    tout ce que le juge ajoute ; or le texte d'UD a perdu beaucoup de virgules : une partie de ces marques sont justes (lu à la main le 09/11).
+// ⑪ point du juge (liste n° 476) : pas de point du juge dans un titre ni après une abréviation.
+// ⑫ contrôle réparé (liste n° 477) : le texte d'UD a perdu beaucoup de virgules, donc une virgule ajoutée n'est pas fausse d'office. Chaque ponctuation
+//    du juge sur le français public a son verdict lu à la main (juge_ponct_lu.json) ; le plafond porte sur les fausses et les non lues. Le « ? » se mesure
+//    au produit (règle + juge) sur 16 questions et 16 phrases affirmatives inventées, et non plus sur deux questions que le juge livré passait de justesse.
 'use strict';
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..'), EXT = path.join(ROOT, 'extension'), err = [];
@@ -64,8 +66,16 @@ for (const [t, w, s] of [['Il a rangé sa chambre rapidemt avant le dîner.', 'r
   const f = marques(t).filter((x) => x.word === w); if (f.length !== 1 || f[0].sugg !== s || !f[0].jugeOrtho || f[0].tier !== 'vigilance') err.push('liste n° 399 : « ' + t + ' » : attendu ' + w + ' → ' + s + ' (orange, choisi par le juge), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier)));
 }
 
-for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants rentrent à la maison.', 'virgule'], ['Mon frère range son vélo dans le garage Il prépare ensuite le repas du soir.', 'point final'], ['On part à quelle heure demain matin', "point d'interrogation"], ['Pourquoi les oiseaux partent vers le sud en hiver', "point d'interrogation"]]) {
+for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants rentrent à la maison.', 'virgule'], ['Mon frère range son vélo dans le garage Il prépare ensuite le repas du soir.', 'point final']]) {
   const f = marques(t).filter((x) => x.juge && x.typo); if (!f.some((x) => x.name === nom && x.tier === 'vigilance')) err.push('« ' + t + ' » : attendu ' + nom + ', rendu ' + JSON.stringify(f.map((x) => x.name)));
+}
+// liste n° 477 : le « ? » au produit (règle des questions + juge) ; au moins 8 questions sur 16 (8 le 09/11), aucune phrase affirmative
+{ const Q = ['Tu as vu mes clés quelque part', 'Vous venez dîner samedi', 'Où as-tu rangé le parapluie', 'Combien coûte ce vélo rouge', "Pourquoi la boulangerie est fermée aujourd'hui", 'Quand est-ce que le train arrive', 'Tu préfères le thé ou le café', 'Qui a ouvert toutes les fenêtres', 'Est-ce que le magasin ouvre le dimanche', 'On mange quoi ce soir', "Comment s'appelle ton professeur de piano", "Tu peux m'aider à porter ces cartons", 'À quelle heure commence le film', 'Vous avez trouvé la maison facilement', 'On part à quelle heure demain matin', 'Pourquoi les oiseaux partent vers le sud en hiver'];
+  const S = ['Le train arrive à huit heures', 'Ma sœur range ses livres dans le salon', 'Nous avons trouvé la maison facilement', 'Le magasin ouvre le dimanche matin', 'Il a ouvert toutes les fenêtres du salon', 'Les enfants jouent dans le jardin', 'Je prends le thé avec du citron', 'Le film commence à neuf heures', "Mon professeur de piano s'appelle Martin", 'On mange des pâtes ce soir', 'Ce vélo rouge coûte deux cents euros', "Tu peux poser les cartons dans l'entrée", 'La boulangerie est fermée le lundi', 'Le parapluie est rangé derrière la porte', 'Mes clés sont sur la table de la cuisine', 'Nous mangerons des crêpes samedi soir chez ma tante'];
+  const aQ = (t) => marques(t).some((x) => x.name === "point d'interrogation" || String(x.sugg).indexOf('?') >= 0), nq = Q.filter(aQ).length, fs_ = S.filter(aQ);
+  console.log('« ? » au produit : ' + nq + ' questions sur ' + Q.length + ', ' + fs_.length + ' phrase(s) affirmative(s) sur ' + S.length);
+  if (nq < 8) err.push('liste n° 477 : « ? » au produit sur ' + nq + ' questions inventées sur ' + Q.length + ' (8 attendues au moins)');
+  if (fs_.length) err.push('liste n° 477 : « ? » sur une phrase affirmative : ' + JSON.stringify(fs_));
 }
 // liste n° 355 : point final quand le texte finit par un retour à la ligne, majuscule après « ! » suivi d'un retour à la ligne, espace remis après la virgule, virgule après « Cependant » en tête de chaque phrase
 for (const [t, nom, sg] of [['Le chat dort sur le canapé\n', 'point final', '.'], ['Le repas était bon !\ndemain, nous partons.', 'majuscule', 'Demain'], ['Il pleut ,la route est mouillée.', 'espace avant la ponctuation', 't, l'], ['Il fait beau. Cependant le vent souffle fort.', 'virgule', ', ']]) {
@@ -94,12 +104,16 @@ for (const [w, ms] of [['parle', ['parlé', 'parlent']], ['parlé', ['parler', '
   for (const [t, w] of [['Nous avons rencontré des gens très gentil au marché.', 'gentil'], ['Mes amies sont arrivé hier soir par le train.', 'arrivé'], ['Beaucoup de gens pense que la pluie reviendra demain.', 'pense'], ['Elle a acheté quatre belle assiettes au marché.', 'belle']]) if (!marques(t).some((x) => x.word === w && !x.juge)) err.push('arbitre : « ' + t + ' » : l\'orange juste sur « ' + w + ' » devait rester');
 }
 
-const PLAFOND = 32, PLAFOND_P = 30; let n = 0, ph = 0, np = 0;
+// liste n° 477 : plafond de ponctuation sur les fausses (lues à la main) et les non lues ; un plafond large sur le total garde contre un flot
+const PLAFOND = 32, PLAFOND_PF = 6, PLAFOND_P = 40; let n = 0, ph = 0, np = 0; const PV = { juste: 0, possible: 0, fausse: 0 }, nonLues = [];
+const LU = new Map(JSON.parse(fs.readFileSync(path.join(__dirname, 'juge_ponct_lu.json'), 'utf8')).lu.map(([k, cs, nom, v]) => [k + ':' + cs + ':' + nom, v]));
 const L = fs.readFileSync(path.join(__dirname, 'fp_scale_corpus.txt'), 'utf8').split('\n').map((s) => s.trim()).filter(Boolean);
-for (const l of L) { const fl = marques(l), k = fl.filter(deMot).length; n += k; ph += k ? 1 : 0; np += fl.filter((x) => x.juge && x.typo).length; }
-console.log('français public : ' + n + ' marques sur ' + L.length + ' phrases (' + (100 * ph / L.length).toFixed(1) + ' %), plafond ' + PLAFOND + ' ; ponctuation ' + np + ', plafond ' + PLAFOND_P + ' ; parité ' + pire.toFixed(5) + ' ; fichier ' + (a.length / 1e6).toFixed(2) + ' Mo');
+L.forEach((l, k) => { const fl = marques(l), m = fl.filter(deMot).length; n += m; ph += m ? 1 : 0;
+  for (const x of fl.filter((y) => y.juge && y.typo)) { np++; const v = LU.get(k + ':' + x.cs + ':' + x.name); if (v) PV[v]++; else nonLues.push(k + ':' + x.cs + ' ' + x.name + ' « …' + l.slice(Math.max(0, x.cs - 35), x.cs) + '⟦' + String(x.sugg).trim() + '⟧' + l.slice(x.ce, x.ce + 25) + '… »'); } });
+console.log('français public : ' + n + ' marques sur ' + L.length + ' phrases (' + (100 * ph / L.length).toFixed(1) + ' %), plafond ' + PLAFOND + ' ; ponctuation ' + np + ' (lues : ' + PV.juste + ' justes, ' + PV.possible + ' possibles, ' + PV.fausse + ' fausses ; ' + nonLues.length + ' non lues), plafond fausses + non lues ' + PLAFOND_PF + ' ; parité ' + pire.toFixed(5) + ' ; fichier ' + (a.length / 1e6).toFixed(2) + ' Mo');
 if (n > PLAFOND) err.push('fausses alertes sur français public : ' + n + ' > ' + PLAFOND);
-if (np > PLAFOND_P) err.push('ponctuation ajoutée au français public : ' + np + ' > ' + PLAFOND_P);
+if (PV.fausse + nonLues.length > PLAFOND_PF) err.push('ponctuation du juge sur le français public : ' + PV.fausse + ' fausses + ' + nonLues.length + ' non lues > ' + PLAFOND_PF + ' (lire chaque nouvelle marque et ajouter son verdict à dictee/juge_ponct_lu.json)' + (nonLues.length ? ' :\n    ' + nonLues.join('\n    ') : ''));
+if (np > PLAFOND_P) err.push('ponctuation ajoutée au français public : ' + np + ' > ' + PLAFOND_P + ' (flot)');
 
 // liste n° 383 : en page, jugeAnalyse bâtit l'index des anagrammes par tranches (une par tour) avant la première phrase, puis marque comme le calcul direct
 function fin() { if (err.length) { console.error('JUGE LÉGER :\n  ' + err.join('\n  ')); process.exit(1); } console.log('juge léger OK'); }
