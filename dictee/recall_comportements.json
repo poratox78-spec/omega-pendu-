@@ -75,6 +75,13 @@
 ],
 "abstain": [],
 "nofp": [
+"Marie est arrivée, un peu fatiguée par le voyage.",
+"Sacha est venue hier.",
+"Sacha est venu hier.",
+"Les rues sont tous les soirs désertes.",
+"Les salles restent tous les jours fermées.",
+"Les filles restent tout étonnées.",
+"Du repos est nécessaire.",
 "Des fois on a ri.",
 "Les jours on travaille.",
 "Dans plusieurs carnets on voit bien.",
@@ -924,6 +931,16 @@
 "Elle a dû la somme hier."
 ],
 "elide": [
+[
+"Philippe est venue hier.",
+"venue",
+"venu"
+],
+[
+"Marie est venu hier.",
+"venu",
+"venue"
+],
 [
 "Mes tomates sont belles. Je les ai planté en mai.",
 "planté",

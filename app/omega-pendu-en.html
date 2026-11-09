@@ -27647,7 +27647,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(w===r&&/é$/.test(r)&&i>=2&&!b&&(p==='plus'||p==='pas')&&pp==='ne'&&/^(a|de|pour|sans|aime|aimes|aiment|veut|veux|veulent|peut|peux|peuvent|doit|dois|doivent)$/.test(ppp)){var f1=r.slice(0,-1)+'er';if(COMMON_VERBS[deacc(f1)]||CONJ_C[deacc(f1)])return {sugg:f1,vig:1};}
     if(w===r&&/é$/.test(r)&&i>=1&&!b&&!cut&&_DET270[d1]&&/^(voit|vois|voyait|voyais|vit|voient|voyaient|entend|entends|entendait|regarde|regardes|regardait|regardent)$/.test(p==='plus'||p==='pas'?pp:p)){var f2=r.slice(0,-1)+'er';if(COMMON_VERBS[deacc(f2)]||CONJ_C[deacc(f2)])return {sugg:f2,vig:1};}
     if(w===r&&i>=2&&!b&&r.length>=5&&/^d['’]une$/.test(T[i-2].toLowerCase())&&/[éiu]$/.test(r)&&_pp270(w)&&GENDER_PURE[p]==='f'&&(i+1>=n||!/^(de|et|ou|ni)$/.test(d1))){tg=posTags(T);if(tg&&tg[i-1]==='NOUN')return {sugg:r+'e',vig:1};}
-    if(w===r&&i>=2&&!b&&/ée$/.test(r)&&_pp270(r.slice(0,-1))&&/^(de|par|en)$/.test(d1)&&/^(un|le|ce|cet|mon|ton|son)$/.test(pp)&&GENDER_PURE[p]==='m'&&!_SG_STOP[p]&&!_bb270(i-1)){tg=posTags(T);if(tg&&tg[i-1]==='NOUN')return {sugg:r.slice(0,-1),vig:1};}
+    if(w===r&&i>=2&&!b&&/ée$/.test(r)&&_pp270(r.slice(0,-1))&&/^(de|par|en)$/.test(d1)&&/^(un|le|ce|cet|mon|ton|son)$/.test(pp)&&GENDER_PURE[p]==='m'&&!_SG_STOP[p]&&!/^(peu|rien|brin|tantinet|soupcon)$/.test(p)&&!_bb270(i-1)){tg=posTags(T);if(tg&&tg[i-1]==='NOUN')return {sugg:r.slice(0,-1),vig:1};}   /* liste n° 475 : « un peu fatiguée par le voyage » n'a pas de nom masculin devant */
     if(r==='cet'&&!cut&&i+2<n&&!_bb270(i+2)&&/^[bcdfgjklmnpqrstvwz]/.test(d1)&&GENDER_PURE[d2]==='f'&&_nounGateN(d2)&&(/ieme$/.test(d1)||ADJP[d1]||_EPICENE_ADJ[d1]))return {sugg:ckeepcase(w,'cette'),vig:1};
     if(r==='voila'&&w===r)return {sugg:'voilà',vig:1};
     if(w===r&&i>=2&&/^(s'en|s'y|se|s|en|y|ne|n)$/.test(p)&&/^(ils|elles)$/.test(pp)&&!b){var rd=svReads(r),l=null,m=null,k,pl=false;for(k=0;k<rd.length;k++){if(rd[k][2]==='3'&&rd[k][3]==='p')pl=true;if(rd[k][2]==='3'&&rd[k][3]==='s'){l=rd[k][0];m=rd[k][1];}}if(!pl&&l){var fp=((CONJ_C[l]||{})[m]||{})['3p'];if(fp&&fp!==r)return {sugg:fp,vig:1};}}
@@ -27689,7 +27689,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(r==='crée'&&p==='ete')return {sugg:'créé',vig:1};
     return null;}   // « elle a bcp de chance », « un seau en plastic », « le publique applaudit », « il reste la à dormir », « elle boit du the vert »
   /* ⭐ 31/10/2026 (liste n° 326) — fin de ce lot : verbes d'état au pluriel, couleur après « en ». Orange. */
-  function rLot326(T,i){var w=T[i],r=w.toLowerCase(),d=deacc(r),n=T.length,p=i>=1?deacc(T[i-1].toLowerCase()):'',pp=i>=2?deacc(T[i-2].toLowerCase()):'',r1=i+1<n?T[i+1].toLowerCase():'',d1=deacc(r1),cut=i+1>=n||_bb270(i+1),b=i>=1&&_bb270(i),tg;
+  function rLot326(T,i){if(/^tou(t|te|s|tes)$/.test(deacc(String(T[i]).toLowerCase())))return null;   /* liste n° 439 : « restent tout étonnées » recevait « touts » ; « tout » a sa règle (accord tout) */var w=T[i],r=w.toLowerCase(),d=deacc(r),n=T.length,p=i>=1?deacc(T[i-1].toLowerCase()):'',pp=i>=2?deacc(T[i-2].toLowerCase()):'',r1=i+1<n?T[i+1].toLowerCase():'',d1=deacc(r1),cut=i+1>=n||_bb270(i+1),b=i>=1&&_bb270(i),tg;
     if(w===r&&i>=1&&!b&&!/[sx]$/.test(d)&&!/^(sur|sous|bien|mal)$/.test(d)&&/^(semblent|restent|deviennent|paraissent|demeurent)$/.test(p)&&(ADJP[d]||_EPICENE_ADJ[d])&&(_spos(r)||'').indexOf('A')>=0&&(_spos(r)||'').indexOf('V')<0&&(cut||!/^(de|que|a)$/.test(d1))){tg=posTags(T);if(tg&&(cut||tg[i+1]!=='NOUN'))return {sugg:_pl313(r),vig:1};}
     if(/^(noire|blanche|verte|bleue|grise|brune|rousse)$/.test(r)&&w===r&&!b&&(p==='en'||(p==='de'&&pp==='tout'))&&(cut||!_nounGateN(d1))){var mc={noire:'noir',blanche:'blanc',verte:'vert',bleue:'bleu',grise:'gris',brune:'brun',rousse:'roux'};return {sugg:mc[r],vig:1};}
     if(r==='sals'&&w===r)return {sugg:'sales',vig:1};
@@ -29433,7 +29433,17 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     if(i<1)return false;var pv=T[i-1],pl=/[sx]$/i.test(pv);   // faites, dites : participe à condition de s'accorder au nom qui précède (« les promesses faites », pas « le chat faites »)
     return (m[2]==='es')===pl&&_nounGender(pv,pl?'p':'s',true)==='f';}
   function sujFlexNom(T,i){if(_ppFemIrr(T,i)||_enComplement(T,i,null)||_adjCompl449(T,i,-1))return null;if(i>=1&&/^d['’](un|une)$/i.test(T[i-1]))return null;   // liste n° 423 : après « d'un / d'une », un nom
-  _ROUGE=false;try{return sujFlexVig(T,i);}finally{_ROUGE=true;}}
+  if(_attr439(T,i))return null;
+  var _r474;_ROUGE=false;try{_r474=sujFlexVig(T,i);}finally{_ROUGE=true;}
+  if(_r474&&i>=2&&/[sx]$/.test(deacc(T[i-1].toLowerCase()))&&_DETSG474[deacc(T[i-2].toLowerCase())]&&/nt$/.test(String(typeof _r474==='object'?_r474.sugg:_r474)))return null;   // liste n° 474 : « du repos est » n'est pas un pluriel
+  return _r474;}
+  /* ⭐ 09/11/2026 (listes n° 439 et 474) — deux fausses oranges de cette règle, visibles tant que le juge n'est pas chargé :
+     « Les rues sont tous les soirs désertes » → « désertent » : « être » conjugué plus tôt dans la proposition, le mot qui peut être un
+     adjectif ou un participe est l'attribut, pas un second verbe ; « Du repos est nécessaire » → « sont » : un nom en -s derrière un
+     déterminant singulier (du, le, un, ce, son…) est singulier. */
+  var _DETSG474={du:1,au:1,le:1,la:1,un:1,une:1,ce:1,cet:1,cette:1,mon:1,ton:1,son:1,ma:1,ta:1,sa:1,notre:1,votre:1,leur:1};
+  function _attr439(T,i){var w=T[i],d=deacc(String(w).toLowerCase());var a=[d,d.replace(/s$/,''),d.replace(/es$/,''),d.replace(/e$/,'')];if(!(a.some(function(x){return ADJP[x]||_EPICENE_ADJ[x];})||_looksPpl(w)))return false;
+    for(var k=i-1;k>=0&&k>=i-8;k--){if(_SEG&&_SEG.bb&&k+1<_SEG.bb.length&&_SEG.bb[k+1])return false;if(PPE_AUX[deacc(T[k].toLowerCase())])return true;}return false;}
   function _lemFreq(lem){if(!lem||typeof SP==='undefined'||!SP||!SP.ready||!SP.D2A||!SP.FREQ)return null;var _va=spD(lem);if(!_va||!_va.length)return null;var _lf=0;for(var _z=0;_z<_va.length;_z++)if((spF(_va[_z])||0)>_lf)_lf=spF(_va[_z])||0;return _lf;}   // fréquence du LEMME (max des variantes accentuées), null = inconnu ≠ rare — miroir _lemfreq
   var _SUJ_SAUT={ne:1,n:1,se:1,s:1,me:1,m:1,te:1,t:1,y:1,en:1,le:1,la:1,les:1,lui:1,leur:1};   // clitiques et négation entre le pronom sujet et le verbe (garde d'adjacence, 12/09/2026)
   /* ⭐ 12/10/2026 (conjugaison 6) — « vous faite », « vous dite », « vous faisez », « vous disez » → faites / dites : les présents
@@ -32587,7 +32597,7 @@ function spellUnknown(tok,atStart,T,idx){
   var _EPI_ART_AU={au:'s',aux:'p'};   // (une garde « locution : au final, au total » a été essayée puis RETIRÉE : 0 différence sur 14 450 phrases UD et aucune phrase construite ne la sollicitait — le nom doit déjà avoir un genre PUR)
   var _ETAT261={semble:'s',semblent:'p',semblait:'s',semblaient:'p',parait:'s',paraissent:'p',paraissait:'s',paraissaient:'p',devient:'s',deviennent:'p',devenait:'s',devenaient:'p',reste:'s',restent:'p',restait:'s',restaient:'p',demeure:'s',demeurent:'p'},_ETRE261={est:'s',sont:'p',etait:'s',etaient:'p',sera:'s',seront:'p',serait:'s',seraient:'p'};
   /* ⭐ 31/10/2026 (liste n° 261) : « ces valises semblent lourde », « la porte est restée ouvert », « cette lettre a été écrit » : attribut après un verbe d'état, ou participe irrégulier après être. Sujet nominal parsé, genre et nombre connus ; orange. */
-  function etatVig261(T,tg,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw);if(!tg||i<2||i>=tg.length||w.charAt(0)!==lw.charAt(0)||lw.indexOf("'")>=0||(_SEG&&_SEG.bb&&_SEG.bb[i])||d==='mal'||d==='bien')return null;var irr=IRR_PP[d],e=ADJP[d],_b261=/(é|ée|és|ées)$/.test(lw)?_ppBase(w):null;if(irr===undefined&&!e&&_b261===null)return null;if(_EPICENE_ADJ[d]||ADJ_STOP[d]||_INVAR_COLOR[d])return null;if(i+1<tg.length&&tg[i+1]==='NOUN')return null;var a=i-1;while(a>=1&&ADJ_MID[deacc(T[a].toLowerCase())])a--;var da=deacc(T[a].toLowerCase()),nb=null,etat=false;
+  function etatVig261(T,tg,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw);if(/^tou(t|te|s|tes)$/.test(d))return null;   /* liste n° 439 : « Les salles restent tous les jours fermées » recevait « toutes » : « tous » n'est pas l'attribut (voir aussi la n° 467) */if(!tg||i<2||i>=tg.length||w.charAt(0)!==lw.charAt(0)||lw.indexOf("'")>=0||(_SEG&&_SEG.bb&&_SEG.bb[i])||d==='mal'||d==='bien')return null;var irr=IRR_PP[d],e=ADJP[d],_b261=/(é|ée|és|ées)$/.test(lw)?_ppBase(w):null;if(irr===undefined&&!e&&_b261===null)return null;if(_EPICENE_ADJ[d]||ADJ_STOP[d]||_INVAR_COLOR[d])return null;if(i+1<tg.length&&tg[i+1]==='NOUN')return null;var a=i-1;while(a>=1&&ADJ_MID[deacc(T[a].toLowerCase())])a--;var da=deacc(T[a].toLowerCase()),nb=null,etat=false;
     if(da==='ete'&&a>=1&&/^(a|ont|avait|avaient|aura|auront)$/.test(deacc(T[a-1].toLowerCase()))){a--;nb=/^(ont|avaient|auront)$/.test(deacc(T[a].toLowerCase()))?'p':'s';}
     else if(/^(restee?s?|devenue?s?)$/.test(da)&&a>=1&&_ETRE261[deacc(T[a-1].toLowerCase())]){a--;nb=_ETRE261[deacc(T[a].toLowerCase())];etat=true;}
     else if(_ETAT261[da]){nb=_ETAT261[da];etat=true;}else if(_ETRE261[da])nb=_ETRE261[da];else return null;
@@ -33480,10 +33490,16 @@ function spellUnknown(tok,atStart,T,idx){
      ligne 460 ; infinitif : ligne 463) n'est pas relu par le juge : sa marque « choix du mot » y était fausse (« … m'a interrompue »). */
   function _confirmes462(T){var out=[];for(var k=1;k<T.length;k++){var t=T[k];if(!t||t!==t.toLowerCase()||!/(é|ée|és|ées|i|ie|is|ies|u|ue|us|ues|t|te|ts|tes|s|se|ses)$/.test(t))continue;var lw=t.replace(/’/g,"'"),r=null;
     try{r=_ppPers457(T,k,null);if(!(r&&r.want.toLowerCase()===lw)){r=_ppNom460(T,k,null)||_ppInf463(T,k,null);if(r&&(r.lax||r.epi))r=null;}}catch(e){r=null;}if(r&&r.want.toLowerCase()===lw)out.push({i:k});}return out;}
+  var _DES445={};('le la les lors que son sa ses mon ma mes ton ta tes notre votre nos vos leur leurs ce cet cette ces demain maintenant hier midi minuit '+
+    'lundi mardi mercredi jeudi vendredi samedi dimanche janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre un une').split(' ').forEach(function(w){_DES445[w]=1;});
+  function _des445(nx){var d=deacc(nx.toLowerCase().replace(/’/g,"'"));return /^[0-9]/.test(d)||!!_DES445[d]||!!CARD[d]||/^(l|qu|aujourd)'/.test(d);}   // liste n° 445
   function _jugeMarques(text,flags){if(!_JG.m||!_JG.cache.size)return [];var out=[];
     _jgTranches(text,flags).forEach(function(tr){var r=_JG.cache.get(tr.cle);if(!r)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var x=r[p],tk=tr.t[p];if(!x||x.d<=_JG.TAU||tk.tu||tk.k<0)continue;
       var av=tk.cs>0?text.charAt(tk.cs-1):'',ap=text.charAt(tk.ce),w=tk.brut;if(/[-@\/_#\\\d]/.test(av)||/[-@\/_#\\\d]/.test(ap)||(ap==='.'&&/[A-Za-z]/.test(text.charAt(tk.ce+1))))continue;
       if(w.length>1&&w===w.toUpperCase())continue;
+      if(w.toLowerCase()==='dès'&&_des445(p+1<tr.t.length?String(tr.t[p+1].m||''):''))continue;   /* ⭐ 09/11/2026 (liste n° 445) : « La salle était pleine dès vingt heures »
+         recevait « de ». Devant un nombre, un déterminant, « lors », « que », un jour ou un mois, « dès » écrit avec son accent est juste : gardé
+         103 fois sur 103 dans les textes dys. Devant un nom nu (« loin dès bords »), le juge garde la main. */
       if(/^[A-ZÀ-Þ]/.test(w)){var pv=p>0?tr.t[p-1].m:'';if(p>0&&!/^[.!?…:]$/.test(pv))continue;}
       out.push({i:tk.k,word:w,sugg:ckeepcase(w,x.m),name:'choix du mot à vérifier',tier:'vigilance',juge:1,marge:x.d});}});
     return out;}

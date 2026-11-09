@@ -21,8 +21,11 @@ TROIS FILTRES, chacun motivé par une mesure :
   ① `pos=name` + tag `first-name` + initiale majuscule                    -> 9 274 prénoms vus
   ② genre NON AMBIGU : on écarte tout prénom dont UNE entrée porte à la fois `masculine` et
      `feminine` (« Prénom masculin ou féminin » : Claude, Camille, Alex, Dominique, Alix…).
-     ⚠️ Quand les deux genres viennent d'entrées SÉPARÉES, on garde la PREMIÈRE (l'entrée
-     française principale) : sans ça on perdait « Jean » (m. français / f. anglophone).
+     ⚠️ Quand les deux genres viennent d'entrées SÉPARÉES, on garde la PREMIÈRE seulement si
+     l'autre genre est noté étranger (« Prénom féminin anglophone » : on garde « Jean » m.).
+     ⭐ 09/11/2026 (liste n° 443) : sinon (« Sacha » : « Prénom masculin. » ET « Prénom féminin. »),
+     le prénom est porté par les deux genres en français : genre « ? » (gardé comme prénom, aucun
+     accord imposé). Avant, « Sacha est venue » recevait « venu » en ROUGE. 31 prénoms concernés.
   ④ MOTS-OUTILS écartés (« Elle », attesté comme prénom mais pronom 99,9 % du temps) — voir _OUTILS.
   ③ ANTI-PIÈGE DU DÉBUT DE PHRASE : en tête de phrase tout mot est capitalisé, donc « Rose est
      belle » peut être la fleur. Mesuré : 518 prénoms ont un homographe nom commun, mais 413 ont
@@ -32,7 +35,7 @@ TROIS FILTRES, chacun motivé par une mesure :
      On les MARQUE (3ᵉ colonne `1`) : le moteur ne doit s'en servir QUE si le token n'est pas en
      tête de phrase, où une majuscule ne prouve rien. Ailleurs, une majuscule EST un nom propre.
 
-TABLE : `nom<TAB>genre<TAB>tete_de_phrase_interdite` (3ᵉ colonne 1 seulement pour les 105).
+TABLE : `nom<TAB>genre<TAB>tete_de_phrase_interdite` (genre m, f ou ? ; 3ᵉ colonne 1 seulement pour les 105).
 
     Lancer :  PYTHONUTF8=1 python dictee/build_prenoms.py
     Vérifier :  ... --check     (échoue si la table livrée n'est plus celle que produit ce script)
@@ -59,6 +62,14 @@ Mais Si Que Qui Quoi Dont Ne Pas Plus Rien Tout Tous Toute Bien Aussi Encore En 
 Sur Sous Sans Dans Avec Chez Vers Entre Contre Depuis Avant Après Ici Là Oui Non""".split())
 
 
+# ② bis : origine étrangère notée dans la définition (« Prénom féminin anglophone »)
+_ETRANGER = re.compile(r"anglophone|anglais|américain|britannique|irlandais|écossais|gallois|italien|allemand|germanique|espagnol|"
+                       r"hispanique|portugais|brésilien|russe|slave|polonais|tchèque|néerlandais|flamand|scandinave|suédois|norvégien|"
+                       r"danois|finnois|islandais|hongrois|grec|turc|arabe|hébreu|hébraïque|japonais|chinois|coréen|indien|persan|basque|"
+                       r"breton|corse|occitan|catalan|roumain|bulgare|serbe|croate|albanais|arménien|géorgien|africain|latin|hawaïen|yiddish|"
+                       r"jusqu|siècle|vieilli|désuet|rare", re.I)   # … ou ancien : « Prénom féminin jusqu'au début du XVIIᵉ siècle » (Philippe)
+
+
 def deacc(w):
     import unicodedata
     return ''.join(c for c in unicodedata.normalize('NFD', w) if unicodedata.category(c) != 'Mn')
@@ -69,7 +80,7 @@ def extrait():
         print('[FATAL] dump absent :', DUMP)
         print('        (data_local/ est gitignoré — récupérer kaikki.org/frwiktionary)')
         sys.exit(1)
-    ordre = collections.defaultdict(list)
+    ordre = collections.defaultdict(list); gloses = collections.defaultdict(list)
     for ligne in io.open(DUMP, encoding='utf-8', errors='ignore'):
         try:
             d = json.loads(ligne)
@@ -85,15 +96,23 @@ def extrait():
             continue                                        # ④ pronom / mot grammatical : jamais un sujet-prénom
         if not re.match(r"^[A-ZÀ-Þ][A-Za-zÀ-ÿ'’-]{1,}$", w):
             continue                                        # écarte sigles, chiffres, formes exotiques
+        gl = ' '.join((s.get('glosses') or [''])[0] for s in (d.get('senses') or []))
         if 'masculine' in t and 'feminine' in t:
             ordre[w].append('x')                            # ② une SEULE entrée bi-genre = ambigu
         elif 'masculine' in t:
-            ordre[w].append('m')
+            ordre[w].append('m'); gloses[w].append(('m', gl))
         elif 'feminine' in t:
-            ordre[w].append('f')
+            ordre[w].append('f'); gloses[w].append(('f', gl))
     vus = len(ordre)
     table = {w: v[0] for w, v in ordre.items() if v and v[0] in ('m', 'f') and 'x' not in v}
     ambigus = vus - len(table)
+    # ② bis (liste n° 443) : deux entrées SÉPARÉES de genre opposé — l'autre genre noté étranger → on garde le premier ;
+    # sinon le prénom est porté par les deux genres en français → genre « ? »
+    deux = 0
+    for w in table:
+        autres = [g for g, _ in gloses[w] if g != table[w]]
+        if autres and not all(_ETRANGER.search(gl) for g, gl in gloses[w] if g != table[w]):
+            table[w] = '?'; deux += 1
 
     # ③ anti-piège du début de phrase : on MARQUE, on ne jette pas
     conflits = set()
@@ -101,16 +120,16 @@ def extrait():
         com = json.load(io.open(COMMUNS, encoding='utf-8'))
         for w in table:
             gc = com.get(w.lower())
-            if gc in ('m', 'f') and gc != table[w]:
+            if gc in ('m', 'f') and table[w] in ('m', 'f') and gc != table[w]:
                 conflits.add(w)
-    return table, vus, ambigus, conflits
+    return table, vus, ambigus, conflits, deux
 
 
 if __name__ == '__main__':
-    table, vus, ambigus, conflits = extrait()
+    table, vus, ambigus, conflits, deux = extrait()
     lignes = ''.join('%s\t%s\t%d\n' % (w, table[w], 1 if w in conflits else 0) for w in sorted(table))
     nm = sum(1 for v in table.values() if v == 'm')
-    nf = len(table) - nm
+    nf = sum(1 for v in table.values() if v == 'f')
 
     if CHECK:
         actuel = io.open(SORTIE, encoding='utf-8').read() if os.path.exists(SORTIE) else None
@@ -126,5 +145,6 @@ if __name__ == '__main__':
     print('TABLE écrite : dictee/prenoms_genre.tsv')
     print('  prénoms vus (pos=name + first-name)   : %d' % vus)
     print('  ② écartés, genre ambigu               : %d  (Claude, Camille, Alex, Dominique…)' % ambigus)
+    print('  ② bis genre « ? » (deux entrées FR)    : %d  (Sacha, Marin…)' % deux)
     print('  ③ MARQUÉS « pas en tête de phrase »   : %d  (%s…)' % (len(conflits), ', '.join(sorted(conflits)[:6])))
     print('  RETENUS                               : %d  (%d masculins / %d féminins)' % (len(table), nm, nf))
