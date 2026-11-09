@@ -112,6 +112,8 @@ run "assets extension câblés (aucun asset livré-mais-muet)" node extension/as
 run "angle mort ÉLISION (différentiel l'X vs cet/cette X)" node dictee/elision_probe.js --check
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
 run "gardes de l'EXTENSION (harnais parity_core, Python débranché — ligne 25b)" node extension/parity_core.js --sans-python
+run "mot nommé comme une propriété d'objet JS (« constructor » : 0 erreur, 0 table lue avec prototype — liste n° 480)" node extension/proto_probe.js
+run "tables de mots du moteur SANS prototype (garde statique — liste n° 480)" python3 tools/sans_proto.py extension/dys-core.js --verifier
 run "parité DIRECTE app ≡ extension (grammaire, ~9 800 phrases, sans la référence Python — ligne 25b)" node dictee/parity_app_ext.js
 run "police de son (fraîcheur bloc app + clitiques≡Py + texte intact)" node police/parity_son.js
 run "parité OS-sujet extension == app (accord verbe orange ; Python débranché)" node dictee/parity_os.js --sans-python

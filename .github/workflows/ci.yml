@@ -184,6 +184,10 @@ jobs:
         run: python3 extension/build_assets.py
       - name: Gardes de l'EXTENSION (harnais parity_core, Python débranché — ligne 25b)
         run: node extension/parity_core.js --sans-python
+      - name: Mot nommé comme une propriété d'objet JS (« constructor » — liste n° 480)
+        run: node extension/proto_probe.js
+      - name: Tables de mots du moteur SANS prototype (garde statique — liste n° 480)
+        run: python3 tools/sans_proto.py extension/dys-core.js --verifier
       - name: Parité DIRECTE app ≡ extension de la grammaire (sans la référence Python) — parity_app_ext.js
         run: node dictee/parity_app_ext.js
       - name: Police de son — fraîcheur bloc app + parité clitiques ↔ Python + texte jamais altéré
