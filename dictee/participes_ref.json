@@ -544,6 +544,72 @@
   "n": 24,
   "orange juste": 24
  },
+ "L1 être + locution | féminin en trop": {
+  "n": 36,
+  "orange juste": 36
+ },
+ "L1 être + locution | féminin en trop + pluriel en trop": {
+  "n": 18,
+  "orange juste": 18
+ },
+ "L1 être + locution | féminin en trop + pluriel manquant": {
+  "n": 38,
+  "orange juste": 38
+ },
+ "L1 être + locution | féminin manquant": {
+  "n": 36,
+  "orange juste": 36
+ },
+ "L1 être + locution | féminin manquant + pluriel en trop": {
+  "n": 38,
+  "orange juste": 38
+ },
+ "L1 être + locution | féminin manquant + pluriel manquant": {
+  "n": 18,
+  "orange juste": 18
+ },
+ "L1 être + locution | infinitif": {
+  "n": 72,
+  "orange juste": 64,
+  "mauvais mot": 8
+ },
+ "L1 être + locution | juste": {
+  "n": 152,
+  "ok": 152
+ },
+ "L1 être + locution | pluriel en trop": {
+  "n": 56,
+  "orange juste": 56
+ },
+ "L1 être + locution | pluriel manquant": {
+  "n": 56,
+  "orange juste": 56
+ },
+ "L2 avoir + locution | féminin en trop": {
+  "n": 12,
+  "orange juste": 12
+ },
+ "L2 avoir + locution | féminin en trop + pluriel en trop": {
+  "n": 12,
+  "orange juste": 12
+ },
+ "L2 avoir + locution | infinitif": {
+  "n": 8,
+  "orange juste": 8
+ },
+ "L2 avoir + locution | juste": {
+  "n": 70,
+  "ok": 70
+ },
+ "L2 avoir + locution | pluriel en trop": {
+  "n": 66,
+  "orange juste": 64,
+  "mauvais mot": 2
+ },
+ "L3 s'est + locution + participe | juste": {
+  "n": 40,
+  "ok": 40
+ },
  "a été | féminin en trop": {
   "n": 15,
   "orange juste": 13,
