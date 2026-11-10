@@ -12,6 +12,8 @@
      famille « pronom personne » (ligne 457) — pour chaque participe de la table de valence (dictee/valence_table.json, D / I / DI) :
        A. avoir + me / nous devant (« Le guide nous a aidés. »)       D → accord (nous : pluriel, genre libre) ; I → invariable
        B. avoir + me / nous + complément après (« … nous a montré la route. ») → invariable
+       A2 (ligne 464) DI + rien après le participe (« Le guide nous a conseillé. ») → accord comme D, en orange ; « servi » à part (servir à qqn) ;
+       A3 « comme » ou « que » avant (« comme le guide nous a conseillé ») → rien
        C. être pronominal (« Elles se sont aidées. » D ; « Elles se sont parlé. » « se » indirect sûr) — DI : pas d'attente ;
           P (ligne 461, « se souvenir ») : accord avec le sujet, et ce contexte seulement
        D. être pronominal + complément après (« Elle s'est lavé les mains. ») → invariable
@@ -147,6 +149,19 @@ for (const [ms, cl] of Object.entries(TAB)) {
   }
   for (const [, ms] of PRON) if (TAB[ms] === 'D') for (const c of ['ms', 'fs', 'mp', 'fp'])
     ajoute('E4 après s\'être', ms, [c], (x) => `Après s'être ${x}, ${SUJ[c][0].toLowerCase()} ${PART[c]}.`);
+}
+// 2d. ligne 464 (ajoutée EN FIN de liste : le --check prend une phrase sur deux, l'ordre des phrases d'avant ne bouge pas)
+//   DI + rien après le participe → lecture « quelqu'un » (comme D), en orange ; « servi » à part ; « comme » ou « que » avant → rien
+for (const [ms, cl] of Object.entries(TAB)) if (cl === 'DI' && ms !== 'servi') for (const pr of ['me', 'nous']) for (const [s, aux] of SUJ_AV) {
+  const pre = (x) => `${s} ${elid(pr, aux)}${aux} ${x}`, F = formes(ms);
+  ajoute('A2 avoir + pronom + fin de phrase DI', ms, pr === 'nous' ? ['mp', 'fp'] : ['ms', 'fs'], (x) => pre(x) + '.');
+  P.push({ t: `Il a fait comme ${s.toLowerCase()} ${elid(pr, aux)}${aux} ${ms}.`, w: ms, ok: [ms], ctx: 'A3 comme + avoir + pronom DI', err: 'juste' });
+  P.push({ t: `La route que ${s.toLowerCase()} ${elid(pr, aux)}${aux} ${F.fs} est belle.`, w: F.fs, ok: [F.fs], ctx: 'A3 que + avoir + pronom DI', err: 'juste' });
+}
+//   « très » (et assez, mieux, vite, plutôt) entre l'auxiliaire et le participe : il était lu comme un mot qui arrête la règle (T97)
+for (const [ms, cl] of Object.entries(TAB)) if (cl === 'D' || cl === 'I' || (cl === 'DI' && ms !== 'servi')) {
+  const ok = cl === 'I' ? ['ms'] : ['mp', 'fp'];
+  ajoute('A4 avoir + nous + très bien ' + (cl === 'I' ? 'I' : 'D / DI'), ms, ok, (x) => `Le guide nous a très bien ${x}.`);
 }
 // 3. le produit
 const L = MODE === 'voir' ? P : P.filter((p, k) => k % 2 === 0);
