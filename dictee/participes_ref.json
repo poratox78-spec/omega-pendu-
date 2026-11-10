@@ -38,6 +38,62 @@
   "orange juste": 218,
   "muet": 2
  },
+ "A2 avoir + pronom + fin de phrase DI | infinitif": {
+  "n": 30,
+  "orange juste": 30
+ },
+ "A2 avoir + pronom + fin de phrase DI | juste": {
+  "n": 64,
+  "ok": 64
+ },
+ "A2 avoir + pronom + fin de phrase DI | pluriel en trop": {
+  "n": 32,
+  "orange juste": 32
+ },
+ "A2 avoir + pronom + fin de phrase DI | pluriel manquant": {
+  "n": 32,
+  "orange juste": 32
+ },
+ "A3 comme + avoir + pronom DI | juste": {
+  "n": 34,
+  "ok": 34
+ },
+ "A3 que + avoir + pronom DI | juste": {
+  "n": 30,
+  "ok": 30
+ },
+ "A4 avoir + nous + très bien D / DI | infinitif": {
+  "n": 81,
+  "orange juste": 81
+ },
+ "A4 avoir + nous + très bien D / DI | juste": {
+  "n": 200,
+  "ok": 200
+ },
+ "A4 avoir + nous + très bien D / DI | pluriel manquant": {
+  "n": 199,
+  "orange juste": 199
+ },
+ "A4 avoir + nous + très bien I | féminin en trop": {
+  "n": 33,
+  "orange juste": 33
+ },
+ "A4 avoir + nous + très bien I | féminin en trop + pluriel en trop": {
+  "n": 31,
+  "orange juste": 31
+ },
+ "A4 avoir + nous + très bien I | infinitif": {
+  "n": 14,
+  "rouge juste": 14
+ },
+ "A4 avoir + nous + très bien I | juste": {
+  "n": 26,
+  "ok": 26
+ },
+ "A4 avoir + nous + très bien I | pluriel en trop": {
+  "n": 25,
+  "orange juste": 25
+ },
  "B avoir + pronom + complément D | féminin en trop": {
   "n": 580,
   "orange juste": 580

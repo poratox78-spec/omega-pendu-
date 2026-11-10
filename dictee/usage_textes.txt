@@ -567,3 +567,12 @@ Les {nouveau|nouveaux|N} romans sont {arrivé|arrivés|G} lundi.
 Le programme complet est sur le site lecture.fr qui sera ouvert en avril.
 Le club de lecture se {réuni|réunit|C} le jeudi à dix-huit heures.
 Bonne lecture !
+
+=== T97 mot d'un entraîneur de judo aux familles après un tournoi
+Chers parents,
+Samedi, nos jeunes judokas ont {participer|participé|C} au tournoi de la ville. Ils se sont très bien {battu|battus|G} et trois enfants {on|ont|G} gagné une médaille.
+Les arbitres nous ont {félicité|félicités|G} pour l'esprit de l'équipe. Le gardien du gymnase nous a très bien {conseillé|conseillés|G}. Il nous a {montrer|montré|C} où ranger les tapis.
+Merci aux parents qui ont {apporter|apporté|C} des gâteaux et des jus de fruits : il n'en est rien resté !
+Le prochain entraînement aura lieu mercredi à quatorze {heure|heures|N}. Pensez {a|à|G} prendre une gourde et une {serviete|serviette|O}.
+{sportivement|Sportivement|P},
+Marc, l'entraîneur
