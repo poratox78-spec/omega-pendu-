@@ -75,6 +75,7 @@
 ],
 "abstain": [],
 "nofp": [
+"Les tableaux anciens sont beaux.",
 "Un recueil en trois tomes publié par un ami.",
 "Il a trouvé un trente-trois tours rayé.",
 "Il n'y a rien de cassé dans le carton.",
@@ -944,6 +945,16 @@
 "Elle a dû la somme hier."
 ],
 "elide": [
+[
+"Elle a rangé les chapeaux verte dans l'armoire.",
+"verte",
+"verts"
+],
+[
+"Le montant dus sera payé lundi.",
+"dus",
+"dû"
+],
 [
 "Voici trois chaises cassé.",
 "cassé",
@@ -3926,6 +3937,11 @@
 ]
 ],
 "palier": [
+[
+"Elle a rangé les chapeaux verte dans l'armoire.",
+"verte",
+"vigilance"
+],
 [
 "Ça ne sert à rien de crié.",
 "crié",
