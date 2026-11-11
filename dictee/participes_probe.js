@@ -163,6 +163,19 @@ for (const [ms, cl] of Object.entries(TAB)) if (cl === 'D' || cl === 'I' || (cl 
   const ok = cl === 'I' ? ['ms'] : ['mp', 'fp'];
   ajoute('A4 avoir + nous + très bien ' + (cl === 'I' ? 'I' : 'D / DI'), ms, ok, (x) => `Le guide nous a très bien ${x}.`);
 }
+// 2e. ligne 414 (famille) : une LOCUTION entre l'auxiliaire (ou « c'est ») et le participe — tout de suite, tout à coup, de nouveau, à nouveau
+{
+  const LOC = ['tout de suite', 'tout à coup', 'de nouveau', 'à nouveau'];
+  for (const [, ms] of ETRE) for (const c of ['ms', 'fs', 'mp', 'fp']) for (const lc of LOC)
+    ajoute('L1 être + locution', ms, [c], (x) => `${SUJ[c][0]} ${est[c]} ${lc} ${x}.`);
+  for (const [, ms, , Nfs] of TR) for (const lc of LOC.slice(0, 2)) ajoute('L2 avoir + locution', ms, ['ms'], (x) => `Elle a ${lc} ${x} la ${Nfs}.`);
+  const CEST = "c'est", SEST = "s'est";   // c'est → s'est : le mot jugé est « c'est »
+  for (const [, ms] of PRON) for (const [s, c] of [['Il', 'ms'], ['Elle', 'fs']]) for (const lc of LOC.slice(0, 2)) {
+    const F = formes(ms);
+    P.push({ t: [s, SEST, lc, F[c]].join(' ') + '.', w: SEST, ok: [SEST], ctx: 'L3 ' + SEST + ' + locution + participe', err: 'juste' });
+    P.push({ t: [s, CEST, lc, F[c]].join(' ') + '.', w: CEST, ok: [SEST], ctx: 'L3 ' + SEST + ' + locution + participe', err: CEST + ' pour ' + SEST });
+  }
+}
 // 3. le produit
 const L = MODE === 'voir' ? P : P.filter((p, k) => k % 2 === 0);
 const D = require(path.join(RACINE, 'extension', 'charger_node.js'))({ ext: path.join(RACINE, 'extension'), juge: true });

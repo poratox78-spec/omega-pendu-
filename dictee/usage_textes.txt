@@ -576,3 +576,12 @@ Merci aux parents qui ont {apporter|apporté|C} des gâteaux et des jus de fruit
 Le prochain entraînement aura lieu mercredi à quatorze {heure|heures|N}. Pensez {a|à|G} prendre une gourde et une {serviete|serviette|O}.
 {sportivement|Sportivement|P},
 Marc, l'entraîneur
+
+=== T98 message d'une baby-sitter aux parents après la soirée
+Bonsoir Claire,
+La soirée {c'est|s'est|G} très bien passée. Les enfants ont mangé toutes leurs pâtes, puis nous avons {jouer|joué|C} aux cartes.
+Léo {c'est|s'est|G} tout de suite endormi après l'histoire. Les deux filles sont tout de suite {monté|montées|G} se brosser les dents, sans discuter.
+Leur grand-mère a {appelée|appelé|G} vers neuf heures pour leur dire bonne nuit. J'ai {ranger|rangé|C} la cuisine et j'ai lancé le {lave vaisselle|lave-vaisselle|P}.
+Il reste du gâteau dans le frigo si vous avez faim en rentrant.
+Merci pour la soirée, {a|à|G} samedi prochain !
+Sarah
