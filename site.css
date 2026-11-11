@@ -266,3 +266,6 @@ header.top nav a[aria-current=page] .nl{color:var(--accent-ink)}
   .acc-tuiles div{padding:14px}
 }
 @media (max-width:380px){ .acc-tuiles{grid-template-columns:minmax(0,1fr)} }
+/* Thème sombre : le texte blanc sur l'accent bleu clair (#5b8cf6) n'avait que 3,2 de contraste (seuil 4,5) — défaut ancien, mesuré au
+   lot 2 de la refonte (contraste du texte visible, toutes les pages). Texte foncé sur ces boutons en sombre : 6,4. */
+:root:not([data-theme="light"]) .btn.primary,:root:not([data-theme="light"]) .navcta{color:#0b1020}
