@@ -595,3 +595,12 @@ Il y a aussi quelque chose de collé derrière la porte du garage : c'est le pla
 Bien cordialement,
 Thomas Petit
 
+=== T100 annonce d'un vide-maison entre voisins
+Bonjour à tous,
+Nous déménageons à la fin du mois et nous {organisont|organisons|C} un vide-maison samedi, de neuf heures à midi, au 12 rue des Lilas.
+Il y aura des meubles, de la vaisselle et des jouets. Nous vendons aussi des rideaux {blanche|blancs|G} et deux bureaux {ancien|anciens|N}, en très bon état.
+Les cartons de livres pour enfants {seron|seront|C} à un euro. Les vélos sont déjà {réservé|réservés|G}, désolés pour ceux qui les attendaient.
+Le paiement se fait en espèces. Le montant {dus|dû|G} est à régler sur place, nous n'avons pas de terminal pour les cartes.
+Si vous voulez passer avant, {envoyé|envoyez|C}-nous un message{|,|P} nous vous {répondront|répondrons|C} vite.
+À samedi, et merci de faire passer le mot !
+Inès et Julien

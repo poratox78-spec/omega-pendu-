@@ -603,8 +603,7 @@
  },
  "L2 avoir + locution | pluriel en trop": {
   "n": 66,
-  "orange juste": 64,
-  "mauvais mot": 2
+  "orange juste": 66
  },
  "L3 s'est + locution + participe | juste": {
   "n": 40,
@@ -770,8 +769,7 @@
  },
  "avoir sans accord | pluriel en trop": {
   "n": 48,
-  "orange juste": 46,
-  "mauvais mot": 2
+  "orange juste": 48
  },
  "pronominal | féminin en trop": {
   "n": 1,
@@ -853,10 +851,9 @@
  },
  "épithète en fin de phrase | féminin en trop + pluriel manquant": {
   "n": 37,
-  "orange juste": 28,
+  "orange juste": 30,
   "muet": 2,
-  "mauvais mot": 6,
-  "ROUGE mauvais mot": 1
+  "mauvais mot": 5
  },
  "épithète en fin de phrase | féminin manquant": {
   "n": 20,
@@ -885,10 +882,9 @@
  },
  "épithète en fin de phrase | pluriel en trop": {
   "n": 45,
-  "rouge juste": 3,
+  "rouge juste": 4,
   "orange juste": 39,
-  "muet": 2,
-  "ROUGE mauvais mot": 1
+  "muet": 2
  },
  "épithète en fin de phrase | pluriel manquant": {
   "n": 29,
@@ -906,8 +902,8 @@
  },
  "épithète | féminin en trop + pluriel manquant": {
   "n": 26,
-  "orange juste": 19,
-  "mauvais mot": 7
+  "orange juste": 21,
+  "mauvais mot": 5
  },
  "épithète | féminin manquant": {
   "n": 28,
@@ -937,9 +933,8 @@
  },
  "épithète | pluriel en trop": {
   "n": 39,
-  "rouge juste": 3,
-  "orange juste": 35,
-  "ROUGE mauvais mot": 1
+  "rouge juste": 4,
+  "orange juste": 35
  },
  "épithète | pluriel manquant": {
   "n": 39,
@@ -1023,8 +1018,7 @@
  "être (passif) | pluriel en trop": {
   "n": 39,
   "rouge juste": 1,
-  "orange juste": 37,
-  "mauvais mot": 1
+  "orange juste": 38
  },
  "être (passif) | pluriel manquant": {
   "n": 39,
