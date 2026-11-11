@@ -18,8 +18,8 @@
    [data-theme="light"] = clair » (et des sondes la lisent, ex. correcteur_en_page_probe ⑥). Sans JavaScript, le site reste sombre. */
 :root[data-theme="light"]{
   --bg:#f3f5f9; --bg-2:#ffffff; --bg-3:#e8edf4; --line:#cbd3df;
-  --fg:#141a23; --fg-2:#4a5666; --accent:#2553c9; --accent-2:#3f7d24;
-  --warn:#b5701a; --bad:#c0362f; --accent-soft:#e4ebfb; --accent-ink:#173a94; --voile:rgba(20,26,35,.35);
+  --fg:#141a23; --fg-2:#4a5666; --accent:#2553c9; --accent-2:#357020;
+  --warn:#9a5c10; --bad:#c0362f; --accent-soft:#e4ebfb; --accent-ink:#173a94; --voile:rgba(20,26,35,.35);
 }
 :root[data-theme="dark"]{color-scheme:dark}
 *{box-sizing:border-box}
@@ -280,3 +280,10 @@ header.top nav a[aria-current=page] .nl{color:var(--accent-ink)}
 .kpi>div{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:4px;align-content:start}
 .kpi b{font-family:var(--sans);font-size:clamp(28px,3.2vw,42px);line-height:1.05;color:var(--accent);font-variant-numeric:tabular-nums}
 .kpi small{font-size:14.5px;color:var(--fg-2);line-height:1.4}
+
+/* ——— PAGES DE CONTENU (refonte, lot 4, 11/11/2026) ———
+   Thème clair : les boutons pleins de la démo d'évolvabilité (recherche) passent le texte en blanc (foncé sur rouge = 3,4) ; la scène 3D
+   d'« évolution » reste sombre dans les deux thèmes, ses étiquettes gardent donc les couleurs du thème sombre. */
+:root[data-theme="light"] .evo-genome .eg-tog button.on{color:#fff}
+:root[data-theme="light"] .ev-stage{--bg:#0d1117;--bg-2:#161b22;--bg-3:#1c232c;--line:#2a323c;--fg:#e6edf3;--fg-2:#9aa4af;--accent:#5b8cf6;--accent-2:#a3d977;--warn:#d8922e;--bad:#f47174;color:var(--fg)}
+:root[data-theme="light"] .ev-ctrl button:not(.ghost){color:#fff}   /* « ▶ Vrai moteur » : texte foncé sur l'accent foncé du clair = 2,9 */

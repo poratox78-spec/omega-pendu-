@@ -43,6 +43,7 @@
 
 <main id="main">
 <section class="hero"><div class="wrap">
+  <nav class="fil" aria-label="Fil d'Ariane"><a href="./">Accueil</a><span aria-hidden="true">›</span><span>Recherche</span><span aria-hidden="true">›</span><span aria-current="page">La recherche</span></nav>
   <span class="tag">Recherche &amp; méthode</span>
   <h1>Une architecture cognitive de la <em>double route</em>.</h1>
   <p class="lead">OMEGA est né comme un moteur de <strong>pendu français</strong> — un banc d'essai exigeant pour une idée&nbsp;: une machine qui <em>raisonne</em> sur la langue (phonologie, orthographe, morphologie) plutôt qu'elle ne consulte un oracle. Le correcteur dys en est le débouché appliqué.</p>
@@ -215,7 +216,7 @@
 
 <section id="toile"><div class="wrap">
   <h2>La toile du correcteur&nbsp;: tout est interconnecté</h2>
-  <p>Le correcteur n'est pas une pile de règles&nbsp;: c'est un <strong>réseau</strong>. Chaque règle se nourrit de <strong>lexiques</strong>, de <strong>moteurs</strong> (étiqueteur morphosyntaxique, speller, arbitre du sujet) et de <strong>signaux de contexte</strong> (déterminant audible, sujet non-adjacent, ponctuation) pour trancher entre <strong style="color:#e2504a">rouge</strong> — correction sûre, zéro faux positif — et <strong style="color:#e8a247">orange</strong> — vigilance, quand le doute demeure. Survolez un nœud pour éclairer ses fils.</p>
+  <p>Le correcteur n'est pas une pile de règles&nbsp;: c'est un <strong>réseau</strong>. Chaque règle se nourrit de <strong>lexiques</strong>, de <strong>moteurs</strong> (étiqueteur morphosyntaxique, speller, arbitre du sujet) et de <strong>signaux de contexte</strong> (déterminant audible, sujet non-adjacent, ponctuation) pour trancher entre <strong style="color:var(--bad)">rouge</strong> — correction sûre, zéro faux positif — et <strong style="color:var(--warn)">orange</strong> — vigilance, quand le doute demeure. Survolez un nœud pour éclairer ses fils.</p>
   <div style="border:1px solid rgba(128,110,70,.28);border-radius:14px;overflow:hidden;background:#15120d;margin-top:1.1rem;box-shadow:0 10px 34px rgba(0,0,0,.14)">
     <iframe src="toile" title="Toile interactive de l'architecture du correcteur OMEGA-Ω — sources, structures, moteurs, règles et contexte, interconnectés" loading="lazy" style="display:block;width:100%;height:min(80vh,720px);min-height:460px;border:0"></iframe>
   </div>
