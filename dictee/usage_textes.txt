@@ -604,3 +604,12 @@ Le paiement se fait en espèces. Le montant {dus|dû|G} est à régler sur place
 Si vous voulez passer avant, {envoyé|envoyez|C}-nous un message{|,|P} nous vous {répondront|répondrons|C} vite.
 À samedi, et merci de faire passer le mot !
 Inès et Julien
+=== T101 compte rendu d'une rencontre du club de lecture
+Bonjour à toutes et à tous,
+Nous étions douze jeudi soir pour parler des deux romans du mois. Ces romans, nous les avons {trouvée|trouvés|G} très différents.
+Le premier roman a {plus|plu|G} à presque tout le groupe : les personnages sont drôles et l'histoire se lit vite. Le second nous a {partager|partagé|C} en deux, certains l'ont trouvé trop long.
+Marc nous a {lut|lu|O} un passage qu'il aimait, et tout le monde a {applaudie|applaudi|G}.
+Pour notre rencontre suivante, nous {lireront|lirons|C} un recueil de nouvelles. Les exemplaires {son|sont|G} à la médiathèque, au rayon des nouveautés.
+La rencontre aura lieu le jeudi 3 décembre {a|à|G} dix-huit heures, dans la salle du premier étage.
+{amicalement|Amicalement|P},
+Hélène, pour le club
