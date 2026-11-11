@@ -43,6 +43,11 @@
       ['pendable', 'Pendable, le jeu du pendu'],
       ['double-sens', 'Double-Sens'],
     ]],
+    // 11/11/2026 : VIVARIUM et le Déformateur de voix, les deux autres grands projets de l'auteur (sur itch.io), entrent au menu.
+    ['Autres projets', [
+      ['https://poratox78-spec.itch.io/vivarium', 'VIVARIUM, le jeu'],
+      ['https://poratox78-spec.itch.io/deformateur-de-voix', 'Déformateur de voix'],
+    ]],
     // Rem (17/09/2026) : sur Google, « omega pendu » listait Confidentialité, le modèle double route, le mémoire,
     // l'arbitrage… — les pages de recherche, poussées par ce menu présent sur toutes les pages. Une seule entrée pour
     // ⚠️ 19/09/2026 — Rem : « arbitrage aussi a sauté du menu, c'est chiant ». Les deux reviennent, à sa demande.
@@ -90,6 +95,10 @@
     ]],
     ['Play', [
       ['/app/omega-pendu-en', 'The Hangman'],   // même défaut côté anglais, même correction : 200 direct au lieu d un 308
+    ]],
+    ['Other projects', [
+      ['https://poratox78-spec.itch.io/vivarium', 'VIVARIUM, the game'],
+      ['https://poratox78-spec.itch.io/deformateur-de-voix', 'Voice changer'],
     ]],
     ['Research', [
       ['recherche', 'Research'],
