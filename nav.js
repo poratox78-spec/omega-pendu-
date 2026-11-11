@@ -8,6 +8,9 @@
 // Idempotent ; se ferme au clic sur un lien, au clic dehors, ou sur Échap. Les pages /en/ reçoivent le menu
 // GROUPS_EN (même mécanisme, menu anglais) — centralisé ici pour éviter la dérive des navs codées en dur.
 (function () {
+  // ⭐ 11/11/2026 (refonte, lot 1) : le thème est posé DÈS le chargement du script, avant la construction de l'en-tête, pour que la page
+  // ne s'affiche pas d'abord en sombre. Clair par défaut ; sans choix enregistré, le réglage de l'ordinateur.
+  try { var _th = localStorage.getItem('omega_theme'); if (!_th) _th = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', _th); } catch (e) {}
   // Groupes → [libellé de section, [ [href, texte], ... ] ]. hrefs relatifs à la racine du site (pages fr).
   var GROUPS = [
     ['Outils dys', [

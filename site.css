@@ -1,29 +1,27 @@
 /* OMEGA-Ω — site. SOMBRE PAR DÉFAUT (contraste AA), colonne lisible, focus visibles,
    option police dys (lisible). Aucune dépendance. */
 /* ⭐ 11/11/2026 — REFONTE, lot 1 (LA LISTE n° 387, maquette validée par Rem) : l'identité du panneau de l'extension. CLAIR PAR DÉFAUT
-   (fond gris bleuté, cartes blanches, accent bleu ; marque = bleu nuit + trait ambre), le sombre reste au choix (bouton du thème) et suit le
-   réglage de l'ordinateur tant que rien n'est choisi (nav.js). Police Atkinson Hyperlegible partout, servie par le site (pas de Google). */
+   (fond gris bleuté, cartes blanches, accent bleu ; marque = bleu nuit + trait ambre), posé par nav.js ; le sombre reste au choix (bouton
+   du thème) et suit le réglage de l'ordinateur tant que rien n'est choisi. Police Atkinson Hyperlegible partout, servie par le site. */
 @font-face{font-family:'Atkinson Hyperlegible';src:url('/extension/assets/atkinson-hyperlegible-latin-400-normal.woff2') format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'Atkinson Hyperlegible';src:url('/extension/assets/atkinson-hyperlegible-latin-700-normal.woff2') format('woff2');font-weight:700;font-display:swap}
 :root{
-  --bg:#f3f5f9; --bg-2:#ffffff; --bg-3:#e8edf4; --line:#cbd3df;
-  --fg:#141a23; --fg-2:#4a5666; --accent:#2553c9; --accent-2:#3f7d24;
-  --warn:#b5701a; --bad:#c0362f; --radius:14px; --maxw:760px;
-  --accent-soft:#e4ebfb; --accent-ink:#173a94; --marque:#0d1117; --ambre:#d9892b; --voile:rgba(20,26,35,.35);
+  --bg:#0d1117; --bg-2:#161b22; --bg-3:#1c232c; --line:#2a323c;
+  --fg:#e6edf3; --fg-2:#9aa4af; --accent:#5b8cf6; --accent-2:#a3d977;
+  --warn:#d8922e; --bad:#f47174; --radius:14px; --maxw:760px;
+  --accent-soft:#1c2a49; --accent-ink:#b4c8ff; --marque:#0d1117; --ambre:#d9892b; --voile:rgba(0,0,0,.5);
   --serif:"Atkinson Hyperlegible",Verdana,Tahoma,sans-serif;
   --sans:"Atkinson Hyperlegible",Verdana,Tahoma,sans-serif;
 }
+/* THÈME CLAIR = le défaut du site depuis la refonte (nav.js le pose dès son chargement, sauf choix contraire ou ordinateur en sombre).
+   ⚠ Il reste sous [data-theme="light"] : les pages qui ont leurs propres couleurs suivent la convention « sans attribut = sombre,
+   [data-theme="light"] = clair » (et des sondes la lisent, ex. correcteur_en_page_probe ⑥). Sans JavaScript, le site reste sombre. */
 :root[data-theme="light"]{
   --bg:#f3f5f9; --bg-2:#ffffff; --bg-3:#e8edf4; --line:#cbd3df;
   --fg:#141a23; --fg-2:#4a5666; --accent:#2553c9; --accent-2:#3f7d24;
   --warn:#b5701a; --bad:#c0362f; --accent-soft:#e4ebfb; --accent-ink:#173a94; --voile:rgba(20,26,35,.35);
 }
-/* THÈME SOMBRE (au choix) : l'ancien défaut du site, gardé tel quel. */
-:root[data-theme="dark"]{
-  --bg:#0d1117; --bg-2:#161b22; --bg-3:#1c232c; --line:#2a323c;
-  --fg:#e6edf3; --fg-2:#9aa4af; --accent:#5b8cf6; --accent-2:#a3d977;
-  --warn:#d8922e; --bad:#f47174; --accent-soft:#1c2a49; --accent-ink:#b4c8ff; --voile:rgba(0,0,0,.5); color-scheme:dark;
-}
+:root[data-theme="dark"]{color-scheme:dark}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
