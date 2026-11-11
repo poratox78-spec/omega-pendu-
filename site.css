@@ -269,3 +269,14 @@ header.top nav a[aria-current=page] .nl{color:var(--accent-ink)}
 /* Thème sombre : le texte blanc sur l'accent bleu clair (#5b8cf6) n'avait que 3,2 de contraste (seuil 4,5) — défaut ancien, mesuré au
    lot 2 de la refonte (contraste du texte visible, toutes les pages). Texte foncé sur ces boutons en sombre : 6,4. */
 :root:not([data-theme="light"]) .btn.primary,:root:not([data-theme="light"]) .navcta{color:#0b1020}
+
+/* ——— PAGES OUTILS (refonte, lot 3, 11/11/2026) : le fil d'Ariane, et les chiffres en tuiles (toutes les pages qui ont un bloc .kpi,
+   l'accueil compris). ——— */
+.fil{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0 0 12px;font-size:14.5px;color:var(--fg-2)}
+.fil a{color:var(--fg-2);text-decoration:none}
+.fil a:hover{color:var(--accent);text-decoration:underline}
+.fil [aria-current]{color:var(--fg);font-weight:700}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:16px 0}
+.kpi>div{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:4px;align-content:start}
+.kpi b{font-family:var(--sans);font-size:clamp(28px,3.2vw,42px);line-height:1.05;color:var(--accent);font-variant-numeric:tabular-nums}
+.kpi small{font-size:14.5px;color:var(--fg-2);line-height:1.4}
