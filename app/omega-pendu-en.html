@@ -28443,6 +28443,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     // et il doit être DANS la liste. FP=0 revérifié par scan UD (3 déclenchements avant ET après).
     else if(!(i>=2 && _ADJ_ANTE[deacc(T[i-1].toLowerCase())] && _SING_DET[deacc(T[i-2].toLowerCase())])
             && (i===0||!_SING_DET[deacc(T[i-1].toLowerCase())]))return null;   // déterminant SINGULIER juste avant (et posterior chargé)
+    if(!_pre&&_SEG&&_SEG.bb&&((i<_SEG.bb.length&&_SEG.bb[i])||(i>=2&&_ADJ_ANTE[deacc(T[i-1].toLowerCase())]&&_SING_DET[deacc(T[i-2].toLowerCase())]&&_SEG.bb[i-1])))return null;   /* liste n° 491 : « une police de son, jeux » — « son » (le nom) lu comme déterminant par-dessus la virgule → « jeu » en rouge */
     if(_SEG&&i<_SEG.dig.length&&_SEG.dig[i])return null;                                              // NOMBRE-écran (« le 25 mars », « le 100 mètres ») → le déterminant ne gouverne pas ce nom
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;           // nom propre / capitalisé → abstention (FP)
     var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||_INV_NOM105[dn]||NOUN_PL_STOP[dn])return null;   /* ⭐ 31/10/2026 (liste n° 214) : nom singulier écrit en -s (Morphalou) — « un pois » → poi, « un abus » → abu en ROUGE */
