@@ -75,6 +75,13 @@
 ],
 "abstain": [],
 "nofp": [
+"Un recueil en trois tomes publié par un ami.",
+"Il a trouvé un trente-trois tours rayé.",
+"Il n'y a rien de cassé dans le carton.",
+"Il y a quelque chose de collé sous la table.",
+"Personne de vexé, tant mieux.",
+"Il n'y a de raté que le dessert.",
+"Il n'y a rien d'oublié dans la valise.",
 "Le chat, le chien, et les vaches dorment.",
 "Il vient de rentrer nous voir.",
 "Sacha, fatigué par la route, dort.",
@@ -937,6 +944,16 @@
 "Elle a dû la somme hier."
 ],
 "elide": [
+[
+"Voici trois chaises cassé.",
+"cassé",
+"cassées"
+],
+[
+"Il demande à une personne de gardé son sac.",
+"gardé",
+"garder"
+],
 [
 "Les gagnants recevront un bon d'achat, et leurs photos seront exposé à la mairie.",
 "exposé",
@@ -3909,6 +3926,11 @@
 ]
 ],
 "palier": [
+[
+"Ça ne sert à rien de crié.",
+"crié",
+"vigilance"
+],
 [
 "Nous avons pris du pain est une pomme pour la route.",
 "est",

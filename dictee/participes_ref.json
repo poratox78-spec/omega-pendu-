@@ -840,6 +840,61 @@
   "rouge juste": 4,
   "mauvais mot": 1
  },
+ "épithète en fin de phrase | féminin en trop": {
+  "n": 4,
+  "orange juste": 2,
+  "muet": 2
+ },
+ "épithète en fin de phrase | féminin en trop + pluriel en trop": {
+  "n": 4,
+  "orange juste": 2,
+  "muet": 1,
+  "mauvais mot": 1
+ },
+ "épithète en fin de phrase | féminin en trop + pluriel manquant": {
+  "n": 37,
+  "orange juste": 28,
+  "muet": 2,
+  "mauvais mot": 6,
+  "ROUGE mauvais mot": 1
+ },
+ "épithète en fin de phrase | féminin manquant": {
+  "n": 20,
+  "rouge juste": 16,
+  "orange juste": 4
+ },
+ "épithète en fin de phrase | féminin manquant + pluriel en trop": {
+  "n": 29,
+  "rouge juste": 3,
+  "orange juste": 24,
+  "muet": 2
+ },
+ "épithète en fin de phrase | féminin manquant + pluriel manquant": {
+  "n": 12,
+  "rouge juste": 8,
+  "orange juste": 4
+ },
+ "épithète en fin de phrase | infinitif": {
+  "n": 16,
+  "orange juste": 4,
+  "muet": 12
+ },
+ "épithète en fin de phrase | juste": {
+  "n": 140,
+  "ok": 140
+ },
+ "épithète en fin de phrase | pluriel en trop": {
+  "n": 45,
+  "rouge juste": 3,
+  "orange juste": 39,
+  "muet": 2,
+  "ROUGE mauvais mot": 1
+ },
+ "épithète en fin de phrase | pluriel manquant": {
+  "n": 29,
+  "orange juste": 28,
+  "muet": 1
+ },
  "épithète | féminin en trop": {
   "n": 30,
   "orange juste": 27,
