@@ -126,12 +126,18 @@ const css = fs.readFileSync(path.join(RACINE, 'site.css'), 'utf8');
 /* ⚠ `header.top nav{…}` existe DEUX fois : la barre horizontale, puis le panneau replié.
    Falsifié : prendre la PREMIÈRE prenait la barre, qui n'est pas en colonne — toutes les règles
    se taisaient et les quatre mutations survivaient. On prend celle qui est en COLONNE. */
+/* ⭐ 11/11/2026 — REFONTE, lot 1 (LA LISTE n° 387) : le panneau n'est plus une colonne flex mais un GRAND MENU en grille, un groupe
+   par colonne (maquette validée par Rem). Le défaut ⓐ (le wrap qui fabrique une colonne hors cadre) n'existe que pour un panneau flex en
+   colonne : on l'exige encore s'il revient. ⓑ vaut pour les deux formes : le panneau (la règle `position:absolute`) doit garder une
+   hauteur maximale et de quoi défiler. */
 const regles = css.match(/header\.top nav\{[^}]*\}/g) || [];
-const regle = regles.find((r) => /flex-direction:\s*column/.test(r));
+const regle = regles.find((r) => /flex-direction:\s*column|position:\s*absolute/.test(r));
 if (!regle) {
-  rouges.push('la règle du panneau de menu (`header.top nav{…}` en colonne) est introuvable dans site.css');
+  rouges.push('la règle du panneau de menu (`header.top nav{…}`, panneau sous la barre) est introuvable dans site.css');
 } else {
-  const colonne = true;
+  const colonne = /flex-direction:\s*column/.test(regle);
+  if (!/max-height:/.test(regle)) rouges.push('le panneau de menu n’a plus de `max-height` : il déborderait de la fenêtre');
+  if (!/overflow-y:\s*auto|overflow:\s*auto/.test(regle)) rouges.push('le panneau de menu n’a plus de quoi défiler : les dernières entrées deviendraient inatteignables sur un écran court');
   if (colonne && !/flex-wrap:\s*nowrap/.test(regle)) {
     rouges.push('le panneau de menu est en colonne SANS `flex-wrap:nowrap` : dès qu\u2019il dépasse la ' +
                 'hauteur de l\u2019écran, il se replie en une seconde colonne qui sort du cadre');

@@ -1,19 +1,27 @@
 /* OMEGA-Ω — site. SOMBRE PAR DÉFAUT (contraste AA), colonne lisible, focus visibles,
    option police dys (lisible). Aucune dépendance. */
+/* ⭐ 11/11/2026 — REFONTE, lot 1 (LA LISTE n° 387, maquette validée par Rem) : l'identité du panneau de l'extension. CLAIR PAR DÉFAUT
+   (fond gris bleuté, cartes blanches, accent bleu ; marque = bleu nuit + trait ambre), posé par nav.js ; le sombre reste au choix (bouton
+   du thème) et suit le réglage de l'ordinateur tant que rien n'est choisi. Police Atkinson Hyperlegible partout, servie par le site. */
+@font-face{font-family:'Atkinson Hyperlegible';src:url('/extension/assets/atkinson-hyperlegible-latin-400-normal.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Atkinson Hyperlegible';src:url('/extension/assets/atkinson-hyperlegible-latin-700-normal.woff2') format('woff2');font-weight:700;font-display:swap}
 :root{
   --bg:#0d1117; --bg-2:#161b22; --bg-3:#1c232c; --line:#2a323c;
   --fg:#e6edf3; --fg-2:#9aa4af; --accent:#5b8cf6; --accent-2:#a3d977;
   --warn:#d8922e; --bad:#f47174; --radius:14px; --maxw:760px;
-  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --accent-soft:#1c2a49; --accent-ink:#b4c8ff; --marque:#0d1117; --ambre:#d9892b; --voile:rgba(0,0,0,.5);
+  --serif:"Atkinson Hyperlegible",Verdana,Tahoma,sans-serif;
+  --sans:"Atkinson Hyperlegible",Verdana,Tahoma,sans-serif;
 }
-/* THÈME CLAIR (accessibilité : certains lisent mieux en clair). Activé par [data-theme=light] sur <html>,
-   choix mémorisé par nav.js. Défaut = sombre. Fond blanc cassé chaud (moins agressif qu'un blanc pur pour les dys). */
+/* THÈME CLAIR = le défaut du site depuis la refonte (nav.js le pose dès son chargement, sauf choix contraire ou ordinateur en sombre).
+   ⚠ Il reste sous [data-theme="light"] : les pages qui ont leurs propres couleurs suivent la convention « sans attribut = sombre,
+   [data-theme="light"] = clair » (et des sondes la lisent, ex. correcteur_en_page_probe ⑥). Sans JavaScript, le site reste sombre. */
 :root[data-theme="light"]{
-  --bg:#faf9f6; --bg-2:#ffffff; --bg-3:#eef0f2; --line:#d5dae0;
-  --fg:#1a1f26; --fg-2:#586170; --accent:#2563eb; --accent-2:#3f7d24;
-  --warn:#b5701a; --bad:#c0362f;
+  --bg:#f3f5f9; --bg-2:#ffffff; --bg-3:#e8edf4; --line:#cbd3df;
+  --fg:#141a23; --fg-2:#4a5666; --accent:#2553c9; --accent-2:#3f7d24;
+  --warn:#b5701a; --bad:#c0362f; --accent-soft:#e4ebfb; --accent-ink:#173a94; --voile:rgba(20,26,35,.35);
 }
+:root[data-theme="dark"]{color-scheme:dark}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -31,14 +39,6 @@ html[data-dysfont] :is(button,input,textarea,select){font-family:inherit}
    zoom agrandit tout (le site est en px, donc rem ne suffirait pas). */
 html[data-read="1"]{zoom:1.15}
 html[data-read="2"]{zoom:1.4}
-/* BARRE D'ACCESSIBILITÉ — centrée en haut de chaque page, toujours visible (injectée par nav.js). */
-.a11y{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:6px;z-index:3}
-.a11y-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;font-size:19px;line-height:1;
-  padding:0;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);color:var(--fg);cursor:pointer}
-.a11y-btn:hover{background:var(--bg-3)}
-.a11y-btn.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-@media (max-width:520px){ .a11y-btn{width:36px;height:36px;font-size:17px} .a11y{gap:4px} }
-.a11y-lang{width:auto;padding:0 13px;font-size:14px;font-weight:700;letter-spacing:.03em;text-decoration:none}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
 a{color:var(--accent);text-decoration-thickness:.08em;text-underline-offset:.18em}
 a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
@@ -49,18 +49,6 @@ h2{font-size:clamp(23px,4vw,30px);margin:1.8em 0 .5em;padding-top:.4em}
 h3{font-size:19px;margin:1.4em 0 .3em}
 p{margin:.7em 0}
 small,.small{font-size:15px;color:var(--fg-2)}
-/* en-tête */
-header.top{position:sticky;top:0;background:color-mix(in srgb,var(--bg) 88%,transparent);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:5}
-header.top .wrap{display:flex;align-items:center;flex-wrap:wrap;gap:6px 16px;min-height:58px;padding:8px 0}
-.brand{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--fg);text-decoration:none}
-.brand b{color:var(--accent)}
-header.top nav{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-header.top nav a{padding:7px 12px;border-radius:9px;text-decoration:none;color:var(--fg-2);font-size:15px}
-header.top nav a:hover{background:var(--bg-3);color:var(--fg)}
-header.top nav a[aria-current=page]{color:var(--fg);background:var(--bg-3)}
-#dys-toggle{font:inherit;font-size:14px;padding:6px 11px;border:1px solid var(--line);
-  background:var(--bg-2);color:var(--fg);border-radius:9px;cursor:pointer;min-height:34px}
 /* hero */
 .hero{padding:54px 0 28px}
 .hero .tag{display:inline-block;font-size:14px;color:var(--accent-2);font-weight:600;
@@ -130,29 +118,86 @@ code{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:.92em;backg
   #dys-toggle{flex:0 0 auto;font-size:13px;padding:5px 9px;min-height:30px}
 }
 
-/* ——— MENU HAMBURGER : la nav (devenue longue) se replie derrière un bouton ☰ en haut à droite, à TOUTES
-   les largeurs (nav.js injecte le bouton ; ici le style + l'état ouvert/fermé, dropdown ancré à droite du .wrap). ——— */
-header.top .wrap{position:relative}
-.navtoggle{margin-left:auto;display:inline-flex;flex-direction:column;justify-content:center;gap:5px;
+/* ——— EN-TÊTE, MENU ET RECHERCHE (refonte, lot 1, 11/11/2026 — maquette validée par Rem, LA LISTE n° 387) ———
+   Une barre blanche : la marque Ω, les groupes du menu (grand écran), la recherche Ctrl K, la barre d'accessibilité (thème, Aa, 🔡,
+   loupe, langue), « Ajouter à Chrome », et ☰ (petit écran). Le menu s'ouvre en un grand panneau, un groupe par colonne, chaque page
+   avec une ligne qui dit ce qu'elle fait. Rien n'est retiré : les mêmes liens et les mêmes boutons qu'avant (garde en direct). */
+header.top{position:sticky;top:0;background:var(--bg-2);border-bottom:1px solid var(--line);z-index:60}
+header.top .wrap{max-width:1320px;display:flex;align-items:center;gap:8px 14px;min-height:64px;padding:8px 22px;position:static}
+.brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--sans);font-weight:700;font-size:20px;letter-spacing:.02em;color:var(--fg);text-decoration:none;flex:none}
+.brand::before{content:"Ω";display:grid;place-items:center;width:40px;height:40px;border-radius:10px;font-size:22px;line-height:1;color:#fff;
+  background:linear-gradient(var(--ambre),var(--ambre)) no-repeat center 30px/18px 3px,var(--marque);padding-bottom:6px;box-sizing:border-box}
+.brand b{display:none}
+.navgroups{display:flex;gap:2px}
+.navgroups button{font:inherit;font-weight:700;font-size:16px;display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border:0;border-radius:8px;background:transparent;color:var(--fg);cursor:pointer;white-space:nowrap}
+.navgroups button:hover{background:var(--bg-3)}
+.navgroups button[aria-expanded=true]{background:var(--accent-soft);color:var(--accent-ink)}
+.navgroups svg,.navsearch svg{flex:none}
+.navsearch{margin-left:auto;font:inherit;font-size:15px;display:inline-flex;align-items:center;gap:10px;min-width:0;white-space:nowrap;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg-2);cursor:pointer;text-align:left}
+.navsearch:hover{border-color:var(--accent)}
+.navsearch .nsl{flex:1}
+.navsearch kbd{font:inherit;font-size:12.5px;padding:1px 7px;border:1px solid var(--line);border-radius:6px;background:var(--bg-2)}
+.a11y{display:flex;gap:5px;flex:none}
+.a11y-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;font-size:18px;line-height:1;
+  padding:0;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);color:var(--fg);cursor:pointer;text-decoration:none}
+.a11y-btn:hover{background:var(--bg-3)}
+.a11y-btn.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.a11y-lang{width:auto;padding:0 12px;font-size:14px;font-weight:700;letter-spacing:.03em}
+.navcta{flex:none;padding:10px 16px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:15.5px;white-space:nowrap}
+.navcta:hover{filter:brightness(1.08)}
+#dys-toggle{font:inherit;font-size:14px;padding:6px 11px;border:1px solid var(--line);background:var(--bg-2);color:var(--fg);border-radius:9px;cursor:pointer;min-height:34px}
+.navtoggle{display:none;flex-direction:column;justify-content:center;gap:5px;flex:none;
   width:44px;height:40px;padding:0 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);cursor:pointer}
 .navtoggle span{display:block;width:100%;height:2px;background:var(--fg);border-radius:2px;transition:transform .2s,opacity .2s}
 .navtoggle[aria-expanded=true] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
 .navtoggle[aria-expanded=true] span:nth-child(2){opacity:0}
 .navtoggle[aria-expanded=true] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-/* ⚠ 26/09/2026 — `flex-wrap:nowrap` EST LA LIGNE QUI COMPTE, et elle manquait. Rapport de Rem :
-   « menu plus assez large ». Mesuré dans Chrome à 1280×900 : le panneau offrait 298 px utiles et en
-   réclamait 383. Ce n’était PAS une affaire de largeur — le plus long libellé ne demande que 196 px.
-   La nav hérite de `flex-wrap:wrap` (l. 51, pour la barre horizontale) ; une fois repliée en colonne
-   et plus haute que `max-height`, le wrap fabriquait une SECONDE COLONNE qui sortait du panneau de
-   75 px : « Données & police dys », « OMEGA·KEY » et « Code » commençaient à x=919 au lieu de 721.
-   Le `overflow-y:auto` ci-dessous était déjà là et ne servait à rien : le wrap gagnait avant lui.
-   Vérifié après correction : 2 colonnes → 1, débordement 383 → 212 px, le panneau défile. */
-header.top nav{position:absolute;top:calc(100% + 6px);right:0;margin:0;flex-direction:column;align-items:stretch;
-  flex-wrap:nowrap;
-  gap:2px;min-width:210px;max-width:min(88vw,300px);padding:8px;background:var(--bg-2);border:1px solid var(--line);
-  border-radius:12px;box-shadow:0 14px 38px rgba(0,0,0,.35);display:none;z-index:70;max-height:calc(100vh - 72px);overflow-y:auto}
-header.top.nav-open nav{display:flex}
-header.top nav a{padding:10px 12px;font-size:15px;border-radius:8px}
-/* libellés de groupe dans le dropdown (injectés par nav.js) — structurent les 17 liens pour la lisibilité */
-header.top nav .navsec{padding:10px 12px 3px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2);opacity:.6;pointer-events:none}
-header.top nav .navsec:first-child{padding-top:2px}
+/* le panneau du menu : sous la barre, toute la largeur, un groupe par colonne ; le reste de la page voilé */
+header.top nav{position:absolute;top:100%;left:0;right:0;display:none;background:var(--bg-2);border-bottom:1px solid var(--line);
+  box-shadow:0 14px 34px rgba(20,26,35,.18),0 0 0 100vmax var(--voile);clip-path:inset(0 0 -100vmax 0);z-index:70;
+  padding:26px max(22px,calc((100% - 1320px) / 2 + 22px)) 30px;max-height:calc(100vh - 64px);overflow-y:auto}
+header.top.nav-open nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px 22px;align-items:start}
+header.top nav .navgrp{display:flex;flex-direction:column;gap:4px;min-width:0}
+header.top nav .navsec{margin:0 0 6px;padding:0 12px;font-size:13.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2)}
+header.top nav .navgrp.on .navsec{color:var(--accent-ink)}
+header.top nav a{display:flex;flex-direction:column;padding:9px 12px;border-radius:10px;text-decoration:none;color:var(--fg);font-size:16px;line-height:1.3}
+header.top nav a .nl{font-weight:700}
+header.top nav a .nd{font-size:14.5px;color:var(--fg-2);margin-top:2px}
+header.top nav a:hover{background:var(--bg-3)}
+header.top nav a[aria-current=page]{background:var(--accent-soft)}
+header.top nav a[aria-current=page] .nl{color:var(--accent-ink)}
+/* recherche Ctrl K */
+.navdlg{position:fixed;inset:0;z-index:90;background:var(--voile);display:flex;justify-content:center;align-items:flex-start;padding:10vh 16px 16px}
+.navdlg[hidden]{display:none}
+.navdlg .boite{width:min(640px,100%);background:var(--bg-2);color:var(--fg);border:1px solid var(--line);border-radius:14px;box-shadow:0 24px 60px rgba(20,26,35,.3);overflow:hidden}
+.navdlg .champ{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);color:var(--fg-2)}
+.navdlg input{flex:1;font:inherit;font-size:18px;border:0;outline:0;background:transparent;color:var(--fg);min-width:0}
+.navdlg ul{list-style:none;margin:0;padding:8px;max-height:min(60vh,460px);overflow-y:auto}
+.navdlg li a{display:flex;gap:12px;align-items:baseline;justify-content:space-between;padding:10px 12px;border-radius:9px;text-decoration:none;color:var(--fg)}
+.navdlg li a span:first-child{display:flex;flex-direction:column;min-width:0}
+.navdlg li a .nl{font-weight:700}
+.navdlg li a .nd{font-size:14.5px;color:var(--fg-2)}
+.navdlg li a .ng{font-size:12.5px;color:var(--fg-2);white-space:nowrap}
+.navdlg li.sel a,.navdlg li a:hover{background:var(--accent-soft)}
+.navdlg .vide{padding:14px;color:var(--fg-2)}
+.navdlg .aide{padding:8px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--fg-2)}
+/* grand écran : les groupes en boutons ; petit écran : ☰ */
+@media (max-width:1499px){ .navcta{display:none} }
+@media (max-width:1180px){ .navsearch kbd{display:none} }
+@media (max-width:1000px){
+  .navgroups{display:none}
+  .navtoggle{display:inline-flex}
+  .navsearch{min-width:0}
+}
+@media (max-width:640px){
+  header.top .wrap{padding:7px 12px;gap:6px;min-height:56px}
+  .brand{font-size:0;gap:0}
+  .navsearch{padding:9px;min-width:0}
+  .navsearch .nsl,.navsearch kbd{display:none}
+  .a11y{gap:3px}
+  .a11y-btn{width:34px;height:36px;font-size:16px}
+  .a11y-lang{padding:0 8px}
+  header.top nav{max-height:calc(100vh - 56px);padding:16px 12px 20px}
+  header.top.nav-open nav{grid-template-columns:minmax(0,1fr);gap:14px}
+}
+@media (max-width:380px){ .a11y-son{display:none} }
