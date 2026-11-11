@@ -585,3 +585,13 @@ Leur grand-mère a {appelée|appelé|G} vers neuf heures pour leur dire bonne nu
 Il reste du gâteau dans le frigo si vous avez faim en rentrant.
 Merci pour la soirée, {a|à|G} samedi prochain !
 Sarah
+=== T99 message d'un locataire à son propriétaire après l'état des lieux de sortie
+Bonjour Monsieur Garnier,
+Merci pour l'état des lieux de ce matin. Comme vous l'avez vu, il n'y a rien de cassé dans la cuisine et les placards sont {vidé|vidés|G}.
+Dans la chambre, vous avez noté deux volets {abîmé|abîmés|G}. Je peux les faire réparer avant la fin du mois si vous le souhaitez.
+Les clés vous {serons|seront|C} rendues vendredi, avec le badge du parking. J'ai {laisser|laissé|C} les deux {télécommande|télécommandes|N} dans le tiroir de l'entrée.
+Pour la caution, savez-vous déjà quand elle sera {versé|versée|G}{.| ?|P}
+Il y a aussi quelque chose de collé derrière la porte du garage : c'est le plan des compteurs, je l'ai {laissez|laissé|C} pour les prochains {locatères|locataires|O}.
+Bien cordialement,
+Thomas Petit
+

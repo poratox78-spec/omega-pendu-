@@ -1,42 +1,42 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 175,
-   "bon": 166,
-   "rouge juste": 118,
-   "orange juste": 48,
+   "total": 176,
+   "bon": 167,
+   "rouge juste": 120,
+   "orange juste": 47,
    "mauvais mot": 0,
    "muette": 9
   },
   "grammaire": {
-   "total": 267,
-   "bon": 247,
-   "rouge juste": 100,
+   "total": 270,
+   "bon": 251,
+   "rouge juste": 104,
    "orange juste": 147,
    "mauvais mot": 0,
-   "muette": 20
+   "muette": 19
   },
   "ponctuation": {
-   "total": 107,
+   "total": 108,
    "bon": 92,
    "rouge juste": 77,
    "orange juste": 15,
    "mauvais mot": 0,
-   "muette": 15
+   "muette": 16
   },
   "conjugaison": {
-   "total": 315,
-   "bon": 298,
-   "rouge juste": 147,
-   "orange juste": 151,
+   "total": 318,
+   "bon": 301,
+   "rouge juste": 148,
+   "orange juste": 153,
    "mauvais mot": 5,
    "muette": 12
   },
   "orthographe": {
-   "total": 170,
-   "bon": 161,
+   "total": 171,
+   "bon": 162,
    "rouge juste": 87,
-   "orange juste": 74,
+   "orange juste": 75,
    "mauvais mot": 3,
    "muette": 6
   }
@@ -185,7 +185,7 @@
   "T5#25": "orange juste",
   "T5#26": "orange juste",
   "T5#27": "rouge juste",
-  "T5#28": "orange juste",
+  "T5#28": "rouge juste",
   "T6#0": "orange juste",
   "T6#1": "orange juste",
   "T6#2": "rouge juste",
@@ -870,7 +870,7 @@
   "T58#1": "orange juste",
   "T58#2": "orange juste",
   "T58#3": "orange juste",
-  "T58#4": "muette",
+  "T58#4": "rouge juste",
   "T58#5": "mauvais mot",
   "T58#6": "orange juste",
   "T58#7": "rouge juste",
@@ -1046,7 +1046,7 @@
   "T92#3": "rouge juste",
   "T92#4": "orange juste",
   "T92#5": "orange juste",
-  "T93#0": "orange juste",
+  "T93#0": "rouge juste",
   "T93#1": "rouge juste",
   "T93#2": "rouge juste",
   "T94#0": "orange juste",
@@ -1079,6 +1079,15 @@
   "T98#4": "orange juste",
   "T98#5": "rouge juste",
   "T98#6": "rouge juste",
-  "T98#7": "orange juste"
+  "T98#7": "orange juste",
+  "T99#0": "orange juste",
+  "T99#1": "rouge juste",
+  "T99#2": "orange juste",
+  "T99#3": "rouge juste",
+  "T99#4": "rouge juste",
+  "T99#5": "rouge juste",
+  "T99#6": "muette",
+  "T99#7": "orange juste",
+  "T99#8": "orange juste"
  }
 }

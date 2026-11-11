@@ -176,6 +176,11 @@ for (const [ms, cl] of Object.entries(TAB)) if (cl === 'D' || cl === 'I' || (cl 
     P.push({ t: [s, CEST, lc, F[c]].join(' ') + '.', w: CEST, ok: [SEST], ctx: 'L3 ' + SEST + ' + locution + participe', err: CEST + ' pour ' + SEST });
   }
 }
+// 2f. ligne 437 : participe épithète en fin de phrase, une autre phrase après (le point ne doit pas arrêter la règle)
+for (const [, ms, Nms, Nfs, Nmp, Nfp] of TR) {
+  const N = { ms: Nms, fs: Nfs, mp: Nmp, fp: Nfp };
+  for (const c of ['ms', 'fs', 'mp', 'fp']) ajoute('épithète en fin de phrase', ms, [c], (x) => `Voici ${det[c].toLowerCase()} ${N[c]} ${x}. Il pleut.`);
+}
 // 3. le produit
 const L = MODE === 'voir' ? P : P.filter((p, k) => k % 2 === 0);
 const D = require(path.join(RACINE, 'extension', 'charger_node.js'))({ ext: path.join(RACINE, 'extension'), juge: true });
