@@ -34354,8 +34354,13 @@ function spellUnknown(tok,atStart,T,idx){
   // ===== Réglages d'affichage : thème auto(système)/clair/sombre · daltonien · police dys — mémorisés (localStorage), partagés par les panneaux =====
   (function(){
     var THEMES=['auto','light','dark'],TLABEL={auto:'🌗 Thème : auto',light:'☀️ Thème : clair',dark:'🌙 Thème : sombre'};
-    var st={theme:'dark',cb:false,lis:false};   // sombre par défaut (l'utilisateur peut repasser clair/auto via le bouton 🌗)
+    var st={theme:'dark',cb:false,lis:false,choisi:false};
     try{st=Object.assign(st,JSON.parse(localStorage.getItem('dysDisplay')||'{}'));}catch(e){}
+    /* ⭐ 11/11/2026 — REFONTE du site (lot 3, LA LISTE n° 387) : dans une page du site (correcteur, dictée), l'app restait sombre au milieu
+       d'une page claire. Tant que le thème n'a pas été CHOISI ici (bouton 🌗, st.choisi), il suit celui du site (clé omega_theme, posée par
+       nav.js), sinon le réglage de l'ordinateur ; et il le suit en direct si on le change dans l'en-tête du site. Un choix fait ici reste prioritaire. */
+    function _themeSite(){var t=null;try{t=localStorage.getItem('omega_theme');}catch(e){}return (t==='light'||t==='dark')?t:'auto';}
+    if(!st.choisi)st.theme=_themeSite();
     var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):{matches:false};
     function eff(){return st.theme==='auto'?(mq.matches?'dark':'light'):st.theme;}
     function apply(){
@@ -34367,7 +34372,8 @@ function spellUnknown(tok,atStart,T,idx){
       var bl=$('vdc-lis');if(bl)bl.setAttribute('aria-pressed',!!st.lis);
     }
     function save(){try{localStorage.setItem('dysDisplay',JSON.stringify(st));}catch(e){}}
-    var bt=$('vdc-theme');if(bt)bt.addEventListener('click',function(){st.theme=THEMES[(THEMES.indexOf(st.theme)+1)%3];apply();save();});
+    var bt=$('vdc-theme');if(bt)bt.addEventListener('click',function(){st.theme=THEMES[(THEMES.indexOf(st.theme)+1)%3];st.choisi=true;apply();save();});
+    try{window.addEventListener('storage',function(e){if(e.key==='omega_theme'&&!st.choisi){st.theme=_themeSite();apply();}});if(mq.addEventListener)mq.addEventListener('change',function(){if(st.theme==='auto')apply();});}catch(e){}
     var bc=$('vdc-cb');if(bc)bc.addEventListener('click',function(){st.cb=!st.cb;apply();save();});
     var bl=$('vdc-lis');if(bl)bl.addEventListener('click',function(){st.lis=!st.lis;if(st.lis&&window.OmegaDysSite)window.OmegaDysSite();apply();save();});
     /* ===== LECTURE READ-ALONG (2026-08-13) — se corriger par l'OREILLE : le dys entend

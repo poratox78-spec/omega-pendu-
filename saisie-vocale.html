@@ -46,6 +46,7 @@
   .acts button{font:inherit;font-weight:700;border:0;border-radius:9px;padding:9px 15px;cursor:pointer}
   #fixall{background:#1f7a3d;color:#fff}#fixall:disabled{background:#5c6b60;cursor:default}
   #copy{background:var(--accent);color:#08222f}#copy.ok{background:#1f7a3d;color:#fff}
+  :root[data-theme="light"] #copy:not(.ok){color:#fff}   /* refonte (lot 3) : texte foncé sur l'accent foncé du thème clair = 2,5 de contraste ; blanc = 6,6 */
   #diag.ok{background:#1f7a3d;color:#fff}
   #count{color:var(--fg-2);font-size:.92em}
   .corr{display:flex;flex-direction:column;gap:5px;margin-top:6px}
@@ -73,6 +74,7 @@
   </nav>
 </div></header>
 <main class="sv">
+  <nav class="fil" aria-label="Fil d'Ariane"><a href="./">Accueil</a><span aria-hidden="true">›</span><span>Outils dys</span><span aria-hidden="true">›</span><span aria-current="page">Saisie vocale</span></nav>
   <div class="vbar">
     <button id="mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
     <label class="cfg"><input type="checkbox" id="von"> Activer la dictée vocale</label>

@@ -42,6 +42,7 @@
     border-radius:10px;background:var(--bg);color:var(--fg)}
   .row button{font:600 15px var(--sans);border:0;border-radius:10px;padding:11px 17px;cursor:pointer}
   #go{background:var(--accent);color:#fff}
+  :root:not([data-theme="light"]) .lvls button[aria-pressed=true],:root:not([data-theme="light"]) #go{color:#0b1020}   /* refonte (lot 3) : blanc sur l'accent clair du thème sombre = 3,2 ; foncé = 6,4 */
   .ghost{background:var(--bg);color:var(--fg-2);border:1px solid var(--line)!important}
   .say{margin:15px 0 0;font:15.5px/1.6 var(--sans);min-height:1.6em}
   .say.win{color:#1f9d55;font-weight:700}
@@ -73,6 +74,7 @@
   </nav>
 </div></header>
 <main class="ds">
+  <nav class="fil" aria-label="Fil d'Ariane"><a href="./">Accueil</a><span aria-hidden="true">›</span><span>Jeux</span><span aria-hidden="true">›</span><span aria-current="page">Double-Sens</span></nav>
   <h1>Double-Sens</h1>
   <p class="ds-intro">Une définition, le nombre de lettres. Tu écris le mot.
   <b>Si tu connais le mot mais pas son orthographe, tu as quand même trouvé</b> — le jeu te montre
