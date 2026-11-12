@@ -943,7 +943,12 @@
 "Elle s'est souvenue de tout.",
 "Les enfants se sont amusés dehors.",
 "Le guide m'a interrompue hier.",
-"Elle a dû la somme hier."
+"Elle a dû la somme hier.",
+"Ne nous quittez pas si vite.",
+"Ne nous laissez pas seuls.",
+"Il a plus à perdre que toi.",
+"La tarte fait plaisir à tout le monde.",
+"Le gâteau fait maison est bon."
 ],
 "elide": [
 [
@@ -3935,6 +3940,31 @@
 "Ils se sont moqué de lui.",
 "moqué",
 "moqués"
+],
+[
+"Vous nous le diront ce soir.",
+"diront",
+"direz"
+],
+[
+"Le colis vient d'arrivé.",
+"d'arrivé",
+"d'arriver"
+],
+[
+"Ce cadeau lui a vraiment plus.",
+"plus",
+"plu"
+],
+[
+"Les tables et les chaises sont prêté par la mairie.",
+"prêté",
+"prêtées"
+],
+[
+"Les confitures fait par ma tante sont bonnes.",
+"fait",
+"faites"
 ]
 ],
 "palier": [
@@ -4342,6 +4372,16 @@
 "Les volets peint sont tout neufs.",
 "peint",
 "vigilance"
+],
+[
+"Nous vous répondront demain.",
+"répondront",
+"auto"
+],
+[
+"Que nous veulent ces gens ?",
+"veulent",
+"vigilance"
 ]
 ],
 "vig": [
@@ -4569,6 +4609,16 @@
 "C'est la plui belle de toutes.",
 "plui",
 "plus"
+],
+[
+"Nous lireront ce livre.",
+"lireront",
+"lirons"
+],
+[
+"Nous y allerons demain.",
+"allerons",
+"irons"
 ]
 ],
 "a_participe": [
