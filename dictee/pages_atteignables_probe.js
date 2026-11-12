@@ -32,6 +32,7 @@ const _HORS_NAV = {
   'omega-pendu-en.html': "idem, version anglaise",
   'deformateur-voix-confidentialite.html': "politique de confidentialité de l'extension Chrome « Déformateur de voix » (autre produit du même auteur) : son adresse est donnée au Chrome Web Store, elle ne se lie pas depuis le site (noindex, hors sitemap) ; porte la nav complète pour repartir",
   'deformateur-voix-mode-emploi.html': "mode d'emploi de l'extension Chrome « Déformateur de voix » (autre produit du même auteur, FR puis EN) : on y arrive par l'Aide du panneau de l'extension et par la fiche du Chrome Web Store, elle ne se lie pas depuis le site (noindex, hors sitemap) ; porte la nav complète pour repartir",
+  'book-26jpchdug6y2.html': "book (portfolio) de l'auteur du site : on n'y arrive que par le lien à clé donné dans son CV et ses lettres de candidature, il ne se lie pas depuis le site (noindex, nofollow, hors sitemap) ; porte un lien de retour vers l'accueil",
   'deformateur-menu-twitch.html': "confidentialité et conditions de l'extension Twitch « Menu du stream » (Déformateur de voix, autre produit du même auteur) : Twitch en exige les adresses, elle ne se lie pas depuis le site (noindex, hors sitemap) ; porte la nav complète pour repartir",
 };
 /* Pages-OUTIL sans <nav> assumée : plein écran, on en sort par le bouton retour de la page. */
