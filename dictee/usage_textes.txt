@@ -613,3 +613,11 @@ Pour notre rencontre suivante, nous {lireront|lirons|C} un recueil de nouvelles.
 La rencontre aura lieu le jeudi 3 décembre {a|à|G} dix-huit heures, dans la salle du premier étage.
 {amicalement|Amicalement|P},
 Hélène, pour le club
+=== T102 message d'une amicale de quartier
+Bonjour à tous,
+Le repas de quartier aura lieu dimanche dans le square, à partir de midi. Chacun apporte un plat ou une boisson.
+Vous nous {diront|direz|C} avant jeudi ce que vous comptez apporter, pour éviter dix desserts !
+Les tables et les chaises sont {prêté|prêtées|G} par la mairie. Ne nous oubliez pas si vous avez des tréteaux en trop.
+Nous vous {attendront|attendrons|C} nombreux, même s'il pleut : le préau est à deux pas.
+À dimanche,
+L'amicale des Tilleuls
