@@ -2751,7 +2751,8 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
      ponctuation ; il doit avoir la personne du nom (3e, même nombre). Nom des deux genres (un crêpe, une crêpe) : le déterminant
      singulier décide, sinon le masculin. */
   var _PPT487={__proto__:null};'fait refait defait satisfait dit redit ecrit decrit inscrit prescrit conduit produit construit reconstruit cuit detruit traduit reduit introduit seduit peint repeint teint eteint atteint joint rejoint plaint craint contraint'.split(' ').forEach(function(w){_PPT487[w]=1;});
-  function _ppEpi487(T,i){var d=deacc(String(T[i]).toLowerCase());if(!_PPT487[d]||i<1||T[i]!==T[i].toLowerCase())return null;var tg=posTags(T);if(!tg||tg[i-1]!=='NOUN')return null;if(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])return null;
+  var _PPT487N={__proto__:null,produit:1};   // aussi un nom très courant après un autre nom (« les pages produit restent ») : participe seulement devant une préposition (« les voitures produit en France »)
+  function _ppEpi487(T,i){var d=deacc(String(T[i]).toLowerCase());if(!_PPT487[d]||i<1||T[i]!==T[i].toLowerCase())return null;if(_PPT487N[d]&&!(i+1<T.length&&/^(par|en|a|au|aux|dans|pour|chez|depuis|sur|sous|avec)$/.test(deacc(T[i+1].toLowerCase()))))return null;var tg=posTags(T);if(!tg||tg[i-1]!=='NOUN')return null;if(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     var dn=deacc(T[i-1].toLowerCase()),pl=/[sx]$/.test(dn)?'p':'s',vu=false;
     for(var k=i+1;k<T.length&&k<=i+6;k++){if(_SEG&&_SEG.bb&&k<_SEG.bb.length&&_SEG.bb[k])return null;var dk=deacc(T[k].toLowerCase());if(/^(et|ou|mais|qui|que|qu|dont|ni|car)$/.test(dk))return null;
       if((tg[k]==='VERB'||tg[k]==='AUX')&&svReads(T[k]).some(function(x){return x[2]==='3'&&x[3]===pl&&x[1].indexOf('ind')===0;})){vu=true;break;}}
