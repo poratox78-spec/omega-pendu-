@@ -11,8 +11,8 @@
   "grammaire": {
    "total": 279,
    "bon": 259,
-   "rouge juste": 106,
-   "orange juste": 153,
+   "rouge juste": 107,
+   "orange juste": 152,
    "mauvais mot": 0,
    "muette": 20
   },
@@ -26,11 +26,11 @@
   },
   "conjugaison": {
    "total": 326,
-   "bon": 308,
+   "bon": 309,
    "rouge juste": 152,
-   "orange juste": 156,
+   "orange juste": 157,
    "mauvais mot": 5,
-   "muette": 13
+   "muette": 12
   },
   "orthographe": {
    "total": 172,
@@ -756,7 +756,7 @@
   "T46#1": "rouge juste",
   "T46#2": "rouge juste",
   "T46#3": "orange juste",
-  "T46#4": "orange juste",
+  "T46#4": "rouge juste",
   "T46#5": "rouge juste",
   "T46#6": "orange juste",
   "T46#7": "orange juste",
@@ -1097,7 +1097,7 @@
   "T100#5": "muette",
   "T100#6": "orange juste",
   "T100#7": "muette",
-  "T100#8": "muette",
+  "T100#8": "orange juste",
   "T101#0": "rouge juste",
   "T101#1": "orange juste",
   "T101#2": "rouge juste",

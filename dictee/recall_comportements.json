@@ -958,7 +958,11 @@
 "J'aime lire, dessiner et chanter.",
 "Ils ont su, avec le temps, garder leurs clients.",
 "Si le moteur est réparé, en cas de panne, changer une pièce reste long.",
-"Elle avait lu la lettre et choisit de répondre."
+"Elle avait lu la lettre et choisit de répondre.",
+"Il a quitté la salle furieux.",
+"Ils ont fini la journée seuls.",
+"Elle a fait ses devoirs seule.",
+"Les photos produit sont belles."
 ],
 "elide": [
 [
@@ -4000,6 +4004,31 @@
 "Ils ont répartit les rôles.",
 "répartit",
 "réparti"
+],
+[
+"Je suis sur Linkedin.",
+"Linkedin",
+"LinkedIn"
+],
+[
+"Il a un Iphone.",
+"Iphone",
+"iPhone"
+],
+[
+"Nos campagnes Google ads marchent.",
+"ads",
+"Ads"
+],
+[
+"Laissez un avis nous vous rappelleront.",
+"rappelleront",
+"rappellerons"
+],
+[
+"Des missions clients et commerciaux.",
+"commerciaux",
+"commerciales"
 ]
 ],
 "palier": [
@@ -4426,6 +4455,26 @@
 [
 "Il a rangé le bureau, trier les papiers et classer les dossiers.",
 "trier",
+"vigilance"
+],
+[
+"Voici un vendeur de la région parisien.",
+"parisien",
+"vigilance"
+],
+[
+"Il a mis sa veste noir.",
+"noir",
+"auto"
+],
+[
+"Laissez un avis nous vous rappelleront.",
+"rappelleront",
+"vigilance"
+],
+[
+"Des missions clients et commerciaux.",
+"commerciaux",
 "vigilance"
 ]
 ],
