@@ -32195,7 +32195,7 @@ function spellUnknown(tok,atStart,T,idx){
        du gold (accents rendus : persécutions, médiéval, alcaloïdes…), 1 seule perd (« echarpes » → écharpes, le gold met le singulier) ;
        UD 14 450 : aucune marque changée. Miroir Python spell_unknown. */
     if(low===d){var _ao=null,_aof=-1;for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w)===d&&(spF(w)||0)>_aof){_ao=w;_aof=spF(w)||0;}}
-      if(_ao&&best!==_ao){var _dom=false;for(i=0;i<arr.length;i++){w=arr[i];var _dw=deaccS(w);if(_dw!==d&&sEd1(d,_dw)&&(spF(w)||0)>=20*_aof){_dom=true;break;}}if(!_dom)best=_ao;}}   // clé : audibilité d'abord (si saisie audible), puis fréquence
+      if(_ao&&best!==_ao){var _dom=false;for(i=0;i<arr.length;i++){w=arr[i];var _dw=deaccS(w);if(_dw!==d&&sEd1(d,_dw)&&!(/[sx]$/.test(d)&&_dw===d.slice(0,-1))&&(spF(w)||0)>=20*_aof){_dom=true;break;}/* liste n° 503 : un rival qui enlève seulement la marque du pluriel écrite ne passe pas devant l'accent seul (« interieurs » : intérieurs, pas intérieur) */}if(!_dom)best=_ao;}}   // clé : audibilité d'abord (si saisie audible), puis fréquence
     if(best)best=_suFlex(best,arr,_pkU,T,idx);   // ⭐ 04/10/2026 : la FORME s'accorde au mot d'avant (nombre du déterminant, personne du sujet) — miroir Python _su_flex
     if(best&&T&&idx!=null&&idx+1<T.length){                              // DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — même règle que le noyau, pour la voie best-effort
       var _dp2={__proto__:null,un:'une',une:'un',le:'la',la:'le',ce:'cette',cette:'ce',cet:'cette'}[deaccS(best)];
