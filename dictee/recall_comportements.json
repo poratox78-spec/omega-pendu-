@@ -962,7 +962,10 @@
 "Il a quitté la salle furieux.",
 "Ils ont fini la journée seuls.",
 "Elle a fait ses devoirs seule.",
-"Les photos produit sont belles."
+"Les photos produit sont belles.",
+"Ces centres commerciaux ferment tôt.",
+"Des peuples voisins se parlent.",
+"Les murs anciens entourent la cour."
 ],
 "elide": [
 [
@@ -4039,6 +4042,11 @@
 "Les ennemis interieurs sont nombreux.",
 "interieurs",
 "intérieurs"
+],
+[
+"Une cagoule épais couvre sa tête.",
+"épais",
+"épaisse"
 ]
 ],
 "palier": [
@@ -4486,6 +4494,11 @@
 "Des missions clients et commerciaux.",
 "commerciaux",
 "vigilance"
+],
+[
+"Des murs ancien entourent la cour.",
+"ancien",
+"auto"
 ]
 ],
 "vig": [
