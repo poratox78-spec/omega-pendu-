@@ -948,7 +948,17 @@
 "Ne nous laissez pas seuls.",
 "Il a plus à perdre que toi.",
 "La tarte fait plaisir à tout le monde.",
-"Le gâteau fait maison est bon."
+"Le gâteau fait maison est bon.",
+"Elle a réparti les rôles entre les élèves.",
+"Nous avons réparti les rôles.",
+"Il a beau configurer le routeur, rien ne marche.",
+"Nous avons à configurer le routeur.",
+"Il a voulu partir et revenir.",
+"Nous avons appris à nager et plonger.",
+"J'aime lire, dessiner et chanter.",
+"Ils ont su, avec le temps, garder leurs clients.",
+"Si le moteur est réparé, en cas de panne, changer une pièce reste long.",
+"Elle avait lu la lettre et choisit de répondre."
 ],
 "elide": [
 [
@@ -3965,6 +3975,31 @@
 "Les confitures fait par ma tante sont bonnes.",
 "fait",
 "faites"
+],
+[
+"Nous avons configurer le routeur.",
+"configurer",
+"configuré"
+],
+[
+"Les dossiers sont synchroniser.",
+"synchroniser",
+"synchronisés"
+],
+[
+"Il a rangé le bureau, trier les papiers et classer les dossiers.",
+"classer",
+"classé"
+],
+[
+"Elles sont allées en ville et rentrer à pied.",
+"rentrer",
+"rentrées"
+],
+[
+"Ils ont répartit les rôles.",
+"répartit",
+"réparti"
 ]
 ],
 "palier": [
@@ -4381,6 +4416,16 @@
 [
 "Que nous veulent ces gens ?",
 "veulent",
+"vigilance"
+],
+[
+"Nous avons configurer le routeur.",
+"configurer",
+"auto"
+],
+[
+"Il a rangé le bureau, trier les papiers et classer les dossiers.",
+"trier",
 "vigilance"
 ]
 ],
