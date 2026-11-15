@@ -252,7 +252,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | accord du verbe au sujet nominal à vérifier | 1 | orange | accord | — | correcteur_probe.py |
 | accord genre à vérifier | 2 | orange | accord | — | — |
 | accord participe (pronom complément) | 1 | selon la couche | participe | — | — |
-| accord participe à vérifier | 6 | orange | participe | — | — |
+| accord participe à vérifier | 7 | orange | participe | — | — |
 | accord participe épithète | 1 | selon la couche | participe | — | correcteur_probe.py |
 | accord pluriel à vérifier | 3 | orange | accord | — | — |
 | accord sujet-verbe à vérifier | 2 | orange | accord | — | — |

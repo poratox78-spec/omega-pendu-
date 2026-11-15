@@ -992,7 +992,9 @@
 "Une maison voisine brûle.",
 "Une femme élue parle.",
 "Elle parle fort.",
-"Une table basse trône au salon."
+"Une table basse trône au salon.",
+"Il sent bon.",
+"Il a été mangé par un loup."
 ],
 "elide": [
 [
@@ -4655,6 +4657,46 @@
 [
 "Aucune des portes ne ferment.",
 "ferment",
+"vigilance"
+],
+[
+"Quel belle journée !",
+"Quel",
+"auto"
+],
+[
+"Quel beau journée !",
+"Quel",
+"vigilance"
+],
+[
+"Il sent va demain.",
+"sent",
+"vigilance"
+],
+[
+"Ils sent vont.",
+"sent",
+"vigilance"
+],
+[
+"Il a été manger au restaurant.",
+"manger",
+"vigilance"
+],
+[
+"Il a été tuer par un loup.",
+"tuer",
+"auto"
+],
+[
+"Il a été blesser.",
+"blesser",
+"auto"
+],
+[
+"C'est livres sont à moi.",
+"C'est",
 "vigilance"
 ]
 ],
