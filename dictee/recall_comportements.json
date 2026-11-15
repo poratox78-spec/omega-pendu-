@@ -994,7 +994,9 @@
 "Elle parle fort.",
 "Une table basse trône au salon.",
 "Il sent bon.",
-"Il a été mangé par un loup."
+"Il a été mangé par un loup.",
+"Ils croient tout.",
+"Ils font du bruit."
 ],
 "elide": [
 [
@@ -4156,6 +4158,41 @@
 "Une eau clair coule.",
 "clair",
 "claire"
+],
+[
+"Ils croivent tout.",
+"croivent",
+"croient"
+],
+[
+"Ils voyent tout.",
+"voyent",
+"voient"
+],
+[
+"Ils faisent du bruit.",
+"faisent",
+"font"
+],
+[
+"Ils allent au parc.",
+"allent",
+"vont"
+],
+[
+"Elles pouvent venir.",
+"pouvent",
+"peuvent"
+],
+[
+"Ils ne voulent pas.",
+"voulent",
+"veulent"
+],
+[
+"Ce qu'ils faisent est beau.",
+"faisent",
+"font"
 ]
 ],
 "palier": [
