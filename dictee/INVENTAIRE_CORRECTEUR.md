@@ -247,7 +247,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | nom | occurrences | palier | famille du conseil | dans la chaîne Python | Python |
 |---|---|---|---|---|---|
 | abréviation | 1 | selon la couche | style (sans conseil) | — | — |
-| accord adjectif à vérifier | 2 | orange | accord | — | — |
+| accord adjectif à vérifier | 3 | orange | accord | — | — |
 | accord du participe après avoir à vérifier | 1 | orange | participe | — | correcteur_probe.py |
 | accord du verbe au sujet nominal à vérifier | 1 | orange | accord | — | correcteur_probe.py |
 | accord genre à vérifier | 2 | orange | accord | — | — |

@@ -974,7 +974,14 @@
 "Des fleurs rose bonbon poussent.",
 "Des chaussures noir verni brillent.",
 "Une équipe soudée gagne.",
-"La place libre attend."
+"La place libre attend.",
+"Une femme médecin soigne.",
+"Une pause café commence.",
+"Une fois arrivé, il dort.",
+"Une femme fort aimée sourit.",
+"Une danseuse étoile danse.",
+"Une version standard existe.",
+"Une ville fantôme dort."
 ],
 "elide": [
 [
@@ -4066,6 +4073,36 @@
 "Une tasse blanc est posée.",
 "blanc",
 "blanche"
+],
+[
+"Des fleurs violet poussent au jardin.",
+"violet",
+"violettes"
+],
+[
+"Une image flou apparaît.",
+"flou",
+"floue"
+],
+[
+"Une soupe chaud attend sur la table.",
+"chaud",
+"chaude"
+],
+[
+"Une voix doux chante.",
+"doux",
+"douce"
+],
+[
+"Une croix blanc brille.",
+"blanc",
+"blanche"
+],
+[
+"Une cliente mécontent appelle.",
+"mécontent",
+"mécontente"
 ]
 ],
 "palier": [
@@ -4527,6 +4564,26 @@
 [
 "Une classe bruyant travaille.",
 "bruyant",
+"auto"
+],
+[
+"Elle tape la balle fort.",
+"fort",
+"vigilance"
+],
+[
+"Il a payé la maison cher.",
+"cher",
+"vigilance"
+],
+[
+"La robe cher plaît.",
+"cher",
+"auto"
+],
+[
+"Des routes glissant mènent au village.",
+"glissant",
 "auto"
 ]
 ],
