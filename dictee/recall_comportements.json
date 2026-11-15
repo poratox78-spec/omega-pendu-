@@ -996,7 +996,11 @@
 "Il sent bon.",
 "Il a été mangé par un loup.",
 "Ils croient tout.",
-"Ils font du bruit."
+"Ils font du bruit.",
+"Parles-en à ta mère.",
+"Tu parles plus fort.",
+"Pommes bien mûres à vendre.",
+"Elles se sont demandé si tu venais."
 ],
 "elide": [
 [
@@ -4193,6 +4197,16 @@
 "Ce qu'ils faisent est beau.",
 "faisent",
 "font"
+],
+[
+"Elles se sont demandées si tu venais.",
+"demandées",
+"demandé"
+],
+[
+"Ils se sont demandés si tu venais.",
+"demandés",
+"demandé"
 ]
 ],
 "palier": [
@@ -4734,6 +4748,16 @@
 [
 "C'est livres sont à moi.",
 "C'est",
+"vigilance"
+],
+[
+"Parles plus fort !",
+"Parles",
+"vigilance"
+],
+[
+"Chantes bien !",
+"Chantes",
 "vigilance"
 ]
 ],
