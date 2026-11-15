@@ -2746,6 +2746,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     var sr2=svReads(sugg),ok2=false;for(k=0;k<sr2.length;k++)if(sr2[k][2]==='3'&&(sr2[k][3]==='s'||sr2[k][3]==='x'))ok2=true;if(!ok2)return null;return sugg;}
   // accord sujet-VERBE à sujet PRONOM/QUANTIFIEUR indéfini — MIROIR correcteur_probe.rule_accord_sv_quant, FP=0
   var _QP_SG={__proto__:null};'chacun chacune quiconque personne rien aucun aucune nul nulle'.split(' ').forEach(function(w){_QP_SG[w]=1;});_QP_SG["quelqu'un"]=1;
+  var _on514=false;function _distrib514(T,i){for(var j=i-1;j>=0&&j>=i-8;j--){if(_DISTRIB_AMBIG[deacc(T[j].toLowerCase())]&&j+1<i){var n=T[j+1].toLowerCase();if(!(n==='de'||n==='des'||/^d['’]/.test(n)))return false;for(var k=j+1;k<i;k++){var dk=deacc(T[k].toLowerCase());if(/^(qui|que|dont|ou|lequel|laquelle|lesquels|lesquelles)$/.test(dk)||/^qu['’]/.test(dk))return false;}return true;}}return false;}   /* liste n° 514 : « chacun / aucun / nul de(s) + nom » suivi d'un verbe au pluriel → orange au singulier (rAccordSVquant appelé sans son abstention) */
   var _DISTRIB_AMBIG={__proto__:null};'chacun chacune aucun aucune nul nulle'.split(' ').forEach(function(w){_DISTRIB_AMBIG[w]=1;});  // tolérance sing/plur « chacun/aucun/nul de(s)/d' + pluriel » (Grévisse) → abstention. PAS personne/rien (strict sing)
   var _QP_PL={__proto__:null};'certains certaines plusieurs tous toutes'.split(' ').forEach(function(w){_QP_PL[w]=1;});
   var _QP_DE_PL={__proto__:null};'plupart beaucoup peu bien tas tant nombre'.split(' ').forEach(function(w){_QP_DE_PL[w]=1;});
@@ -2767,7 +2768,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var q=deacc(T[lo].toLowerCase()),nxt=(lo+1<T.length)?deacc(T[lo+1].toLowerCase()):'',qend=lo,nb;
-    if(_DISTRIB_AMBIG[q]&&(nxt==='de'||nxt==='des'||(lo+1<T.length&&/^d['’]/.test(T[lo+1].toLowerCase()))))return null;   // « chacun/aucun/nul de(s)/d' + pluriel » : sing OU plur admis → abstention (FP=0)
+    if(!_on514&&_DISTRIB_AMBIG[q]&&(nxt==='de'||nxt==='des'||(lo+1<T.length&&/^d['’]/.test(T[lo+1].toLowerCase()))))return null;   // « chacun/aucun/nul de(s)/d' + pluriel » : sing OU plur admis → abstention (FP=0)
     if(_QP_SG[q])nb='s';
     else if(_QP_PL[q])nb='p';
     else if(_QP_DE_PL[q]){if(nxt==='de'||nxt==='des'||nxt==='d'||(lo+1<T.length&&T[lo+1].toLowerCase().indexOf("'")>=0&&nxt.charAt(0)==='d')){var _nq324=T[lo+1].indexOf("'")>=0?T[lo+1]:(lo+2<T.length?T[lo+2]:'');if(nxt==='de'&&lo+3===i&&!/[sx]$/.test(_nq324.toLowerCase()))return null;nb='p';}else return null;}   /* ⭐ 31/10/2026 (liste n° 324) : « beaucoup de monde vient », « peu de chose change » : nom au singulier, verbe au singulier */
@@ -7819,6 +7820,7 @@ function spellUnknown(tok,atStart,T,idx){
     {var dp=dePp448(T,i);if(dp){return {i:i,word:T[i],sugg:dp,name:'terminaison -er/-é/-ez/-ai',tier:'vigilance'};}}   // liste n° 448 : « N'oublie pas de passé nous voir » → passer ?   // listes n° 260-262
     {var _ea=rEpithAdv280(T,i);if(_ea){return {i:i,word:T[i],sugg:_ea,name:'accord adjectif à vérifier',tier:'vigilance'};}}   // liste n° 280
     {if(_tg===null)_tg=st.tg=posTags(T)||[];if(_advVerbe512(T,i,_tg)){_on512=true;var _a512;try{_a512=rAdjEpithet(T,i);}finally{_on512=false;}if(_a512)return {i:i,word:T[i],sugg:_a512,name:'accord adjectif à vérifier',tier:'vigilance'};}}   // liste n° 512
+    {if(_distrib514(T,i)){var _T514=T,_p514='',_m514=/^([nmtlsNMTLS]['’])([a-zà-ÿ]+)$/.exec(T[i]);if(_m514){_T514=T.slice();_T514[i]=_m514[2];_p514=_m514[1];}_on514=true;var _a514;try{_a514=rAccordSVquant(_T514,i);}finally{_on514=false;}if(_a514)return {i:i,word:T[i],sugg:_p514+ckeepcase(_T514[i],_a514),name:'accord sujet-verbe à vérifier',tier:'vigilance',nde:1};}}   // liste n° 514 (nde, comme la 344 : le juge lit le nom collé au verbe, pas « chacun »)
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var _nd=rNdeN344(T,_tg,i);if(_nd){return {i:i,word:T[i],sugg:_nd.sugg,name:_nd.pp?'accord participe à vérifier':'accord adjectif à vérifier',tier:'vigilance',nde:_nd.direct?0:1};}}   // liste n° 344 : après « nom de nom » ; nde : faux à coup sûr, l'arbitre du juge ne le tait pas
     {var _ab=rAbsolu295(T,i);if(_ab){return {i:i,word:T[i],sugg:_ab.sugg,name:'accord participe à vérifier',tier:'vigilance'};}var _ci=rCouleurInv295(T,i);if(_ci){return {i:i,word:T[i],sugg:_ci.sugg,name:'accord pluriel à vérifier',tier:'vigilance'};}}   // liste n° 295   // ⭐ 12/10/2026 (conjugaison 9) : « elles se sont levé » → levées ?
     {var _m185=_meteo185(T,i);if(_m185){return {i:i,word:T[i],sugg:_m185,name:'homophone à vérifier',tier:'vigilance'};}}   // ⭐ 27/10/2026 (liste n° 185) : « il fait chaut » → chaud ? (orange) — avant l'infinitif, qui proposait « chaloir »
