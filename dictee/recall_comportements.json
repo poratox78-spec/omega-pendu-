@@ -1000,7 +1000,10 @@
 "Parles-en à ta mère.",
 "Tu parles plus fort.",
 "Pommes bien mûres à vendre.",
-"Elles se sont demandé si tu venais."
+"Elles se sont demandé si tu venais.",
+"Ils mon fils.",
+"Le ny est une lettre.",
+"Ta sœur est là."
 ],
 "elide": [
 [
@@ -4207,6 +4210,36 @@
 "Ils se sont demandés si tu venais.",
 "demandés",
 "demandé"
+],
+[
+"Il men a donné.",
+"men",
+"m'en"
+],
+[
+"Il ten parle.",
+"ten",
+"t'en"
+],
+[
+"Il ny a personne.",
+"ny",
+"n'y"
+],
+[
+"Elle sy trouve bien.",
+"sy",
+"s'y"
+],
+[
+"Ils mon appelé.",
+"mon",
+"m'ont"
+],
+[
+"Elles ton cru.",
+"ton",
+"t'ont"
 ]
 ],
 "palier": [
