@@ -255,7 +255,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | accord participe à vérifier | 6 | orange | participe | — | — |
 | accord participe épithète | 1 | selon la couche | participe | — | correcteur_probe.py |
 | accord pluriel à vérifier | 3 | orange | accord | — | — |
-| accord sujet-verbe à vérifier | 1 | orange | accord | — | — |
+| accord sujet-verbe à vérifier | 2 | orange | accord | — | — |
 | accord verbe à vérifier | 2 | orange | accord | — | — |
 | anglicisme | 2 | selon la couche | style (sans conseil) | — | — |
 | auxiliaire manquant à vérifier | 1 | orange | participe | — | correcteur_probe.py |

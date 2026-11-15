@@ -981,7 +981,12 @@
 "Une femme fort aimée sourit.",
 "Une danseuse étoile danse.",
 "Une version standard existe.",
-"Une ville fantôme dort."
+"Une ville fantôme dort.",
+"Chacun des élèves a un livre.",
+"Chacun des élèves qui ont fini sort.",
+"Les élèves de chacun des groupes ont fini.",
+"Plusieurs des élèves ont compris.",
+"Dans chacune des classes, les élèves travaillent."
 ],
 "elide": [
 [
@@ -4585,6 +4590,26 @@
 "Des routes glissant mènent au village.",
 "glissant",
 "auto"
+],
+[
+"Chacun des élèves ont un livre.",
+"ont",
+"vigilance"
+],
+[
+"Aucun des élèves n'ont compris.",
+"n'ont",
+"vigilance"
+],
+[
+"Chacun d'eux veulent partir.",
+"veulent",
+"vigilance"
+],
+[
+"Aucune des portes ne ferment.",
+"ferment",
+"vigilance"
 ]
 ],
 "vig": [
