@@ -1003,7 +1003,10 @@
 "Elles se sont demandé si tu venais.",
 "Ils mon fils.",
 "Le ny est une lettre.",
-"Ta sœur est là."
+"Ta sœur est là.",
+"Le cote droit.",
+"Le cote gauche.",
+"La cote droite."
 ],
 "elide": [
 [
@@ -4240,6 +4243,16 @@
 "Elles ton cru.",
 "ton",
 "t'ont"
+],
+[
+"Le mere gentil.",
+"gentil",
+"gentille"
+],
+[
+"Une tache noir.",
+"noir",
+"noire"
 ]
 ],
 "palier": [
