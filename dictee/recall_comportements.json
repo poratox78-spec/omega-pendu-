@@ -965,7 +965,16 @@
 "Les photos produit sont belles.",
 "Ces centres commerciaux ferment tôt.",
 "Des peuples voisins se parlent.",
-"Les murs anciens entourent la cour."
+"Les murs anciens entourent la cour.",
+"Des robes bleu marine sèchent au soleil.",
+"Des yeux bleu nuit brillent.",
+"Les volets vert foncé ferment mal.",
+"Des tuiles rouge vif tombent du toit.",
+"Des feuilles jaune citron tombent.",
+"Des fleurs rose bonbon poussent.",
+"Des chaussures noir verni brillent.",
+"Une équipe soudée gagne.",
+"La place libre attend."
 ],
 "elide": [
 [
@@ -4047,6 +4056,16 @@
 "Une cagoule épais couvre sa tête.",
 "épais",
 "épaisse"
+],
+[
+"Une lampe vert éclaire la table.",
+"vert",
+"verte"
+],
+[
+"Une tasse blanc est posée.",
+"blanc",
+"blanche"
 ]
 ],
 "palier": [
@@ -4498,6 +4517,16 @@
 [
 "Des murs ancien entourent la cour.",
 "ancien",
+"auto"
+],
+[
+"Des chaussettes gris traînent partout.",
+"gris",
+"auto"
+],
+[
+"Une classe bruyant travaille.",
+"bruyant",
 "auto"
 ]
 ],
