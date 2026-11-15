@@ -986,7 +986,13 @@
 "Chacun des élèves qui ont fini sort.",
 "Les élèves de chacun des groupes ont fini.",
 "Plusieurs des élèves ont compris.",
-"Dans chacune des classes, les élèves travaillent."
+"Dans chacune des classes, les élèves travaillent.",
+"Une maison haut perchée domine la vallée.",
+"Une soucoupe volante passe.",
+"Une maison voisine brûle.",
+"Une femme élue parle.",
+"Elle parle fort.",
+"Une table basse trône au salon."
 ],
 "elide": [
 [
@@ -4108,6 +4114,46 @@
 "Une cliente mécontent appelle.",
 "mécontent",
 "mécontente"
+],
+[
+"Une table rond trône au salon.",
+"rond",
+"ronde"
+],
+[
+"Une route droit mène au village.",
+"droit",
+"droite"
+],
+[
+"Une fille sourd arrive.",
+"sourd",
+"sourde"
+],
+[
+"Une assiette plat attend.",
+"plat",
+"plate"
+],
+[
+"Une pâte mou colle.",
+"mou",
+"molle"
+],
+[
+"Une pomme mûr tombe.",
+"mûr",
+"mûre"
+],
+[
+"Une voix fort résonne.",
+"fort",
+"forte"
+],
+[
+"Une eau clair coule.",
+"clair",
+"claire"
 ]
 ],
 "palier": [
