@@ -12,7 +12,7 @@
      suit le panneau et son Aide — si le panneau change, cette page change avec lui. -->
 <meta name="robots" content="noindex">
 <link rel="canonical" href="https://omegapendu.com/deformateur-voix-mode-emploi">
-<meta name="description" content="Mode d'emploi de l'extension Chrome Déformateur de voix : personnages, effets, sons, appareils, VB-CABLE, Game Mélodie, manette, Stream Deck volant, enregistrement.">
+<meta name="description" content="Mode d'emploi de l'extension Chrome Déformateur de voix : personnages, effets, sons, appareils, VB-CABLE, Game Mélodie (thèmes, ocarina, clavier), manette, Stream Deck volant, enregistrement.">
 <link rel="stylesheet" href="site.css">
 <meta name="theme-color" content="#0d1117">
 <link rel="icon" href="favicon.ico" sizes="any">
@@ -58,7 +58,7 @@ table.touches td:first-child{white-space:nowrap;font-weight:600;width:1%}
   <nav class="fil" aria-label="Fil d'Ariane"><a href="./">Accueil</a><span aria-hidden="true">›</span><span>Autres projets</span><span aria-hidden="true">›</span><span aria-current="page">Déformateur de voix</span></nav>
 
 <h1>Déformateur de voix — mode d'emploi de l'extension Chrome</h1>
-<p class="date">Version 0.6.0 de l'extension · 6 novembre 2026 · <a href="#en" lang="en">English version ↓</a></p>
+<p class="date">Version 0.6.1 de l'extension · 15 novembre 2026 · <a href="#en" lang="en">English version ↓</a></p>
 <p>L'extension change ta voix en direct dans les sites ouverts dans Chrome : appels en ligne (Meet, Discord sur le web,
 Teams…), jeux du navigateur, enregistrements. Tout se règle dans le panneau latéral de Chrome. Ta voix est transformée sur
 ton ordinateur : rien ne part sur Internet (<a href="deformateur-voix-confidentialite">confidentialité</a>).</p>
@@ -74,7 +74,7 @@ ton ordinateur : rien ne part sur Internet (<a href="deformateur-voix-confidenti
   <li><a href="#appareils">Tes appareils</a></li>
   <li><a href="#cable">Discord installé, OBS, un jeu : VB-CABLE</a></li>
   <li><a href="#sons">Les sons</a></li>
-  <li><a href="#game-melodie">Game Mélodie</a></li>
+  <li><a href="#game-melodie">Game Mélodie, l'ocarina, le clavier</a></li>
   <li><a href="#manette">La manette et ses touches</a></li>
   <li><a href="#stream-deck">Le Stream Deck volant</a></li>
   <li><a href="#enregistrer">Enregistrer ta voix</a></li>
@@ -88,7 +88,8 @@ ton ordinateur : rien ne part sur Internet (<a href="deformateur-voix-confidenti
     ça siffle, et les gens de l'appel t'entendent en écho.</li>
   <li>Chrome sur un ordinateur, et un micro.</li>
   <li>Pour Discord installé, OBS ou un jeu installé : le câble virtuel gratuit VB-CABLE (<a href="#cable">plus bas</a>).</li>
-  <li>Pour Game Mélodie : Windows. Sa banque d'instruments (gm.dls) est déjà sur ton PC.</li>
+  <li>Pour les thèmes de Game Mélodie : Windows. Sa banque d'instruments (gm.dls) est déjà sur ton PC. L'ocarina s'en
+    passe.</li>
 </ul>
 
 <h2 id="ouvrir">Ouvrir le panneau</h2>
@@ -265,6 +266,47 @@ musique.</p>
 </div>
 <figure><img src="deformateur-voix/fr-game-melodie-boutons.webp" width="600" height="1200" loading="lazy" alt="Le tiroir « Les boutons de Game Mélodie »."><figcaption>Les boutons de Game Mélodie.</figcaption></figure>
 </div>
+<h3 id="ocarina">L'ocarina</h3>
+<div class="etape">
+<div>
+<p>En haut de Game Mélodie, <span class="ui">Jouer avec</span> : <b>Les thèmes</b> ou <b>L'ocarina</b>. L'ocarina est un
+mode à part : un appui, un son, sans thème ni accompagnement. Il n'a pas besoin de la banque de Windows.</p>
+<table class="touches">
+  <tr><td>La croix, A B X Y</td><td>huit notes (le panneau écrit la note de chaque bouton)</td></tr>
+  <tr><td>LB tenu</td><td>une octave plus bas</td></tr>
+  <tr><td>RB tenu</td><td>une octave plus haut</td></tr>
+  <tr><td>LT tenu</td><td>un bourdon grave sous ta mélodie (la base de la gamme)</td></tr>
+  <tr><td>RT tenu</td><td>le bourdon et sa quinte</td></tr>
+  <tr><td>L3, R3</td><td>rien</td></tr>
+</table>
+<p>Trois gammes : Do majeur, pentatonique, La mineur. On passe des thèmes à l'ocarina, ou d'une gamme à l'autre, en
+jouant. L'ocarina part aussi dans tes appels.</p>
+</div>
+<figure><img src="deformateur-voix/fr-game-melodie-ocarina.webp" width="600" height="1200" loading="lazy" alt="Game Mélodie en mode ocarina : les trois gammes et la note de chaque bouton."><figcaption>L'ocarina : la gamme et ses huit notes.</figcaption></figure>
+</div>
+<h3 id="clavier">Jouer au clavier</h3>
+<div class="etape">
+<div>
+<p>Pas de manette ? Allume <span class="ui">⌨ Jouer au clavier</span> (éteint au départ). <span class="ui">Mes touches au
+clavier ›</span> montre la touche de chaque bouton :</p>
+<table class="touches">
+  <tr><td>Z Q S D, les flèches</td><td>la croix</td></tr>
+  <tr><td>I J K L</td><td>Y X A B</td></tr>
+  <tr><td>A E</td><td>LB RB</td></tr>
+  <tr><td>Maj gauche, Espace</td><td>LT RT</td></tr>
+  <tr><td>C N</td><td>L3 R3</td></tr>
+</table>
+<p>Ce sont des places sur le clavier : sur un clavier anglais (QWERTY), la croix est W A S D. Une touche tenue fait durer
+la note, comme à la manette. <span class="ui">Changer</span> prend la touche suivante (Échap : annuler) ; une touche déjà
+prise s'échange avec l'autre. <span class="ui">Remettre les touches de départ</span> remet tout.</p>
+<div class="encadre">
+<p><b>Seulement dans le panneau ou le Stream Deck volant</b>, quand l'un d'eux est la fenêtre active, et seulement
+pendant une partie : Chrome ne donne le clavier qu'à la fenêtre active. Ce que tu tapes dans un site ou dans un jeu
+n'est jamais lu.</p>
+</div>
+</div>
+<figure><img src="deformateur-voix/fr-game-melodie-clavier.webp" width="600" height="1200" loading="lazy" alt="Le tiroir « Jouer au clavier » : une touche pour chaque bouton de la manette, et le bouton Changer."><figcaption>Une touche pour chaque bouton.</figcaption></figure>
+</div>
 
 <h2 id="manette">La manette et ses touches</h2>
 <div class="etape">
@@ -338,7 +380,7 @@ page itch.io.</p>
 
 <div lang="en">
 <h1 id="en">Voice Deformer — Chrome extension user guide</h1>
-<p class="date">Extension version 0.6.0 · November 6, 2026 · <a href="#main" lang="fr">Version française ↑</a></p>
+<p class="date">Extension version 0.6.1 · November 15, 2026 · <a href="#main" lang="fr">Version française ↑</a></p>
 <p>The extension changes your voice live on websites open in Chrome: online calls (Meet, Discord on the web, Teams…),
 browser games, recordings. Everything is set up in Chrome's side panel. Your voice is changed on your computer: nothing
 goes to the Internet (<a href="deformateur-voix-confidentialite">privacy</a>).</p>
@@ -354,7 +396,7 @@ goes to the Internet (<a href="deformateur-voix-confidentialite">privacy</a>).</
   <li><a href="#en-devices">Your devices</a></li>
   <li><a href="#en-cable">The Discord app, OBS, a game: VB-CABLE</a></li>
   <li><a href="#en-sounds">Sounds</a></li>
-  <li><a href="#en-gm">Game Mélodie</a></li>
+  <li><a href="#en-gm">Game Mélodie, the ocarina, the keyboard</a></li>
   <li><a href="#en-gamepad">The gamepad and its keys</a></li>
   <li><a href="#en-deck">The Floating Stream Deck</a></li>
   <li><a href="#en-record">Recording your voice</a></li>
@@ -368,7 +410,8 @@ goes to the Internet (<a href="deformateur-voix-confidentialite">privacy</a>).</
     people in the call hear you echo.</li>
   <li>Chrome on a computer, and a microphone.</li>
   <li>For the Discord app, OBS or an installed game: the free VB-CABLE virtual cable (<a href="#en-cable">below</a>).</li>
-  <li>For Game Mélodie: Windows. Its instrument bank (gm.dls) is already on your PC.</li>
+  <li>For the Game Mélodie themes: Windows. Its instrument bank (gm.dls) is already on your PC. The ocarina does without
+    it.</li>
 </ul>
 
 <h2 id="en-open">Opening the panel</h2>
@@ -543,6 +586,46 @@ music.</p>
 <p>While Game Mélodie plays, the gamepad buttons belong to the music.</p>
 </div>
 <figure><img src="deformateur-voix/en-game-melodie-boutons.webp" width="600" height="1200" loading="lazy" alt="The “Game Mélodie's buttons” drawer."><figcaption>Game Mélodie's buttons.</figcaption></figure>
+</div>
+<h3 id="en-ocarina">The ocarina</h3>
+<div class="etape">
+<div>
+<p>At the top of Game Mélodie, <span class="ui">Play with</span>: <b>The themes</b> or <b>The ocarina</b>. The ocarina is
+a mode of its own: one press, one sound, with no theme and no backing. It does not need the Windows bank.</p>
+<table class="touches">
+  <tr><td>D-pad, A B X Y</td><td>eight notes (the panel shows each button's note)</td></tr>
+  <tr><td>LB held</td><td>one octave lower</td></tr>
+  <tr><td>RB held</td><td>one octave higher</td></tr>
+  <tr><td>LT held</td><td>a low drone under your melody (the root of the scale)</td></tr>
+  <tr><td>RT held</td><td>the drone and its fifth</td></tr>
+  <tr><td>L3, R3</td><td>nothing</td></tr>
+</table>
+<p>Three scales: C major, pentatonic, A minor. You can switch from the themes to the ocarina, or from one scale to
+another, while playing. The ocarina goes into your calls too.</p>
+</div>
+<figure><img src="deformateur-voix/en-game-melodie-ocarina.webp" width="600" height="1200" loading="lazy" alt="Game Mélodie in ocarina mode: the three scales and each button's note."><figcaption>The ocarina: the scale and its eight notes.</figcaption></figure>
+</div>
+<h3 id="en-keyboard">Playing with the keyboard</h3>
+<div class="etape">
+<div>
+<p>No gamepad? Turn on <span class="ui">⌨ Play with the keyboard</span> (off at first). <span class="ui">My keyboard
+keys ›</span> shows the key for each button:</p>
+<table class="touches">
+  <tr><td>W A S D, the arrow keys</td><td>the D-pad</td></tr>
+  <tr><td>I J K L</td><td>Y X A B</td></tr>
+  <tr><td>Q E</td><td>LB RB</td></tr>
+  <tr><td>Left Shift, Space</td><td>LT RT</td></tr>
+  <tr><td>C N</td><td>L3 R3</td></tr>
+</table>
+<p>These are places on the keyboard: on a French keyboard (AZERTY), the D-pad is Z Q S D. Holding a key makes the note
+last, as with the gamepad. <span class="ui">Change</span> takes the next key you press (Esc: cancel); a key already in
+use is swapped with the other one. <span class="ui">Restore the default keys</span> puts everything back.</p>
+<div class="encadre">
+<p><b>Only in the panel or the Floating Stream Deck</b>, when one of them is the active window, and only during a
+session: Chrome only gives the keyboard to the active window. What you type in a site or in a game is never read.</p>
+</div>
+</div>
+<figure><img src="deformateur-voix/en-game-melodie-clavier.webp" width="600" height="1200" loading="lazy" alt="The “Play with the keyboard” drawer: one key for each gamepad button, and the Change button."><figcaption>One key for each button (here on a French AZERTY keyboard: Z Q S D).</figcaption></figure>
 </div>
 
 <h2 id="en-gamepad">The gamepad and its keys</h2>
