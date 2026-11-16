@@ -10,11 +10,11 @@
   },
   "grammaire": {
    "total": 290,
-   "bon": 268,
+   "bon": 270,
    "rouge juste": 111,
-   "orange juste": 157,
-   "mauvais mot": 1,
-   "muette": 21
+   "orange juste": 159,
+   "mauvais mot": 0,
+   "muette": 20
   },
   "ponctuation": {
    "total": 123,
@@ -1154,7 +1154,7 @@
   "T106#8": "rouge juste",
   "T107#0": "rouge juste",
   "T107#1": "rouge juste",
-  "T107#2": "mauvais mot",
+  "T107#2": "orange juste",
   "T107#3": "rouge juste",
   "T107#4": "orange juste",
   "T107#5": "orange juste",
@@ -1165,7 +1165,7 @@
   "T108#2": "orange juste",
   "T108#3": "orange juste",
   "T108#4": "rouge juste",
-  "T108#5": "muette",
+  "T108#5": "orange juste",
   "T108#6": "rouge juste",
   "T109#0": "orange juste",
   "T109#1": "orange juste",
