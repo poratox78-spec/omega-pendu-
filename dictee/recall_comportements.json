@@ -1024,7 +1024,9 @@
 "Ils l'ont fermé hier.",
 "Elle range l'outil cassé.",
 "Pour elle la maison compte.",
-"Il le sert chaud."
+"Il le sert chaud.",
+"Votre parti a gagné les élections.",
+"Votre venue nous fait plaisir."
 ],
 "elide": [
 [
@@ -4336,6 +4338,21 @@
 "Tu le vent trop cher.",
 "vent",
 "vends"
+],
+[
+"Nous attendons notre sorti avec impatience.",
+"sorti",
+"sortie"
+],
+[
+"Le mur sera peint en mai et les portes seront changé.",
+"changé",
+"changées"
+],
+[
+"Le chat et la chienne sont rentré.",
+"rentré",
+"rentrés"
 ]
 ],
 "palier": [
@@ -4912,6 +4929,11 @@
 [
 "Il le vent cher.",
 "vent",
+"vigilance"
+],
+[
+"Nous attendons notre sorti avec impatience.",
+"sorti",
 "vigilance"
 ]
 ],
