@@ -1016,7 +1016,9 @@
 "Une veste bleu et blanc.",
 "Il range sa bijoute.",
 "Les séries A sont prêtes.",
-"Les groupes A et B jouent demain."
+"Les groupes A et B jouent demain.",
+"Un peuple parent des Celtes vit ici.",
+"Le chat parent des chatons dort."
 ],
 "elide": [
 [
@@ -4288,6 +4290,11 @@
 "La porte fermé et la fenêtre ouverte.",
 "fermé",
 "fermée"
+],
+[
+"Il parent les coups.",
+"parent",
+"pare"
 ]
 ],
 "palier": [
