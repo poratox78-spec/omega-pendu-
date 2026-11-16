@@ -27929,7 +27929,7 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(!NUM_DET[deacc(T[i-3].toLowerCase())]||NUM_DET[deacc(T[i-2].toLowerCase())]||CLITIC[deacc(T[i-2].toLowerCase())])return false;
     if(i-3>0&&!(_SEG&&_SEG.bb&&i-3<_SEG.bb.length&&_SEG.bb[i-3])&&!(_SEG&&_SEG.ss&&i-3<_SEG.ss.length&&_SEG.ss[i-3]))return false;   // groupe en tête de proposition
     return true;}
-  function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à'||_auxElide227(T,i))return null;if(i>=1&&/^d['’](un|une)$/i.test(T[i-1]))return null;   /* ⭐ 07/11/2026 (liste n° 423) : « Les pages d'un livre reprennent le titre » recevait
+  function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à'||_auxElide227(T,i))return null;if(/ent$/.test(lw)&&!/(aient|[iu]rent|èrent|ssent|ient)$/.test(lw)&&/[NA]/.test(spP(lw)||''))return null;   /* ⭐ 16/11/2026 (liste n° 534) : une forme en -ent qui est aussi un NOM ou un ADJECTIF (parent, content, président) n'est pas un verbe à accorder au sujet nominal (« un peuple parent des Celtes » donnait « pare » d'office). Recensé sur la mesure : 3 marques sur de tels mots, 2 rouges faux dys et 1 orange UD, aucune juste. Terminaisons seulement verbales exclues (-aient, -irent/-urent/-èrent, -ssent, -ient) : le dictionnaire étiquette aussi « nom » des formes comme « eurent » ou « avaient », et « le chat eurent » doit rester corrigé (dev.sh, couverture de la conjugaison) */if(i>=1&&/^d['’](un|une)$/i.test(T[i-1]))return null;   /* ⭐ 07/11/2026 (liste n° 423) : « Les pages d'un livre reprennent le titre » recevait
      « livrent » en ROUGE — « d'un / d'une » est un seul token, que la règle ne lisait pas comme déterminant : le nom qui le suit (livre,
      douille) était pris pour le verbe du sujet pluriel. Après un déterminant, c'est un nom. « du livre », « de ce livre » passaient déjà. */
 if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
@@ -29550,7 +29550,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     if(!_PP_MEME[m[1]])return true;                  // mises, prises… : le verbe homographe (miser, priser) est rare — participe
     if(i<1)return false;var pv=T[i-1],pl=/[sx]$/i.test(pv);   // faites, dites : participe à condition de s'accorder au nom qui précède (« les promesses faites », pas « le chat faites »)
     return (m[2]==='es')===pl&&_nounGender(pv,pl?'p':'s',true)==='f';}
-  function sujFlexNom(T,i){if(_ppFemIrr(T,i)||_enComplement(T,i,null)||_adjCompl449(T,i,-1))return null;if(i>=1&&/^d['’](un|une)$/i.test(T[i-1]))return null;   // liste n° 423 : après « d'un / d'une », un nom
+  function sujFlexNom(T,i){if(_ppFemIrr(T,i)||_enComplement(T,i,null)||_adjCompl449(T,i,-1))return null;if(/ent$/.test(String(T[i]).toLowerCase())&&!/(aient|[iu]rent|èrent|ssent|ient)$/.test(String(T[i]).toLowerCase())&&/[NA]/.test(spP(String(T[i]).toLowerCase())||''))return null;   /* liste n° 534 : la même garde que rAccordSVnoun (nom ou adjectif en -ent : parent, content ; terminaisons seulement verbales exclues) */if(i>=1&&/^d['’](un|une)$/i.test(T[i-1]))return null;   // liste n° 423 : après « d'un / d'une », un nom
   if(_attr439(T,i))return null;
   var _r474;_ROUGE=false;try{_r474=sujFlexVig(T,i);}finally{_ROUGE=true;}
   if(_r474&&i>=2&&/[sx]$/.test(deacc(T[i-1].toLowerCase()))&&_DETSG474[deacc(T[i-2].toLowerCase())]&&/nt$/.test(String(typeof _r474==='object'?_r474.sugg:_r474)))return null;   // liste n° 474 : « du repos est » n'est pas un pluriel

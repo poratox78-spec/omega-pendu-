@@ -621,3 +621,41 @@ Les tables et les chaises sont {prêté|prêtées|G} par la mairie. Ne nous oubl
 Nous vous {attendront|attendrons|C} nombreux, même s'il pleut : le préau est à deux pas.
 À dimanche,
 L'amicale des Tilleuls
+
+=== T103 notice de montage d'une étagère
+Montage de l'{étajère|étagère|O}
+Avant de commencer, vérifiez que toutes les pièces sont dans le carton : deux montants, quatre planches et un sachet de vis.
+Posez les deux montants à plat{|,|P} puis vissez la première planche en bas avec les {grande|grandes|N} vis.
+Les planches du milieu {se glisse|se glissent|C} dans les encoches ; si elles {force|forcent|C}, ne tapez pas dessus.
+Une fois l'étagère {monté|montée|G}, fixez-la au mur avec l'équerre {fourni|fournie|G}.
+Pour un mur en béton, il faut des chevilles {spécial|spéciales|N}, {vendu|vendues|G} à part.
+Ne posez pas plus de dix kilos par planche{|.|P}
+En cas de problème, {apelez|appelez|O} le vendeur au numéro {indiquer|indiqué|C} sur la boîte.
+
+=== T104 petite annonce de vente d'un vélo
+Vends vélo de ville, taille adulte, très bon état.
+Il a {servit|servi|C} deux ans pour aller au travail{|,|P} puis il est resté au garage.
+Les freins {on|ont|G} été {changer|changés|C} au printemps et les pneus sont presque {neuf|neufs|N}.
+Je le {vent|vends|O} avec son antivol et deux {sacoche|sacoches|N} de côté.
+Prix : 120 euros, à {débatre|débattre|O}.
+Le vélo est à voir le soir après dix-huit heures ou le samedi avant {midie|midi|O}.
+Pas d'envoi : il est à venir chercher sur place{|.|P}
+
+=== T105 journal d'un voyage en train
+Mardi, toute la famille est {partis|partie|G} tôt de la gare.
+Le paysage {défilai|défilait|C} vite : des champs, des vaches{|,|P} puis la mer au loin.
+Les enfants ont {jouer|joué|C} aux cartes pendant tout le trajet.
+À l'arrivée, il {fesait|faisait|O} chaud et le ciel était tout bleu.
+Nous avons laissé les {valise|valises|N} à l'hôtel, puis nous {somme|sommes|C} allés voir le port.
+Le soir, nous avons mangé des {moule|moules|N} sur une terrasse {ensoleiller|ensoleillée|G}.
+Demain, nous {prendront|prendrons|C} le bateau pour l'île{|.|P}
+
+=== T106 règle d'un jeu de cartes
+But du jeu : être le premier à poser toutes ses cartes.
+Au début, chaque joueur {reçois|reçoit|C} sept cartes.
+Le reste du paquet est posé au milieu{|,|P} face cachée.
+À son tour, on pose une carte de la même couleur ou du même {chifre|chiffre|O}.
+Si aucune carte ne convient, on {pioches|pioche|C} une carte du paquet.
+Les cartes {spéciale|spéciales|N} changent le sens du jeu ou font {passé|passer|C} son tour au voisin.
+Le joueur qui n'a plus qu'une carte doit dire « dernière »{|,|P} sinon il en pioche deux.
+La partie {s'arrète|s'arrête|O} quand un joueur a {poser|posé|C} sa dernière carte.
