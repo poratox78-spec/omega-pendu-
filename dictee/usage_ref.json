@@ -18,11 +18,11 @@
   },
   "ponctuation": {
    "total": 128,
-   "bon": 103,
+   "bon": 104,
    "rouge juste": 78,
-   "orange juste": 25,
+   "orange juste": 26,
    "mauvais mot": 0,
-   "muette": 25
+   "muette": 24
   },
   "conjugaison": {
    "total": 361,
@@ -42,7 +42,7 @@
   }
  },
  "cassesRouge": 0,
- "cassesOrange": 3,
+ "cassesOrange": 2,
  "faussesRouge": 0,
  "faussesOrange": 1,
  "verdicts": {
@@ -1187,7 +1187,7 @@
   "T111#2": "rouge juste",
   "T111#3": "orange juste",
   "T111#4": "mauvais mot",
-  "T111#5": "muette",
+  "T111#5": "orange juste",
   "T111#6": "orange juste",
   "T112#0": "muette",
   "T112#1": "muette",
