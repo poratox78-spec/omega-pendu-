@@ -4348,7 +4348,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
     if(ADJP[d][0]==='f'&&(sp==='il'||sp==='ils'||_sg199==='m'))return null;   // ⭐ 28/10/2026 (liste n° 199) : « ils sont fière » → pas « fières » en rouge ; l'orange genreAttrVig propose « fiers ? »
     if(num!==auxNum)return null;
     var _w467=w;if(num==='s'){var _d467=deacc(lw),_s467=null;if(/aux$/.test(_d467)&&ADJP[_d467.slice(0,-3)+'al'])_s467=w.slice(0,-3)+'al';else if(/eaux$/.test(_d467)&&ADJP[_d467.slice(0,-1)])_s467=w.slice(0,-1);else if(/[sx]$/.test(_d467)&&ADJP[_d467.slice(0,-1)])_s467=w.slice(0,-1);if(_s467&&_adjEstem(_s467.toLowerCase())===null)_w467=_s467;}   // liste n° 467 : sujet au singulier, adjectif écrit au pluriel → on part du singulier (comme la n° 382)
-    var sugg=_adjAgree(_w467,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
+    var sugg=_adjAgree(_w467,gender,num);if(sugg.toLowerCase()!==lw&&d==='neuf')return {sugg:ckeepcase(T[i],sugg),vig:1};return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}   /* ⭐ 16/11/2026 (liste n° 545) : « Ils étaient neuf au départ » recevait « neufs » appliqué d'office — « neuf » y est le nombre 9. Après « être », « neuf » peut compter (ils sont neuf) ou qualifier (les pneus sont neufs) : orange, jamais rouge */
   /* ⭐ 08/11/2026 (liste n° 467) — « La maison est tous blanche » recevait « toutes » en ROUGE, « La rue est noirs » recevait « noires » :
      rAdjAttr prenait « tous » pour l'attribut, et gardait le pluriel écrit quand le sujet est au singulier. Devant un adjectif, « tout »
      est l'adverbe (ou le pronom au pluriel) : singulier → « tout », « toute » devant un adjectif féminin qui commence par une consonne ;
@@ -4973,6 +4973,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
       if(Object.keys(_ff).length!==1)return null;
       _cands=[_forts[0]];}
     lemc=_cands[0][0];cible=_cands[0][1];
+    var _imp541=false;if(per==='3'&&/ai$/.test(lw)&&lec.length){var _ps541=true;for(k=0;k<lec.length;k++)if(!(lec[k][1]==='ind:pas'&&lec[k][2]==='1'&&lec[k][3]==='s'))_ps541=false;if(_ps541){var _fi541=((CONJ_C[lemc]||{})['ind:imp']||{})[slot];if(_fi541&&_fi541.toLowerCase()!==lw){cible=_fi541;_imp541=true;}}}   /* ⭐ 16/11/2026 (liste n° 541) : « le paysage défilai » → défilait, pas défila. Une forme en -ai lue SEULEMENT comme passé simple de « je », derrière un sujet de la 3e personne : à l'oreille, « -ai » sonne comme l'imparfait « -ait » (« -aient »), pas comme le passé simple « -a » (« -èrent ») ; le temps change, donc ORANGE. Recensé dans les textes dys : le corrigé veut l'imparfait 3 fois, le passé simple 0 fois */
     if(!cible||cible.toLowerCase()===lw)return null;
     if(deacc(cible.toLowerCase())===dl&&!_hors)return null;
     if(_psSeul&&slot==='3s'&&deacc(cible.toLowerCase())===dl)return null;
@@ -4986,7 +4987,7 @@ function estQuestion(t,maxMots,fort){   // fort (liste n° 346) : les marques s�
     if(typeof _lf==='number'&&_lf<1){var _vx=_voisinAuxLong(dl);if(_vx){   /* ⭐ 12/09/2026 : plus de silence — l'écrit est à une lettre d'une forme longue d'ÊTRE/AVOIR (« vous somme » ↔ sommes) : c'est CET auxiliaire, conjugué pour le sujet → êtes. Miroir Python. */
       var _rv=svReads(_vx);for(var _y=0;_y<_rv.length;_y++){if(_rv[_y][0]==='etre'||_rv[_y][0]==='avoir'){var _f2=((CONJ_C[_rv[_y][0]]||{})[_rv[_y][1]]||{})[slot];if(_f2&&_f2.toLowerCase()!==lw)return ckeepcase(w,_f2);}}
       return null;}}
-    if(_vig493)return {sugg:ckeepcase(w,cible),vig:1};   /* liste n° 493 : « Que nous veulent ces gens ? » — le sujet peut suivre le verbe : orange */
+    if(_vig493||(_imp541&&_ROUGE))return {sugg:ckeepcase(w,cible),vig:1};   /* liste n° 493 : « Que nous veulent ces gens ? » — le sujet peut suivre le verbe : orange (et liste n° 541 : le temps change ; derrière un sujet nominal la règle est déjà orange) */
     return ckeepcase(w,cible);}
   var _PPS_AVOIR={__proto__:null},_PPS_MID={__proto__:null},_PPS_CLIT={__proto__:null},_PPS_ANTE={__proto__:null},_PPS_REFL={__proto__:null};  function _ppsmid(T,j){var w=T[j];if(w==null)return false;return !!_PPS_MID[deacc(String(w).toLowerCase())]||_inLoc414(T,j);}   /* liste n° 414 */   // ⭐ 12/09/2026 — RÈGLE NEUVE (orange) : accord SURNUMÉRAIRE du participe après avoir (miroir Python rule_pp_avoir_surnum)
   'ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split(' ').forEach(function(w){_PPS_AVOIR[w]=1;});
@@ -6447,6 +6448,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe SEULE (pas d'espace : « parceque » relève de la segmentation).
        Exclus : entraide, quelquefois, prudhomme (mots). Miroir Python _APOS_FIX. */
     var _APOS_FIX={__proto__:null,"aujourdhui":"aujourd'hui","aujourdui":"aujourd'hui","quelquun":"quelqu'un","quelquune":"quelqu'une","jusqua":"jusqu'à","jusquau":"jusqu'au","jusquaux":"jusqu'aux","jusquen":"jusqu'en","jusquici":"jusqu'ici","jusquou":"jusqu'où","presquile":"presqu'île","lorsquil":"lorsqu'il","lorsquelle":"lorsqu'elle","puisquil":"puisqu'il","dabord":"d'abord","daccord":"d'accord","javais":"j'avais"};if(_APOS_FIX[low])return["auto",_APOS_FIX[low]];   /* ⭐ 04/10/2026 : « javais » est au lexique (entrée parasite, ≈ 0) : gold 1/1 → j'avais, UD 0 */
+    var _f542=/^(re|dé|sur|contre|satis|par)?fes(ais|ait|aient|ions|iez|ons|ant)$/.exec(low);if(_f542&&SP.WORDS&&!SP.WORDS.has(low)){var _c542=low.replace('fes','fais');if(SP.WORDS.has(_c542))return["flag",_c542];}   /* ⭐ 16/11/2026 (liste n° 542) : « il fesait » → faisait, pas « fait ». « fais- » de faire se prononce « fe » (fesons, fesait) : le tri par fréquence choisissait « fait » (même distance, bien plus fréquent) pour les formes en -ait. Liste CLOSE des formes en « fes- » de faire et de ses composés, seulement si la forme en « fais- » est au dictionnaire ; mêmes familles déjà fermées : fesez → faites, fesent → font */
     /* ⭐ 30/09/2026 — FORMES ET EXPRESSIONS SOUDÉES (2e catalogue : « dacor » → décor, « ducou » → un mot grossier, « parceque » → parsecs,
        « dabord » → bâbord). « dabord », « daccord » rejoignent la liste ci-dessus (rouge). Les formes TRONQUÉES, liste fermée, en orange :
        « ducou » peut être « du cou ». Et un mot inconnu dont la clé phonétique est EXACTEMENT celle d'une expression de la liste fermée
@@ -7445,7 +7447,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(!tg||i<2||i>=T.length||i>=tg.length)return null;
     var w=T[i],lw=w.toLowerCase();
     if(!/^[a-zàâäéèêëîïôöùûüÿçœæ]+$/.test(lw)||w.charAt(0)!==lw.charAt(0))return null;   // mot simple en minuscules (nom propre, sigle, nombre → rien)
-    var d=deacc(lw);if(d.length<3||/[sxz]$/.test(d)||_ATPL_STOP[d]||ADJ_MID[d]||PPMID[d]||CARD[d]||_INVAR_COLOR[d]||_couleurComposee(T,i))return null;   // déjà marqué, invariable, adverbe
+    var d=deacc(lw);if(d.length<3||/[sxz]$/.test(d)||_ATPL_STOP[d]||ADJ_MID[d]||PPMID[d]||(CARD[d]&&!(d==='neuf'&&ADJ_MID[deacc(T[i-1].toLowerCase())]))||_INVAR_COLOR[d]||_couleurComposee(T,i))return null;   /* ⭐ 16/11/2026 (liste n° 539) : « les pneus sont presque neuf » → neufs, en orange. « neuf » est aussi le nombre 9, d'où l'exclusion ; derrière un adverbe (presque, très, toujours…) placé après « être », c'est l'adjectif, mais « ils sont presque neuf » peut compter des personnes : orange seulement. UD : 0 « être + adverbe + neuf » */   // déjà marqué, invariable, adverbe
     if(i+2<T.length&&T[i+1].toLowerCase()==='à'&&deacc(T[i+2].toLowerCase())===d)return null;   /* ⭐ 31/10/2026 (liste n° 233) : « elles sont côte à côte » : locution invariable */
     if(_SEG&&_SEG.hy&&(_SEG.hy[i]||_SEG.hy[i+1]))return null;
     var a=-1,_aS=-1;for(var j=i-1;j>=1&&j>=i-3;j--){var dj=deacc(T[j].toLowerCase()).replace(/^n'/,'');if(_ATPL_AUX[dj]){a=j;break;}
