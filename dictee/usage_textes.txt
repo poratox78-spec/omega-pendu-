@@ -697,3 +697,37 @@ Les tapisseries {accrochée|accrochées|G} au mur racontent une chasse au cerf.
 En sortant{|,|P} prenez le couloir de gauche pour rejoindre la chapelle.
 Merci de ne pas toucher les {meuble|meubles|N} anciens.
 La visite {dur|dure|C} environ une heure et la boutique ferme à dix-huit heures{|.|P}
+
+=== T111 mot d'absence pour la maîtresse
+Madame,
+Ma fille Inès n'a pas pu venir à l'école jeudi{|,|P} car elle avait de la fièvre.
+Le médecin lui a {conseiller|conseillé|C} de rester couchée deux jours.
+Elle va mieux maintenant et elle {reviendras|reviendra|C} lundi matin.
+Pourriez-vous lui donner les {exercise|exercices|O} de mathématiques qu'elle a {manquer|manqués|C}{|?|P}
+Nous les ferons ensemble ce week-end.
+Nous vous remercions de votre {compréention|compréhension|O}.
+
+=== T112 conseils pour planter des tulipes
+Les bulbes de tulipes se plantent en automne, avant les premières {gelés|gelées|O}.
+Choisissez un endroit {ensoleiller|ensoleillé|G} et une terre légère.
+Creusez des trous de quinze centimètres et posez les bulbes la pointe vers le haut.
+Laissez dix centimètres entre deux {bulbe|bulbes|N} puis recouvrez de terre.
+Arrosez une fois, sans {noyé|noyer|C} la terre.
+Au printemps, les fleurs sortent et {dure|durent|C} environ trois semaines.
+Quand elles sont {fanné|fanées|O}, coupez les tiges mais gardez les feuilles{|.|P}
+
+=== T113 récit d'une panne sur l'autoroute
+Dimanche, notre vieille camionnette est {tombé|tombée|G} en panne sur l'autoroute.
+Un voyant rouge s'est {allumer|allumé|C} et le moteur a fait un bruit {bizare|bizarre|O}.
+Mon mari s'est arrêté sur la bande d'arrêt d'urgence et nous avons mis nos gilets jaunes.
+La dépanneuse est {arrivé|arrivée|G} au bout d'une heure.
+Les enfants {avait|avaient|C} froid, alors nous {somme|sommes|C} restés derrière la glissière.
+Le garagiste {à|a|G} changé une courroie et nous sommes {repartit|repartis|C} avant la nuit{|.|P}
+
+=== T114 annonce d'un club d'échecs
+Le club d'échecs de la maison de quartier accueille les {débutant|débutants|N} de tout âge.
+Les séances ont lieu le mercredi de seize à dix-huit heures.
+Vous {apprendrais|apprendrez|C} les règles, les ouvertures et les finales les plus {simple|simples|N}.
+Les plateaux et les pendules {son|sont|G} prêtés par le club.
+Un petit tournoi {sera organiser|sera organisé|C} en fin d'année.
+Pour vous inscrire, {passé|passez|C} au bureau de l'accueil{|.|P}
