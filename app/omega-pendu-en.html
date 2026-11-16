@@ -29684,6 +29684,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
       _cands=[_forts[0]];}
     lemc=_cands[0][0];cible=_cands[0][1];
     var _imp541=false;if(per==='3'&&/ai$/.test(lw)&&lec.length){var _ps541=true;for(k=0;k<lec.length;k++)if(!(lec[k][1]==='ind:pas'&&lec[k][2]==='1'&&lec[k][3]==='s'))_ps541=false;if(_ps541){var _fi541=((CONJ_C[lemc]||{})['ind:imp']||{})[slot];if(_fi541&&_fi541.toLowerCase()!==lw){cible=_fi541;_imp541=true;}}}   /* ⭐ 16/11/2026 (liste n° 541) : « le paysage défilai » → défilait, pas défila. Une forme en -ai lue SEULEMENT comme passé simple de « je », derrière un sujet de la 3e personne : à l'oreille, « -ai » sonne comme l'imparfait « -ait » (« -aient »), pas comme le passé simple « -a » (« -èrent ») ; le temps change, donc ORANGE. Recensé dans les textes dys : le corrigé veut l'imparfait 3 fois, le passé simple 0 fois */
+    if(!_imp541&&per==='2'&&nb==='p'&&/rai[st]?$/.test(lw)&&lec.length){var _c553=true;for(k=0;k<lec.length;k++)if(!(lec[k][1]==='cnd:pre'&&lec[k][3]==='s'))_c553=false;if(_c553)_imp541=true;}   /* ⭐ 16/11/2026 (liste n° 553) : « Vous apprendrais les règles » recevait « apprendriez » en ROUGE, appliqué d'office. Une forme en -rais / -rait lue SEULEMENT comme conditionnel au singulier, derrière « vous » : à l'oreille, « -rais » est aussi proche du futur « -rez » que du conditionnel « -riez » ; le temps voulu ne se lit pas. La proposition (conditionnel, temps gardé) reste, en ORANGE (même drapeau que la ligne 541) */
     if(!cible||cible.toLowerCase()===lw)return null;
     if(deacc(cible.toLowerCase())===dl&&!_hors)return null;
     if(_psSeul&&slot==='3s'&&deacc(cible.toLowerCase())===dl)return null;
@@ -34060,7 +34061,7 @@ function spellUnknown(tok,atStart,T,idx){
      ORANGE et jamais imposé : ajouter un « ? » change le SENS, l'auteur garde le dernier mot.
      ⚠️ On ne touche QUE la phrase terminée par un POINT ou par RIEN. Un « ! » ou un « … » est un choix
      d'auteur (question rhétorique, suspension) — on ne le contredit pas. */
-  var _qre=/[^.!?…]+(?:[.!?…]+|$)/g,_qm;
+  var _qre=/(?:[^.!?…\n]|\n(?![ \t]*[A-ZÀ-ÖØ-Þ]))+(?:[.!?…]+|$|(?=\n))/g,_qm;   /* ⭐ 16/11/2026 (liste n° 550) : un retour à la ligne suivi d'une MAJUSCULE borne aussi la phrase — « Pourriez-vous lui donner les exercices » en fin de ligne, puis « Nous les ferons… » : le « ? » se proposait à la fin de la phrase de la ligne suivante ; il se propose maintenant en fin de ligne */
   while((_qm=_qre.exec(text))){
     var _qs=_qm[0],_qfin=_qs.replace(/\s+$/,''),_qlast=_qfin.slice(-1);
     if(!_qfin)continue;
