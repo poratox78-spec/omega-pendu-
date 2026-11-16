@@ -29859,8 +29859,9 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     // (pas de garde APRÈS, contrairement à la plurielle : « une femme cultivé, bienveillante » — l'accord
     // vaut devant la virgule ; re-flood sans la garde : toujours 3 tirs, tous de vraies fautes)
     var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):'';
-    if(nx==='de'||nx==='ou'||nx==='ni'||nx==='que')return null;
-    if(nx==='et'){
+    var _d417=i+2<T.length?deacc(T[i+2].toLowerCase()):'',_gn417=(nx==='ou'||nx==='et')&&(!!DET_G[_d417]||NUM_DET[_d417]!==undefined||/^l['’]/.test(_d417));   /* ⭐ 16/11/2026 (liste n° 417) : « ou / et » suivi d'un DÉTERMINANT ouvre un autre groupe nominal (« une salade composé ou une soupe ») : le participe ne va qu'avec le nom d'avant, l'accord est sûr */
+    if(nx==='de'||(nx==='ou'&&!_gn417)||nx==='ni'||nx==='que')return null;
+    if(nx==='et'&&!_gn417){
       // ENQUÊTE DES 22 : lever l'abstention-coordination SEULEMENT si la sœur est DÉJÀ marquée
       // féminin (« cultivé et [bien] veillante ») — les couleurs composées restent protégées.
       var jj=i+2;while(jj<T.length&&jj<=i+3&&{bien:1,mal:1,tres:1,tout:1,si:1,plus:1,toujours:1}[deacc(T[jj].toLowerCase())])jj++;
@@ -29868,10 +29869,10 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
       if(jj<T.length){var sd=T[jj].toLowerCase(),sufs=['ée','ante','ente','euse','ive','elle','ère','ienne'];
         for(var sq=0;sq<sufs.length;sq++){if(sd.length>=sufs[sq].length&&sd.slice(-sufs[sq].length)===sufs[sq]){okS=true;break;}}}
       if(!okS)return null;}
-    for(var k=Math.max(0,i-5+_o);k<i-1;k++){var dk=deacc(T[k].toLowerCase());if(dk==='ou'||dk==='et'||dk==='ni')return null;}
+    var _v417=false;for(var k=Math.max(0,i-5+_o);k<i-1;k++){var dk=deacc(T[k].toLowerCase());if(dk==='ni')return null;if(dk==='ou'||dk==='et'){var _f417=false;for(var b=k-1;b>=Math.max(0,k-3);b--){var db=deacc(T[b].toLowerCase());if(_FEM_SG_DET[db]){_f417=true;break;}if(DET_G[db]||NUM_DET[db]!==undefined||(_SEG&&b+1<_SEG.bb.length&&_SEG.bb[b+1]))break;}if(!_f417)return null;_v417=true;}}   /* ⭐ liste n° 417 : « une tarte ou une truite fumé » — les deux noms coordonnés sont féminins (déterminant féminin singulier devant le premier) : le « e » est sûr, le nombre non (fumée, fumées) → orange ; un premier nom masculin ou sans déterminant féminin (« un exercice ou une devinette proposé ») garde le silence */
     if(i>=3-_o&&tg[i-3+_o]==='ADP'&&!(i>=4-_o&&deacc(T[i-3+_o].toLowerCase())==='de'&&_TETE392[deacc(T[i-4+_o].toLowerCase())]))return null;   // liste n° 392 : sauf après près / loin / auprès / autour / lors de
     var g=_nounGender(_el?T[i-1].replace(/^l['’]/i,''):T[i-1],'s',true);if(g!=='f')return null;
-    var tgt=_ppAccord(lw,'s','f');return tgt!==lw?ckeepcase(w,tgt):null;}
+    var tgt=_ppAccord(lw,'s','f');return tgt!==lw?(_v417?{sugg:ckeepcase(w,tgt),vig:1}:ckeepcase(w,tgt)):null;}
   function _ppFemPl198(lw){if(lw.length<4||lw.charAt(lw.length-1)!=='s')return null;var b=lw.slice(0,-1),c=b.charAt(b.length-1);return ((c==='é'||c==='i')&&_isPpl(b))||(c==='u'&&_ppU198(b))?b:null;}   // liste n° 198 : participe masculin pluriel (-és / -is / -us) → sa base au singulier, sinon null
   var _CARD437={__proto__:null};('deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent mille plusieurs quelques').split(' ').forEach(function(w){_CARD437[w]=1;});
   function rPpEpithetNum(T,i){var w=T[i],lw=w.toLowerCase();if(/é$/.test(lw)&&_perc264(T,i)&&/^(les|des|un|une)$/.test(deacc(T[i-2].toLowerCase()))&&/^(regard|ecout|entend)/.test(deacc(T[i-3].toLowerCase()))&&COMMON_VERBS[deacc(lw.slice(0,-1)+'er')])return {sugg:ckeepcase(w,lw.slice(0,-1)+'er'),vig:1};   // liste n° 264 : « elle regarde les enfants joué » : l'infinitif, en orange

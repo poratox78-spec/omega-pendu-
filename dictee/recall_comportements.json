@@ -1011,7 +1011,9 @@
 "Chacun des enfants qui jouent rit.",
 "Le chef des enfants qui jouent rit.",
 "Il s'est senti plein d'espoir.",
-"C'est plein de monde."
+"C'est plein de monde.",
+"Voici un exercice ou une devinette proposé.",
+"Une veste bleu et blanc."
 ],
 "elide": [
 [
@@ -4273,6 +4275,16 @@
 "Il s'est prix une gifle.",
 "prix",
 "pris"
+],
+[
+"Je prends une salade composé ou une soupe.",
+"composé",
+"composée"
+],
+[
+"La porte fermé et la fenêtre ouverte.",
+"fermé",
+"fermée"
 ]
 ],
 "palier": [
@@ -4824,6 +4836,11 @@
 [
 "Chantes bien !",
 "Chantes",
+"vigilance"
+],
+[
+"Il veut une tarte ou une truite fumé.",
+"fumé",
 "vigilance"
 ]
 ],
