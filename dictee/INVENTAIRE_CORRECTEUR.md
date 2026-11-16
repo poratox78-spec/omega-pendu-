@@ -7,7 +7,7 @@
 
 - Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **223** entrées, **91** noms affichés ; rouge : 78 · rouge avec un cas orange posé par la règle : 45 · rouge ou orange selon le sous-cas : 44 · orange : 56.
 - Moteur Python : débranché de dev.sh et de la CI le 22/10/2026 (ligne 25b) — la chaîne n'est plus comparée ; la parité directe app ≡ extension la garde (`dictee/parity_app_ext.js`).
-- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **51**.
+- Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **52**.
 - Tables chargées : 11 (le chargeur unique `extension/charger_node.js` les charge toutes pour les bancs).
 
 ## Règles de grammaire, dans l'ordre de la chaîne
@@ -284,6 +284,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | on/ont après un sujet pluriel à vérifier | 1 | orange | homophone_gram | — | correcteur_probe.py |
 | orthographe | 1 | selon la couche | surface | — | — |
 | ou/où à vérifier | 1 | orange | homophone_gram | — | — |
+| participe après s'est | 1 | selon la couche | participe | — | correcteur_probe.py |
 | participe présent après « en » à vérifier | 1 | orange | participe | — | — |
 | personne du verbe à vérifier | 1 | orange | personne | — | correcteur_probe.py |
 | personne du verbe par le son à vérifier | 1 | orange | personne | — | — |
@@ -307,7 +308,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 |---|---|---|---|---|
 | vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 200 / 223 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `_ppMs460` `_ppNom460` `_ppInf463` … (179) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 148 / 223 | `_nomGN502` `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` … (37) |
-| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 109 / 223 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `_eerAuxRare497` `_cand498` `_ppCoord498` `rAdjCoordApp500` … (85) |
+| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 109 / 223 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `_eerAuxRare497` `_cand498` `_ppCoord498` `rAdjCoordApp500` … (86) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 115 / 223 | `_etreAttrEr` `_eerVerbeRare188` `_eerAuxRare497` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` … (38) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 88 / 223 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 223 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
