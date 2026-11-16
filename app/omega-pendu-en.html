@@ -27081,7 +27081,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
   function _saCaVerbe(T,i){if(i+1>=T.length)return false;var nt=T[i+1].toLowerCase(),nd=deacc(nt);
     if(CLITIC[nd]||_SA_NONNOUN[nd]||nt.indexOf("'")>=0)return false;   // cas déjà rouge (clitique, pronom, élision)
     if(_SA_CA[nd])return true;
-    var sp=_spos(nt);return !!sp&&sp.indexOf('V')>=0&&sp.indexOf('N')<0&&sp.indexOf('A')<0&&!/(er|ir|re|oir)$/.test(nd)&&!/(é|ée|és|ées|ie|ies|ue|ues)$/.test(nt)&&!_isPpl(T[i+1]);}
+    var sp=_spos(nt);return !!sp&&sp.indexOf('V')>=0&&sp.indexOf('N')<0&&sp.indexOf('A')<0&&!/(er|ir|re|oir)$/.test(nd)&&!/(é|ée|és|ées|ie|ies|ue|ues)$/.test(nt)&&!_isPpl(T[i+1])&&!(typeof spF==='function'&&!(spF(nt)>0));}   // ⭐ 16/11/2026 (liste n° 395) : un « verbe » de fréquence NULLE (entrée rare du dictionnaire : « sa gamèle », écrit pour gamelle) ne prouve pas « ça »
   var _SA_NONNOUN={__proto__:null,je:1,tu:1,il:1,elle:1,on:1,ils:1,elles:1,nous:1,vous:1,y:1,en:1,ne:1,dans:1,sur:1,sous:1,avec:1,pour:1,par:1,chez:1,vers:1};   /* ⭐ 31/10/2026 (liste n° 291) : + préposition, « range sa dans le placard » */function rCaSa(T,i){var lw=deacc(T[i].toLowerCase());   // ça↔sa. sa+clitique→ça (un clitique n'est pas un nom) ; ça+NOM confiant→sa/son (ça ne précède jamais un nom nu). FP=0 (garde nom stricte P(NOM)≥τ∧P(VER)<ε). « sa va » : _saCaVerbe (orange, 11/10/2026).
     if(lw==='sa'){if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;if(i+1<T.length){var _nt=T[i+1].toLowerCase(),_nd=deacc(_nt);if(CLITIC[_nd]||_SA_NONNOUN[_nd]||_nt.indexOf("'")>=0)return ckeepcase(T[i],'ça');if(_saCaVerbe(T,i))return {sugg:ckeepcase(T[i],'ça'),vig:1};}return null;}   // ⭐ 11/10/2026 : « sa va » → ça (orange)
     if(lw==='ca'){
