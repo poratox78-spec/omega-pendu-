@@ -1009,7 +1009,9 @@
 "La cote droite.",
 "Un peche lourd.",
 "Chacun des enfants qui jouent rit.",
-"Le chef des enfants qui jouent rit."
+"Le chef des enfants qui jouent rit.",
+"Il s'est senti plein d'espoir.",
+"C'est plein de monde."
 ],
 "elide": [
 [
@@ -4261,6 +4263,16 @@
 "Les chefs des voisins qui chantent dort.",
 "dort",
 "dorment"
+],
+[
+"Personne ne s'est plein.",
+"plein",
+"plaint"
+],
+[
+"Il s'est prix une gifle.",
+"prix",
+"pris"
 ]
 ],
 "palier": [
@@ -5120,6 +5132,16 @@
 "La peche est sucrée.",
 "peche",
 "pêche"
+],
+[
+"Elle a perdé ses clés.",
+"perdé",
+"perdu"
+],
+[
+"Il a finé son repas.",
+"finé",
+"fini"
 ]
 ],
 "a_participe": [

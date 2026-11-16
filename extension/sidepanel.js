@@ -148,6 +148,7 @@
     "ou/où à vérifier": "ou, où ?",
     "participe après auxiliaire": "Participe",
     "participe après avoir": "Participe après « avoir »",
+    "participe après s'est": "Participe après « s'est »",
     "participe après être à vérifier": "Participe après « être » ?",
     "participe présent après « en » à vérifier": "Forme en -ant ?",
     "passé simple (sans accent)": "Passé simple",
