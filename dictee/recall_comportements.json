@@ -1006,7 +1006,10 @@
 "Ta sœur est là.",
 "Le cote droit.",
 "Le cote gauche.",
-"La cote droite."
+"La cote droite.",
+"Un peche lourd.",
+"Chacun des enfants qui jouent rit.",
+"Le chef des enfants qui jouent rit."
 ],
 "elide": [
 [
@@ -4253,6 +4256,11 @@
 "Une tache noir.",
 "noir",
 "noire"
+],
+[
+"Les chefs des voisins qui chantent dort.",
+"dort",
+"dorment"
 ]
 ],
 "palier": [
@@ -5082,6 +5090,36 @@
 "Esque tu viens ?",
 "Esque",
 "Est-ce que"
+],
+[
+"Il a appele sa voisine.",
+"appele",
+"appelé"
+],
+[
+"Ils ont jete les cartons.",
+"jete",
+"jeté"
+],
+[
+"Il a espere un appel.",
+"espere",
+"espéré"
+],
+[
+"Il appele son chien.",
+"appele",
+"appelle"
+],
+[
+"Un peche lourd.",
+"peche",
+"péché"
+],
+[
+"La peche est sucrée.",
+"peche",
+"pêche"
 ]
 ],
 "a_participe": [
