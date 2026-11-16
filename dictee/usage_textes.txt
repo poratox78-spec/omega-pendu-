@@ -659,3 +659,41 @@ Si aucune carte ne convient, on {pioches|pioche|C} une carte du paquet.
 Les cartes {spéciale|spéciales|N} changent le sens du jeu ou font {passé|passer|C} son tour au voisin.
 Le joueur qui n'a plus qu'une carte doit dire « dernière »{|,|P} sinon il en pioche deux.
 La partie {s'arrète|s'arrête|O} quand un joueur a {poser|posé|C} sa dernière carte.
+
+=== T107 compte rendu d'une réunion de copropriété
+Compte rendu du conseil syndical
+La réunion s'est tenue le 4 mars dans la salle commune, en présence de six {copropriétaire|copropriétaires|N}.
+Le syndic a présenté les comptes de l'année et le budget des travaux.
+La façade sera {nettoyer|nettoyée|C} au printemps et les boîtes aux lettres seront {changé|changées|G}.
+Plusieurs habitants se {plaigne|plaignent|C} du bruit de l'ascenseur ; un technicien passera bientôt.
+Le local à vélos est trop petit : il faudra {réfléchire|réfléchir|O} à une solution.
+Les charges {augmenterons|augmenteront|C} un peu à cause du chauffage.
+La prochaine réunion {aura lieux|aura lieu|O} en juin{|.|P}
+
+=== T108 message à un plombier
+Bonjour Monsieur,
+Je vous {écrit|écris|C} au sujet de la fuite sous l'évier de ma cuisine.
+Depuis lundi, l'eau coule goutte à goutte et le placard est tout {mouiller|mouillé|C}.
+Hier soir, mon voisin a {resserer|resserré|O} le tuyau, mais cela n'a rien changé.
+Pourriez-vous passer cette semaine{|?|P} Vous pouvez venir tous les {matin|matins|N} jusqu'à onze heures.
+Merci de m'envoyer un devis avant votre {venu|venue|G}.
+Si je suis absent, les clés {son|sont|G} chez la gardienne.
+Cordialement,
+Paul
+
+=== T109 avis sur une application de cuisine
+Très bonne application pour les gens qui ne {save|savent|C} pas quoi cuisiner le soir.
+Les recettes sont {classé|classées|G} par temps de préparation, ce qui est pratique.
+J'ai {essayer|essayé|C} le gratin de courgettes et toute la famille a aimé.
+Par contre, les publicités {apparaise|apparaissent|C} trop souvent entre deux {étape|étapes|N}.
+La liste de courses se remplit toute seule, c'est {vraimant|vraiment|O} génial.
+Je mets quatre {étoile|étoiles|N} sur cinq{|.|P}
+
+=== T110 guide de visite d'un château
+Bienvenue au château.
+Il a été {construis|construit|C} au quinzième siècle par une famille de marchands.
+Dans la grande salle, vous {pourez|pourrez|O} admirer une cheminée sculptée.
+Les tapisseries {accrochée|accrochées|G} au mur racontent une chasse au cerf.
+En sortant{|,|P} prenez le couloir de gauche pour rejoindre la chapelle.
+Merci de ne pas toucher les {meuble|meubles|N} anciens.
+La visite {dur|dure|C} environ une heure et la boutique ferme à dix-huit heures{|.|P}

@@ -1020,7 +1020,11 @@
 "Un peuple parent des Celtes vit ici.",
 "Le chat parent des chatons dort.",
 "Je marchai longtemps sous la neige.",
-"Le train arriva en retard."
+"Le train arriva en retard.",
+"Ils l'ont fermé hier.",
+"Elle range l'outil cassé.",
+"Pour elle la maison compte.",
+"Il le sert chaud."
 ],
 "elide": [
 [
@@ -4302,6 +4306,36 @@
 "Ils jouai aux cartes après le repas.",
 "jouai",
 "jouaient"
+],
+[
+"Une fois l'armoire vidé, déplacez-la.",
+"vidé",
+"vidée"
+],
+[
+"Nous visitons l'église rénové.",
+"rénové",
+"rénovée"
+],
+[
+"Les freins on été changer au printemps.",
+"changer",
+"changés"
+],
+[
+"Les vitres on été nettoyé hier.",
+"nettoyé",
+"nettoyées"
+],
+[
+"Il le vent cher.",
+"vent",
+"vend"
+],
+[
+"Tu le vent trop cher.",
+"vent",
+"vends"
 ]
 ],
 "palier": [
@@ -4868,6 +4902,16 @@
 [
 "Ils étaient neuf au départ.",
 "neuf",
+"vigilance"
+],
+[
+"Les freins on été changer au printemps.",
+"changer",
+"vigilance"
+],
+[
+"Il le vent cher.",
+"vent",
 "vigilance"
 ]
 ],
