@@ -1018,7 +1018,9 @@
 "Les séries A sont prêtes.",
 "Les groupes A et B jouent demain.",
 "Un peuple parent des Celtes vit ici.",
-"Le chat parent des chatons dort."
+"Le chat parent des chatons dort.",
+"Je marchai longtemps sous la neige.",
+"Le train arriva en retard."
 ],
 "elide": [
 [
@@ -4295,6 +4297,11 @@
 "Il parent les coups.",
 "parent",
 "pare"
+],
+[
+"Ils jouai aux cartes après le repas.",
+"jouai",
+"jouaient"
 ]
 ],
 "palier": [
@@ -4852,6 +4859,16 @@
 "Il veut une tarte ou une truite fumé.",
 "fumé",
 "vigilance"
+],
+[
+"Ils jouai aux cartes après le repas.",
+"jouai",
+"vigilance"
+],
+[
+"Ils étaient neuf au départ.",
+"neuf",
+"vigilance"
 ]
 ],
 "vig": [
@@ -5169,6 +5186,31 @@
 "Il a finé son repas.",
 "finé",
 "fini"
+],
+[
+"Le vieux chien marchai lentement vers la porte.",
+"marchai",
+"marchait"
+],
+[
+"Il fesait froid dehors.",
+"fesait",
+"faisait"
+],
+[
+"Nous fesons un gâteau.",
+"fesons",
+"faisons"
+],
+[
+"Les pneus sont presque neuf.",
+"neuf",
+"neufs"
+],
+[
+"Les chaussures sont presque neuf.",
+"neuf",
+"neuves"
 ]
 ],
 "a_participe": [
