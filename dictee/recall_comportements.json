@@ -1026,7 +1026,9 @@
 "Pour elle la maison compte.",
 "Il le sert chaud.",
 "Votre parti a gagné les élections.",
-"Votre venue nous fait plaisir."
+"Votre venue nous fait plaisir.",
+"Les premiers arrivés ont attendu.",
+"Les premières gelées arrivent."
 ],
 "elide": [
 [
@@ -4358,6 +4360,16 @@
 "Vous mangerais avec nous ce soir.",
 "mangerais",
 "mangeriez"
+],
+[
+"Les belles journés reviennent.",
+"journés",
+"journées"
+],
+[
+"La gelé blanche couvre le jardin.",
+"gelé",
+"gelée"
 ]
 ],
 "palier": [
@@ -4944,6 +4956,11 @@
 [
 "Vous mangerais avec nous ce soir.",
 "mangerais",
+"vigilance"
+],
+[
+"Les belles journés reviennent.",
+"journés",
 "vigilance"
 ]
 ],
