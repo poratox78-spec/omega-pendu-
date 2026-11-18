@@ -731,3 +731,43 @@ Vous {apprendrais|apprendrez|C} les règles, les ouvertures et les finales les p
 Les plateaux et les pendules {son|sont|G} prêtés par le club.
 Un petit tournoi {sera organiser|sera organisé|C} en fin d'année.
 Pour vous inscrire, {passé|passez|C} au bureau de l'accueil{|.|P}
+=== T115 lettre à un fournisseur d'électricité après une facture trop élevée
+Bonjour,
+La facture d'électricité du mois d'octobre est {arrivé|arrivée|G} hier dans ma boîte aux lettres.
+Le montant est trois fois plus élevé que d'habitude{|,|P} alors que la maison est restée vide pendant les vacances.
+Je pense que le relevé du compteur {et|est|G} faux.
+Les chiffres {indiqué|indiqués|G} sur la facture ne {corresponde|correspondent|C} pas à ceux que j'ai {noter|notés|C} moi-même.
+Pourriez-vous envoyer un technicien pour vérifier le compteur{.| ?|P}
+Si personne ne peut passer avant Noël, je {voudrai|voudrais|C} au moins recevoir une facture corrigée.
+Vous pouvez m'appeler le soir pour tout {renseignements|renseignement|N} ; mon numéro est en bas de la {paje|page|O}.
+Cordialement,
+Sylvie Marchand
+=== T116 offre d'emploi saisonnier pour la cueillette des pommes
+Le verger des Trois Chênes recherche des cueilleurs pour la saison.
+La cueillette {commance|commence|O} début septembre et {dur|dure|C} six semaines.
+Les journées {commence|commencent|C} tôt le matin et {finisse|finissent|C} avant le coucher du soleil.
+Les longues {journés|journées|O} au grand air demandent une bonne forme.
+Les gants et les {panier|paniers|N} sont fournis par le verger.
+Vous {travaillerais|travaillerez|C} à deux dans chaque rangée d'arbres.
+Le repas de midi {ce|se|G} prend sous les arbres, près de la grange.
+Pour postuler, {envoyé|envoyez|C} un message avec vos {disponibilitée|disponibilités|O} avant le quinze août{|.|P}
+=== T117 conseils d'une diététicienne pour le petit déjeuner
+Le petit déjeuner est un repas important{|.|P} Beaucoup d'enfants {parte|partent|C} à l'école le ventre vide.
+Un bol de lait, un fruit et une tartine suffisent pour tenir jusqu'à midi.
+Évitez les céréales trop {sucrer|sucrées|G}, elles donnent faim une heure plus tard.
+Quand votre enfant refuse de manger au réveil, {glissé|glissez|C} un fruit dans son cartable pour la récréation.
+Chaque enfant a {ces|ses|G} habitudes et il ne faut pas le forcer.
+Le soir, un repas léger aide {a|à|G} bien dormir et à avoir faim le matin.
+Autrefois, on {fesait|faisait|O} souvent un vrai repas avant de partir travailler.
+Les {matinés|matinées|O} d'école sont longues et un enfant qui a bien mangé écoute mieux.
+=== T118 récit d'un déménagement
+Samedi, nous avons {déménager|déménagé|C} dans un appartement plus grand.
+Mes deux frères et mon oncle {son|sont|G} venus nous aider dès sept heures.
+Le camion était trop petit{|,|P} alors nous avons dû faire trois {voyage|voyages|N}.
+Ma mère {à|a|G} porté elle-même les cartons de vaisselle pour ne rien casser.
+Les meubles du salon {on|ont|G} été les plus durs à monter au quatrième étage.
+À midi, ma tante est {venu|venue|G} avec des sandwichs et une tarte aux pommes.
+Pendant ce temps, mon petit frère {rangeai|rangeait|C} ses jouets dans sa nouvelle chambre.
+Le camion et la voiture {était|étaient|C} garés devant l'immeuble jusqu'au soir.
+Le soir, tout le monde était {épuiser|épuisé|C}, mais content.
+Notre nouveau voisin nous a {souhaiter|souhaité|C} la bienvenue{|.|P}
