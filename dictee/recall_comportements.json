@@ -1032,7 +1032,22 @@
 "Ce sont ceux que j'ai notés moi-même.",
 "Je pense à ceux que nous avons vu partir ce matin.",
 "Lorsque le gâteau est cuit, sorti du four, il refroidit vite.",
-"S'il fait beau, passé le pont, nous mangerons au bord de l'eau."
+"S'il fait beau, passé le pont, nous mangerons au bord de l'eau.",
+"Chaque enfant a ses habitudes le matin.",
+"Il a ces clés-là au fond de son sac à dos.",
+"Elle a ces livres que je cherchais depuis lundi.",
+"Elle a ces livres qui traînent sur la table.",
+"Les enfants ont ces jouets dans le grenier.",
+"On a vu ces maisons au bord de la route.",
+"Cette directrice avait du pouvoir sur toute l'équipe.",
+"Ce menuisier a du savoir-faire.",
+"Il a donc du pain pour ce soir.",
+"J'ai donc dû prendre un car.",
+"Si le chat boit beaucoup, appeler le cabinet.",
+"Appeler le cabinet sans attendre.",
+"Lorsque vous partez, laisser la clé vous rend service.",
+"En cas de doute, consultez le guide distribué dans les boîtes aux lettres.",
+"Quand vous aurez fini, rangez vos affaires."
 ],
 "elide": [
 [
@@ -4399,6 +4414,51 @@
 "Quand le pain est cuit, posé le plat sur la table.",
 "posé",
 "posez"
+],
+[
+"Il a ces clés au fond de son sac à dos.",
+"ces",
+"ses"
+],
+[
+"Elle avait ces lunettes rouges sur le nez.",
+"ces",
+"ses"
+],
+[
+"Chaque enfant a ces habitudes le matin.",
+"ces",
+"ses"
+],
+[
+"J'ai donc du prendre un car.",
+"du",
+"dû"
+],
+[
+"Nous avons ensuite du attendre une heure.",
+"du",
+"dû"
+],
+[
+"En cas de doute, consulté le guide distribué dans les boîtes aux lettres.",
+"consulté",
+"consultez"
+],
+[
+"Rangé le livre tombé par terre.",
+"Rangé",
+"Rangez"
+],
+[
+"Quand vous arrivez, fermer la porte derrière vous.",
+"fermer",
+"fermez"
+],
+[
+"Quand vous aurez fini, ranger vos affaires.",
+"ranger",
+"rangez"
 ]
 ],
 "palier": [
@@ -5000,6 +5060,21 @@
 [
 "Quand vous rentrez tard, fermé la porte à clé.",
 "fermé",
+"vigilance"
+],
+[
+"Il a ces clés au fond de son sac à dos.",
+"ces",
+"vigilance"
+],
+[
+"J'ai donc du prendre un car.",
+"du",
+"auto"
+],
+[
+"Quand vous arrivez, fermer la porte derrière vous.",
+"fermer",
 "vigilance"
 ]
 ],
