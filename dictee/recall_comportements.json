@@ -1056,7 +1056,11 @@
 "Ils vous ont attendu à la gare.",
 "Ont-ils vu le film ?",
 "La neige tombée hier fond déjà.",
-"Mon frère a vu la neige tomber sur le jardin."
+"Mon frère a vu la neige tomber sur le jardin.",
+"Celles qui arrivent tôt prennent le meilleur siège.",
+"Ceux qui sont tombés, ce fut un choc.",
+"Ceux qui aiment la porte rouge peuvent entrer.",
+"Ceux qui pensent que leur enfant vient demain peuvent appeler."
 ],
 "elide": [
 [
@@ -4483,6 +4487,11 @@
 "Demain, ont vous attend à la gare.",
 "ont",
 "on"
+],
+[
+"Celles qui arrivent tôt prend le meilleur siège.",
+"prend",
+"prennent"
 ]
 ],
 "palier": [
@@ -5115,6 +5124,11 @@
 "La neige tombé hier fond déjà.",
 "tombé",
 "auto"
+],
+[
+"Celles qui arrivent tôt prend le meilleur siège.",
+"prend",
+"vigilance"
 ]
 ],
 "vig": [
