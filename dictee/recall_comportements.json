@@ -1054,7 +1054,9 @@
 "On vous attend à la gare.",
 "Les enfants ont la grippe.",
 "Ils vous ont attendu à la gare.",
-"Ont-ils vu le film ?"
+"Ont-ils vu le film ?",
+"La neige tombée hier fond déjà.",
+"Mon frère a vu la neige tomber sur le jardin."
 ],
 "elide": [
 [
@@ -5103,6 +5105,16 @@
 "Ont vous attend à la gare.",
 "Ont",
 "vigilance"
+],
+[
+"Mon frère a vu la neige tombé sur le jardin.",
+"tombé",
+"vigilance"
+],
+[
+"La neige tombé hier fond déjà.",
+"tombé",
+"auto"
 ]
 ],
 "vig": [
