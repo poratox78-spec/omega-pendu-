@@ -1028,7 +1028,11 @@
 "Votre parti a gagné les élections.",
 "Votre venue nous fait plaisir.",
 "Les premiers arrivés ont attendu.",
-"Les premières gelées arrivent."
+"Les premières gelées arrivent.",
+"Ce sont ceux que j'ai notés moi-même.",
+"Je pense à ceux que nous avons vu partir ce matin.",
+"Lorsque le gâteau est cuit, sorti du four, il refroidit vite.",
+"S'il fait beau, passé le pont, nous mangerons au bord de l'eau."
 ],
 "elide": [
 [
@@ -4370,6 +4374,31 @@
 "La gelé blanche couvre le jardin.",
 "gelé",
 "gelée"
+],
+[
+"Cette robe ressemble à celle que ma sœur a acheter au marché.",
+"acheter",
+"achetée"
+],
+[
+"Ces outils sont ceux que nous avons utiliser pendant le stage.",
+"utiliser",
+"utilisés"
+],
+[
+"Les clés sont celles que j'ai perdu dans le jardin.",
+"perdu",
+"perdues"
+],
+[
+"Quand vous rentrez tard, fermé la porte à clé.",
+"fermé",
+"fermez"
+],
+[
+"Quand le pain est cuit, posé le plat sur la table.",
+"posé",
+"posez"
 ]
 ],
 "palier": [
@@ -4961,6 +4990,16 @@
 [
 "Les belles journés reviennent.",
 "journés",
+"vigilance"
+],
+[
+"Ces outils sont ceux que nous avons utiliser pendant le stage.",
+"utiliser",
+"auto"
+],
+[
+"Quand vous rentrez tard, fermé la porte à clé.",
+"fermé",
 "vigilance"
 ]
 ],

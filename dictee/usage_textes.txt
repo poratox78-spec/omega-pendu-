@@ -732,7 +732,7 @@ Les plateaux et les pendules {son|sont|G} prêtés par le club.
 Un petit tournoi {sera organiser|sera organisé|C} en fin d'année.
 Pour vous inscrire, {passé|passez|C} au bureau de l'accueil{|.|P}
 === T115 lettre à un fournisseur d'électricité après une facture trop élevée
-Madame, Monsieur,
+Bonjour,
 La facture d'électricité du mois d'octobre est {arrivé|arrivée|G} hier dans ma boîte aux lettres.
 Le montant est trois fois plus élevé que d'habitude{|,|P} alors que la maison est restée vide pendant les vacances.
 Je pense que le relevé du compteur {et|est|G} faux.
