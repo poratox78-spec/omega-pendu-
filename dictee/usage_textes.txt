@@ -812,3 +812,41 @@ Ne {metez|mettez|O} pas les piles à la poubelle : rapportez-les en magasin.
 Les gros objets {peuve|peuvent|C} être apportés à la déchetterie, ouverte du mardi au samedi.
 En cas de doute, {consulté|consultez|C} le guide distribué dans les boîtes aux lettres.
 Grâce à vos efforts, la quantité de déchets {à|a|G} baissé d'un quart en un an.
+=== T123 annonce de la fermeture d'une boulangerie pour les vacances
+Chers clients, la boulangerie sera {fermer|fermée|C} du 3 au 17 août.
+Nous {partont|partons|C} en vacances pour la première fois depuis cinq ans.
+Vous pourrez acheter votre pain à la boulangerie du marché couvert, {ou|où|G} nos collègues vous attendent.
+Les {commande|commandes|N} de gâteaux pour les mariages restent possibles par téléphone.
+Nous {remerçions|remercions|O} tous ceux qui nous ont {soutenu|soutenus|G} cette année.
+À notre retour{|,|P} vous découvrirez trois nouvelles {tarte|tartes|N} aux fruits.
+{Quel|Quelle|G} joie de vous retrouver en septembre !
+Bonnes vacances à tous et à {bientot|bientôt|O}{|!|P|.}
+=== T124 conseils d'un garagiste avant un long trajet
+Avant de partir en vacances, {faite|faites|C} vérifier vos pneus.
+Des pneus trop {usé|usés|G} allongent la distance de freinage.
+Pensez aussi {a|à|G} contrôler le niveau d'huile et le liquide de refroidissement.
+Si un voyant rouge s'allume pendant le trajet{|,|P} arrêtez-vous sur une aire de repos.
+Les balais d'essuie-glace {doive|doivent|C} être changés chaque année.
+Ne {surcharger|surchargez|C} pas le coffre : la voiture freine moins bien.
+Sur l'autoroute, faites une pause après deux {heure|heures|N} de route.
+Notre atelier {et|est|G} ouvert six jours sur sept, sans rendez-vous.
+Le contrôle complet prend une demi-heure et il est {gratui|gratuit|O}.
+=== T125 récit d'une sortie au cirque écrit par un enfant
+Mercredi, toute la classe est {allé|allée|G} au cirque.
+Sous le chapiteau, il faisait chaud et {ont|on|G} entendait la musique de loin.
+D'abord, deux clowns {son|sont|G} entrés en courant.
+Ils {fesaient|faisaient|O} tomber leurs chapeaux et tout le monde riait.
+Ensuite, une acrobate a {marcher|marché|C} sur un fil très haut.
+J'ai eu peur pour elle{|,|P} mais elle n'est pas tombée.
+Les chevaux {blanc|blancs|N} tournaient en rond autour de la piste.
+À la fin, nous avons {applaudit|applaudi|C} très fort.
+C'était la plus belle sortie de {l'annee|l'année|O}{|.|P}
+=== T126 compte rendu du conseil municipal des jeunes
+Le conseil municipal des jeunes s'est {réunit|réuni|C} mardi soir à la mairie.
+Douze conseillers {étais|étaient|C} présents.
+Ils ont {parler|parlé|C} du projet de parc à vélos près du collège.
+Les élèves de sixième {veule|veulent|C} aussi des bancs dans la cour.
+Le maire {à|a|G} promis une réponse avant les vacances de printemps.
+Chaque conseiller doit en parler avec {c'est|ses|G} camarades de classe.
+Toutes les idées {reçu|reçues|G} seront lues à la prochaine séance.
+Merci aux parents qui ont accompagné les plus jeunes{|.|P}
