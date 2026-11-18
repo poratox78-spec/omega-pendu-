@@ -5,7 +5,7 @@
 
 ## En chiffres
 
-- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **225** entrées, **91** noms affichés ; rouge : 76 · rouge avec un cas orange posé par la règle : 47 · rouge ou orange selon le sous-cas : 44 · orange : 58.
+- Chaîne des règles de grammaire (`CRULES`, extension ≡ app) : **225** entrées, **91** noms affichés ; rouge : 75 · rouge avec un cas orange posé par la règle : 48 · rouge ou orange selon le sous-cas : 44 · orange : 58.
 - Moteur Python : débranché de dev.sh et de la CI le 22/10/2026 (ligne 25b) — la chaîne n'est plus comparée ; la parité directe app ≡ extension la garde (`dictee/parity_app_ext.js`).
 - Noms posés hors de la chaîne côté extension (orthographe, typographie, oranges) : **52**.
 - Tables chargées : 11 (le chargeur unique `extension/charger_node.js` les charge toutes pour les bancs).
@@ -45,7 +45,7 @@ La « famille » est celle du conseil affiché (`famRegle` / `flagsToFacts`) ; �
 | 26 | infinitif de but | `rInfBut` | `—` | rouge | accord | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller) |
 | 27 | impératif | `rImperatif` | `—` | rouge | personne | vdc-lex (conjugaison, genre, pluriels) |
 | 28 | son/sont | `rSon` | `—` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
-| 29 | on/ont | `rOn` | `—` | rouge | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
+| 29 | on/ont | `rOn` | `—` | rouge, orange dans un cas posé par la règle | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms, genre accentué |
 | 30 | leur/leurs | `rLeur` | `—` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, genre accentué |
 | 31 | a/à | `rA` | `—` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), genre relâché, dictionnaire (speller), noun-post, étiqueteur HMM, prénoms |
 | 32 | et/est | `rEt` | `—` | rouge ou orange (sous-cas mesuré, _tierOf) | homophone_gram | vdc-lex (conjugaison, genre, pluriels), dictionnaire (speller), noun-post, étiqueteur HMM |

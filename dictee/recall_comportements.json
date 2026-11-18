@@ -1047,7 +1047,14 @@
 "Appeler le cabinet sans attendre.",
 "Lorsque vous partez, laisser la clé vous rend service.",
 "En cas de doute, consultez le guide distribué dans les boîtes aux lettres.",
-"Quand vous aurez fini, rangez vos affaires."
+"Quand vous aurez fini, rangez vos affaires.",
+"Quant à la prochaine pièce, nous la jouerons au printemps.",
+"Quand à la fin du film le héros meurt, tout le monde pleure.",
+"Quand à la belle saison les oiseaux reviennent, le jardin chante.",
+"On vous attend à la gare.",
+"Les enfants ont la grippe.",
+"Ils vous ont attendu à la gare.",
+"Ont-ils vu le film ?"
 ],
 "elide": [
 [
@@ -4459,6 +4466,21 @@
 "Quand vous aurez fini, ranger vos affaires.",
 "ranger",
 "rangez"
+],
+[
+"Quand à la prochaine pièce, nous la jouerons au printemps.",
+"Quand",
+"Quant"
+],
+[
+"Ont vous attend à la gare.",
+"Ont",
+"On"
+],
+[
+"Demain, ont vous attend à la gare.",
+"ont",
+"on"
 ]
 ],
 "palier": [
@@ -5075,6 +5097,11 @@
 [
 "Quand vous arrivez, fermer la porte derrière vous.",
 "fermer",
+"vigilance"
+],
+[
+"Ont vous attend à la gare.",
+"Ont",
 "vigilance"
 ]
 ],

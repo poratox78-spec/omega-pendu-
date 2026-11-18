@@ -850,3 +850,42 @@ Le maire {à|a|G} promis une réponse avant les vacances de printemps.
 Chaque conseiller doit en parler avec {c'est|ses|G} camarades de classe.
 Toutes les idées {reçu|reçues|G} seront lues à la prochaine séance.
 Merci aux parents qui ont accompagné les plus jeunes{|.|P}
+=== T127 message d'un club de théâtre amateur après sa première représentation
+Samedi soir, la salle des fêtes {étais|était|C} pleine pour notre première représentation.
+Les comédiens {avait|avaient|C} répété chaque jeudi depuis septembre.
+{Malgrés|Malgré|O} le trac, personne n'a oublié son texte.
+Le public a beaucoup ri pendant la scène du mariage{|,|P} surtout quand le décor est tombé.
+Merci aux deux couturières, qui ont {cousue|cousu|G} tous les costumes à la main.
+Les recettes de la buvette {servirons|serviront|C} à acheter de nouveaux projecteurs.
+{Quand|Quant|G} à la prochaine pièce, nous la jouerons au printemps.
+Ceux qui veulent monter sur scène l'an prochain {peut|peuvent|C} venir à la répétition du jeudi.
+{Ont|On|G} vous attend nombreux !
+=== T128 fiche pratique pour économiser l'eau à la maison
+Une douche de cinq minutes {consome|consomme|O} trois fois moins d'eau qu'un bain.
+Fermez le robinet pendant que vous vous {brossé|brossez|C} les dents.
+Une chasse d'eau qui fuit peut {gaspillé|gaspiller|C} des centaines de litres par mois.
+Récupérez l'eau de pluie pour arroser les {plante|plantes|N} du jardin.
+Lancez la machine à laver seulement quand elle est {pleinne|pleine|O}.
+Vérifiez régulièrement votre compteur{|,|P} une fuite cachée coûte cher.
+Ces petits gestes {permette|permettent|C} de réduire la facture d'un tiers.
+Toute la famille {peu|peut|G} participer, même les plus petits.
+=== T129 lettre d'excuse à un voisin après une fête trop bruyante
+Cher voisin,
+Je tenais à m'excuser pour le bruit de samedi soir.
+Nous fêtions les dix-huit ans de mon fils et nous n'avons pas vu l'heure {passé|passer|C}.
+Je {sait|sais|C} que vous vous levez tôt pour aller travailler.
+Les invités sont {partit|partis|C} vers deux heures du matin, ce qui est beaucoup trop tard.
+{Sa|Ça|G} ne se reproduira pas, je vous le promets.
+Pour me faire pardonner, je vous ai {déposer|déposé|C} une part de gâteau devant votre porte.
+N'hésitez pas à {sonné|sonner|C} chez nous si un jour le bruit vous dérange.
+Encore toutes mes {excuse|excuses|N},
+Votre voisine du troisième étage
+=== T130 annonce d'un cours de yoga pour débutants
+Un nouveau cours de yoga {commance|commence|O} le lundi 6 janvier à la maison des associations.
+Il est {ouverts|ouvert|N} à tous, sans limite d'âge.
+Aucun matériel n'est {nécéssaire|nécessaire|O} : nous prêtons les tapis.
+Prévoyez des vêtements {souple|souples|N} et une bouteille d'eau.
+Les séances {dure|durent|C} une heure et se terminent par un moment de relaxation.
+Le premier cours est {offer|offert|O}, pour que chacun puisse essayer.
+Quand on souffre du dos{|,|P} il faut en parler au professeur avant de commencer.
+Les places sont {limité|limitées|G} à quinze personnes par cours.
