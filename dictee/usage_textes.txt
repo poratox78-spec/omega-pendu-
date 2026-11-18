@@ -771,3 +771,44 @@ Pendant ce temps, mon petit frère {rangeai|rangeait|C} ses jouets dans sa nouve
 Le camion et la voiture {était|étaient|C} garés devant l'immeuble jusqu'au soir.
 Le soir, tout le monde était {épuiser|épuisé|C}, mais content.
 Notre nouveau voisin nous a {souhaiter|souhaité|C} la bienvenue{|.|P}
+=== T119 compte rendu d'un vétérinaire après la visite d'un chat
+Pilou a été {examiner|examiné|C} ce matin pour sa visite annuelle.
+Il pèse cinq kilos{|,|P} ce qui est un peu trop pour son âge.
+Ses dents sont {propre|propres|N}, mais ses gencives sont un peu rouges.
+Je vous {conseil|conseille|C} de réduire les croquettes d'un quart.
+Les {vacins|vaccins|O} sont à jour et le prochain rappel aura lieu en mars.
+Si vous remarquez qu'il boit beaucoup, {appeler|appelez|C} le cabinet sans attendre.
+Il {peu|peut|G} sortir dans le jardin dès demain.
+Ses griffes ont été {coupé|coupées|G} pendant la visite.
+Merci de nous avoir {confier|confié|C} votre compagnon{|.|P}
+=== T120 demande de remboursement d'un billet de train annulé
+Bonjour,
+Mon train du 12 octobre a été {annuler|annulé|C} une heure avant le départ.
+J'ai donc {du|dû|O} prendre un car qui est arrivé avec trois heures de retard.
+Je vous écris pour {demandé|demander|C} le remboursement de mon billet.
+Vous trouverez ci-joint la copie du billet et le ticket du car{|.|P}
+Les deux {trajet|trajets|N} m'ont coûté plus de quatre-vingts euros.
+{Quel|Quelle|G} est la démarche à suivre pour obtenir ce remboursement ?
+Vous pouvez me répondre à cette adresse ou par courrier{|.|P}
+Je vous remercie {davance|d'avance|O} pour votre aide.
+Bien à vous,
+=== T121 témoignage d'une bénévole d'une épicerie solidaire
+Je suis bénévole à l'épicerie du quartier depuis deux ans.
+Chaque mardi, les {produit|produits|N} arrivent dans des caisses en plastique.
+Nous les {trion|trions|C} avant l'ouverture des portes.
+Les familles que nous {accueillon|accueillons|C} viennent souvent avec leurs enfants.
+{Sa|Ça|G} fait du bien de voir les sourires quand les étagères sont pleines.
+Certains jours, il manque du lait et des {légume|légumes|N} frais.
+L'hiver dernier, nous avons {organiser|organisé|C} une collecte devant le supermarché.
+Les clients nous ont {donnés|donné|G} plus de deux cents kilos de nourriture.
+Quand on a un peu de temps libre{|,|P} on peut venir nous {rejoinde|rejoindre|O} le samedi.
+=== T122 note de la mairie sur le tri des déchets
+Depuis le premier janvier, les règles du tri {on|ont|G} changé dans la commune.
+Tous les {emballage|emballages|N} en plastique vont dans le bac jaune.
+Les bouteilles en verre {doive|doivent|C} être déposées dans les conteneurs du parking.
+Il n'est pas utile de laver les pots{|,|P} il suffit de bien les vider.
+Les déchets du jardin sont {ramassé|ramassés|G} le lundi matin, d'avril à octobre.
+Ne {metez|mettez|O} pas les piles à la poubelle : rapportez-les en magasin.
+Les gros objets {peuve|peuvent|C} être apportés à la déchetterie, ouverte du mardi au samedi.
+En cas de doute, {consulté|consultez|C} le guide distribué dans les boîtes aux lettres.
+Grâce à vos efforts, la quantité de déchets {à|a|G} baissé d'un quart en un an.
