@@ -889,3 +889,43 @@ Les séances {dure|durent|C} une heure et se terminent par un moment de relaxati
 Le premier cours est {offer|offert|O}, pour que chacun puisse essayer.
 Quand on souffre du dos{|,|P} il faut en parler au professeur avant de commencer.
 Les places sont {limité|limitées|G} à quinze personnes par cours.
+=== T131 règlement d'une aire de jeux pour enfants
+L'aire de jeux est {réservé|réservée|G} aux enfants de moins de douze ans.
+Les enfants {reste|restent|C} sous la responsabilité d'un adulte.
+Les vélos et les trottinettes {son|sont|G} interdits sur le sol souple.
+Les chiens ne sont pas {admit|admis|O} dans l'enceinte.
+Merci de jeter vos déchets dans les {poubelle|poubelles|N} prévues à cet effet.
+En cas d'accident, {prévené|prévenez|C} le gardien du parc.
+Les grilles {ferme|ferment|C} à dix-neuf heures en hiver.
+Les services techniques ont {contrôler|contrôlé|C} chaque balançoire le mois dernier.
+Amusez-vous bien et {respecté|respectez|C} les autres enfants{|.|P}
+=== T132 mail d'une agence de voyages qui confirme une réservation
+Bonjour,
+Nous avons le plaisir de vous {confirmé|confirmer|C} votre séjour à Lisbonne du 4 au 11 mai.
+Votre vol {décole|décolle|O} de Paris à huit heures quarante.
+L'hôtel se trouve {a|à|G} deux minutes à pied de la mer.
+Les petits déjeuners sont {compri|compris|O} dans le prix.
+Pensez à vérifier la date de validité de vos {passeport|passeports|N}.
+Pour une chambre plus grande, {répondé|répondez|C} à ce message avant vendredi.
+Nous vous {souhaiton|souhaitons|C} un excellent voyage.
+L'équipe de l'agence
+=== T133 message d'une bibliothécaire pour l'heure du conte
+Chaque mercredi après-midi, la bibliothèque {organisent|organise|C} une heure du conte.
+Les albums {lu|lus|G} à voix haute changent chaque semaine.
+Les parents {son|sont|G} les bienvenus s'ils restent discrets.
+Après la lecture, les enfants dessinent {leur|leurs|G} personnages préférés.
+L'entrée est {gratuit|gratuite|G} et sans inscription.
+Quand il fait beau{|,|P} la lecture a lieu dans le jardin.
+Les enfants {s'assoit|s'assoient|C|s'asseyent} en rond sur les tapis.
+Nous {attendon|attendons|C} vos petits lecteurs avec impatience !
+=== T134 lettre d'un grand-père à sa petite-fille
+Ma chère petite-fille,
+Ta lettre m'a fait {tres|très|O} plaisir.
+Je suis content que tu {aime|aimes|C} ta nouvelle école.
+Ici, le jardin est plein de {fleur|fleurs|N} et ta grand-mère passe ses journées dehors.
+Hier, nous sommes {allé|allés|G} au marché à vélo, comme quand nous étions jeunes.
+Le chat a encore {attraper|attrapé|C} une souris et il était très fier.
+Quand tu viendras cet été, nous {iron|irons|C} pêcher au bord de la rivière.
+{Ont|On|G} pensera à toi pour les confitures de fraises.
+Je t'embrasse fort,
+Ton grand-père
