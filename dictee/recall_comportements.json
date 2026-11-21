@@ -1074,7 +1074,8 @@
 "La fête approche et tout le monde se prépare.",
 "Il n'a rien trouvé dans le grenier.",
 "Elle n'avait rien remarqué en rentrant.",
-"Le pain dur se garde pour la soupe."
+"Le pain dur se garde pour la soupe.",
+"Le spectacle plaît à tous les âges."
 ],
 "elide": [
 [
@@ -4581,6 +4582,21 @@
 "Le don dur environ une heure.",
 "dur",
 "dure"
+],
+[
+"Il y en aura pour tous les ages.",
+"ages",
+"âges"
+],
+[
+"Il a coupé les pommes en deux moities.",
+"moities",
+"moitiés"
+],
+[
+"Les cameras filment la rue toute la nuit.",
+"cameras",
+"caméras"
 ]
 ],
 "palier": [

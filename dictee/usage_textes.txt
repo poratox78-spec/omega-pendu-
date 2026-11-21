@@ -1046,3 +1046,37 @@ Une collation {et|est|G} offerte après le don.
 Le don {dur|dure|C} environ une heure, entretien compris.
 Nous vous remercions pour votre {génèrosité|générosité|O}.
 Ensemble{|,|P} nous pouvons sauver des vies.
+=== T147 affiche d'une bourse aux livres
+La bourse aux livres {auras|aura|C} lieu le samedi 18 octobre au gymnase.
+Vous pouvez déposer vos livres la veille, entre seize et dix-neuf {heure|heures|N}.
+Chaque livre {dois|doit|C} porter une étiquette avec son prix.
+Les livres {abîmé|abîmés|N} ou incomplets seront refusés.
+Les vendeurs {récupérerons|récupéreront|C} l'argent et les invendus le dimanche matin.
+Une partie des {bénéfice|bénéfices|N} servira à acheter des livres pour l'école.
+Venez nombreux : il y en aura pour tous les {ages|âges|O} !
+=== T148 message d'un club de tennis avant les vacances
+Bonjour à tous,
+Les cours {s'arreteront|s'arrêteront|O} pendant les deux semaines de vacances.
+Les courts {resterons|resteront|C} ouverts aux adhérents de huit heures à vingt heures.
+Pour réserver, il {suffi|suffit|C} de remplir le tableau à l'entrée du club.
+Un stage pour les enfants {seras|sera|C} organisé la deuxième semaine.
+Les places {son|sont|G} limitées : inscrivez-vous vite.
+N'oubliez pas de {rangé|ranger|C} les balles après chaque partie.
+Bonnes vacances à tous et à {bientot|bientôt|O} sur les courts !
+=== T149 réclamation à un magasin de meubles
+Bonjour,
+Ma table et mes quatre chaises, commandées le 3 septembre sur le {cite|site|G} du magasin, sont arrivées hier.
+Malheureusement, deux chaises {étais|étaient|C} abîmées pendant le transport.
+Le pied d'une chaise est {cassée|cassé|G} et le dossier de l'autre est rayé.
+J'ai pris des {photo|photos|N} des deux chaises avant de les remballer.
+Je souhaite que les deux chaises soient {remplacé|remplacées|G} au plus vite.
+Je peux être chez moi le mardi ou le jeudi pour une nouvelle {livréson|livraison|O}.
+En attendant, je garde les chaises abîmées dans leurs cartons.
+=== T150 récit d'une première journée de stage dans une boulangerie
+Lundi matin, mon stage à la boulangerie du quartier a débuté.
+Je me suis levé à quatre heures du matin pour {ètre|être|O} à l'heure.
+Le boulanger m'a {montrer|montré|C} comment pétrir la pâte à pain.
+Les croissants {demande|demandent|C} beaucoup de patience.
+J'ai enfourné ma première fournée de {baguette|baguettes|N} vers six heures.
+À sept heures, les premiers clients {entrait|entraient|C} déjà dans la boutique.
+J'étais fatigué, mais très fier de mon travail.
