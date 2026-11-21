@@ -929,3 +929,42 @@ Quand tu viendras cet été, nous {iron|irons|C} pêcher au bord de la rivière.
 {Ont|On|G} pensera à toi pour les confitures de fraises.
 Je t'embrasse fort,
 Ton grand-père
+=== T135 annonce de la fête des voisins
+La fête des voisins {auras|aura|C} lieu le vendredi 29 mai dans la cour de l'immeuble.
+Chacun {apportent|apporte|C} un plat à partager.
+Les tables et les chaises {seron|seront|O} installées dès dix-huit heures.
+Ceux qui ont des guirlandes {peut|peuvent|C} les accrocher dans les arbres.
+N'oubliez pas vos {verre|verres|N} : nous voulons éviter le plastique.
+{Ces|C'est|G} l'occasion de faire connaissance avec les nouveaux habitants.
+La musique s'{arretera|arrêtera|O} à vingt-trois heures pour ne pas gêner le quartier.
+Merci à ceux qui {aiderons|aideront|C} à ranger à la fin de la soirée.
+=== T136 mode d'emploi d'un composteur
+Placez le composteur sur la terre, dans un coin {ombrager|ombragé|C} du jardin.
+Déposez-y les épluchures de {légume|légumes|N}, le marc de café et les coquilles d'œufs.
+Les restes de viande et de poisson {attire|attirent|C} les animaux : ne les mettez pas.
+Le compost {doient|doit|C} rester humide comme une éponge essorée.
+Ajoutez des feuilles {morte|mortes|N} si le mélange devient trop mouillé.
+Au bout de six mois, le compost est {prés|prêt|G} pour le potager.
+Vous pouvez {l'étalé|l'étaler|C} au pied des arbres ou dans le potager.
+Un composteur bien {entretenue|entretenu|G} ne sent pas mauvais.
+=== T137 message d'un professeur de piano à ses élèves
+Chers élèves,
+Le concert de fin d'année {aprroche|approche|O} à grands pas.
+Chacun {jourra|jouera|O} un morceau seul et un morceau à quatre mains.
+Les élèves qui n'ont pas encore {choisis|choisi|G} leur morceau doivent m'en parler mardi.
+Les répétitions {auron|auront|O} lieu dans la grande salle.
+Pensez à {apporté|apporter|C} vos partitions à chaque cours.
+Vos parents {son|sont|G} invités à venir écouter la dernière répétition.
+Je suis très {fiers|fier|N} de vos progrès cette année.
+À bientôt,
+Votre professeur
+=== T138 récit d'une panne de courant pendant l'orage
+Hier soir, l'orage {à|a|G} éclaté juste avant le dîner.
+Toutes les lumières se sont {éteinte|éteintes|G} d'un coup.
+Mon petit frère {avais|avait|C} peur et pleurait sous la table.
+Nous avons {cherchez|cherché|C} des bougies dans le placard de la cuisine.
+Papa a {trouver|trouvé|C} une lampe de poche, mais les piles étaient vides.
+Nous avons mangé à la lueur des {bougie|bougies|N}.
+C'était un peu comme {autrefoi|autrefois|O}, sans télévision ni ordinateur.
+Le courant est {revenue|revenu|G} vers minuit.
+Finalement{|,|P} nous avons passé une soirée très agréable.
