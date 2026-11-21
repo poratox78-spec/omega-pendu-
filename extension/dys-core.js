@@ -3332,7 +3332,7 @@ var INCIDENT_LOC = [
 ];
 var INCIDENT_ADV = new Set(('heureusement malheureusement évidemment naturellement ' +
   'apparemment visiblement effectivement franchement honnêtement personnellement ' +
-  'curieusement étonnamment premièrement deuxièmement troisièmement').split(' '));
+  'curieusement étonnamment premièrement deuxièmement troisièmement finalement').split(' '));   /* liste n° 578 : + finalement (UD : 5 fois avec la virgule en tête, jamais sans) */
 
 /* ── R4 : LES CORRÉLATIONS ───────────────────────────────────────────────────────────────
    Allô prof : « On place une virgule avant un terme répété qui introduit une idée de
@@ -3485,6 +3485,9 @@ function ponctReglesVirgule(mots,_tg,deja,fin){   // fin (liste n° 361) : les m
   // aucun de ces mots n'est ambigu quand il OUVRE la phrase.
   if (INTERJ.has(pvNorm(mots[0])) && mots.length > 2) out.add(0);
   if (INCIDENT_ADV.has(pvNorm(mots[0])) && mots.length > 2) out.add(0);
+  // ⭐ 21/11/2026 (liste n° 578) : l'interjection et l'adverbe incident se détachent en tête de CHAQUE phrase, pas seulement du texte
+  // (« Il pleut. Heureusement nous avons une lampe » → « Heureusement, ») ; deux mots au moins derrière, dans la même phrase.
+  var _s578 = {__proto__:null}; if (fin) for (var k578 = 1; k578 + 2 < mots.length; k578++) { if (!fin[k578 - 1] || fin[k578] || fin[k578 + 1]) continue; var w578 = pvNorm(mots[k578]); if (INTERJ.has(w578) || INCIDENT_ADV.has(w578)) { out.add(k578); _s578[k578] = 1; } }
   for (var l of INCIDENT_LOC)
     if (locA(mots, 0, l) && mots.length > l.length + 1) { out.add(l.length - 1); break; }
 
@@ -3517,7 +3520,7 @@ function ponctReglesVirgule(mots,_tg,deja,fin){   // fin (liste n° 361) : les m
   // coordonnant est SEUL en tête — pas suivi d'un complément lui-même détaché.
   if (deja) {
     var aDeja = function (i) { return deja.has ? deja.has(i) : !!deja[i]; };
-    out.forEach(function (i) { if (aDeja(i - 1) || aDeja(i + 1)) out.delete(i); });
+    out.forEach(function (i) { if ((aDeja(i - 1) && !_s578[i]) || aDeja(i + 1)) out.delete(i); });   /* liste n° 578 : en tête de phrase, le point d'avant n'empêche pas la virgule après l'adverbe */
   }
   // ⛔⛔ PORTE FINALE — UNE RÈGLE NE DOIT JAMAIS ÉMETTRE UNE VIRGULE INTERDITE. Le juge à trois
   // classes en a sorti une (« …particulièrement faibles AVEC , par exemple litres » : virgule après
