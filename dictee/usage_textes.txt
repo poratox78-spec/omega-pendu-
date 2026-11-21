@@ -968,3 +968,43 @@ Nous avons mangé à la lueur des {bougie|bougies|N}.
 C'était un peu comme {autrefoi|autrefois|O}, sans télévision ni ordinateur.
 Le courant est {revenue|revenu|G} vers minuit.
 Finalement{|,|P} nous avons passé une soirée très agréable.
+=== T139 avis de passage d'un livreur
+Bonjour,
+Je suis {passer|passé|C} ce matin vers dix heures pour vous livrer un colis.
+Personne n'a {répondut|répondu|O} à l'interphone.
+Malheureusement{|,|P} je n'ai pas le droit de laisser le colis devant la porte.
+Votre colis {vas|va|C} attendre au bureau de poste de la rue des Lilas jusqu'à jeudi.
+Après ce délai, il {seras|sera|C} renvoyé à l'expéditeur.
+Munissez-vous d'une pièce d'{identiter|identité|O} pour le retirer.
+Vous pouvez aussi choisir une nouvelle date de livraison sur notre {cite|site|G}.
+Les colis {fragile|fragiles|N} ne sont jamais déposés chez un voisin.
+Bonne journée,
+Le livreur
+=== T140 présentation d'un apiculteur au marché
+Bonjour à tous,
+Mes ruches {son|sont|G} installées au bord d'une forêt de châtaigniers.
+Chaque été, les abeilles {produise|produisent|C} un miel foncé au goût puissant.
+Le miel de printemps est plus doux et {cristalise|cristallise|O} vite.
+Je ne {chaufe|chauffe|O} jamais le miel pour garder tous ses arômes.
+Les pots {vendu|vendus|N} au marché viennent tous de mes ruches.
+Vous pouvez aussi {goutez|goûter|C|gouter} le pain d'épices que je prépare avec ce miel.
+Chaque visiteur {dois|doit|C} porter une combinaison fournie à l'entrée du rucher.
+{Ses|C'est|G} une belle façon de découvrir le travail des abeilles.
+=== T141 récit d'une journée à la patinoire écrit par une élève
+Mercredi, notre classe est {aller|allée|C} à la patinoire.
+Au début, je me tenais à la {barière|barrière|O} sans oser lâcher.
+Mon amie m'a {montrer|montré|C} comment glisser en poussant sur un pied.
+Après une heure, nous {faision|faisions|O} le tour de la piste sans tomber.
+Le moniteur nous a appris à {freinner|freiner|O} avec la pointe des patins.
+Mes mains étaient {gelé|gelées|G} malgré mes gants.
+Nous avons {bue|bu|G} un grand bol de lait chaud avant de reprendre le car.
+J'ai hâte d'y {retourné|retourner|C}.
+=== T142 conseils d'une pharmacienne pour l'hiver
+Avec l'arrivée du froid, les rhumes {reviennes|reviennent|C}.
+Lavez-vous souvent les mains, au moins cinq fois par {jours|jour|N}.
+Aérez votre logement dix minutes chaque matin, même quand il fait {froit|froid|O}.
+Buvez beaucoup d'eau et dormez {suffisament|suffisamment|O}.
+Si la fièvre {durent|dure|C} plus de trois jours, consultez votre médecin.
+Ne {donné|donnez|C} jamais d'aspirine à un enfant sans avis médical.
+Notre pharmacie {et|est|G} ouverte le dimanche matin pendant tout l'hiver.
+En cas de doute, n'hésitez pas à nous {demandez|demander|C} conseil.

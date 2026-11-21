@@ -1065,7 +1065,13 @@
 "Le chat avait encore attrapé une souris et il était très fier.",
 "Il est si fier de lui.",
 "Il était trop fier pour demander de l'aide.",
-"Les grilles ferment à dix-neuf heures en hiver."
+"Les grilles ferment à dix-neuf heures en hiver.",
+"Je dois partir tôt ce soir.",
+"Tu sais nager depuis cet été.",
+"Le vélo va rester dans le garage.",
+"Tu vas partir avant la nuit.",
+"Le compost reste humide sous les feuilles.",
+"La fête approche et tout le monde se prépare."
 ],
 "elide": [
 [
@@ -4522,6 +4528,36 @@
 "Ont pensera à toi pendant les vacances.",
 "Ont",
 "On"
+],
+[
+"Le compost doivent rester humide.",
+"doivent",
+"doit"
+],
+[
+"Le compost doient rester humide.",
+"doient",
+"doit"
+],
+[
+"Le vélo dois rester dehors.",
+"dois",
+"doit"
+],
+[
+"Le train vais partir dans une minute.",
+"vais",
+"va"
+],
+[
+"Mon frère vas venir avec nous.",
+"vas",
+"va"
+],
+[
+"Le concert de fin d'année aprroche à grands pas.",
+"aprroche",
+"approche"
 ]
 ],
 "palier": [
@@ -5158,6 +5194,16 @@
 [
 "Celles qui arrivent tôt prend le meilleur siège.",
 "prend",
+"vigilance"
+],
+[
+"Mon frère vas venir avec nous.",
+"vas",
+"auto"
+],
+[
+"Le vélo dois rester dehors.",
+"dois",
 "vigilance"
 ]
 ],
