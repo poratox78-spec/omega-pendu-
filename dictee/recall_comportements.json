@@ -1071,7 +1071,10 @@
 "Le vélo va rester dans le garage.",
 "Tu vas partir avant la nuit.",
 "Le compost reste humide sous les feuilles.",
-"La fête approche et tout le monde se prépare."
+"La fête approche et tout le monde se prépare.",
+"Il n'a rien trouvé dans le grenier.",
+"Elle n'avait rien remarqué en rentrant.",
+"Le pain dur se garde pour la soupe."
 ],
 "elide": [
 [
@@ -4558,6 +4561,26 @@
 "Le concert de fin d'année aprroche à grands pas.",
 "aprroche",
 "approche"
+],
+[
+"Il est revenu sans rien acheté au marché.",
+"acheté",
+"acheter"
+],
+[
+"Il ne faut rien jeté dans la rivière.",
+"jeté",
+"jeter"
+],
+[
+"Le film dur presque deux heures.",
+"dur",
+"dure"
+],
+[
+"Le don dur environ une heure.",
+"dur",
+"dure"
 ]
 ],
 "palier": [

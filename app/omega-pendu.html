@@ -26203,7 +26203,7 @@ var w=T[i],lw=w.toLowerCase(),f;
   var _INF_GOV={__proto__:null,de:1,pour:1,sans:1,afin:1};
   var _FLEX_STOP={__proto__:null};'assez chez rez nez mai quai vrai gai essai delai balai geai bai lai quinquennat'.split(' ').forEach(function(w){_FLEX_STOP[w]=1;});
   var NOUN_EE={__proto__:null};'fumee pensee entree arrivee portee duree montee annee idee allee vallee poupee epee assemblee tournee poignee rentree traversee chaussee gelee flambee plongee rangee nuitee veillee bouchee gorgee cuilleree'.split(' ').forEach(function(w){NOUN_EE[w]=1;});
-  var _FLEX_ADV={__proto__:null};'deja bien toujours jamais pas plus vraiment encore aussi souvent probablement enfin vite trop meme presque tres tout peut-etre'.split(' ').forEach(function(w){_FLEX_ADV[w]=1;});
+  var _FLEX_ADV={__proto__:null};'deja bien toujours jamais pas plus vraiment encore aussi souvent probablement enfin vite trop meme presque tres tout peut-etre rien'.split(' ').forEach(function(w){_FLEX_ADV[w]=1;});   /* liste n° 585 : + rien (« sans rien trouvé » → trouver ; « il n'a rien trouvé » : l'auxiliaire trouvé derrière « rien » garde le participe) */
   var _FAIT_DET215={__proto__:null,un:1,ce:1,du:1,au:1,chaque:1,quel:1,tout:1,mon:1,ton:1,son:1,notre:1,votre:1,seul:1,meme:1};
   function _faitNom215(T,k){if(k<1||!_CAUS[deacc(T[k].toLowerCase())])return false;if(_SEG&&_SEG.hy&&k<_SEG.hy.length&&_SEG.hy[k])return true;if(deacc(T[k].toLowerCase())!=='fait')return false;var d=deacc(T[k-1].toLowerCase()).replace(/^d['’]un$/,'un');if(_FAIT_DET215[d])return true;return d==='le'&&!(k>=2&&/^(il|elle|on|je|tu|nous|vous|ils|elles|qui|ce|ca|cela|ne|n)$/.test(deacc(T[k-2].toLowerCase())));}   /* ⭐ 31/10/2026 (liste n° 215) : « un fait vérifié » devenait « vérifier » en ROUGE : déterminant + fait = le NOM ; « il le fait chanter » reste le causatif. Trait d'union : « savoir-faire » */
   function _inf1(w){var lw=w.toLowerCase(),d=deacc(lw),inf;
@@ -32969,7 +32969,7 @@ function spellUnknown(tok,atStart,T,idx){
      n'a pas d'unité de durée), 0 fois dans les textes dys. */
   var _DUREE450={__proto__:null,seconde:1,secondes:1,minute:1,minutes:1,heure:1,heures:1,jour:1,jours:1,semaine:1,semaines:1,mois:1,an:1,ans:1,annee:1,annees:1,siecle:1,siecles:1};
   function dur450(T,i){if(T[i].toLowerCase()!=='dur'||i<2||i+2>=T.length)return null;var bb=(_SEG&&_SEG.bb)||[];if(bb[i]||bb[i+1]||bb[i+2])return null;
-    var nx=deacc(T[i+1].toLowerCase());if(!(/^[0-9]/.test(nx)||CARD[nx]||/^(un|une|quelques|plusieurs)$/.test(nx))||!_DUREE450[deacc(T[i+2].toLowerCase())])return null;
+    var _o587=(i+3<T.length&&/^(environ|presque)$/.test(deacc(T[i+1].toLowerCase()))&&!bb[i+3])?1:0;var nx=deacc(T[i+1+_o587].toLowerCase());if(!(/^[0-9]/.test(nx)||CARD[nx]||/^(un|une|quelques|plusieurs)$/.test(nx))||!_DUREE450[deacc(T[i+2+_o587].toLowerCase())])return null;   /* liste n° 587 : « Le don dur environ une heure » → dure ; « environ » ou « presque » avant la durée est sauté */
     var tg=posTags(T);if(!tg||tg[i-1]!=='NOUN')return null;var dd=deacc(T[i-2].toLowerCase());if(dd!=='chaque'&&!NUM_DET[dd])return null;
     return NUM_DET[dd]==='pl'?'durent':'dure';}
   /* ⭐ 09/11/2026 (liste n° 448) — « N'oublie pas de passé nous voir » : « de » + mot en -é + pronom complément + infinitif : le mot en -é est
