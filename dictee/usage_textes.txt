@@ -940,7 +940,7 @@ La musique s'{arretera|arrêtera|O} à vingt-trois heures pour ne pas gêner le 
 Merci à ceux qui {aiderons|aideront|C} à ranger à la fin de la soirée.
 === T136 mode d'emploi d'un composteur
 Placez le composteur sur la terre, dans un coin {ombrager|ombragé|C} du jardin.
-Déposez-y les épluchures de {légume|légumes|N}, le marc de café et les coquilles d'œufs.
+Déposez-y les épluchures de légumes, le marc de café et les coquilles d'œufs.
 Les restes de viande et de poisson {attire|attirent|C} les animaux : ne les mettez pas.
 Le compost {doient|doit|C} rester humide comme une éponge essorée.
 Ajoutez des feuilles {morte|mortes|N} si le mélange devient trop mouillé.
@@ -1008,3 +1008,41 @@ Si la fièvre {durent|dure|C} plus de trois jours, consultez votre médecin.
 Ne {donné|donnez|C} jamais d'aspirine à un enfant sans avis médical.
 Notre pharmacie {et|est|G} ouverte le dimanche matin pendant tout l'hiver.
 En cas de doute, n'hésitez pas à nous {demandez|demander|C} conseil.
+=== T143 règlement d'emprunt d'une ludothèque
+Chaque famille {peux|peut|C} emprunter trois jeux pour deux semaines.
+Les jeux {doive|doivent|C} être rendus complets, avec toutes leurs pièces.
+Vérifiez le contenu de la boîte avant de {partire|partir|O}.
+Si une pièce {manques|manque|C}, signalez-le à l'accueil.
+Les {jeu|jeux|N} électroniques ne sont pas prêtés.
+Nous {acceuillons|accueillons|O} les enfants le mercredi après-midi pour jouer sur place.
+Par ailleurs{|,|P} un atelier de création de jeux aura lieu en mars.
+L'inscription est {gratuit|gratuite|G} pour les habitants de la commune.
+=== T144 courriel d'une auto-école avant l'examen du code
+Bonjour,
+Votre examen du code {auras|aura|C} lieu le mardi 12 mars à neuf heures.
+Merci d'arriver un quart d'heure en {avence|avance|O}.
+N'oubliez pas votre pièce d'identité et votre {convoquation|convocation|O}.
+Les candidats en retard ne {pourons|pourront|C} pas passer l'examen.
+Votre moniteur vous {appelera|appellera|O} la veille pour vous rassurer.
+Les leçons de conduite {reprendrons|reprendront|C} dès que vous aurez votre code.
+Nous vous {souhaiton|souhaitons|O} bonne chance.
+Cordialement,
+L'équipe de l'auto-école
+=== T145 récit d'une cueillette de champignons
+Dimanche matin, nous avons {suivit|suivi|O} mon oncle dans la forêt.
+Il connaît tous les {coin|coins|N} où poussent les cèpes.
+Nous avons marché longtemps sans rien {trouvé|trouver|C}.
+Soudain, ma cousine {à|a|G} crié : elle avait vu un énorme cèpe.
+Mon oncle nous a {expliquer|expliqué|C} comment le couper sans abîmer la terre.
+Les champignons que nous ne {connaisons|connaissons|O} pas restent dans la forêt.
+Le soir, nous les avons {mangé|mangés|G} en omelette.
+C'était {délicieu|délicieux|O}.
+=== T146 annonce d'une collecte de sang à la mairie
+Une collecte de sang {aurra|aura|O} lieu à la salle des fêtes le jeudi 4 avril.
+Les donneurs {serons|seront|C} accueillis de quinze heures à dix-neuf heures.
+Il faut avoir entre dix-huit et soixante-dix ans et peser plus de cinquante {kilo|kilos|N}.
+Ne venez pas à {jeûn|jeun|O} : prenez un repas léger avant de venir.
+Une collation {et|est|G} offerte après le don.
+Le don {dur|dure|C} environ une heure, entretien compris.
+Nous vous remercions pour votre {génèrosité|générosité|O}.
+Ensemble{|,|P} nous pouvons sauver des vies.
