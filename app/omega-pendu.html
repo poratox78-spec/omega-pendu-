@@ -33916,6 +33916,10 @@ function spellUnknown(tok,atStart,T,idx){
   var _DES445={__proto__:null};('le la les lors que son sa ses mon ma mes ton ta tes notre votre nos vos leur leurs ce cet cette ces demain maintenant hier midi minuit '+
     'lundi mardi mercredi jeudi vendredi samedi dimanche janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre un une').split(' ').forEach(function(w){_DES445[w]=1;});
   function _des445(nx){var d=deacc(nx.toLowerCase().replace(/’/g,"'"));return /^[0-9]/.test(d)||!!_DES445[d]||!!CARD[d]||/^(l|qu|aujourd)'/.test(d);}   // liste n° 445
+  /* ⭐ 21/11/2026 (liste n° 584) — « Ne donné jamais d'aspirine » dans des conseils au « vous » (lavez-vous, aérez, buvez) : le juge proposait
+     « donne », juste seul mais pas dans ce texte. En tête de phrase (ou après « Ne » en tête), pour un mot écrit en -é / -er / -ez, si le
+     juge choisit la forme en -e et que le texte compte déjà deux autres formes en -ez de la 2e personne du pluriel (ou plus), la forme en -ez est proposée. */
+  function _vous584(text,tr,p,w,m){var lw=String(w).toLowerCase(),ml=String(m).toLowerCase();if(!/(é|er|ez)$/.test(lw)||!/[^e]e$/.test(ml))return null;function tete(k){if(k<0)return true;var y=String(tr.t[k].m||'');return /^[.!?…:]$/.test(y);}var q=p-1,pv=q>=0?String(tr.t[q].m||'').toLowerCase().replace(/’/g,"'"):'';if(!(tete(q)||((pv==='ne'||pv==="n'")&&tete(q-1))))return null;function p2(y){var r=svReads(y);for(var i=0;i<r.length;i++)if(r[i][2]==='2'&&r[i][3]==='p')return true;return false;}var c=ml.slice(0,-1)+'ez';if(!p2(c))return null;var n=0,mm=String(text).match(/[A-Za-zÀ-ÿœ]+ez(?![A-Za-zÀ-ÿœ])/g)||[];for(var k=0;k<mm.length&&n<2;k++){var y=mm[k].toLowerCase();if(y!==lw&&p2(y))n++;}return n>=2?c:null;}
   function _jugeMarques(text,flags){if(!_JG.m||!_JG.cache.size)return [];var out=[];
     _jgTranches(text,flags).forEach(function(tr){var r=_JG.cache.get(tr.cle);if(!r)return;for(var p=tr.de;p<tr.a&&p<tr.t.length;p++){var x=r[p],tk=tr.t[p];if(!x||x.d<=_JG.TAU||tk.tu||tk.k<0)continue;
       var av=tk.cs>0?text.charAt(tk.cs-1):'',ap=text.charAt(tk.ce),w=tk.brut;if(/[-@\/_#\\\d]/.test(av)||/[-@\/_#\\\d]/.test(ap)||(ap==='.'&&/[A-Za-z]/.test(text.charAt(tk.ce+1))))continue;
@@ -33925,7 +33929,7 @@ function spellUnknown(tok,atStart,T,idx){
          recevait « de ». Devant un nombre, un déterminant, « lors », « que », un jour ou un mois, « dès » écrit avec son accent est juste : gardé
          103 fois sur 103 dans les textes dys. Devant un nom nu (« loin dès bords »), le juge garde la main. */
       if(/^[A-ZÀ-Þ]/.test(w)){var pv=p>0?tr.t[p-1].m:'';if(p>0&&!/^[.!?…:]$/.test(pv))continue;}
-      out.push({i:tk.k,word:w,sugg:ckeepcase(w,x.m),name:'choix du mot à vérifier',tier:'vigilance',juge:1,marge:x.d});}});
+      var _m584=_vous584(text,tr,p,w,x.m);out.push({i:tk.k,word:w,sugg:ckeepcase(w,_m584||x.m),name:'choix du mot à vérifier',tier:'vigilance',juge:1,marge:x.d});}});   /* liste n° 584 : impératif au « vous » dans un texte au « vous » */
     return out;}
   /* ⭐ 01/11/2026 (liste n° 334) : une orange d'accord se tait quand le juge préfère nettement le mot écrit (familles dans _JG.TAIT, seuil TA). Les oranges tues
      restent connues de _jgTranches (_JG.tus) : le texte lu, donc le cache, ne change pas à cause du silence. */
