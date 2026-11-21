@@ -1060,7 +1060,12 @@
 "Celles qui arrivent tôt prennent le meilleur siège.",
 "Ceux qui sont tombés, ce fut un choc.",
 "Ceux qui aiment la porte rouge peuvent entrer.",
-"Ceux qui pensent que leur enfant vient demain peuvent appeler."
+"Ceux qui pensent que leur enfant vient demain peuvent appeler.",
+"Il était très fier de son fils.",
+"Le chat avait encore attrapé une souris et il était très fier.",
+"Il est si fier de lui.",
+"Il était trop fier pour demander de l'aide.",
+"Les grilles ferment à dix-neuf heures en hiver."
 ],
 "elide": [
 [
@@ -4492,6 +4497,31 @@
 "Celles qui arrivent tôt prend le meilleur siège.",
 "prend",
 "prennent"
+],
+[
+"Elles étaient très fier de leur jardin.",
+"fier",
+"fières"
+],
+[
+"Elle était très fâcher contre son frère.",
+"fâcher",
+"fâchée"
+],
+[
+"Des mains ferme tenaient la corde.",
+"ferme",
+"fermes"
+],
+[
+"Les enfants sage reçoivent un bonbon.",
+"sage",
+"sages"
+],
+[
+"Ont pensera à toi pendant les vacances.",
+"Ont",
+"On"
 ]
 ],
 "palier": [
