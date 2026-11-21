@@ -27721,8 +27721,9 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
   function rUn317(T,i){var w=T[i],n=T.length;if(deacc(w.toLowerCase())!=='un'||i+1>=n||_bb270(i+1))return null;var d1=deacc(T[i+1].toLowerCase());if(i+3<n&&/^(plus|moins|tres|si|aussi)$/.test(d1)&&GENDER_PURE[deacc(T[i+3].toLowerCase())]==='f'&&/e$/.test(T[i+2].toLowerCase())&&!_bb270(i+2)&&!_bb270(i+3))return {sugg:ckeepcase(w,'une'),vig:1};if(_hy313(i+1)||_hy313(i+2)||GENDER_PURE[d1]!=='f'||!_nounGateN(d1)||!svReads(T[i+1].toLowerCase()).length)return null;var p=i>=1?deacc(T[i-1].toLowerCase()):'';if(/^[jldstmn]['’]/.test(p)||(i+2<n&&!_bb270(i+2)&&_DET270[deacc(T[i+2].toLowerCase())]))return null;return {sugg:ckeepcase(w,'une'),vig:1};}   // « il ferme un porte », « un plus jolie robe »
   function _v3p318(r){var rd=svReads(r),l=null,k;for(k=0;k<rd.length;k++){if(l&&l!==rd[k][0])return null;l=rd[k][0];}if(!l)return null;var mt=rd[0][1];for(k=0;k<rd.length;k++)if(rd[k][1]==='ind:pre')mt='ind:pre';var f=((CONJ_C[l]||{})[mt]||{})['3p'];return f&&f!==r?f:null;}
   function _gnPl318(T,j){if(j<1||_bb270(j+1))return false;var tg=posTags(T);if(!tg||tg[j]!=='NOUN'||!/[sx]$/.test(T[j].toLowerCase()))return false;var q=deacc(T[j-1].toLowerCase());if(PLURAL_DET[q]||_PLQ313[q])return true;return q==='de'&&j>=2&&/^(beaucoup|peu|trop|assez|plein|tant|combien|moins|plus)$/.test(deacc(T[j-2].toLowerCase()));}
+  var _SV579={__proto__:null,veux:'veut',peux:'peut',vaux:'vaut',dois:'doit',sais:'sait',vais:'va'};
   function rSV318(T,i){var w=T[i],r=w.toLowerCase().replace(/’/g,"'"),d=deacc(r),n=T.length;if(i<1||_bb270(i))return null;var p=deacc(T[i-1].toLowerCase());
-    if(w===r&&(d==='veux'||d==='peux'||d==='vaux')){var ok=!!PRENOMS[T[i-1]];if(!ok&&i>=2){var tg0=posTags(T);ok=!!tg0&&tg0[i-1]==='NOUN'&&NUM_DET[deacc(T[i-2].toLowerCase())]==='sg';}return ok?{sugg:d==='veux'?'veut':d==='peux'?'peut':'vaut',vig:1}:null;}
+    if(w===r&&_SV579[d]){var ok=!!PRENOMS[T[i-1]];if(!ok&&i>=2){var tg0=posTags(T);ok=!!tg0&&(tg0[i-1]==='NOUN'||(tg0[i-1]==='PROPN'&&_nom579(T,i-1)))&&NUM_DET[deacc(T[i-2].toLowerCase())]==='sg';}return ok?{sugg:_SV579[d],vig:1}:null;}   /* liste n° 579 : + dois, sais, vais (« Le vélo dois rester dehors » → doit) — des formes de « je / tu » sans impératif de même forme : « Léa viens ici » (impératif) reste dehors ; nom commun deviné propre compris */
     if(/^n'(avais|etais)$/.test(d)){var ok2=!!PRENOMS[T[i-1]];if(!ok2&&i>=2){var tg1=posTags(T);ok2=!!tg1&&tg1[i-1]==='NOUN'&&NUM_DET[deacc(T[i-2].toLowerCase())]==='sg';}return ok2?{sugg:r.replace(/s$/,'t'),vig:1}:null;}
     if(w!==w.toLowerCase()||!svReads(r).length||_pp270(w)||_etPpl(w)||d==='est'||d==='sont'||d==='a'||d==='ont')return null;var r0=svReads(r),q0;for(q0=0;q0<r0.length;q0++)if(r0[q0][2]==='3'&&r0[q0][3]==='p')return null;
     if(/es$/.test(r)){var sp0=_spos(r)||'',d0=d.replace(/s$/,'');if(i+1<n&&/^(de|du|des|par|a|sur|sous|dans|pour|avec)$/.test(deacc(T[i+1].toLowerCase())))return null;if(sp0.indexOf('N')>=0||sp0.indexOf('A')>=0||_EPICENE_ADJ[d0]||_nounGateN(d))return null;var j=i-1;if(/^(en|y|les|leur|nous|vous|se|me|te|ne|n)$/.test(p))j--;var f=_v3p318(r),is2=false,rr=svReads(r),q;for(q=0;q<rr.length;q++)if(rr[q][2]==='2')is2=true;if(!f||!is2||j<1||!_gnPl318(T,j)||!_clauseNoFiniteVerb(T,i,i))return null;return {sugg:f,vig:1};}
@@ -28000,6 +28001,10 @@ var pn=svSubject(T,i);if(!pn)return null;if(_coordTonique(T,i))return null;var p
     if(!NUM_DET[deacc(T[i-3].toLowerCase())]||NUM_DET[deacc(T[i-2].toLowerCase())]||CLITIC[deacc(T[i-2].toLowerCase())])return false;
     if(i-3>0&&!(_SEG&&_SEG.bb&&i-3<_SEG.bb.length&&_SEG.bb[i-3])&&!(_SEG&&_SEG.ss&&i-3<_SEG.ss.length&&_SEG.ss[i-3]))return false;   // groupe en tête de proposition
     return true;}
+  /* ⭐ 21/11/2026 (liste n° 579) — « Le compost doivent rester humide » passait sans marque, et « Le compost doient » recevait « doivent » :
+     l'étiqueteur ne connaît pas « compost » et le devine nom PROPRE ; l'accord se taisait devant un nom propre. Un mot EN MINUSCULE que
+     l'étiquetage corrigé de la liste n° 384 (table des noms) rend NOM est traité comme un nom commun. */
+  function _nom579(T,k){var c=T[k].charAt(0);if(c===c.toUpperCase())return false;var t=posTags384(T);return !!t&&k<t.length&&t[k]==='NOUN';}
   function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à'||_auxElide227(T,i))return null;if(/ent$/.test(lw)&&!/(aient|[iu]rent|èrent|ssent|ient)$/.test(lw)&&/[NA]/.test(spP(lw)||''))return null;   /* ⭐ 16/11/2026 (liste n° 534) : une forme en -ent qui est aussi un NOM ou un ADJECTIF (parent, content, président) n'est pas un verbe à accorder au sujet nominal (« un peuple parent des Celtes » donnait « pare » d'office). Recensé sur la mesure : 3 marques sur de tels mots, 2 rouges faux dys et 1 orange UD, aucune juste. Terminaisons seulement verbales exclues (-aient, -irent/-urent/-èrent, -ssent, -ient) : le dictionnaire étiquette aussi « nom » des formes comme « eurent » ou « avaient », et « le chat eurent » doit rester corrigé (dev.sh, couverture de la conjugaison) */if(i>=1&&/^d['’](un|une)$/i.test(T[i-1]))return null;   /* ⭐ 07/11/2026 (liste n° 423) : « Les pages d'un livre reprennent le titre » recevait
      « livrent » en ROUGE — « d'un / d'une » est un seul token, que la règle ne lisait pas comme déterminant : le nom qui le suit (livre,
      douille) était pris pour le verbe du sujet pluriel. Après un déterminant, c'est un nom. « du livre », « de ce livre » passaient déjà. */
@@ -28025,7 +28030,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     // ⛔ La relaxation GÉNÉRALE « toutes lectures 1re/2e » a été MESURÉE-FALSIFIÉE (~9 FP réels/UD 14450 :
     // « conditions REMPLIES »→remplient, « moines CÉLÈBRES »→célèbrent…) ; les -ais sont déjà couverts
     // par rAisAit. Créneau verbal libre en ceinture ; participe suivant exempté (« étais PARTI »).
-    var _p12=!p3.length&&['es','as','vas'].indexOf(deacc(T[i].toLowerCase()))>=0&&_clauseNoFiniteVerb(T,i,(i+1<T.length&&_isPpl(T[i+1]))?i+1:undefined);
+    var _p12=!p3.length&&['es','as','vas'].indexOf(deacc(T[i].toLowerCase()))>=0&&_clauseNoFiniteVerb(T,i,(i+1<T.length&&(_isPpl(T[i+1])||(deacc(T[i].toLowerCase())==='vas'&&_isInfinitive(T[i+1]))))?i+1:undefined);   /* liste n° 581 : « Mon frère vas venir » → va — l'infinitif qui suit « vas » n'est pas un autre verbe conjugué */
     if(!p3.length&&!_p12)return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux + participe)
     var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;   // T[i]=verbe en contexte ; filet homographe PARTAGÉ (verbe raté par l'émission HMM), borné par les gardes structure ci-dessous
@@ -28038,7 +28043,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     if(_temoinApresVerbe(T,tg,i,nb))return null;   /* ⭐ 11/09/2026 (restes frgec, lot 2) : ce qui suit le verbe témoigne du vrai sujet (A/B/F, cf. _temoinApresVerbe). Miroir Python. */
     if(subj.dtxt!==''&&!NUM_DET[ddet]&&!_QUANT_PL[ddet]&&!_QUANT_SG[ddet])return null;         // déterminant sujet DOIT être connu (au/aux/du de PP, ou mistag → abstention). Raccourci PRÉNOM (dtxt vide, sans déterminant par nature) exempté (31/08, miroir Python)
     if(_COLL_HEAD[deacc(subj.htxt.toLowerCase())])return null;                     // nom collectif/quantité (plupart/majorité/centaine…) → accord complément → abstention
-    var hc=T[hk].charAt(0);if(!subj.elid&&subj.dtxt!==''&&(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;   // nom-tête propre/titre → nombre non fiable — EXEMPTÉ : le raccourci PRÉNOM, fiable par construction (« Marie es gentille »→est, 31/08, miroir Python)
+    var hc=T[hk].charAt(0);if(!subj.elid&&subj.dtxt!==''&&((tg[hk]==='PROPN'&&!_nom579(T,hk))||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;   /* liste n° 579 : nom commun deviné propre par l'étiqueteur */   // nom-tête propre/titre → nombre non fiable — EXEMPTÉ : le raccourci PRÉNOM, fiable par construction (« Marie es gentille »→est, 31/08, miroir Python)
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     if(nb==='s'&&_enumSujet218(T,tg,lo))return null;for(var m=lo;m<i;m++){var _lm=T[m].toLowerCase();if(_lm.indexOf("qu'")===0||_lm.indexOf("qu’")===0)return null;}   // RELATIVE ÉLIDÉE « qu' » → abstention (élision bénigne « de l'X »/clitique « m'/s' » tolérée ; que/qui/dont pleins gardés par CONJ_WORDS)
     if(!vig){var _lo2=lo;for(var _e=dk-1;_e>=lo;_e--){var _de=deacc(T[_e].toLowerCase());if((_de==='et'||_de==='ou')&&(_etPropo64(T,tg,lo,_e,dk,false)||(_de==='et'&&_e===lo&&_etVirgule400(T,tg,_e,dk,false)))){_lo2=_e+1;break;}}for(m=_lo2;m<dk;m++){if(tg[m]!=='ADV')return null;}_SV_ET=_lo2!==lo||_lesClitique401(T,i);}   /* ⭐ liste n° 153 : un « et » / « ou » qui relie deux PROPOSITIONS (_etPropo64) ouvre une tête de proposition, comme la virgule — « Il fait froid et mes enfants dorme mal » → dorment ; en ORANGE (_SV_ET, rAccordSVnounEt : décision de la liste n° 64) */                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) — sinon GN = objet amont ; RETIRÉ en mode vig (orange couvre le mid-phrase)
@@ -28102,7 +28107,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     var hk=subj.idx,dk=subj.det,ddet=deacc(subj.dtxt.toLowerCase());
     if(!NUM_DET[ddet]&&!_QUANT_SG[ddet])return null;
     if(_COLL_HEAD[deacc(subj.htxt.toLowerCase())])return null;
-    var hc=T[hk].charAt(0);if(!subj.elid&&(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;
+    var hc=T[hk].charAt(0);if(!subj.elid&&((tg[hk]==='PROPN'&&!_nom579(T,hk))||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;   /* liste n° 579 */
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     for(var m=lo;m<i;m++){if(_elidKind(T[m])==='pron')return null;}
     for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}
@@ -31813,6 +31818,15 @@ function _imparfait405(T,idx,low){var m=/^([a-zà-ÿœ]{3,})é$/.exec(low);if(!m
   if(!pn)return null;var f=m[1]+(pn[1]==='p'?'aient':(pn[0]==='3'?'ait':'ais')),r=svReads(f),k;
   for(k=0;k<r.length;k++)if(r[k][1]==='ind:imp'&&r[k][2]===pn[0]&&(r[k][3]===pn[1]||r[k][3]==='x')){var tb=CONJ_C[deacc(r[k][0])],g=tb&&tb['ind:imp']&&tb['ind:imp'][pn[0]+pn[1]];if(Array.isArray(g))g=g[0];return (g&&deacc(g)===deacc(f))?g:f;}return null;}
 var _CL471={__proto__:null,me:1,te:1,se:1,le:1,la:1,je:1,ne:1,de:1,que:1,ce:1};
+/* ⭐ 21/11/2026 (liste n° 577) — « Le concert aprroche à grands pas » recevait « approché » : le bonus de genre du tri préférait le
+   participe masculin, comme « concert ». Après « déterminant + nom » (complément en « de » compris, six mots au plus, aucun ne pouvant
+   être un verbe) en TÊTE DE PHRASE ou de ligne (déterminant à majuscule ; pas après une virgule : « …, les outils rangés dans la remise »
+   est un participe), sans autre verbe conjugué (auxiliaires et copule comptent toujours ; « à » n'est pas « a »)
+   dans la phrase : si le tri met en tête un participe (approché) et qu'une forme conjuguée à la 3e personne du même squelette
+   (approche ; jamais « passes », la forme de « tu ») est candidate à rang égal, elle passe devant.
+   Le mot écrit ne doit pas finir par « é » (l'accent écrit est une intention : « Un service personalisé »). Le palier ne change pas. */
+function _vf577(T,idx){if(idx<2)return false;var s=-1,k;for(k=idx-2;k>=0&&k>=idx-6;k--){if(k===0||(_SEG&&_SEG.ss&&k<_SEG.ss.length&&_SEG.ss[k])||(T[k].charAt(0)!==T[k].charAt(0).toLowerCase()&&(DET_G[deaccS(T[k].toLowerCase())]||SDET_NUM[deaccS(T[k].toLowerCase())]))){s=k;break;}if(_SEG&&_SEG.bb&&k<_SEG.bb.length&&_SEG.bb[k])return false;}if(s<0)return false;for(k=s+1;k<=idx;k++)if(_SEG&&_SEG.bb&&k<_SEG.bb.length&&_SEG.bb[k])return false;var d=deaccS(T[s].toLowerCase()),n=T[s+1];if(!(DET_G[d]||SDET_NUM[d]))return false;if(n!==n.toLowerCase()||(spP(n)||'').indexOf('N')<0||(spP(n)||'').indexOf('V')>=0)return false;for(k=s+2;k<idx;k++){var x=T[k].toLowerCase().replace(/^[dl]['’]/,'');if(/^(de|du|des|la|le|les)$/.test(x))continue;var px=spP(x)||'';if(T[k]!==T[k].toLowerCase()||!/[NA]/.test(px)||px.indexOf('V')>=0)return false;}for(var j=idx+1;j<T.length;j++){if(_SEG&&_SEG.ss&&j<_SEG.ss.length&&_SEG.ss[j])break;var w=T[j].toLowerCase(),ps=spP(w)||'';if((SAUXAV[deaccS(w)]||SCOPULA[deaccS(w)])&&w!=='à')return false;if(ps.indexOf('V')<0||ps.indexOf('N')>=0||ps.indexOf('A')>=0)continue;var r=svReads(w);for(var q=0;q<r.length;q++)if(/^(ind|cnd|sub)/.test(r[q][1]))return false;}return true;}
+function _fin577(w){var r=svReads(w);for(var q=0;q<r.length;q++)if(/^(ind|cnd|sub)/.test(r[q][1])&&r[q][2]==='3')return true;return false;}
 function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                         // mot ajouté par l'utilisateur → valide
@@ -32035,7 +32049,7 @@ function spellTokenCore(tok,atStart,T,idx){
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;
       if(px===1&&py===1&&(x===y+'s'||y===x+'s'||x===y+'x'||y===x+'x')){var _ls=/[sx]$/.test(low);return (/[sx]$/.test(y)===_ls?1:0)-(/[sx]$/.test(x)===_ls?1:0);}   // ⭐ 30/09/2026 : singulier / pluriel HOMOPHONES : la finale -s/-x du mot ÉCRIT départage avant la fréquence (« afreuses » → affreuses) ; restreint à ces paires — le comparateur n'est pas transitif (« rélles » → elles sinon) — miroir Python
       return cand[y][1]-cand[x][1];});
-    var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
+    if(T&&keys.length>1&&/(é|ée|és|ées)$/.test(keys[0])&&!/(é|ée|és|ées)$/.test(low)&&_vf577(T,idx)){var _b577=deaccS(keys[0]);for(var _q577=1;_q577<keys.length;_q577++){var _k577=keys[_q577];if(deaccS(_k577)===_b577&&cand[_k577][0]>=cand[keys[0]][0]&&_fin577(_k577)){keys.splice(_q577,1);keys.unshift(_k577);break;}}}   /* liste n° 577 */var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
     /* DÉTERMINANT : le GENRE du NOM SUIVANT domine la fréquence (doctrine aide-frappe ②, enquête
        des 22, texte6 réel : « dans uen maison » proposait « un ») — si le candidat retenu est un
        déterminant genré, que le nom qui suit porte un genre PUR opposé et que le jumeau de
