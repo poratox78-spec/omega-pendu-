@@ -1080,3 +1080,38 @@ Les croissants {demande|demandent|C} beaucoup de patience.
 J'ai enfourné ma première fournée de {baguette|baguettes|N} vers six heures.
 À sept heures, les premiers clients {entrait|entraient|C} déjà dans la boutique.
 J'étais fatigué, mais très fier de mon travail.
+=== T151 consignes d'un gîte pour le jour du départ
+Merci de libérer la maison avant dix heures le jour du départ.
+Les draps {doive|doivent|C} être déposés dans le panier de la buanderie.
+Videz le réfrigérateur et {sorté|sortez|C} les poubelles avant de partir.
+La vaisselle doit être {rangé|rangée|G} dans les placards.
+Les clés se {laisse|laissent|C} dans la boîte aux lettres, à côté du portail.
+Si un objet est cassé, {prévené|prévenez|C} la propriétaire par message.
+Nous espérons que votre séjour vous a {plus|plu|G}.
+À bientôt peut-être pour de nouvelles {vacance|vacances|N} !
+=== T152 message d'une école de danse aux parents
+Chers parents,
+Le spectacle de fin d'année {aurra|aura|O} lieu le samedi 14 juin à la salle des fêtes.
+Les élèves {devrons|devront|C} arriver à quatorze heures pour se préparer.
+Chaque danseuse {porteras|portera|C} le costume prêté par l'école.
+Les cheveux {serons|seront|C} attachés en chignon.
+Les billets {son|sont|G} en vente à l'accueil à partir de lundi.
+Merci de ne pas filmer pendant le {spectacles|spectacle|N}.
+Les élèves ont très {hate|hâte|O} de vous montrer leur travail.
+=== T153 récit d'une visite à la ferme écrit par un enfant
+Mardi, notre classe est allée visiter une ferme.
+La fermière nous a {présenter|présenté|C} ses vaches et ses cochons.
+Nous avons {donnés|donné|G} du foin aux chèvres.
+Un petit veau {venais|venait|C} de naître.
+J'ai {caresser|caressé|C} un lapin tout doux.
+Après le pique-nique, nous {somme|sommes|C} montés sur un tracteur.
+Les poules {pondes|pondent|C} des œufs tous les matins.
+C'était la meilleure sortie de l'{anée|année|O}.
+=== T154 petite annonce pour une chambre chez l'habitant
+Je loue une chambre {meublé|meublée|G} dans ma maison, près de la gare.
+La chambre {donnes|donne|C} sur le jardin et elle est très calme.
+La douche et la cuisine {son|sont|G} partagées avec moi.
+Le loyer {compren|comprend|O} l'eau, l'électricité et internet.
+Je cherche une personne {calmes|calme|N} et non fumeuse.
+Les animaux ne {seron|seront|O} pas acceptés.
+Pour visiter, vous pouvez m'appeler le {soire|soir|O} après dix-neuf heures.
