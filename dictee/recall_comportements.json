@@ -1104,7 +1104,17 @@
 "Je n'ai pas d'autre choix.",
 "Un certain temps a passé.",
 "Certain de gagner, il a souri.",
-"D'autre part, il viendra demain."
+"D'autre part, il viendra demain.",
+"Il a très envie de chanter.",
+"Elle a très bien pu chanter.",
+"Il faut très peu marcher pour y arriver.",
+"C'est sympa de venir.",
+"C'est certains qui ont appelé.",
+"C'est petits pois ce soir.",
+"Ils sont sympas avec nous.",
+"C'est tous les jours pareil.",
+"Il fait tous les soirs pareil.",
+"C'est tous les jours différent."
 ],
 "elide": [
 [
@@ -4816,6 +4826,26 @@
 "Il attend d'autre nouvelles de son frère.",
 "d'autre",
 "d'autres"
+],
+[
+"Il a très peu rouler.",
+"rouler",
+"roulé"
+],
+[
+"Elle a très bien chanter hier soir.",
+"chanter",
+"chanté"
+],
+[
+"C'est quand même plus sympas que le bus.",
+"sympas",
+"sympa"
+],
+[
+"C'était trop durs pour lui.",
+"durs",
+"dur"
 ]
 ],
 "palier": [
@@ -5517,6 +5547,11 @@
 [
 "Prenez ce sirop cinq fois par jours.",
 "jours",
+"vigilance"
+],
+[
+"C'est quand même plus sympas que le bus.",
+"sympas",
 "vigilance"
 ]
 ],
