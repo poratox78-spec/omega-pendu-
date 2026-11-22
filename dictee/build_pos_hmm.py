@@ -11,6 +11,8 @@
 #
 #   python dictee/build_pos_hmm.py           # entraîne sur TOUT UD → dictee/pos_hmm.json (+ extension/assets/pos-hmm.json.gz)
 #   python dictee/build_pos_hmm.py --eval    # split 90/10, mesure l'exactitude du modèle EXPORTÉ sur le test tenu
+#   python dictee/build_pos_hmm.py --check   # garde (dev.sh + CI, liste n° 602) : le modèle commité ET l'asset livré sortent de ce script, à l'octet ;
+#                                            # SAUTÉ sans le treebank (data_local/, absent du dépôt et de la CI)
 import os, sys, math, json, gzip, re
 from collections import defaultdict, Counter
 
@@ -136,6 +138,18 @@ def tag_sentence(words, M):
 
 def main():
     sys.path.insert(0, HERE)
+    if '--check' in sys.argv:
+        # ⭐ 22/11/2026 (liste n° 602, audit) — ce modèle APPRIS n'avait aucune garde « table == recette » : rien ne disait que le fichier
+        # livré sortait encore de ce script. Refait le 22/11 : identique à l'octet. La garde le redit à chaque passage.
+        if not os.path.exists(CONLLU):
+            print('· étiqueteur HMM == sa recette : SAUTÉ (treebank absent : data_local/%s)' % os.path.basename(CONLLU)); return 0
+        raw = json.dumps(build_model(load()), ensure_ascii=False, separators=(',', ':'))
+        bad = []
+        if open(OUT, encoding='utf-8').read() != raw: bad.append(os.path.basename(OUT))
+        if OUT_GZ and gzip.open(OUT_GZ, 'rb').read().decode('utf-8') != raw: bad.append(os.path.basename(OUT_GZ))
+        if bad:
+            print('✗ étiqueteur HMM : %s ne sort plus de build_pos_hmm.py sur le treebank du jour — relancer le script, ou dire ce qui a changé' % ', '.join(bad)); return 1
+        print("✓ étiqueteur HMM == sa recette : %s et l'asset de l'extension, à l'octet (%d Ko)" % (os.path.basename(OUT), len(raw) // 1024)); return 0
     sents = load()
     if '--eval' in sys.argv:
         cut = int(len(sents) * 0.9); tr, te = sents[:cut], sents[cut:]

@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-11-22 — Audit complet du correcteur : trois faux rouges, un banc qui coupait le moteur, et deux constats rétractés
+
+Rem voulait un audit de tout le correcteur et de son extension, sans rien perdre. Dix blocs, tout mesuré (détail : LA LISTE, lignes 594 à 610).
+
+- **Trouvé et corrigé.** ① `isVerb` et trois fonctions voisines de `dys-core.js` étaient restées en vieille version : dans l'extension
+  seule, « Le manque d'informations a un effet » recevait « à » en rouge (1 455 noms en « -ons » concernés). ② « L'attrait a une
+  limite » → « à » dans les deux moteurs (mot élidé en « -ait » pris pour un verbe). ③ « un préretraité » → « une » (genre lu sur la
+  forme sans accent). ④ « Tu covoitures » souligné, « Ils compètent » → « compétent » en rouge (présent connu de la table, refusé).
+- **Pourquoi 150 contrôles verts ne voyaient rien.** `parity_corr.js` coupait le moteur de l'app 2 083 lignes avant sa fin (un repère de
+  texte disparu, `indexOf` à −1 sans erreur) : la parité comparait l'extension à une app amputée. Cinq bancs prennent maintenant le
+  moteur entier ; `coupe_bancs_probe.js` garde les autres. Parité refaite au large : 77 396 phrases publiques, 0 écart ; 28 471 textes
+  réels, 1 écart (le ①).
+- **Établi.** 1 520 fonctions et tables communes à l'app et à l'extension comparées : 4 dérives (le ①). 678 branches locales classées :
+  rien de perdu. Le juge livré est bien celui de la ligne 399 (même empreinte que son fichier d'entraînement). L'étiqueteur de mots et le
+  modèle sujet-verbe, refaits depuis leur recette, sortent identiques à l'octet (gardés depuis par `--check`). Le moteur ne plante dans
+  aucun des 11 états de chargement partiel. 32 règles sur 228 ne répondaient dans aucun test : 28 en ont reçu un, une était du code mort
+  (retirée), trois sont toujours devancées par une règle placée avant.
+- **Rétracté.** ① « 195 verbes fantômes font accepter des fautes de frappe » : ce sont de vrais verbes très rares, attestés ; sur les
+  28 772 textes ils ne cachent aucune faute (5 occurrences, un prénom). Les lignes 41, 52, 108 et 112 avaient déjà tranché : on ne retire
+  pas un vrai mot. ② « 719 formes verbales sans l'étiquette verbe expliquent un silence d'accord » : essayé, l'étiquette ne change rien
+  (dette déjà nommée à la ligne 146). ③ « des règles rouges se trompent autant qu'elles réparent » : le verdict automatique sur frgec et
+  UD ne vaut pas preuve, ces corpus gardent de vraies fautes dans leur corrigé — 33 rouges lus un par un, 33 vraies corrections.
+- **Leçon.** Une égalité écrite en commentaire (« copie verbatim ») ne garde rien ; une recherche de repère qui échoue doit arrêter le banc ;
+  un faux rouge se prouve par une phrase inventée juste, pas par un comptage sur un corpus imparfait.
+
+---
+
 ## 2026-11-08 — Police de son : « il devient » ne s'affiche plus « devi » (les -tient/-vient gardent /jɛ̃/)
 
 - Signalé par la conversation du correcteur (la police de son n'avait pas été vérifiée). Mesuré sur main face au Lexique 4
