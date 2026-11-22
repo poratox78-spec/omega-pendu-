@@ -36,8 +36,8 @@ if ((s2 = grab('pos-hmm-gz'))) try { globalThis.OMEGA_POS_HMM = JSON.parse(zlib.
 if ((s2 = grab('os-lm-gz'))) try { globalThis.OMEGA_OS_LM = JSON.parse(zlib.gunzipSync(Buffer.from(s2.replace(/\s/g, ''), 'base64')).toString('utf8')); } catch (e) {}
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const opIdx = html.indexOf('function osProbe', start);
-const opEnd = html.indexOf('return out;}', opIdx) + 'return out;}'.length;
-if (start < 0 || opIdx < 0) { console.error('extraction IIFE app échouée'); process.exit(2); }
+const opEnd = html.lastIndexOf('})();', html.indexOf('</script>', opIdx));   // liste n° 597 : tout le moteur, jusqu'à la fermeture de l'IIFE (plus de coupe à un repère de texte)
+if (start < 0 || opIdx < 0 || opEnd < opIdx) { console.error('extraction IIFE app échouée : un repère du monolithe est introuvable'); process.exit(2); }
 const code = html.slice(start, opEnd) + ';globalThis.__osProbe=osProbe;})();';
 const m = html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/); const EMBED = m ? m[1] : '{}';
 const el = () => new Proxy(function () {}, {

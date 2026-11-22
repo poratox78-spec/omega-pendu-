@@ -24,8 +24,9 @@ function loadApp() {
   if (_np) { try { globalThis.OMEGA_NOUN_POST = {}; zlib.gunzipSync(Buffer.from(_np.replace(/\s/g, ''), 'base64')).toString('utf8').split('\n').forEach(l => { const p = l.split('\t'); if (p.length >= 3) globalThis.OMEGA_NOUN_POST[p[0]] = [+p[1], +p[2]]; }); } catch (e) {} }
   const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
   const ctIdx = html.indexOf('function correctText', start);
-  const ctEnd = html.indexOf('return out;}', ctIdx) + 'return out;}'.length;
-  const code = html.slice(start, ctEnd) + ';globalThis.__corr=correctText;})();';
+  const finIIFE = html.lastIndexOf('})();', html.indexOf('</script>', ctIdx));   // liste n° 597 : tout le moteur, jusqu'à la fermeture de l'IIFE
+  if (start < 0 || ctIdx < 0 || finIIFE < ctIdx) { console.error('extraction IIFE échouée : un repère du monolithe est introuvable'); process.exit(2); }
+  const code = html.slice(start, finIIFE) + ';globalThis.__corr=correctText;})();';
   const m = html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/);
   const EMBED = m ? m[1] : '{}';
   const el = () => new Proxy(function () {}, {

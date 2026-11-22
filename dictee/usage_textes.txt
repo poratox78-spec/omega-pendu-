@@ -1115,3 +1115,41 @@ Le loyer {compren|comprend|O} l'eau, l'électricité et internet.
 Je cherche une personne {calmes|calme|N} et non fumeuse.
 Les animaux ne {seron|seront|O} pas acceptés.
 Pour visiter, vous pouvez m'appeler le {soire|soir|O} après dix-neuf heures.
+=== T155 compte rendu d'une réunion de copropriété
+La réunion de copropriété a eu lieu mardi soir dans le hall.
+Le nombre d'interventions a une limite fixée par le contrat.
+Les charges {augmente|augmentent|C} de deux pour cent cette année.
+Le syndic {à|a|G} présenté les comptes de l'immeuble.
+Les travaux de la toiture {serons|seront|C} votés au printemps.
+Un préretraité du troisième s'occupera des {plante|plantes|N} de l'entrée.
+Merci de {fermé|fermer|C} la porte du local à vélos.
+La prochaine réunion {aurat|aura|O} lieu en mars.
+=== T156 message d'un moniteur de colonie aux parents
+Chers parents,
+Les enfants sont bien {arrivé|arrivés|G} au centre hier après-midi.
+Ils {on|ont|G} déjà visité la plage et le petit port.
+Demain, nous {iront|irons|C} voir le phare à vélo.
+Chaque enfant {dois|doit|C} garder sa gourde avec lui.
+L'attrait de la mer a un effet magique sur le groupe.
+Les repas sont {bon|bons|N} et les chambres sont propres.
+Vous {recevrer|recevrez|C} des photos à la fin de la semaine.
+=== T157 récit d'un trajet en covoiturage écrit par une lycéenne
+Tous les matins, je vais au lycée avec ma voisine.
+Elle me demande souvent si tu covoitures toi aussi.
+Nous {partont|partons|C} à sept heures et quart.
+Sa mère {conduis|conduit|C} une petite voiture grise.
+En route, nous {écoutont|écoutons|C} la radio.
+Hier, un camion {bloquais|bloquait|C} la rue du marché.
+Les élèves de ma classe étaient déjà {assi|assis|O}.
+Le professeur n'a rien {dis|dit|C}, heureusement.
+C'est quand même plus {sympas|sympa|N} que le bus.
+=== T158 fiche d'un club de jardinage
+Le club se réunit chaque samedi au jardin partagé.
+Chaque membre {apportes|apporte|C} ses outils et ses gants.
+Les semis de tomates {commence|commencent|C} en mars.
+Il faut {arrosé|arroser|C} le soir, jamais en plein soleil.
+Les {salade|salades|N} poussent mieux à l'ombre.
+L'extrait d'ortie a une odeur forte, mais il protège les rosiers.
+Nous {partagont|partageons|C} les récoltes entre tous les membres.
+Les débutants sont les {bienvenu|bienvenus|N}.
+{venez|Venez|P} nous voir un samedi, même sans matériel.

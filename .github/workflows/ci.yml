@@ -190,6 +190,8 @@ jobs:
         run: python3 tools/sans_proto.py extension/dys-core.js --verifier
       - name: Parité DIRECTE app ≡ extension de la grammaire (sans la référence Python) — parity_app_ext.js
         run: node dictee/parity_app_ext.js
+      - name: Bancs de l'app — aucun ne coupe le moteur avant ce que ses règles lisent (liste n° 597)
+        run: node dictee/coupe_bancs_probe.js
       - name: Police de son — fraîcheur bloc app + parité clitiques ↔ Python + texte jamais altéré
         run: node police/parity_son.js
       - name: Parité OS-sujet extension == app (accord verbe orange ; Python débranché)
@@ -239,7 +241,7 @@ jobs:
         run: node dictee/question_bench.js
       # 03/11/2026 (liste n° 357) — la méthode des textes inventés de vrais genres, au produit avec le juge : aucun domaine ne perd
       # de bonne réponse, aucune fausse marque de plus (orthographe, grammaire, conjugaison, ponctuation, pluriels).
-      - name: Contrôle par l'USAGE — 9 textes inventés, chaque faute par domaine
+      - name: Contrôle par l'USAGE — textes inventés, chaque faute par domaine
         run: node dictee/usage_probe.js --check
       # 08/11/2026 (liste n° 457) — contrôle complet des participes par FAMILLE (voulu par Rem) :
       # avoir, être, pronom personne devant le verbe (table de valence) ; aucun contexte ne recule.
