@@ -1225,3 +1225,39 @@ Papa a {perdus|perdu|C} un gant sur le télésiège.
 Le soir, on {jouent|joue|C} aux cartes près du poêle.
 Je pense fort à vous et je vous {embrasses|embrasse|C}.
 On rentre samedi, {fatigué|fatigués|N} mais ravis.
+=== T167 mot d'une cheffe de chœur après le concert
+Bravo à toute la chorale pour le concert de dimanche.
+Les sopranos {on|ont|G} tenu la note sans faiblir.
+Hélas pour nos voisins, la salle {étais|était|C} pleine dès dix-neuf heures.
+Il nous {faudras|faudra|C} vingt chaises de plus. Le gardien les {apporteras|apportera|C} jeudi.
+Les partitions {prêté|prêtées|N} par la mairie doivent être {rendu|rendues|N} avant lundi.
+La prochaine répétition {commences|commence|C} à dix-huit heures.
+Bravo pour votre patience pendant les réglages du son.
+Mince alors{|,|P} j'allais oublier : pensez à vos pupitres.
+=== T168 message à une amie après un déménagement
+Nous {somme|sommes|C} enfin installés dans le nouvel appartement.
+Les déménageurs sont {resté|restés|N} un jour de plus car l'ascenseur {étais|était|C} en panne.
+Zut alors{|,|P} le canapé ne {passes|passe|C} pas par la porte du salon.
+Les cartons {empilé|empilés|N} dans le couloir {attende|attendent|C} encore.
+{Ses|C'est|G} plus grand que l'ancien logement.
+Les enfants {on|ont|G} choisi leur chambre sans se disputer.
+Il faut trois ampoules de plus et le plombier passe mardi.
+Tu {vient|viens|C} quand tu veux pour voir tout ça.
+=== T169 annonce d'une bourse aux jouets à l'école
+Samedi, l'école {organises|organise|C} une bourse aux jouets dans le préau.
+Chaque famille {peux|peut|C} réserver une table auprès de la directrice.
+Les jouets {cassé|cassés|N} ou incomplets ne seront pas {accepté|acceptés|N}.
+Les vendeurs {installe|installent|C} leur stand à partir de huit heures.
+Un goûter sera {vendus|vendu|N} au profit de la coopérative.
+Les élèves de CM2 {tiendrons|tiendront|C} la caisse.
+Pensez à {apporté|apporter|C} de la monnaie.
+Tout ce qui {restent|reste|C} sera donné à une association.
+=== T170 message à un artisan au sujet d'un devis
+Votre devis pour la cuisine {es|est|G} bien arrivé hier.
+Le montant me {semblent|semble|C} élevé pour une si petite pièce.
+Pouvez-vous {détaillé|détailler|C} le prix des {carrelage|carrelages|N} ?
+Les anciens tuyaux {fuis|fuient|C} depuis l'hiver dernier.
+Le plombier {avais|avait|C} promis de passer mardi.
+Je {préfères|préfère|C} que les travaux commencent en mars.
+Les {horaire|horaires|N} du chantier doivent convenir à tout l'immeuble.
+Merci de me {rappelé|rappeler|C} avant vendredi.
