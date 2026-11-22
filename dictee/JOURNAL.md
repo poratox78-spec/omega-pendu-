@@ -5,6 +5,39 @@
 
 ---
 
+## 2026-11-22 (suite) — Le recensement des oranges mesurait un autre moteur ; le juge faisait taire un mot qui n'existe pas
+
+Suite de l'audit : les points mineurs, pris un par un (LA LISTE, lignes 611 à 617).
+
+- **Le banc des « 6 régressions connues » (ligne 612).** `vig_census_probe.py` lisait une tranche du moteur de l'app équipée à la main :
+  4 tables sur 9, pas de juge. Branché sur `extension/charger_node.js`, juge chargé, il rend sur les mêmes 1 606 textes 554 oranges
+  justes (404 avant), 188 pointeuses (212), 111 de fatigue (127). 19 fautes qu'il comptait en orange sont corrigées en rouge par le
+  produit. 5 des 6 régressions étaient réparées ; il reste « touré ». Le banc lit aussi les rouges, pour reconnaître une régression
+  réparée par une correction appliquée.
+- **Ce que le produit entier a montré aussitôt (ligne 613).** Une orange juste de l'ancien banc manquait : l'arbitre du juge
+  (ligne 334) la faisait taire. Il compare le mot écrit à la proposition de la règle, et il préférait ici un mot absent du
+  dictionnaire. Le mot faux restait sans aucune marque. Garde dans `_jugeTait` (trois moteurs) : l'arbitre ne juge plus un mot écrit
+  absent du dictionnaire. Phrase témoin inventée dans `juge_probe.js` ; elle échoue sans la garde.
+- **Deux tables gardées par leur recette (ligne 611).** La carte des confusions et le modèle de ponctuation, refaits, sortent
+  identiques au fichier livré. Leurs gardes vérifient la recette quand les corpus sont là. Les deux recettes écrivaient sans rien
+  dire une table appauvrie quand un corpus manquait : la carte des confusions est maintenant refusée par sa garde si elle n'a pas
+  d'indice de contexte, et la recette de ponctuation refuse d'écrire.
+- **Un rouge faux sur du français juste (ligne 615).** En inventant des phrases autour de la 613 : « Les enfants jouant du piano ont
+  gagné un prix » recevait « a » en rouge. Le parseur du sujet s'arrête sur un mot étiqueté verbe, et prenait alors le complément
+  qui suit (« du piano ») pour le sujet. Trois cas : un participe présent, un nom en « -ons » lu comme un verbe (« Tous les pontons
+  du port ont été repeints »), un nom mal écrit. Sur 328 phrases inventées, 26 rouges faux avant, aucun après. Trois gardes dans
+  `_npSubject` ; les vrais accords restent corrigés (« Le chien du voisin ont aboyé » → a).
+- **L'arbitre du juge, oublié par l'audit du matin (ligne 616).** Le rapport vérifiait le fichier du juge, pas ce que l'arbitre
+  fait taire. Les tests de comportement tournaient sans le juge : rejoués juge chargé, 4 corrections attendues sur 732 ne
+  sortaient plus (indéfini à majuscule en tête de phrase, couleur invariable). Deux gardes ; la garde générale « mot à majuscule »
+  avait été mesurée et refusée à la ligne 562, elle n'est pas refaite. `recall_produit.js` rejoue maintenant ses 734 corrections
+  attendues juge chargé. Sur les 1 606 textes dys du recensement, l'arbitre fait taire 13 oranges, aucune juste.
+- **Leçon.** Un banc qui équipe le moteur à la main mesure le moteur qu'il a équipé. La garde du chargeur unique ne regardait que
+  les bancs de l'extension : cinq autres gardes de la batterie lisent encore la tranche à 4 tables (ligne 614). Et une sonde
+  de phrases inventées, même courte, trouve ce que 28 772 textes réels ne montrent pas.
+
+---
+
 ## 2026-11-22 — Audit complet du correcteur : trois faux rouges, un banc qui coupait le moteur, et deux constats rétractés
 
 Rem voulait un audit de tout le correcteur et de son extension, sans rien perdre. Dix blocs, tout mesuré (détail : LA LISTE, lignes 594 à 610).

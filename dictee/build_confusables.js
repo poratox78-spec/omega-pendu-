@@ -8,6 +8,8 @@
 //   score(f|contexte) = prior[f] + Σ_{w∈ctx} ctx[f][w] ;  on ORDONNE les formes par score (jamais d'assertion).
 //   Les formes absentes d'UD gardent gloss+possibilités, sans indice contexte (prior/ctx omis).
 //   Corpus UD hors-repo (data_local/, cf. evo/evo_o2_homophone_context.js).   Usage : node dictee/build_confusables.js
+//   Garde (dev.sh + CI, liste n° 611) : node dictee/build_confusables.js --check — n'écrit rien ; la carte commitée sort de ce
+//   script (comparaison SAUTÉE sans le corpus UD, en le disant) et ses copies sont identiques (asset de l'extension, bloc de l'app).
 const fs=require('fs'), path=require('path');
 const CONLLU=path.join(__dirname,'..','data_local','ud_fr_gsd-train.conllu');
 const WIN=4, LAMBDA=0.5, MINF=3, TOPK=25;
@@ -163,6 +165,23 @@ for(const g of CURATED){
   out.groups.push(grp);
 }
 const dst=path.join(__dirname,'confusables.json');
+if(process.argv.includes('--check')){
+  // ⭐ 22/11/2026 (liste n° 611, audit) : la carte avait une recette, mais rien ne vérifiait que le fichier livré en sort. Sans UD,
+  // le mode normal écrit une carte SANS indice de contexte (voir buildModel) : un lancement sans le corpus l'aurait appauvrie en silence.
+  const livre=fs.readFileSync(dst,'utf8').trim(); let bad=0;
+  const ext=fs.readFileSync(path.join(__dirname,'..','extension','assets','confusables.json'),'utf8').trim();
+  if(ext!==livre){ console.error('✗ extension/assets/confusables.json ≠ dictee/confusables.json'); bad++; }
+  const h=fs.readFileSync(path.join(__dirname,'..','app','omega-pendu.html'),'utf8');
+  const m=h.match(/<script type="application\/json" id="vdc-confusables">([\s\S]*?)<\/script>/);
+  if(!m||m[1].trim()!==livre){ console.error('✗ bloc vdc-confusables de app/omega-pendu.html ≠ dictee/confusables.json (node dictee/embed_confusables.js)'); bad++; }
+  const avecCtx=JSON.parse(livre).groups.filter(g=>g.ctx).length;
+  if(!avecCtx){ console.error('✗ dictee/confusables.json est SANS indice de contexte : carte écrite sans le corpus UD'); bad++; }
+  if(!M) console.log('  recette : comparaison SAUTÉE (corpus UD absent, data_local/) — copies et indice de contexte vérifiés');
+  else if(JSON.stringify(out)!==livre){ console.error('✗ dictee/confusables.json ≠ sa recette (node dictee/build_confusables.js, puis embed_confusables.js et build_assets.py)'); bad++; }
+  if(bad) process.exit(1);
+  console.log('✓ carte des confusions : '+out.groups.length+' groupes, '+avecCtx+' avec indice de contexte'+(M?' == sa recette':'')+' ; asset de l’extension et bloc de l’app identiques');
+  process.exit(0);
+}
 fs.writeFileSync(dst, JSON.stringify(out));
 const withCtx=out.groups.filter(g=>g.ctx).length;
 console.error(`écrit ${dst} · ${out.groups.length} groupes confusables · ${withCtx} avec indice contexte (UD)`);

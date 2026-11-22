@@ -106,7 +106,7 @@ run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigil
 run "sonde SUJET AU PRODUIT — mêmes questions aux primitives de dys-core (ligne 25b)" python3 dictee/sujet_probe.py --produit
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
 run "juges dys : suggestion de PLUSIEURS mots jugée sur la suite gold (bien sûr juste, ronde vous faux)" python3 dictee/test_juges_multimots.py
-run "census vigilance dys (aucune orange juste perdue)" python3 dictee/vig_census_probe.py
+run "census vigilance dys (aucune orange juste perdue ; PRODUIT ENTIER, juge chargé — ligne 612)" python3 dictee/vig_census_probe.py
 run "cohérence du GOLD (le juge ne porte pas la faute qu'il juge)" python3 dictee/gold_coherence_probe.py --check
 run "assets extension câblés (aucun asset livré-mais-muet)" node extension/assets_wired_probe.js
 run "angle mort ÉLISION (différentiel l'X vs cet/cette X)" node dictee/elision_probe.js --check
@@ -241,6 +241,8 @@ run "lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver
 run "table de conjugaison SANS RETARD sur son script (Morphalou ; SAUTÉ sans data_local)" python3 dictee/complete_conj_morphalou.py --check
 run "étiqueteur HMM == sa recette, à l'octet (UD French-GSD ; SAUTÉ sans data_local) — ligne 602" python3 dictee/build_pos_hmm.py --check
 run "modèle sujet-verbe (OS) == sa recette (UD French-GSD ; SAUTÉ sans data_local) — ligne 602" python3 dictee/build_os_lm.py --check
+run "carte des confusions == sa recette, copies identiques, indice de contexte présent (recette SAUTÉE sans data_local) — ligne 611" node dictee/build_confusables.js --check
+run "modèle de ponctuation == sa recette (UD + Wiktionnaire, 4 minutes ; SAUTÉ sans data_local) — ligne 611" python3 dictee/build_ponct_lm.py --check
 run "CHARGEUR UNIQUE : les tables du produit == charger_node.js ; chaque banc Node passe par lui ou dit pourquoi" node extension/chargeur_probe.js --check
 run "lot Morphalou accentué du speller : TSV commité bien formé (morph_acc, « calmât »)" python3 dictee/build_morph_acc_lex.py --check
 run "lot de la table de conjugaison du speller : TSV commité bien formé et câblé (outillent, indexent, prototyper)" python3 dictee/build_conj_lex.py --check

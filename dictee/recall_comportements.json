@@ -1090,7 +1090,13 @@
 "Tu covoitures avec ta voisine demain.",
 "Ils compètent pour la première place.",
 "Il galèje souvent, ne le crois pas.",
-"Tu remodules ton emploi du temps."
+"Tu remodules ton emploi du temps.",
+"Les enfants jouant du piano ont gagné un prix.",
+"Les voyageurs arrivant du nord ont pris le premier train.",
+"Les ouvriers travaillant au port ont fait grève.",
+"Tous les pontons du port ont été repeints cet été.",
+"Tous les bâtimant du port ont été repeints cet été.",
+"Tous les voillier du port ont été repeints cet été."
 ],
 "elide": [
 [
@@ -4752,6 +4758,16 @@
 "Il chante en marchants.",
 "marchants",
 "marchant"
+],
+[
+"Le chien du voisin ont aboyé toute la nuit.",
+"ont",
+"a"
+],
+[
+"Les amis du maire a voté contre lui.",
+"a",
+"ont"
 ]
 ],
 "palier": [
@@ -5439,6 +5455,11 @@
 "C'est un vérité difficile.",
 "un",
 "auto"
+],
+[
+"Tous les habitant du village ont voté dimanche.",
+"habitant",
+"vigilance"
 ]
 ],
 "vig": [

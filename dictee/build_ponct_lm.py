@@ -22,6 +22,11 @@ d'une entrée du modèle pour le dire. On ne garde que ce qui PRÉDIT une marque
 FORMAT : compact et lisible par le moteur JS sans dépendance —
     {"pri":[n_rien,n_virg,n_pt], "mini":10, "niv":[ {"clé":[n_rien,n_virg,n_pt], ...}, ... ]}
 Les clés sont les composantes jointes par « \\u001f » (séparateur d'unité, absent des textes).
+
+GARDE (dev.sh + CI, liste n° 611) : python dictee/build_ponct_lm.py --check — n'écrit rien ; refait le modèle et compare son
+contenu décompressé au fichier livré. SAUTÉ, en le disant, si l'un des deux corpus manque (UD French-GSD, exemples du
+Wiktionnaire : data_local). Refait le 22/11/2026 : identique. Le mode normal REFUSE lui aussi d'écrire sans les deux corpus :
+avec UD seul, il aurait livré sans rien dire un modèle appris sur dix fois moins de phrases.
 """
 import gzip
 import io
@@ -35,6 +40,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 SORTIE = os.path.join('extension', 'assets', 'ponct-lm.json.gz')
 MINI, MARGE = 10, 1.5          # réglage mesuré : 19 545 entrées, F1 quasi intact
+CHECK = '--check' in sys.argv
 SEP = ''
 
 
@@ -42,6 +48,15 @@ def main():
     import correcteur_probe as C
     from ponct_texte_probe import phrases, flux, Modele
     from ponct_export_probe import elague
+    import ponct_texte_probe as PT
+
+    manque = [p for p in (PT.UD, PT.WIKT) if not os.path.exists(p)]
+    if manque:                                    # liste n° 611 : jamais un modèle appris sur un seul des deux corpus
+        if CHECK:
+            print('  modèle de ponctuation : comparaison à la recette SAUTÉE (corpus absent : %s)' % ', '.join(manque))
+            return 0
+        print('refus : corpus absent (%s) — le modèle livré est appris sur UD ET sur les exemples du Wiktionnaire' % ', '.join(manque))
+        return 1
 
     random.seed(20260805)
     P = phrases()
@@ -56,10 +71,12 @@ def main():
     for mots, marques in flux(P):
         M.entraine(mots, C.pos_tags(mots) or ['X'] * len(mots), marques)
         n += 1
-    print('%d blocs de flux · %d entrées brutes' % (n, sum(len(x) for x in M.t)))
+    if not CHECK:
+        print('%d blocs de flux · %d entrées brutes' % (n, sum(len(x) for x in M.t)))
 
     garde = elague(M, {0, 1, 2, 3, 4}, MINI, MARGE)
-    print('après élagage (mini=%d, marge=%.1f) : %d entrées' % (MINI, MARGE, garde))
+    if not CHECK:
+        print('après élagage (mini=%d, marge=%.1f) : %d entrées' % (MINI, MARGE, garde))
 
     obj = {'pri': [M.pri[''], M.pri[','], M.pri['.']], 'mini': MINI, 'niv': []}
     for niv in range(M.NIV):
@@ -68,8 +85,16 @@ def main():
             d[SEP.join(c)] = [dd[''], dd[','], dd['.']]
         obj['niv'].append(d)
 
-    os.makedirs(os.path.dirname(SORTIE), exist_ok=True)
     brut = json.dumps(obj, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+    if CHECK:                                     # le contenu, pas les octets du .gz (son en-tête porte une date)
+        with gzip.open(SORTIE, 'rb') as f:
+            livre = f.read()
+        if livre != brut:
+            print('✗ %s ≠ sa recette (%d octets livrés, %d refaits) : python dictee/build_ponct_lm.py' % (SORTIE, len(livre), len(brut)))
+            return 1
+        print('✓ modèle de ponctuation == sa recette (%d entrées, %d blocs de flux)' % (garde, n))
+        return 0
+    os.makedirs(os.path.dirname(SORTIE), exist_ok=True)
     with gzip.open(SORTIE, 'wb', compresslevel=9) as f:
         f.write(brut)
     print('-> %s : %.0f Ko brut · %.0f Ko compressé'
