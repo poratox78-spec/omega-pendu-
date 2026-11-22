@@ -1,18 +1,18 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 241,
-   "bon": 230,
-   "rouge juste": 154,
-   "orange juste": 76,
+   "total": 245,
+   "bon": 233,
+   "rouge juste": 156,
+   "orange juste": 77,
    "mauvais mot": 0,
-   "muette": 11
+   "muette": 12
   },
   "grammaire": {
-   "total": 378,
-   "bon": 355,
-   "rouge juste": 147,
-   "orange juste": 208,
+   "total": 382,
+   "bon": 359,
+   "rouge juste": 150,
+   "orange juste": 209,
    "mauvais mot": 0,
    "muette": 23
   },
@@ -25,18 +25,18 @@
    "muette": 37
   },
   "conjugaison": {
-   "total": 513,
-   "bon": 491,
-   "rouge juste": 254,
-   "orange juste": 237,
+   "total": 535,
+   "bon": 513,
+   "rouge juste": 268,
+   "orange juste": 245,
    "mauvais mot": 8,
    "muette": 14
   },
   "orthographe": {
-   "total": 259,
-   "bon": 248,
-   "rouge juste": 134,
-   "orange juste": 114,
+   "total": 261,
+   "bon": 250,
+   "rouge juste": 135,
+   "orange juste": 115,
    "mauvais mot": 4,
    "muette": 7
   }
@@ -1592,6 +1592,38 @@
   "T162#3": "orange juste",
   "T162#4": "rouge juste",
   "T162#5": "muette",
-  "T162#6": "rouge juste"
+  "T162#6": "rouge juste",
+  "T163#0": "rouge juste",
+  "T163#1": "orange juste",
+  "T163#2": "rouge juste",
+  "T163#3": "rouge juste",
+  "T163#4": "orange juste",
+  "T163#5": "orange juste",
+  "T163#6": "orange juste",
+  "T163#7": "rouge juste",
+  "T164#0": "rouge juste",
+  "T164#1": "rouge juste",
+  "T164#2": "rouge juste",
+  "T164#3": "orange juste",
+  "T164#4": "orange juste",
+  "T164#5": "orange juste",
+  "T164#6": "rouge juste",
+  "T164#7": "orange juste",
+  "T165#0": "orange juste",
+  "T165#1": "rouge juste",
+  "T165#2": "rouge juste",
+  "T165#3": "rouge juste",
+  "T165#4": "orange juste",
+  "T165#5": "rouge juste",
+  "T165#6": "rouge juste",
+  "T165#7": "rouge juste",
+  "T166#0": "rouge juste",
+  "T166#1": "rouge juste",
+  "T166#2": "rouge juste",
+  "T166#3": "rouge juste",
+  "T166#4": "orange juste",
+  "T166#5": "rouge juste",
+  "T166#6": "rouge juste",
+  "T166#7": "muette"
  }
 }

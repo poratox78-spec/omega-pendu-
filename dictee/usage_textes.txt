@@ -1189,3 +1189,39 @@ Les maillots {lavé|lavés|N} mardi soir sont dans le sac vert.
 Nos adversaires {différent|diffèrent|O} beaucoup de l'équipe du mois dernier.
 Les parents venant du nord trouveront un parking derrière la salle.
 Bravo à tous : ils {progresse|progressent|C} à chaque séance.
+=== T163 message d'une nounou aux parents, le soir
+Zoé a bien {manger|mangé|C} à midi : purée et jambon.
+Elle a {dormis|dormi|C} presque deux heures après le repas.
+Après la sieste, nous {somme|sommes|C} allées au parc avec les jumeaux d'à côté.
+Les trois enfants {on|ont|G} joué dans le sable sans se disputer.
+Elle a un peu {toussée|toussé|C} en rentrant, rien de grave.
+Il reste deux couches dans le sac, pensez à en {remettres|remettre|O}.
+{C'est|Ses|G|Ces} bottes sont restées dans l'entrée.
+À demain, huit heures comme {d'habitudes|d'habitude|N}.
+=== T164 compte rendu d'un match de handball écrit par un joueur
+Samedi, nous avons {jouer|joué|C} contre l'équipe de la ville voisine.
+Les adversaires menant au score ont vite pris confiance.
+Notre gardien a {arrêter|arrêté|C} trois tirs de suite.
+À la pause, l'entraîneur nous a {dis|dit|C} de rester calmes.
+En seconde période, les ailiers {court|courent|C} plus vite et nous {marquont|marquons|C} cinq buts.
+Le public {étaient|était|C} debout pendant les dernières minutes.
+Nous avons {gagner|gagné|C} d'un seul but.
+Tout le monde est {rentrés|rentré|N} épuisé mais content.
+=== T165 mot laissé au réparateur d'une machine à laver
+La machine {fais|fait|C} un bruit de casserole depuis lundi.
+L'eau ne {s'évacuent|s'évacue|C} plus à la fin du lavage.
+J'ai {nettoyer|nettoyé|C} le filtre, {sa|ça|G} n'a rien changé.
+Le voyant orange {clignotes|clignote|C} trois fois puis s'éteint.
+Les tuyaux passant derrière le meuble sont difficiles à atteindre.
+La clé du local {es|est|G} sous le pot de fleurs.
+Vous {pouvé|pouvez|O} m'appeler vers midi.
+Merci de {laissé|laisser|C} la facture sur la table.
+=== T166 carte postale envoyée de la montagne
+Nous sommes bien {arrivé|arrivés|N} au chalet dimanche soir.
+Il {neiges|neige|C} depuis deux jours, les pistes sont magnifiques.
+Les enfants {skie|skient|C} déjà mieux que moi.
+Hier, nous avons {manger|mangé|C} une fondue avec les voisins du dessous.
+Papa a {perdus|perdu|C} un gant sur le télésiège.
+Le soir, on {jouent|joue|C} aux cartes près du poêle.
+Je pense fort à vous et je vous {embrasses|embrasse|C}.
+On rentre samedi, {fatigué|fatigués|N} mais ravis.
