@@ -1,3 +1,4 @@
+// chargeur partiel voulu : côté app, seul le rendu de la DICTÉE est exécuté (diagnoseSentence et ses textes) ; les marques du correcteur viennent du produit par charger_node.js — liste n° 614
 // TEXTES D'EXPLICATION du correcteur — la sonde née de l'AUDIT du 11/09/2026 dans le vrai Chrome
 // (dictee/AUDIT_CORRECTEUR_2026-09-11.md, §2). Le moteur y était juste sur 24 phrases ; les TEXTES, non :
 // « clé → clés : remplace le verbe par mordre » (un nom), « c'est « ma » (singulier) qui commande → heures »

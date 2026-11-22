@@ -9,11 +9,11 @@ const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8')
 const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
-const code = html.slice(start, cut) + ';globalThis.__C={corr:correctText,corrTok:correctTokens,toks:toks,segInfo:_segInfo,setSeg:(s)=>{_SEG=_segInfo(s);},spell:spellText,loadSp:loadSpellerLex,loadNP:loadNounPost,loadG:loadGenderLex,loadH:loadPosHmm,ready:()=>SP.ready};})();';
+const code = html.slice(start, cut) + ';globalThis.__C={corr:correctText,corrTok:correctTokens,toks:toks,segInfo:_segInfo,setSeg:(s)=>{_SEG=_segInfo(s);},spell:spellText,loadSp:loadSpellerLex,loadNP:loadNounPost,loadG:loadGenderLex,loadH:loadPosHmm,loadPr:(typeof loadPrenoms==="function"?loadPrenoms:null),loadGa:(typeof loadGaccLex==="function"?loadGaccLex:null),loadOs:(typeof loadOsLm==="function"?loadOsLm:null),ready:()=>SP.ready};})();';
 
 function blob(id) { const m = html.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; }
 const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'),
-            'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz') };
+            'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz'),'prenoms-gz':blob('prenoms-gz'),'gacc-lex-gz':blob('gacc-lex-gz'),'os-lm-gz':blob('os-lm-gz') };
 const stub = new Proxy(function(){}, { get(t,k){ if(k==='style')return{}; if(k==='classList')return{add(){},remove(){},toggle(){},contains:()=>false}; return stub; }, set:()=>true, apply:()=>stub });
 global.document = { getElementById:(id)=> B[id]!==undefined && B[id]!=='' ? {textContent:B[id]} : stub, createElement:()=>stub, body:stub, head:stub, addEventListener(){}, querySelector:()=>null, querySelectorAll:()=>[] };
 global.window = global; global.navigator = { userAgent:'node' }; global.localStorage = { getItem:()=>null, setItem(){}, removeItem(){} };
@@ -106,7 +106,7 @@ function wrongCount(fn) {
 }
 const RECALL_FLOOR = 45, FP_MAX = 0, WRONG_MAX = 3;   // planchers/plafonds CI (marge sous le mesuré ; resserrer avec les gains) — 45 après la CASCADE (mesuré 50%)
 (async () => {
-  await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
+  await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH(); if (C.loadPr) await C.loadPr(); if (C.loadGa) await C.loadGa(); if (C.loadOs) await C.loadOs(); /* liste n° 614 : + prénoms, genre accentué, modèle sujet-verbe — la tranche chargeait 4 tables sur 7 */
   const check = process.argv.includes('--check');
   if (!check) console.log('speller ready =', C.ready(), '\n');
   if (!check) { score('FLAT (ancien)   ', flatCorr); score('PYRAMIDE (itère)', pyramidCorr); }
