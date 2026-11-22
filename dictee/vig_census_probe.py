@@ -7,7 +7,10 @@ committés (dictee/vig_census_ref.json — des NOMBRES, jamais le corpus). Tout 
 la liste des disparues : un chantier qui perd une juste ne passe pas la batterie.
   python dictee/vig_census_probe.py            # garde (rouge si écart)
   python dictee/vig_census_probe.py --fix      # ré-ancre la référence (changement ASSUMÉ)
-Corpus absent (CI) → SAUTÉ explicite, jamais un rouge menteur."""
+Corpus absent (CI) → SAUTÉ explicite, jamais un rouge menteur.
+⭐ 22/11/2026 (liste n° 612, audit) : le dump est celui du PRODUIT ENTIER (extension/charger_node.js, juge léger chargé) —
+avant, une tranche du moteur de l'app équipée à la main, sans le juge ni trois tables. Les ROUGES justes sont lus aussi : ils
+ne comptent pas dans les effectifs (le census reste celui des oranges), mais ils disent qu'une régression connue est réparée."""
 import os, sys, io, json, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -53,13 +56,17 @@ def main():
     if r.returncode != 0:
         print(u'✗ CENSUS : le dump a échoué\n' + (r.stderr or '')[-400:]); return 1
     D = json.load(io.open(DUMP, encoding='utf-8'))
-    justes, pointeuses, fatigue = [], [], []
+    justes, pointeuses, fatigue, rouges_justes = [], [], [], []
     for t in D['dys']:
         al = aligne_gold(t['tokens'], t['tokensFixed'])
         for f in t['flags']:
             if f['i'] not in al: continue
             cle = u'%s→%s [%s] %s' % (t['tokens'][f['i']], f.get('sugg'), f.get('name'), t.get('src'))
             {'fatigue': fatigue, 'juste': justes, 'pointeuse': pointeuses}[classe(t['tokens'], f['i'], f.get('sugg'), al)].append(cle)
+        for f in t.get('autos', []):                      # liste n° 612 : une correction APPLIQUÉE juste répare aussi une régression connue
+            if f['i'] not in al: continue
+            if classe(t['tokens'], f['i'], f.get('sugg'), al) == 'juste':
+                rouges_justes.append((norm(t['tokens'][f['i']]), norm(f.get('sugg'))))
     etat = {'justes': len(justes), 'pointeuses': len(pointeuses), 'fatigue': len(fatigue),
             'cles_justes': sorted(justes)}
     if FIX or not os.path.exists(REF):
@@ -69,9 +76,8 @@ def main():
                    # ⭐ la dette SURVIT au ré-ancrage : sans ça, `--fix` effacerait la mémoire de ce
                    # qui a été perdu, et c'est précisément comme ça qu'une régression devient normale.
                    'regressions_connues': anc.get('regressions_connues', []),
-                   'note': u"effectifs de référence du census (post-cartes PR#523-524) ; le cas sais→s'est de texte4 "
-                           u"reste compté SIGNALE_AUTRE ici car le juge B2 (opt-in, WebGPU) est invisible aux harnais Node — "
-                           u"sa couverture est prouvée par b2_web_probe (bout-en-bout navigateur)."},
+                   'note': u"effectifs de référence du census, mesurés sur le PRODUIT ENTIER (extension/charger_node.js, juge léger "
+                           u"chargé) depuis le 22/11/2026 (liste n° 612) ; avant : une tranche de l'app sans le juge (404 / 212 / 127)."},
                   io.open(REF, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         print(u'✓ CENSUS : référence ancrée (justes %d · pointeuses %d · fatigue %d)' % (etat['justes'], etat['pointeuses'], etat['fatigue']))
         return 0
@@ -117,10 +123,13 @@ def main():
     reg = ref.get('regressions_connues') or []
     if reg:
         vus = set(etat['cles_justes'])
-        reparees = [r for r in reg if r.get('cle_si_reparee') in vus]
-        print(u'  ⚠️ %d régression(s) CONNUE(S) et non réparée(s) — le correcteur propose un mot FAUX :' % (len(reg) - len(reparees)))
+        rj = set(rouges_justes)
+        def reparee(r):                                   # orange juste (la clé) OU correction appliquée juste (même mot, même proposition)
+            return r.get('cle_si_reparee') in vus or (norm(r['mot']), norm(r['attendu'])) in rj
+        reparees = [r for r in reg if reparee(r)]
+        print(u'  ⚠️ %d régression(s) CONNUE(S) et non réparée(s) — le correcteur propose un mot FAUX, ou rien :' % (len(reg) - len(reparees)))
         for r in reg:
-            if r.get('cle_si_reparee') in vus: continue
+            if reparee(r): continue
             print(u'      %-12s → %-11s (au lieu de %s)   depuis %s' % (r['mot'], r['obtenu'], r['attendu'], r['depuis']))
         if reparees:
             print(u'  ✓ %d régression(s) RÉPARÉE(S) : %s → ré-ancrer à la hausse (--fix)'

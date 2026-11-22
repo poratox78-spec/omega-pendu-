@@ -3,26 +3,39 @@
  * 14 450 — toute orange y est par définition de la fatigue) et (b) les dictées dys réelles (gold
  * apparié — une orange peut y être juste, pointeuse ou fatigue). Le juge B2 lira ce dump côté
  * Python (arbitre_vig_probe.py) pour mesurer : combien de fatigue il peut TAIRE sans perdre une
- * seule orange JUSTE. Sortie : data_local/arbitre_vig_dump.json */
+ * seule orange JUSTE. Sortie : data_local/arbitre_vig_dump.json
+ *
+ * ⭐ 22/11/2026 (liste n° 612, audit) — EN MODE GARDE (--dys-seul, lu par vig_census_probe.py), LE DUMP EST CELUI DU PRODUIT ENTIER :
+ * extension/charger_node.js, toutes les tables de l'extension, juge léger chargé, diagnoseAll. Avant, ce mode équipait à la main
+ * une tranche du moteur de l'app (dictionnaire, noun-post, genre, étiqueteur) : sans le genre accentué, sans le modèle sujet-verbe,
+ * sans les prénoms, sans le juge. Mesuré le 22/11 sur les 1 606 textes : ce banc voyait 404 oranges justes là où le produit en
+ * rend 554, il comptait en orange 19 fautes que le produit corrige en rouge, et 5 de ses 6 « régressions connues » étaient déjà
+ * réparées dans le produit. Le mode complet (sans --dys-seul) garde l'ancienne tranche : ses lecteurs (arbitre_vig_probe.py,
+ * distill_vig.py, distill_pluriel.py, perplex_omission_probe.py) sont des outils de recherche réglés sur elle, hors batterie. */
 'use strict';
 const fs = require('fs'), path = require('path');
 const REPO = path.join(__dirname, '..');
-const html = fs.readFileSync(path.join(REPO, 'app', 'omega-pendu.html'), 'utf8');
-try { globalThis.OMEGA_VDC = require(path.join(REPO, 'dictee', 'blobgz')).vdcSeed(html); } catch (e) {}
+const DYS_SEUL = process.argv.includes('--dys-seul');   // mode GARDE (vig_census_probe) : la partie correcte (16 950 phrases) est lente, le census des JUSTES n'a besoin que du dys
 
-const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
-const spIdx = html.indexOf('function spellText', start);
-const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
-const code = html.slice(start, cut) + ';globalThis.__C={corrTok:correctTokens,toks:toks,setSeg:(s)=>{_SEG=_segInfo(s);},spell:spellText,loadSp:loadSpellerLex,loadNP:loadNounPost,loadG:loadGenderLex,loadH:loadPosHmm,ready:()=>SP.ready};})();';
+let C = null;
+if (!DYS_SEUL) {
+  const html = fs.readFileSync(path.join(REPO, 'app', 'omega-pendu.html'), 'utf8');
+  try { globalThis.OMEGA_VDC = require(path.join(REPO, 'dictee', 'blobgz')).vdcSeed(html); } catch (e) {}
 
-function blob(id) { const m = html.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; }
-const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'),
-            'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz') };
-const stub = new Proxy(function(){}, { get(t,k){ if(k==='style')return{}; if(k==='classList')return{add(){},remove(){},toggle(){},contains:()=>false}; return stub; }, set:()=>true, apply:()=>stub });
-global.document = { getElementById:(id)=> B[id]!==undefined && B[id]!=='' ? {textContent:B[id]} : stub, createElement:()=>stub, body:stub, head:stub, addEventListener(){}, querySelector:()=>null, querySelectorAll:()=>[] };
-global.window = global; try { global.navigator = { userAgent:'node' }; } catch (e) { Object.defineProperty(global, 'navigator', { value: { userAgent:'node' }, configurable: true }); } global.localStorage = { getItem:()=>null, setItem(){}, removeItem(){} };
-(0, eval)(code);
-const C = globalThis.__C;
+  const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
+  const spIdx = html.indexOf('function spellText', start);
+  const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
+  const code = html.slice(start, cut) + ';globalThis.__C={corrTok:correctTokens,toks:toks,setSeg:(s)=>{_SEG=_segInfo(s);},spell:spellText,loadSp:loadSpellerLex,loadNP:loadNounPost,loadG:loadGenderLex,loadH:loadPosHmm,ready:()=>SP.ready};})();';
+
+  const blob = (id) => { const m = html.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; };
+  const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'),
+              'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz') };
+  const stub = new Proxy(function(){}, { get(t,k){ if(k==='style')return{}; if(k==='classList')return{add(){},remove(){},toggle(){},contains:()=>false}; return stub; }, set:()=>true, apply:()=>stub });
+  global.document = { getElementById:(id)=> B[id]!==undefined && B[id]!=='' ? {textContent:B[id]} : stub, createElement:()=>stub, body:stub, head:stub, addEventListener(){}, querySelector:()=>null, querySelectorAll:()=>[] };
+  global.window = global; try { global.navigator = { userAgent:'node' }; } catch (e) { Object.defineProperty(global, 'navigator', { value: { userAgent:'node' }, configurable: true }); } global.localStorage = { getItem:()=>null, setItem(){}, removeItem(){} };
+  (0, eval)(code);
+  C = globalThis.__C;
+}
 
 /* runCorrLike (fidélité _computeCorrs : vigilance JAMAIS appliquée) — garde le NOM de la règle */
 function corrDetail(s) {
@@ -42,9 +55,21 @@ function corrDetail(s) {
   return { tokens: T, flags: out };
 }
 
+/* ⭐ liste n° 612 : le PRODUIT ENTIER, comme chez l'utilisateur — le juge calcule d'abord (jugeAnalyseSync), puis diagnoseAll rend
+ * les marques (rouges, oranges, arbitre et marques du juge). Les signes de ponctuation n'ont pas de rang de mot : hors census. */
+let D = null;
+function corrProduit(s) {
+  D.jugeAnalyseSync(s);
+  const r = D.diagnoseAll(s), T = D.toks(s);
+  const flags = (r.flags || []).filter(f => f.i != null).map(f => ({ i: f.i, tok: T[f.i], sugg: typeof f.sugg === 'string' ? f.sugg : '',
+    tier: f.tier || '', couche: f.juge ? 'juge' : f.jugeOrtho ? 'juge-ortho' : 'produit', span: f.span || 1, name: f.name || '' }));
+  return { tokens: T, flags: flags };
+}
+
 (async () => {
-  await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
-  const DYS_SEUL = process.argv.includes('--dys-seul');   // mode GARDE (vig_census_probe) : la partie correcte (16 950 phrases) est lente, le census des JUSTES n'a besoin que du dys
+  if (DYS_SEUL) D = require(path.join(REPO, 'extension', 'charger_node.js'))({ juge: true });
+  else { await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH(); }
+  const corr = DYS_SEUL ? corrProduit : corrDetail, toksDe = DYS_SEUL ? D.toks : C.toks;
   const corrects = [];
   if (!DYS_SEUL) {
     for (const l of fs.readFileSync(path.join(__dirname, 'fp_scale_corpus.txt'), 'utf8').split('\n')) if (l.trim()) corrects.push(l.trim());
@@ -66,14 +91,21 @@ function corrDetail(s) {
     if (!fs.existsSync(p)) continue;
     for (const l of fs.readFileSync(p, 'utf8').split('\n').filter(Boolean)) {
       const t = JSON.parse(l);
-      const c = corrDetail(t.raw);
+      const c = corr(t.raw);
       const vig = c.flags.filter(f => f.tier === 'vigilance');
-      if (vig.length) dys.push({ src: t.src, raw: t.raw, tokens: c.tokens, tokensFixed: C.toks(t.fixed), flags: vig });
+      // ⭐ liste n° 612 : les ROUGES aussi (mode garde) — une « régression connue » réparée par une correction appliquée restait
+      // comptée non réparée, le census ne lisant que les oranges.
+      const autos = DYS_SEUL ? c.flags.filter(f => f.tier === 'auto') : [];
+      if (vig.length || autos.length) {
+        const e = { src: t.src, raw: t.raw, tokens: c.tokens, tokensFixed: toksDe(t.fixed), flags: vig };
+        if (DYS_SEUL) e.autos = autos;
+        dys.push(e);
+      }
     }
   }
   fs.mkdirSync(path.join(REPO, 'data_local'), { recursive: true });   // un worktree n'a pas de data_local
   const dst = path.join(REPO, 'data_local', DYS_SEUL ? 'arbitre_vig_census.json' : 'arbitre_vig_dump.json');
-  fs.writeFileSync(dst, JSON.stringify({ nCorrects: corrects.length, correct: outCorrect, dys: dys }));
+  fs.writeFileSync(dst, JSON.stringify({ nCorrects: corrects.length, correct: outCorrect, dys: dys, moteur: DYS_SEUL ? 'produit entier (charger_node.js, juge chargé)' : 'tranche de l’app' }));
   console.log('dump : ' + corrects.length + ' phrases correctes → ' + outCorrect.length + ' avec orange (' + nVig +
     ' oranges) · dys : ' + dys.length + ' textes → ' + dst);
 })();

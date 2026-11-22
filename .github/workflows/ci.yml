@@ -90,6 +90,10 @@ jobs:
         run: python3 dictee/build_pos_hmm.py --check
       - name: "Modèle sujet-verbe (OS) == sa recette (SAUTÉ en CI : le treebank est local) — ligne 602"
         run: python3 dictee/build_os_lm.py --check
+      - name: "Carte des confusions — copies identiques, indice de contexte présent (recette SAUTÉE en CI : le treebank est local) — ligne 611"
+        run: node dictee/build_confusables.js --check
+      - name: "Modèle de ponctuation == sa recette (SAUTÉ en CI : les corpus sont locaux) — ligne 611"
+        run: python3 dictee/build_ponct_lm.py --check
       - name: "Chargeur unique — les tables du produit == extension/charger_node.js ; chaque banc Node passe par lui ou dit pourquoi"
         run: node extension/chargeur_probe.js --check
       - name: "Lot Morphalou accentué du speller — TSV commité bien formé (morph_acc, « calmât »)"

@@ -7,6 +7,8 @@
 //     ces phrases gardent une faute d'orthographe exprès, c'est la GRAMMAIRE qui doit se taire ; un vrai mot touché reste un FP ;
 //   vig → la suggestion de l'ORTHOGRAPHE du produit (diagnoseAll().spell, tous paliers) ;
 //   a_participe → ni la grammaire ni le pipeline complet ne touchent « a » devant un participe mal écrit ou un inconnu accentué.
+//   ⭐ 22/11/2026 (liste n° 616, audit de l'arbitre) : les corrections attendues (elide) sont REJOUÉES JUGE CHARGÉ, comme chez
+//     l'utilisateur. Ce banc tournait sans le juge : l'arbitre faisait taire 4 de ses corrections attendues et personne ne le voyait.
 //   node dictee/recall_produit.js
 'use strict';
 const path = require('path');
@@ -26,6 +28,16 @@ for (const s of C.nofp) { const g = gram(s).filter((f) => !horsGrammaire(f)); if
 for (const [s, w, tr] of C.palier) { const got = gram(s).filter((f) => lo(f.word) === lo(w)).map((f) => f.tier); if (got.length !== 1 || got[0] !== tr) bad.push(`${s} → palier de ${w} attendu ${tr}, eu ${got.join(',') || 'rien'}`); }
 for (const [s, w, sug] of C.vig) { const got = (D.diagnoseAll(s).spell || []).filter((f) => lo(f.word) === lo(w)).map((f) => f.sugg); if (got.length !== 1 || got[0] !== sug) bad.push(`${s} → orthographe : ${w} attendu ${sug}, eu ${got.join(',') || 'rien'}`); }
 for (const s of C.a_participe) { const fl = D.diagnoseAll(s).flags || []; if (fl.some((f) => f.word === 'a')) bad.push(`${s} → « a » touché devant un participe mal écrit`); }
+// ⭐ liste n° 616 : même moteur, même processus (deux moteurs dans un processus donnent de faux écarts) — on lui charge le juge APRÈS les
+// contrôles sans juge, puis l'arbitre ne doit faire taire aucune correction attendue (la dernière exception, « il na » + infinitif, est levée par la liste n° 617).
+const TU_CONNU = {};
+let nJuge = 0;
+if (D.setJuge) {
+  D.setJuge(require('fs').readFileSync(path.join(ROOT, 'extension', 'assets', 'juge-mini.bin')));
+  if (!D._juge || !D._juge.m) bad.push('juge non chargé : la passe « juge chargé » n’a rien mesuré');
+  for (const [s, w, sug] of C.elide) { if (TU_CONNU[s]) continue; nJuge++; D.jugeAnalyseSync(s);
+    if (!gram(s).some((f) => lo(f.word) === lo(w) && f.sugg === sug)) bad.push(`${s} → JUGE CHARGÉ : ${w}→${sug} ne sort plus (l'arbitre fait taire une correction attendue)`); }
+} else bad.push('dys-core n’expose plus setJuge : la passe « juge chargé » ne peut pas tourner');
 const n = Object.values(C).reduce((a, v) => a + v.length, 0);
 if (bad.length) { console.error('✗ rappel AU PRODUIT : régression(s) :\n    ' + bad.join('\n    ')); process.exit(1); }
-console.log(`✓ rappel AU PRODUIT : ${n} comportements clés OK (j'est être/avoir + élision + FP + orthographe)`);
+console.log(`✓ rappel AU PRODUIT : ${n} comportements clés OK, plus ${nJuge} corrections rejouées juge chargé (j'est être/avoir + élision + FP + orthographe)`);
