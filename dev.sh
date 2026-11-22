@@ -239,6 +239,8 @@ run "toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y e
 run "noms épicènes exclus du genre (liste == Lexique4, commité en .xz)" python3 dictee/build_gacc_epicene_excl.py --check
 run "lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz)" python3 dictee/build_morph_lex.py --check
 run "table de conjugaison SANS RETARD sur son script (Morphalou ; SAUTÉ sans data_local)" python3 dictee/complete_conj_morphalou.py --check
+run "étiqueteur HMM == sa recette, à l'octet (UD French-GSD ; SAUTÉ sans data_local) — ligne 602" python3 dictee/build_pos_hmm.py --check
+run "modèle sujet-verbe (OS) == sa recette (UD French-GSD ; SAUTÉ sans data_local) — ligne 602" python3 dictee/build_os_lm.py --check
 run "CHARGEUR UNIQUE : les tables du produit == charger_node.js ; chaque banc Node passe par lui ou dit pourquoi" node extension/chargeur_probe.js --check
 run "lot Morphalou accentué du speller : TSV commité bien formé (morph_acc, « calmât »)" python3 dictee/build_morph_acc_lex.py --check
 run "lot de la table de conjugaison du speller : TSV commité bien formé et câblé (outillent, indexent, prototyper)" python3 dictee/build_conj_lex.py --check

@@ -74,7 +74,7 @@
   }
 
   // ===== cible éditable =====
-  var INPUT_OK = { text: 1, search: 1, email: 1, url: 1, tel: 1, '': 1 };
+  var INPUT_OK = { text: 1, search: 1, '': 1 };   // ⭐ 22/11/2026 (liste n° 604, audit) : plus les champs e-mail, adresse web, téléphone — une adresse n'est pas de la prose, des marques dessous n'aident personne
   function isEditable(el) {
     if (!el || el.disabled || el.readOnly) return false;
     var tag = (el.tagName || '').toLowerCase();

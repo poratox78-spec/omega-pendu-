@@ -86,6 +86,10 @@ jobs:
         run: python3 dictee/build_morph_lex.py --check
       - name: "Table de conjugaison sans retard sur son script (SAUTÉ en CI : Morphalou est local)"
         run: python3 dictee/complete_conj_morphalou.py --check
+      - name: "Étiqueteur HMM == sa recette (SAUTÉ en CI : le treebank est local) — ligne 602"
+        run: python3 dictee/build_pos_hmm.py --check
+      - name: "Modèle sujet-verbe (OS) == sa recette (SAUTÉ en CI : le treebank est local) — ligne 602"
+        run: python3 dictee/build_os_lm.py --check
       - name: "Chargeur unique — les tables du produit == extension/charger_node.js ; chaque banc Node passe par lui ou dit pourquoi"
         run: node extension/chargeur_probe.js --check
       - name: "Lot Morphalou accentué du speller — TSV commité bien formé (morph_acc, « calmât »)"

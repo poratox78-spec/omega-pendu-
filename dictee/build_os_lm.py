@@ -7,7 +7,9 @@
 #   les phrases de dictee/fp_scale_corpus.txt (= le jeu de flood held-out) pour un chiffre honnête.
 #   Sortie : dictee/os_subj_lm.json.gz  { uni, N, tf, tb, bf, bb }  (trigrammes+bigrammes bidirectionnels, comptes).
 #   Reproductible : python dictee/build_os_lm.py   (lit ../data_local/ud_fr_gsd-train.conllu, local/gitignoré)
-import os, re, json, gzip
+#   Garde (dev.sh + CI, liste n° 602) : python dictee/build_os_lm.py --check   — le modèle commité ET l'asset livré sortent de ce script
+#   (contenu identique une fois décompressé) ; SAUTÉ sans le treebank.
+import os, re, sys, json, gzip
 from collections import Counter, defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -15,6 +17,9 @@ UD = os.path.join(HERE, '..', 'data_local', 'ud_fr_gsd-train.conllu')
 FP = os.path.join(HERE, 'fp_scale_corpus.txt')
 OUT = os.path.join(HERE, 'os_subj_lm.json.gz')
 PRUNE_TRI, PRUNE_BI = 5, 3
+CHECK = '--check' in sys.argv
+if CHECK and not os.path.exists(UD):
+    print('· modèle sujet-verbe (OS) == sa recette : SAUTÉ (treebank absent : data_local/%s)' % os.path.basename(UD)); sys.exit(0)
 
 TOK = re.compile(r"[a-zA-Zà-ÿœæ'\-]+")
 def tk(s): return [w.lower() for w in TOK.findall(s.replace('’', "'"))]
@@ -52,6 +57,14 @@ BB, nBB = prune(bb, PRUNE_BI, False)
 UNI = {w: c for w, c in uni.items() if c >= 2}                  # unigramme (repli) : garde les mots vus >=2
 model = {'uni': UNI, 'N': N, 'tf': TF, 'tb': TB, 'bf': BF, 'bb': BB,
          'src': 'UD French-GSD (CC BY-SA 4.0)', 'prune': [PRUNE_TRI, PRUNE_BI]}
+if CHECK:   # ⭐ 22/11/2026 (liste n° 602, audit) : même garde que l'étiqueteur — refait le 22/11, identique
+    raw = json.dumps(model, ensure_ascii=False, separators=(',', ':')); bad = []
+    ASSET = os.path.join(HERE, '..', 'extension', 'assets', 'os-subj-lm.json.gz')
+    for p in (OUT, ASSET):
+        if gzip.open(p, 'rb').read().decode('utf-8') != raw: bad.append(os.path.basename(p))
+    if bad:
+        print('✗ modèle sujet-verbe (OS) : %s ne sort plus de build_os_lm.py sur le treebank du jour — relancer le script, ou dire ce qui a changé' % ', '.join(bad)); sys.exit(1)
+    print("✓ modèle sujet-verbe (OS) == sa recette : %s et l'asset de l'extension, contenu identique (%d Ko)" % (os.path.basename(OUT), len(raw) // 1024)); sys.exit(0)
 with gzip.open(OUT, 'wt', encoding='utf-8') as f:
     json.dump(model, f, ensure_ascii=False, separators=(',', ':'))
 sz = os.path.getsize(OUT)
