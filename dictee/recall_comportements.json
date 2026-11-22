@@ -5256,6 +5256,16 @@
 "Les gâteaux son au four pour cuire encore dix minutes.",
 "son",
 "auto"
+],
+[
+"Rangez la table et sorté les chaises.",
+"sorté",
+"vigilance"
+],
+[
+"Nous avons une pisciné dans le jardin.",
+"pisciné",
+"auto"
 ]
 ],
 "vig": [
@@ -5598,6 +5608,16 @@
 "Les chaussures sont presque neuf.",
 "neuf",
 "neuves"
+],
+[
+"Rangez la table et sorté les chaises.",
+"sorté",
+"sortez"
+],
+[
+"Tu peux sorté le chien ce soir ?",
+"sorté",
+"sortir"
 ]
 ],
 "a_participe": [

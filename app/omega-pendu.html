@@ -31827,6 +31827,12 @@ var _CL471={__proto__:null,me:1,te:1,se:1,le:1,la:1,je:1,ne:1,de:1,que:1,ce:1};
    Le mot écrit ne doit pas finir par « é » (l'accent écrit est une intention : « Un service personalisé »). Le palier ne change pas. */
 function _vf577(T,idx){if(idx<2)return false;var s=-1,k;for(k=idx-2;k>=0&&k>=idx-6;k--){if(k===0||(_SEG&&_SEG.ss&&k<_SEG.ss.length&&_SEG.ss[k])||(T[k].charAt(0)!==T[k].charAt(0).toLowerCase()&&(DET_G[deaccS(T[k].toLowerCase())]||SDET_NUM[deaccS(T[k].toLowerCase())]))){s=k;break;}if(_SEG&&_SEG.bb&&k<_SEG.bb.length&&_SEG.bb[k])return false;}if(s<0)return false;for(k=s+1;k<=idx;k++)if(_SEG&&_SEG.bb&&k<_SEG.bb.length&&_SEG.bb[k])return false;var d=deaccS(T[s].toLowerCase()),n=T[s+1];if(!(DET_G[d]||SDET_NUM[d]))return false;if(n!==n.toLowerCase()||(spP(n)||'').indexOf('N')<0||(spP(n)||'').indexOf('V')>=0)return false;for(k=s+2;k<idx;k++){var x=T[k].toLowerCase().replace(/^[dl]['’]/,'');if(/^(de|du|des|la|le|les)$/.test(x))continue;var px=spP(x)||'';if(T[k]!==T[k].toLowerCase()||!/[NA]/.test(px)||px.indexOf('V')>=0)return false;}for(var j=idx+1;j<T.length;j++){if(_SEG&&_SEG.ss&&j<_SEG.ss.length&&_SEG.ss[j])break;var w=T[j].toLowerCase(),ps=spP(w)||'';if((SAUXAV[deaccS(w)]||SCOPULA[deaccS(w)])&&w!=='à')return false;if(ps.indexOf('V')<0||ps.indexOf('N')>=0||ps.indexOf('A')>=0)continue;var r=svReads(w);for(var q=0;q<r.length;q++)if(/^(ind|cnd|sub)/.test(r[q][1]))return false;}return true;}
 function _fin577(w){var r=svReads(w);for(var q=0;q<r.length;q++)if(/^(ind|cnd|sub)/.test(r[q][1])&&r[q][2]==='3')return true;return false;}
+/* ⭐ 22/11/2026 (liste n° 591) — « Videz le frigo et sorté les poubelles » recevait « sorte » en ROUGE : le « é » écrit se prononce,
+   le « e » muet de « sorte » le perd. Quand le mot, privé de son accent final, existe comme verbe en « -ez » (sortez), l'accent seul
+   n'est plus affirmé : orange. Après « pouvez, devez, faut… », l'infinitif en -er ou -ir (sortir) ; si la phrase parle à « vous » (« vous »
+   ou un autre verbe en -ez), la forme en -ez ; sinon le mot du tri. Les rouges justes « -é → -e » (des noms, souvent après un
+   déterminant) n'ont pas de forme verbale en -ez. */
+function _ez591(T,idx,d,w1){if(!/e$/.test(w1)||/é$/.test(w1))return null;var st=d.slice(0,-1),zL=spD(st+'ez')||[],ez=null,i;for(i=0;i<zL.length;i++)if((spP(zL[i])||'').indexOf('V')>=0){ez=zL[i];break;}if(!ez)return null;if(T&&idx>0&&/^(pouvez|devez|voulez|allez|savez|faut|peux|peut|veux|veut|dois|doit|vais|va|vas|pouvons|devons|voulons|allons|pourrez|devrez|pourras|devras)$/.test(deaccS(T[idx-1].toLowerCase()))){var inf=null,fi=0;['er','ir'].forEach(function(e){var L=spD(st+e)||[];for(var a=0;a<L.length;a++){var x=L[a];if((spP(x)||'').indexOf('V')>=0&&(spF(x)||0)>fi){inf=x;fi=spF(x)||0;}}});return inf||w1;}if(T)for(i=0;i<T.length;i++){if(i===idx)continue;var t=T[i].toLowerCase();if(t==='vous'||(/ez$/.test(t)&&(spP(t)||'').indexOf('V')>=0))return ez;}return w1;}
 function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                         // mot ajouté par l'utilisateur → valide
@@ -32186,9 +32192,9 @@ function spellTokenCore(tok,atStart,T,idx){
     if(T&&idx>0&&/^(pour|sans|de)$/.test(deaccS(T[idx-1].toLowerCase()))&&/e$/.test(w1)&&spP(w1)==='V'){var _inf=null,_fi=0,_iL=spD(d+'r')||[];for(var _ii=0;_ii<_iL.length;_ii++){var _ic=_iL[_ii];if(/er$/.test(_ic)&&(spP(_ic)||'').indexOf('V')>=0&&(spF(_ic)||0)>_fi){_inf=_ic;_fi=spF(_ic)||0;}}if(_inf&&_fi>=1.0)return['flag',_inf];}   // l'infinitif par sa forme sans accents : repete → répéter
     if(T&&idx>0&&/e$/.test(d)&&/é$/.test(w1)&&_detSur(T,idx)&&(spP(w1)||'').indexOf('N')<0){var _bn=null,_bfn=0,_mL=spD(d.slice(0,-1))||[];for(var _mi=0;_mi<_mL.length;_mi++){var _mc=_mL[_mi];if((spP(_mc)||'').indexOf('N')>=0&&(spF(_mc)||0)>_bfn){_bn=_mc;_bfn=spF(_mc)||0;}}if(_bn&&_bfn>=1.0)return['flag',_bn];}
     var f2=keys.length>1?cand[keys[1]][1]:0,accentOnly=(p1===2&&deaccS(w1)===d),dominant=(f1>=1.0&&(f2===0||f1>=5*f2));
-    if(d.length>=3&&accentOnly&&dominant&&!_son)return['auto',w1];
+    var _z591=(d.length>=3&&!_son&&/é$/.test(low))?_ez591(T,idx,d,w1):null;if(_z591&&accentOnly&&dominant)return['vigilance',_z591];   /* liste n° 591 */if(d.length>=3&&accentOnly&&dominant&&!_son)return['auto',w1];
     var na=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)na++;
-    if(d.length>=3&&p1===2&&f1>=1.0&&na===1&&!_son)return['auto',w1];
+    if(_z591&&p1===2&&f1>=1.0&&na===1)return['vigilance',_z591];if(d.length>=3&&p1===2&&f1>=1.0&&na===1&&!_son)return['auto',w1];
     /* GLISSEMENT MOTEUR — quand toutes les LETTRES sont là, le mot n'est pas en doute : on AFFIRME.
        Doctrine de Rem : « une faute est une faute ; il faut maximiser le ROUGE pour diminuer l'ORANGE ».
        Deux conditions CUMULÉES, et c'est leur intersection qui vaut, pas chacune :
