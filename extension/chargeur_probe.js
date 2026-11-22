@@ -4,6 +4,9 @@
 //     chargement des confusables) sont toutes couvertes — une table ajoutée au produit sans passer par le chargeur fait échouer la garde ;
 //  ② aucun banc Node ne charge dys-core.js à la main sans le dire : soit il passe par charger_node.js, soit il porte la mention
 //     « chargeur partiel voulu : <raison> » (un banc d'un seul module, une parité avec Python qui n'a pas le modèle OS…).
+//  ③ (liste n° 614, 22/11/2026) les bancs de dev.sh qui EXÉCUTENT une tranche du moteur de l'APP chargent les trois tables que cette
+//     tranche sait charger en plus du dictionnaire (prénoms, genre accentué, modèle sujet-verbe), ou passent par charger_node.js, ou
+//     portent la même mention. Cinq gardes tournaient depuis des mois sur une tranche à 4 tables : « Marie est venu » y restait muet.
 //   node extension/chargeur_probe.js [--check]
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..'), CHECK = process.argv.includes('--check');
@@ -30,6 +33,18 @@ for (const d of ['extension', 'dictee']) for (const f of fs.readdirSync(path.joi
   bancs.push([d + '/' + f, ok ? 'chargeur unique' : partiel ? 'partiel déclaré' : 'NON DÉCLARÉ']);
   if (!ok && !partiel) err.push(d + '/' + f + ' : charge dys-core.js à la main sans passer par charger_node.js ni déclarer « chargeur partiel voulu : <raison> »');
 }
+const dev = fs.readFileSync(path.join(ROOT, 'dev.sh'), 'utf8'); let nApp = 0, nAppPartiel = 0;
+for (const f of fs.readdirSync(path.join(ROOT, 'dictee'))) {
+  if (!/\.js$/.test(f) || !dev.includes('dictee/' + f)) continue;
+  const s = fs.readFileSync(path.join(ROOT, 'dictee', f), 'utf8');
+  if (!/indexOf\('mode PHRASES'\)/.test(s) || !/\(0,\s*eval\)\(/.test(s)) continue;   // extrait ET exécute la tranche
+  nApp++;
+  const complet = /loadPrenoms|OMEGA_PRENOMS/.test(s) && /loadGaccLex|gacc-lex-gz/.test(s) && /loadOsLm|os-lm-gz/.test(s);
+  if (complet) continue;
+  if (/chargeur partiel voulu\s*:/.test(s)) { nAppPartiel++; continue; }
+  err.push('dictee/' + f + ' : exécute une tranche du moteur de l\'app sans charger prénoms, genre accentué et modèle sujet-verbe, et sans dire pourquoi (« chargeur partiel voulu : <raison> »)');
+}
+if (!nApp) err.push('aucun banc de dev.sh n\'exécute une tranche de l\'app : le repère de la garde ③ ne trouve plus rien');
 const n = (k) => bancs.filter(b => b[1] === k).length;
 if (err.length) { console.error('✗ CHARGEUR UNIQUE :\n  ' + err.join('\n  ')); if (CHECK) process.exit(1); }
-else console.log('✓ chargeur unique : les tables de content.js et sidepanel.js sont toutes dans charger_node.js ; ' + bancs.length + ' bancs Node chargent le moteur (' + n('chargeur unique') + ' par le chargeur, ' + n('partiel déclaré') + ' partiels déclarés avec leur raison).');
+else console.log('✓ chargeur unique : les tables de content.js et sidepanel.js sont toutes dans charger_node.js ; ' + bancs.length + ' bancs Node chargent le moteur (' + n('chargeur unique') + ' par le chargeur, ' + n('partiel déclaré') + ' partiels déclarés avec leur raison) ; ' + nApp + ' bancs de dev.sh exécutent une tranche du moteur de l’app (' + (nApp - nAppPartiel) + ' avec ses sept tables, ' + nAppPartiel + ' partiels déclarés).');

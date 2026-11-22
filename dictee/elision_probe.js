@@ -8,9 +8,9 @@ const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8')
 const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
-const code = html.slice(start, cut) + ';globalThis.__C={spell:spellText,gram:correctText,setSeg:function(s){_SEG=_segInfo(s);},loadSp:loadSpellerLex,loadG:loadGenderLex,loadNP:loadNounPost,loadH:loadPosHmm,ready:()=>SP.ready,gender:function(w){return GENDER_PURE[deacc(w.toLowerCase())]||null;}};})();';
+const code = html.slice(start, cut) + ';globalThis.__C={spell:spellText,gram:correctText,setSeg:function(s){_SEG=_segInfo(s);},loadSp:loadSpellerLex,loadG:loadGenderLex,loadNP:loadNounPost,loadH:loadPosHmm,loadPr:(typeof loadPrenoms==="function"?loadPrenoms:null),loadGa:(typeof loadGaccLex==="function"?loadGaccLex:null),loadOs:(typeof loadOsLm==="function"?loadOsLm:null),ready:()=>SP.ready,gender:function(w){return GENDER_PURE[deacc(w.toLowerCase())]||null;}};})();';
 function blob(id){const key='id="'+id+'">';const a=html.indexOf(key);if(a<0)return '';const s=a+key.length;const e=html.indexOf('</script>',s);return e<0?'':html.slice(s,e);}
-const B={'vdc-lex':blob('vdc-lex'),'speller-lex-gz':blob('speller-lex-gz'),'noun-post-gz':blob('noun-post-gz'),'pos-hmm-gz':blob('pos-hmm-gz'),'gdet-lex-gz':blob('gdet-lex-gz')};
+const B={'vdc-lex':blob('vdc-lex'),'speller-lex-gz':blob('speller-lex-gz'),'noun-post-gz':blob('noun-post-gz'),'pos-hmm-gz':blob('pos-hmm-gz'),'gdet-lex-gz':blob('gdet-lex-gz'),'prenoms-gz':blob('prenoms-gz'),'gacc-lex-gz':blob('gacc-lex-gz'),'os-lm-gz':blob('os-lm-gz')};
 const stub=new Proxy(function(){},{get(t,k){if(k==='style')return{};if(k==='classList')return{add(){},remove(){},toggle(){},contains:()=>false};return stub;},set:()=>true,apply:()=>stub});
 global.document={getElementById:(id)=>B[id]!==undefined&&B[id]!==''?{textContent:B[id]}:stub,createElement:()=>stub,body:stub,head:stub,addEventListener(){},querySelector:()=>null,querySelectorAll:()=>[]};
 global.window=global;global.navigator={userAgent:'node'};global.localStorage={getItem:()=>null,setItem(){},removeItem(){}};
@@ -52,7 +52,7 @@ const CEILING = Number(process.env.CEILING || 0);   // etat mesure au 2026-07-21
 const RE3 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
 
 (async () => {
-  await C.loadSp(); await C.loadG(); await C.loadNP(); await C.loadH();
+  await C.loadSp(); await C.loadG(); await C.loadNP(); await C.loadH(); if (C.loadPr) await C.loadPr(); if (C.loadGa) await C.loadGa(); if (C.loadOs) await C.loadOs(); /* liste n° 614 : + prénoms, genre accentué, modèle sujet-verbe — la tranche chargeait 4 tables sur 7 */
   const conllu = path2.join(ROOT, 'data_local', 'ud_fr_gsd-train.conllu');
   let sents = [];
   if (fs.existsSync(conllu))

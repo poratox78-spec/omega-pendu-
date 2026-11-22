@@ -26,7 +26,7 @@ function _extract(html) {
   const g2pSrc = fs.readFileSync(path.join(__dirname, '..', 'extension', 'assets', 'g2p.js'), 'utf8');
   const code = "if(typeof self==='undefined'){try{globalThis.self=globalThis;}catch(e){}}try{self.__OMEGA_CJ=(globalThis.OMEGA_VDC&&globalThis.OMEGA_VDC.cj)||null;}catch(e){}\n" + g2pSrc + ';\n' + html.slice(start, cut) +
     ';globalThis.__corrEngine={correctText:correctText,correctTokens:correctTokens,toks:toks,setSeg:function(s){_SEG=_segInfo(s);},spellText:spellText,loadSpellerLex:loadSpellerLex,' +
-    'loadNounPost:loadNounPost,loadGenderLex:loadGenderLex,loadPosHmm:loadPosHmm,loadPrenoms:loadPrenoms,' +
+    'loadNounPost:loadNounPost,loadGenderLex:loadGenderLex,loadPosHmm:loadPosHmm,loadPrenoms:loadPrenoms,loadGaccLex:loadGaccLex,loadOsLm:loadOsLm,' +
     'equipe:function(){return !!(SP.ready&&NOUN_POST);},ready:function(){return SP.ready;}};})();';
   /* ⚠️ SERVIR **TOUS** LES BLOBS, pas seulement l'orthographe. Un id absent retombait sur le `stub`
      du bouchon DOM, dont `.textContent` est un Proxy : `loadNounPost` construisait alors une table
@@ -35,7 +35,7 @@ function _extract(html) {
      et une erreur sur ce qui n'y est pas. */
   const blob = (id) => { const m = html.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; };
   const B = {};
-  for (const id of ['vdc-lex', 'speller-lex-gz', 'noun-post-gz', 'pos-hmm-gz', 'gdet-lex-gz', 'prenoms-gz', 'lex4-data-gz'])
+  for (const id of ['vdc-lex', 'speller-lex-gz', 'noun-post-gz', 'pos-hmm-gz', 'gdet-lex-gz', 'prenoms-gz', 'gacc-lex-gz', 'os-lm-gz', 'lex4-data-gz'])
     B[id] = blob(id);
   return { code, B, lex: B['lex4-data-gz'] };
 }
@@ -77,6 +77,9 @@ async function create(opts = {}) {
   await E.loadGenderLex();                        // genre relâché (âme/amé, affaire/affairé)
   await E.loadPosHmm();                           // POS-tagger HMM : son/sont sujet-nom, whose+gérondif…
   try { await E.loadPrenoms(); } catch (e) { /* table optionnelle : accord « Marie est venu »→venue */ }
+  // ⭐ 22/11/2026 (liste n° 614) : le genre accentué et le modèle sujet-verbe manquaient ici — l'app les charge, ce moteur « complet » ne les avait pas.
+  try { await E.loadGaccLex(); } catch (e) { /* genre des noms accentués (« une âme », « un été ») */ }
+  try { await E.loadOsLm(); } catch (e) { /* modèle sujet-verbe : sujet inversé, attraction */ }
   const api = {
     ready: () => E.ready(),
     equipe: () => E.equipe(),                     // moteur COMPLET (ortho + posterior nom/verbe) — voir la garde du bloc de chargement

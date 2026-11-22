@@ -1,3 +1,4 @@
+// chargeur partiel voulu : banc d'un seul module (le déplacement des pronoms de l'impératif), qui ne lit aucune table de grammaire — liste n° 614
 // imp_probe.js — VERROU CI du MOVER impératif (placement des pronoms clitiques).
 //  1) parité JS : le bloc _impMoves de l'app == celui de l'extension (source identique).
 //  2) correction : app _impMoves applique EXACTEMENT les cas attendus (dictee/imp_cases.json).

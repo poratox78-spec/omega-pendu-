@@ -1,3 +1,4 @@
+// chargeur partiel voulu : banc de l'ORTHOGRAPHE de l'app (spellText et son dictionnaire) ; la grammaire et ses tables sont mesurées par les bancs du produit — liste n° 614
 // Test headless du correcteur ORTHOGRAPHIQUE de l'app : extrait l'IIFE dictée jusqu'à spellText,
 // décompresse le lexique embarqué (speller-lex-gz), et exécute spellText sur des phrases.
 const fs = require('fs'), path = require('path');

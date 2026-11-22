@@ -1,3 +1,4 @@
+/* chargeur partiel voulu : parité du diagnostic de DICTÉE (diagnoseSentence), un autre pipeline que le correcteur ; il ne lit que le dictionnaire — liste n° 614 */
 /* Parité DICTÉE Python↔JS (audit 2026-08-22, demande de Rem) : diag_sentence.py et diagnoseSentence
  * (app) sont deux pipelines INDÉPENDANTS — aucune règle ne les lie, contrairement à tout le reste
  * du projet (parity_corr.js, parity_os.js, parity_cesses.js, parity_gender_coll.js…). Ce script
