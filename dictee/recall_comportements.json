@@ -1114,7 +1114,11 @@
 "Ils sont sympas avec nous.",
 "C'est tous les jours pareil.",
 "Il fait tous les soirs pareil.",
-"C'est tous les jours différent."
+"C'est tous les jours différent.",
+"Il a un peu mangé ce midi.",
+"Il a un peu de fièvre.",
+"Elle a un peu peur du noir.",
+"Il faut changer d'habitudes pour mieux dormir."
 ],
 "elide": [
 [
@@ -4846,6 +4850,26 @@
 "C'était trop durs pour lui.",
 "durs",
 "dur"
+],
+[
+"Elle a un peu toussée en rentrant.",
+"toussée",
+"toussé"
+],
+[
+"Elle est un peu fatigué ce soir.",
+"fatigué",
+"fatiguée"
+],
+[
+"À demain, huit heures comme d'habitudes.",
+"d'habitudes",
+"d'habitude"
+],
+[
+"D'habitudes, elle arrive à l'heure.",
+"D'habitudes",
+"D'habitude"
 ]
 ],
 "palier": [
