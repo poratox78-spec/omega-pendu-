@@ -37,10 +37,8 @@ try { const s = bloc('pos-hmm-gz'); if (s) globalThis.OMEGA_POS_HMM = JSON.parse
 
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const ctIdx = html.indexOf('function correctText', start);
-const ctEnd = html.indexOf('return out;}', ctIdx) + 'return out;}'.length;
-const ptIdx = html.indexOf('function posTags(T){', start);
-const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();', ptIdx)) + 1 : ctEnd;
-if (start < 0 || ctIdx < 0) { console.error('extraction IIFE échouée'); process.exit(2); }
+const finIIFE = html.lastIndexOf('})();', html.indexOf('</script>', ctIdx));   // liste n° 597 : tout le moteur, jusqu'à la fermeture de l'IIFE
+if (start < 0 || ctIdx < 0 || finIIFE < ctIdx) { console.error('extraction IIFE échouée : un repère du monolithe est introuvable'); process.exit(2); }
 // DOM bouchon — repris À L'IDENTIQUE de parity_corr.js : le panneau dictée se construit AVANT
 // correctText, et un bouchon trop mince casse sur `appendChild` (piège payé au premier jet).
 const EMBED = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [, '{}'])[1];
@@ -59,7 +57,7 @@ try { Object.defineProperty(global, 'navigator', { value: { userAgent: '' }, con
 global.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 global.speechSynthesis = { speak() {}, cancel() {}, getVoices: () => [] };
 global.SpeechSynthesisUtterance = function () { return el(); };
-try { (0, eval)(html.slice(start, Math.max(ctEnd, ptEnd)) + ';globalThis.__corrApp=correctText;})();'); }
+try { (0, eval)(html.slice(start, finIIFE) + ';globalThis.__corrApp=correctText;})();'); }
 catch (e) { console.error('exécution IIFE échouée :', e.message); process.exit(2); }
 const corrApp = globalThis.__corrApp;
 if (typeof corrApp !== 'function') { console.error('correctText non exposé'); process.exit(2); }

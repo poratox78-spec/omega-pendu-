@@ -316,7 +316,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 90 / 226 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 226 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
 | prénoms | `_applyPrenoms` | `PRENOMS` | 32 / 226 | `_rAbase` `_sujLa272` `rAaccent287` `rCestAnime354` `_gnTete301` `rSV318` `rFige320` `rAccordSVcoord` … (19) |
-| genre accentué | `_applyGaccLex` | `_GACC` | 44 / 226 | `rEer0` `rFlexionEr` `rCe` `_nounGender` `rAdjEpithetCoord` `_twin531` `spellTokenCore` `apposVig262` … (9) |
+| genre accentué | `_applyGaccLex` | `_GACC` | 44 / 226 | `rEer0` `rFlexionEr` `rCe` `rDetGenre` `_nounGender` `rAdjEpithetCoord` `_twin531` `spellTokenCore` … (10) |
 | confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 226 | `_vigOne` `vigText` |
 | genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 226 | `getAuteur` `auteurSugg` `auteurPasse` |
 | ponctuation vocale | `setPonctLm` | `_PLM` | 0 / 226 | `ponctReady` `ponctDist` |

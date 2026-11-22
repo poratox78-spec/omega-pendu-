@@ -39,14 +39,19 @@ if (_pn) { try { globalThis.OMEGA_PRENOMS = {};
   zlib.gunzipSync(Buffer.from(_pn.replace(/\s/g, ''), 'base64')).toString('utf8').split(/\r?\n/).forEach(l => {
     const p = l.split('\t'); if (p.length >= 3) globalThis.OMEGA_PRENOMS[p[0]] = [p[1], p[2] === '1']; }); } catch (e) {} }
 
-// 1) extraire l'IIFE jusqu'à correctText, refermer en exposant correctText
+// 1) extraire l'IIFE du correcteur EN ENTIER, la refermer en exposant correctText
+/* ⭐ 22/11/2026 (liste n° 597, audit) — la tranche s'arrêtait à un repère de texte : le premier « return out;} » après correctText,
+   étendu jusqu'à la fin de posTags par « return seq.reverse(); ». Ce second repère a disparu du monolithe ; la recherche rendait −1
+   SANS ERREUR, et la coupe tombait 2 083 lignes avant la fin du moteur. Des fonctions que les règles appellent manquaient alors à
+   ce harnais (accord de l'adjectif en genre, oranges, dictionnaire personnel) : une phrase qui les atteignait le faisait planter, et
+   toute lecture gardée par `typeof` se comportait autrement que dans la vraie page. La parité app ≡ extension mesurait une app amputée :
+   un faux rouge de l'extension seule est passé ainsi (liste n° 594). Désormais : tout le moteur, jusqu'à la fermeture de l'IIFE, et
+   un arrêt net si un repère manque. Gardé par dictee/coupe_bancs_probe.js. */
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const ctIdx = html.indexOf('function correctText', start);
-const ctEnd = html.indexOf('return out;}', ctIdx) + 'return out;}'.length;
-if (start < 0 || ctIdx < 0 || ctEnd < 0) { console.error('extraction IIFE échouée'); process.exit(2); }
-// étendre l'extraction pour inclure posTags/_HMM/loadPosHmm (définis APRÈS correctText) — rCe/rSon les appellent (contexte tagger)
-const ptIdx = html.indexOf('function posTags(T){', start);
-const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();', ptIdx)) + 1 : ctEnd;
+const finScript = html.indexOf('</script>', ctIdx);
+const finIIFE = html.lastIndexOf('})();', finScript);
+if (start < 0 || ctIdx < 0 || finScript < 0 || finIIFE < ctIdx) { console.error('extraction IIFE échouée : un repère du monolithe est introuvable'); process.exit(2); }
 /* ⚠️ AMORCE DU LEXIQUE SPELLER. La grammaire n'est pas seule : `rInfBut` (infinitif de but) lit
    SP.POS pour savoir si un mot en -é est un VERBE PUR, et sort sur `if(!SP.ready)`. Ce harnais
    n'extrait la tranche que jusqu'à correctText/posTags — donc SP est déclaré mais VIDE, et la règle
@@ -56,7 +61,7 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    taisait dans ce harnais alors que le produit corrige. Mesurer un moteur amputé, ce n'est pas mesurer le produit.)
    ⭐ 09/10/2026 : + D2A (clé sans accent → formes, fréquence > 0, comme setLex) — _lemFreq en dépend : sans lui, « inconnu »
    partout, et la garde « verbe courant » du passé simple se taisait ici sur « nous mangeames » que le produit corrige. */
-const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
+const code = html.slice(start, finIIFE) +
   ';globalThis.__corr=correctText;globalThis.__setGacc=function(o){_GACC=_sansProto(o);};globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig,cestCesVig:cestCesVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){var L=t.split(String.fromCharCode(10)).filter(function(l){return l&&l.split(String.fromCharCode(9)).length>=2;});_spReset(L.length);L.forEach(function(l){' +
   /* ⭐ 13/10/2026 — dictionnaire COMPACT : l'amorce passe par les fonctions MÊMES du produit (_spReset / _spAdd, puis le tri par
      fréquence de la construction) au lieu d'écrire SP.FREQ[…] à la main — l'ancien format, que le moteur ne lit plus. */

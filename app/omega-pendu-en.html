@@ -24764,7 +24764,7 @@ window.addEventListener('DOMContentLoaded', () => {
   /* ⭐ LOT 4 : « Elle a mangée une pomme » donnait « accord en genre : « une » féminin → accorder « mangé » » — « mangé » n'était pas
      dans les 24 participes connus. Une forme en -é(e)(s) JUSTE après un auxiliaire (adverbes et négation sautés) est un participe ;
      l'élision « n'a », « l'a » se lit « a ». MIROIR Python is_participle / find_aux. */
-  var _PP_SAUT={pas:1,plus:1,jamais:1,rien:1,bien:1,deja:1,tout:1,toujours:1,encore:1,souvent:1,trop:1,beaucoup:1,vraiment:1,aussi:1,ete:1,ne:1};
+  var _PP_SAUT={__proto__:null,pas:1,plus:1,jamais:1,rien:1,bien:1,deja:1,tout:1,toujours:1,encore:1,souvent:1,trop:1,beaucoup:1,vraiment:1,aussi:1,ete:1,ne:1};
   function _auxMot(w){return deacc(String(w).toLowerCase()).replace(/^(n|l|m|t|s|j|qu)'/,'');}
   function isParticiple(T,idx){if(idx<0||idx>=T.length)return false;if(PART_FORMS[deacc(T[idx].toLowerCase())])return true;
     if(!/(é|ée|és|ées)$/i.test(T[idx]))return false;
@@ -25859,7 +25859,12 @@ window.addEventListener('DOMContentLoaded', () => {
      chargement (même portée, `var` relu). Retirée sans rien changer (produit identique à l'octet sur le gold). La table vivante est
      celle d'en bas ; les déterminants pluriels de plus ont leur propre table, _PL_DET_X, lue par les seules règles mesurées avec elle. */
   var VSTOP={__proto__:null};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du','lui'].forEach(function(w){VSTOP[w]=1;});   /* 'lui' (12/09/2026) : VERB_LEX le connaît (luire) → « lui a donner »→à, casse — miroir Python VLIKE_STOP */Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
-  function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;if(!COMMON_VERBS[w])return false;
+  /* ⭐ 22/11/2026 (liste n° 595) — « L'attrait a une limite » recevait « à » en ROUGE : un mot élidé qui finit par « -ait » ou « -ons »
+     (l'attrait, l'extrait, d'informations) passait pour un verbe conjugué par sa seule fin. Après « d' », jamais de verbe conjugué.
+     Après « l' », le mot n'est un verbe que si un sujet peut le précéder : pas en tête de phrase ou de proposition, pas après une
+     préposition (« de l'extrait », « dans l'attrait ») ; là, « l' » est l'article. */
+  function _elide595(T,i){var w=T[i].toLowerCase();if(w.charAt(1)!=="'")return false;var c=w.charAt(0);if(c==='d')return true;return c==='l'&&(i===0||!!(_SEG&&_SEG.bb&&i<_SEG.bb.length&&_SEG.bb[i])||!!PREP[deacc(T[i-1].toLowerCase())]);}
+  function vlike(T,i){if(i<0||i>=T.length)return false;if(_elide595(T,i))return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;if(!COMMON_VERBS[w])return false;
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||{du:1,au:1,aux:1,chaque:1,aucun:1,aucune:1}[T[i-1].toLowerCase()])){   // ⭐ liste n° 100 : « Chaque élève a un livre » — après chaque / aucun, c'est un NOM (plus « a » → à en rouge)   /* du/au/aux (12/09/2026) : contractions = déterminants, « du conseille a permis » ne lit plus un verbe — miroir Python */                                          // « le porte » reste un NOM…
       // …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08, parité Python vlike). « Elle CE lance a chanter » : la
       // garde déterminant tue la lecture VERBALE, et la cascade suit — vlike(lance)=false → rA ne tranche
@@ -28395,7 +28400,7 @@ if(_nomAppose(T,i))return null;   // ⭐ 14/10/2026 (liste n° 20)
     if(hi===i+1&&_PREFIX_NU[nd]&&i+2<T.length&&/^[a-zà-ÿœ]+$/.test(T[i+2])){var _kx2=deacc(T[i+2].toLowerCase()),_ppx=NOUN_POST&&(typeof NOUN_POST.get==='function'?NOUN_POST.get(_kx2):NOUN_POST[_kx2]);if(_ppx&&_ppx[0]>=PL_TAU_M){hi=i+2;_pp=_ppx;}}   // ⭐ liste n° 34 (a) : « la pré éclampsie » — le préfixe n'est pas le nom-tête
     if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;
     if(hi+1<T.length&&_PART_EN[deacc(T[hi+1].toLowerCase())]&&((_SEG&&_SEG.hy&&hi+1<_SEG.hy.length&&_SEG.hy[hi+1])||_PART_EN[deacc(T[hi+1].toLowerCase())]===2))return null;   // ⭐ 14/10/2026 (liste n° 21) : « une start-up », « un stand-up », « un check-in » — le genre du composé anglais ne vient pas de son 1er mot
-    var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if((gn==='m'||gn==='f')&&gd!==gn&&_twin531(_orig531(T,hi),gd))return null;   // liste n° 531
+    var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if((gn==='m'||gn==='f')&&gd!==gn&&_twin531(_orig531(T,hi),gd))return null;if((gn==='m'||gn==='f')&&gd!==gn&&typeof _GACC!=='undefined'&&_GACC&&_GACC[T[hi].toLowerCase()]===gd)return null;   /* ⭐ 22/11/2026 (liste n° 596) — « un préretraité » recevait « une » en ROUGE : le genre était lu sur la forme sans accent (« préretraite », féminin). Si le mot ÉCRIT, avec ses accents, porte déjà le genre du déterminant dans la table du genre accentué (préretraité, tonsuré, mélaminé : masculins ; lichée, pénultième : féminins), le déterminant est juste : silence. « le télé », « un psyché » restent corrigés (la forme écrite est féminine). */   // liste n° 531
     if(lw==='quel'||lw==='quelle'){var hd=deacc(T[hi].toLowerCase());if(/[sx]$/.test(hd)&&!_INVAR_S[hd]&&!_SG_STOP[hd]&&!NOUN_PL_STOP[hd]&&(GENDER_PURE[hd.slice(0,-1)]!==undefined||(/aux$/.test(hd)&&GENDER_PURE[hd.slice(0,-3)+'al']!==undefined))){var gq=(gn==='m'||gn==='f')?gn:gd;return ckeepcase(T[i],gq==='m'?'quels':'quelles');}}   /* ⭐ liste n° 103 : « quel » s'accorde aussi en NOMBRE (« quel belles fleurs » → quelles). Miroir Python */if(gn!=='m'&&gn!=='f')return null;if(gn===gd){if(lw==='ce'&&gn==='m'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))return ckeepcase(T[i],'cet');return null;}var sg=DET_A[lw+'|'+gn];if(sg==='ce'&&(/^[aeiou]/.test(deacc(T[i+1].toLowerCase()))||_H_MUET56[deacc(T[i+1].toLowerCase())]))sg='cet';return sg?ckeepcase(T[i],sg):null;}   // ⭐ liste n° 56 : devant voyelle ou h muet, « cet » (« Cette homme » proposait « Ce ») ; ⭐ liste n° 104 : « ce arbre » → cet (genre juste, euphonie)
   var TOUT_EXTRA={__proto__:null,avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
   var _TOUS_DETSG={__proto__:null,le:1,la:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,se:1},_TOUS_PLANTE={__proto__:null,ils:1,elles:1,nous:1,vous:1,les:1,leur:1,leurs:1,eux:1,ces:1,des:1,mes:1,tes:1,ses:1,nos:1,vos:1};   // ⭐ 13/09/2026 — « tous » → « tout » (miroir Python _tous_tout)
@@ -31599,8 +31604,8 @@ function _indre91(c,d,fin){return /[aeo]ind$/.test(d)&&deaccS(c)===d.slice(0,-1)
      UD 14 450 : 4 faux soulignés en moins. Miroir Python _present_regulier. */
   function _presentRegulier(low,T,idx,tok){var m=/^(.+?)(e|es|ent)$/.exec(low);if(!m||m[1].length<3||!CONJ_C)return false;
     var lem=deaccS(m[1])+'er',sl=CONJ_C[lem];if(!sl||lem==='aller')return false;var imp=sl['ind:imp'];var f1=imp&&imp['1p'];if(Array.isArray(f1))f1=f1[0];
-    if(!f1||!/ions$/.test(f1)||f1.slice(0,-4)!==m[1])return false;
-    if(/[eé][^aeiouyéèêëàâîïôûù]+$/.test(m[1])||/(y|el|et)$/.test(m[1]))return false;
+    var _x599=false,_p599=sl['ind:pre'];if(_p599)for(var _k599 in _p599){var _v599=_p599[_k599];if(Array.isArray(_v599))_v599=_v599[0];if(_v599===low){_x599=true;break;}}   /* ⭐ 22/11/2026 (liste n° 599) — « Tu covoitures avec ta voisine » était souligné, « Ils compètent » recevait « compétent » en ROUGE : la table connaît ces présents, mais la garde exigeait un imparfait (absent pour un verbe récent : covoiturer, remoduler) et refusait tout radical qui alterne. Quand la table écrit la forme EXACTEMENT, accents compris (covoitures, compètent, galèje), elle suffit ; « il leve » n'y est pas et reste corrigé. Le sujet accordé reste exigé. */if(!_x599&&(!f1||!/ions$/.test(f1)||f1.slice(0,-4)!==m[1]))return false;
+    if(!_x599&&(/[eé][^aeiouyéèêëàâîïôûù]+$/.test(m[1])||/(y|el|et)$/.test(m[1])))return false;
     var sp=_sujPron(T,idx),q=T&&idx>0?deaccS(T[idx-1].toLowerCase()):'',el=/^[smtn]['’]/i.test(tok||'');
     if(sp)return m[2]==='ent'?(sp==='ils'||sp==='elles'||sp==='qui'):(m[2]==='es'?sp==='tu':(sp!=='tu'&&sp!=='ils'&&sp!=='elles'&&sp!=='nous'&&sp!=='vous'));
     if((q==='se'||q==='me'||q==='te'||el)&&m[2]!=='es')return true;

@@ -114,7 +114,8 @@ run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_pr
 run "gardes de l'EXTENSION (harnais parity_core, Python débranché — ligne 25b)" node extension/parity_core.js --sans-python
 run "mot nommé comme une propriété d'objet JS (« constructor » : 0 erreur, 0 table lue avec prototype — liste n° 480)" node extension/proto_probe.js
 run "tables de mots du moteur SANS prototype (garde statique — liste n° 480)" python3 tools/sans_proto.py extension/dys-core.js --verifier
-run "parité DIRECTE app ≡ extension (grammaire, ~9 800 phrases, sans la référence Python — ligne 25b)" node dictee/parity_app_ext.js
+run "parité DIRECTE app ≡ extension (grammaire, plus de 11 000 phrases, moteur de l'app entier, sans la référence Python — lignes 25b et 597)" node dictee/parity_app_ext.js
+run "bancs de l'app : aucun ne coupe le moteur avant ce que ses règles lisent (liste n° 597)" node dictee/coupe_bancs_probe.js
 run "police de son (fraîcheur bloc app + clitiques≡Py + texte intact)" node police/parity_son.js
 run "parité OS-sujet extension == app (accord verbe orange ; Python débranché)" node dictee/parity_os.js --sans-python
 run "parité ces/ses extension == app (vigilance-enseignante ; Python débranché)" node dictee/parity_cesses.js --sans-python
@@ -134,7 +135,7 @@ run "ponctuation vocale (règles BDL + parité site/extension)" node dictee/pros
 run "typographie ROUGE (espaces autour de , et . + parité)" node dictee/typo_probe.js
 run "miroir PONCTUATION app↔extension (5 blocs miroités à la main)" node dictee/miroir_ponct_probe.js
 run "détection de QUESTION (précision ET rappel, banc UD+réel)" node dictee/question_bench.js
-run "contrôle par l'USAGE : 9 textes inventés, chaque faute par domaine, aucun recul (liste n° 357)" node dictee/usage_probe.js --check
+run "contrôle par l'USAGE : textes inventés, chaque faute par domaine, aucun recul (liste n° 357)" node dictee/usage_probe.js --check
 run "PARTICIPES : contrôle complet par famille (avoir, être, pronom personne ; table de valence), aucun contexte ne recule (liste n° 457)" node dictee/participes_probe.js --check
 run "parité OCTET du moteur vocal (site==extension)" node dictee/voix_parite_probe.js
 run "audit structurel vocal (4000 dictées, chaînage+conflits)" node dictee/voix_struct_probe.js

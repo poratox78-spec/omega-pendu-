@@ -24,8 +24,8 @@ let extFlags = []; for (const s of fp) for (const f of D.cesProbe(s)) extFlags.p
 const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const opIdx = html.indexOf('function cesProbe', start);
-const opEnd = html.indexOf('return out;}', opIdx) + 'return out;}'.length;
-if (start < 0 || opIdx < 0) { console.error('extraction IIFE app (cesProbe) échouée'); process.exit(2); }
+const opEnd = html.lastIndexOf('})();', html.indexOf('</script>', opIdx));   // liste n° 597 : tout le moteur, jusqu'à la fermeture de l'IIFE (plus de coupe à un repère de texte)
+if (start < 0 || opIdx < 0 || opEnd < opIdx) { console.error('extraction IIFE app (cesProbe) échouée : un repère du monolithe est introuvable'); process.exit(2); }
 const code = html.slice(start, opEnd) + ';globalThis.__cesProbe=cesProbe;})();';
 const el = () => new Proxy(function () {}, {
   get(t, k) { if (k === 'textContent' || k === 'innerHTML' || k === 'value') return t['_' + k] || ''; if (k === 'style') return {}; if (k === 'classList') return { add() {}, remove() {}, toggle() {}, contains() { return false; } }; if (k === Symbol.toPrimitive) return () => ''; return el(); },

@@ -1077,7 +1077,20 @@
 "Le pain dur se garde pour la soupe.",
 "Le spectacle plaît à tous les âges.",
 "Merci de ranger les cahiers dans son cartable avant de partir.",
-"Les musiciens baissent le son pour laisser parler le maire."
+"Les musiciens baissent le son pour laisser parler le maire.",
+"Le manque d'informations a un effet sur le moral.",
+"Le choix d'options a un prix.",
+"L'attrait a une limite.",
+"L'extrait a une odeur forte.",
+"Le prix de l'extrait a une valeur.",
+"Mon voisin est un préretraité heureux.",
+"Le tonsuré salue la foule.",
+"Elle a bu une lichée de lait.",
+"C'est une récap rapide de la réunion.",
+"Tu covoitures avec ta voisine demain.",
+"Ils compètent pour la première place.",
+"Il galèje souvent, ne le crois pas.",
+"Tu remodules ton emploi du temps."
 ],
 "elide": [
 [
@@ -5266,6 +5279,26 @@
 "Nous avons une pisciné dans le jardin.",
 "pisciné",
 "auto"
+],
+[
+"Lucie l'attendait a la sortie du cinéma.",
+"a",
+"auto"
+],
+[
+"On l'appelait a toute heure.",
+"a",
+"auto"
+],
+[
+"Il regarde le télé chaque soir.",
+"le",
+"auto"
+],
+[
+"C'est un vérité difficile.",
+"un",
+"auto"
 ]
 ],
 "vig": [
@@ -5618,6 +5651,11 @@
 "Tu peux sorté le chien ce soir ?",
 "sorté",
 "sortir"
+],
+[
+"Il leve la main en classe.",
+"leve",
+"lève"
 ]
 ],
 "a_participe": [
