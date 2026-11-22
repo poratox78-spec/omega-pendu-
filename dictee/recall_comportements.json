@@ -1075,7 +1075,9 @@
 "Il n'a rien trouvé dans le grenier.",
 "Elle n'avait rien remarqué en rentrant.",
 "Le pain dur se garde pour la soupe.",
-"Le spectacle plaît à tous les âges."
+"Le spectacle plaît à tous les âges.",
+"Merci de ranger les cahiers dans son cartable avant de partir.",
+"Les musiciens baissent le son pour laisser parler le maire."
 ],
 "elide": [
 [
@@ -5244,6 +5246,16 @@
 "Le vélo dois rester dehors.",
 "dois",
 "vigilance"
+],
+[
+"Les vélos son dans le garage pour passer l'hiver.",
+"son",
+"auto"
+],
+[
+"Les gâteaux son au four pour cuire encore dix minutes.",
+"son",
+"auto"
 ]
 ],
 "vig": [

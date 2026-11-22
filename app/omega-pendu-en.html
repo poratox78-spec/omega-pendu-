@@ -26358,7 +26358,7 @@ var w=T[i],lw=w.toLowerCase();
     var _pb=_SEG?_SEG.pb:null;   // bornes PRÉDITES (canal listes fermées, 31/08) — consommées ICI SEULEMENT : elles rétrécissent la fenêtre de la garde (mesuré : parité avec les virgules de l'auteur, 42,3 %/78,9 % vs 42,5/74,1)
     if(_SEG){for(j=i;j>0;j--){if((j<_SEG.bb.length&&_SEG.bb[j])||(_pb&&j<_pb.length&&_pb[j])){lo=j;break;}}for(j=i+1;j<n;j++){if((j<_SEG.bb.length&&_SEG.bb[j])||(_pb&&j<_pb.length&&_pb[j])){hi=j;break;}}}
     var tg=posTags(T);
-    if(tg){for(j=lo;j<hi;j++){if(j!==i&&j!==skip&&(tg[j]==='VERB'||tg[j]==='AUX'))return false;}return true;}
+    if(tg){for(j=lo;j<hi;j++){if(j!==i&&j!==skip&&(tg[j]==='VERB'||tg[j]==='AUX')&&!_isInfinitive(T[j]))return false;}return true;}   /* ⭐ 22/11/2026 (liste n° 592) : un INFINITIF n'est pas un verbe conjugué (« Les billets son en vente à partir de lundi » → sont) */
     for(j=lo;j<hi;j++){if(j!==i&&j!==skip&&svReads(T[j].toLowerCase()).length)return false;}
     return true;}
   /* -s/-x qui n'est PAS une marque de pluriel : « son fils », « son corps », « son prix » restent
