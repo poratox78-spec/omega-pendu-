@@ -1096,7 +1096,15 @@
 "Les ouvriers travaillant au port ont fait grève.",
 "Tous les pontons du port ont été repeints cet été.",
 "Tous les bâtimant du port ont été repeints cet été.",
-"Tous les voillier du port ont été repeints cet été."
+"Tous les voillier du port ont été repeints cet été.",
+"Le rapport précédent était plus court.",
+"Sont-ils compétents pour ce poste ?",
+"Il vient deux fois par an.",
+"Par jours de pluie, il reste chez lui.",
+"Je n'ai pas d'autre choix.",
+"Un certain temps a passé.",
+"Certain de gagner, il a souri.",
+"D'autre part, il viendra demain."
 ],
 "elide": [
 [
@@ -4768,6 +4776,46 @@
 "Les amis du maire a voté contre lui.",
 "a",
 "ont"
+],
+[
+"Ils compétent pour la place.",
+"compétent",
+"compètent"
+],
+[
+"Elles différent beaucoup de leurs sœurs.",
+"différent",
+"diffèrent"
+],
+[
+"Ils ne différent pas de nous.",
+"différent",
+"diffèrent"
+],
+[
+"Prenez ce sirop cinq fois par jours.",
+"jours",
+"jour"
+],
+[
+"Il vient deux fois par ans.",
+"ans",
+"an"
+],
+[
+"Certaine familles peuvent emmener deux joueurs de plus.",
+"Certaine",
+"Certaines"
+],
+[
+"D'autre élèves de la classe ont la même grippe.",
+"D'autre",
+"D'autres"
+],
+[
+"Il attend d'autre nouvelles de son frère.",
+"d'autre",
+"d'autres"
 ]
 ],
 "palier": [
@@ -5460,6 +5508,16 @@
 "Tous les habitant du village ont voté dimanche.",
 "habitant",
 "vigilance"
+],
+[
+"Ils compétent pour la place.",
+"compétent",
+"auto"
+],
+[
+"Prenez ce sirop cinq fois par jours.",
+"jours",
+"vigilance"
 ]
 ],
 "vig": [
@@ -5823,5 +5881,11 @@
 "Marie a dormie.",
 "Mon frère a éré malade.",
 "Son discours a sucisté des rires."
+],
+"sans_marque": [
+[
+"Beaucoup son restés après le match.",
+"restés"
+]
 ]
 }

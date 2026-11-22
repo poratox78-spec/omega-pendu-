@@ -1153,3 +1153,39 @@ L'extrait d'ortie a une odeur forte, mais il protège les rosiers.
 Nous {partagont|partageons|C} les récoltes entre tous les membres.
 Les débutants sont les {bienvenu|bienvenus|N}.
 {venez|Venez|P} nous voir un samedi, même sans matériel.
+=== T159 mot d'un parent glissé dans le cahier de liaison
+Mon fils Léo n'a pas pu {venire|venir|O} en classe mardi.
+Il {avais|avait|C} de la fièvre depuis la veille au soir.
+Le médecin lui a {donner|donné|C} un sirop à prendre trois fois par {jours|jour|N}.
+Les devoirs de calcul {son|sont|G} faits, sauf le dernier exercice.
+Ses camarades revenant du gymnase lui ont prêté leurs cahiers.
+{D'autre|D'autres|N} élèves de la classe {on|ont|G} la même grippe.
+Il {reviendras|reviendra|C} jeudi si la fièvre tombe.
+Merci de lui {laissé|laisser|C} un peu de temps pour rattraper la leçon.
+=== T160 petite annonce pour un vélo d'occasion
+Je {vend|vends|C} un vélo de ville bleu, taille adulte.
+Il a très peu {rouler|roulé|C} : deux étés seulement.
+Les pneus et les freins {on|ont|G} été changés au printemps.
+La selle et le guidon se {règle|règlent|C} sans outil.
+Les deux sacoches fixées au porte-bagages sont {offerte|offertes|N}.
+Le prix {es|est|G} de quatre-vingts euros, à débattre.
+Les personnes venant du centre peuvent prendre le bus douze.
+Je reste {joignables|joignable|N} le soir après dix-huit heures.
+=== T161 consignes laissées dans un gîte de vacances
+Les clés {ce|se|G} trouvent dans la boîte près du portail.
+Le chauffage {s'allument|s'allume|C} avec le bouton rouge du couloir.
+Les draps et les serviettes sont {rangé|rangés|N} dans l'armoire de la chambre.
+Merci de {sortire|sortir|O} les poubelles le mardi soir.
+Les voisins habitant au bout du chemin ont un chien très calme.
+Tous les volets du salon ont été repeints cet hiver.
+Les vélos {reste|restent|C} dans le garage, fermé {a|à|G} clé.
+En partant, laissez les clés dans la boîte.
+=== T162 message d'un entraîneur de football aux parents
+Le match de samedi {auras|aura|C} lieu sur le terrain du haut.
+Les enfants {doive|doivent|C} arriver à neuf heures, en tenue.
+Certains {oublie|oublient|C} encore leur gourde.
+{Certaine|Certaines|N} familles peuvent emmener deux joueurs de plus.
+Les maillots {lavé|lavés|N} mardi soir sont dans le sac vert.
+Nos adversaires {différent|diffèrent|O} beaucoup de l'équipe du mois dernier.
+Les parents venant du nord trouveront un parking derrière la salle.
+Bravo à tous : ils {progresse|progressent|C} à chaque séance.
