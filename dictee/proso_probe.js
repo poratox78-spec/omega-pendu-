@@ -526,6 +526,22 @@ cas('R3 — interjection en tête : virgule après',
     'Allô prof, La virgule : « Zut, j’ai encore oublié mes clés ! »',
     etat(['zut il pleut encore ce matin'], [2000], null, { sansAudio: true }),
     'Zut, il pleut encore ce matin.');
+cas("R3 négatif — « Bravo à… » : l'interjection a un complément, AUCUNE virgule (liste n° 623)",
+    "contrôle par l'usage du 22/11 : une virgule en trop dans un texte juste",
+    etat(['bravo à toute la troupe pour ce spectacle'], [2000], null, { sansAudio: true }),
+    'Bravo à toute la troupe pour ce spectacle.');
+cas("R3 négatif — « Bravo pour… » : AUCUNE virgule (liste n° 623)",
+    "contrôle par l'usage du 22/11",
+    etat(['bravo pour ton exposé sur les volcans'], [2000], null, { sansAudio: true }),
+    'Bravo pour ton exposé sur les volcans.');
+cas("R3 — « Mince alors » : la virgule va APRÈS « alors », pas avant (liste n° 623)",
+    "contrôle par l'usage du 22/11",
+    etat(["mince alors j'ai oublié mon sac"], [2000], null, { sansAudio: true }),
+    "Mince alors, j'ai oublié mon sac.");
+cas("R1 négatif — « deux joueurs de plus » : la quantité, pas le mot de liaison (liste n° 623)",
+    "contrôle par l'usage du 22/11 : « de plus » derrière un nom compté ne coupe pas la phrase",
+    etat(['il nous faut deux joueurs de plus et le car part à huit heures'], [2000], null, { sansAudio: true }),
+    'Il nous faut deux joueurs de plus et le car part à huit heures.');
 cas('R3 — incidente en tête : virgule après la locution ENTIÈRE',
     'Allô prof : « Selon moi, la présentation ne durera pas longtemps. »',
     etat(['selon moi la présentation ne durera pas longtemps'], [2000], null, { sansAudio: true }),

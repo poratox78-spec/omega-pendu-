@@ -31108,6 +31108,7 @@ var COORD_TETE_LOC = [
    j'ai encore oublié mes clés ! ») et « Une phrase incidente ou un groupe incident » (« Selon
    moi, la présentation ne durera pas longtemps »).
    LISTES FERMÉES, et c'est ce qui les rend sûres : aucun de ces mots n'est ambigu EN TÊTE. */
+var _QTE623 = {__proto__:null};'un une deux trois quatre cinq six sept huit neuf dix onze douze quinze vingt trente cent quelques plusieurs'.split(' ').forEach(function (w) { _QTE623[w] = 1; });   /* liste n° 623 : ce qui compte un nom devant « de plus » */
 var INTERJ = new Set(('zut ah oh eh hé ben bref tiens tenez écoute écoutez bravo hélas ouf ' +
   'chut mince flûte').split(' '));
 var INCIDENT_LOC = [
@@ -31227,8 +31228,10 @@ function ponctReglesVirgule(mots,_tg,deja,fin){   // fin (liste n° 361) : les m
     // d'un nombre ou de « de », c'est le COMPARATIF : « la direction de PLUS GRANDE diffusivité »,
     // « en présence de PLUS DE journalistes ». Mesuré 22/08 sur 40 tirs UD : 3 des 8 vraies fautes
     // des règles venaient de là. « De plus, l'appartenance… » (suivi d'un déterminant) reste juste.
+    if (fin && fin[i + n - 1] && !(n === 2 && pvNorm(mots[i]) === 'par' && pvNorm(mots[i + 1]) === 'exemple')) continue;   /* liste n° 623 : le coordonnant qui FINIT la phrase n'ouvre pas une proposition dans la phrase suivante (« … deux joueurs de plus. Les maillots sont prêts ») ; « par exemple » en fin de phrase garde sa virgule */
     if (n === 2 && pvNorm(mots[i]) === 'de' && pvNorm(mots[i + 1]) === 'plus') {
       var _ta = tg[i + 2], _ma = pvNorm(mots[i + 2] || '');
+      if (i >= 2 && tg[i - 1] === 'NOUN' && (tg[i - 2] === 'NUM' || _QTE623[pvNorm(mots[i - 2])] === 1)) continue;   /* liste n° 623 : « deux joueurs de plus », « un jour de plus » — la quantité, pas le mot de liaison */
       if (_ta === 'ADJ' || _ta === 'ADV' || _ta === 'NUM' || _ma === 'de' || _ma === "d'" || /^\d/.test(_ma)) continue;
     }
     // ⛔ GARDE 0b — UN ADVERBE-COORDONNANT PRÉCÉDÉ D'UNE CONJONCTION FORME UNE LOCUTION, pas une
@@ -31269,11 +31272,12 @@ function ponctReglesVirgule(mots,_tg,deja,fin){   // fin (liste n° 361) : les m
 
   // ── R3 : INTERJECTION / INCIDENTE EN TÊTE. Listes fermées — c'est ce qui les rend sûres :
   // aucun de ces mots n'est ambigu quand il OUVRE la phrase.
-  if (INTERJ.has(pvNorm(mots[0])) && mots.length > 2) out.add(0);
+  var _interjCompl623 = function (w, s) { return (w === 'bravo' && (s === 'à' || s === 'a' || s === 'au' || s === 'aux' || s === 'pour')) || (w === 'hélas' && s === 'pour'); }, _INTERJ_ALORS623 = {__proto__:null, zut: 1, ah: 1, oh: 1, eh: 1, 'hé': 1, ben: 1, mince: 1, 'flûte': 1}, _w0_623 = pvNorm(mots[0]);   /* ⭐ 22/11/2026 (liste n° 623) : « Bravo à tous », « Bravo pour ton exposé », « Hélas pour lui » — l'interjection a un complément, pas de virgule après elle ; « Mince alors j'ai oublié » — la virgule va après « alors » */
+  if (INTERJ.has(_w0_623) && mots.length > 2 && !_interjCompl623(_w0_623, pvNorm(mots[1]))) { if (_INTERJ_ALORS623[_w0_623] === 1 && pvNorm(mots[1]) === 'alors') { if (mots.length > 3 && !(fin && fin[1])) out.add(1); } else out.add(0); }
   if (INCIDENT_ADV.has(pvNorm(mots[0])) && mots.length > 2) out.add(0);
   // ⭐ 21/11/2026 (liste n° 578) : l'interjection et l'adverbe incident se détachent en tête de CHAQUE phrase, pas seulement du texte
   // (« Il pleut. Heureusement nous avons une lampe » → « Heureusement, ») ; deux mots au moins derrière, dans la même phrase.
-  var _s578 = {__proto__:null}; if (fin) for (var k578 = 1; k578 + 2 < mots.length; k578++) { if (!fin[k578 - 1] || fin[k578] || fin[k578 + 1]) continue; var w578 = pvNorm(mots[k578]); if (INTERJ.has(w578) || INCIDENT_ADV.has(w578)) { out.add(k578); _s578[k578] = 1; } }
+  var _s578 = {__proto__:null}; if (fin) for (var k578 = 1; k578 + 2 < mots.length; k578++) { if (!fin[k578 - 1] || fin[k578] || fin[k578 + 1]) continue; var w578 = pvNorm(mots[k578]); if ((INTERJ.has(w578) && !_interjCompl623(w578, pvNorm(mots[k578 + 1]))) || INCIDENT_ADV.has(w578)) { if (_INTERJ_ALORS623[w578] === 1 && pvNorm(mots[k578 + 1]) === 'alors') { if (k578 + 3 < mots.length && !fin[k578 + 2]) out.add(k578 + 1); } else { out.add(k578); _s578[k578] = 1; } } }
   for (var l of INCIDENT_LOC)
     if (locA(mots, 0, l) && mots.length > l.length + 1) { out.add(l.length - 1); break; }
 
