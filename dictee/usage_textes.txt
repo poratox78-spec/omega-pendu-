@@ -1369,3 +1369,111 @@ Mon téléphone a {reçus|reçu|C} tant de messages que je n'ai pas fini de rép
 Les photos {serons|seront|C} bientôt sur le groupe.
 Mamie a {dansée|dansé|C} jusqu'à minuit.
 On {remets|remet|C} ça l'année prochaine.
+=== T183 souvenir d'enfance raconté à l'imparfait
+Quand j'{étai|étais|C} petit, nous {allion|allions|C} chaque été chez mes grands-parents.
+Mon grand-père {pêchais|pêchait|C} dans la rivière derrière la maison.
+Ma grand-mère nous {préparais|préparait|C} des crêpes le dimanche.
+Mes cousins et moi {jouaient|jouions|C} dans la grange jusqu'au soir.
+Les poules {venais|venaient|C} manger dans nos mains.
+Le soir, tout le monde {s'asseyaient|s'asseyait|C} sur le banc devant la porte.
+On {écoutais|écoutait|C} les grillons en regardant les étoiles.
+Ces étés {reste|restent|C} mes plus beaux souvenirs.
+=== T184 consignes laissées à une baby-sitter
+Les enfants {dîne|dînent|C} à dix-neuf heures.
+Tom ne {dois|doit|C} pas regarder la télévision après le repas.
+Léa {prends|prend|C} son sirop avant de se coucher.
+Les doudous {son|sont|G} dans le tiroir du haut.
+En cas de fièvre, le thermomètre {es|est|G} dans l'armoire blanche.
+N'{ouvré|ouvrez|C} à personne, même si on sonne.
+Nos numéros {figure|figurent|C} sur le frigo.
+Nous {rentreront|rentrerons|C} vers minuit.
+=== T185 réclamation envoyée à un magasin
+J'ai {commander|commandé|C} un aspirateur chez vous le 3 mai.
+Le colis {es|est|G} arrivé avec le carton {déchirer|déchiré|C}.
+L'appareil ne {s'allumes|s'allume|C} pas.
+Vos conseillers ne {réponde|répondent|C} jamais au téléphone.
+Je {souhaites|souhaite|C} être remboursé rapidement.
+Les photos {joint|jointes|N} montrent l'état du carton.
+Sans nouvelles de vous, nous {saisiront|saisirons|C} une association de consommateurs.
+Je vous {pris|prie|C} d'agir vite.
+=== T186 invitation à une fête de quartier
+Vous {ête|êtes|C} tous invités à la fête du quartier.
+Elle se {tiendras|tiendra|C} le samedi 14 juin dans le square.
+Chacun {apportes|apporte|C} une salade ou un dessert.
+Les boissons {serons|seront|C} offertes par le comité.
+Des jeux {attende|attendent|C} les enfants dès quinze heures.
+Le soir, un groupe de musiciens {joueras|jouera|C} jusqu'à minuit.
+Pensez à {prévenire|prévenir|O} vos voisins.
+Nous {compton|comptons|C} sur vous !
+=== T187 exposé d'un élève sur les volcans
+Un volcan {es|est|G} une montagne qui peut cracher de la lave.
+Sous la terre, les roches {fonde|fondent|C} à cause de la chaleur.
+Le magma monte alors {ver|vers|O} la surface.
+Après un long sommeil, le volcan {ce|se|G} réveille.
+Les cendres {retombe|retombent|C} parfois à des kilomètres.
+Certains volcans sont {éteint|éteints|N} depuis des siècles.
+Les savants qui les {étudie|étudient|C} s'appellent des volcanologues.
+Ils mesurent la température des gaz pour {protégé|protéger|C} les habitants.
+=== T188 message d'un peintre après la visite d'un salon
+Bonjour, je suis {passer|passé|C} voir votre salon hier soir.
+Les murs {on|ont|G} besoin de deux couches de peinture.
+Je {viendrais|viendrai|C} demain à huit heures pour couvrir les meubles.
+Il faudra {vidé|vider|C} la pièce avant mon arrivée.
+Le plafond {seras|sera|C} repeint en blanc.
+Les plinthes seront {poncé|poncées|N} puis vernies.
+Le chantier {durra|durera|C} trois jours.
+Je vous {envoi|envoie|C} le devis ce soir.
+=== T189 journal d'une classe qui élève des escargots
+Lundi, la maîtresse a {apporter|apporté|C} six escargots dans une boîte.
+Nous les avons {installé|installés|N} dans un grand bocal.
+Chaque matin, un élève leur {donnes|donne|C} de la salade.
+Les escargots {sorte|sortent|C} quand il pleut.
+Hier, nous avons {vus|vu|C} des œufs minuscules dans la terre.
+Ils sont {blanc|blancs|N} et tout ronds.
+Il ne faut pas les {touché|toucher|C}.
+Nous {avont|avons|C} hâte de voir les bébés.
+=== T190 mot d'une grand-mère avec sa recette de confiture
+Ma chérie, voici la recette que tu m'as {demandé|demandée|N}.
+Lave deux kilos de fraises et {enlèves|enlève|C} les queues.
+Mets-les dans une bassine avec le sucre et {laisses|laisse|C} reposer une nuit.
+Le lendemain, fais {cuir|cuire|O} le tout pendant vingt minutes.
+Remue souvent pour que rien n'{accroches|accroche|C}.
+Quand la confiture est prête, verse-la dans les pots.
+{Fermes|Ferme|C} les pots tout de suite et retourne-les.
+Tu {verra|verras|C}, elle se garde un an.
+Je t'{embrasses|embrasse|C} très fort.
+=== T191 messages pour organiser un week-end au camping
+Salut, on {par|part|C} toujours samedi matin ?
+Moi je {prend|prends|C} la tente et les deux matelas.
+Tu {pourra|pourras|C} apporter le réchaud et les casseroles ?
+Léo {dis|dit|C} qu'il {viendras|viendra|C} avec sa sœur.
+Il faut {pensé|penser|C} aux lampes, il fait nuit tôt.
+On se {retrouvent|retrouve|C} devant la gare à neuf heures.
+{Sa|Ça|G} va être super !
+=== T192 consignes de sécurité d'un atelier bois au collège
+Les cheveux longs {doive|doivent|C} être attachés.
+Chaque élève {portes|porte|C} des lunettes de protection.
+Il est interdit de {courrir|courir|O} dans l'atelier.
+Les outils {coupant|coupants|N} se rangent dans l'armoire rouge.
+Personne ne {touches|touche|C} aux machines sans le professeur.
+On {netoie|nettoie|O} son établi avant de sortir.
+En cas de blessure, {prévenais|prévenez|C} tout de suite un adulte.
+Les tabliers sont {lavé|lavés|N} chaque vendredi.
+=== T193 témoignage d'un adolescent sur son club de handball
+Le handball, je le {pratiques|pratique|C} depuis mes huit ans.
+Au début, je ne {savait|savais|C} même pas dribbler.
+Mon entraîneur m'a beaucoup {aider|aidé|C}.
+Nous nous {entraînont|entraînons|C} chaque mardi soir.
+L'an dernier, notre équipe a {gagner|gagné|C} le tournoi du département.
+Mes parents {vienne|viennent|C} me voir à chaque match.
+Ce sport m'a {apprit|appris|C} à ne jamais abandonner.
+Plus tard, je {voudrai|voudrais|C} devenir gardien de but.
+=== T194 légendes d'un album photo de vacances
+Notre arrivée au chalet, les valises encore {fermé|fermées|N}.
+Papa et Lina {prépare|préparent|C} le premier feu.
+La vue depuis le balcon : des sommets {enneigé|enneigés|N} partout.
+Mamie {endormi|endormie|N} devant la cheminée.
+Les enfants {on|ont|G} construit un igloo derrière la maison.
+Notre guide nous {montres|montre|C} les traces d'un chamois.
+Dernier soir : tout le monde {danses|danse|C} dans le salon.
+Les {skieur|skieurs|N} fatigués mais heureux.
