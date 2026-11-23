@@ -102,6 +102,12 @@ for (const [w, ms] of [['parle', ['parlé', 'parlent']], ['parlé', ['parler', '
   if (marques(T).some((x) => x.word === 'sentent')) err.push('arbitre : l\'orange fausse « sentent » devait se taire');
   if (D.jugeAnalyseSync(T) !== 0 || D.jugeAnalyse(T, D.diagnoseAll(T).flags, null) !== false) err.push('arbitre : le silence relance un calcul');
   for (const [t, w] of [['Nous avons rencontré des gens très gentil au marché.', 'gentil'], ['Mes amies sont arrivé hier soir par le train.', 'arrivé'], ['Beaucoup de gens pense que la pluie reviendra demain.', 'pense'], ['Elle a acheté quatre belle assiettes au marché.', 'belle'], ['Notre équipe de quartier est couroné et personne ne dit rien.', 'couroné'] /* liste n° 613 : mot écrit absent du dictionnaire, l'arbitre le préférait à la proposition et plus rien n'était marqué */, ["D'autre clients arrivent.", "D'autre"], ['Certaine ne viennent pas.', 'Certaine'], ['Il a des gants oranges.', 'oranges'] /* liste n° 616 : indéfini à majuscule en tête de phrase, couleur invariable */, ['Il na chanter hier.', 'na'] /* liste n° 617 : liaison entendue, nommée comme un accord */]) if (!marques(t).some((x) => x.word === w && !x.juge)) err.push('arbitre : « ' + t + ' » : l\'orange juste sur « ' + w + ' » devait rester');
+  /* liste n° 628 : derrière un sujet nominal au pluriel, le juge proposait la 3e personne du singulier (« fuit ») ; la 3e du pluriel est proposée.
+     Quand le groupe au pluriel n'est pas le sujet (« Le père des enfants… »), la proposition du juge reste. */
+  for (const [t, w, s] of [['Les tuyaux fuis depuis hier.', 'fuis', 'fuient'], ["Les anciens tuyaux fuis depuis l'hiver dernier.", 'fuis', 'fuient'], ['Le père des enfants fuis la ville.', 'fuis', 'fuit']]) {
+    const m = marques(t).filter((x) => x.word === w);
+    if (m.length !== 1 || m[0].sugg !== s) err.push('liste n° 628 : « ' + t + ' » : attendu « ' + s + ' », eu « ' + (m.length ? m.map((x) => x.sugg).join(', ') : 'rien') + ' »');
+  }
 }
 
 // liste n° 477 : plafond de ponctuation sur les fausses (lues à la main) et les non lues ; un plafond large sur le total garde contre un flot

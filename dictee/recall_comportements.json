@@ -1118,7 +1118,25 @@
 "Il a un peu mangé ce midi.",
 "Il a un peu de fièvre.",
 "Elle a un peu peur du noir.",
-"Il faut changer d'habitudes pour mieux dormir."
+"Il faut changer d'habitudes pour mieux dormir.",
+"Les murs bâtis en pierre gardent la fraîcheur.",
+"Les prisonniers enfuis ont été repris.",
+"Les membres réunis hier ont voté le budget.",
+"Les enfants punis restent en classe.",
+"Les clés tu prends ou tu laisses ?",
+"Il a un avis différent du mien.",
+"Les accords conclus hier seront signés lundi.",
+"Les dossiers inclus dans l'envoi sont complets.",
+"Ce soir arrivent mes cousins de Lille.",
+"Les travaux prévus cet été commencent lundi.",
+"Les plats servis ce soir viennent du jardin.",
+"Les résultats obtenus cette année dépassent nos prévisions.",
+"Le chef dit que ce soir viennent trois clients.",
+"Les invités arrivés ce matin dorment encore.",
+"Cet été commencent les travaux de la mairie.",
+"La séance est levée à vingt et une heures.",
+"Le cahier compte quarante et une pages.",
+"Rendez-vous à vingt-et-une heures."
 ],
 "elide": [
 [
@@ -4870,6 +4888,66 @@
 "D'habitudes, elle arrive à l'heure.",
 "D'habitudes",
 "D'habitude"
+],
+[
+"Les joueurs veux gagner ce match.",
+"veux",
+"veulent"
+],
+[
+"Les invités dois arriver avant huit heures.",
+"dois",
+"doivent"
+],
+[
+"Les élèves réponds aux questions.",
+"réponds",
+"répondent"
+],
+[
+"Les chiens vois le facteur arriver.",
+"vois",
+"voient"
+],
+[
+"Il pleut et les voisins dors encore.",
+"dors",
+"dorment"
+],
+[
+"Nos adversaires différent beaucoup de l'équipe du mois dernier.",
+"différent",
+"diffèrent"
+],
+[
+"Les orages précédent souvent la pluie.",
+"précédent",
+"précèdent"
+],
+[
+"Ces étiquettes adhérent mal au verre.",
+"adhérent",
+"adhèrent"
+],
+[
+"Les enfants conclus un marché avec le voisin.",
+"conclus",
+"concluent"
+],
+[
+"Cette semaine passent vite.",
+"passent",
+"passe"
+],
+[
+"Cette année commencent mal.",
+"commencent",
+"commence"
+],
+[
+"Je prends une heures de pause.",
+"heures",
+"heure"
 ]
 ],
 "palier": [
@@ -5577,6 +5655,21 @@
 "C'est quand même plus sympas que le bus.",
 "sympas",
 "vigilance"
+],
+[
+"Les joueurs veux gagner ce match.",
+"veux",
+"vigilance"
+],
+[
+"Nos adversaires différent beaucoup de l'équipe du mois dernier.",
+"différent",
+"vigilance"
+],
+[
+"Les élèves répétent la chanson.",
+"répétent",
+"auto"
 ]
 ],
 "vig": [

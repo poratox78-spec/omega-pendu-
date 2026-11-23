@@ -1261,3 +1261,39 @@ Le plombier {avais|avait|C} promis de passer mardi.
 Je {préfères|préfère|C} que les travaux commencent en mars.
 Les {horaire|horaires|N} du chantier doivent convenir à tout l'immeuble.
 Merci de me {rappelé|rappeler|C} avant vendredi.
+=== T171 compte rendu d'une réunion d'association de quartier
+Les accords conclus avec la mairie seront signés en janvier.
+Le trésorier {à|a|G} présenté les comptes de l'année.
+Les dossiers inclus dans le courrier {reste|restent|C} à compléter.
+Trois membres {propose|proposent|C} d'organiser un vide-grenier.
+La salle des fêtes {seras|sera|C} libre le dernier samedi de mars.
+Les bénévoles {inscrit|inscrits|N} avant vendredi recevront le planning.
+Il {faux|faut|G} encore trouver deux tables et un barnum.
+La séance {es|est|G} levée à vingt et une heures.
+=== T172 programme de la fête du village
+Ce soir arrivent les forains avec leurs manèges.
+Samedi matin, les enfants {décore|décorent|C} leurs vélos pour le défilé.
+Le défilé {pars|part|C} de l'école à quinze heures.
+Les stands {tenu|tenus|N} par les associations ouvrent à midi.
+Cet été commencent aussi les travaux du vieux pont.
+Le feu d'artifice sera {tirés|tiré|N} depuis le stade.
+N'oubliez pas vos {chaise|chaises|N} pliantes.
+Venez {nombreu|nombreux|O} !
+=== T173 mot d'un moniteur de colonie aux parents
+Les enfants {on|ont|G} bien mangé hier soir.
+Tout le groupe {dorment|dort|C} dans le grand dortoir.
+Ce matin, nous avons {marcher|marché|C} jusqu'au lac.
+Les plus grands {nage|nagent|C} déjà sans brassards.
+Les colis reçus cette semaine seront distribués dimanche.
+Votre fils {manges|mange|C} de tout, même les épinards.
+Les photos {prise|prises|N} pendant la veillée sont sur le site.
+Nous vous {appelleront|appellerons|C} jeudi soir.
+=== T174 avis laissé sur un restaurant
+Nous {avont|avons|C} dîné samedi dans ce petit restaurant.
+Les légumes servis ce soir viennent du potager, d'après le patron.
+La serveuse nous {as|a|G} conseillé le poisson.
+Le dessert {manquais|manquait|C} un peu de sucre.
+Les prix {reste|restent|C} corrects pour le quartier.
+Seul défaut : les tables {son|sont|G} trop serrées.
+Nous {reviendront|reviendrons|C} avec des amis.
+Je {recommandes|recommande|C} la tarte aux pommes.

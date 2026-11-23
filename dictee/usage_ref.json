@@ -1,17 +1,17 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 254,
-   "bon": 242,
-   "rouge juste": 160,
-   "orange juste": 82,
+   "total": 259,
+   "bon": 247,
+   "rouge juste": 162,
+   "orange juste": 85,
    "mauvais mot": 0,
    "muette": 12
   },
   "grammaire": {
-   "total": 386,
-   "bon": 363,
-   "rouge juste": 152,
+   "total": 392,
+   "bon": 369,
+   "rouge juste": 158,
    "orange juste": 211,
    "mauvais mot": 0,
    "muette": 23
@@ -25,20 +25,20 @@
    "muette": 37
   },
   "conjugaison": {
-   "total": 556,
-   "bon": 533,
-   "rouge juste": 279,
-   "orange juste": 254,
-   "mauvais mot": 9,
-   "muette": 14
+   "total": 571,
+   "bon": 548,
+   "rouge juste": 287,
+   "orange juste": 261,
+   "mauvais mot": 8,
+   "muette": 15
   },
   "orthographe": {
-   "total": 261,
-   "bon": 250,
-   "rouge juste": 135,
-   "orange juste": 115,
+   "total": 262,
+   "bon": 252,
+   "rouge juste": 136,
+   "orange juste": 116,
    "mauvais mot": 4,
-   "muette": 7
+   "muette": 6
   }
  },
  "cassesRouge": 0,
@@ -1591,7 +1591,7 @@
   "T162#2": "rouge juste",
   "T162#3": "orange juste",
   "T162#4": "rouge juste",
-  "T162#5": "muette",
+  "T162#5": "orange juste",
   "T162#6": "rouge juste",
   "T163#0": "rouge juste",
   "T163#1": "orange juste",
@@ -1656,10 +1656,37 @@
   "T170#1": "rouge juste",
   "T170#2": "orange juste",
   "T170#3": "rouge juste",
-  "T170#4": "mauvais mot",
+  "T170#4": "orange juste",
   "T170#5": "rouge juste",
   "T170#6": "rouge juste",
   "T170#7": "rouge juste",
-  "T170#8": "rouge juste"
+  "T170#8": "rouge juste",
+  "T171#0": "rouge juste",
+  "T171#1": "orange juste",
+  "T171#2": "orange juste",
+  "T171#3": "orange juste",
+  "T171#4": "orange juste",
+  "T171#5": "rouge juste",
+  "T171#6": "rouge juste",
+  "T172#0": "rouge juste",
+  "T172#1": "orange juste",
+  "T172#2": "rouge juste",
+  "T172#3": "orange juste",
+  "T172#4": "rouge juste",
+  "T172#5": "rouge juste",
+  "T173#0": "rouge juste",
+  "T173#1": "muette",
+  "T173#2": "rouge juste",
+  "T173#3": "orange juste",
+  "T173#4": "orange juste",
+  "T173#5": "orange juste",
+  "T173#6": "rouge juste",
+  "T174#0": "rouge juste",
+  "T174#1": "rouge juste",
+  "T174#2": "rouge juste",
+  "T174#3": "rouge juste",
+  "T174#4": "rouge juste",
+  "T174#5": "rouge juste",
+  "T174#6": "rouge juste"
  }
 }
