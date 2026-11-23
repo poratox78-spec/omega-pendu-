@@ -561,7 +561,7 @@
   // PRÉNOMS + GENRE (assets/prenoms.tsv.gz, DÉRIVÉ du blob prenoms-gz de l'app par build_assets).
   // nom -> [genre, tete_de_phrase_interdite]. Débloque « Marie est venu »→venue. Miroir app + Python.
   var PRENOMS={__proto__:null};
-  function _applyPrenoms(txt){var lines=txt.split(/\r?\n/);for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('	');if(p.length>=3)PRENOMS[p[0]]=[p[1],p[2]==='1'];}}
+  function _applyPrenoms(txt){var lines=txt.split(/\r?\n/);for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('	');if(p.length>=3)PRENOMS[p[0]]=[p[1],p[2]==='1',p[3]||'',p[4]?+p[4]:100,p[5]?+p[5]:1e9];}}   /* liste n° 668 : 4e colonne = graphie de référence d'une forme sans accent (« Helene » → « Hélène ») ; 5e = part du sexe majoritaire en % */
   function _applyGenderRelaxed(txt){var lines=txt.split('\n');for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('\t');if(p.length<2)continue;if(GENDER_PURE[p[0]]===undefined)GENDER_PURE[p[0]]=(p[1]==='1'?'f':'m');}}
   function _applyGaccLex(jsonText){try{_GACC=_sansProto(JSON.parse(jsonText)||{});}catch(e){}}
   function lexicalGender(T,idx){if(!GENDER_MAP)return null;var j,w,g;
@@ -5989,6 +5989,7 @@ function rHomophoneMo(T,i){var n=T.length,w=T[i],lw=w.toLowerCase(),d=deacc(lw),
     if(!(a==='rien'||a==='chose'||a==='quoi'||a==='personne'))return null;if(a==='personne'&&k>=0&&_PERS_DET483[lo(k)])return null;
     if(k>=0){var b=String(T[k]).toLowerCase();if(b==='à'||b==='pour')return 'vig';}return 'tait';}
   function _tierOf(T,i,name,sugg){   // MIROIR de correcteur_probe.tier_of — sous-cas SÛRS (rouge) des familles à vérifier ; sinon orange
+    if(/^accord /.test(name)){for(var _j668=i-1;_j668>=0&&_j668>=i-5;_j668--){var _p668=PRENOMS[T[_j668]];if(_p668&&(_p668[3]<95||_p668[4]<5000)&&T[_j668].charAt(0)!==T[_j668].charAt(0).toLowerCase())return 'vigilance';}}   /* liste n° 668 : « Camille est venu » → « venue » en orange — le genre d'un prénom mixte vient des naissances (sexe majoritaire), sous 95 % un rouge serait trop souvent faux (« Sacha est venue », liste n° 443) ; sous 5 000 naissances aussi : dans un texte, un prénom rare est souvent autre chose */
     if(name==='accord sujet-verbe'&&typeof sugg==='string'&&/rais$/.test(deacc(sugg.toLowerCase()))&&/rait$/.test(deacc(T[i].toLowerCase())))return 'vigilance';   // liste n° 385 : « je passerait » → passerais (conditionnel) ou passerai (futur) : les deux sont du français juste, c'est le sens qui tranche → orange
     if(name==='accord participe épithète'&&i+1<T.length&&(_OBJ406[deacc(T[i+1].toLowerCase())]||/^l['’]/i.test(T[i+1])))return 'vigilance';   /* ⭐ 06/11/2026 (liste n° 406) :
        « Ma sœur regardé la télé » → « regardée » en ROUGE, alors que l'auteur voulait « regardait » : un participe épithète n'a pas de
@@ -6670,7 +6671,8 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     // dys réel, à coût NUL (réparations, GEC, FP échelle inchangés). La table PRENOMS existe DÉJÀ dans les
     // 3 moteurs pour l'accord — on la RÉUTILISE (doctrine §5). La garde ne voit que des tokens DÉJÀ inconnus
     // des 211 k formes : qu'ils soient en plus un prénom attesté en fait un nom, pas un typo.
-    if(low.length>=3&&PRENOMS[low.charAt(0).toUpperCase()+low.slice(1)])return null;
+    var _pr668=low.length>=3?PRENOMS[low.charAt(0).toUpperCase()+low.slice(1)]:null;
+    if(_pr668&&(!_pr668[2]||(_pr668[4]>=50000&&_pr668[4]<1e9&&!SP.WORDS.has(_pr668[2].toLowerCase()))))return null;   /* liste n° 668 : une forme SANS ACCENT de la table reste un mot à corriger (« succes », « methode », « leger », « come ») — sauf un prénom très donné dont la référence n'est pas un mot (« emilie », « helene ») */
     if((low.charAt(0)==='à'||low.charAt(0)==='a')&&low.length>=3){var _rsd=low.slice(1);
       if(SP.WORDS.has(_rsd)&&/V/.test(spP(_rsd)||'')&&(spF(_rsd)||0)>0&&!/(er|re|ir)$/.test(_rsd)   // ⭐ liste n° 108 : le reste doit pouvoir être PROPOSÉ (fréquence > 0) — « d'Avène » ne devient plus « d'a vène »
          &&!SP.WORDS.has(low.charAt(0)+low.charAt(1)+low.slice(1))   // le REDOUBLEMENT prime : « aporté »→apporté (couche DC), pas « a porté »
@@ -7081,7 +7083,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
      jamais appliqué). Mesuré (A/B moteur complet) sur 1 798 textes dys : 67 suggestions neuves, 52 exactes, 6 au bon lemme, 9 fausses
      sur des mots qui n'en avaient aucune ; 2 500 phrases UD : 5 (mots étrangers déjà soulignés). */
   // ① PRÉNOM en minuscule (« ludovic » → Ludovic) : la graphie d'origine de la table PRENOMS, déjà chargée pour l'accord.
-  function _suPrenom(low){var c=low.charAt(0).toUpperCase()+low.slice(1);return (low.length>=3&&PRENOMS[c])?c:null;}
+  function _suPrenom(low){var c=low.charAt(0).toUpperCase()+low.slice(1);return (low.length>=3&&PRENOMS[c])?(PRENOMS[c][2]||c):null;}
   // ② EXPRESSION FIGÉE collée : liste FERMÉE, clé phonétique de l'expression sans blancs ; à défaut, une édition sur la clé (longueur ≥ 5).
   var _MWE=['bien sûr','rendez-vous','au revoir','quelque chose','par contre','tout à fait','peut-être','parce que',"c'est-à-dire",'à partir','à travers','grand-mère','grand-père','grands-parents','tout le monde','tout de suite','jeux vidéo','week-end','tant pis','plus tard','tout à coup','en fait',"d'accord","s'il te plaît","s'il vous plaît",'bien évidemment','petit-déjeuner','arc-en-ciel','après-midi','quand même',"tout à l'heure",'pas du tout','du coup','en tout cas','de temps en temps','au moins','au lieu','à peu près','tout au long',"d'abord","d'habitude","d'ailleurs",'quelque part','à cause'];
   var _MWEK=null;
@@ -7207,7 +7209,7 @@ function spellUnknown(tok,atStart,T,idx){
           if(_ng2&&_ng2!==DET_G[deaccS(best)]&&DET_G[deaccS(_dp2)]===_ng2){
             var _da2=deaccS(low).split('').sort().join('')===deaccS(_dp2).split('').sort().join('');
             if(_da2||sEd1(deaccS(low),deaccS(_dp2)))best=_dp2;}}}}
-    var _prn=_suPrenom(low);if(_prn&&!(best&&sEd1(d,deaccS(best))))return _prn;   // ⭐ 29/09/2026 (Rem : « on a un lexique de prénoms ») : un prénom de la table écrit en minuscule → le PRÉNOM d'abord (enzo → Enzo, plus « saute ») — sauf si le dictionnaire propose un mot à UNE édition (dee → de, agricol → agricole). Gold dys +7, 0 perdu (frgec, EcriScol). Miroir Python.
+    var _prn=_suPrenom(low),_pq668=_prn?PRENOMS[low.charAt(0).toUpperCase()+low.slice(1)]:null;if(_prn&&(!(best&&sEd1(d,deaccS(best)))||(_pq668&&_pq668[4]>=50000&&_pq668[4]<1e9)))return _prn;   /* liste n° 668 : un prénom très donné (50 000 naissances et plus) passe même devant un mot à une édition — « helene » → Hélène, plus « hellène » */   // ⭐ 29/09/2026 (Rem : « on a un lexique de prénoms ») : un prénom de la table écrit en minuscule → le PRÉNOM d'abord (enzo → Enzo, plus « saute ») — sauf si le dictionnaire propose un mot à UNE édition (dee → de, agricol → agricole). Gold dys +7, 0 perdu (frgec, EcriScol). Miroir Python.
     if(best&&best!==low)return best;
     var _g=_suElision(low)||_suPhonE1(low);                                 // VOIE '' : équiper le souligné existant (S6 puis S4) — orange AU CLIC, jamais une marque nouvelle
     if(!_g||_g===low)_g=_suPrenom(low)||_suMwe(low)||_suColle(low);         // ⭐ 13/09/2026, lot 2 : prénom en minuscule, expression collée, mots collés — miroir Python

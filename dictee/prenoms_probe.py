@@ -49,17 +49,29 @@ for l in ref.split('\n'):
     if not l:
         continue
     p = l.split('\t')
-    if len(p) == 3:
-        table[p[0]] = (p[1], p[2] == '1')
-if len(table) < 8000:
-    echec.append('table trop courte : %d prénoms (attendu ≥ 8 000)' % len(table))
+    if len(p) == 6:                                         # liste n° 668 : 6 colonnes (graphie de référence, part du sexe majoritaire, naissances)
+        table[p[0]] = (p[1], p[2] == '1', p[3], p[4])
+    else:
+        echec.append('ligne à %d colonnes au lieu de 6 : %r' % (len(p), l[:40]))
+if len(table) < 13000:
+    echec.append('table trop courte : %d prénoms (attendu ≥ 13 000 depuis la liste n° 668)' % len(table))
 for nom, attendu in (('Marie', 'f'), ('Jean', 'm'), ('Julie', 'f'), ('Léa', 'f'), ('Pierre', 'm')):
     if table.get(nom, (None,))[0] != attendu:
         echec.append('%s devrait être « %s », vu %r' % (nom, attendu, table.get(nom)))
-# ambigus : jamais dans la table (Claude/Camille = « prénom masculin OU féminin »)
-for nom in ('Claude', 'Camille', 'Dominique', 'Alex'):
-    if nom in table:
-        echec.append('%s est AMBIGU (m/f) et ne doit pas être dans la table' % nom)
+# liste n° 668 : les prénoms mixtes SONT dans la table, avec leur sexe majoritaire et sa part — sous 95 %, le moteur propose en orange
+for nom in ('Claude', 'Camille', 'Dominique', 'Sacha', 'Mery'):
+    v = table.get(nom)
+    if not v or v[0] not in ('m', 'f') or not v[3].isdigit() or int(v[3]) >= 95:
+        echec.append('%s devrait être dans la table avec un sexe majoritaire sous 95 %% (orange), vu %r' % (nom, v))
+for nom, attendu in (('Catherine', 'f'), ('Georges', 'm'), ('Stéphane', 'm'), ('Jane', 'f'), ('Emilie', 'f')):
+    if table.get(nom, (None,))[0] != attendu:
+        echec.append('%s devrait être « %s » (fichier des naissances), vu %r' % (nom, attendu, table.get(nom)))
+if table.get('Helene', ('', False, ''))[2] != 'Hélène' or table.get('Emilie', ('', False, ''))[2] != 'Émilie':
+    echec.append('« Helene » doit être une forme sans accent de « Hélène » (4e colonne)')
+if not table.get('Honore', ('', False))[1] or not table.get('Aime', ('', False))[1]:
+    echec.append('« Honore » et « Aime » (graphies sans accent de l\'état civil, et mots du dictionnaire) doivent être MARQUÉS : jamais en tête de phrase')
+if not table.get('Jade', ('', False))[1]:
+    echec.append('« Jade » doit être MARQUÉ : prénom neuf qui est aussi un mot courant, jamais en tête de phrase')
 # mots-outils : « Elle » est attesté comme prénom mais c'est le PRONOM 99,9 % du temps
 for nom in ('Elle', 'Il', 'On', 'Le', 'La', 'Et', 'Si'):
     if nom in table:

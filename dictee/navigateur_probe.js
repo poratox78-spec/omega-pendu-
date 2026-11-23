@@ -467,6 +467,16 @@ const CAS = [
   { txt: 'une errreur de frappe', attendu: ['erreur'], pourquoi: 'élongation réelle du corpus dys' },
   // ⑤ prénoms -> accord (PR#460)
   { txt: 'Marie est venu.', attendu: ['venue'], pourquoi: 'genre du prénom (table prenoms-gz chargée)' },
+  /* ⭐ liste n° 668 (24/11/2026) : la table des prénoms lit aussi les naissances (INSEE, Retraite Québec). Avant, elle ne couvrait
+     que 84,5 % des naissances en France et « Catherine est venu » passait sans alerte. Le genre est le sexe majoritaire ; sous 95 %
+     (ou sous 5 000 naissances) l'accord est PROPOSÉ en orange. Un prénom se reconnaît aussi sans ses accents. */
+  { txt: 'Catherine est venu hier.', attendu: ['venue'], pourquoi: 'liste 668 : prénom très courant absent de l’ancienne table' },
+  { txt: 'Georges est arrivée en retard.', attendu: ['arrivé'], pourquoi: 'liste 668 : même chose au masculin' },
+  { txt: 'Emilie est venu hier.', attendu: ['venue'], pourquoi: 'liste 668 : le prénom écrit sans l’accent de sa majuscule' },
+  { txt: 'Camille est venu hier.', corrigeAttendu: ['venu', 'venue'], rien: true, pourquoi: 'liste 668 : prénom mixte (72 % de filles) — « venue » est proposé en orange, jamais imposé' },
+  { txt: 'Sacha est venue hier.', rien: true, pourquoi: 'CONTRE-GARDE (listes 443 et 668) : 94 % de garçons ne suffit pas pour un rouge' },
+  { txt: 'il a eu un grand succes hier.', corrigeAttendu: ['succes', 'succès'], pourquoi: 'CONTRE-GARDE liste 668 : « Succès » est un prénom de la table, le mot sans accent reste corrigé comme un mot' },
+  { txt: 'ce matin helene est venue au marché.', corrigeAttendu: ['helene', 'Hélène'], casse: true, pourquoi: 'liste 668 : un prénom très donné écrit en minuscule et sans accent reçoit sa graphie de référence, plus « hellène »' },
   // ⑤ bis — GENRE PAR COLLISION D'ACCENT (18/09/2026, faute vue par Rem et muette : « marché provençale »). « marché » (m) et
   //    « marche » (f) partagent la clé sans accent : le genre ne vient que de la table des collisions (_GCOLL, dans le moteur — mesuré par
   //    ablation : ces deux cas n'isolent AUCUN asset, ils gardent le BRANCHEMENT de la règle dans la page). Orange : proposé, pas appliqué.

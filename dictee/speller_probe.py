@@ -562,13 +562,19 @@ class Speller:
             self.G114 = {w: g for g in _gj for w in _gj[g]}
         except (OSError, ValueError):
             self.G114 = {}
+        self.PRENOMS_REF = {}; self.PRENOMS_NB = {}
         self.PRENOMS_C = set()                                  # ⭐ 13/09/2026 : graphie d'ORIGINE (« ludovic » → Ludovic, miroir JS PRENOMS)
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
                 for _l in _fp:
-                    _o = _l.split('	')[0].strip(); _n = _o.lower()
-                    if _o and len(_l.split('	')) >= 3: self.PRENOMS_C.add(_o)
-                    if len(_n) >= 3 and _n not in self.WORDS: self.PRENOMS_L.add(_n)
+                    _c668 = _l.rstrip('\r\n').split('	'); _o = _c668[0].strip(); _n = _o.lower()
+                    _ref668 = _c668[3] if len(_c668) > 3 else ''      # liste n° 668 : graphie de référence d'une forme sans accent
+                    if _o and len(_c668) >= 3:
+                        self.PRENOMS_C.add(_o)
+                        if _ref668: self.PRENOMS_REF[_o] = _ref668
+                    _nb668 = int(_c668[5]) if len(_c668) > 5 and _c668[5].isdigit() else 0
+                    if _nb668: self.PRENOMS_NB[_o] = _nb668
+                    if len(_n) >= 3 and _n not in self.WORDS and (not _ref668 or (_nb668 >= 50000 and _ref668.lower() not in self.WORDS)): self.PRENOMS_L.add(_n)   # « succes », « methode » restent des mots à corriger ; « emilie », « helene » restent des prénoms
         except Exception:
             pass
         here = os.path.dirname(os.path.abspath(__file__))
@@ -1836,7 +1842,7 @@ class Speller:
 
     def _su_prenom(self, low):
         c = low[:1].upper() + low[1:]
-        return c if len(low) >= 3 and c in self.PRENOMS_C else None
+        return self.PRENOMS_REF.get(c, c) if len(low) >= 3 and c in self.PRENOMS_C else None
 
     def _mwe_init(self):
         if self._MWEK is None:
@@ -2035,7 +2041,7 @@ class Speller:
                         if sorted(deacc(low)) == sorted(deacc(dp2)) or deacc(dp2) in edits1(deacc(low)):
                             best = dp2
         pr = self._su_prenom(low)   # ⭐ 29/09/2026 (Rem) : un prénom de la table en minuscule → le PRÉNOM d'abord (enzo → Enzo), sauf mot du dictionnaire à UNE édition (dee → de) — miroir JS
-        if pr and not (best and sed1(d, deacc(best))): return pr
+        if pr and (not (best and sed1(d, deacc(best))) or self.PRENOMS_NB.get(low[:1].upper() + low[1:], 0) >= 50000): return pr   # liste n° 668 : prénom très donné — miroir JS
         if best and best != low: return best
         # VOIE '' (inconnu sans suggestion fiable) : S6 élision PRIORITAIRE, puis S4 clé phonétique d=1
         g = self._su_elision(low) or self._su_phon_e1(low)

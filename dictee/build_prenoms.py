@@ -125,11 +125,129 @@ def extrait():
     return table, vus, ambigus, conflits, deux
 
 
+# ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+# ⭐ 24/11/2026 (liste n° 668, demande de Rem) — LES NAISSANCES. La table du Wiktionnaire ne couvrait que 84,5 % des naissances
+# en France : Catherine, Georges, Anne, Stéphane, Maxime, Audrey manquaient (« Catherine est venu » : aucune alerte).
+# Deux sources de plus, toutes deux dans data_local/prenoms_sources/ (gitignoré ; SEULE la table extraite est commitée) :
+#   · INSEE, « Fichier des prénoms » 1900-2025 (Licence Ouverte 2.0), avec les accents : insee-prenoms-2025-nat.csv
+#   · Retraite Québec, « Banque de prénoms » 1980-2025 (CC BY 4.0), SANS accents : quebec-garcons.csv, quebec-filles.csv
+# RÈGLES (décisions de Rem) :
+#   ① un prénom d'au moins 300 naissances en France (Mery : 420) ou 200 au Québec entre dans la table ;
+#   ② son genre est le sexe MAJORITAIRE des naissances, et la part de ce sexe est gardée (5ᵉ colonne) : sous 95 %, le moteur
+#      PROPOSE l'accord en orange au lieu de l'imposer (Camille 72 %, Claude 88 %, Sacha 94 %) ;
+#   ③ un prénom se reconnaît aussi SANS ses accents (« Emilie », « Helene » : en France on n'accentue guère les capitales) :
+#      une ligne d'alias par forme nue, avec la graphie de référence (4ᵉ colonne) — sauf si la forme nue est un mot du
+#      dictionnaire (« Honoré » / « honore ») ;
+#   ④ un prénom NEUF qui est aussi un mot courant (Jade, Ange, Soleil, Aime) est marqué « pas en tête de phrase » ;
+#   ⑤ Québec : la graphie accentuée vient de l'INSEE quand le prénom y existe, sinon de la liste à la main _QC_ACCENT.
+#   ⑥ première mesure sur les textes réels : un prénom RARE est souvent autre chose dans un texte (un roi, un lieu) — le moteur
+#      n'impose l'accord (rouge) qu'à partir de 5 000 naissances, d'où la 6ᵉ colonne.
+# TABLE : nom <TAB> genre (m, f, ?) <TAB> tête de phrase interdite (0/1) <TAB> graphie de référence (forme sans accent)
+#         <TAB> part du sexe majoritaire (%) <TAB> naissances comptées (France + Québec).
+SOURCES = os.path.join(RACINE, 'data_local', 'prenoms_sources')
+SEUIL_FR, SEUIL_QC = 300, 200
+_QC_ACCENT = {'Anaeve': 'Anaève', 'Anna-Eve': 'Anna-Ève', 'Cedrik': 'Cédrik', 'Eloic': 'Éloïc', 'Eliam': 'Éliam', 'Emeraude': 'Émeraude',
+              'Emerik': 'Émerik', 'Frederike': 'Frédérike', 'Lea-Jade': 'Léa-Jade', 'Lea-Kim': 'Léa-Kim', 'Lea-Maude': 'Léa-Maude',
+              'Loik': 'Loïk', 'Mahelie': 'Mahélie', 'Mederick': 'Médérick', 'Sara-Eve': 'Sara-Ève', 'Sarah-Eve': 'Sarah-Ève',
+              'Stefanie': 'Stéfanie', 'Veronic': 'Véronic'}
+_FORME = re.compile(r"^[A-ZÀ-Þ][A-Za-zÀ-ÿ'’-]{1,}$")
+
+
+def etendre(table, conflits):
+    import lzma
+    cap = lambda k: '-'.join(p[:1].upper() + p[1:].lower() for p in k.split('-'))
+    sexe = lambda m, f: 'm' if m > f else 'f' if f > m else '?'
+    part = lambda m, f: str(int(round(100.0 * max(m, f) / (m + f))))
+    for f in ('insee-prenoms-2025-nat.csv', 'quebec-garcons.csv', 'quebec-filles.csv'):
+        if not os.path.exists(os.path.join(SOURCES, f)):
+            print('[FATAL] source absente :', os.path.join(SOURCES, f)); sys.exit(1)
+    T = collections.OrderedDict((w, [table[w], '1' if w in conflits else '0', '', '', '']) for w in sorted(table))
+    I = collections.defaultdict(lambda: [0, 0])
+    with io.open(os.path.join(SOURCES, 'insee-prenoms-2025-nat.csv'), encoding='utf-8') as h:
+        h.readline()
+        for l in h:
+            c = l.rstrip('\n').split(';')
+            if len(c) >= 4 and c[3].replace('.', '').isdigit():
+                I[cap(c[1])][0 if c[0] == '1' else 1] += int(float(c[3]))
+    com = json.load(io.open(COMMUNS, encoding='utf-8')) if os.path.exists(COMMUNS) else {}
+    freq = {}
+    with io.TextIOWrapper(lzma.open(os.path.join(RACINE, 'Lexique4.tsv.xz')), encoding='utf-8') as h:
+        h.readline()
+        for l in h:
+            c = l.split('\t')
+            try:
+                freq[c[0]] = max(freq.get(c[0], 0.0), float(c[9] or 0))
+            except ValueError:
+                freq.setdefault(c[0], 0.0)
+    def tete(w, g):                                            # ④
+        gc = com.get(w.lower())
+        return '1' if (g in ('m', 'f') and gc in ('m', 'f') and gc != g) or freq.get(w.lower(), 0) >= 1 else '0'
+    nb = collections.Counter()
+    for w in I:
+        if deacc(w) != w:
+            nb[deacc(w)] += sum(I[w])
+    soeur = set(d for d in nb if nb[d] > sum(I.get(d, [0, 0])))   # la graphie accentuée est la plus donnée
+    for w in list(I):                                          # ① ② France
+        m, f = I[w]
+        if m + f < SEUIL_FR or w in _OUTILS or not _FORME.match(w):
+            continue
+        if w not in T and w in soeur and w.lower() in freq:
+            continue                                           # ③ forme nue d'un prénom accentué, et mot du dictionnaire
+        g = sexe(m, f)
+        if w not in T:
+            T[w] = [g, tete(w, g), '', part(m, f), str(m + f)]
+        else:
+            T[w][0] = g; T[w][3] = part(m, f); T[w][4] = str(m + f)
+    Q = collections.defaultdict(lambda: [0, 0])                # ① ② ⑤ Québec
+    for k, fn in enumerate(('quebec-garcons.csv', 'quebec-filles.csv')):
+        with io.open(os.path.join(SOURCES, fn), encoding='utf-8-sig') as h:
+            h.readline()
+            for l in h:
+                c = l.rstrip('\n').split(',')
+                if ' ' in c[0]:
+                    continue
+                Q[cap(c[0])][k] += sum(int(x) if x.isdigit() else (2 if x == '<5' else 0) for x in c[1:])
+    par = collections.defaultdict(list)
+    for w in T:
+        par[deacc(w)].append(w)
+    ins = collections.defaultdict(list)
+    for w in I:
+        ins[deacc(w)].append(w)
+    for d in list(Q):
+        m, f = Q[d]
+        if m + f < SEUIL_QC or d in par or d in _OUTILS or not _FORME.match(d):
+            continue
+        w = _QC_ACCENT.get(d) or (max(ins[d], key=lambda x: (sum(I[x]), x)) if d in ins else d)
+        g = sexe(m, f)
+        T[w] = [g, tete(w, g), '', part(m, f), str(m + f + sum(I.get(w, [0, 0])))]; par[deacc(w)].append(w)
+    for d, w in sorted(_QC_ACCENT.items()):
+        if d in T and w not in T:
+            T[w] = list(T[d]); par[deacc(w)].append(w)
+    for d in sorted(par):                                      # ③ les formes sans accent
+        L = sorted(w for w in par[d] if w != d)
+        if not L:
+            continue
+        if d in T:                                             # « Emilie », « Sebastien » : graphies de l'état civil, la sœur accentuée fait référence
+            vraies = [w for w in L if sum(I.get(w, [0, 0])) >= SEUIL_FR]   # une sœur réellement donnée (« Cathérine », 0 naissance, ne fait pas référence pour « Catherine »)
+            if vraies:
+                T[d][2] = max(vraies, key=lambda x: (sum(I[x]), x))
+            continue
+        if d.lower() in freq:
+            continue
+        gs = set(T[w][0] for w in L)
+        ref = max(L, key=lambda x: (sum(I.get(x, [0, 0])), x))
+        T[d] = [gs.pop() if len(gs) == 1 else '?', '1' if any(T[w][1] == '1' for w in L) else '0', ref, T[ref][3] if len(gs) == 0 else '', T[ref][4] if len(gs) == 0 else '']
+    return T
+
+
 if __name__ == '__main__':
     table, vus, ambigus, conflits, deux = extrait()
-    lignes = ''.join('%s\t%s\t%d\n' % (w, table[w], 1 if w in conflits else 0) for w in sorted(table))
-    nm = sum(1 for v in table.values() if v == 'm')
-    nf = sum(1 for v in table.values() if v == 'f')
+    T = etendre(table, conflits)
+    lignes = ''.join('%s\t%s\n' % (w, '\t'.join(T[w])) for w in sorted(T))
+    nm = sum(1 for v in T.values() if v[0] == 'm')
+    nf = sum(1 for v in T.values() if v[0] == 'f')
+    conflits = set(w for w in T if T[w][1] == '1')
+    wikt = len(table); table = T
 
     if CHECK:
         actuel = io.open(SORTIE, encoding='utf-8').read() if os.path.exists(SORTIE) else None
@@ -147,4 +265,5 @@ if __name__ == '__main__':
     print('  ② écartés, genre ambigu               : %d  (Claude, Camille, Alex, Dominique…)' % ambigus)
     print('  ② bis genre « ? » (deux entrées FR)    : %d  (Sacha, Marin…)' % deux)
     print('  ③ MARQUÉS « pas en tête de phrase »   : %d  (%s…)' % (len(conflits), ', '.join(sorted(conflits)[:6])))
-    print('  RETENUS                               : %d  (%d masculins / %d féminins)' % (len(table), nm, nf))
+    print('  Wiktionnaire seul                     : %d' % wikt)
+    print('  RETENUS (avec INSEE, Québec, alias)   : %d  (%d masculins / %d féminins, %d formes sans accent)' % (len(table), nm, nf, sum(1 for v in table.values() if v[2])))
