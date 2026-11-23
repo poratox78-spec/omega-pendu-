@@ -8,6 +8,7 @@
 // ⑨ lettres du milieu mélangées (liste n° 383) : l'anagramme du milieu est parmi les candidats, le juge la choisit quand l'orthographe hésite, et son index se bâtit par tranches.
 // ⑩ lettres probables (liste n° 399) : le modèle emporte la table des chances de faute par lettre (WiCoPaCo), le 8e trait a la valeur de l'entraînement, il ne vaut que pour un mot inconnu,
 //    l'arbitre ne le lit pas, et le juge choisit le bon mot quand l'orthographe hésite.
+// ⑬ la cohorte du pendu (liste n° 661) : ses premiers mots sont parmi les candidats d'un mot inconnu, et le juge choisit le bon mot sur des mots inventés très déformés.
 // ⑪ point du juge (liste n° 476) : pas de point du juge dans un titre ni après une abréviation.
 // ⑫ contrôle réparé (liste n° 477) : le texte d'UD a perdu beaucoup de virgules, donc une virgule ajoutée n'est pas fausse d'office. Chaque ponctuation
 //    du juge sur le français public a son verdict lu à la main (juge_ponct_lu.json) ; le plafond porte sur les fausses et les non lues. Le « ? » se mesure
@@ -64,6 +65,20 @@ for (const [w, c, v] of [['chevaus', 'chevaux', 1.42], ['abeile', 'abeille', 1.1
 if (D._juge.cands('parle').some((x) => x.tr[7] !== 0)) err.push('liste n° 399 : un mot connu (« parle ») ne reçoit pas le 8e trait');
 for (const [t, w, s] of [['Il a rangé sa chambre rapidemt avant le dîner.', 'rapidemt', 'rapidement'], ['Parle doucemt pour ne pas réveiller le bébé.', 'doucemt', 'doucement']]) {
   const f = marques(t).filter((x) => x.word === w); if (f.length !== 1 || f[0].sugg !== s || !f[0].jugeOrtho || f[0].tier !== 'vigilance') err.push('liste n° 399 : « ' + t + ' » : attendu ' + w + ' → ' + s + ' (orange, choisi par le juge), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier)));
+}
+
+// liste n° 661 (idée de Rem : le pendu) : LA COHORTE. D'un mot INCONNU on garde la première lettre, la longueur à 2 près et le sac des lettres sans leur ordre ;
+// les premiers mots du dictionnaire compatibles entrent parmi les candidats du juge. Seule, la cohorte ferait moins bien que le tri de l'orthographe : elle propose,
+// le juge choisit avec la phrase. Mots déformés à la main par programme (lettres ôtées, échangées), jamais tirés d'un corpus.
+if (!D._juge.cands('biccltte').some((x) => x.m === 'bicyclette')) err.push('liste n° 661 : « bicyclette » (cohorte) manque aux candidats de « biccltte »');
+if (D._juge.cands('parle').some((x) => x.m === 'parole' || x.m === 'perle')) err.push('liste n° 661 : un mot connu (« parle ») ne reçoit pas de cohorte');
+for (const [t, w, s] of [['Elle répare la biccltte de son frère.', 'biccltte', 'bicyclette'], ['Il arrose les géanums du balcon.', 'géanums', 'géraniums'], ['Il traverse la paserlle en courant.', 'paserlle', 'passerelle'],
+  ['Nous rangeons les founiures dans le placard.', 'founiures', 'fournitures'], ['Elle dessine un perouet sur son cahier.', 'perouet', 'perroquet'], ['Elle raconte ses soveirs à sa nièce.', 'soveirs', 'souvenirs'],
+  ['Nous admirons le coquleict au bord du chemin.', 'coquleict', 'coquelicot']]) {
+  const f = marques(t).filter((x) => x.word === w); if (f.length !== 1 || f[0].sugg !== s || f[0].tier !== 'vigilance') err.push('liste n° 661 : « ' + t + ' » : attendu ' + w + ' → ' + s + ' (orange), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier)));
+}
+for (const t of ['Elle répare la bicyclette de son frère.', 'Il arrose les géraniums du balcon.', 'Nous rangeons les fournitures dans le placard.', 'Nous admirons le coquelicot au bord du chemin.']) {
+  const f = marques(t).filter((x) => !x.typo); if (f.length) err.push('liste n° 661 : « ' + t + ' » est juste, rendu ' + JSON.stringify(f.map((x) => x.word + ' → ' + x.sugg)));
 }
 
 for (const [t, nom] of [['Quand le soleil se couche sur la colline les enfants rentrent à la maison.', 'virgule'], ['Mon frère range son vélo dans le garage Il prépare ensuite le repas du soir.', 'point final']]) {
