@@ -164,7 +164,19 @@ async function boutEnBout(sess, port) {
       let auxVu = true; try { await jusqua('aux manquant propose (a fini)', () => (document.getElementById('vdc-out').textContent || '').indexOf('a fini') >= 0, 20000); } catch (e) { auxVu = false; }
       await attendre(900);
       const auxOk = auxVu && (document.getElementById('vdc-out').textContent || '').indexOf('finit') < 0 && [...document.querySelectorAll('.vdc-on')].every(e => (e.textContent || '').indexOf('a fini') < 0);
-      return { ok: true, juge: chips.indexOf('(juge)') >= 0,
+      /* ── liste n° 665 : « je » + participe couvre les deux mots, et les textes d'explication (phrases inventées) */
+      let c665 = true;
+      try {
+        zone.textContent = 'Hier je dormi chez mon cousin.'; zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
+        await jusqua('j ai dormi', () => (document.getElementById('vdc-out').textContent || '').indexOf("j'ai dormi") >= 0, 20000);
+        await attendre(600);
+        if ((document.getElementById('vdc-out').textContent || '').indexOf('« avoir »') < 0 || (document.getElementById('vdc-out').textContent || '').indexOf('dormis') >= 0) c665 = false;
+        zone.textContent = 'Il sait blesser au genou pendant le match.'; zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
+        await jusqua('s est blessé', () => (document.getElementById('vdc-out').textContent || '').indexOf("s'est blessé") >= 0, 20000);
+        await attendre(600);
+        if ((document.getElementById('vdc-out').textContent || '').indexOf('apostrophe') >= 0) c665 = false;
+      } catch (e) { c665 = false; }
+      return { ok: true, c665: c665, juge: chips.indexOf('(juge)') >= 0,
                nonImpose: applique.every(a => a.indexOf("s'est") < 0),
                deux: deuxOk, aux: auxOk, carte: carteOk, etat: etat.textContent, ph: PH, sans: sans, avec: avec };
     } catch (e) { return { fatal: e.message }; }
@@ -239,8 +251,9 @@ async function main() {
         if (!app.nonImpose) echecs.push('bout-en-bout : l\'orange du juge a été APPLIQUÉE — elle doit rester proposée (vigilance)');
         if (!app.deux) echecs.push('bout-en-bout : les deux juges ensemble — « mangent » doit rester proposé et « sais → sait » ne doit pas revenir');
         if (!app.aux) echecs.push('bout-en-bout : « Elle fini » → « a fini » doit être proposé SEUL sur ce mot (pas l\'autre forme du verbe), jamais appliqué');
+        if (!app.c665) echecs.push('bout-en-bout : liste 665 — « je dormi » → j\'ai dormi seul sur ces mots, avec le conseil sur l\'auxiliaire, et pas de conseil « apostrophe » sous « s\'est blessé »');
         if (!app.carte) echecs.push('bout-en-bout : la carte distillée doit taire « aoûts » dans le pipeline SYNC (sans juge)');
-        console.log('  ' + (app.juge && app.nonImpose && app.deux && app.aux && app.carte ? '✓' : '✗') +
+        console.log('  ' + (app.juge && app.nonImpose && app.deux && app.aux && app.carte && app.c665 ? '✓' : '✗') +
           ' app réelle : s\'est mariée proposée · a fini proposé · carte tait « aoûts » (sync) · les deux juges ne se gênent pas (' + app.etat + ')');
         if (app.ph && app.ph.length) { let nDiff = 0;
           app.ph.forEach((x, k) => { const a = (app.sans[k] || []).join(' | '), b = (app.avec[k] || []).join(' | ');
