@@ -1,6 +1,6 @@
 {
- "justes": 581,
- "pointeuses": 162,
+ "justes": 582,
+ "pointeuses": 161,
  "fatigue": 111,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -51,6 +51,7 @@
   "bibliqus→biblique [mot inconnu] terminaison",
   "bilinguime→bilinguisme [mot inconnu] lettre_manque",
   "blacns→blancs [orthographe] inversion",
+  "bledait→baladait [mot inconnu] autre",
   "bonheurs→bonheur [choix du mot à vérifier] accord",
   "borug→bourg [mot inconnu] inversion",
   "boullangers→boulangers [mot inconnu] lettre_trop",
@@ -317,6 +318,7 @@
   "moyennes→moyenne [choix du mot à vérifier] accord",
   "municipalitês→municipalités [mot inconnu] accent",
   "mutuelles→mutuelle [choix du mot à vérifier] accord",
+  "mènaçai→menaçait [orthographe] autre",
   "mêem→même [orthographe] inversion",
   "mêmme→même [orthographe] lettre_trop",
   "mêmme→même [orthographe] lettre_trop",
@@ -530,7 +532,6 @@
   "tribu→tribus [accord pluriel à vérifier] accord",
   "troic→trois [orthographe] lettre_change",
   "tuos→tous [orthographe] inversion",
-  "tuotec→toutes [mot inconnu] autre",
   "tèrs→très [orthographe] inversion",
   "tèrs→très [orthographe] inversion",
   "ténue→tenue [choix du mot à vérifier] accent",
