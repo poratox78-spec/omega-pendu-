@@ -33746,7 +33746,7 @@ function spellUnknown(tok,atStart,T,idx){
    +'<div id="vdc-b2-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
    +'<label style="font-weight:600;cursor:pointer"><input type="checkbox" id="vdc-b2-on"> 🧠 Juge s\'est/sait (local, opt-in — télécharge 15 Mo une seule fois)</label>'
    +' <span id="vdc-b2-etat" class="vdc-sc" aria-live="polite"></span>'
-   +'<div class="vdc-sc" style="margin-top:2px">Un petit modèle de langue OMEGA (WebGPU) départage « elle sait marier » / « elle s\'est mariée » et tait les alertes orange que le contexte dément (mesuré&nbsp;: un tiers de fatigue en moins, 293/294 alertes justes conservées). Tout se calcule sur ta machine — rien n\'est envoyé.</div>'
+   +'<div class="vdc-sc" style="margin-top:2px">Un petit modèle de langue OMEGA (WebGPU) départage « elle sait marier » / « elle s\'est mariée ». Tout se calcule sur ta machine — rien n\'est envoyé.</div>'
    +'</div>'
    +'<div id="vdc-ia-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
    +'<label style="font-weight:600;cursor:pointer"><input type="checkbox" id="vdc-ia-on"> 🤖 Correction par IA (opt-in)</label>'
@@ -34610,52 +34610,59 @@ function spellUnknown(tok,atStart,T,idx){
       var aux=(ETRE_PP[dpp]?_B2_ETRE:_B2_AVOIR)[pron];
       if(!aux)continue;
       var iPart=(t.slice(0,m.index+m[1].length+1).match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).length;   // index TOKEN du participe
-      out.push({i:iPart,sugg:aux+' '+pp,span:1,nom:'auxiliaire manquant ? (juge)',pos:m.index,
+      out.push({i:iPart,sugg:aux+' '+pp,span:1,nom:'auxiliaire manquant ? (juge)',pos:m.index,a:m.index+m[0].length-pp.length,b:m.index+m[0].length,
         cand:t.slice(0,m.index+m[1].length)+' '+aux+t.slice(m.index+m[1].length)});}
     return out;}
   function _b2Fenetre(t,pos){var d=Math.max(t.lastIndexOf('.',pos),t.lastIndexOf('!',pos),t.lastIndexOf('?',pos));
     var e=t.length,c;c=t.indexOf('.',pos);if(c>=0&&c<e)e=c;c=t.indexOf('!',pos);if(c>=0&&c<e)e=c;c=t.indexOf('?',pos);if(c>=0&&c<e)e=c;
     return [d+1,Math.min(e+1,t.length)];}
-  var _B2_TAIS=0.01;                                           // marge de l'ARBITRE (mesurée arbitre_vig_probe : 100 % des oranges justes gardées, ~1/3 de la fatigue tue)
-  function _b2Tais(f){if(!_b2.on||!_b2.cache.tais||_b2.cache.txt!==_b2._cur)return false;
-    return f.tier==='vigilance'&&!!_b2.cache.tais[f.i+'>'+(f.sugg||'')];}
   function _b2Analyse(tRaw,corrs){
     var t=String(tRaw).replace(/[’ʼ]/g,"'");                   // même normalisation que spellText : le cache parle le texte du moteur
-    if(!_b2.on||!_b2.pret||_b2.cache.txt===t||_b2.enCours===t)return;
-    var cadres=_b2Cadres(t);
-    /* ARBITRE GÉNÉRAL DES VIGILANCES (chantier symbiose n°1, mesuré arbitre_vig_probe) : chaque
-       orange à suggestion est jugée — candidat = texte avec la sugg appliquée ; si l'ÉCRIT gagne
-       par marge (>0.01), l'orange est de la fatigue que le contexte dément → on la TAIT.
-       Mesure : dys réel 293/294 justes gardées, 95 % des pointeuses ; ~1/3 de fatigue en moins. */
-    var vigs=[];
-    for(var q=0;q<(corrs||[]).length;q++){var vf=corrs[q];
-      if(vf.tier!=='vigilance'||!vf.sugg||(vf.name||'').indexOf('(juge)')>=0)continue;
-      if(vf.sugg.toLowerCase()===String(vf.word||'').toLowerCase())continue;
-      vigs.push({i:vf.i,sugg:vf.sugg,span:vf.span||1});}
-    if(!cadres.length&&!vigs.length){_b2.cache={txt:t,flags:[],tais:{}};return;}
+    if(!_b2.on||!_b2.pret||_b2.enCours===t)return;
+    var cadres=_b2Cadres(t),sig='',q,r;
+    /* ⭐ 23/11/2026 (liste n° 664) : LES DEUX CORRECTEURS SUR LE MÊME MOT. Sur « Il perdu ses clés », les règles proposent déjà une orange (une autre
+       forme du verbe) et la proposition du B2 (« a perdu ») ne s'affichait plus jamais. Le B2 note donc ce RIVAL et compare trois phrases : l'écrit,
+       la sienne, celle du rival. La sienne ne remplace l'autre que si elle gagne nettement ; à égalité, la règle (offerte à tous) reste. */
+    for(q=0;q<cadres.length;q++){var cq=cadres[q];if(cq.span!==1)continue;
+      for(r=0;r<(corrs||[]).length;r++){var vf=corrs[r];
+        if(vf.i===cq.i&&vf.tier==='vigilance'&&(vf.span||1)===1&&vf.sugg&&vf.sugg!==cq.sugg&&/^[A-Za-zÀ-ÿœŒ]+$/.test(vf.sugg)){cq.riv=vf.sugg;sig+=cq.i+'>'+vf.sugg+';';break;}}}
+    if(_b2.cache.txt===t&&(_b2.cache.sig||'')===sig)return;
+    var avant=_b2.cache.txt===t&&_b2.cache.flags.length>0;
+    /* ⭐ 23/11/2026 (liste n° 664) : le B2 ne fait plus qu'UNE chose — comparer « sait + infinitif » et « s'est + participe » (et l'auxiliaire manquant).
+       Son ancien rôle d'ARBITRE des oranges est retiré : remesuré sur le correcteur actuel (n° 663), où le petit juge fait déjà ce tri, il faisait
+       taire 15 oranges justes pour 4 fausses sur les textes dys lourds, et ne retirait que 15 % des fausses alertes sur du français correct. */
+    if(!cadres.length){_b2.cache={txt:t,flags:[],tais:{},sig:sig};return;}
     _b2.enCours=t;
     (async function(){
       try{
-        var flags=[],tais={},st=null,k;
+        var flags=[],k;
         for(k=0;k<cadres.length;k++){var c=cadres[k];
           var w=_b2Fenetre(t,c.pos),d=c.cand.length-t.length;
           var s0=await B2JUGE.score(t.slice(w[0],w[1])),s1=await B2JUGE.score(c.cand.slice(w[0],w[1]+d));
-          if(s1-s0>_B2_TAU)flags.push({i:c.i,sugg:c.sugg,span:c.span,nom:c.nom});}
-        for(k=0;k<vigs.length;k++){var v=vigs[k];
-          if(st===null){st=[];var _rx=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,_m;while((_m=_rx.exec(t)))st.push([_m.index,_m.index+_m[0].length]);}
-          if(v.i>=st.length||v.i+v.span-1>=st.length)continue;
-          var a=st[v.i][0],b=st[v.i+v.span-1][1];
-          var cand=t.slice(0,a)+v.sugg+t.slice(b);
-          var w2=_b2Fenetre(t,a),d2=cand.length-t.length;
-          var e0=await B2JUGE.score(t.slice(w2[0],w2[1])),e1=await B2JUGE.score(cand.slice(w2[0],w2[1]+d2));
-          if(e0-e1>_B2_TAIS)tais[v.i+'>'+v.sugg]=1;}           // l'écrit gagne nettement → fatigue
+          var ok=s1-s0>_B2_TAU;
+          if(ok&&c.riv){var cr=t.slice(0,c.a)+c.riv+t.slice(c.b),dr=cr.length-t.length,s2=await B2JUGE.score(cr.slice(w[0],w[1]+dr));
+            if(!(s1-s2>_B2_TAU))ok=false;}                    /* le rival fait aussi bien : on garde la règle */
+          if(ok)flags.push({i:c.i,sugg:c.sugg,span:c.span,nom:c.nom,riv:c.riv||''});}
         _b2.enCours=null;
         if(String($('vdc-in').value).replace(/[’ʼ]/g,"'")!==t)return;   // le texte a bougé pendant le calcul → verdict caduc
-        _b2.cache={txt:t,flags:flags,tais:tais};
-        var nT=0,kk;for(kk in tais)nT++;
-        if(flags.length||nT)runCorr();                         // re-passe : b2SaisInf + le filtre _b2Tais lisent le cache
+        _b2.cache={txt:t,flags:flags,tais:{},sig:sig};
+        if(flags.length||avant)runCorr();                             // re-passe : b2SaisInf lit le cache
       }catch(e){_b2.enCours=null;}
     })();}
+  function _b2Garde(corrs,tRaw){var t=String(tRaw).replace(/[’ʼ]/g,"'");
+    if(!_b2.on||_b2.cache.txt!==t||!_b2.cache.flags.length)return corrs;
+    var F=_b2.cache.flags,k,q,T=null,ch=false;
+    for(k=0;k<F.length;k++){var f=F[k];if(f.span!==1)continue;
+      var la=false,dur=false;
+      for(q=0;q<corrs.length;q++){var c=corrs[q],sp=c.span||1;if(f.i<c.i||f.i>=c.i+sp)continue;
+        if(c.i===f.i&&c.sugg===f.sugg)la=true;
+        else if(!(c.tier==='vigilance'&&sp===1&&c.sugg===f.riv))dur=true;}
+      if(la||dur)continue;
+      if(!T)T=toks(tRaw);
+      corrs=corrs.filter(function(c){return c.i!==f.i;});
+      corrs.push({i:f.i,word:T[f.i],sugg:f.sugg,name:f.nom,tier:'vigilance',span:1});ch=true;}
+    if(ch)corrs.sort(function(x,y){return x.i-y.i;});
+    return corrs;}
   function _b2Etat(msg){var e=$('vdc-b2-etat');if(e)e.textContent=msg;}
   function _b2Charge(){
     if(_b2.charge)return;_b2.charge=true;
@@ -34672,8 +34679,8 @@ function spellUnknown(tok,atStart,T,idx){
     if(t.length>_CORR_MAX){_corrs=[];_navRender();$('vdc-count').innerHTML='';var _rzL=$('vdc-result');if(_rzL)_rzL.innerHTML='';$('vdc-out').innerHTML='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea;font-size:14px">📏 <b>Texte trop long</b> ('+t.length.toLocaleString('fr-FR')+' caractères) pour la correction en temps réel. Au-delà de ~'+_CORR_MAX.toLocaleString('fr-FR')+' caractères, corrige par sections (un paragraphe à la fois). Ton texte n’est pas modifié.</div>';return;}   // #UI plafond MESURÉ (Chrome) : au-delà, le rendu O(n) de milliers de spans FIGE l'onglet (~30k). Dégradation douce, texte intact.
     _corrs=SP.ready?_computeCorrs(t):[];
     if(SP.ready&&document.documentElement.lang!=='en'){if(!_JG.ch){_JG.ch=1;loadJuge('juge-mini.bin').then(function(ok){if(ok)runCorr();});}jugeAnalyse(t,_corrs,runCorr);}
-    if(_b2.on&&!_b2.charge)_b2Charge();_b2Analyse(t,_corrs);   // greffe juge-aval + arbitre : chargement paresseux + verdicts async (re-déclenchent runCorr via le cache)
-    _corrs=_corrs.filter(function(f){return !_b2Tais(f);});    // l'arbitre a jugé : les oranges que le contexte dément se taisent (opt-in, cache par texte)
+    if(_b2.on&&!_b2.charge)_b2Charge();_b2Analyse(t,_corrs);   // greffe juge-aval (sait / s'est) : chargement paresseux + verdicts async (re-déclenchent runCorr via le cache)
+    _corrs=_b2Garde(_corrs,t);                                  // auxiliaire manquant : la proposition du B2 remplace l'orange qu'elle a battue (liste n° 664)
     var _ceoff=_ceCaret($('vdc-in'));$('vdc-in').innerHTML=_renderView(t,_corrs,false);_ceSetCaret($('vdc-in'),_ceoff);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées
     if(typeof _syncScroll==='function')_syncScroll();             // réaligne l'overlay (réécrire innerHTML a remis son scroll à 0)
     _lastCorrected=_correctedText(t,_corrs);

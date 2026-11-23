@@ -18,6 +18,10 @@ const { eteindreChrome } = require('../extension/cdp_chrome.js');
 
 const RACINE = path.join(__dirname, '..');
 const TETE = process.argv.includes('--tete');
+/* --phrases <fichier> : chaque ligne est tapée dans la vraie app, juge de 15 Mo ÉTEINT puis ALLUMÉ ; la sonde imprime ce qui change.
+   Sert à vérifier que les deux juges (le petit, pour tous ; le B2, opt-in) ne se marchent pas dessus. */
+const _iPh = process.argv.indexOf('--phrases');
+const PHRASES = _iPh > 0 ? fs.readFileSync(process.argv[_iPh + 1], 'utf8').split(/\r?\n/).map(x => x.trim()).filter(Boolean) : [];
 const TOL = 0.005;
 
 function trouverChrome() {
@@ -122,6 +126,11 @@ async function boutEnBout(sess, port) {
       }, 60000);
       const bb = document.getElementById('vdc-b2-on');
       if (!bb) return { fatal: 'toggle vdc-b2-on absent' };
+      const PH = ${JSON.stringify(PHRASES)}, lire = () => [...document.querySelectorAll('#vdc-out .vdc-fact')].map(e => (e.textContent || '').replace(/\\s+/g, ' ').trim()).filter(Boolean);
+      const taper = async (x, ms) => { zone.textContent = x; zone.dispatchEvent(new InputEvent('input', { bubbles: true })); await attendre(ms);
+        zone.dispatchEvent(new InputEvent('input', { bubbles: true })); await attendre(ms); return lire(); };
+      const sans = [], avec = [];
+      if (PH.length) { await taper(PH[0], 4000); for (const x of PH) sans.push(await taper(x, 700)); }   // 1re frappe longue : le petit juge se charge
       bb.click();                                                    // opt-in → chargement au prochain runCorr
       zone.textContent = "elle sais marier a l'age de vingt ans";
       zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
@@ -138,21 +147,26 @@ async function boutEnBout(sess, port) {
       await jusqua('rendu du texte aout', () => (document.getElementById('vdc-result').textContent || '').indexOf('chapelle') >= 0, 20000);
       await attendre(900);
       const carteOk = (document.getElementById('vdc-out').textContent || '').indexOf('aoûts') < 0;
-      /* ── ARBITRE (juge opt-in) : « se trouvent des poteaux » — l'orange SV fatigue APPARAÎT
-         (pipeline sync) puis SE TAIT (l'écrit gagne, Δ=+0.039 mesuré). */
-      zone.textContent = 'Devant chaque maison à véranda se trouvent des poteaux pour attacher les chevaux.';
+      /* ── LES DEUX JUGES ENSEMBLE (liste n° 664 : le B2 n'est plus arbitre). Une phrase avec une faute pour chacun :
+         le B2 propose « s'est blessé », les règles gardent « mangent », et PERSONNE ne propose « sais → sait »
+         (la garde b2Cadre : l'accord sujet-verbe se tait là où le B2 a tranché). */
+      zone.textContent = 'Il sais blesser au genou et les enfants mange à la cantine.';
       zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
-      await jusqua('orange SV presente (sujet-verbe)', () => (document.getElementById('vdc-out').textContent || '').indexOf('sujet-verbe') >= 0, 20000);
-      await jusqua('arbitre : orange SV tue', () => (document.getElementById('vdc-out').textContent || '').indexOf('sujet-verbe') < 0, 20000);
-      /* ── AUXILIAIRE MANQUANT : « Elle grandi » (l omission REELLE du corpus dys — le moteur
-         seul est muet) → le juge propose « a grandi » en orange, jamais applique. */
-      zone.textContent = 'Elle grandi pendant la guerre.';
+      await jusqua('les deux juges (s est blessé)', () => (document.getElementById('vdc-out').textContent || '').indexOf("s'est blessé") >= 0, 20000);
+      await attendre(900);
+      const deuxTxt = [...document.querySelectorAll('#vdc-out, #vdc-result')].map(e => e.textContent || '').join(' ');
+      const deuxOk = deuxTxt.indexOf('mangent') >= 0 && !/sais\\s*(→|->)\\s*sait\\b/.test(deuxTxt);
+      if (PH.length) for (const x of PH) avec.push(await taper(x, 1500));
+      /* ── AUXILIAIRE MANQUANT (phrase inventée) : les règles proposent « finit » ; le juge compare les trois phrases
+         et « a fini » gagne nettement → il prend la place de l autre orange (liste n° 664), jamais appliqué seul. */
+      zone.textContent = 'Elle fini ses devoirs avant le dîner.';
       zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
-      await jusqua('aux manquant propose (a grandi)', () => (document.getElementById('vdc-out').textContent || '').indexOf('a grandi') >= 0, 20000);
-      const auxOk = [...document.querySelectorAll('.vdc-on')].every(e => (e.textContent || '').indexOf('a grandi') < 0);
+      let auxVu = true; try { await jusqua('aux manquant propose (a fini)', () => (document.getElementById('vdc-out').textContent || '').indexOf('a fini') >= 0, 20000); } catch (e) { auxVu = false; }
+      await attendre(900);
+      const auxOk = auxVu && (document.getElementById('vdc-out').textContent || '').indexOf('finit') < 0 && [...document.querySelectorAll('.vdc-on')].every(e => (e.textContent || '').indexOf('a fini') < 0);
       return { ok: true, juge: chips.indexOf('(juge)') >= 0,
                nonImpose: applique.every(a => a.indexOf("s'est") < 0),
-               arbitre: true, aux: auxOk, carte: carteOk, etat: etat.textContent };
+               deux: deuxOk, aux: auxOk, carte: carteOk, etat: etat.textContent, ph: PH, sans: sans, avec: avec };
     } catch (e) { return { fatal: e.message }; }
   })()`, awaitPromise: true, returnByValue: true, timeout: 180000 });
   if (r.exceptionDetails) return { fatal: (r.exceptionDetails.exception || {}).description };
@@ -223,11 +237,15 @@ async function main() {
       else {
         if (!app.juge) echecs.push('bout-en-bout : l\'orange doit être étiquetée « (juge) »');
         if (!app.nonImpose) echecs.push('bout-en-bout : l\'orange du juge a été APPLIQUÉE — elle doit rester proposée (vigilance)');
-        if (!app.arbitre) echecs.push('bout-en-bout : l\'arbitre (juge) doit taire l\'orange SV fatigue « se trouvent des poteaux »');
-        if (!app.aux) echecs.push('bout-en-bout : « Elle grandi » → « a grandi » doit rester proposé, jamais appliqué seul');
+        if (!app.deux) echecs.push('bout-en-bout : les deux juges ensemble — « mangent » doit rester proposé et « sais → sait » ne doit pas revenir');
+        if (!app.aux) echecs.push('bout-en-bout : « Elle fini » → « a fini » doit être proposé SEUL sur ce mot (pas l\'autre forme du verbe), jamais appliqué');
         if (!app.carte) echecs.push('bout-en-bout : la carte distillée doit taire « aoûts » dans le pipeline SYNC (sans juge)');
-        console.log('  ' + (app.juge && app.nonImpose && app.arbitre && app.aux && app.carte ? '✓' : '✗') +
-          ' app réelle : s\'est mariée proposée · a grandi proposé · carte tait « aoûts » (sync) · arbitre tait l\'orange SV (' + app.etat + ')');
+        console.log('  ' + (app.juge && app.nonImpose && app.deux && app.aux && app.carte ? '✓' : '✗') +
+          ' app réelle : s\'est mariée proposée · a fini proposé · carte tait « aoûts » (sync) · les deux juges ne se gênent pas (' + app.etat + ')');
+        if (app.ph && app.ph.length) { let nDiff = 0;
+          app.ph.forEach((x, k) => { const a = (app.sans[k] || []).join(' | '), b = (app.avec[k] || []).join(' | ');
+            if (a !== b) { nDiff++; console.log('  ≠ « ' + x + ' »\n      éteint : ' + (a || '(rien)') + '\n      allumé : ' + (b || '(rien)')); } });
+          console.log('  --phrases : ' + app.ph.length + ' phrases, ' + nDiff + ' changent quand le juge de 15 Mo est allumé'); }
       }
       const ms = L.reduce((a, l) => a + l.ms, 0) / Math.max(L.length, 1);
       if (echecs.length) { console.error('\n✗ B2 WEB — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
