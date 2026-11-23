@@ -258,7 +258,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | abréviation | 1 | selon la couche | style (sans conseil) | — | — |
 | accord adjectif à vérifier | 3 | orange | accord | — | — |
 | accord du participe après avoir à vérifier | 1 | orange | participe | — | correcteur_probe.py |
-| accord du verbe au sujet nominal à vérifier | 1 | orange | accord | — | correcteur_probe.py |
+| accord du verbe au sujet nominal à vérifier | 2 | orange | accord | — | correcteur_probe.py |
 | accord genre à vérifier | 2 | orange | accord | — | — |
 | accord participe (pronom complément) | 1 | selon la couche | participe | — | — |
 | accord participe à vérifier | 7 | orange | participe | — | — |
@@ -314,7 +314,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 
 | table | chargée par | variables | règles de la chaîne qui la lisent | lue directement par |
 |---|---|---|---|---|
-| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 209 / 231 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `_ppMs460` `_ppNom460` `_ppInf463` … (187) |
+| vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 209 / 231 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `_ppMs460` `_ppNom460` `_ppInf463` … (188) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 153 / 231 | `_nomGN502` `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` … (37) |
 | dictionnaire (speller) | `_applySpellerTSV` | `SP` | 115 / 231 | `_jugeFam` `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `_eerAuxRare497` `_cand498` `_ppCoord498` … (91) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 121 / 231 | `_etreAttrEr` `_eerVerbeRare188` `_eerAuxRare497` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` … (38) |
