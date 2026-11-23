@@ -1297,3 +1297,39 @@ Les prix {reste|restent|C} corrects pour le quartier.
 Seul défaut : les tables {son|sont|G} trop serrées.
 Nous {reviendront|reviendrons|C} avec des amis.
 Je {recommandes|recommande|C} la tarte aux pommes.
+=== T175 message à un propriétaire au sujet d'une fuite
+Depuis mardi, de l'eau {coulent|coule|C} sous l'évier de la cuisine.
+Ma fille a {mit|mis|C} une bassine dessous, mais elle se {rempli|remplit|C} en deux heures.
+Le robinet d'arrêt {es|est|G} bloqué et je n'ose pas le forcer.
+Les joints {on|ont|G} l'air très usés.
+Pouvez-vous {envoyé|envoyer|C} un plombier cette semaine ?
+Je suis {joignables|joignable|N} tous les soirs après dix-huit heures.
+Les voisins du dessous ne se {plaigne|plaignent|C} pas encore.
+J'attends votre {réponce|réponse|O} avec impatience.
+=== T176 récit d'un élève : la sortie au zoo
+Jeudi, notre classe {à|a|G} visité le zoo de la ville.
+Les singes {sautait|sautaient|C} de branche en branche.
+Un lion {dormais|dormait|C} au soleil sans nous regarder.
+Nous avons {vus|vu|C} des girafes manger des feuilles très hautes.
+La maîtresse nous {expliquais|expliquait|C} le régime de chaque animal.
+Les perroquets {répétait|répétaient|C} les mots des visiteurs.
+À midi, nous avons {pique-niquer|pique-niqué|C} près du lac.
+C'{étais|était|C} la plus belle journée de l'année.
+=== T177 petite annonce pour vendre un vélo
+Je {vend|vends|C} un vélo de ville en très bon état.
+Il a {servis|servi|C} deux ans pour aller au travail.
+Les pneus {son|sont|G} neufs et les freins viennent d'être {changé|changés|N}.
+La selle et le panier {reste|restent|C} d'origine.
+Le prix {es|est|G} de cent vingt euros, à débattre.
+Je peux le {livré|livrer|C} dans un rayon de dix kilomètres.
+Les photos {envoyé|envoyées|N} sur demande montrent les {détail|détails|N}.
+Appelez-moi le soir, je {répond|réponds|C} toujours.
+=== T178 règles d'un jeu de cartes écrites par un enfant
+Chaque joueur {reçoivent|reçoit|C} sept cartes au début.
+Le plus jeune {commences|commence|C} la partie.
+On {posent|pose|C} une carte de la même couleur ou du même chiffre.
+Si tu n'as rien, tu {pioche|pioches|C} une carte.
+Les cartes noires {change|changent|C} la couleur du jeu.
+Celui qui n'a plus qu'une carte {dois|doit|C} dire « dernière ».
+Les joueurs qui {triche|trichent|C} passent leur tour.
+Le premier qui n'a plus de cartes {à|a|G} gagné.

@@ -227,6 +227,22 @@ const CAS = [
   { t: 'Le soir jadmet tout.', mots: { jadmet: { sugg: "j'admets", non: ['qui commande'] } } },   // le pronom est DANS le mot : « C'est le qui commande »
   { t: 'Il a cént euros.', mots: { 'cént': { sugg: 'cent', non: ['muet s’entend'] } } },   // la faute est l'accent, pas le t final
   { t: 'Il est gran.', mots: { gran: { sugg: 'grand', oui: ['Le d muet s’entend dans « grande »'] } } },   // témoin : la dernière lettre manquait
+  // ⭐ 23/11/2026 (lot explications) — relecture de l'explication de chacune des 1 533 fautes bien corrigées du banc d'usage
+  { t: 'Nous seront heureux de vous la présenter.',   // -ons / -ont : ni « je » ni « tu »
+    mots: { seront: { sugg: 'serons' } }, remed: { oui: ['avec « nous », ce verbe finit par -ons'], non: ['« je » ou « tu »'] } },
+  { t: 'Les exposants pourrons venir dès sept heures.',
+    mots: { pourrons: { sugg: 'pourront' } }, remed: { oui: ['ce verbe finit par -ont'], non: ['« je » ou « tu »'] } },
+  { t: 'La saison reprendras le 6 septembre.',   // le -s d'un verbe n'est pas un pluriel
+    mots: { reprendras: { sugg: 'reprendra' } }, remed: { oui: ['ne prend pas de -s'], non: ['c’est le singulier'] } },
+  { t: "Cette pelle, je l'ai rangé derrière la porte.",   // avec « avoir », ce n'est jamais le sujet qui commande
+    mots: { 'rangé': { sugg: 'rangée', oui: ['Avec « avoir »'], non: ['« je »'] } } },
+  { t: 'La chorale nous a offerte une chanson.',
+    mots: { offerte: { sugg: 'offert', oui: ['Avec « avoir »'], non: ['« nous » (pluriel)'] } } },
+  // ⭐ 23/11/2026 (liste n° 639) — la ponctuation proposée a sa ligne courte, une par signe
+  { t: 'Ensuite nous irons au parc avec les enfants.', mots: {}, remed: { oui: ['Virgule : une petite pause dans la phrase'] } },
+  { t: 'Ne posez pas plus de dix kilos par planche', mots: {}, remed: { oui: ['Point final : une phrase finie se termine par un point.'] } },
+  { t: 'Pourriez-vous envoyer un technicien pour vérifier le compteur.', mots: {}, remed: { oui: ['Point d’interrogation : une question se termine par « ? ».'] } },
+  { t: 'Nous irons demain après midi.', mots: {}, remed: { oui: ['Trait d’union : « après-midi » s’écrit avec un trait d’union.'] } },
 ];
 
 let rouge = 0;
@@ -267,6 +283,26 @@ for (const [e, a, oui, non] of [
   ['sé', 'ce', 'c’est la GRAMMAIRE de la phrase qui choisit — ici « ce »', 'forme sûre']]) {
   const s = D.REMED.homophone_gram(e, a);
   if (!has(s, oui) || (non && has(s, non))) fail('homophone sans règle « ' + e + ' → ' + a + ' » : ' + s);
+}
+// ⭐ 23/11/2026 (lot explications) — les corrections du JUGE (« choix du mot à vérifier ») recevaient toutes « même son, pas le même SENS »,
+// même pour un pluriel, un infinitif ou une personne. La FORME dit la leçon ; un vrai homophone garde la sienne.
+for (const [e, a, oui, non] of [
+  ['bénévole', 'bénévoles', 'il manque le « s » du pluriel', 'SENS'],
+  ['nouvelles', 'nouvelle', 'le « s » est en trop', 'SENS'],
+  ['demandé', 'demander', '« mordre »', 'SENS'],
+  ['reçois', 'reçoit', 'ce verbe finit par -t', 'SENS'],
+  ['pourrons', 'pourront', 'ce verbe finit par -ont', 'SENS'],
+  ['doive', 'doivent', 'il manque le « nt » du verbe', 'SENS'],
+  ['soiré', 'soirée', 'NOM féminin', 'SENS'],
+  ['a', 'à', '« avait »', 'SENS'],
+  ['adresses', 'adresse', 'ni pluriel, ni verbe avec « tu »', 'SENS'],
+  // de vrais homophones, ou une différence qui n'est pas à la fin du mot : la leçon des homophones reste
+  ['moi', 'mois', 'SENS', 'pluriel'],
+  ['sou', 'sous', 'SENS', 'pluriel'],
+  ['lise', 'lisse', 'SENS', 'SUBJONCTIF'],
+  ['cite', 'site', 'SENS', null]]) {
+  const s = D.remedTip('homophone_lex', { ecrit: e, mot: a, regle: 'choix du mot à vérifier' });
+  if (!has(s, oui) || (non && has(s, non))) fail('leçon d’une correction du juge « ' + e + ' → ' + a + ' » : ' + s);
 }
 console.log('  ✓ tests de substitution sans nom de règle (dictée, IA) : la forme d\'épreuve valide le bon mot');
 // une lettre en trop MUETTE (dictée) : « compte les sons » n'y aide pas — la couche est la même dans l'app

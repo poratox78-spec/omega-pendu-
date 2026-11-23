@@ -274,10 +274,10 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | conjugaison après je à vérifier | 1 | orange | personne | — | — |
 | contraction | 1 | selon la couche | contraction (sans conseil) | — | — |
 | élision | 8 | selon la couche | segmentation | — | correcteur_probe.py |
-| espace après la virgule | 1 | selon la couche | ponctuation (sans conseil) | — | — |
-| espace avant la ponctuation | 1 | selon la couche | ponctuation (sans conseil) | — | — |
-| espace double | 1 | selon la couche | ponctuation (sans conseil) | — | — |
-| espacement | 1 | selon la couche | ponctuation (sans conseil) | — | — |
+| espace après la virgule | 1 | selon la couche | ponctuation | — | — |
+| espace avant la ponctuation | 1 | selon la couche | ponctuation | — | — |
+| espace double | 1 | selon la couche | ponctuation | — | — |
+| espacement | 1 | selon la couche | ponctuation | — | — |
 | forme en -ant à vérifier | 1 | orange | participe | — | — |
 | genre de la personne qui écrit | 1 | selon la couche | participe | — | — |
 | homophone à vérifier | 5 | orange | homophone_lex | — | — |
@@ -285,7 +285,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | infinitif après semi-auxiliaire à vérifier | 1 | orange | personne | — | correcteur_probe.py |
 | j'est/j'ai à vérifier | 1 | orange | personne | — | correcteur_probe.py |
 | majuscule initiale à vérifier | 1 | orange | majuscule | — | — |
-| mot coupé | 1 | selon la couche | ponctuation (sans conseil) | — | — |
+| mot coupé | 1 | selon la couche | ponctuation | — | — |
 | mot inconnu | 3 | selon la couche | surface | — | — |
 | nombre | 1 | selon la couche | style (sans conseil) | — | correcteur_probe.py |
 | nombre du déterminant à vérifier | 1 | orange | accord | — | correcteur_probe.py |
@@ -298,15 +298,15 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | personne du verbe par le son à vérifier | 1 | orange | personne | — | — |
 | pléonasme | 1 | selon la couche | style (sans conseil) | — | — |
 | pluriel par le son à vérifier | 1 | orange | accord | — | correcteur_probe.py |
-| point d'interrogation | 3 | selon la couche | ponctuation (sans conseil) | — | — |
-| point final | 1 | selon la couche | ponctuation (sans conseil) | — | — |
+| point d'interrogation | 3 | selon la couche | ponctuation | — | — |
+| point final | 1 | selon la couche | ponctuation | — | — |
 | répétition | 1 | selon la couche | repetition (sans conseil) | — | — |
 | sait/s'est à vérifier | 1 | orange | homophone_gram | — | — |
 | terminaison -er/-é/-ez/-ai | 2 | selon la couche | accord | — | correcteur_probe.py |
-| trait d'union | 2 | selon la couche | ponctuation (sans conseil) | — | — |
+| trait d'union | 2 | selon la couche | ponctuation | — | — |
 | typographie | 3 | selon la couche | style (sans conseil) | — | — |
-| virgule | 2 | selon la couche | ponctuation (sans conseil) | — | — |
-| virgule doublée | 1 | selon la couche | ponctuation (sans conseil) | — | — |
+| virgule | 2 | selon la couche | ponctuation | — | — |
+| virgule doublée | 1 | selon la couche | ponctuation | — | — |
 
 ## Tables et qui les lit
 
@@ -316,7 +316,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 |---|---|---|---|---|
 | vdc-lex (conjugaison, genre, pluriels) | `_applyVdc` | `BCLF` `COMMON_VERBS` `GENDER_MAP` `GENDER_PURE` `ADJP` `CONJ_F` `CONJ_C` `NOUN_PLURAL` | 209 / 231 | `_persDe` `lexicalGender` `_pplRe66` `_isPpl` `vlike` `_ppMs460` `_ppNom460` `_ppInf463` … (187) |
 | genre relâché | `_applyGenderRelaxed` | `GENDER_PURE` | 153 / 231 | `_nomGN502` `rEPplVig` `rEPpl` `_cestNomFem` `rCaSa` `rDetVoy246` `rPetits301` `rAttr314` … (37) |
-| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 115 / 231 | `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `_eerAuxRare497` `_cand498` `_ppCoord498` `rAdjCoordApp500` … (90) |
+| dictionnaire (speller) | `_applySpellerTSV` | `SP` | 115 / 231 | `_jugeFam` `_isPplWideEr` `_canonW` `_emit` `_eerVerbeRare188` `_eerAuxRare497` `_cand498` `_ppCoord498` … (91) |
 | noun-post | `_applyNounPost` | `NOUN_POST` | 121 / 231 | `_etreAttrEr` `_eerVerbeRare188` `_eerAuxRare497` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` … (38) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 92 / 231 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 231 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
