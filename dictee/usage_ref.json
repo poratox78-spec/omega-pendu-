@@ -35,8 +35,8 @@
   "orthographe": {
    "total": 269,
    "bon": 261,
-   "rouge juste": 138,
-   "orange juste": 123,
+   "rouge juste": 139,
+   "orange juste": 122,
    "mauvais mot": 3,
    "muette": 5
   }
@@ -652,7 +652,7 @@
   "T35#8": "rouge juste",
   "T35#9": "orange juste",
   "T36#0": "rouge juste",
-  "T36#1": "orange juste",
+  "T36#1": "rouge juste",
   "T36#2": "orange juste",
   "T36#3": "orange juste",
   "T36#4": "orange juste",

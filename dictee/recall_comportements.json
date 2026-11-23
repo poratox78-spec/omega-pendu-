@@ -1162,7 +1162,14 @@
 "Le repas est prêt. Mange des légumes ce soir.",
 "Il ajoute un croûton dans la soupe.",
 "La flûtiste joue un air joyeux.",
-"Le menuisier affûte son rabot."
+"Le menuisier affûte son rabot.",
+"Nous allons voir le défilé du quatorze juillet.",
+"Rendez-vous le quinze septembre devant la mairie.",
+"Le huit mai, les magasins sont fermés.",
+"Nous partons le trois août.",
+"Il a musé toute la journée.",
+"Nous avons visité le musée.",
+"Ce musée est fermé le mardi."
 ],
 "elide": [
 [
@@ -5079,6 +5086,21 @@
 "Le repas est prêt. Manges des légumes ce soir.",
 "Manges",
 "Mange"
+],
+[
+"Nous avons visité le musé.",
+"musé",
+"musée"
+],
+[
+"Ce musé est fermé le mardi.",
+"musé",
+"musée"
+],
+[
+"Un musé gratuit ouvre demain.",
+"musé",
+"musée"
 ]
 ],
 "palier": [
@@ -6221,6 +6243,14 @@
 [
 "Après un long sommeil, le volcan ce réveille.",
 "réveille"
+],
+[
+"Nous avons visité le musé.",
+"le"
+],
+[
+"Ce musé est fermé le mardi.",
+"fermé"
 ]
 ],
 "sans_rouge": [
