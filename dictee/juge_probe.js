@@ -74,7 +74,7 @@ if (!D._juge.cands('biccltte').some((x) => x.m === 'bicyclette')) err.push('list
 if (D._juge.cands('parle').some((x) => x.m === 'parole' || x.m === 'perle')) err.push('liste n° 661 : un mot connu (« parle ») ne reçoit pas de cohorte');
 for (const [t, w, s] of [['Elle répare la biccltte de son frère.', 'biccltte', 'bicyclette'], ['Il arrose les géanums du balcon.', 'géanums', 'géraniums'], ['Il traverse la paserlle en courant.', 'paserlle', 'passerelle'],
   ['Nous rangeons les founiures dans le placard.', 'founiures', 'fournitures'], ['Elle dessine un perouet sur son cahier.', 'perouet', 'perroquet'], ['Elle raconte ses soveirs à sa nièce.', 'soveirs', 'souvenirs'],
-  ['Nous admirons le coquleict au bord du chemin.', 'coquleict', 'coquelicot']]) {
+  ['Nous admirons le coquleict au bord du chemin.', 'coquleict', 'coquelicot'], ['Elle raconte ses souevnis à sa nièce.', 'souevnis', 'souvenirs']/* liste n° 662 : trouvé par le 4e ou le 5e mot de la cohorte */]) {
   const f = marques(t).filter((x) => x.word === w); if (f.length !== 1 || f[0].sugg !== s || f[0].tier !== 'vigilance') err.push('liste n° 661 : « ' + t + ' » : attendu ' + w + ' → ' + s + ' (orange), rendu ' + JSON.stringify(f.map((x) => x.sugg + ' ' + x.tier)));
 }
 for (const t of ['Elle répare la bicyclette de son frère.', 'Il arrose les géraniums du balcon.', 'Nous rangeons les fournitures dans le placard.', 'Nous admirons le coquelicot au bord du chemin.']) {
