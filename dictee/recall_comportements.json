@@ -1136,7 +1136,12 @@
 "Cet été commencent les travaux de la mairie.",
 "La séance est levée à vingt et une heures.",
 "Le cahier compte quarante et une pages.",
-"Rendez-vous à vingt-et-une heures."
+"Rendez-vous à vingt-et-une heures.",
+"Les freins viennent d'être changés.",
+"Le colis vient d'être livré.",
+"Je leur expliquais le régime de chaque animal.",
+"Tu nous racontais tes voyages.",
+"Il range leurs dessins dans un carton."
 ],
 "elide": [
 [
@@ -4948,6 +4953,36 @@
 "Je prends une heures de pause.",
 "heures",
 "heure"
+],
+[
+"La maîtresse nous expliquais le régime de chaque animal.",
+"expliquais",
+"expliquait"
+],
+[
+"Mon oncle nous racontais ses voyages.",
+"racontais",
+"racontait"
+],
+[
+"Les freins viennent d'être changé.",
+"changé",
+"changés"
+],
+[
+"Les colis risquent d'être livré en retard.",
+"livré",
+"livrés"
+],
+[
+"Je leurs donne un livre.",
+"leurs",
+"leur"
+],
+[
+"Ils ont vendu leur maisons.",
+"leur",
+"leurs"
 ]
 ],
 "palier": [
@@ -6038,6 +6073,10 @@
 [
 "Beaucoup son restés après le match.",
 "restés"
+],
+[
+"La maîtresse leur expliquais le régime de chaque animal.",
+"leur"
 ]
 ]
 }

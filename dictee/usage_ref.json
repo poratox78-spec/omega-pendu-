@@ -26,10 +26,10 @@
   },
   "conjugaison": {
    "total": 595,
-   "bon": 569,
+   "bon": 570,
    "rouge juste": 303,
-   "orange juste": 266,
-   "mauvais mot": 9,
+   "orange juste": 267,
+   "mauvais mot": 8,
    "muette": 17
   },
   "orthographe": {
@@ -1701,7 +1701,7 @@
   "T176#1": "rouge juste",
   "T176#2": "rouge juste",
   "T176#3": "orange juste",
-  "T176#4": "mauvais mot",
+  "T176#4": "orange juste",
   "T176#5": "rouge juste",
   "T176#6": "muette",
   "T176#7": "rouge juste",
