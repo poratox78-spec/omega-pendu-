@@ -243,6 +243,11 @@ const CAS = [
   { t: 'Ne posez pas plus de dix kilos par planche', mots: {}, remed: { oui: ['Point final : une phrase finie se termine par un point.'] } },
   { t: 'Pourriez-vous envoyer un technicien pour vérifier le compteur.', mots: {}, remed: { oui: ['Point d’interrogation : une question se termine par « ? ».'] } },
   { t: 'Nous irons demain après midi.', mots: {}, remed: { oui: ['Trait d’union : « après-midi » s’écrit avec un trait d’union.'] } },
+  // ⭐ 23/11/2026 (liste n° 640) — un conseil « C'est X qui commande » qui contredit la correction se tait
+  { t: 'La salle des contes est rénové.',   // la correction est un féminin : « des » (pluriel) ne l'explique pas
+    mots: { 'rénové': { sugg: 'rénovée', non: ['« des »', 'pluriel'] } } },
+  { t: 'Le chalumeau reste fermer.',   // la faute est -er / -é, pas un nombre ; la ligne d'explication donne « mordre / mordu »
+    mots: { fermer: { sugg: 'fermé', non: ['qui commande'] } }, remed: { oui: ['« mordre »'] } },
 ];
 
 let rouge = 0;

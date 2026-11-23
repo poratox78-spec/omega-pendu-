@@ -1141,7 +1141,9 @@
 "Le colis vient d'être livré.",
 "Je leur expliquais le régime de chaque animal.",
 "Tu nous racontais tes voyages.",
-"Il range leurs dessins dans un carton."
+"Il range leurs dessins dans un carton.",
+"Ne plonge pas dans le petit bassin.",
+"Un homme veule ne décide rien."
 ],
 "elide": [
 [
@@ -4983,6 +4985,21 @@
 "Ils ont vendu leur maisons.",
 "leur",
 "leurs"
+],
+[
+"Ne plongé pas dans le petit bassin.",
+"plongé",
+"plongez"
+],
+[
+"Ne donné jamais de pain aux canards.",
+"donné",
+"donnez"
+],
+[
+"Mes copains veule tous venir à mon anniversaire.",
+"veule",
+"veulent"
 ]
 ],
 "palier": [

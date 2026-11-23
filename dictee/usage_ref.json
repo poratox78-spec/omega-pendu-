@@ -1,18 +1,18 @@
 {
  "domaines": {
   "pluriels": {
-   "total": 263,
-   "bon": 250,
-   "rouge juste": 164,
-   "orange juste": 86,
+   "total": 266,
+   "bon": 253,
+   "rouge juste": 165,
+   "orange juste": 88,
    "mauvais mot": 0,
    "muette": 13
   },
   "grammaire": {
-   "total": 398,
-   "bon": 375,
-   "rouge juste": 163,
-   "orange juste": 212,
+   "total": 404,
+   "bon": 381,
+   "rouge juste": 167,
+   "orange juste": 214,
    "mauvais mot": 0,
    "muette": 23
   },
@@ -25,18 +25,18 @@
    "muette": 37
   },
   "conjugaison": {
-   "total": 595,
-   "bon": 570,
-   "rouge juste": 303,
-   "orange juste": 267,
+   "total": 617,
+   "bon": 592,
+   "rouge juste": 313,
+   "orange juste": 279,
    "mauvais mot": 8,
    "muette": 17
   },
   "orthographe": {
-   "total": 263,
-   "bon": 253,
+   "total": 264,
+   "bon": 254,
    "rouge juste": 136,
-   "orange juste": 117,
+   "orange juste": 118,
    "mauvais mot": 4,
    "muette": 6
   }
@@ -1722,6 +1722,38 @@
   "T178#4": "rouge juste",
   "T178#5": "orange juste",
   "T178#6": "rouge juste",
-  "T178#7": "rouge juste"
+  "T178#7": "rouge juste",
+  "T179#0": "rouge juste",
+  "T179#1": "rouge juste",
+  "T179#2": "orange juste",
+  "T179#3": "orange juste",
+  "T179#4": "orange juste",
+  "T179#5": "orange juste",
+  "T179#6": "orange juste",
+  "T179#7": "orange juste",
+  "T180#0": "rouge juste",
+  "T180#1": "rouge juste",
+  "T180#2": "orange juste",
+  "T180#3": "rouge juste",
+  "T180#4": "orange juste",
+  "T180#5": "orange juste",
+  "T180#6": "rouge juste",
+  "T180#7": "rouge juste",
+  "T181#0": "rouge juste",
+  "T181#1": "rouge juste",
+  "T181#2": "rouge juste",
+  "T181#3": "orange juste",
+  "T181#4": "orange juste",
+  "T181#5": "rouge juste",
+  "T181#6": "orange juste",
+  "T181#7": "rouge juste",
+  "T182#0": "orange juste",
+  "T182#1": "orange juste",
+  "T182#2": "rouge juste",
+  "T182#3": "rouge juste",
+  "T182#4": "orange juste",
+  "T182#5": "orange juste",
+  "T182#6": "orange juste",
+  "T182#7": "rouge juste"
  }
 }

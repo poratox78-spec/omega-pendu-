@@ -1333,3 +1333,39 @@ Les cartes noires {change|changent|C} la couleur du jeu.
 Celui qui n'a plus qu'une carte {dois|doit|C} dire « dernière ».
 Les joueurs qui {triche|trichent|C} passent leur tour.
 Le premier qui n'a plus de cartes {à|a|G} gagné.
+=== T179 lettre d'un enfant pour sa mamie
+Chère mamie, j'espère que tu {va|vas|C} bien.
+À l'école, nous {apprenont|apprenons|C} une poésie sur l'automne.
+Papa m'a {acheter|acheté|C} des bottes pour la pluie.
+Le chat des voisins {viens|vient|C} dormir sur mon lit.
+Hier, j'ai {perdus|perdu|C} une dent en mangeant une pomme.
+Mes copains {veule|veulent|C} tous venir à mon anniversaire.
+Je t'{envoi|envoie|C} un dessin de notre maison.
+Gros {bisoux|bisous|O} et à bientôt.
+=== T180 consignes affichées à la piscine
+La douche {es|est|G} obligatoire avant la baignade.
+Les enfants de moins de huit ans {reste|restent|C} avec un adulte.
+Il est {interdis|interdit|C} de courir au bord du bassin.
+Les bonnets de bain {son|sont|G} en vente à l'accueil.
+Ne {plongé|plongez|C} pas dans le petit bassin.
+Les casiers {ferme|ferment|C} avec une pièce d'un euro.
+Rangez vos {affaire|affaires|N} dans un sac.
+Merci de {respecté|respecter|C} le travail des maîtres-nageurs.
+=== T181 déclaration d'une panne de voiture à l'assureur
+Mardi soir, ma voiture {à|a|G} calé en pleine côte.
+Le moteur {faisais|faisait|C} un bruit étrange depuis le matin.
+J'ai {allumer|allumé|C} les feux de détresse tout de suite.
+Deux automobilistes m'{on|ont|G} aidé à pousser la voiture.
+La dépanneuse est {arrivé|arrivée|N} une heure plus tard.
+Le garagiste {pensent|pense|C} que la courroie a lâché.
+Les réparations {coûterons|coûteront|C} environ trois cents euros.
+Je vous {joint|joins|C} la facture du remorquage.
+=== T182 message de remerciement après un anniversaire
+Merci à tous d'être {venu|venus|N} samedi soir.
+Vos cadeaux m'{on|ont|G} beaucoup touchée.
+Le gâteau de Léa {étais|était|C} une vraie merveille.
+Les enfants se {son|sont|G} couchés très tard.
+Mon téléphone a {reçus|reçu|C} tant de messages que je n'ai pas fini de répondre.
+Les photos {serons|seront|C} bientôt sur le groupe.
+Mamie a {dansée|dansé|C} jusqu'à minuit.
+On {remets|remet|C} ça l'année prochaine.
