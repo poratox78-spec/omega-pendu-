@@ -1143,7 +1143,26 @@
 "Tu nous racontais tes voyages.",
 "Il range leurs dessins dans un carton.",
 "Ne plonge pas dans le petit bassin.",
-"Un homme veule ne décide rien."
+"Un homme veule ne décide rien.",
+"N'oubliez pas vos gants en sortant.",
+"N'ouvrez à personne pendant notre absence.",
+"Les étés sont chauds dans cette vallée.",
+"Ces étés restent mes meilleurs moments.",
+"Mon oncle pêchait dans l'étang. Ma tante nous préparait des gaufres le dimanche. Les poules venaient picorer dans nos mains.",
+"Elle criera de joie en ouvrant le paquet.",
+"Chacun jouera un morceau seul.",
+"Il est resté à jeun toute la matinée.",
+"Chaque matin, un élève leur donne de la salade.",
+"Il ne faut pas les toucher.",
+"Après un long sommeil, le volcan se réveille.",
+"Ferme les pots tout de suite et retourne-les.",
+"Leurs notes sont bonnes.",
+"Il fait froid. Ferme la porte en sortant.",
+"Elle a publié deux livres. Marches du dimanche et autres balades.",
+"Le repas est prêt. Mange des légumes ce soir.",
+"Il ajoute un croûton dans la soupe.",
+"La flûtiste joue un air joyeux.",
+"Le menuisier affûte son rabot."
 ],
 "elide": [
 [
@@ -5000,6 +5019,66 @@
 "Mes copains veule tous venir à mon anniversaire.",
 "veule",
 "veulent"
+],
+[
+"N'oublié pas vos gants en sortant.",
+"N'oublié",
+"N'oubliez"
+],
+[
+"N'ouvré à personne pendant notre absence.",
+"N'ouvré",
+"N'ouvrez"
+],
+[
+"N'hésité pas à sonner chez la gardienne.",
+"N'hésité",
+"N'hésitez"
+],
+[
+"Mon oncle pêchais dans l'étang. Ma tante nous préparais des gaufres le dimanche. Les poules venais picorer dans nos mains.",
+"préparais",
+"préparait"
+],
+[
+"Il ne faut pas les touché.",
+"touché",
+"toucher"
+],
+[
+"Tu ne dois pas les touché.",
+"touché",
+"toucher"
+],
+[
+"Je déteste ce réveille trop matinal.",
+"réveille",
+"réveil"
+],
+[
+"Fermes les pots tout de suite et retourne-les.",
+"Fermes",
+"Ferme"
+],
+[
+"Laves les fraises et enlève les queues.",
+"Laves",
+"Lave"
+],
+[
+"Il fait froid. Fermes la porte en sortant.",
+"Fermes",
+"Ferme"
+],
+[
+"Leur notes sont bonnes.",
+"Leur",
+"Leurs"
+],
+[
+"Le repas est prêt. Manges des légumes ce soir.",
+"Manges",
+"Mange"
 ]
 ],
 "palier": [
@@ -6079,6 +6158,46 @@
 "Il leve la main en classe.",
 "leve",
 "lève"
+],
+[
+"Chacun joura un morceau seul.",
+"joura",
+"jouera"
+],
+[
+"Elle crira de joie en ouvrant le paquet.",
+"crira",
+"criera"
+],
+[
+"Il noura ses lacets tout seul.",
+"noura",
+"nouera"
+],
+[
+"Nous plirons le linge ce soir.",
+"plirons",
+"plierons"
+],
+[
+"Il est resté à jeûn toute la matinée.",
+"jeûn",
+"jeun"
+],
+[
+"Il ajoute un croûtôn dans la soupe.",
+"croûtôn",
+"croûton"
+],
+[
+"La flûtîste joue un air joyeux.",
+"flûtîste",
+"flûtiste"
+],
+[
+"Le menuisier affûte son râbôt.",
+"râbôt",
+"rabot"
 ]
 ],
 "a_participe": [
@@ -6094,6 +6213,20 @@
 [
 "La maîtresse leur expliquais le régime de chaque animal.",
 "leur"
+],
+[
+"Chaque matin, un élève leur donnes de la salade.",
+"leur"
+],
+[
+"Après un long sommeil, le volcan ce réveille.",
+"réveille"
+]
+],
+"sans_rouge": [
+[
+"Ces étés reste mes meilleurs moments.",
+"reste"
 ]
 ]
 }
