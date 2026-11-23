@@ -126,7 +126,7 @@
       t=/[âîôû]/.test(y)?'circ':y==='ç'?'ced':/[ëïüÿ]/.test(y)?'trema':/[àù]/.test(y)?'grave':/[éèê]/.test(y)?'e':(/[a-z]/.test(y)&&/[àâäéèêëîïôöùûüÿç]/.test(e.charAt(i).toLowerCase()))?'sans':'autre';if(!k[t]){k[t]=1;nk++;}}
     return {ch:ch,k:k,nk:nk};}
   // -s / -x / -t en fin de verbe : c'est la PERSONNE qui les choisit (je, tu : -s ou -x ; il, elle, on : -t)
-  function _stx(le,la){if(!le||!la||le.length!==la.length||le.slice(0,-1)!==la.slice(0,-1))return '';var ce=le.slice(-1),ca=la.slice(-1);
+  function _stx(le,la){if(!le||!la||le.length!==la.length||le.slice(0,-1)!==la.slice(0,-1))return '';var ce=le.slice(-1),ca=la.slice(-1);if(/on[st]$/.test(le)&&/on[st]$/.test(la))return ca==='s'?'avec « nous », ce verbe finit par -ons ; -ont, c’est avec « ils » ou « elles ».':'avec « ils », « elles » ou un nom au pluriel, ce verbe finit par -ont ; -ons, c’est avec « nous ».';   /* ⭐ 23/11/2026 (lot explications) : « Nous seront » → serons, « Les exposants pourrons » → pourront — ni « je » ni « tu » ici */
     if((ca==='s'||ca==='x')&&ce==='t')return 'avec « je » ou « tu », ce verbe finit par -'+ca+' ; -t, c’est avec « il », « elle » ou « on ».';
     if(ca==='t'&&(ce==='s'||ce==='x'))return 'avec « il », « elle », « on » ou un nom, ce verbe finit par -t ; -'+ce+', c’est avec « je » ou « tu ».';
     return '';}
@@ -304,6 +304,7 @@
       if(d&&d.a===''&&d.e==='nt')return _pr(e,a)+'le sujet est au SINGULIER, le « nt » est en trop.';
       if(vb&&d&&d.e===''&&d.a==='s'&&!/(^|')(il|elle)$/.test(le))return _pr(e,a)+(_persDe(la,le)==='tu'?'avec « tu », le verbe prend un -s.':'avec « je » ou « tu », ce verbe prend un -s.');   // ⭐ 08/10/2026 : « je met » → mets : un VERBE qui prend -s, c'est je/tu — jamais « le s du pluriel »
       if(d&&d.e===''&&(d.a==='s'||d.a==='x'))return _pr(e,a)+'il manque le « '+d.a+' » du pluriel — regarde ce qui commande.';
+      if(vb&&d&&d.a===''&&d.e==='s'&&/[ae]s$/.test(le))return _pr(e,a)+'avec « il », « elle », « on » ou un nom, ce verbe ne prend pas de -s ; le -s va avec « tu ».';   /* ⭐ 23/11/2026 (lot explications) : « La saison reprendras » → reprendra — le -s d'un verbe n'est pas un pluriel */
       if(d&&d.a===''&&(d.e==='s'||d.e==='x'))return _pr(e,a)+'ici c’est le singulier, le « '+d.e+' » est en trop.';
       if(d&&d.e===''&&d.a==='es')return _pr(e,a)+'il manque « es » : le féminin ET le pluriel — cherche qui commande.';
       if(d&&d.e===''&&d.a==='e')return _pr(e,a)+'il manque le « e » du féminin — cherche qui commande l’accord.';
@@ -322,6 +323,7 @@
     liaison:function(e,a){var d=_rd(e,a);
       if(d&&d.a===''&&d.e.length===1)return _pr(e,a)+'le « '+d.e+' » que tu entends appartient au mot d’avant, il ne s’écrit pas ici.';
       return _pr(e,a)+'le son entre deux mots (les‿z‿amis) appartient au PREMIER — écris « les amis ».';},
+    ponctuation:function(e,a,r){var n=String(r||''),ea=String(e||''),aa=String(a||'');if(/^virgule$/.test(n))return 'Virgule : une petite pause dans la phrase (après « Ensuite », avant « mais » ou « car »).';if(/^point final$/.test(n))return 'Point final : une phrase finie se termine par un point.';if(/^point d.interrogation$/.test(n))return 'Point d’interrogation : une question se termine par « ? ».';if(/trait d.union/.test(n)&&aa.indexOf('-')>=0&&ea.indexOf('-')<0)return 'Trait d’union : « '+a+' » s’écrit avec un trait d’union.';return '';},   /* ⭐ 23/11/2026 (liste n° 639 : une ligne courte par signe) — la ponctuation proposée n'avait aucune explication */
     majuscule:function(e,a,r){
       if(e&&a)return _pr(e,a)+(/^[A-ZÀ-ÖØ-Þ]/.test(a)?(/majuscule/.test(r||'')?'début de phrase : il faut la capitale.':(r?'nom propre : il commence par une capitale.':'début de phrase ou nom propre, il faut la capitale.'))
                                                      :'ce n’est pas un début de phrase, pas de capitale ici.');
@@ -426,9 +428,11 @@
   };
   function _famRegle(n,sg){var t=_REGLE_FAM[n];if(t==='personne'&&n==='sais/sait'&&/^s['’]est$/i.test(String(sg||'')))t='homophone_gram';return t||null;}   // « il sait trompé » → s'est : un homophone, pas une personne
   // le conseil d'une faute : la leçon de SA règle quand elle en a une, sinon celle de sa famille ; sans mot en jeu (profil de session) → règle générale
+  var _JUGE_HG={__proto__:null},_JUGE_INV={__proto__:null};'a à ou où la là on ont son sont ce se ces ses sa ça peu peut peux et est mes mais'.split(' ').forEach(function(w){_JUGE_HG[w]=1;});'mois sous frais fois dans sans vers pas plus puis alors toujours jamais moins tres pres apres dessus dessous trois dos cas bras pays repas tapis souris avis temps corps cours bois prix choix voix noix poids fils vieux heureux'.split(' ').forEach(function(w){_JUGE_INV[w]=1;});
+  function _jugeFam(e,a){var le=String(e||'').toLowerCase().replace(/’/g,"'"),la=String(a||'').toLowerCase().replace(/’/g,"'");if(!le||!la||le===la||/[ '-]/.test(le)||/[ '-]/.test(la))return '';if(_JUGE_HG[le]&&_JUGE_HG[la])return 'homophone_gram';var ke=_ervk(le),ka=_ervk(la);if(ke&&ka&&ke!==ka)return 'accord';if(deacc(le)===deacc(la))return (/[eé]$/.test(le)&&/[eé]$/.test(la)&&le.slice(-1)!==la.slice(-1))?'':'accent';var d=_rd(le,la);if(!d||d.p+d.e.length!==le.length||d.p+d.a.length!==la.length)return '';if((d.e===''&&d.a==='nt')||(d.a===''&&d.e==='nt'))return 'accord';var pp=/é(e|s|es)?$/.test(le)&&/é(e|s|es)?$/.test(la),v=false,se='',sa='';try{v=typeof svReads==='function'&&svReads(le).length>0&&svReads(la).length>0;if(typeof spP==='function'&&typeof SP!=='undefined'&&SP&&SP.ready){se=spP(le)||'';sa=spP(la)||'';}}catch(x){}if(v&&!pp){if(_stx(le,la)||_aiez(le,la))return 'personne';if(se.indexOf('N')<0&&sa.indexOf('N')<0&&((d.e===''&&d.a==='s')||(d.a===''&&d.e==='s'&&/[ae]s$/.test(le))))return 'accord_v';}if(d.e===''&&d.a==='e'&&/é$/.test(le)&&typeof _nounGateN==='function'&&_nounGateN(deacc(la)))return 'nom_ee';var pl=(d.e===''&&/^(s|x)$/.test(d.a))||(d.a===''&&/^(s|x)$/.test(d.e)),ge=(d.e===''&&/^(e|es)$/.test(d.a))||(d.a===''&&/^(e|es)$/.test(d.e));if(pp&&(pl||ge))return 'participe';if(v&&((d.e===''&&d.a==='s')||(d.a===''&&d.e==='s')))return 's_ambigu';if(pl&&!_JUGE_INV[deacc(le.length>la.length?le:la)]&&((se.indexOf('N')>=0&&sa.indexOf('N')>=0)||(se.indexOf('A')>=0&&sa.indexOf('A')>=0)))return 'accord';if(ge&&se.indexOf('A')>=0&&sa.indexOf('A')>=0)return 'accord';return '';}   /* ⭐ 23/11/2026 (lot explications) : une correction du juge (« choix du mot à vérifier », « homophone à vérifier ») recevait toujours « même son, pas le même SENS », même pour un pluriel (« bénévole » → bénévoles), un infinitif (« demandé » → demander) ou une personne (« reçois » → reçoit). La FORME dit la leçon : un petit mot (a / à, on / ont), -er / -é, un accent, le « nt » du pluriel, la personne du verbe, le nom féminin en -ée, l'accord d'un nom ou d'un adjectif. La différence doit être à la FIN du mot (« lise » → lisse n'est pas une personne) ; « moi » → mois, « sou » → sous restent des homophones (le mot en -s n'est pas un pluriel). Un mot à la fois nom et verbe (« adresses » → adresse) reçoit une leçon vraie pour le nom comme pour le verbe : la forme ne dit pas lequel des deux. */
   function remedTip(t,f){var r=f&&f.regle,x=r&&_RTIP[r],s='';
     if(x){s=x(f.ecrit,f.mot);if(s)s=_pr(f.ecrit,f.mot)+s;}
-    if(!s){var fn=REMED[t];if(!fn)return '';s=fn(f&&f.ecrit,f&&f.mot,r);}
+    if(!s){var jg=(r==='choix du mot à vérifier'||r==='homophone à vérifier'),t2=jg?_jugeFam(f&&f.ecrit,f&&f.mot):'',pk='';if(jg&&f&&f.ecrit&&f.mot){var p1=String(f.ecrit).toLowerCase()+'/'+String(f.mot).toLowerCase(),p2=String(f.mot).toLowerCase()+'/'+String(f.ecrit).toLowerCase();pk=_RTIP[p1]?p1:(_RTIP[p2]?p2:'');}if(pk)s=_pr(f.ecrit,f.mot)+_RTIP[pk](f.ecrit,f.mot);else if(t2==='nom_ee')s=_pr(f.ecrit,f.mot)+_RTIP['nom féminin en -ée'](f.ecrit,f.mot);else if(t2==='s_ambigu')s=_pr(f.ecrit,f.mot)+(String(f.mot).length<String(f.ecrit).length?'ici, pas de « s » : ni pluriel, ni verbe avec « tu ».':'ici il faut le « s » : un pluriel, ou un verbe avec « tu ».');else{var fn=REMED[t2==='accord_v'?'accord':(t2||t)];if(!fn)return '';s=fn(f&&f.ecrit,f&&f.mot,t2==='personne'?'personne du verbe':(t2==='accord_v'?'accord sujet-verbe':r));}}
     return (s&&s.charAt(0)!=='«')?s.charAt(0).toUpperCase()+s.slice(1):s;}
   /* UN conseil par LEÇON, dans l'ordre des fautes (14/09/2026 — avant : celles du « stade » en tête). Une famille = une leçon, sauf
      trois cas où la famille en contient plusieurs : chaque PAIRE d'homophones (a/à n'enseigne pas ou/où), chaque NATURE d'accent (la
@@ -441,7 +445,7 @@
     (F||[]).forEach(function(f){var ty=f.types||[],spec=ty.some(function(t){return REMED[t]&&!_LONGUEUR[t];});ty.forEach(function(t){if(!REMED[t]||(spec&&_LONGUEUR[t]))return;
       var k=(f.regle&&_RTIP[f.regle])?'r:'+f.regle
         :/^homophone/.test(t)?t+':'+[deacc(String(f.ecrit||'').toLowerCase()),deacc(String(f.mot||'').toLowerCase())].sort().join('/')
-        :t==='accent'?t+':'+Object.keys(_accKinds(f.ecrit,f.mot).k).sort().join('+'):t;
+        :t==='accent'?t+':'+Object.keys(_accKinds(f.ecrit,f.mot).k).sort().join('+'):t==='ponctuation'?t+':'+String(f.regle||''):t;   /* liste n° 639 : une leçon par signe */
       if(seen[k])return;seen[k]=1;fams.push(t);rep.push(f);});});
     return fams.length?{fams:fams,rep:rep}:null;}
   /* ⭐ LE 💡 « C'EST X QUI COMMANDE », UNE SEULE COPIE (14/09/2026, lot 2 des textes explicatifs — avant : `_accHint` au site,
@@ -459,7 +463,7 @@
     if(n==='genre déterminant'){j=i+1;gd=GEN_DET[sg.toLowerCase()]||({quel:'m',quelle:'f'})[sg.toLowerCase()];
       if(/^quel(le)?$/i.test(sg)&&i+2<T.length){tg=posTags(T);if(tg&&tg[i+1]==='ADJ')j=i+2;}   // « quelle belle maison » : la règle lit le nom APRÈS l'adjectif ; ⭐ 08/10/2026 : /^quelle?$/ ne lisait pas « quel » (« Quelle joli paysage » → « C'est le nom joli »)
       return (gd&&j<T.length)?'C\'est le nom « '+T[j]+' » ('+(gd==='f'?'féminin':'masculin')+') qui commande → on accorde « '+sg+' ».':'';}
-    if(/après avoir/.test(n))return 'Avec « avoir », le participe ne s’accorde pas avec le sujet (elles ont mangé) — seulement avec un COD placé AVANT (les pommes qu’elles ont mangées).';
+    if(/après avoir/.test(n))return 'Avec « avoir », le participe ne s’accorde pas avec le sujet (elles ont mangé) — seulement avec un COD placé AVANT (les pommes qu’elles ont mangées).';if(/^accord participe \((nom|pronom complément)\)/.test(n)&&T&&typeof i==='number'&&[T[i-1],T[i-2]].some(function(x){return /^(?:(?:[ltmsn]|qu)['’])?(ai|as|a|avons|avez|ont|avais|avait|avions|aviez|avaient|aurai|auras|aura|aurons|aurez|auront|aurais|aurait|aurions|auriez|auraient)$/i.test(String(x||''));}))return 'Avec « avoir », le participe ne s’accorde pas avec le sujet (elles ont mangé) — seulement avec un COD placé AVANT (les pommes qu’elles ont mangées).';   /* ⭐ 23/11/2026 (lot explications) : « Cette pelle, je l'ai rangé » → rangée recevait « C'est « je » (singulier) qui commande » ; « La chorale nous a offerte » → offert, « C'est « nous » (pluriel) qui commande ». Avec « avoir », ce n'est jamais le sujet. */
     if(/^personne du verbe/.test(n)&&/^[a-zà-ÿ]+['’]/i.test(sg))return '';
     if(NUM_PRON[w.toLowerCase().replace(/^[a-z]+['’]/,'')])return '';   // ⭐ 08/10/2026 : « il sont » → ils : le pronom est commandé par le VERBE qui suit
     vb=isVerb(T,i);
@@ -8795,9 +8799,9 @@ var byTok={__proto__:null},_capM=_segInfo(text).cap;gf.forEach(function(f){byTok
     flags=auteurPasse(flags,_T,_Tc,text);flags=_jugeTri(text,flags);flags=flags.concat(_jugeMarques(text,flags.concat(_confirmes462(_T))));_jugeOrtho(text,flags);flags=flags.filter(function(f){return !_prodNom496(_T,f);});   /* liste n° 496 */   // ⭐ 01/10/2026 : genre de la personne qui écrit (réglage ; sans réglage, rien ne change)
     var _Tt=toks(text);flags.forEach(function(f){var hh=ctxHint(f,_Tt);if(hh)f.hint=hh;});   // hint contextuel par correction (affiché AU CLIC dans content.js)
     var rem=remedFams(flagsToFacts(flags));
-    var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ=_typ.concat(_jugePonct(text,flags,_typ));_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts (aucun conseil de remédiation) ; ajoutée aux flags pour rendu+clic
+    var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ=_typ.concat(_jugePonct(text,flags,_typ));_typ.forEach(function(f){f.word=f.from;});rem=remedFams(flagsToFacts(flags.concat(_typ.filter(function(f){return /^(virgule|point final|point d.interrogation)$/.test(f.name||'');}))));   /* liste n° 639 : la virgule, le point final et le point d'interrogation proposés reçoivent leur ligne d'explication */   // typo ancrée caractère, orange, HORS facts (aucun conseil de remédiation) ; ajoutée aux flags pour rendu+clic
     return {flags:flags.concat(_typ),grammar:gf,spell:sf,
-            remed:rem?rem.fams.map(function(t,k){return remedTip(t,rem.rep[k]);}):[]};}
+            remed:rem?rem.fams.map(function(t,k){return remedTip(t,rem.rep[k]);}).filter(Boolean):[]};}
 
   // ===== chargement lexiques =====
   var _ready=false,_loading=null;
