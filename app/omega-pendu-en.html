@@ -33726,7 +33726,8 @@ function spellUnknown(tok,atStart,T,idx){
   (function(){var _vc=document.createElement('div');_vc.id='vdc-cardpop';cov.appendChild(_vc);})();
   var _corrs=[],_off={},_on={},_lastCorrected='',_recDone={},_ignored={},_navIdx=0,_curToks=[];
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (évite ReferenceError dans les harnais d'extraction)
-  function _corrFam(n,w,sg){n=n||'';sg=String(sg||'');
+  function _corrFam(n,w,sg){n=String(n||'').replace(/ \(juge\)$/,'');sg=String(sg||'');   /* liste n° 665 : les propositions du juge de 15 Mo portent « (juge) » ; sans cela, « s'est blessé » tombait en découpage (« il faut l'apostrophe ») */
+    if(/^auxiliaire manquant/.test(n))return 'participe';
     /* ⭐ 14/09/2026 : le NOM de la règle choisit sa famille dans la table PARTAGÉE avec l'extension (_REGLE_FAM, couche dys) —
        « point final » tombait en homophone, « ou → où » et « du → dû » en accent, « sait → s'est » en découpage. La cascade
        ci-dessous ne sert plus qu'aux noms hors table (orthographe, mot inconnu, ponctuation, style). 'homophone' = convention du
@@ -34551,7 +34552,31 @@ function spellUnknown(tok,atStart,T,idx){
   var _B2_TAU=0.01,_B2_RX=/\b(il|elle|on)[  ]+(sais|sait)[  ]+([a-zà-ÿ]{3,}er)\b/gi;
   var _B2_AVOIR={je:'ai',tu:'as',il:'a',elle:'a',on:'a',nous:'avons',vous:'avez',ils:'ont',elles:'ont'};
   var _B2_ETRE={je:'suis',tu:'es',il:'est',elle:'est',on:'est',nous:'sommes',vous:'êtes',ils:'sont',elles:'sont'};
-  var _B2_RXA=/\b(je|tu|il|elle|on|nous|vous|ils|elles)[  ]+([a-zà-ÿ]{3,}(?:ées|ée|és|é|ies|ie|is|i|ues|ue|us|u))\b/gi;
+  /* ⭐ 23/11/2026 (liste n° 665) — AUXILIAIRE MANQUANT : le cadre reste ÉTROIT, exprès. Essai d'un cadre large (participes en -é, en -u,
+     irréguliers, mots courts) : 21 phrases inventées sur 24 corrigées, mais sur 14 322 textes réels corrigés à la main, 33 cadres,
+     10 propositions affichées et AUCUNE juste — dans les vrais textes, « pronom + participe » est presque toujours une autre faute
+     (un passé simple ou un présent mal écrit, « on » pour « ont »), pas un auxiliaire oublié. Le cadre large n'est donc pas livré.
+     Trois retouches seulement : (0) face à une orange rivale, le juge doit gagner de 0,05 et plus (_B2_RIV) — les 2 propositions fausses
+     que le cadre étroit donnait sur les textes réels battaient un passé simple juste de moins que cela ;
+     (1) « on » précédé d'un autre mot de la même proposition n'est pas un cadre (c'est le plus souvent « ont ») ; (2) après « je », la proposition couvre les deux mots (« Je fini » → « J'ai fini », plus « je ai »).
+     ⚠️ La limite de mot \b ne compte pas « é » comme une lettre : les participes en -é ne sont jamais des cadres. C'est voulu (mesure ci-dessus). */
+  var _B2_RXA=/\b(je|tu|il|elle|on|nous|vous|ils|elles)[  ]+([a-zà-ÿ]{3,}(?:ées|ée|és|é|ies|ie|is|i|ues|ue|us|u))\b/gi;
+  var _B2_RIV=0.05;
+  var _B2_LIEN={__proto__:null,et:1,mais:1,puis:1,alors:1,donc:1,car:1,ou:1,quand:1,que:1,si:1,comme:1,ensuite:1,hier:1,lorsque:1,puisque:1};
+  function _b2Aux665(t,out){var m;_B2_RXA.lastIndex=0;
+    while((m=_B2_RXA.exec(t))){var pp=m[2],p0=m.index,fin=m.index+m[0].length;
+      if(!_isPpl(pp))continue;
+      var dpp=deacc(pp.toLowerCase()),pron=m[1].toLowerCase();
+      if(pron==='on'){var g=t.slice(0,p0).replace(/\s+$/,''),av=(g.match(/[A-Za-zÀ-ÿœŒ'’ʼ]+$/)||[''])[0].toLowerCase();
+        if(av&&!_B2_LIEN[av]&&!/^(qu|lorsqu|puisqu)['’ʼ]$/.test(av))continue;}             // « les voisins on fini » : c'est « ont »
+      var aux=(ETRE_PP[dpp]?_B2_ETRE:_B2_AVOIR)[pron];
+      if(!aux)continue;
+      var iPart=(t.slice(0,p0+m[1].length+1).match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).length;   // index TOKEN du participe
+      if(pron==='je'&&aux==='ai'){var jj=m[1].charAt(0)+"'ai "+pp;                        // « je fini » → « j'ai fini » : les deux mots
+        out.push({i:iPart-1,sugg:jj,span:2,nom:'auxiliaire manquant ? (juge)',pos:p0,ip:iPart,a:fin-pp.length,b:fin,cand:t.slice(0,p0)+jj+t.slice(fin)});}
+      else out.push({i:iPart,sugg:aux+' '+pp,span:1,nom:'auxiliaire manquant ? (juge)',pos:p0,ip:iPart,a:fin-pp.length,b:fin,
+        cand:t.slice(0,p0+m[1].length)+' '+aux+t.slice(p0+m[1].length)});}
+    return out;}
   function _b2Cadres(t){var out=[],m;_B2_RX.lastIndex=0;
     while((m=_B2_RX.exec(t))){var inf=m[3].toLowerCase();
       if(!(SP&&SP.ready&&SP.WORDS&&SP.WORDS.has(inf)&&/V/.test(spP(inf)||'')))continue;   // vrai infinitif du lexique accentué
@@ -34559,20 +34584,7 @@ function spellUnknown(tok,atStart,T,idx){
       var iSait=(t.slice(0,m.index+m[1].length+1).match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).length;   // index TOKEN de sais/sait (même regex que toks)
       out.push({i:iSait,sugg:"s'est "+part,span:2,nom:"sait/s'est à vérifier (juge)",pos:m.index,
         cand:t.slice(0,m.index)+m[1]+" s'est "+part+t.slice(m.index+m[0].length)});}
-    /* AUXILIAIRE MANQUANT (greffe issue de la réfutation perplexité-ouverte, greffe_aux_probe :
-       rappel 127/127 held-out, cadre 17/4 106 sur correct, « Elle grandi »→« Elle a grandi »).
-       [pronom]+PARTICIPE sans auxiliaire → candidat avec l'aux de la personne (être pour les
-       verbes de mouvement — ETRE_PP). Le juge compare, orange jamais imposée. */
-    _B2_RXA.lastIndex=0;
-    while((m=_B2_RXA.exec(t))){var pp=m[2];
-      if(!_isPpl(pp))continue;
-      var dpp=deacc(pp.toLowerCase()),pron=m[1].toLowerCase();
-      var aux=(ETRE_PP[dpp]?_B2_ETRE:_B2_AVOIR)[pron];
-      if(!aux)continue;
-      var iPart=(t.slice(0,m.index+m[1].length+1).match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).length;   // index TOKEN du participe
-      out.push({i:iPart,sugg:aux+' '+pp,span:1,nom:'auxiliaire manquant ? (juge)',pos:m.index,a:m.index+m[0].length-pp.length,b:m.index+m[0].length,
-        cand:t.slice(0,m.index+m[1].length)+' '+aux+t.slice(m.index+m[1].length)});}
-    return out;}
+    return _b2Aux665(t,out);}
   function _b2Fenetre(t,pos){var d=Math.max(t.lastIndexOf('.',pos),t.lastIndexOf('!',pos),t.lastIndexOf('?',pos));
     var e=t.length,c;c=t.indexOf('.',pos);if(c>=0&&c<e)e=c;c=t.indexOf('!',pos);if(c>=0&&c<e)e=c;c=t.indexOf('?',pos);if(c>=0&&c<e)e=c;
     return [d+1,Math.min(e+1,t.length)];}
@@ -34583,9 +34595,9 @@ function spellUnknown(tok,atStart,T,idx){
     /* ⭐ 23/11/2026 (liste n° 664) : LES DEUX CORRECTEURS SUR LE MÊME MOT. Sur « Il perdu ses clés », les règles proposent déjà une orange (une autre
        forme du verbe) et la proposition du B2 (« a perdu ») ne s'affichait plus jamais. Le B2 note donc ce RIVAL et compare trois phrases : l'écrit,
        la sienne, celle du rival. La sienne ne remplace l'autre que si elle gagne nettement ; à égalité, la règle (offerte à tous) reste. */
-    for(q=0;q<cadres.length;q++){var cq=cadres[q];if(cq.span!==1)continue;
+    for(q=0;q<cadres.length;q++){var cq=cadres[q];if(cq.ip==null)continue;
       for(r=0;r<(corrs||[]).length;r++){var vf=corrs[r];
-        if(vf.i===cq.i&&vf.tier==='vigilance'&&(vf.span||1)===1&&vf.sugg&&vf.sugg!==cq.sugg&&/^[A-Za-zÀ-ÿœŒ]+$/.test(vf.sugg)){cq.riv=vf.sugg;sig+=cq.i+'>'+vf.sugg+';';break;}}}
+        if(vf.i===cq.ip&&vf.tier==='vigilance'&&(vf.span||1)===1&&vf.sugg&&vf.sugg!==cq.sugg&&/^[A-Za-zÀ-ÿœŒ]+$/.test(vf.sugg)){cq.riv=vf.sugg;sig+=cq.ip+'>'+vf.sugg+';';break;}}}
     if(_b2.cache.txt===t&&(_b2.cache.sig||'')===sig)return;
     var avant=_b2.cache.txt===t&&_b2.cache.flags.length>0;
     /* ⭐ 23/11/2026 (liste n° 664) : le B2 ne fait plus qu'UNE chose — comparer « sait + infinitif » et « s'est + participe » (et l'auxiliaire manquant).
@@ -34601,26 +34613,31 @@ function spellUnknown(tok,atStart,T,idx){
           var s0=await B2JUGE.score(t.slice(w[0],w[1])),s1=await B2JUGE.score(c.cand.slice(w[0],w[1]+d));
           var ok=s1-s0>_B2_TAU;
           if(ok&&c.riv){var cr=t.slice(0,c.a)+c.riv+t.slice(c.b),dr=cr.length-t.length,s2=await B2JUGE.score(cr.slice(w[0],w[1]+dr));
-            if(!(s1-s2>_B2_TAU))ok=false;}                    /* le rival fait aussi bien : on garde la règle */
-          if(ok)flags.push({i:c.i,sugg:c.sugg,span:c.span,nom:c.nom,riv:c.riv||''});}
+            if(!(s1-s2>_B2_RIV))ok=false;}                    /* le rival fait aussi bien : on garde la règle */
+          if(ok)flags.push({i:c.i,sugg:c.sugg,span:c.span,nom:c.nom,riv:c.riv||'',ip:c.ip});}
         _b2.enCours=null;
         if(String($('vdc-in').value).replace(/[’ʼ]/g,"'")!==t)return;   // le texte a bougé pendant le calcul → verdict caduc
         _b2.cache={txt:t,flags:flags,tais:{},sig:sig};
         if(flags.length||avant)runCorr();                             // re-passe : b2SaisInf lit le cache
       }catch(e){_b2.enCours=null;}
     })();}
+  /* liste n° 665 : les deux propositions du juge de 15 Mo ont LEUR conseil (avant : « il faut l'apostrophe », « ce sont deux mots, il faut l'espace ») */
+  _RTIP["sait/s'est à vérifier (juge)"]=function(){return '« sait » vient du verbe savoir (il sait nager) ; devant un participe, c’est « s’est » (il s’est blessé).';};
+  _RTIP['auxiliaire manquant ? (juge)']=function(){return 'un participe passé ne reste jamais seul après le sujet : il lui faut « avoir » ou « être » devant.';};
   function _b2Garde(corrs,tRaw){var t=String(tRaw).replace(/[’ʼ]/g,"'");
     if(!_b2.on||_b2.cache.txt!==t||!_b2.cache.flags.length)return corrs;
     var F=_b2.cache.flags,k,q,T=null,ch=false;
-    for(k=0;k<F.length;k++){var f=F[k];if(f.span!==1)continue;
-      var la=false,dur=false;
-      for(q=0;q<corrs.length;q++){var c=corrs[q],sp=c.span||1;if(f.i<c.i||f.i>=c.i+sp)continue;
-        if(c.i===f.i&&c.sugg===f.sugg)la=true;
-        else if(!(c.tier==='vigilance'&&sp===1&&c.sugg===f.riv))dur=true;}
-      if(la||dur)continue;
+    for(k=0;k<F.length;k++){var f=F[k];if(f.ip==null)continue;                 /* auxiliaire manquant seulement */
+      var la=null,dur=false,riv=null,fs=f.span||1;
+      for(q=0;q<corrs.length;q++){var c=corrs[q],sp=c.span||1;if(c.i+sp<=f.i||c.i>=f.i+fs)continue;
+        if(c.i===f.i&&c.sugg===f.sugg)la=c;
+        else if(c.i===f.ip&&c.tier==='vigilance'&&sp===1&&c.sugg===f.riv)riv=c;
+        else dur=true;}
+      if(dur){if(la){corrs=corrs.filter(function(c){return c!==la;});ch=true;}continue;}   /* un rouge, ou une orange non comparée, garde la place */
+      if(riv){corrs=corrs.filter(function(c){return c!==riv;});ch=true;}
+      if(la)continue;
       if(!T)T=toks(tRaw);
-      corrs=corrs.filter(function(c){return c.i!==f.i;});
-      corrs.push({i:f.i,word:T[f.i],sugg:f.sugg,name:f.nom,tier:'vigilance',span:1});ch=true;}
+      corrs.push({i:f.i,word:fs>=2?T[f.i]+' '+(T[f.i+1]||''):T[f.i],sugg:f.sugg,name:f.nom,tier:'vigilance',span:fs});ch=true;}
     if(ch)corrs.sort(function(x,y){return x.i-y.i;});
     return corrs;}
   function _b2Etat(msg){var e=$('vdc-b2-etat');if(e)e.textContent=msg;}
