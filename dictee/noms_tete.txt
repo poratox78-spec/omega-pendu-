@@ -8,7 +8,6 @@ Ailleux
 Albons
 Alerre
 Alides
-Allain
 Allart
 Alleau
 Allerey
@@ -98,7 +97,6 @@ Biarre
 Bierge
 Bierne
 Billey
-Billie
 Billiet
 Billrt
 Biollet
@@ -219,7 +217,6 @@ Certines
 Cesset
 Cessey
 Chainel
-Chakir
 Chamagne
 Chamant
 Chambrey
@@ -455,7 +452,6 @@ Fourcès
 Fouyer
 Fraire
 Frances
-Francois
 Françay
 Frasse
 Freren
@@ -485,7 +481,6 @@ Genillé
 Gential
 Gentilly
 Genval
-George
 Gerace
 Gerner
 Gestel
@@ -694,7 +689,6 @@ Marieux
 Marihn
 Marineo
 Marini
-Marino
 Marlier
 Marnia
 Marnier
@@ -732,7 +726,6 @@ Merrey
 Mesner
 Messais
 Messanges
-Messon
 Mettie
 Mettray
 Meulers
@@ -873,7 +866,6 @@ Peromet
 Perrex
 Pesche
 Peutie
-Philipe
 Phison
 Phobos
 Pierry
@@ -955,7 +947,6 @@ Rappler
 Rawson
 Raydon
 Rayton
-Raïley
 Raïssi
 Reeves
 Rehweiler
@@ -965,7 +956,6 @@ Relleu
 Remies
 Remili
 Remire
-Remond
 Remplin
 Renaix
 Rendeux
@@ -1150,7 +1140,6 @@ Touvre
 Travelec
 Traînel
 Trefor
-Trevor
 Trieste
 Troude
 Trouvans

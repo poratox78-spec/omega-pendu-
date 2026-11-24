@@ -170,6 +170,24 @@ sont. Fichiers qui en dérivent :
     Source : http://www.cnrtl.fr/lexiques/morphalou/ (ortolang.fr)
     Attribution : « Formes fléchies : Morphalou 3.1 (ATILF, CNRS - Université de Lorraine), LGPL-LR »
 
+8 bis. PRÉNOMS : NAISSANCES EN FRANCE ET AU QUÉBEC
+---------------------------------------------------
+La table `dictee/prenoms_genre.tsv` (et ses copies : bloc `prenoms-gz` de l'app, `extension/assets/prenoms.tsv.gz`)
+tire ses prénoms du Wiktionnaire français (CC BY-SA 4.0) et, depuis novembre 2026, de deux fichiers publics de
+naissances. Seuls le prénom, le sexe majoritaire et sa part sont repris ; les fichiers eux-mêmes ne sont pas livrés.
+
+    INSEE, « Fichier des prénoms » (naissances en France, 1900-2025)
+    Licence : Licence Ouverte 2.0 (Etalab)
+    Source : https://www.insee.fr/fr/statistiques/8595130
+    Attribution : « Prénoms : Insee, Fichier des prénoms (1900-2025), Licence Ouverte 2.0 »
+
+    Retraite Québec, « Banque de prénoms - Garçons » et « Banque de prénoms - Filles » (1980-2025)
+    Licence : Creative Commons Attribution 4.0 (CC BY 4.0)
+    Source : https://www.donneesquebec.ca (jeux de données de Retraite Québec)
+    Attribution : « RETRAITE QUÉBEC. Banque de prénoms - Garçons / Filles, [Jeu de données], dans Données Québec »
+
+    Régénérable : python3 dictee/build_prenoms.py   (sources dans data_local/prenoms_sources/)
+
 9. PHRASES D'ENTRAÎNEMENT DU JUGE LÉGER (Tatoeba)
 --------------------------------------------------
 Le modèle `juge-mini.bin` (`app/`, `extension/assets/`) a été entraîné, entre autres, sur les phrases françaises de

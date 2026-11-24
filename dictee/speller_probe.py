@@ -30,7 +30,7 @@ _AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', '�
 _AFIX_VIG = {'media': 'média', 'pole': 'pôle', 'foret': 'forêt', 'ca': 'ça'}
 _AFIX_DET = frozenset('le la les un une des du au aux ce cet cette ces mon ma ton ta son sa notre votre leur mes tes ses nos vos leurs'.split())
 _AFIX_MASC = frozenset('le un du au ce cet mon ton son'.split())
-_AFIX_MIN = {'grace': 'grâce', 'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré', 'tré': 'très', 'quit': 'qui'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
+_AFIX_MIN = {'grace': 'grâce', 'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'repond': 'répond', 'resoudre': 'résoudre', 'menage': 'ménage', 'bibliotheque': 'bibliothèque', 'caractere': 'caractère', 'capacite': 'capacité', 'siecles': 'siècles', 'capacites': 'capacités', 'chevre': 'chèvre', 'repondent': 'répondent', 'rejouir': 'réjouir', 'chevres': 'chèvres', 'reponde': 'réponde', 'repondra': 'répondra', 'scenarios': 'scénarios', 'repondait': 'répondait', 'caracteres': 'caractères', 'rejouit': 'réjouit', 'repondit': 'répondit', 'repondant': 'répondant', 'melancolie': 'mélancolie', 'repondes': 'répondes', 'secher': 'sécher', 'reclamer': 'réclamer', 'reviser': 'réviser', 'reciter': 'réciter', 'recompenser': 'récompenser', 'reconcilier': 'réconcilier', 'retracter': 'rétracter', 'recapituler': 'récapituler', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré', 'tré': 'très', 'quit': 'qui'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
 # ⭐ CONSONNES SIMPLIFIÉES QUI POLLUENT LE LEXIQUE (09/09/2026) — la sœur de `_AFIX_MIN`, pour les
 # consonnes DOUBLÉES. Cas de Rem : « je suis à la boure » — le moteur ne corrige pas « boure » et
 # propose « la »→« le » : il ne rate pas la faute, il en FABRIQUE une autre à côté. Cause : `boure`
@@ -562,13 +562,20 @@ class Speller:
             self.G114 = {w: g for g in _gj for w in _gj[g]}
         except (OSError, ValueError):
             self.G114 = {}
+        self.PRENOMS_REF = {}; self.PRENOMS_NB = {}; self.PRENOMS_N = set()
         self.PRENOMS_C = set()                                  # ⭐ 13/09/2026 : graphie d'ORIGINE (« ludovic » → Ludovic, miroir JS PRENOMS)
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
                 for _l in _fp:
-                    _o = _l.split('	')[0].strip(); _n = _o.lower()
-                    if _o and len(_l.split('	')) >= 3: self.PRENOMS_C.add(_o)
-                    if len(_n) >= 3 and _n not in self.WORDS: self.PRENOMS_L.add(_n)
+                    _c668 = _l.rstrip('\r\n').split('	'); _o = _c668[0].strip(); _n = _o.lower()
+                    _ref668 = _c668[3] if len(_c668) > 3 else ''      # liste n° 668 : graphie de référence d'une forme sans accent
+                    if _o and len(_c668) >= 3:
+                        self.PRENOMS_C.add(_o)
+                        if _ref668: self.PRENOMS_REF[_o] = _ref668
+                    _nb668 = int(_c668[5]) if len(_c668) > 5 and _c668[5].isdigit() else 0
+                    if _nb668: self.PRENOMS_NB[_o] = _nb668
+                    if len(_c668) > 6 and _c668[6] == 'n': self.PRENOMS_N.add(_o)
+                    if len(_n) >= 3 and _n not in self.WORDS and ((_c668[6] if len(_c668) > 6 else 'w') != 'n' or _nb668 >= 5000 or _ref668) and (not _ref668 or (_nb668 >= 50000 and _ref668.lower() not in self.WORDS)): self.PRENOMS_L.add(_n)   # « succes », « methode » restent des mots à corriger ; « emilie », « helene » restent des prénoms
         except Exception:
             pass
         here = os.path.dirname(os.path.abspath(__file__))
@@ -1319,6 +1326,7 @@ class Speller:
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — miroir JS
         if low in self.PRENOMS_L: return None
+        if tok != low and tok in self.PRENOMS_C: return None   # liste n° 668 : un mot de la table écrit avec sa majuscule n'est pas corrigé — miroir JS
         # ⭐ SOUDURE à/a+VERBE (10/09/2026, décalque de spellTokenCore l.2968-2975) : « àeu »→a eu, « aparé »→a paré. Le reste doit
         # être une forme CONJUGUÉE ou un participe (jamais un infinitif : « atendre » = attendre) ; le REDOUBLEMENT prime
         # (« aporté »→apporté, couche DC) ; un VRAI verbe à une édition et de même son prime aussi (« aboit » = aboie, pas « a boit »).
@@ -1836,7 +1844,7 @@ class Speller:
 
     def _su_prenom(self, low):
         c = low[:1].upper() + low[1:]
-        return c if len(low) >= 3 and c in self.PRENOMS_C else None
+        return self.PRENOMS_REF.get(c, c) if len(low) >= 3 and c in self.PRENOMS_C and (c not in self.PRENOMS_N or max(self.PRENOMS_NB.get(c, 0), self.PRENOMS_NB.get(self.PRENOMS_REF.get(c, c), 0)) >= 5000) else None
 
     def _mwe_init(self):
         if self._MWEK is None:
@@ -2035,7 +2043,7 @@ class Speller:
                         if sorted(deacc(low)) == sorted(deacc(dp2)) or deacc(dp2) in edits1(deacc(low)):
                             best = dp2
         pr = self._su_prenom(low)   # ⭐ 29/09/2026 (Rem) : un prénom de la table en minuscule → le PRÉNOM d'abord (enzo → Enzo), sauf mot du dictionnaire à UNE édition (dee → de) — miroir JS
-        if pr and not (best and sed1(d, deacc(best))): return pr
+        if pr and (not (best and sed1(d, deacc(best))) or self.PRENOMS_NB.get(low[:1].upper() + low[1:], 0) >= 50000): return pr   # liste n° 668 : prénom très donné — miroir JS
         if best and best != low: return best
         # VOIE '' (inconnu sans suggestion fiable) : S6 élision PRIORITAIRE, puis S4 clé phonétique d=1
         g = self._su_elision(low) or self._su_phon_e1(low)

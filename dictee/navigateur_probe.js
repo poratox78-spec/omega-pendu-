@@ -169,6 +169,14 @@ const CAS = [
   { txt: 'Les fruits que la voisine a cueillis sentent très bon.', rien: true, pourquoi: 'arbitre du juge (liste n° 334) : l’orange « sente » se tait dans le vrai navigateur' },
   { txt: 'la pane du marteau frappe le clou.', rien: true, orangeInterdit: 'pane', pourquoi: 'CONTRE-GARDE : « pane » est un VRAI mot (partie du marteau) — écarté du tri à la main ; « la pane du moteur », le juge propose panne, en orange' },
   { txt: 'je suis à la bourre.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase juste reste muette' },
+  /* ⭐ liste n° 667 (23/11/2026) : 30 formes SANS ACCENT de plus dans la table des formes nues. Ce sont des entrées parasites du
+     dictionnaire à côté d'une sœur accentuée au moins 50 fois plus fréquente : le correcteur les croyait justes et se taisait.
+     Recensement : 95 formes de ce genre, 71 muettes au produit ; gardées, celles qui ne sont pas une forme de Morphalou (ni verbe
+     conjugué, ni graphie de 1990) et qui n'ont qu'une accentuation possible, plus 8 infinitifs. 0 occurrence dans le français correct. */
+  { txt: 'elle va à la bibliotheque du quartier.', corrigeAttendu: ['bibliotheque', 'bibliothèque'], pourquoi: 'liste 667 : la forme sans accent était « valide » au lexique' },
+  { txt: 'il faut secher le linge dehors.', corrigeAttendu: ['secher', 'sécher'], pourquoi: 'liste 667 : même chose pour un infinitif' },
+  { txt: 'elle essaie de reparé son vélo.', corrigeAttendu: ['reparé', 'réparer'], pourquoi: 'liste 667 : l’infinitif rendu par « é pour er » passe par la table — plus « reparer »' },
+  { txt: 'il faut sécher le linge dehors.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase juste reste muette' },
   /* ⭐ « NOUS SOMME » → SOMMONS (10/09/2026, cas de Rem) : la règle de personne conjuguait le lemme qu'elle lisait, *sommer*,
      et écrivait en ROUGE un mot que personne n'a voulu. Deux gardes de fond : rule_aux_misspell exige le nombre pour
      nous/vous ; rule_sujet_flexion s'abstient quand sa cible est RARE et l'écrit à une lettre d'un auxiliaire long. */
@@ -459,6 +467,16 @@ const CAS = [
   { txt: 'une errreur de frappe', attendu: ['erreur'], pourquoi: 'élongation réelle du corpus dys' },
   // ⑤ prénoms -> accord (PR#460)
   { txt: 'Marie est venu.', attendu: ['venue'], pourquoi: 'genre du prénom (table prenoms-gz chargée)' },
+  /* ⭐ liste n° 668 (24/11/2026) : la table des prénoms lit aussi les naissances (INSEE, Retraite Québec). Avant, elle ne couvrait
+     que 84,5 % des naissances en France et « Catherine est venu » passait sans alerte. Le genre est le sexe majoritaire ; sous 95 %
+     (ou sous 5 000 naissances) l'accord est PROPOSÉ en orange. Un prénom se reconnaît aussi sans ses accents. */
+  { txt: 'Catherine est venu hier.', attendu: ['venue'], pourquoi: 'liste 668 : prénom très courant absent de l’ancienne table' },
+  { txt: 'Georges est arrivée en retard.', attendu: ['arrivé'], pourquoi: 'liste 668 : même chose au masculin' },
+  { txt: 'Emilie est venu hier.', attendu: ['venue'], pourquoi: 'liste 668 : le prénom écrit sans l’accent de sa majuscule' },
+  { txt: 'Camille est venu hier.', corrigeAttendu: ['venu', 'venue'], rien: true, pourquoi: 'liste 668 : prénom mixte (72 % de filles) — « venue » est proposé en orange, jamais imposé' },
+  { txt: 'Sacha est venue hier.', rien: true, orangeInterdit: 'venue', pourquoi: 'CONTRE-GARDE (listes 443 et 668) : prénom masculin ET féminin — ni rouge ni orange, même avec 94 % de garçons' },
+  { txt: 'il a eu un grand succes hier.', corrigeAttendu: ['succes', 'succès'], pourquoi: 'CONTRE-GARDE liste 668 : « Succès » est un prénom de la table, le mot sans accent reste corrigé comme un mot' },
+  { txt: 'ce matin helene est venue au marché.', corrigeAttendu: ['helene', 'Hélène'], casse: true, pourquoi: 'liste 668 : un prénom très donné écrit en minuscule et sans accent reçoit sa graphie de référence, plus « hellène »' },
   // ⑤ bis — GENRE PAR COLLISION D'ACCENT (18/09/2026, faute vue par Rem et muette : « marché provençale »). « marché » (m) et
   //    « marche » (f) partagent la clé sans accent : le genre ne vient que de la table des collisions (_GCOLL, dans le moteur — mesuré par
   //    ablation : ces deux cas n'isolent AUCUN asset, ils gardent le BRANCHEMENT de la règle dans la page). Orange : proposé, pas appliqué.

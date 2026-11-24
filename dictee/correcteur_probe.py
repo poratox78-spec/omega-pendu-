@@ -4671,7 +4671,7 @@ try:
     with open(os.path.join(HERE, 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
         for _l in _fp:
             _p = _l.rstrip('\n').split('\t')
-            if len(_p) == 3:
+            if len(_p) >= 3:
                 PRENOMS[_p[0]] = (_p[1], _p[2] == '1')
 except Exception:
     PRENOMS = {}
