@@ -263,6 +263,8 @@ def _r39(S, w):
     if len(w) > 4 and w.endswith('ient') and w not in ENTAMBIG and w not in IENT_V and (w in ENTSIL or _ent_verbe(w)) and n >= 2 and S[n - 2]['g'] == 'ien':   # ⭐ 08/11 : jamais un -tient/-vient (miroir app)
         S[n - 2]['ph'] = 'i'
 
+_NU669 = {'à': 'a', 'â': 'a', 'ä': 'a', 'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e', 'î': 'i', 'ï': 'i', 'ô': 'o', 'ö': 'o', 'ù': 'u', 'û': 'u', 'ü': 'u', 'ÿ': 'y'}
+
 def g2p(word, accents=True, seg=None):
     """graphème→phonème déterministe + hésitation `h` (latent §3). Renvoie la liste des pas
     {g: graphème, ph: phonème IPA, h: hésitation}. `accents` active l'overlay é/è/ç (sinon '?').
@@ -292,7 +294,7 @@ def g2p(word, accents=True, seg=None):
             # repli anti-∅ sur la lettre sinon. Miroir app (même ligne corrigée).
             t = COND.get(g)
             if t:
-                e = t.get(nxt) or t.get('_')
+                e = t.get(nxt) or t.get(_NU669.get(nxt)) or t.get('_')
                 ph, h = e[0], e[1]
             else:
                 e = (COND.get(g[0]) or {}).get('_') or [g[0], 0.0]
@@ -302,7 +304,7 @@ def g2p(word, accents=True, seg=None):
         else:
             t = COND.get(g)
             if t:
-                e = t.get(nxt) or t.get('_')
+                e = t.get(nxt) or (g != 'ill' and t.get(_NU669.get(nxt))) or t.get('_')   # liste n° 669 : voyelle accentuée sans entrée → comme la voyelle nue (miroir app)
                 ph, h = e[0], e[1]
         # règles de contexte bilatéral déterministes (verbatim app) :
         if g == 's' and prev in VOW and nxt in VOW:

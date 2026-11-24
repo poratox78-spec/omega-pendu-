@@ -1,1 +1,1 @@
-{"min_support":20,"purity":0.75,"trained_on":80000,"n_keys_seen":1385,"table":{"o\ty\to":"O","ou\té\tu":"w","y\ti\tj":"","è\t#\tE":"e","p\t#\t":"p","in\th\t5":"i","g\tâ\tZ":"g","s\ty\tz":"s","eu\t#\t9":"2","am\ts\t@":"a","am\t#\t@":"am","ï\te\ti":"j"}}
+{"min_support":20,"purity":0.75,"trained_on":80000,"n_keys_seen":1383,"table":{"o\ty\to":"O","y\ti\tj":"","è\t#\tE":"e","p\t#\t":"p","in\th\t5":"i","s\ty\tz":"s","eu\t#\t9":"2","am\ts\t@":"a","am\t#\t@":"am","ï\te\ti":"j"}}
