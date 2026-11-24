@@ -144,7 +144,9 @@ def extrait():
 #   ⑥ première mesure sur les textes réels : un prénom RARE est souvent autre chose dans un texte (un roi, un lieu) — le moteur
 #      n'impose l'accord (rouge) qu'à partir de 5 000 naissances, d'où la 6ᵉ colonne.
 # TABLE : nom <TAB> genre (m, f, ?) <TAB> tête de phrase interdite (0/1) <TAB> graphie de référence (forme sans accent)
-#         <TAB> part du sexe majoritaire (%) <TAB> naissances comptées (France + Québec).
+#         <TAB> part du sexe majoritaire (%) <TAB> naissances comptées (France + Québec) <TAB> source (w = Wiktionnaire, n = naissances seules).
+#   ⑦ un prénom connu par les SEULES naissances n'impose l'accord qu'à partir de 50 000 naissances (« Leslie »), et un mot en
+#      minuscule n'est lu comme prénom qu'à partir de 5 000 (« maï » reste corrigé en « mai »).
 SOURCES = os.path.join(RACINE, 'data_local', 'prenoms_sources')
 SEUIL_FR, SEUIL_QC = 300, 200
 _QC_ACCENT = {'Anaeve': 'Anaève', 'Anna-Eve': 'Anna-Ève', 'Cedrik': 'Cédrik', 'Eloic': 'Éloïc', 'Eliam': 'Éliam', 'Emeraude': 'Émeraude',
@@ -162,7 +164,7 @@ def etendre(table, conflits):
     for f in ('insee-prenoms-2025-nat.csv', 'quebec-garcons.csv', 'quebec-filles.csv'):
         if not os.path.exists(os.path.join(SOURCES, f)):
             print('[FATAL] source absente :', os.path.join(SOURCES, f)); sys.exit(1)
-    T = collections.OrderedDict((w, [table[w], '1' if w in conflits else '0', '', '', '']) for w in sorted(table))
+    T = collections.OrderedDict((w, [table[w], '1' if w in conflits else '0', '', '', '', 'w']) for w in sorted(table))
     I = collections.defaultdict(lambda: [0, 0])
     with io.open(os.path.join(SOURCES, 'insee-prenoms-2025-nat.csv'), encoding='utf-8') as h:
         h.readline()
@@ -196,7 +198,7 @@ def etendre(table, conflits):
             continue                                           # ③ forme nue d'un prénom accentué, et mot du dictionnaire
         g = sexe(m, f)
         if w not in T:
-            T[w] = [g, tete(w, g), '', part(m, f), str(m + f)]
+            T[w] = [g, tete(w, g), '', part(m, f), str(m + f), 'n']
         else:
             if T[w][0] != '?':                                 # liste n° 443 : « Sacha », masculin ET féminin pour le Wiktionnaire, reste sans genre
                 T[w][0] = g
@@ -222,7 +224,7 @@ def etendre(table, conflits):
             continue
         w = _QC_ACCENT.get(d) or (max(ins[d], key=lambda x: (sum(I[x]), x)) if d in ins else d)
         g = sexe(m, f)
-        T[w] = [g, tete(w, g), '', part(m, f), str(m + f + sum(I.get(w, [0, 0])))]; par[deacc(w)].append(w)
+        T[w] = [g, tete(w, g), '', part(m, f), str(m + f + sum(I.get(w, [0, 0]))), 'n']; par[deacc(w)].append(w)
     for d, w in sorted(_QC_ACCENT.items()):
         if d in T and w not in T:
             T[w] = list(T[d]); par[deacc(w)].append(w)
@@ -239,7 +241,7 @@ def etendre(table, conflits):
             continue
         gs = set(T[w][0] for w in L)
         ref = max(L, key=lambda x: (sum(I.get(x, [0, 0])), x))
-        T[d] = [gs.pop() if len(gs) == 1 else '?', '1' if any(T[w][1] == '1' for w in L) else '0', ref, T[ref][3] if len(gs) == 0 else '', T[ref][4] if len(gs) == 0 else '']
+        T[d] = [gs.pop() if len(gs) == 1 else '?', '1' if any(T[w][1] == '1' for w in L) else '0', ref, T[ref][3] if len(gs) == 0 else '', T[ref][4] if len(gs) == 0 else '', T[ref][5]]
     return T
 
 

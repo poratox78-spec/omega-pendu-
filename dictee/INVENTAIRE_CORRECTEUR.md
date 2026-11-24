@@ -320,7 +320,7 @@ Orthographe, typographie, mots inconnus, et les oranges posées après la chaîn
 | noun-post | `_applyNounPost` | `NOUN_POST` | 120 / 231 | `_etreAttrEr` `_eerVerbeRare188` `_eerAuxRare497` `rOn` `_rAbase` `_aaApresAdverbe` `_rAnouveau` `_rEtNouveau` … (38) |
 | étiqueteur HMM | `setPosHmm` | `_HMM` | 91 / 231 | `posTags` |
 | modèle OS-sujet | `setOsLm` | `_OSLM` | 0 / 231 | `_osPuni` `_osPfwd` `_osPbwd` `osVerbVig` `complete` |
-| prénoms | `_applyPrenoms` | `PRENOMS` | 34 / 231 | `_rAbase` `_sujLa272` `rAaccent287` `rCestAnime354` `_gnTete301` `rSV318` `rFige320` `rAccordSVcoord` … (20) |
+| prénoms | `_applyPrenoms` | `PRENOMS` | 34 / 231 | `_rAbase` `_sujLa272` `rAaccent287` `rCestAnime354` `_gnTete301` `rSV318` `rFige320` `rAccordSVcoord` … (21) |
 | genre accentué | `_applyGaccLex` | `_GACC` | 45 / 231 | `rEer0` `rFlexionEr` `rCe` `rDetGenre` `_nounGender` `rAdjEpithetCoord` `_twin531` `spellTokenCore` … (10) |
 | confusables | `setConfusables` | `_CONFW` `_CONFBF` | 0 / 231 | `_vigOne` `vigText` |
 | genre de l'auteur (réglage) | `setAuteur` | `_AUTEUR` | 0 / 231 | `getAuteur` `auteurSugg` `auteurPasse` |

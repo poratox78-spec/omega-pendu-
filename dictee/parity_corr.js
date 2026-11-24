@@ -37,7 +37,7 @@ if (_gd) { try { globalThis.OMEGA_GDET = {};
 const _pn = (html.match(/<script type="text\/plain" id="prenoms-gz">([^<]*)<\/script>/) || [])[1] || '';
 if (_pn) { try { globalThis.OMEGA_PRENOMS = {};
   zlib.gunzipSync(Buffer.from(_pn.replace(/\s/g, ''), 'base64')).toString('utf8').split(/\r?\n/).forEach(l => {
-    const p = l.split('\t'); if (p.length >= 3) globalThis.OMEGA_PRENOMS[p[0]] = [p[1], p[2] === '1', p[3] || '', p[4] ? +p[4] : 100, p[5] ? +p[5] : 1e9]; }); } catch (e) {} }   /* liste n° 668 : les 5 colonnes, comme l'app */
+    const p = l.split('\t'); if (p.length >= 3) globalThis.OMEGA_PRENOMS[p[0]] = [p[1], p[2] === '1', p[3] || '', p[4] ? +p[4] : 100, p[5] ? +p[5] : 1e9, p[6] || 'w']; }); } catch (e) {} }   /* liste n° 668 : les 5 colonnes, comme l'app */
 
 // 1) extraire l'IIFE du correcteur EN ENTIER, la refermer en exposant correctText
 /* ⭐ 22/11/2026 (liste n° 597, audit) — la tranche s'arrêtait à un repère de texte : le premier « return out;} » après correctText,

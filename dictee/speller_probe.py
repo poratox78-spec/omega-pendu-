@@ -562,7 +562,7 @@ class Speller:
             self.G114 = {w: g for g in _gj for w in _gj[g]}
         except (OSError, ValueError):
             self.G114 = {}
-        self.PRENOMS_REF = {}; self.PRENOMS_NB = {}
+        self.PRENOMS_REF = {}; self.PRENOMS_NB = {}; self.PRENOMS_N = set()
         self.PRENOMS_C = set()                                  # ⭐ 13/09/2026 : graphie d'ORIGINE (« ludovic » → Ludovic, miroir JS PRENOMS)
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
@@ -574,7 +574,8 @@ class Speller:
                         if _ref668: self.PRENOMS_REF[_o] = _ref668
                     _nb668 = int(_c668[5]) if len(_c668) > 5 and _c668[5].isdigit() else 0
                     if _nb668: self.PRENOMS_NB[_o] = _nb668
-                    if len(_n) >= 3 and _n not in self.WORDS and (not _ref668 or (_nb668 >= 50000 and _ref668.lower() not in self.WORDS)): self.PRENOMS_L.add(_n)   # « succes », « methode » restent des mots à corriger ; « emilie », « helene » restent des prénoms
+                    if len(_c668) > 6 and _c668[6] == 'n': self.PRENOMS_N.add(_o)
+                    if len(_n) >= 3 and _n not in self.WORDS and ((_c668[6] if len(_c668) > 6 else 'w') != 'n' or _nb668 >= 5000 or _ref668) and (not _ref668 or (_nb668 >= 50000 and _ref668.lower() not in self.WORDS)): self.PRENOMS_L.add(_n)   # « succes », « methode » restent des mots à corriger ; « emilie », « helene » restent des prénoms
         except Exception:
             pass
         here = os.path.dirname(os.path.abspath(__file__))
@@ -1843,7 +1844,7 @@ class Speller:
 
     def _su_prenom(self, low):
         c = low[:1].upper() + low[1:]
-        return self.PRENOMS_REF.get(c, c) if len(low) >= 3 and c in self.PRENOMS_C else None
+        return self.PRENOMS_REF.get(c, c) if len(low) >= 3 and c in self.PRENOMS_C and (c not in self.PRENOMS_N or max(self.PRENOMS_NB.get(c, 0), self.PRENOMS_NB.get(self.PRENOMS_REF.get(c, c), 0)) >= 5000) else None
 
     def _mwe_init(self):
         if self._MWEK is None:

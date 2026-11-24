@@ -49,10 +49,10 @@ for l in ref.split('\n'):
     if not l:
         continue
     p = l.split('\t')
-    if len(p) == 6:                                         # liste n° 668 : 6 colonnes (graphie de référence, part du sexe majoritaire, naissances)
+    if len(p) == 7 and p[6] in ('w', 'n'):                  # liste n° 668 : 7 colonnes (graphie de référence, part du sexe majoritaire, naissances, source)
         table[p[0]] = (p[1], p[2] == '1', p[3], p[4])
     else:
-        echec.append('ligne à %d colonnes au lieu de 6 : %r' % (len(p), l[:40]))
+        echec.append('ligne à %d colonnes au lieu de 7 : %r' % (len(p), l[:40]))
 if len(table) < 13000:
     echec.append('table trop courte : %d prénoms (attendu ≥ 13 000 depuis la liste n° 668)' % len(table))
 for nom, attendu in (('Marie', 'f'), ('Jean', 'm'), ('Julie', 'f'), ('Léa', 'f'), ('Pierre', 'm')):
