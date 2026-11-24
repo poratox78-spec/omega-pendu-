@@ -1325,6 +1325,7 @@ class Speller:
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         if self._present_regulier(low, toks, idx, tok): return None   # ⭐ 14/10/2026 (liste n° 6) : présent régulier en contexte verbal — miroir JS
         if low in self.PRENOMS_L: return None
+        if tok != low and tok in self.PRENOMS_C: return None   # liste n° 668 : un mot de la table écrit avec sa majuscule n'est pas corrigé — miroir JS
         # ⭐ SOUDURE à/a+VERBE (10/09/2026, décalque de spellTokenCore l.2968-2975) : « àeu »→a eu, « aparé »→a paré. Le reste doit
         # être une forme CONJUGUÉE ou un participe (jamais un infinitif : « atendre » = attendre) ; le REDOUBLEMENT prime
         # (« aporté »→apporté, couche DC) ; un VRAI verbe à une édition et de même son prime aussi (« aboit » = aboie, pas « a boit »).

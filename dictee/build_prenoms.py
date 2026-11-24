@@ -134,7 +134,8 @@ def extrait():
 # RÈGLES (décisions de Rem) :
 #   ① un prénom d'au moins 300 naissances en France (Mery : 420) ou 200 au Québec entre dans la table ;
 #   ② son genre est le sexe MAJORITAIRE des naissances, et la part de ce sexe est gardée (5ᵉ colonne) : sous 95 %, le moteur
-#      PROPOSE l'accord en orange au lieu de l'imposer (Camille 72 %, Claude 88 %, Sacha 94 %) ;
+#      PROPOSE l'accord en orange au lieu de l'imposer (Camille 72 %, Claude 88 %, Mery 89 %). Exception : les 31 prénoms que le
+#      Wiktionnaire donne pour masculins ET féminins en français (② bis, Sacha) gardent le genre « ? » : aucun accord proposé ;
 #   ③ un prénom se reconnaît aussi SANS ses accents (« Emilie », « Helene » : en France on n'accentue guère les capitales) :
 #      une ligne d'alias par forme nue, avec la graphie de référence (4ᵉ colonne) — sauf si la forme nue est un mot du
 #      dictionnaire (« Honoré » / « honore ») ;
@@ -197,7 +198,9 @@ def etendre(table, conflits):
         if w not in T:
             T[w] = [g, tete(w, g), '', part(m, f), str(m + f)]
         else:
-            T[w][0] = g; T[w][3] = part(m, f); T[w][4] = str(m + f)
+            if T[w][0] != '?':                                 # liste n° 443 : « Sacha », masculin ET féminin pour le Wiktionnaire, reste sans genre
+                T[w][0] = g
+            T[w][3] = part(m, f); T[w][4] = str(m + f)
     Q = collections.defaultdict(lambda: [0, 0])                # ① ② ⑤ Québec
     for k, fn in enumerate(('quebec-garcons.csv', 'quebec-filles.csv')):
         with io.open(os.path.join(SOURCES, fn), encoding='utf-8-sig') as h:
@@ -228,7 +231,7 @@ def etendre(table, conflits):
         if not L:
             continue
         if d in T:                                             # « Emilie », « Sebastien » : graphies de l'état civil, la sœur accentuée fait référence
-            vraies = [w for w in L if sum(I.get(w, [0, 0])) >= SEUIL_FR]   # une sœur réellement donnée (« Cathérine », 0 naissance, ne fait pas référence pour « Catherine »)
+            vraies = [w for w in L if sum(I.get(w, [0, 0])) >= SEUIL_FR or freq.get(w.lower(), 0) >= 1]   # une sœur réellement donnée (« Cathérine », 0 naissance, ne fait pas référence pour « Catherine »), ou qui est aussi un mot courant (« Léger »)
             if vraies:
                 T[d][2] = max(vraies, key=lambda x: (sum(I[x]), x))
             continue

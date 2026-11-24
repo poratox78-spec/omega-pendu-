@@ -59,7 +59,7 @@ for nom, attendu in (('Marie', 'f'), ('Jean', 'm'), ('Julie', 'f'), ('Léa', 'f'
     if table.get(nom, (None,))[0] != attendu:
         echec.append('%s devrait être « %s », vu %r' % (nom, attendu, table.get(nom)))
 # liste n° 668 : les prénoms mixtes SONT dans la table, avec leur sexe majoritaire et sa part — sous 95 %, le moteur propose en orange
-for nom in ('Claude', 'Camille', 'Dominique', 'Sacha', 'Mery'):
+for nom in ('Claude', 'Camille', 'Dominique', 'Mery'):
     v = table.get(nom)
     if not v or v[0] not in ('m', 'f') or not v[3].isdigit() or int(v[3]) >= 95:
         echec.append('%s devrait être dans la table avec un sexe majoritaire sous 95 %% (orange), vu %r' % (nom, v))
@@ -70,6 +70,8 @@ if table.get('Helene', ('', False, ''))[2] != 'Hélène' or table.get('Emilie', 
     echec.append('« Helene » doit être une forme sans accent de « Hélène » (4e colonne)')
 if not table.get('Honore', ('', False))[1] or not table.get('Aime', ('', False))[1]:
     echec.append('« Honore » et « Aime » (graphies sans accent de l\'état civil, et mots du dictionnaire) doivent être MARQUÉS : jamais en tête de phrase')
+if table.get('Sacha', ('',))[0] != '?':
+    echec.append('« Sacha » doit garder le genre « ? » (liste n° 443 : masculin ET féminin, aucun accord proposé)')
 if not table.get('Jade', ('', False))[1]:
     echec.append('« Jade » doit être MARQUÉ : prénom neuf qui est aussi un mot courant, jamais en tête de phrase')
 # mots-outils : « Elle » est attesté comme prénom mais c'est le PRONOM 99,9 % du temps

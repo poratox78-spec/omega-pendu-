@@ -517,7 +517,7 @@ Algernon	m	0
 Algimante	f	0			
 Alhassan	m	0			
 Alhassane	m	0		100	405
-Ali	m	0		100	31640
+Ali	?	0		100	31640
 Alia	f	0		100	5245
 Aliana	f	0			
 Alianor	f	0			
@@ -2587,7 +2587,7 @@ Chloë	f	0		100	440
 Cho	f	0			
 Chokri	m	0			
 Choukri	m	0		100	490
-Chretien	m	0		100	830
+Chretien	m	0	Chrétien	100	830
 Chris	m	0		96	5730
 Chrislain	m	0			
 Chrislaine	f	0		100	305
@@ -3502,7 +3502,7 @@ Elfyn	m	0
 Elhadj	m	0		100	560
 Elhadji	m	0		100	335
 Elham	f	0		94	330
-Eli	m	0	Éli	95	2225
+Eli	?	0	Éli	95	2225
 Elia	f	0	Élia	95	10335
 Elia-Fee	f	0	Élia-Fée		
 Eliacin	m	0			
@@ -3845,7 +3845,7 @@ Esmee	f	0	Esmée	100	5140
 Esmeralda	f	1		100	1510
 Esmée	f	0		100	5140
 Esméralda	f	0			
-Esperance	f	0		94	1775
+Esperance	f	0	Espérance	94	1775
 Esperanza	f	0		100	485
 Esposito	m	0			
 Esprit	m	0			
@@ -4160,7 +4160,7 @@ Feryelle	f	0	Féryelle
 Fethi	m	0		100	845
 Fetije	f	0			
 Feyza	f	0		100	880
-Fidele	m	0		84	700
+Fidele	m	0	Fidèle	84	700
 Fideline	f	0		100	395
 Fidji	f	0		95	425
 Fidèle	m	0			
@@ -4216,7 +4216,7 @@ Flore	f	0		100	12425
 Flore-Anne	f	0			
 Floreal	m	0		100	745
 Florelle	f	0		100	550
-Florence	f	0		100	148105
+Florence	?	0		100	148105
 Florent	m	0		100	69875
 Florentin	m	0		100	7095
 Florentine	f	0		100	4220
@@ -4418,7 +4418,7 @@ Gabrielle	f	0		100	104325
 Gabrijela	f	0			
 Gabrièle	f	0			
 Gabryel	m	0		100	930
-Gaby	f	0		50	5110
+Gaby	?	0		50	5110
 Gad	m	0		100	405
 Gadija	f	0			
 Gael	m	0	Gaël	98	28325
@@ -5178,7 +5178,7 @@ Hinda	f	0		100	995
 Hinde	f	0		100	675
 Hinerava	f	0			
 Hippias	m	0			
-Hippolyte	m	0		98	11210
+Hippolyte	?	0		98	11210
 Hira	f	0		100	415
 Hiroaki	m	0			
 Hirokazu	m	0			
@@ -6018,7 +6018,7 @@ Jessy	m	0		77	17280
 Jessyca	f	0		100	590
 Jessyka	f	0		100	390
 Jessym	m	0		100	490
-Jesus	m	0		100	2015
+Jesus	m	0	Jésus	100	2015
 Jesús	m	0			
 Jevdokija	f	0			
 Jevgenija	f	0			
@@ -6140,7 +6140,7 @@ Joran	m	0		100	710
 Jorcel	m	0			
 Jordan	m	0		100	55580
 Jordana	f	0			
-Jordane	m	0		61	4710
+Jordane	?	0		61	4710
 Jordann	m	0			
 Jordanna	f	0			
 Jordanne	f	0			
@@ -7072,7 +7072,7 @@ Leeloo	f	0		100	1315
 Leelou	f	0		100	2315
 Leena	f	0		100	950
 Leeroy	m	0		100	2295
-Leger	m	0		100	380
+Leger	m	0	Léger	100	380
 Legija	m	0			
 Lehna	f	0		100	1580
 Lehyan	m	0		100	360
@@ -7259,7 +7259,7 @@ Lilyane	f	0		100	325
 Lilybelle	f	0			
 Lilyrose	f	0			
 Lima	m	0			
-Lin	m	0		77	665
+Lin	?	0		77	665
 Lina	f	0		100	74705
 Linard	m	0			
 Linarde	f	0			
@@ -7414,7 +7414,7 @@ Lorelie	f	0
 Loreline	f	0		100	365
 Lorella	f	0			
 Lorelyne	f	0			
-Loren	f	0		98	835
+Loren	?	0		98	835
 Lorena	f	0	Loréna	100	3865
 Lorene	f	0	Lorène	100	3035
 Lorenn	f	0			
@@ -8681,7 +8681,7 @@ Marilyne	f	0		100	11490
 Marilys	f	0		100	540
 Marilyse	f	0		100	440
 Marilène	f	0			
-Marin	m	0		100	13345
+Marin	?	0		100	13345
 Marina	f	0		100	44545
 Marine	f	0		100	119050
 Marine-Oceane	f	0	Marine-Océane		
@@ -8692,7 +8692,7 @@ Marinette	f	0		100	17405
 Marinne	f	0			
 Marino	m	0		100	795
 Mario	m	0		100	16815
-Marion	f	0		100	125645
+Marion	?	0		100	125645
 Maripiere	f	0	Maripière		
 Maripierre	f	0			
 Maripière	f	0			
@@ -10552,7 +10552,7 @@ Penda	f	0		100	605
 Penelope	f	0	Pénélope	100	3240
 Pensee	f	0	Pensée		
 Pensée	f	0			
-Pepin	m	0		76	475
+Pepin	m	0	Pépin	76	475
 Perdita	f	0			
 Perets	m	0			
 Perine	f	0		100	750
@@ -10752,7 +10752,7 @@ Priya	f	0		100	485
 Procope	m	0			
 Proserpine	f	0			
 Prosper	m	0		99	6935
-Prudence	f	0		100	1550
+Prudence	?	0		100	1550
 Prudent	m	0		100	670
 Prune	f	0		100	3640
 Prunelle	f	0		100	555
@@ -11250,7 +11250,7 @@ Sabrine	f	0		100	2600
 Sabry	m	0		100	805
 Sabryna	f	0		100	357
 Sabyl	m	0			
-Sacha	m	0		94	70100
+Sacha	?	0		94	70100
 Sacheen	f	0			
 Sachiyo	f	0			
 Saddam	m	0			
@@ -11349,7 +11349,7 @@ Salvatore	m	0		100	3690
 Salvo	m	0			
 Salwa	f	0		100	1160
 Salîm	m	0			
-Sam	m	0		90	7610
+Sam	?	0		90	7610
 Sama	f	0		99	360
 Samael	m	0	Samaël	98	830
 Samah	f	0		100	740
@@ -11369,7 +11369,7 @@ Samije	f	0
 Samina	f	0		100	305
 Samir	m	0		100	17270
 Samira	f	0		100	13420
-Sammy	m	0		100	1485
+Sammy	?	0		100	1485
 Samra	f	0		100	690
 Samson	m	0		94	2035
 Samuel	m	0		100	97210
@@ -11874,7 +11874,7 @@ Socrate	m	0
 Soen	m	0	Soën	100	1250
 Sofia	f	0		100	34050
 Sofian	m	0		100	6050
-Sofiane	m	0		100	24760
+Sofiane	?	0		100	24760
 Sofien	m	0		100	1245
 Sofiene	m	0		100	905
 Sofija	f	0			
@@ -11935,7 +11935,7 @@ Sony	m	0		98	1520
 Sonya	f	0		100	895
 Sophia	f	0		100	17830
 Sophian	m	0		100	1025
-Sophiane	m	0		88	1085
+Sophiane	?	0		88	1085
 Sophianne	f	0			
 Sophie	f	0		100	247475
 Sophie-Anne	f	0			
@@ -12085,7 +12085,7 @@ Susana	f	0		100	420
 Susanna	f	0			
 Susanne	f	0		100	500
 Susie	f	0		100	785
-Suzan	f	0		96	490
+Suzan	?	0		96	490
 Suzana	f	0		100	720
 Suzane	f	0		100	430
 Suzanna	f	0		100	700
