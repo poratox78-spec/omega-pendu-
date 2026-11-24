@@ -111,8 +111,9 @@ var _DECL2 = (function () {
       const prev = i>0 ? w[i-1] : '#'
       const nxt=i+g.length<w.length?w[i+g.length]:'#'
       let ph='?',h=0
-      if(DBL.has(g)){ const t=COND[g]; if(t){const e=t[nxt]||t['_']; ph=e[0]; h=e[1]} else {const e=(COND[g[0]]&&COND[g[0]]['_'])||[g[0],0]; ph=(e[0]&&e[0]!=='∅')?e[0]:g[0]; h=0} }   // bug DBL→∅ corrigé (ss/gg/zz) : COND[g] d'abord (l'entrée du digramme est correcte), repli anti-∅ — miroir dictee/decompose.py
-      else { const t=COND[g]; if(t){const e=t[nxt]||t['_']; ph=e[0]; h=e[1]} }
+      const _nu669={'à':'a','â':'a','ä':'a','é':'e','è':'e','ê':'e','ë':'e','î':'i','ï':'i','ô':'o','ö':'o','ù':'u','û':'u','ü':'u','ÿ':'y'};   /* liste n° 669 : devant une voyelle accentuée sans entrée dans la table, la lettre se lit comme devant la voyelle nue (« pensé », « zèbre », « gâto ») — avant, elle prenait le son de la fin de mot */
+      if(DBL.has(g)){ const t=COND[g]; if(t){const e=t[nxt]||t[_nu669[nxt]]||t['_']; ph=e[0]; h=e[1]} else {const e=(COND[g[0]]&&COND[g[0]]['_'])||[g[0],0]; ph=(e[0]&&e[0]!=='∅')?e[0]:g[0]; h=0} }   // bug DBL→∅ corrigé (ss/gg/zz) : COND[g] d'abord (l'entrée du digramme est correcte), repli anti-∅ — miroir dictee/decompose.py
+      else { const t=COND[g]; if(t){const e=t[nxt]||(g!=='ill'&&t[_nu669[nxt]])||t['_']; ph=e[0]; h=e[1]} }
       // ── contexte GAUCHE (bilatéral) : règles déterministes connues ──
       if(g==='s' && VOW.includes(prev) && VOW.includes(nxt)){ ph='z'; h=0.10 }      // s intervocalique → /z/  (maison, rose)
       else if(g==='x' && VOW.includes(prev) && VOW.includes(nxt)){ ph='ɡz'; h=0.15 }// x intervocalique → /gz/ (examen)

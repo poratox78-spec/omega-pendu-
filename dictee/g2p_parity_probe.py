@@ -33,6 +33,10 @@ BATTERIE = [
     # ⭐ 08/11/2026 — les -tient/-vient de tenir/venir gardent /jɛ̃/ : la liste ENTSIL en rendait 16 « muets » (il devient → « devi »,
     # il entretient → « tʁəti », le en d ENTRE muté). Mesuré sur la police de son : 12 des 300 verbes en -ent les plus fréquents.
     ('devient', 'dəvjɛ̃'), ('contient', 'kɔ̃tjɛ̃'), ('entretient', 'ɑ̃tʁətjɛ̃'), ('appartient', 'apaʁtjɛ̃'), ('souvient', 'suvjɛ̃'), ('obtient', 'optjɛ̃'),
+    # ⭐ 24/11/2026 (liste n° 669) — devant une voyelle ACCENTUÉE sans entrée dans la table, la lettre prenait son son de fin de mot :
+    # « s » et « z » muets (pensé → « pɑ̃e », zèbre → « ɛbʁ »), « g » lu « ʒ » devant â, « cc » lu « k » devant è. Mesuré sur les
+    # 57 329 mots à voyelle accentuée du dictionnaire : 1 376 lectures changent, 1 146 deviennent identiques au dictionnaire, 7 ne le sont plus.
+    ('pensé', 'pɑ̃se'), ('zèbre', 'zɛbʁ'), ('séparé', 'sepaʁe'), ('accès', 'aksɛ'), ('gâté', 'ɡate'), ('sûr', 'syʁ'), ('zélé', 'zele'), ('tuâmes', 'tɥam'),
 ]
 
 def norm(s):
