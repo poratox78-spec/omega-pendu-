@@ -503,7 +503,7 @@ def f_inversion_v2(w, rng, lex):
 #     opérations sans regarder le son du résultat.
 HOMOPHONES_V2 = {u'est': [(u'et', 18)], u'et': [(u'est', 11)], u'ce': [(u'se', 14)], u'se': [(u'ce', 7)], u'ont': [(u'on', 12)],
                  u'on': [(u'ont', 4)], u'sont': [(u'son', 8)], u'son': [(u'sont', 6)],
-                 u'ses': [(u'ces', 4)], u'ces': [(u'ses', 3)], u'tout': [(u'tous', 5)], u'tous': [(u'tout', 3)], u'aux': [(u'au', 5)],
+                 u'ses': [(u'ces', 4), (u'est', 3)], u'ces': [(u'ses', 3)], u'tout': [(u'tous', 5)], u'tous': [(u'tout', 3)], u'aux': [(u'au', 5), (u'o', 2)], u'au': [(u'o', 14)],
                  u'ils': [(u'il', 8)], u'sais': [(u'sait', 3)], u'sait': [(u'sais', 2)], u'veut': [(u'veux', 3)], u'peut': [(u'peux', 2), (u'peu', 2)],
                  u'es': [(u'est', 3)], u'sa': [(u'ça', 3)], u'ça': [(u'sa', 5)],
                  u'mais': [(u'mes', 2)], u'mes': [(u'mais', 2)], u'dans': [(u'dan', 7)], u'très': [(u'tré', 13)]}
@@ -600,25 +600,138 @@ def _apres_pluriel(morceaux, i):
     return False
 
 
+# ⭐ VERSION 2.2 (25/11/2026, liste n° 672). Les fautes multiples de la version 2.1 étaient trop SAGES : en cherchant le bon mot parmi
+# les voisins proches (2 lettres ou 1 son), on le retrouvait pour 66 % des fautes générées restées sans le bon mot, contre 43 % des
+# fautes réelles. Relevé sur les 301 fautes multiples réelles d'un mot de 4 lettres et plus, sans mot collé ni coupé à côté
+# (890 opérations de lettres), réel / version 2.1 :
+#   · nature des opérations : lettre ABSENTE 46 % / 23 %, lettre changée 44 % / 52 %, lettre en trop 10 % / 25 % ;
+#   · le mot écrit est plus COURT : −1 lettre 38 % / 26 %, −2 lettres 20 % / 4 %, −3 et moins 12 % / 1 % ; plus long 13 % / 36 % ;
+#   · deux lettres absentes qui se suivent : 21 % / 3 % ; première lettre touchée : 26 % / 7 % ;
+#   · lettres changées (attendue → écrite) : a→e 32, c→s 32, i→e 26, m→n 24, e→a 21, u→o 19, s→e 14, t→e 12 ;
+#   · son du mot écrit : le même 26 %, un son d'écart 42 %, plus loin 32 % (version 2.1 : 10 / 37 / 53).
+# La brique compose donc ses opérations dans ces proportions au lieu d'appeler les autres briques au hasard.
+AUTRE_OPS_V2 = ((u'del', 60), (u'sub', 32), (u'ins', 8))          # poids de TIRAGE : le tri par le son et par la grille redonne 46 / 44 / 10
+AUTRE_TIERS_V2 = {u'del': (15, 12, 26), u'sub': (14, 15, 10), u'ins': (4, 2, 4)}      # début / milieu / fin du mot (poids de tirage)
+AUTRE_SUITE_V2 = 0.35              # une lettre absente en emporte une deuxième, sa voisine (réglé pour retomber sur 21 % des mots)
+AUTRE_P_PREMIERE = 0.45            # poids de la première lettre (réglé pour retomber sur 26 % des mots)
+CONF_AUTRE_V2 = {u'a': [(u'e', 32)], u'c': [(u's', 32), (u'e', 7)], u'i': [(u'e', 26), (u's', 4)], u'm': [(u'n', 24), (u'a', 3)],
+                 u'e': [(u'a', 21), (u't', 6), (u'r', 6), (u'i', 4), (u's', 3)], u'u': [(u'o', 19)],
+                 u's': [(u'e', 14), (u'o', 7), (u't', 5), (u'r', 5), (u'i', 4), (u'n', 3)], u't': [(u'e', 12), (u'a', 5), (u's', 4)],
+                 u'r': [(u'e', 4)], u'n': [(u'e', 4)], u'h': [(u'e', 3)]}
+AUTRE_INS_V2 = ((u'e', 13), (u'r', 12), (u'u', 10), (u'i', 7), (u's', 7), (u'l', 7), (u'q', 7), (u't', 5), (u'a', 4), (u'd', 4), (u'g', 3), (u'n', 3))
+AUTRE_MODES_V2 = ((u'son', 45), (u'son+1', 35), (u'lettres', 20))      # essais : réécriture au son, la même avec UNE lettre fausse, lettres seules
+AUTRE_SON_V2 = (40, 42, 22)        # son du résultat : même / un son d'écart / plus — poids de TIRAGE (tous les mots n'ont pas de
+                                   # réécriture de même son) pour retomber sur le relevé : 26 / 42 / 32
+
+
+def _autre_une(f, rng):
+    u"""Une opération d'une faute multiple sur la forme f. Renvoie (nouvelle forme, nombre de lettres touchées) ou (None, 0)."""
+    n = len(f)
+    if n < 2:
+        return None, 0
+    nat = _pondere(rng, list(AUTRE_OPS_V2))
+    tiers = AUTRE_TIERS_V2[nat]
+    pos = lambda i: (tiers[0] if i < n / 3.0 else tiers[1] if i < 2 * n / 3.0 else tiers[2]) * (AUTRE_P_PREMIERE if i == 0 else 1.0)
+    if nat == u'del':
+        i = _pondere(rng, [(i, pos(i)) for i in range(n)])
+        k = 2 if (n >= 5 and i + 1 < n and rng.random() < AUTRE_SUITE_V2) else 1
+        return f[:i] + f[i + k:], k
+    if nat == u'sub':
+        t = _pondere(rng, [((i, autre), q * pos(i)) for i in range(n) for autre, q in CONF_AUTRE_V2.get(f[i], ())])
+        return (f[:t[0]] + t[1] + f[t[0] + 1:], 1) if t else (None, 0)
+    i = _pondere(rng, [(i, pos(min(i, n - 1))) for i in range(n + 1)])
+    return f[:i] + _pondere(rng, list(AUTRE_INS_V2)) + f[i:], 1
+
+
+# LA RÉÉCRITURE AU SON. Une faute multiple réelle sur quatre garde exactement le son du mot : le mot est récrit comme il s'entend.
+# Composer des lettres absentes ou changées n'y arrive presque jamais (7 %). Cette table est celle des graphies du français qui
+# se lisent pareil (savoir public, aucun texte privé) ; chaque réécriture n'est gardée que si la lecture devinée du MOTEUR dit
+# « même son » — c'est lui qui décide, pas la table.
+GRAPHIES_SON_V2 = (
+    (u'eau', (u'o', u'au')), (u'au', (u'o',)), (u'ai', (u'è', u'é', u'ei', u'e')), (u'ei', (u'ai', u'è')), (u'è', (u'ai', u'ê', u'e')),
+    (u'ê', (u'è', u'ai', u'e')), (u'é', (u'er', u'ai', u'ez')), (u'an', (u'en',)), (u'en', (u'an',)), (u'am', (u'an',)),
+    (u'em', (u'en', u'an')), (u'ain', (u'in',)), (u'ein', (u'in',)), (u'in', (u'ain', u'un')), (u'im', (u'in',)), (u'om', (u'on',)),
+    (u'ph', (u'f',)), (u'qu', (u'k', u'c')), (u'c', (u'k', u's', u'ss', u'qu')), (u'ç', (u's', u'ss')), (u'ss', (u's', u'c')),
+    (u's', (u'ss', u'z', u'c')), (u'x', (u'ks', u's')), (u'gu', (u'g',)), (u'ge', (u'j',)), (u'g', (u'j', u'gu')), (u'j', (u'g',)),
+    (u'y', (u'i',)), (u'i', (u'y',)), (u'h', (u'',)), (u'll', (u'l',)), (u'mm', (u'm',)), (u'nn', (u'n',)), (u'tt', (u't',)),
+    (u'rr', (u'r',)), (u'pp', (u'p',)), (u'ff', (u'f',)), (u'cc', (u'c',)), (u'tion', (u'sion',)), (u'eu', (u'e',)), (u'œ', (u'e',)),
+)
+FINALES_MUETTES_V2 = u'tsdxepg'
+
+
+def _autre_son(f, w, rng):
+    u"""Une réécriture de f qui garde le son de w (vérifié par le moteur). Renvoie la nouvelle forme ou None."""
+    cands = []
+    for a, bs in GRAPHIES_SON_V2:
+        i = f.find(a)
+        while i >= 0:
+            for b in bs:
+                cands.append(f[:i] + b + f[i + len(a):])
+            i = f.find(a, i + 1)
+    if len(f) >= 4 and f[-1] in FINALES_MUETTES_V2:
+        cands.append(f[:-1])
+    rng.shuffle(cands)
+    if rng.random() < 0.6:
+        cands.sort(key=lambda g: len(g) > len(f))           # ce qui allonge le mot passe en dernier : le réel raccourcit
+    for g in cands[:30]:
+        if g != w and g != f and len(g) >= 2 and _ecart_son(w, g) == 0:
+            return g
+    return None
+
+
+def _abime(w, rng, nb):
+    u"""nb lettres fausses sur le mot, avec les opérations des fautes multiples (pour les mots collés ou coupés)."""
+    f, faites = w, 0
+    for _ in range(nb + 3):
+        if faites >= nb:
+            break
+        g, q = _autre_une(f, rng)
+        if g and g != f and g != w and len(g) >= 2 and q == 1:
+            f, faites = g, faites + 1
+    return f
+
+
 def f_autre_v2(w, rng, lex):
-    u"""Fautes multiples sur le même mot, version 2.1 : de deux à cinq opérations (proportion mesurée), plusieurs essais, et le SON du
-    résultat tiré comme dans le réel (même son 20 %, un son d'écart 38 %, plus 42 %)."""
+    u"""Fautes multiples sur le même mot, version 2.2 : de deux à cinq opérations (proportion mesurée) tirées selon leur nature
+    relevée (lettre absente d'abord), plusieurs essais, et le SON du résultat tiré comme dans le réel. Un essai que la grille
+    rangerait dans une autre classe (deux lettres absentes seulement = « lettre manquante ») est écarté."""
     if len(w) < 4:
         return None
+    if not _CLASSE_GRILLE:
+        try:
+            from dys_reel_probe import classe
+            _CLASSE_GRILLE.append(classe)
+        except Exception:
+            _CLASSE_GRILLE.append(None)
+    classe = _CLASSE_GRILLE[0]
     essais = []
-    for _ in range(30):
+    for _ in range(60):
         nb = _pondere(rng, list(AUTRE_NB_V2))
         f, faites = w, 0
+        mode = _pondere(rng, list(AUTRE_MODES_V2))
+        une = rng.randrange(nb) if mode == u'son+1' else -1
         for k in range(nb + 2):
             if faites >= nb:
                 break
-            op = rng.choice([f_lettre_manque_v2, f_lettre_change_v2, f_lettre_trop_v2, f_accent_v2, f_terminaison_v2, f_accord_v2])
-            g = op(f, rng, lex)
+            g, q = _autre_une(f, rng) if (mode == u'lettres' or faites == une) else (_autre_son(f, w, rng), 1)
             if g and g != f and g != w and len(g) >= 2:
-                f, faites = g, faites + 1
-        if faites >= 2 and f != w:
+                f, faites = g, faites + q
+        if faites >= 2 and f != w and (classe is None or (classe(f, w) or u'autre') == u'autre'):
             essais.append((f, 1.0))
     return _tire_par_son(w, essais, rng, AUTRE_SON_V2) if essais else None
+
+
+_CLASSE_GRILLE = []
+# LES MOTS COLLÉS ET COUPÉS (version 2.2). Relevé sur les mêmes textes : 70 mots collés (3,2 % des fautes) et 13 mots coupés (0,6 %).
+#   · collés : le premier mot est une forme élidée 48 fois (la lettre, l'apostrophe en moins, puis le mot), un mot entier 22 fois,
+#     presque toujours d'une ou deux lettres ; lettres fausses dans le mot collé : aucune 21, une 31, deux 12, trois 6 ;
+#   · coupés : lettres exactes 3 fois, une ou deux lettres fausses 10 fois ; le premier morceau fait 1 lettre (4 fois), 2 (2), 3 (1),
+#     4 (6).
+# La grille mot à mot range ces fautes dans « mot oublié » + « autre » (ou « mot en trop ») : elle ne les compte pas à part.
+COLLE_FAUX_V2 = ((1, 31), (2, 12), (3, 6))      # le cas « lettres exactes » (21) vient déjà de l'apostrophe collée et de la fusion
+COLLE_ELIDE_V2 = (48, 22)          # forme élidée / mot entier
+COUPE_FAUX_V2 = ((0, 3), (1, 7), (2, 3))
+COUPE_DEBUT_V2 = ((1, 4), (2, 2), (3, 1), (4, 6))
 
 
 BRIQUES = [
@@ -659,6 +772,18 @@ OUTILS = set(u"le la les un une des de du au aux à a et ou en y il elle ils ell
 #     là le généré est un peu plus FACILE que le réel.
 #   La version 2.1 est la plus proche du réel sur presque chaque mesure ; elle ne l'a pas rejoint : il lui manque du son
 #   gardé et des fautes multiples plus proches du mot. Ne pas lire un chiffre obtenu sur du généré comme un chiffre sur du réel.
+# ⚠️ OÙ EN EST LA VERSION 2.2 (liste n° 672), mêmes 72 productions dys lourdes, réel / version 2.2 / version 2.1 :
+#   · répartition des classes, écart cumulé    —    / 4 à 5 points / 7 à 10 points (copies scolaires : 8 points environ)
+#   · même son que le mot attendu             40 % / 34 % / 30 %
+#   · fautes multiples : son proche           59 % / 59 % / 41 %
+#   · première lettre gardée                  86 % / 87 % / —
+#   · mots collés                             70   / 61   / 26 (dont avec lettres fausses : 49 / 34 / 1) ; mots coupés 13 / 15 / 0
+#   · LE CORRECTEUR, juge léger chargé (part des mots fautifs marqués / avec le bon mot / muets) : réel 86 / 62 / 14,
+#     version 2.2 : 82 / 55 / 18. Le généré est devenu un peu plus DUR que le réel (fautes multiples : bon mot 26 % contre 36 %).
+#   · quand le mot est marqué sans le bon mot parmi les candidats du juge (17 % des fautes, réel comme généré), des voisins plus
+#     larges (2 lettres ou 1 son) le contiennent dans 43 % des cas réels, 58 % des cas générés (66 % avec la version 2.1).
+#   Les poids de tirage des profils ont été refaits par correction directe, classe par classe (`colle` et `coupe` tenus à leur
+#   part relevée, que la grille ne compte pas à part). La version 1 ne bouge pas.
 CIBLE_V2 = {
     u'dys_lourd': {u'autre': 20.9, u'accord : marque finale (e/s/x)': 19.1, u'lettre manquante': 12.4, u'accent seul': 12.3,
                    u'terminaison verbale': 9.8, u'1 lettre changée': 8.1, u'mot oublié': 6.0, u'lettre en trop': 4.5,
@@ -671,18 +796,18 @@ CIBLE_V2 = {
 TAUX_V2 = {u'dys_lourd': 30.6, u'scolaire': 13.5}          # % de mots fautifs mesurés
 PROFILS = {
     u'asei': {u'briques': BRIQUES, u'oublie': MOT_OUBLIE, u'trop': MOT_TROP, u'segmentation': SEGMENTATION, u'apostrophe': 0.0, u'taux': TAUX},
-    u'dys_lourd': {u'briques': [(29.6, f_autre_v2), (21.2, f_accord_v2), (7.9, f_lettre_manque_v2), (11.9, f_accent_v2), (9.5, f_terminaison_v2),
-                               (3.4, f_lettre_change_v2), (0.5, f_lettre_trop_v2), (0.4, f_inversion_v2), (5.5, f_homophone_v2)],
-                   u'oublie': 4.8, u'trop': 1.5, u'segmentation': 0.1, u'apostrophe': 4.3, u'taux': 0.327},
-    u'scolaire': {u'briques': [(38.0, f_accord_v2), (19.0, f_accent_v2), (27.0, f_terminaison_v2), (6.5, f_lettre_manque_v2), (4.0, f_lettre_trop_v2),
-                              (9.7, f_autre_v2), (3.0, f_lettre_change_v2), (0.5, f_inversion_v2), (2.0, f_homophone_v2)],
-                  u'oublie': 0.6, u'trop': 0.9, u'segmentation': 0.0, u'apostrophe': 0.6, u'taux': 0.147},
+    u'dys_lourd': {u'briques': [(15.2, f_autre_v2), (24.9, f_accord_v2), (13.4, f_lettre_manque_v2), (12.1, f_accent_v2), (10.7, f_terminaison_v2),
+                               (7.7, f_lettre_change_v2), (2.7, f_lettre_trop_v2), (0.8, f_inversion_v2), (5.5, f_homophone_v2)],
+                   u'oublie': 3.2, u'trop': 1.2, u'segmentation': 0.4, u'apostrophe': 4.7, u'colle': 2.2, u'coupe': 0.6, u'taux': 0.319},
+    u'scolaire': {u'briques': [(50.2, f_accord_v2), (18.1, f_accent_v2), (27.8, f_terminaison_v2), (8.2, f_lettre_manque_v2), (6.2, f_lettre_trop_v2),
+                              (4.6, f_autre_v2), (4.0, f_lettre_change_v2), (0.4, f_inversion_v2), (2.0, f_homophone_v2)],
+                  u'oublie': 0.5, u'trop': 0.7, u'segmentation': 0.0, u'apostrophe': 0.3, u'taux': 0.149},
 }
 
 
 def genere(texte, rng, lex, taux=None, profil=None):
     u"""Renvoie (texte fautif, nombre de fautes posées). `profil` : None ou « asei » = version 1 (inchangée) ;
-    « dys_lourd » ou « scolaire » = version 2 (liste n° 670)."""
+    « dys_lourd » ou « scolaire » = version 2 (listes n° 670 à 672)."""
     prof = PROFILS[profil or u'asei']
     global _SON
     _SON = SON_V2.get(profil or u'asei', SON_V2[u'dys_lourd'])
@@ -699,7 +824,9 @@ def genere(texte, rng, lex, taux=None, profil=None):
     rng.shuffle(idx)
     tot = sum(p for p, _ in briques) + p_oublie + p_trop + p_seg + p_apo
     pose = 0
-    suppr, dup, fus, apo = [], [], [], []
+    suppr, dup, fus, apo, colles, coupes = [], [], [], [], [], []
+    p_colle, p_coupe = prof.get(u'colle', 0.0), prof.get(u'coupe', 0.0)
+    tot += p_colle + p_coupe
     libres = list(idx)
 
     # ⚠️ ON TIRE LA BRIQUE D'ABORD, PUIS on cherche un mot où elle s'applique.
@@ -737,6 +864,31 @@ def genere(texte, rng, lex, taux=None, profil=None):
                 if i in libres: libres.remove(i)
             continue
         r -= p_apo
+        if r < p_colle:                                       # version 2.2 : un petit mot collé au suivant, souvent avec des lettres fausses
+            elide = rng.random() * sum(COLLE_ELIDE_V2) < COLLE_ELIDE_V2[0]
+            cand = [i for i in range(0, len(morceaux) - 2, 2) if morceaux[i].isalpha() and len(morceaux[i]) <= 2 and (i + 2) in libres
+                    and len(morceaux[i + 2]) >= 3 and ((morceaux[i + 1] == u"'") if elide else (morceaux[i + 1] == u' ' and i in libres))]
+            if cand:
+                i = rng.choice(cand)
+                w = morceaux[i + 2]
+                out = _abime(w.lower(), rng, _pondere(rng, list(COLLE_FAUX_V2)))
+                morceaux[i + 2] = (out[0].upper() + out[1:]) if w[0].isupper() else out
+                colles.append(i); libres.remove(i + 2); pose += 1
+                if i in libres: libres.remove(i)
+            continue
+        r -= p_colle
+        if r < p_coupe:                                       # version 2.2 : un mot coupé en deux
+            cand = [i for i in libres if len(morceaux[i]) >= 6]
+            if cand:
+                i = rng.choice(cand)
+                w = morceaux[i]
+                out = _abime(w.lower(), rng, _pondere(rng, list(COUPE_FAUX_V2)))
+                k = min(_pondere(rng, list(COUPE_DEBUT_V2)), len(out) - 2)
+                out = out[:k] + u' ' + out[k:]
+                morceaux[i] = (out[0].upper() + out[1:]) if w[0].isupper() else out
+                libres.remove(i); pose += 1
+            continue
+        r -= p_coupe
         # --- opérations qui touchent les LETTRES ---
         for p, fn in briques:
             if r < p:
@@ -782,6 +934,8 @@ def genere(texte, rng, lex, taux=None, profil=None):
             morceaux[i + 1] = u''
         else:                                                 # « j ai »
             morceaux[i + 1] = u' '
+    for i in colles:
+        morceaux[i + 1] = u''
     for i in sorted(fus, reverse=True):
         morceaux[i] = morceaux[i] + morceaux[i + 2]
         morceaux[i + 1] = u''

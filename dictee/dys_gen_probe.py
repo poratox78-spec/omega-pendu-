@@ -67,8 +67,8 @@ t2, p2, d2, apo2 = traits(u'dys_lourd')
 t1, p1, d1, _ = traits(None)
 if not (t2 > t1 + 5):
     echec.append(u'③ le profil « dys_lourd » devrait poser nettement plus de fautes que la version 1 (%.1f %% contre %.1f %%)' % (t2, t1))
-if p2 < 88:
-    echec.append(u'③ première lettre gardée : %.1f %% (attendu 88 %% et plus — elle tient dans 96 %% des fautes réelles)' % p2)
+if p2 < 78:                                                # version 2.2 : 86 % dans le réel toutes fautes confondues (65 % dans les fautes multiples)
+    echec.append(u'③ première lettre gardée : %.1f %% (attendu 78 %% et plus — 86 %% dans le réel)' % p2)
 if d2 > 4:
     echec.append(u'③ lettres qui dansent (mêmes lettres, autre ordre) : %.1f %% des mots fautifs (attendu 4 %% au plus — 1 %% dans le réel)' % d2)
 if not (d2 < d1):
@@ -107,6 +107,32 @@ if sum(1 for f in t if f == u'manger') < 200:
 acc = [G.f_accord_v2(u'voitures', r, lex) for _ in range(300)]
 if sum(1 for f in acc if f == u'voiture') < 240:
     echec.append(u'⑥ accord : sur « voitures », la marque doit être OUBLIÉE presque toujours, vu %d sur 300' % sum(1 for f in acc if f == u'voiture'))
+
+# ⑦ version 2.2 (liste n° 672) : fautes multiples sur la forme relevée, réécriture au son, mots collés et coupés
+r = random.Random(13)
+MOT = u'photographie'
+multi = [f for f in (G.f_autre_v2(MOT, r, lex) for _ in range(200)) if f]
+if len(multi) < 150:
+    echec.append(u'⑦ fautes multiples : « %s » devrait presque toujours recevoir une faute multiple, vu %d sur 200' % (MOT, len(multi)))
+else:
+    courts = sum(1 for f in multi if len(f) < len(MOT)); sons = sum(1 for f in multi if G._ecart_son(MOT, f) == 0)
+    if courts < 0.5 * len(multi):
+        echec.append(u'⑦ fautes multiples : le mot écrit doit être plus COURT le plus souvent (70 %% dans le réel), vu %d sur %d' % (courts, len(multi)))
+    if sons < 0.12 * len(multi):
+        echec.append(u'⑦ fautes multiples : le son doit être gardé dans une bonne part des tirages (26 %% dans le réel), vu %d sur %d' % (sons, len(multi)))
+g = G._autre_son(MOT, MOT, r)
+if not g or g == MOT or G._ecart_son(MOT, g) != 0:
+    echec.append(u'⑦ réécriture au son : « %s » doit recevoir une autre graphie de même son, vu %r' % (MOT, g))
+PHRASE = u"Le voisin a un grand jardin et la maison de mon frère est proche de l'école du village."
+for cle, sens in ((u'colle', -1), (u'coupe', 1)):
+    G.PROFILS[u'_essai'] = {u'briques': [], u'oublie': 0.0, u'trop': 0.0, u'segmentation': 0.0, u'apostrophe': 0.0, cle: 1.0, u'taux': 0.2}
+    faux, k = G.genere(PHRASE, random.Random(5), lex, profil=u'_essai')
+    ecart = len(faux.replace(u"'", u' ').split()) - len(PHRASE.replace(u"'", u' ').split())
+    if k < 1 or ecart * sens < 1:
+        echec.append(u'⑦ « %s » : la phrase devrait %s des mots, écart vu %+d' % (cle, u'perdre' if sens < 0 else u'gagner', ecart))
+    del G.PROFILS[u'_essai']
+if G.PROFILS[u'asei'].get(u'colle') or G.PROFILS[u'asei'].get(u'coupe'):
+    echec.append(u'⑦ la version 1 ne doit ni coller ni couper des mots')
 
 if echec:
     print(u'  ✗ GÉNÉRATEUR DE FAUTES DYS :')
