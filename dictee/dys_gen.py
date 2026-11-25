@@ -39,7 +39,7 @@ RÉSULTATS MESURÉS (graine 20260807, 240 versions fautives des 6 dictées) :
         penche vers des fautes que le correcteur ne sait que SIGNALER, pas trancher. À surveiller
         si on s'en sert pour mesurer un progrès sur le rouge.
 
-⭐ VERSION 2 (25/11/2026, liste n° 670) : deux profils de plus, réglés sur 2 170 fautes réelles (dys lourd) et 574 (scolaire), avec
+⭐ VERSION 2 (25/11/2026, listes n° 670 et 671) : deux profils de plus, réglés sur 2 170 fautes réelles (dys lourd) et 574 (scolaire), avec
 la position de la faute dans le mot, le son gardé, le sens de l'accord et la longueur du mot touché. La version 1 reste le
 comportement par défaut, à l'identique. Détail et chiffres : le bloc « VERSION 2 » plus bas.
 
@@ -425,11 +425,11 @@ def f_lettre_trop_v2(w, rng, lex, reel=None):
 _ALPHABET = u'abcdefghijklmnopqrstuvwxyz'
 # Part des fautes qui donnent un VRAI mot, par classe (72 productions dys lourdes) : une lettre changée 59 %, une lettre en trop 52 %,
 # une lettre manquante 41 % ; la première version 2 en donnait 16, 18 et 28 %.
-REEL_V2 = {u'manque': 0.41, u'change': 0.59, u'trop': 0.52}
+REEL_V2 = {u'manque': 0.15, u'change': 0.25, u'trop': 0.20}          # version 2.1 : le reste des vrais mots vient de la brique des homophones
 _CLASSE_V2 = {u'f_lettre_manque_v2': u'manque', u'f_lettre_change_v2': u'change', u'f_lettre_trop_v2': u'trop'}
 # LE SENS DE L'ACCORD : dans le réel la marque est OUBLIÉE 86 fois sur 100 (« les voiture »), ajoutée 14 fois. La version 1 l'ajoute
 # 66 fois sur 100 — et une marque en trop sur un mot isolé est invisible pour un correcteur, d'où des « ratés » qui n'existent pas.
-P_ACCORD_OUBLI = 0.86
+P_ACCORD_OUBLI = 0.95                     # tiré plus haut que la part visée (86 %) : d'autres briques ajoutent des marques
 # LA LONGUEUR DU MOT TOUCHÉ : les fautes réelles tombent sur les mots longs (part des fautes / part des mots du texte : 1-2 lettres
 # 14 / 35, 3 lettres 8 / 14, 4-5 lettres 27 / 23, 6-8 lettres 34 / 20, 9 lettres et plus 17 / 8).
 def _poids_longueur(w):
@@ -490,13 +490,135 @@ def f_inversion_v2(w, rng, lex):
     return w[:i] + w[i + 1] + w[i] + w[i + 2:] if w[i] != w[i + 1] else None
 
 
+# ⭐ VERSION 2.1 (25/11/2026, liste n° 671, suite voulue par Rem). Trois mesures de plus sur les 1 929 mots
+# fautifs des productions dys lourdes, avec leur effet ici :
+#   · LES HOMOPHONES : dans 28 % des fautes, le mot écrit est un VRAI mot de même son que le mot attendu. La plupart sont des
+#     pluriels sans leur « s » (déjà dans l'accord). Restent les petits mots de grammaire, que rien ne fabriquait : est / et,
+#     ce / se, ont / on, où / ou, sont / son, ses / ces, tout / tous, aux / au, ils / il — environ 7 % des fautes. Une brique
+#     à part, `f_homophone_v2`, sur une liste fermée ; les poids sont les comptes relevés.
+#   · L'ACCORD OUBLIÉ suit un déterminant pluriel dans 36 % des cas (juste avant : 28 %, deux mots avant : 8 %). La brique ne
+#     voit qu'un mot : c'est genere() qui choisit de préférence un mot placé là (`_apres_pluriel`).
+#   · LES FAUTES MULTIPLES (« autre ») : 2 lettres à changer dans 45 % des cas, 3 dans 29 %, 4 ou plus dans 26 % ; le son est
+#     le même dans 20 % des cas, à un son près dans 38 %, plus loin dans 42 %. La version 2 composait toujours deux
+#     opérations sans regarder le son du résultat.
+HOMOPHONES_V2 = {u'est': [(u'et', 18)], u'et': [(u'est', 11)], u'ce': [(u'se', 14)], u'se': [(u'ce', 7)], u'ont': [(u'on', 12)],
+                 u'on': [(u'ont', 4)], u'sont': [(u'son', 8)], u'son': [(u'sont', 6)],
+                 u'ses': [(u'ces', 4)], u'ces': [(u'ses', 3)], u'tout': [(u'tous', 5)], u'tous': [(u'tout', 3)], u'aux': [(u'au', 5)],
+                 u'ils': [(u'il', 8)], u'sais': [(u'sait', 3)], u'sait': [(u'sais', 2)], u'veut': [(u'veux', 3)], u'peut': [(u'peux', 2), (u'peu', 2)],
+                 u'es': [(u'est', 3)], u'sa': [(u'ça', 3)], u'ça': [(u'sa', 5)],
+                 u'mais': [(u'mes', 2)], u'mes': [(u'mais', 2)], u'dans': [(u'dan', 7)], u'très': [(u'tré', 13)]}
+DET_PLURIEL_V2 = set(u"les des ces mes tes ses nos vos leurs aux quelques plusieurs certains certaines deux trois quatre cinq six sept "
+                     u"huit neuf dix tous toutes".split())
+P_APRES_PLURIEL = 1.0              # mesuré : sans rien forcer, 38 % des accords oubliés suivent déjà un déterminant pluriel (réel : 36 %)
+AUTRE_NB_V2 = ((2, 45), (3, 29), (4, 14), (5, 12))      # nombre d'opérations d'une faute multiple
+AUTRE_SON_V2 = (20, 38, 42)        # son du résultat : même / un son d'écart / plus
+
+
+# ⭐ CE QUE LE CORRECTEUR A MONTRÉ, classe par classe (part des mots fautifs laissés sans marque, réel / première version 2.1) :
+# accent seul 5 % / 24 %, terminaison verbale 19 % / 40 %, lettre manquante 19 % / 38 %. Trois briques tiraient donc des fautes
+# que personne ne fait. La forme RÉELLE, relevée sur les mêmes textes :
+#   · ACCENT : l'accent est OUBLIÉ 78 fois sur 100 (mauvais accent 14, accent en trop 7), et le résultat n'est un vrai mot que
+#     19 fois sur 100. Lettre attendue → lettre écrite : à→a 105, é→e 47, è→é 30, è→e 22, e→é 18, ù→u 10, ê→é 9, ê→e 8, û→u 5,
+#     ô→o 5, ç→c 5, â→a 4. La version 1 préférait le vrai mot quand il existait (« dès » pour « des ») : muet pour un correcteur.
+#   · TERMINAISON DE VERBE : -é→-er 51, -er→-é 24, -ut→-u 18, -és→-er 13, -ée→-er 10, -is→-ie 9, -ez→-er 8, -it→-i 8, -ait→-é 6,
+#     -ait→-ais 6, -ées→-és 5, -ut→-us 5, -is→-it 5, -er→-ez 4, -ais→-é 4 (copies scolaires : -aient→-ait 16, -er→-é 14, -é→-er 9,
+#     -is→-it 8). La version 1 tirait la finale au hasard dans la série.
+#   · LETTRE MANQUANTE, CHANGÉE, EN TROP : le vrai mot obtenu dans le réel est presque toujours un petit mot de grammaire
+#     (« et » pour « est ») ; ils ont leur brique. Ces trois-là ne visent donc plus qu'un peu de vrais mots.
+ACCENT_V2 = {u'à': [(u'a', 105)], u'é': [(u'e', 47)], u'è': [(u'é', 30), (u'e', 22)], u'e': [(u'é', 18)], u'ù': [(u'u', 10)],
+             u'ê': [(u'é', 9), (u'e', 8)], u'û': [(u'u', 5)], u'ô': [(u'o', 5)], u'ç': [(u'c', 5)], u'â': [(u'a', 4)], u'î': [(u'i', 1)]}
+TERMINAISON_V2 = {
+    u'dys_lourd': [(u'é', u'er', 51), (u'er', u'é', 24), (u'ut', u'u', 18), (u'és', u'er', 13), (u'ée', u'er', 10), (u'is', u'ie', 9),
+                   (u'ez', u'er', 8), (u'it', u'i', 8), (u'ait', u'é', 6), (u'ait', u'ais', 6), (u'ées', u'és', 5), (u'ut', u'us', 5),
+                   (u'is', u'it', 5), (u'er', u'ez', 4), (u'ais', u'é', 4), (u'er', u'ée', 3), (u'é', u'ait', 3), (u'ait', u'er', 3),
+                   (u'aient', u'er', 3), (u'us', u'ut', 3)],
+    u'scolaire': [(u'aient', u'ait', 16), (u'er', u'é', 14), (u'é', u'er', 9), (u'is', u'it', 8), (u'ées', u'és', 5), (u'ait', u'er', 5),
+                  (u'it', u'is', 5), (u'ut', u'us', 4), (u'us', u'ut', 4), (u'u', u'ut', 4), (u'ait', u'ai', 3), (u'it', u'i', 3)],
+}
+_TERM = TERMINAISON_V2[u'dys_lourd']       # posé par genere() selon le profil
+
+
+def _accent_cands(w):
+    u"""Toutes les fautes d'accent possibles sur le mot, avec leur poids (comptes relevés). Le « e » nu ne prend un accent
+    qu'à l'intérieur du mot ou en finale (« arrive » → « arrivé » est une autre faute : terminaison)."""
+    cands = []
+    for i, c in enumerate(w):
+        if c == u'e' and (i == 0 or i == len(w) - 1):
+            continue
+        for autre, poids in ACCENT_V2.get(c, ()):
+            cands.append((w[:i] + autre + w[i + 1:], poids))
+    return cands
+
+
+def f_accent_v2(w, rng, lex):
+    u"""Accent seul, version 2.1 : l'accent oublié d'abord, dans la proportion relevée ; aucune préférence pour le vrai mot."""
+    return _pondere(rng, _accent_cands(w))
+
+
+def _poids_accent(w):
+    return float(sum(q for _, q in _accent_cands(w.lower())))
+
+
+def _terminaison_cands(w):
+    plur, genres, pos = _morpho()
+    if u'VER' not in (pos.get(deacc(w)) or [u'VER']):
+        return []
+    cands = []
+    for attendue, ecrite, poids in _TERM:
+        if w.endswith(attendue) and len(w) - len(attendue) >= 2 and not any(w.endswith(plus) and len(plus) > len(attendue) for plus, _, _ in _TERM):
+            cands.append((w[:-len(attendue)] + ecrite, poids))
+    return cands
+
+
+def f_terminaison_v2(w, rng, lex):
+    u"""Terminaison de verbe, version 2.1 : la finale écrite suit les confusions relevées (-é / -er d'abord), sur un verbe."""
+    return _pondere(rng, _terminaison_cands(w))
+
+
+def _poids_terminaison(w):
+    return float(sum(q for _, q in _terminaison_cands(w.lower())))
+
+
+_POIDS_MOT_V2 = {u'f_accent_v2': _poids_accent, u'f_terminaison_v2': _poids_terminaison}
+
+
+def f_homophone_v2(w, rng, lex):
+    u"""Un petit mot de grammaire pour un autre de même son (« et » pour « est ») : liste fermée, poids = comptes relevés."""
+    return _pondere(rng, list(HOMOPHONES_V2.get(w, ())))
+
+
+def _apres_pluriel(morceaux, i):
+    u"""Le mot en i suit-il un déterminant pluriel (juste avant, ou deux mots avant) ?"""
+    vus = 0
+    for k in range(i - 1, -1, -1):
+        if morceaux[k] and morceaux[k].isalpha():
+            if morceaux[k].lower() in DET_PLURIEL_V2:
+                return True
+            vus += 1
+            if vus >= 2:
+                break
+    return False
+
+
 def f_autre_v2(w, rng, lex):
-    u"""Fautes multiples sur le même mot, version 2 : deux opérations distinctes, tirées dans les briques de la version 2."""
-    a = rng.choice([f_lettre_manque_v2, f_accent, f_lettre_change_v2, f_lettre_trop_v2])(w, rng, lex)
-    if not a or a == w:
+    u"""Fautes multiples sur le même mot, version 2.1 : de deux à cinq opérations (proportion mesurée), plusieurs essais, et le SON du
+    résultat tiré comme dans le réel (même son 20 %, un son d'écart 38 %, plus 42 %)."""
+    if len(w) < 4:
         return None
-    b = rng.choice([f_terminaison, f_accord_v2, f_lettre_manque_v2, f_lettre_change_v2])(a, rng, lex)
-    return b if (b and b != a) else None
+    essais = []
+    for _ in range(30):
+        nb = _pondere(rng, list(AUTRE_NB_V2))
+        f, faites = w, 0
+        for k in range(nb + 2):
+            if faites >= nb:
+                break
+            op = rng.choice([f_lettre_manque_v2, f_lettre_change_v2, f_lettre_trop_v2, f_accent_v2, f_terminaison_v2, f_accord_v2])
+            g = op(f, rng, lex)
+            if g and g != f and g != w and len(g) >= 2:
+                f, faites = g, faites + 1
+        if faites >= 2 and f != w:
+            essais.append((f, 1.0))
+    return _tire_par_son(w, essais, rng, AUTRE_SON_V2) if essais else None
 
 
 BRIQUES = [
@@ -525,14 +647,18 @@ OUTILS = set(u"le la les un une des de du au aux à a et ou en y il elle ils ell
 # grille range une partie de ses fautes dans une autre classe (deux fautes composées redeviennent une seule, l'apostrophe collée devient
 # un mot oublié…). Ils sont réglés pour que la répartition GÉNÉRÉE retombe sur la répartition mesurée : écart absolu cumulé de 4 à 7
 # points pour « dys_lourd » (34 à 37 pour la version 1 sur les mêmes textes), de 9 points environ pour « scolaire » (59 pour la version 1).
-# ⚠️ CE QUI RESTE LOIN DU RÉEL, mesuré par `--valide2` (72 productions dys lourdes ; réel / version 2 / version 1) :
-#   · même son que le mot attendu          40 % / 31 % / 25 %
-#   · le mot fautif est un vrai mot        49 % / 41 % / 42 %
-#   · accord : marque oubliée              86 % / 66 % / 34 %
-#   · LE JUGE (le correcteur, `dys_corpus_probe.js`) traite 78 % des fautes réelles, 66 à 68 % des fautes de la version 2 et
-#     62 à 63 % de celles de la version 1 : les fautes générées restent plus dures à corriger que les vraies. La version 2 est
-#     plus proche du réel sur chaque mesure ; elle ne l'a pas rejoint. Ne pas lire un chiffre obtenu sur du généré comme un
-#     chiffre sur du réel.
+# ⚠️ OÙ EN EST LA VERSION 2.1, mesuré par `--valide2` (72 productions dys lourdes ; réel / version 2.1 / version 1) :
+#   · répartition des classes, écart cumulé    —    / entre 7 et 10 points / 34 points
+#   · accord : marque oubliée                 86 % / 84 % / 34 %
+#   · homophone (vrai mot de même son)        28 % / 23 % / 20 %
+#   · même son que le mot attendu             40 % / 30 % / 25 %
+#   · le mot fautif est un vrai mot           49 % / 41 % / 42 %
+#   · fautes multiples : son proche           59 % / 41 % / 27 %
+#   · LE JUGE (le correcteur, `dys_corpus_probe.js`) traite 78 % des fautes réelles, 72 à 73 % des fautes de la version 2.1
+#     (66 à 68 % pour la version 2, 62 à 63 % pour la version 1). Sur les copies scolaires : 61 % du réel, 68 % du généré —
+#     là le généré est un peu plus FACILE que le réel.
+#   La version 2.1 est la plus proche du réel sur presque chaque mesure ; elle ne l'a pas rejoint : il lui manque du son
+#   gardé et des fautes multiples plus proches du mot. Ne pas lire un chiffre obtenu sur du généré comme un chiffre sur du réel.
 CIBLE_V2 = {
     u'dys_lourd': {u'autre': 20.9, u'accord : marque finale (e/s/x)': 19.1, u'lettre manquante': 12.4, u'accent seul': 12.3,
                    u'terminaison verbale': 9.8, u'1 lettre changée': 8.1, u'mot oublié': 6.0, u'lettre en trop': 4.5,
@@ -545,11 +671,11 @@ CIBLE_V2 = {
 TAUX_V2 = {u'dys_lourd': 30.6, u'scolaire': 13.5}          # % de mots fautifs mesurés
 PROFILS = {
     u'asei': {u'briques': BRIQUES, u'oublie': MOT_OUBLIE, u'trop': MOT_TROP, u'segmentation': SEGMENTATION, u'apostrophe': 0.0, u'taux': TAUX},
-    u'dys_lourd': {u'briques': [(35.8, f_autre_v2), (19.2, f_accord_v2), (6.0, f_lettre_manque_v2), (11.6, f_accent), (8.0, f_terminaison),
-                               (2.9, f_lettre_change_v2), (4.1, f_lettre_trop_v2), (0.5, f_inversion_v2)],
-                   u'oublie': 5.6, u'trop': 1.5, u'segmentation': 0.2, u'apostrophe': 4.7, u'taux': 0.339},
-    u'scolaire': {u'briques': [(38.0, f_accord_v2), (19.0, f_accent), (15.5, f_terminaison), (6.5, f_lettre_manque_v2), (7.3, f_lettre_trop_v2),
-                              (9.7, f_autre_v2), (4.0, f_lettre_change_v2), (0.15, f_inversion_v2)],
+    u'dys_lourd': {u'briques': [(29.6, f_autre_v2), (21.2, f_accord_v2), (7.9, f_lettre_manque_v2), (11.9, f_accent_v2), (9.5, f_terminaison_v2),
+                               (3.4, f_lettre_change_v2), (0.5, f_lettre_trop_v2), (0.4, f_inversion_v2), (5.5, f_homophone_v2)],
+                   u'oublie': 4.8, u'trop': 1.5, u'segmentation': 0.1, u'apostrophe': 4.3, u'taux': 0.327},
+    u'scolaire': {u'briques': [(38.0, f_accord_v2), (19.0, f_accent_v2), (27.0, f_terminaison_v2), (6.5, f_lettre_manque_v2), (4.0, f_lettre_trop_v2),
+                              (9.7, f_autre_v2), (3.0, f_lettre_change_v2), (0.5, f_inversion_v2), (2.0, f_homophone_v2)],
                   u'oublie': 0.6, u'trop': 0.9, u'segmentation': 0.0, u'apostrophe': 0.6, u'taux': 0.147},
 }
 
@@ -560,11 +686,13 @@ def genere(texte, rng, lex, taux=None, profil=None):
     prof = PROFILS[profil or u'asei']
     global _SON
     _SON = SON_V2.get(profil or u'asei', SON_V2[u'dys_lourd'])
+    global _TERM
+    _TERM = TERMINAISON_V2.get(profil or u'asei', TERMINAISON_V2[u'dys_lourd'])
     if taux is None:
         taux = prof[u'taux']
     briques, p_oublie, p_trop, p_seg, p_apo = prof[u'briques'], prof[u'oublie'], prof[u'trop'], prof[u'segmentation'], prof[u'apostrophe']
     morceaux = re.split(u'(\\W+)', APO.sub(u"'", texte))
-    idx = [i for i, m in enumerate(morceaux) if i % 2 == 0 and len(m) >= 2 and m.isalpha()]
+    idx = [i for i, m in enumerate(morceaux) if i % 2 == 0 and m.isalpha() and (len(m) >= 2 or (profil not in (None, u'asei') and m.lower() in (u'à', u'a')))]
     if not idx:
         return texte, 0
     cible = max(1, int(round(taux * len(idx))))
@@ -615,7 +743,22 @@ def genere(texte, rng, lex, taux=None, profil=None):
                 if profil in (None, u'asei'):
                     essai = rng.sample(libres, min(len(libres), 12))
                 else:                                         # version 2 : les mots longs d'abord, dans la proportion mesurée
-                    essai = sorted(libres, key=lambda i: -(rng.random() ** (1.0 / _poids_longueur(morceaux[i]))))[:12]
+                    if fn is f_homophone_v2:                  # version 2.1 : le MOT de la liste d'abord (par son compte), puis une occurrence
+                        presents = {}
+                        for i in libres:
+                            if morceaux[i].lower() in HOMOPHONES_V2:
+                                presents.setdefault(morceaux[i].lower(), []).append(i)
+                        mot = _pondere(rng, [(m, sum(q for _, q in HOMOPHONES_V2[m])) for m in sorted(presents)])
+                        essai = [rng.choice(presents[mot])] if mot else []
+                    elif fn is f_accord_v2:                   # version 2.1 : de préférence après un déterminant pluriel
+                        essai = sorted(libres, key=lambda i: -(rng.random() ** (1.0 / (_poids_longueur(morceaux[i])
+                                       * (P_APRES_PLURIEL if _apres_pluriel(morceaux, i) else 1.0)))))[:12]
+                    elif fn.__name__ in _POIDS_MOT_V2:        # version 2.1 : le mot est tiré selon ce que la brique peut y faire (« à » d'abord pour l'accent)
+                        pm = _POIDS_MOT_V2[fn.__name__]
+                        pesés = [(i, pm(morceaux[i])) for i in libres]
+                        essai = sorted([i for i, q in pesés if q > 0], key=lambda i: -(rng.random() ** (1.0 / pm(morceaux[i]))))[:12]
+                    else:
+                        essai = sorted(libres, key=lambda i: -(rng.random() ** (1.0 / _poids_longueur(morceaux[i]))))[:12]
                 classe_v2 = _CLASSE_V2.get(fn.__name__)
                 veut = (rng.random() < REEL_V2[classe_v2]) if classe_v2 else None
                 if veut is not None:                          # on cherche plus loin : tous les mots ne permettent pas un vrai mot voisin
@@ -696,9 +839,14 @@ def _mesures_v2(paires, lex):
     from dys_reel_probe import toks, align, classe, apostrophe
     cnt, n = _typologie(paires, colle=True)
     mots = sum(len(toks(g)) for _, g in paires)
-    t = {u'n4': 0, u'prem': 0, u'fin': 0, u'n': 0, u'son': 0, u'reel': 0, u'acc': 0, u'oubli': 0}
+    t = {u'n4': 0, u'prem': 0, u'fin': 0, u'n': 0, u'son': 0, u'reel': 0, u'acc': 0, u'oubli': 0, u'homo': 0, u'plur': 0, u'aut': 0, u'aut2': 0}
     for bad, good in paires:
-        for op, x, y in align(toks(bad), toks(good)):
+        ops = align(toks(bad), toks(good))
+        attendus = [y for op, x, y in ops if op != 'del']
+        rang = -1
+        for op, x, y in ops:
+            if op != 'del':
+                rang += 1
             if op != 'sub' or not x or not y or apostrophe(x, y):
                 continue
             xl, yl = x.lower().rstrip(u"'"), y.lower().rstrip(u"'")
@@ -707,11 +855,20 @@ def _mesures_v2(paires, lex):
                 continue
             t[u'n'] += 1
             t[u'reel'] += 1 if xl in lex else 0
+            meme = _ecart_son(yl, xl) == 0
             if len(yl) >= 3:
-                t[u'son'] += 1 if _ecart_son(yl, xl) == 0 else 0
-            if (classe(x, y) or u'').startswith(u'accord'):
+                t[u'son'] += 1 if meme else 0
+            t[u'homo'] += 1 if (meme and xl in lex and yl in lex) else 0
+            cl = classe(x, y) or u'autre'
+            if cl.startswith(u'accord'):
                 t[u'acc'] += 1
-                t[u'oubli'] += 1 if len(a) < len(b) else 0
+                if len(a) < len(b):
+                    t[u'oubli'] += 1
+                    avant = [m.lower().rstrip(u"'") for m in attendus[max(0, rang - 2):rang]]
+                    t[u'plur'] += 1 if any(m in DET_PLURIEL_V2 for m in avant) else 0
+            if cl == u'autre':
+                t[u'aut'] += 1
+                t[u'aut2'] += 1 if _ecart_son(yl, xl) <= 1 else 0
             if len(b) >= 4 and a != b:
                 t[u'n4'] += 1
                 t[u'prem'] += 1 if a[:1] == b[:1] else 0
@@ -720,7 +877,10 @@ def _mesures_v2(paires, lex):
     pc = lambda a, b: 100.0 * a / max(1, b)
     return {u'classes': dict((c, pc(v, n)) for c, v in cnt.items()), u'taux': pc(n, mots), u'première lettre gardée': pc(t[u'prem'], t[u'n4']),
             u'faute dans le dernier tiers du mot': pc(t[u'fin'], t[u'n4']), u'même son que le mot attendu': pc(t[u'son'], t[u'n']),
-            u'le mot fautif est un vrai mot': pc(t[u'reel'], t[u'n']), u'accord : marque oubliée': pc(t[u'oubli'], t[u'acc'])}
+            u'le mot fautif est un vrai mot': pc(t[u'reel'], t[u'n']), u'accord : marque oubliée': pc(t[u'oubli'], t[u'acc']),
+            u'homophone (vrai mot de même son)': pc(t[u'homo'], t[u'n']),
+            u'accord oublié après un dét. pluriel': pc(t[u'plur'], t[u'oubli']),
+            u'fautes multiples : son proche': pc(t[u'aut2'], t[u'aut'])}
 
 
 def valide_v2(profil, source, lex, graine=GRAINE):
@@ -744,7 +904,7 @@ def valide_v2(profil, source, lex, graine=GRAINE):
     print(u'  %-36s         %5.1f  %5.1f' % (u'écart absolu cumulé avec le réel', e2, e1))
     print(u'  %-36s  %5.1f  %5.1f  %5.1f' % (u'mots fautifs (% des mots)', reel[u'taux'], v2[u'taux'], v1[u'taux']))
     for k in (u'première lettre gardée', u'faute dans le dernier tiers du mot', u'même son que le mot attendu', u'le mot fautif est un vrai mot',
-              u'accord : marque oubliée'):
+              u'homophone (vrai mot de même son)', u'accord : marque oubliée', u'accord oublié après un dét. pluriel', u'fautes multiples : son proche'):
         print(u'  %-36s  %5.1f  %5.1f  %5.1f' % (k + u' (%)', reel[k], v2[k], v1[k]))
     dst = os.path.join(ROOT, 'data_local', 'dys_reel', 'genere_%s.jsonl' % profil)
     with io.open(dst, 'w', encoding='utf-8', newline=u'\n') as fh:

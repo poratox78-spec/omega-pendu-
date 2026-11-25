@@ -92,6 +92,22 @@ for prof, d in G.PROFILS.items():
 if G._cle_son(u'maison') == u'' or G._ecart_son(u'maison', u'maizon') != 0 or G._ecart_son(u'maison', u'raison') == 0:
     echec.append(u'⑤ la clé de son ne distingue plus « maison », « maizon » (même son) et « raison » (autre son) : la contrainte de son est muette')
 
+# ⑥ version 2.1 (liste n° 671) : les briques refaites sur la forme des fautes réelles
+r = random.Random(11)
+if G.f_homophone_v2(u'est', r, lex) != u'et' or G.f_homophone_v2(u'maison', r, lex) is not None:
+    echec.append(u'⑥ homophones : « est » doit donner « et », et un mot hors de la liste ne rien donner')
+sorties = [G.f_accent_v2(u'élève', r, lex) for _ in range(400)]
+if sum(1 for f in sorties if f in (u'elève', u'éleve')) < 220:
+    echec.append(u'⑥ accent : sur « élève », l\'accent doit être OUBLIÉ dans la majorité des tirages (78 % dans le réel)')
+if G.f_accent_v2(u'table', r, lex) is not None:
+    echec.append(u'⑥ accent : « table » n\'a pas d\'accent à perdre, et son « e » final ne doit pas en prendre')
+t = [G.f_terminaison_v2(u'mangé', r, lex) for _ in range(300)]
+if sum(1 for f in t if f == u'manger') < 200:
+    echec.append(u'⑥ terminaison : « mangé » doit donner « manger » dans la grande majorité des tirages (-é → -er, 51 cas sur 54)')
+acc = [G.f_accord_v2(u'voitures', r, lex) for _ in range(300)]
+if sum(1 for f in acc if f == u'voiture') < 240:
+    echec.append(u'⑥ accord : sur « voitures », la marque doit être OUBLIÉE presque toujours, vu %d sur 300' % sum(1 for f in acc if f == u'voiture'))
+
 if echec:
     print(u'  ✗ GÉNÉRATEUR DE FAUTES DYS :')
     for e in echec:
