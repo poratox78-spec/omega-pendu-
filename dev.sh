@@ -270,6 +270,7 @@ run "icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.pn
 run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check
 run "table des « -ent » de la police de son == le moteur (ent-3p.txt.gz)" node extension/build_ent3p.js --check
 run "dictionnaire compact : zéro perte, mot par mot (710 872 mots, ancien rangement reconstruit)" node --max-old-space-size=4096 extension/speller_compact_probe.js
+run "mots de la police OMEGA Dys Word == le moteur de son (mots_word.json)" node police/annoter_mots_word.js --check
 run "pack police OMEGA Dys FRAIS (octets == police/)" python3 police/build_pack.py --check
 run "complément Word (planificateur, texte jamais altéré)" node word/test_son_word.js
 # Même famille que le zip rassis : le clone anglais n'est régénéré que si quelqu'un y pense. Le

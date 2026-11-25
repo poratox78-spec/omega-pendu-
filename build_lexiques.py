@@ -50,7 +50,8 @@ FILES = [
     ('dictee/phono_morphalou.json',        'prononciations-morphalou.json',
      'Prononciations de ~{N_PHON} formes de Morphalou, notées comme dans Lexique 4 (forme → prononciation).', 'Morphalou 3.1 (LGPL-LR)'),
     ('extension/assets/prenoms.tsv.gz',    'prenoms-genre.tsv.gz',
-     'Prénoms et leur genre (accord : « Marie est venue »).', 'Wiktionnaire'),
+     'Prénoms et leur genre (accord : « Marie est venue »).',
+     'Wiktionnaire + Insee, Fichier des prénoms (Licence Ouverte 2.0) + Retraite Québec, Banque de prénoms (CC BY 4.0)'),   # sources citées aussi sur donnees.html : --check le vérifie
     ('extension/assets/ent-3p.txt.gz',     'troisieme-personne-pluriel.txt.gz',
      'Formes en « -ent » qui sont des 3es personnes du pluriel (« -ent » muet : ils mangent), tirées de la table de conjugaison.',
      'Lexique 4 + Morphalou 3.1 (LGPL-LR)'),
@@ -85,6 +86,11 @@ LGPL-LR (LICENSE-LGPL-LR.txt) avec toute redistribution des fichiers qui
 en dérivent (speller.tsv.gz, genre-accentue.json.gz, conjugaison.json,
 prononciations-morphalou.json, troisieme-personne-pluriel.txt.gz,
 genre-noms-verbes-rares.json).
+
+Les prénoms viennent du Wiktionnaire et, depuis novembre 2026, de deux
+fichiers publics de naissances : le Fichier des prénoms de l'Insee (Licence
+Ouverte 2.0) et la Banque de prénoms de Retraite Québec (CC BY 4.0). Seuls
+le prénom, le sexe majoritaire et sa part sont repris.
 
 Rien de privé ici : ni corpus personnel, ni WiCoPaCo, ni OQLF.
 
@@ -190,6 +196,13 @@ def check():
             if _texte(n): a, b = _lf(a), _lf(b)
             if a != b and not (n.endswith('.gz') and _contenu(a) == _contenu(b)): pb.append(f'périmé : {n}')
     if 'NOTICE.txt' in noms and z.read('NOTICE.txt').decode('utf-8') != notice: pb.append('périmé : NOTICE.txt')
+    # La PAGE qui présente le paquet (donnees.html) : ses chiffres sont ceux COMPTÉS ici, et les sources à citer y sont. Elle annonçait
+    # 12 945 verbes pour 12 935 livrés, et les prénoms sans leurs deux fichiers de naissances (vu le 25/11/2026) : rien ne la regardait.
+    page = io.open(os.path.join(HERE, 'donnees.html'), encoding='utf-8').read().replace('&nbsp;', ' ').replace(u'\u00a0', ' ')
+    c = _chiffres()
+    for attendu in ('~%s formes' % c['N_SPELLER'], '%s verbes' % c['N_VERBES'], 'conjugaison de %s verbes' % c['N_VERBES'], '~%s mots' % c['N_PENDU'],
+                    '~%s formes' % c['N_PHON'], 'Insee', u'Retraite Québec', 'Licence Ouverte', 'CC BY 4.0'):
+        if attendu not in page: pb.append(u'donnees.html ne dit pas « %s »' % attendu)
     if pb:
         print('✗ PAQUET DE DONNÉES PAS FRAIS — régénérer avec : python3 build_lexiques.py')
         for x in pb: print('   ', x)
