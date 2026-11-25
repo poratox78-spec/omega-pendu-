@@ -39,9 +39,15 @@ RÉSULTATS MESURÉS (graine 20260807, 240 versions fautives des 6 dictées) :
         penche vers des fautes que le correcteur ne sait que SIGNALER, pas trancher. À surveiller
         si on s'en sert pour mesurer un progrès sur le rouge.
 
+⭐ VERSION 2 (25/11/2026, liste n° 670) : deux profils de plus, réglés sur 2 170 fautes réelles (dys lourd) et 574 (scolaire), avec
+la position de la faute dans le mot, le son gardé, le sens de l'accord et la longueur du mot touché. La version 1 reste le
+comportement par défaut, à l'identique. Détail et chiffres : le bloc « VERSION 2 » plus bas.
+
   python dictee/dys_gen.py --demo             # montrer ce que ça produit
   python dictee/dys_gen.py --valide           # les trois juges
   python dictee/dys_gen.py --jsonl <n> <out>  # produire du corpus apparié
+  … --profil dys_lourd | scolaire             # la version 2 (avec --demo et --jsonl)
+  python dictee/dys_gen.py --valide2 --profil dys_lourd --source <paires.jsonl>   # version 2 contre le réel, mêmes textes
 """
 import os, sys, io, re, json, random, unicodedata, gzip, base64
 
@@ -256,6 +262,243 @@ def f_autre(w, rng, lex):
     return b if (b and b != a) else None
 
 
+# ================================================================================================
+# ⭐ VERSION 2 (25/11/2026, liste n° 670 — Rem : « prendre en compte les lettres dansantes »).
+#
+# CE QUE LA MESURE A DIT, avant d'écrire une ligne. La version 1 a été réglée sur 67 fautes (6 dictées).
+# Les 72 productions dys lourdes en donnent 2 189, les copies scolaires 575. Même grille (dys_reel_probe) :
+#   · LES LETTRES NE DANSENT PRESQUE PAS À L'ÉCRIT : un mot écrit avec les bonnes lettres dans un autre
+#     ordre, c'est 0,9 % des fautes (0,5 % chez les scolaires) — la version 1 en fabriquait 4,5 % ;
+#   · LA PREMIÈRE LETTRE TIENT : gardée dans 96 % des mots fautifs de 4 lettres et plus. La version 1 la
+#     changeait 22 fois sur 100 dans sa brique « lettre changée » ;
+#   · LA FAUTE EST À LA FIN : 59 % des fautes commencent dans le dernier tiers du mot ;
+#   · LES CONFUSIONS « EN MIROIR » (b/d, p/q) SONT ABSENTES : sur 128 lettres changées, aucune. Ce qu'on
+#     trouve : a→e 30, c→s 17, m→n 10, e→a 9, et des finales (s→t 8, s→e 7, t→s 4, s→x 3, t→x 3) ;
+#   · LA LETTRE QUI TOMBE est une double (54), une voyelle du milieu (35), la finale (33), une consonne
+#     du milieu (24), un h (3) ; LA LETTRE EN TROP est une double (25), une consonne (16), une voyelle
+#     (12), une finale (11) ;
+#   · UNE FAMILLE MANQUAIT : l'apostrophe oubliée (« jai », « lécole »), 3,6 % des fautes dys lourdes ;
+#   · le TAUX : 30,9 % des mots sont fautifs dans les textes dys lourds, 13,5 % chez les scolaires
+#     (19,8 % dans les 6 dictées).
+# L'idée des « lettres dansantes » sert donc comme règle de POSITION — ce que l'œil tient (le début du mot)
+# reste juste, c'est la fin qui lâche — et pas comme « mélanger les lettres ».
+#
+# TROIS PROFILS. `genere(..., profil=None)` reste la version 1, à l'identique (mêmes tirages) : le banc
+# public `faiblesses.jsonl` et les mesures d'avant restent comparables. `profil='dys_lourd'` et
+# `profil='scolaire'` sont la version 2. Les nombres de ce bloc sont des COMPTES mesurés, pas des réglages.
+# ⚠️ ÉCART CONNU : les mots collés ou mal coupés sont rares dans cette grille (0,1 %) parce que
+# l'alignement mot à mot les range dans « autre » ; la version 2 ne les modélise pas mieux que la 1.
+# ================================================================================================
+
+TIERS_MANQUE = (21, 45, 34)        # lettre manquante : début / milieu / fin du mot (mots de 4 lettres et plus)
+TIERS_CHANGE = (26, 36, 38)        # lettre changée
+P_PREMIERE = 0.06                  # la première lettre n'est touchée que 6 fois sur 100
+CONF_V2 = {u'a': [(u'e', 30)], u'c': [(u's', 17)], u'm': [(u'n', 10)], u'e': [(u'a', 9)], u'i': [(u'e', 3), (u'y', 3)],
+           u'g': [(u'c', 3)], u'u': [(u'i', 2)]}
+CONF_FIN_V2 = {u's': [(u't', 8), (u'e', 7), (u'x', 3)], u't': [(u's', 4), (u'x', 3)], u'x': [(u't', 2)]}   # sur la DERNIÈRE lettre seulement
+MANQUE_V2 = ((u'double', 54), (u'voyelle', 35), (u'finale', 33), (u'consonne', 24), (u'h', 3))
+TROP_V2 = ((u'double', 25), (u'consonne', 16), (u'voyelle', 12), (u'finale', 11))
+# L'apostrophe : trois formes mesurées. « collé » (« jai ») ne se voit pas dans la classe « élision / apostrophe » de la grille :
+# l'alignement le compte comme un mot oublié plus une lettre en trop. `_typologie(..., colle=True)` le compte à part.
+APO_COLLE = 19
+APO_V2 =((u'colle', APO_COLLE), (u'separe', 17), (u'entier', 16))
+APO_ENTIER = {u'l': (u'le', u'la'), u'd': (u'de',), u'j': (u'je',), u'n': (u'ne',), u'm': (u'me',), u't': (u'te',), u's': (u'se',), u'c': (u'ce',),
+              u'qu': (u'que',), u'jusqu': (u'jusque',), u'lorsqu': (u'lorsque',), u'puisqu': (u'puisque',), u'quelqu': (u'quelque',)}
+
+
+def _pondere(rng, choix):
+    u"""Tire un élément de [(valeur, poids), …] ; None si la liste est vide."""
+    choix = [(v, p) for v, p in choix if p > 0]
+    if not choix:
+        return None
+    r = rng.random() * sum(p for _, p in choix)
+    for v, p in choix:
+        if r < p:
+            return v
+        r -= p
+    return choix[-1][0]
+
+
+def _poids_position(i, n, tiers):
+    u"""Poids d'une position dans un mot de n lettres : son tiers (début, milieu, fin) et la règle de la première lettre."""
+    p = tiers[0] if i < n / 3.0 else tiers[1] if i < 2 * n / 3.0 else tiers[2]
+    return p * (P_PREMIERE if i == 0 else 1.0)
+
+
+# ⭐ LE SON. Le juge indépendant (le correcteur) a refusé la première version 2 : il traitait 78 % des fautes réelles et 62 % des
+# fautes générées — autant que la version 1. Mesure : une faute RÉELLE garde le son du mot bien plus souvent qu'une faute tirée au
+# hasard de la position. Clé de son = la lecture devinée du moteur (`decompose.g2p_moteur_cle`), mot écrit contre mot attendu :
+#                         même son    un son d'écart    plus      (72 productions dys lourdes)
+#   lettre manquante         59 %          26 %         15 %      — la version 1 : 17 / 47 / 36
+#   1 lettre changée         61 %          24 %         14 %      — la version 1 : 23 / 66 / 11
+#   lettre en trop           34 %          41 %         25 %
+# « Le dys écrit ce qu'il entend » : chaque brique énumère donc TOUTES ses fautes possibles sur le mot, les range par écart de son,
+# tire d'abord l'écart de son dans la proportion mesurée, puis la faute dans cette case (nature de la lettre et position).
+SON_V2 = {u'dys_lourd': {u'manque': (59, 26, 15), u'change': (61, 24, 14), u'trop': (34, 41, 25)},
+          u'scolaire': {u'manque': (38, 34, 28), u'change': (58, 32, 11), u'trop': (57, 34, 9)}}
+_SON = SON_V2[u'dys_lourd']        # posé par genere() selon le profil
+_CLE_SON, _G2P = {}, []
+
+
+def _cle_son(w):
+    u"""Clé de son du moteur ; chaîne vide si la lecture devinée n'est pas disponible (la contrainte de son se tait alors)."""
+    if not _G2P:
+        try:
+            import decompose
+            _G2P.append(decompose.g2p_moteur_cle)
+        except Exception:
+            _G2P.append(None)
+    if _G2P[0] is None:
+        return u''
+    if w not in _CLE_SON:
+        try:
+            _CLE_SON[w] = _G2P[0](w)
+        except Exception:
+            _CLE_SON[w] = u''
+    return _CLE_SON[w]
+
+
+def _ecart_son(a, b):
+    u"""0 = même son ; 1 = un son d'écart (changé, en plus ou en moins) ; 2 = plus."""
+    a, b = _cle_son(a), _cle_son(b)
+    if a == b:
+        return 0
+    if abs(len(a) - len(b)) > 1:
+        return 2
+    if len(a) == len(b):
+        return 1 if sum(1 for x, y in zip(a, b) if x != y) == 1 else 2
+    court, long_ = (a, b) if len(a) < len(b) else (b, a)
+    return 1 if any(long_[:k] + long_[k + 1:] == court for k in range(len(long_))) else 2
+
+
+def _tire_par_son(w, cands, rng, cible, lex=None, reel=None):
+    u"""cands = [(forme fautive, poids)] : tire d'abord l'écart de son (proportion mesurée), puis la forme dans cette case.
+    `reel` : True = la faute doit donner un VRAI mot (« par » pour « part »), False = un mot qui n'existe pas, None = libre.
+    C'est genere() qui tire ce choix dans la proportion mesurée (REEL_V2) et cherche un mot où il est possible."""
+    cases = {0: [], 1: [], 2: []}
+    for f, poids in cands:
+        if f != w and poids > 0 and (reel is None or not lex or (f in lex) == reel):
+            cases[_ecart_son(w, f)].append((f, poids))
+    e = _pondere(rng, [(k, cible[k]) for k in (0, 1, 2) if cases[k]])
+    return _pondere(rng, cases[e]) if e is not None else None
+
+
+def f_lettre_manque_v2(w, rng, lex, reel=None):
+    u"""Lettre en moins, version 2 : le SON gardé d'abord, puis la nature de la lettre qui tombe et sa position (comptes mesurés)."""
+    n = len(w)
+    if n < 3:
+        return None
+    nat = dict(MANQUE_V2)
+    cands = []
+    for i in range(n):
+        if i > 0 and w[i] == w[i - 1]:
+            poids = nat[u'double']
+        elif i == n - 1:
+            poids = nat[u'finale']
+        elif w[i] == u'h' and i > 0:
+            poids = nat[u'h'] * 4.0
+        else:
+            poids = (nat[u'voyelle'] if w[i] in VOY else nat[u'consonne']) * _poids_position(i, n, TIERS_MANQUE) / 40.0
+        cands.append((w[:i] + w[i + 1:], poids))
+    return _tire_par_son(w, cands, rng, _SON[u'manque'], lex, reel)
+
+
+def f_lettre_trop_v2(w, rng, lex, reel=None):
+    u"""Lettre en trop, version 2 : une consonne doublée, une consonne ou une voyelle glissée, une finale ajoutée — le son d'abord."""
+    n = len(w)
+    if n < 3:
+        return None
+    nat = dict(TROP_V2)
+    cands = []
+    for i in range(1, n):                                     # jamais devant la première lettre
+        if w[i] not in VOY and w[i] != w[i - 1]:
+            cands.append((w[:i] + w[i] + w[i:], nat[u'double']))
+        for c, q in ((u's', 3), (u't', 3), (u'n', 2), (u'r', 2), (u'l', 2), (u'h', 2)):
+            cands.append((w[:i] + c + w[i:], nat[u'consonne'] * q / 14.0))
+        for c, q in ((u'e', 6), (u'i', 2), (u'a', 1), (u'u', 1)):
+            cands.append((w[:i] + c + w[i:], nat[u'voyelle'] * q / 10.0))
+    for c, q in ((u't', 5), (u'd', 2), (u'r', 2), (u'p', 1)):   # pas e / s / x : une marque ajoutée est une faute d'ACCORD pour la grille
+        cands.append((w + c, nat[u'finale'] * q / 10.0 * n))
+    return _tire_par_son(w, cands, rng, _SON[u'trop'], lex, reel)
+
+
+_ALPHABET = u'abcdefghijklmnopqrstuvwxyz'
+# Part des fautes qui donnent un VRAI mot, par classe (72 productions dys lourdes) : une lettre changée 59 %, une lettre en trop 52 %,
+# une lettre manquante 41 % ; la première version 2 en donnait 16, 18 et 28 %.
+REEL_V2 = {u'manque': 0.41, u'change': 0.59, u'trop': 0.52}
+_CLASSE_V2 = {u'f_lettre_manque_v2': u'manque', u'f_lettre_change_v2': u'change', u'f_lettre_trop_v2': u'trop'}
+# LE SENS DE L'ACCORD : dans le réel la marque est OUBLIÉE 86 fois sur 100 (« les voiture »), ajoutée 14 fois. La version 1 l'ajoute
+# 66 fois sur 100 — et une marque en trop sur un mot isolé est invisible pour un correcteur, d'où des « ratés » qui n'existent pas.
+P_ACCORD_OUBLI = 0.86
+# LA LONGUEUR DU MOT TOUCHÉ : les fautes réelles tombent sur les mots longs (part des fautes / part des mots du texte : 1-2 lettres
+# 14 / 35, 3 lettres 8 / 14, 4-5 lettres 27 / 23, 6-8 lettres 34 / 20, 9 lettres et plus 17 / 8).
+def _poids_longueur(w):
+    n = len(w)
+    return 0.40 if n <= 2 else 0.57 if n == 3 else 1.17 if n <= 5 else 1.70 if n <= 8 else 2.10
+
+
+def f_accord_v2(w, rng, lex):
+    u"""Accord, version 2 : mêmes garde-fous que la version 1 (morphologie attestée), mais la marque est OUBLIÉE 86 fois sur 100."""
+    plur, genres, pos = _morpho()
+    d = deacc(w)
+    cat = (pos.get(d) or [u''])[0]
+    if cat and cat not in ACCORDABLE:
+        return None
+    oubli, ajout = [], []
+    if d in plur:
+        for m in (u'x', u's'):
+            if w.endswith(m) and len(w) - 1 >= 3:
+                oubli.append(w[:-1])
+    if w.endswith(u'e') and len(w) > 3 and w[:-1] in lex and cat in ('NOM', 'ADJ'):
+        oubli.append(w[:-1])
+    if w.endswith(u'es') and len(w) > 4 and w[:-2] in lex and cat in ('NOM', 'ADJ'):
+        oubli.append(w[:-2])
+    if d + u's' in plur:
+        ajout.append(w + u's')
+    if not w.endswith(u'e') and genres.get(d) and (w + u'e') in lex and cat in ('NOM', 'ADJ'):
+        ajout.append(w + u'e')
+    # Le sens est tiré D'ABORD ; si ce mot ne le permet pas, la brique s'abstient et genere() essaie un autre mot. Sans cela le sens
+    # suivait les mots du texte (surtout des singuliers) et la marque était ajoutée 63 fois sur 100.
+    cands = oubli if rng.random() < P_ACCORD_OUBLI else ajout
+    return _prefere_reel(cands, lex, rng) if cands else None
+
+
+def f_lettre_change_v2(w, rng, lex, reel=None):
+    u"""Une lettre pour une autre, version 2 : le son d'abord (c/s, s/z, g/j, c/k/q viennent d'eux-mêmes), puis les confusions
+    RÉELLES en priorité (a/e, c/s, m/n, finales s/t/x), presque jamais la première lettre."""
+    n = len(w)
+    if n < 3:
+        return None
+    cands = []
+    for i, c in enumerate(w):
+        if c not in _ALPHABET:
+            continue
+        connu = dict(CONF_V2.get(c, ()))
+        if i == n - 1:
+            connu.update(dict(CONF_FIN_V2.get(c, ())))
+        pos = _poids_position(i, n, TIERS_CHANGE)
+        for autre, poids in connu.items():                   # les confusions OBSERVÉES seulement : l'alphabet entier donnait « maisoh »
+            cands.append((w[:i] + autre + w[i + 1:], poids * pos))
+    return _tire_par_son(w, cands, rng, _SON[u'change'], lex, reel)
+
+
+def f_inversion_v2(w, rng, lex):
+    u"""Inversion de deux lettres voisines, version 2 : jamais la première lettre. Rare : 0,9 % des fautes réelles."""
+    if len(w) < 5:
+        return None
+    i = rng.randrange(1, len(w) - 1)
+    return w[:i] + w[i + 1] + w[i] + w[i + 2:] if w[i] != w[i + 1] else None
+
+
+def f_autre_v2(w, rng, lex):
+    u"""Fautes multiples sur le même mot, version 2 : deux opérations distinctes, tirées dans les briques de la version 2."""
+    a = rng.choice([f_lettre_manque_v2, f_accent, f_lettre_change_v2, f_lettre_trop_v2])(w, rng, lex)
+    if not a or a == w:
+        return None
+    b = rng.choice([f_terminaison, f_accord_v2, f_lettre_manque_v2, f_lettre_change_v2])(a, rng, lex)
+    return b if (b and b != a) else None
+
+
 BRIQUES = [
     (19.4, f_accent),
     (16.4, f_autre),
@@ -275,17 +518,60 @@ OUTILS = set(u"le la les un une des de du au aux à a et ou en y il elle ils ell
              u"sur pour par dans avec sans".split())
 
 
-def genere(texte, rng, lex, taux=TAUX):
-    u"""Renvoie (texte fautif, nombre de fautes posées)."""
+# Les profils. « asei » est la version 1, inchangée. Les deux autres sont la version 2.
+# CIBLE_V2 = les parts MESURÉES (72 productions dys lourdes : 2 170 fautes pour 7 085 mots ; copies scolaires EcriScol : 574 fautes
+# pour 4 258 mots), avec la grille `_typologie(..., colle=True)`.
+# Les poids des profils sont des poids de TIRAGE, et ils diffèrent des parts visées exprès : une brique échoue sur certains mots, et la
+# grille range une partie de ses fautes dans une autre classe (deux fautes composées redeviennent une seule, l'apostrophe collée devient
+# un mot oublié…). Ils sont réglés pour que la répartition GÉNÉRÉE retombe sur la répartition mesurée : écart absolu cumulé de 4 à 7
+# points pour « dys_lourd » (34 à 37 pour la version 1 sur les mêmes textes), de 9 points environ pour « scolaire » (59 pour la version 1).
+# ⚠️ CE QUI RESTE LOIN DU RÉEL, mesuré par `--valide2` (72 productions dys lourdes ; réel / version 2 / version 1) :
+#   · même son que le mot attendu          40 % / 31 % / 25 %
+#   · le mot fautif est un vrai mot        49 % / 41 % / 42 %
+#   · accord : marque oubliée              86 % / 66 % / 34 %
+#   · LE JUGE (le correcteur, `dys_corpus_probe.js`) traite 78 % des fautes réelles, 66 à 68 % des fautes de la version 2 et
+#     62 à 63 % de celles de la version 1 : les fautes générées restent plus dures à corriger que les vraies. La version 2 est
+#     plus proche du réel sur chaque mesure ; elle ne l'a pas rejoint. Ne pas lire un chiffre obtenu sur du généré comme un
+#     chiffre sur du réel.
+CIBLE_V2 = {
+    u'dys_lourd': {u'autre': 20.9, u'accord : marque finale (e/s/x)': 19.1, u'lettre manquante': 12.4, u'accent seul': 12.3,
+                   u'terminaison verbale': 9.8, u'1 lettre changée': 8.1, u'mot oublié': 6.0, u'lettre en trop': 4.5,
+                   u'élision / apostrophe': 3.6, u'mot en trop': 1.5, u'inversion': 0.9, u'apostrophe collée': 0.9,
+                   u'segmentation (scission)': 0.1},
+    u'scolaire': {u'accord : marque finale (e/s/x)': 30.3, u'accent seul': 22.8, u'terminaison verbale': 17.9, u'lettre manquante': 8.2,
+                  u'lettre en trop': 7.8, u'autre': 5.9, u'1 lettre changée': 4.9, u'mot en trop': 0.7, u'mot oublié': 0.5,
+                  u'inversion': 0.5, u'apostrophe collée': 0.2, u'élision / apostrophe': 0.2},
+}
+TAUX_V2 = {u'dys_lourd': 30.6, u'scolaire': 13.5}          # % de mots fautifs mesurés
+PROFILS = {
+    u'asei': {u'briques': BRIQUES, u'oublie': MOT_OUBLIE, u'trop': MOT_TROP, u'segmentation': SEGMENTATION, u'apostrophe': 0.0, u'taux': TAUX},
+    u'dys_lourd': {u'briques': [(35.8, f_autre_v2), (19.2, f_accord_v2), (6.0, f_lettre_manque_v2), (11.6, f_accent), (8.0, f_terminaison),
+                               (2.9, f_lettre_change_v2), (4.1, f_lettre_trop_v2), (0.5, f_inversion_v2)],
+                   u'oublie': 5.6, u'trop': 1.5, u'segmentation': 0.2, u'apostrophe': 4.7, u'taux': 0.339},
+    u'scolaire': {u'briques': [(38.0, f_accord_v2), (19.0, f_accent), (15.5, f_terminaison), (6.5, f_lettre_manque_v2), (7.3, f_lettre_trop_v2),
+                              (9.7, f_autre_v2), (4.0, f_lettre_change_v2), (0.15, f_inversion_v2)],
+                  u'oublie': 0.6, u'trop': 0.9, u'segmentation': 0.0, u'apostrophe': 0.6, u'taux': 0.147},
+}
+
+
+def genere(texte, rng, lex, taux=None, profil=None):
+    u"""Renvoie (texte fautif, nombre de fautes posées). `profil` : None ou « asei » = version 1 (inchangée) ;
+    « dys_lourd » ou « scolaire » = version 2 (liste n° 670)."""
+    prof = PROFILS[profil or u'asei']
+    global _SON
+    _SON = SON_V2.get(profil or u'asei', SON_V2[u'dys_lourd'])
+    if taux is None:
+        taux = prof[u'taux']
+    briques, p_oublie, p_trop, p_seg, p_apo = prof[u'briques'], prof[u'oublie'], prof[u'trop'], prof[u'segmentation'], prof[u'apostrophe']
     morceaux = re.split(u'(\\W+)', APO.sub(u"'", texte))
     idx = [i for i, m in enumerate(morceaux) if i % 2 == 0 and len(m) >= 2 and m.isalpha()]
     if not idx:
         return texte, 0
     cible = max(1, int(round(taux * len(idx))))
     rng.shuffle(idx)
-    tot = sum(p for p, _ in BRIQUES) + MOT_OUBLIE + MOT_TROP + SEGMENTATION
+    tot = sum(p for p, _ in briques) + p_oublie + p_trop + p_seg + p_apo
     pose = 0
-    suppr, dup, fus = [], [], []
+    suppr, dup, fus, apo = [], [], [], []
     libres = list(idx)
 
     # ⚠️ ON TIRE LA BRIQUE D'ABORD, PUIS on cherche un mot où elle s'applique.
@@ -299,35 +585,60 @@ def genere(texte, rng, lex, taux=TAUX):
         essais += 1
         r = rng.random() * tot
         # --- opérations qui touchent le MOT entier ---
-        if r < MOT_OUBLIE:
+        if r < p_oublie:
             cand = [i for i in libres if morceaux[i].lower() in OUTILS]
             if cand:
                 i = rng.choice(cand); suppr.append(i); libres.remove(i); pose += 1
             continue
-        r -= MOT_OUBLIE
-        if r < MOT_TROP:
+        r -= p_oublie
+        if r < p_trop:
             i = rng.choice(libres); dup.append(i); libres.remove(i); pose += 1
             continue
-        r -= MOT_TROP
-        if r < SEGMENTATION:
+        r -= p_trop
+        if r < p_seg:
             cand = [i for i in libres if i + 2 < len(morceaux) and morceaux[i + 1] == u' '
                     and (i + 2) in libres]
             if cand:
                 i = rng.choice(cand); fus.append(i); libres.remove(i); libres.remove(i + 2); pose += 1
             continue
-        r -= SEGMENTATION
+        r -= p_seg
+        if r < p_apo:                                         # version 2 : l'apostrophe oubliée (« j'ai » → « jai »)
+            cand = [i for i in range(0, len(morceaux) - 2, 2) if morceaux[i + 1] == u"'" and morceaux[i].isalpha() and (i + 2) in libres]
+            if cand:
+                i = rng.choice(cand); apo.append((i, _pondere(rng, list(APO_V2)))); libres.remove(i + 2); pose += 1
+                if i in libres: libres.remove(i)
+            continue
+        r -= p_apo
         # --- opérations qui touchent les LETTRES ---
-        for p, fn in BRIQUES:
+        for p, fn in briques:
             if r < p:
-                for i in rng.sample(libres, min(len(libres), 12)):
+                if profil in (None, u'asei'):
+                    essai = rng.sample(libres, min(len(libres), 12))
+                else:                                         # version 2 : les mots longs d'abord, dans la proportion mesurée
+                    essai = sorted(libres, key=lambda i: -(rng.random() ** (1.0 / _poids_longueur(morceaux[i]))))[:12]
+                classe_v2 = _CLASSE_V2.get(fn.__name__)
+                veut = (rng.random() < REEL_V2[classe_v2]) if classe_v2 else None
+                if veut is not None:                          # on cherche plus loin : tous les mots ne permettent pas un vrai mot voisin
+                    essai = sorted(libres, key=lambda i: -(rng.random() ** (1.0 / _poids_longueur(morceaux[i]))))[:40]
+                for i in essai:
                     w = morceaux[i]
-                    out = fn(w.lower(), rng, lex)
+                    out = fn(w.lower(), rng, lex, reel=veut) if veut is not None else fn(w.lower(), rng, lex)
                     if out and out != w.lower():
                         morceaux[i] = (out[0].upper() + out[1:]) if w[0].isupper() else out
                         libres.remove(i); pose += 1
                         break
                 break
             r -= p
+    for i, forme in sorted(apo, reverse=True):
+        entier = APO_ENTIER.get(morceaux[i].lower())
+        if forme == u'entier' and entier:                    # « que il », « le ami » : la forme pleine, pas d'élision
+            e = rng.choice(entier)
+            morceaux[i] = (e[0].upper() + e[1:]) if morceaux[i][0].isupper() else e
+            morceaux[i + 1] = u' '
+        elif forme == u'colle':                               # « jai »
+            morceaux[i + 1] = u''
+        else:                                                 # « j ai »
+            morceaux[i + 1] = u' '
     for i in sorted(fus, reverse=True):
         morceaux[i] = morceaux[i] + morceaux[i + 2]
         morceaux[i + 1] = u''
@@ -345,8 +656,10 @@ def genere(texte, rng, lex, taux=TAUX):
 # LES TROIS JUGES. Aucun n'a servi à calibrer — c'est toute la question.
 # ================================================================================================
 
-def _typologie(paires):
-    u"""Reclasse des paires (fautif, correct) avec la MÊME grille que sur le réel."""
+def _typologie(paires, colle=False):
+    u"""Reclasse des paires (fautif, correct) avec la MÊME grille que sur le réel.
+    `colle=True` (version 2) compte à part « l'apostrophe collée » (« jai » pour « j'ai ») : sans cela l'alignement en fait
+    un mot oublié plus une lettre en trop, sur le réel comme sur le généré."""
     from dys_reel_probe import toks, align, classe, apostrophe, _segmentation
     from collections import Counter
     cnt, n = Counter(), 0
@@ -358,6 +671,11 @@ def _typologie(paires):
             op, x, y = ops[k]
             if op == '=':
                 k += 1; continue
+            if colle and k + 1 < len(ops):
+                (o1, x1, y1), (o2, x2, y2) = ops[k], ops[k + 1]
+                if (o1 == 'ins' and o2 == 'sub' and y1.endswith(u"'") and x2.lower() == (y1[:-1] + y2).lower()) or \
+                   (o1 == 'sub' and o2 == 'ins' and y1.endswith(u"'") and x1.lower() == (y1[:-1] + y2).lower()):
+                    cnt[u'apostrophe collée'] += 1; n += 1; k += 2; continue
             seg = _segmentation(ops, k)
             if seg:
                 cnt[seg[0]] += 1; n += 1; k += 2; continue
@@ -372,7 +690,84 @@ def _typologie(paires):
     return cnt, n
 
 
+def _mesures_v2(paires, lex):
+    u"""Les mesures de la version 2 sur des paires (texte fautif, texte corrigé) : la répartition des classes, le taux de mots
+    fautifs, et quatre traits mot à mot (première lettre gardée, faute dans le dernier tiers, même son, vrai mot), plus le sens de l'accord."""
+    from dys_reel_probe import toks, align, classe, apostrophe
+    cnt, n = _typologie(paires, colle=True)
+    mots = sum(len(toks(g)) for _, g in paires)
+    t = {u'n4': 0, u'prem': 0, u'fin': 0, u'n': 0, u'son': 0, u'reel': 0, u'acc': 0, u'oubli': 0}
+    for bad, good in paires:
+        for op, x, y in align(toks(bad), toks(good)):
+            if op != 'sub' or not x or not y or apostrophe(x, y):
+                continue
+            xl, yl = x.lower().rstrip(u"'"), y.lower().rstrip(u"'")
+            a, b = deacc(xl), deacc(yl)
+            if a == b and xl == yl:
+                continue
+            t[u'n'] += 1
+            t[u'reel'] += 1 if xl in lex else 0
+            if len(yl) >= 3:
+                t[u'son'] += 1 if _ecart_son(yl, xl) == 0 else 0
+            if (classe(x, y) or u'').startswith(u'accord'):
+                t[u'acc'] += 1
+                t[u'oubli'] += 1 if len(a) < len(b) else 0
+            if len(b) >= 4 and a != b:
+                t[u'n4'] += 1
+                t[u'prem'] += 1 if a[:1] == b[:1] else 0
+                k = next((i for i in range(min(len(a), len(b))) if a[i] != b[i]), min(len(a), len(b)))
+                t[u'fin'] += 1 if k >= 2 * len(b) / 3.0 else 0
+    pc = lambda a, b: 100.0 * a / max(1, b)
+    return {u'classes': dict((c, pc(v, n)) for c, v in cnt.items()), u'taux': pc(n, mots), u'première lettre gardée': pc(t[u'prem'], t[u'n4']),
+            u'faute dans le dernier tiers du mot': pc(t[u'fin'], t[u'n4']), u'même son que le mot attendu': pc(t[u'son'], t[u'n']),
+            u'le mot fautif est un vrai mot': pc(t[u'reel'], t[u'n']), u'accord : marque oubliée': pc(t[u'oubli'], t[u'acc'])}
+
+
+def valide_v2(profil, source, lex, graine=GRAINE):
+    u"""Version 2 contre le RÉEL, sur les MÊMES textes corrigés. `source` : un fichier .jsonl de paires {raw, fixed} (corpus privé,
+    data_local/dys_reel). Écrit data_local/dys_reel/genere_<profil>.jsonl pour le juge indépendant : le correcteur."""
+    T = [json.loads(l) for l in io.open(source, encoding='utf-8') if l.strip()]
+    T = [j for j in T if j.get('fixed')]
+    reel = _mesures_v2([(j['raw'], j['fixed']) for j in T], lex)
+    rng = random.Random(graine)
+    gen2 = [(genere(j['fixed'], rng, lex, profil=profil)[0], j['fixed']) for j in T]
+    rng = random.Random(graine)
+    gen1 = [(genere(j['fixed'], rng, lex)[0], j['fixed']) for j in T]
+    v2, v1 = _mesures_v2(gen2, lex), _mesures_v2(gen1, lex)
+    print(u'GÉNÉRATEUR, VERSION 2 — profil « %s », %d textes, graine %d\n' % (profil, len(T), graine))
+    print(u'  %-36s   réel     v2     v1' % u'part des fautes (%)')
+    e2 = e1 = 0.0
+    for c in sorted(set(reel[u'classes']) | set(v2[u'classes']) | set(v1[u'classes']), key=lambda c: -reel[u'classes'].get(c, 0)):
+        r, a, b = reel[u'classes'].get(c, 0), v2[u'classes'].get(c, 0), v1[u'classes'].get(c, 0)
+        e2 += abs(a - r); e1 += abs(b - r)
+        print(u'  %-36s  %5.1f  %5.1f  %5.1f' % (c, r, a, b))
+    print(u'  %-36s         %5.1f  %5.1f' % (u'écart absolu cumulé avec le réel', e2, e1))
+    print(u'  %-36s  %5.1f  %5.1f  %5.1f' % (u'mots fautifs (% des mots)', reel[u'taux'], v2[u'taux'], v1[u'taux']))
+    for k in (u'première lettre gardée', u'faute dans le dernier tiers du mot', u'même son que le mot attendu', u'le mot fautif est un vrai mot',
+              u'accord : marque oubliée'):
+        print(u'  %-36s  %5.1f  %5.1f  %5.1f' % (k + u' (%)', reel[k], v2[k], v1[k]))
+    dst = os.path.join(ROOT, 'data_local', 'dys_reel', 'genere_%s.jsonl' % profil)
+    with io.open(dst, 'w', encoding='utf-8', newline=u'\n') as fh:
+        for bad, good in gen2:
+            fh.write(json.dumps({'src': 'genere_' + profil, 'raw': bad, 'fixed': good}, ensure_ascii=False) + u'\n')
+    print(u'\n  LE JUGE INDÉPENDANT reste le correcteur — comparer sa part de fautes traitées sur le réel et sur le généré :')
+    print(u'    node dictee/dys_corpus_probe.js %s' % os.path.relpath(source, ROOT).replace(os.sep, '/'))
+    print(u'    node dictee/dys_corpus_probe.js %s' % os.path.relpath(dst, ROOT).replace(os.sep, '/'))
+
+
 if __name__ == '__main__':
+    _opt = {}
+    for _nom in ('--profil', '--source'):
+        if _nom in sys.argv:
+            _k = sys.argv.index(_nom); _opt[_nom] = sys.argv[_k + 1]; del sys.argv[_k:_k + 2]
+    PROFIL_CLI = _opt.get('--profil')
+    if PROFIL_CLI is not None and PROFIL_CLI not in PROFILS:
+        sys.exit(u'profil inconnu : %s (connus : %s)' % (PROFIL_CLI, u', '.join(sorted(PROFILS))))
+    if len(sys.argv) > 1 and sys.argv[1] == '--valide2':
+        if not _opt.get('--source'):
+            sys.exit(u'usage : python dictee/dys_gen.py --valide2 --profil dys_lourd --source data_local/dys_reel/<paires>.jsonl')
+        valide_v2(PROFIL_CLI or u'dys_lourd', _opt['--source'], charge_lex())
+        sys.exit(0)
     from dys_reel_gold import raws
     arg = sys.argv[1] if len(sys.argv) > 1 else '--demo'
     lex = charge_lex()
@@ -385,7 +780,7 @@ if __name__ == '__main__':
     if arg == '--demo':
         print(u'GÉNÉRATEUR DE FAUTES DYS — graine %d\n' % GRAINE)
         for cle, _, gold in r[:3]:
-            faux, n = genere(gold, rng, lex)
+            faux, n = genere(gold, rng, lex, profil=PROFIL_CLI)
             print(u'  ORIGINAL : %s' % gold[:110])
             print(u'  GÉNÉRÉ   : %s' % faux[:110])
             print(u'  (%d fautes posées)\n' % n)
@@ -397,8 +792,8 @@ if __name__ == '__main__':
         with io.open(dst, 'w', encoding='utf-8') as fh:
             for i in range(n):
                 g = src[i % len(src)]
-                faux, _ = genere(g, rng, lex)
-                fh.write(json.dumps({'src': 'genere', 'raw': faux, 'fixed': g}, ensure_ascii=False) + u'\n')
+                faux, _ = genere(g, rng, lex, profil=PROFIL_CLI)
+                fh.write(json.dumps({'src': 'genere' if not PROFIL_CLI else 'genere_' + PROFIL_CLI, 'raw': faux, 'fixed': g}, ensure_ascii=False) + u'\n')
         print(u'%d paires -> %s' % (n, dst))
         sys.exit(0)
 
