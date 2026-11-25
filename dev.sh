@@ -279,6 +279,7 @@ run "clone anglais FRAIS (app EN == build(app FR))" python3 dictee/build_pendu_e
 # La table des PRÉNOMS existe en 3 copies (TSV Python, blob de l'app, asset de l'extension) : si elles
 # divergent, l'accord sur « Marie est venu » ne dit pas la même chose selon le moteur.
 run "prénoms : 3 copies identiques + contenu" python3 dictee/prenoms_probe.py
+run "générateur de fautes dys : version 1 intacte, traits de la version 2 (texte inventé — liste n° 670)" python3 dictee/dys_gen_probe.py
 # … et son COMPORTEMENT, joué dans un bac à sable (faux cache, faux réseau, fausse minuterie) : mesuré en production le
 # 18/09/2026, un visiteur de retour exécutait la page NEUVE avec les scripts de sa visite précédente (« cache d'abord » +
 # cache HTTP de 4 h). Code et style sont « réseau d'abord revalidé », et chaque écriture dans le cache est confiée à waitUntil ;

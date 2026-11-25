@@ -424,6 +424,10 @@ jobs:
       # gitignoré donc absent du runner — le piège payé avec lex4_en.b64 (#458).
       - name: DONNÉES — table des prénoms identique dans les 3 moteurs
         run: python3 dictee/prenoms_probe.py
+      # Le générateur de fautes dys sert de banc : la version 1 doit rester à l'identique, la version 2 garder ses traits
+      # (première lettre, peu de lettres qui dansent, apostrophe sous trois formes). Texte inventé, aucun corpus privé.
+      - name: GÉNÉRATEUR de fautes dys — version 1 intacte, traits de la version 2 (liste 670)
+        run: python3 dictee/dys_gen_probe.py
       # Depuis le 18/09/2026 la sonde EXÉCUTE sw.js dans un bac à sable et lit ce qu'il SERT : une page et son code se déploient
       # ensemble, ils doivent être servis ensemble (mesuré en production : page neuve + moteur de la visite précédente).
       - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge, comportement en bac à sable)
