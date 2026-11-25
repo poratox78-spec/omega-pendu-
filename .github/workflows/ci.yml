@@ -407,6 +407,8 @@ jobs:
         run: node extension/build_ent3p.js --check
       - name: Dictionnaire compact — zéro perte, mot par mot (l'ancien rangement reconstruit, 710 872 mots comparés)
         run: node --max-old-space-size=4096 extension/speller_compact_probe.js
+      - name: Police OMEGA Dys Word — ses mots annotés == le moteur de son actuel (mots_word.json)
+        run: node police/annoter_mots_word.js --check
       - name: LIVRAISON — le pack de polices OMEGA Dys téléchargeable est FRAIS (octets == police/)
         run: python3 police/build_pack.py --check
       - name: Complément Word — planificateur police de son (g2p réel, texte JAMAIS altéré, glue Office simulée)
